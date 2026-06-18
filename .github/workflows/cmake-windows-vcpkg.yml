@@ -22,6 +22,10 @@ jobs:
       VCPKG_DEFAULT_TRIPLET: x64-windows
       BUILD_DIR: cmake_vs_vcpkg
       SCCACHE_GHA_ENABLED: "true"
+      # Tells vcpkg to use GitHub Actions cache as its binary package store.
+      # Individual packages are keyed by content hash so a vcpkg.json change
+      # only rebuilds the packages that actually changed.
+      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────────
@@ -80,16 +84,17 @@ jobs:
           & "$vcpkg\bootstrap-vcpkg.bat" -disableMetrics
           "VCPKG_ROOT=$vcpkg" | Out-File $env:GITHUB_ENV -Append
 
-      # ── vcpkg package cache ───────────────────────────────────────────────
-      # Cache the installed tree inside the build directory.
-      # cmake runs vcpkg install during configure (manifest mode); if the cache
-      # hits, vcpkg finds packages already present and skips compilation.
-      # Key on ci_scripts/vcpkg.json — any feature change busts the cache.
-      - name: Cache vcpkg installed packages
-        uses: actions/cache@v4
+      # ── vcpkg binary cache (GitHub Actions backend) ───────────────────────
+      # Export the GHA cache service token so vcpkg's x-gha backend can
+      # read and write the binary package cache.  Each package is stored by
+      # its own content hash, so changing one dependency in vcpkg.json only
+      # re-downloads/re-builds the packages that actually changed.
+      - name: Expose GHA cache credentials for vcpkg
+        uses: actions/github-script@v7
         with:
-          path: ${{ env.BUILD_DIR }}\vcpkg_installed
-          key: vcpkg-x64-windows-${{ hashFiles('ci_scripts/vcpkg.json') }}
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL',   process.env.ACTIONS_CACHE_URL   || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       # ── wxWidgets ─────────────────────────────────────────────────────────
       - name: Get wxWidgets HEAD SHA

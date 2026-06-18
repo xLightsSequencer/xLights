@@ -56,12 +56,22 @@ static long CountSamples(AVFormatContext* fmtCtx, AVCodecContext* codecCtx, AVSt
                 do {
                     status = avcodec_receive_frame(codecCtx, frame);
                     if (status == AVERROR_EOF) break;
-                    total += frame->nb_samples;
+                    if (status == 0) total += frame->nb_samples;
                 } while (status != AVERROR(EAGAIN));
             }
         }
         av_packet_unref(pkt);
     }
+
+    // Flush delayed frames — codecs like WMA buffer output internally.
+    // Without this, CountSamples underestimates for any codec with AV_CODEC_CAP_DELAY,
+    // causing the main-decode buffers to be too small and overflowing the heap.
+    avcodec_send_packet(codecCtx, nullptr);
+    int flushStatus;
+    do {
+        flushStatus = avcodec_receive_frame(codecCtx, frame);
+        if (flushStatus == 0) total += frame->nb_samples;
+    } while (flushStatus == 0);
 
     av_packet_free(&pkt);
     av_frame_free(&frame);
@@ -150,8 +160,11 @@ int channels = codecCtx->ch_layout.nb_channels;
     info.bitRate = codecCtx->bit_rate;
     info.bitsPerSample = av_get_bytes_per_sample(codecCtx->sample_fmt);
 
-    // Count total samples for accurate sizing
+    // Count total samples for accurate sizing. CountSamples fully flushes the codec
+    // (including delayed frames for WMA etc.), so reset its internal state before the
+    // main decode pass below.
     long rawSamples = CountSamples(fmtCtx, codecCtx, audioStream);
+    avcodec_flush_buffers(codecCtx);
     double lengthInSeconds = (double)rawSamples / codecCtx->sample_rate;
     info.lengthMS = (long)floor(lengthInSeconds * 1000.0);
 
@@ -208,6 +221,13 @@ int channels = codecCtx->ch_layout.nb_channels;
         return false;
     }
 
+    // Track allocation capacities so loadResampled can clamp writes safely.
+    // Float buffers hold (trackSize + extra) samples; PCM buffer holds
+    // (pcmDataSize + PCMFUDGE) bytes == trackSize + PCMFUDGE/(outChannels*2) samples.
+    long allocatedFloatSamples = trackSize + extra;
+    long allocatedPcmSamples   = (pcmDataSize + PCMFUDGE) / (outChannels * (long)sizeof(uint16_t));
+    long allocatedSamples      = std::min(allocatedFloatSamples, allocatedPcmSamples);
+
     // Set up resampler: input format -> 16-bit stereo at targetRate
     AVSampleFormat outFmt = AV_SAMPLE_FMT_S16;
 
@@ -238,6 +258,11 @@ AVChannelLayout outLayout;
 
     auto loadResampled = [&](int sampleCount) {
         if (sampleCount <= 0) return;
+        // Hard clamp: never write past the end of either allocated buffer.
+        if (read + sampleCount > allocatedSamples) {
+            sampleCount = (int)(allocatedSamples - read);
+            if (sampleCount <= 0) return;
+        }
         if (read + sampleCount > trackSize) {
             extra -= (read + sampleCount - trackSize);
             trackSize = read + sampleCount;
@@ -290,17 +315,6 @@ AVChannelLayout outLayout;
 
     if (status == AVERROR_EOF)
         decodeFrame(true);
-
-    // Flush delayed codec frames
-    if (codecCtx->codec && (codecCtx->codec->capabilities & AV_CODEC_CAP_DELAY)) {
-        while ((status = av_read_frame(fmtCtx, pkt)) == 0) {
-            if (pkt->stream_index == audioStream->index)
-                decodeFrame(false);
-            av_packet_unref(pkt);
-        }
-        if (status == AVERROR_EOF)
-            decodeFrame(true);
-    }
 
     // Flush resampler
     int drained = swr_convert(swr, &outBuffer, CONVERSION_BUFFER_SIZE, nullptr, 0);

@@ -9,7 +9,9 @@
  **************************************************************/
 
 #include <wx/wx.h>
-#ifdef __WXMAC__
+#if defined(USE_GLES) && !defined(__WXMAC__)
+    #include <GLES3/gl3.h>
+#elif defined(__WXMAC__)
     #include "OpenGL/gl.h"
 #else
     #include <GL/gl.h>
@@ -551,7 +553,7 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         _media->SwitchTo(_type, _lowNote, _highNote);
     }
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED) {
-        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         mCurrentWaveView = views.size() - 1;
     }
@@ -589,17 +591,29 @@ void Waveform::mouseMoved(wxMouseEvent& event)
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
         wxPostEvent(mParent, eventSelected);
     } else {
+        // Cached stock cursors — constructing wxCursor(wxCURSOR_*) per
+        // mouse-move event allocates a 16 KiB CGImage on macOS.
+        static const wxCursor s_pointLeftCursor(wxCURSOR_POINT_LEFT);
+        static const wxCursor s_pointRightCursor(wxCURSOR_POINT_RIGHT);
+        static const wxCursor s_arrowCursor(wxCURSOR_ARROW);
+
         int selected_x1 = mTimeline->GetSelectedPositionStart();
         int selected_x2 = mTimeline->GetSelectedPositionEnd();
+        DRAG_MODE new_mode;
+        const wxCursor* new_cursor;
         if (event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
-            SetCursor(wxCURSOR_POINT_LEFT);
-            m_drag_mode = DRAG_LEFT_EDGE;
+            new_mode = DRAG_LEFT_EDGE;
+            new_cursor = &s_pointLeftCursor;
         } else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {
-            SetCursor(wxCURSOR_POINT_RIGHT);
-            m_drag_mode = DRAG_RIGHT_EDGE;
+            new_mode = DRAG_RIGHT_EDGE;
+            new_cursor = &s_pointRightCursor;
         } else {
-            SetCursor(wxCURSOR_ARROW);
-            m_drag_mode = DRAG_NORMAL;
+            new_mode = DRAG_NORMAL;
+            new_cursor = &s_arrowCursor;
+        }
+        if (new_mode != m_drag_mode) {
+            SetCursor(*new_cursor);
+            m_drag_mode = new_mode;
         }
     }
     int mouseTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
@@ -660,6 +674,25 @@ bool Waveform::PrepareStemData()
     auto* frame = xLightsApp::GetFrame();
     if (frame == nullptr) return false;
 
+    // The separation runs on a worker thread while we pump the event
+    // queue (wxApp::Yield) to keep the progress dialog live. That pump
+    // can re-dispatch the stem command (re-entry -> a second worker on
+    // the same _media) or let the sequence/_media be closed out from
+    // under the worker, both of which crash on a freed object (sig
+    // 0b727679d7). Refuse re-entry, and lock the UI down for the
+    // duration the same way a render does so the sequence can't be
+    // closed and the app can't be quit mid-inference.
+    if (_stemSeparationActive.exchange(true)) return false;
+    frame->EnableSequenceControls(false);
+    struct StemGuard {
+        std::atomic<bool>& active;
+        xLightsFrame* frame;
+        ~StemGuard() {
+            frame->EnableSequenceControls(true);
+            active.store(false);
+        }
+    } stemGuard{ _stemSeparationActive, frame };
+
     std::vector<std::string> roots;
     if (!xLightsFrame::CurrentDir.empty())
         roots.push_back(xLightsFrame::CurrentDir.ToStdString());
@@ -688,23 +721,49 @@ bool Waveform::PrepareStemData()
         if (locDlg.ShowModal() != wxID_OK)
             return false;
         const std::string chosenRoot = roots[locDlg.GetSelection()];
-        const std::string destDir = chosenRoot + "/" + AIModelStore::kModelsSubdir;
+        const std::string destDir = chosenRoot + "\\" + AIModelStore::kModelsSubdir;
         if (!AIModelStore::EnsureDirectory(destDir)) {
             DisplayError("Couldn't create directory: " + destDir);
             return false;
         }
 
-        const std::string local_Path = destDir + "/" + AIModelStore::kDemucsOnnxModelName;        
-        wxProgressDialog prog("Downloading Model",
-                                "Fetching HTDemucs stem-separation model…",
-                                100, this,
-                                wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
-        if (!CurlManager::HTTPSGetFile(AIModelStore::kDemucsOnnxDownloadURL, local_Path)) {
-            DisplayError("Download failed. Check your internet connection and try again.");
-            return false;
-        }        
+        const std::string local_Path = destDir + "\\" + AIModelStore::kDemucsOnnxModelName;
+        {
+            wxProgressDialog prog("Downloading Model",
+                                    "Downloading HTDemucs stem-separation model…",
+                                    1000, this,
+                                  wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME);
+            std::atomic<bool> dlDone(false);
+            std::atomic<bool> dlOk(false);
+            std::atomic<int>  dlPct(0);
+            std::atomic<bool> dlAbort(false);
+            std::thread dlWorker([&] {
+                auto cb = [&dlPct, &dlAbort](int pos) -> bool {
+                    dlPct.store(pos);
+                    return !dlAbort.load();
+                };
+                dlOk = CurlManager::HTTPSGetFile(AIModelStore::kDemucsOnnxDownloadURL, local_Path, {}, {}, 300, cb);
+                dlDone.store(true);
+            });
+            bool dlCancelled = false;
+            while (!dlDone.load()) {
+                if (!prog.Update(dlPct.load())) {
+                    dlAbort.store(true);
+                    dlCancelled = true;
+                    break;
+                }
+                wxMilliSleep(50);
+                wxTheApp->Yield(true);
+            }
+            dlWorker.join();
+            if (dlCancelled || !dlOk.load()) {
+                if (!dlCancelled)
+                    DisplayError("Download failed. Check your internet connection and try again.");
+                return false;
+            }
+        }
         modelPath = local_Path;
-        if (modelPath.empty() || std::filesystem::exists(modelPath)) {
+        if (modelPath.empty() || !std::filesystem::exists(modelPath)) {
             DisplayError("Model wasn't found anywhere under " + destDir);
             return false;
         }
@@ -715,7 +774,7 @@ bool Waveform::PrepareStemData()
         wxProgressDialog prog("Separating Stems",
             "Running HTDemucs — drums, bass, vocals, other…",
             100, this,
-            wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_CAN_ABORT);
+                              wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME | wxPD_CAN_ABORT);
         std::atomic<bool> done(false);
         std::atomic<bool> ok(false);
         std::atomic<int>  pct(0);
@@ -766,6 +825,25 @@ bool Waveform::PrepareStemData()
     }
     auto* frame = xLightsApp::GetFrame();
     if (frame == nullptr) return false;
+
+    // The separation runs on a worker thread while we pump the event
+    // queue (wxApp::Yield) to keep the progress dialog live. That pump
+    // can re-dispatch the stem command (re-entry -> a second worker on
+    // the same _media) or let the sequence/_media be closed out from
+    // under the worker, both of which crash on a freed object in
+    // RunChunk (sig 0b727679d7). Refuse re-entry, and lock the UI down
+    // for the duration the same way a render does so the sequence can't
+    // be closed and the app can't be quit mid-inference.
+    if (_stemSeparationActive.exchange(true)) return false;
+    frame->EnableSequenceControls(false);
+    struct StemGuard {
+        std::atomic<bool>& active;
+        xLightsFrame* frame;
+        ~StemGuard() {
+            frame->EnableSequenceControls(true);
+            active.store(false);
+        }
+    } stemGuard{ _stemSeparationActive, frame };
 
     // Build the list of candidate install roots: show folder first,
     // then each configured media folder in preference order.
@@ -970,12 +1048,13 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     _media = media;
     views.clear();
     ResetAnalysisState();
-	if (_media != nullptr) {
+    if (_media != nullptr) {
         _media->SwitchTo(_type);
-		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-		views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
-		mCurrentWaveView = 0;
-		return media->LengthMS();
+        if (mTimeline) mLastEffectiveTick = mTimeline->TimePerMajorTickInMS();
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
+        views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
+        mCurrentWaveView = 0;
+        return media->LengthMS();
     } else {
         mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
         SetZoomLevel(GetZoomLevel());
@@ -1385,6 +1464,12 @@ void Waveform::SetZoomLevel(int level)
 
     if (!mIsInitialized) return;
 
+    int effectiveTick = mTimeline ? mTimeline->TimePerMajorTickInMS() : 0;
+    if (effectiveTick > 0 && effectiveTick != mLastEffectiveTick) {
+        views.clear();
+        mLastEffectiveTick = effectiveTick;
+    }
+
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     for (size_t i = 0; i < views.size(); i++) {
         if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type) {
@@ -1392,7 +1477,7 @@ void Waveform::SetZoomLevel(int level)
         }
     }
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED) {
-        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         mCurrentWaveView = views.size() - 1;
     }
@@ -1428,19 +1513,25 @@ int Waveform::GetTimeFrequency() const
     return  mFrequency;
 }
 
-float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel) const
+float Waveform::GetSamplesPerLineFromZoomLevel() const
 {
-    // The number of periods for each Zoomlevel is held in ZoomLevelValues array
-    int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
-    float timePerPixel = ((float)periodsPerMajorHash/(float)mFrequency)/(float)PIXELS_PER_MAJOR_HASH;
+    float timePerPixel;
+    if (mTimeline != nullptr) {
+        // Use the timeline's tick (fit or discrete) so both panels share the same scale.
+        int tickMS = mTimeline->TimePerMajorTickInMS();
+        timePerPixel = (float)tickMS / 1000.0f / (float)PIXELS_PER_MAJOR_HASH;
+    } else {
+        int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
+        timePerPixel = ((float)periodsPerMajorHash / (float)mFrequency) / (float)PIXELS_PER_MAJOR_HASH;
+    }
     if (!drawingUsingLogicalSize()) {
         timePerPixel /= GetContentScaleFactor();
     }
-	if (_media != nullptr) {
-		return (float)timePerPixel * (float)_media->GetRate();
+    if (_media != nullptr) {
+        return (float)timePerPixel * (float)_media->GetRate();
     } else {
-		return 0.0f;
-	}
+        return 0.0f;
+    }
 }
 
 void Waveform::SetWaveFormSize(int h)
@@ -1461,7 +1552,7 @@ void Waveform::SetWaveFormSize(int h)
     views.clear();
 
     if (_media != nullptr) {
-        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(0, samplesPerLine, _media, _type, _lowNote, _highNote);
     }
 

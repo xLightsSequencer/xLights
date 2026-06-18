@@ -14,14 +14,14 @@ class RenderBuffer;
 class MetalPixelBufferComputeData {
 public:
     MetalPixelBufferComputeData();
-    ~MetalPixelBufferComputeData();
+    ~MetalPixelBufferComputeData() = default;
 
     bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB);
     bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels);
 
-    bool doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB);
-    bool doMap(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer);
-    bool doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> &prev);
+    bool doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB);
+    bool doMap(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer);
+    bool doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> prev);
     
     id<MTLBuffer> sparkleBuffer;
     id<MTLBuffer> tmpBufferBlend;
@@ -64,7 +64,7 @@ public:
 
     id<MTLBuffer> maskBuffer;
 private:
-    bool callRotoZoomFunction(id<MTLComputePipelineState> &f, RotoZoomData &data);
+    bool callRotoZoomFunction(id<MTLComputePipelineState> f, RotoZoomData &data);
     
     RenderBuffer *renderBuffer;
     int layer;
@@ -80,6 +80,11 @@ private:
     std::pair<uint32_t, uint32_t> pixelTextureSize;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
+
+    // Cached MPSImageTent for blur — recreating per-frame leaks driver-side
+    // metallib parsing state. Keep one alive per buffer, swap when radius changes.
+    id cachedBlurKernel;
+    int cachedBlurRadius;
     
     static std::atomic<uint32_t> commandBufferCount;
 };
@@ -128,7 +133,7 @@ public:
     class BlendFunctionInfo {
     public:
         BlendFunctionInfo(const char *fn, int mtd = 0, bool needIndexes = false);
-        ~BlendFunctionInfo();
+        ~BlendFunctionInfo() = default;
         
         id<MTLComputePipelineState> function;
         std::string name;
@@ -143,7 +148,7 @@ public:
     public:
         TransitionInfo(int t);
         TransitionInfo(const char *fn, int t, bool r = false);
-        ~TransitionInfo();
+        ~TransitionInfo() = default;
         id<MTLComputePipelineState> function;
         int type;
         bool reversed;

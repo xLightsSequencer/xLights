@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "xlights-openvino-nightly",
+  "description": "Nightly vcpkg manifest — CI-safe FFmpeg (no CUDA/OpenCL/QSV) plus OpenVINO + OpenVINO GenAI for the aigen-enabled nightly build.",
+  "dependencies": [
+    {
+      "name": "ffmpeg",
+      "default-features": false,
+      "features": [
+        "avcodec",
+        "avdevice",
+        "avfilter",
+        "avformat",
+        "swresample",
+        "swscale",
+        "gpl",
+        "x264",
+        "x265",
+        "vulkan"
+      ]
+    },
+    "sdl2",
+    "zstd",
+    "curl",
+    "zlib",
+    "hidapi",
+    "libxlsxwriter",
+    "libwebp",
+    "openvino",
+    "openvino-genai"
+  ],
+  "vcpkg-configuration": {
+    "overlay-ports": [
+      "../../ports"
+    ]
+  }
+}

@@ -1,13 +1,33 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Dynamic UTType for `.xsq` files. Declared here (not via
-/// UTExportedTypeDeclarations in the Info.plist) because Save-As
-/// needs a content type for the file exporter but iPad doesn't
-/// yet own the `.xsq` document type — desktop does. `.xml` is
-/// the fallback so the file exporter never no-ops.
+/// Dynamic UTType lookup for `.xsq`. Resolves to the
+/// `org.xlights.sequence` UTType exported by the iPad app's
+/// Info.plist; `.xml` is a defensive fallback so the file
+/// exporter never no-ops if the lookup ever fails.
 let kXSQFileType: UTType =
     UTType(filenameExtension: "xsq") ?? .xml
+
+/// EFX-1 — UTType for CSV files (Effects report export).
+let kCSVFileType: UTType = UTType(filenameExtension: "csv") ?? .commaSeparatedText
+
+/// EFX-1 — FileDocument wrapper for the Effects report (.csv).
+/// Bridge writes the CSV to a temp path; this hands the bytes to
+/// SwiftUI's `.fileExporter` (same pattern as `ModelsReportExportDoc`).
+struct EffectsExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kCSVFileType] }
+    static var writableContentTypes: [UTType] { [kCSVFileType] }
+    let sourcePath: String
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
 
 /// `FileDocument` for the Save-As flow. Wraps the on-disk bytes
 /// of an already-saved sequence so iOS's `.fileExporter` can
@@ -203,6 +223,16 @@ struct SequencerView: View {
         } message: {
             Text("This sequence has unsaved changes.")
         }
+        .confirmationDialog("Revert to Last Saved?",
+                            isPresented: $showingRevertPrompt,
+                            titleVisibility: .visible) {
+            Button("Revert", role: .destructive) {
+                viewModel.revertToLastSaved()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("All unsaved changes will be lost.")
+        }
         .fileExporter(
             isPresented: $showingSaveAsExporter,
             document: saveAsDoc,
@@ -210,7 +240,15 @@ struct SequencerView: View {
             defaultFilename: saveAsDefaultName
         ) { result in
             if case .success(let url) = result {
-                _ = viewModel.saveSequenceAs(path: url.path)
+                if viewModel.saveSequenceAs(path: url.path) {
+                    // LIFE-1 — the file is already written by the exporter, so
+                    // this is an informational guard: warn (non-blocking) when
+                    // the new location is outside the show / media folders, so
+                    // the user knows it won't be auto-managed with the show.
+                    if !viewModel.document.pathIs(inShowOrMediaFolder: url.path) {
+                        saveAsOutsideWarning = url.path
+                    }
+                }
             }
             saveAsDoc = nil
         }
@@ -222,6 +260,15 @@ struct SequencerView: View {
             Button("OK", role: .cancel) { saveAsError = nil }
         } message: {
             Text(saveAsError ?? "")
+        }
+        .alert("Saved Outside Show Folder",
+               isPresented: Binding(
+                get: { saveAsOutsideWarning != nil },
+                set: { if !$0 { saveAsOutsideWarning = nil } }
+               )) {
+            Button("OK", role: .cancel) { saveAsOutsideWarning = nil }
+        } message: {
+            Text("The sequence was saved outside the show folder and configured media folders. It won't be automatically found or packaged with the show. Consider saving it inside the show folder.")
         }
         .alert("Output to Lights",
                isPresented: Binding(
@@ -256,9 +303,67 @@ struct SequencerView: View {
                 viewModel.closeSequence()
             }
         }
+        // EFX-1 — Export Effects token: build the CSV then hand to fileExporter.
+        .onChange(of: viewModel.exportEffectsRequestToken) { _, _ in
+            startExportEffects()
+        }
+        .fileExporter(
+            isPresented: $showingEffectsExporter,
+            document: effectsExportDoc,
+            contentType: kCSVFileType,
+            defaultFilename: effectsExportDefaultName
+        ) { _ in
+            effectsExportDoc = nil
+        }
+        .alert("Export Effects Failed",
+               isPresented: Binding(
+                get: { effectsExportError != nil },
+                set: { if !$0 { effectsExportError = nil } }
+               )) {
+            Button("OK", role: .cancel) { effectsExportError = nil }
+        } message: {
+            Text(effectsExportError ?? "")
+        }
+        // AI-2 — standalone AI Image sheet. Same AIImageGenerationSheet,
+        // but the commit closure is a no-op (file is already in the show
+        // folder; the sheet's commitImage() already staged it there).
+        .sheet(isPresented: Bindable(viewModel).showingStandaloneAIImage) {
+            AIImageGenerationSheet { _ in }
+                .environment(viewModel)
+        }
+        .onChange(of: viewModel.revertRequestToken) { _, _ in
+            showingRevertPrompt = true
+        }
+        // #6258 — command palette (⌘⇧K). Presented as a sheet; the
+        // view-owned timeline is passed in so zoom commands can run.
+        .sheet(isPresented: Bindable(viewModel).commandPalettePresented) {
+            CommandPaletteSheet(timeline: timeline)
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
         // F-4: expose the live timeline to menu-bar commands (zoom).
         // `SequencerScene`-level Commands use `@FocusedValue(\.timeline)`.
         .focusedValue(\.timeline, timeline)
+    }
+
+    // MARK: - Export Effects (EFX-1)
+
+    @State private var showingEffectsExporter = false
+    @State private var effectsExportDoc: EffectsExportDoc? = nil
+    @State private var effectsExportDefaultName: String = "Effects.csv"
+    @State private var effectsExportError: String? = nil
+
+    private func startExportEffects() {
+        guard viewModel.isSequenceLoaded else { return }
+        let tempPath = FileManager.default.temporaryDirectory
+            .appendingPathComponent("Effects-\(UUID().uuidString).csv").path
+        guard viewModel.document.exportEffectsReport(toPath: tempPath) else {
+            effectsExportError = "Couldn't build the effects report."
+            return
+        }
+        effectsExportDoc = EffectsExportDoc(sourcePath: tempPath)
+        effectsExportDefaultName = "Effects.csv"
+        showingEffectsExporter = true
     }
 
     // MARK: - Save As (E-1)
@@ -267,6 +372,9 @@ struct SequencerView: View {
     @State private var saveAsDoc: XLSequenceExportDoc? = nil
     @State private var saveAsDefaultName: String = "Sequence.xsq"
     @State private var saveAsError: String? = nil
+    // LIFE-1 — non-nil holds the path of a Save-As that landed outside the
+    // show / media folders, driving an informational warning alert.
+    @State private var saveAsOutsideWarning: String? = nil
     @State private var outputAlertMessage: String? = nil
 
     // MARK: - Sequence Settings (E-3)
@@ -289,7 +397,7 @@ struct SequencerView: View {
         if viewModel.isDirty {
             _ = viewModel.saveSequence()
         }
-        let path = viewModel.document.currentSequencePath() ?? ""
+        let path = viewModel.document.currentSequencePath()
         if path.isEmpty {
             saveAsError = "Cannot Save As — the sequence hasn't been saved yet. Use the New wizard to establish a first location."
             return
@@ -330,6 +438,12 @@ struct SequencerView: View {
     // MARK: - Toolbar
 
     @State private var showingUnsavedPrompt = false
+    /// Position-slider drag state. While dragging we hold the scrub
+    /// value locally so live playback `playPositionMS` updates don't
+    /// fight the user's thumb; on release we commit a final seek.
+    @State private var isDraggingPosition = false
+    @State private var positionDragMS: Double = 0
+    @State private var showingRevertPrompt = false
     /// Tracks whether the scene fills the device screen. When true,
     /// no Stage Manager / Slide Over close-pill is overlaying the
     /// top-left corner so the toolbar can hug the leading edge.
@@ -357,7 +471,7 @@ struct SequencerView: View {
                 } label: {
                     Label("Save", systemImage: "square.and.arrow.down")
                 }
-                .disabled(!viewModel.isDirty)
+                .disabled(!viewModel.isDirty || viewModel.isReadOnly)
 
                 Button {
                     startSaveAs()
@@ -367,8 +481,9 @@ struct SequencerView: View {
                 .disabled(!viewModel.isSequenceLoaded)
             } label: {
                 ZStack(alignment: .topTrailing) {
-                    Image(systemName: "square.and.arrow.down")
-                    if viewModel.isDirty {
+                    Image(systemName: viewModel.isReadOnly
+                          ? "lock" : "square.and.arrow.down")
+                    if viewModel.isDirty && !viewModel.isReadOnly {
                         Circle()
                             .fill(Color.orange)
                             .frame(width: 6, height: 6)
@@ -376,7 +491,11 @@ struct SequencerView: View {
                     }
                 }
             } primaryAction: {
-                _ = viewModel.saveSequence()
+                // Read-only opens the menu (Save As) rather than a
+                // no-op Save.
+                if !viewModel.isReadOnly {
+                    _ = viewModel.saveSequence()
+                }
             }
             .disabled(!viewModel.isSequenceLoaded)
 
@@ -410,6 +529,51 @@ struct SequencerView: View {
                                          viewModel.playPositionMS + 10_000))
             }) {
                 Image(systemName: "goforward.10")
+            }
+
+            // Replay Section (desktop ID_AUITOOLBAR_REPLAY_SECTION):
+            // loops the selected time range via the existing loop-region
+            // plumbing. Enabled only when a selection exists.
+            Button(action: { viewModel.replaySection() }) {
+                Image(systemName: "repeat")
+            }
+            .disabled(!viewModel.hasReplaySectionSelection)
+            .help("Replay selected section (loop)")
+
+            // Position / seek slider (desktop HousePreview SliderPosition):
+            // coarse one-gesture scrub across the whole sequence. While
+            // dragging we hold the value locally so live playback updates
+            // don't fight the thumb, scrub-seek for audible feedback, and
+            // commit a final seek on release. Shown only when a sequence
+            // is open.
+            if viewModel.isSequenceLoaded, viewModel.sequenceDurationMS > 0 {
+                Slider(
+                    value: Binding(
+                        get: {
+                            isDraggingPosition
+                                ? positionDragMS
+                                : Double(viewModel.playPositionMS)
+                        },
+                        set: { positionDragMS = $0 }
+                    ),
+                    in: 0...Double(viewModel.sequenceDurationMS),
+                    onEditingChanged: { editing in
+                        if editing {
+                            isDraggingPosition = true
+                            positionDragMS = Double(viewModel.playPositionMS)
+                        } else {
+                            viewModel.seekTo(ms: Int(positionDragMS))
+                            isDraggingPosition = false
+                        }
+                    }
+                )
+                .frame(width: 120)
+                .onChange(of: positionDragMS) { _, newValue in
+                    if isDraggingPosition {
+                        viewModel.scrubSeekTo(ms: Int(newValue))
+                    }
+                }
+                .help("Seek position")
             }
 
             Divider().frame(height: 24)
@@ -452,8 +616,25 @@ struct SequencerView: View {
                 viewModel.startBackgroundRender()
             }) {
                 if viewModel.isRendering {
-                    ProgressView()
-                        .controlSize(.small)
+                    // Determinate overall-progress gauge with percent.
+                    // The bridge's renderProgressFraction can read 0
+                    // right at kickoff (before any job reports a frame),
+                    // so fall back to an indeterminate spinner until
+                    // progress actually moves.
+                    if viewModel.renderProgress > 0 {
+                        Gauge(value: viewModel.renderProgress) {
+                            EmptyView()
+                        } currentValueLabel: {
+                            Text("\(Int(viewModel.renderProgress * 100))")
+                                .font(.system(size: 8))
+                        }
+                        .gaugeStyle(.accessoryCircularCapacity)
+                        .scaleEffect(0.55)
+                        .frame(width: 24, height: 24)
+                    } else {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
                 } else {
                     Image(systemName: "paintpalette")
                 }

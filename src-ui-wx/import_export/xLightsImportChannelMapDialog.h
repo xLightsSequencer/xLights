@@ -14,6 +14,7 @@
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
 #include <wx/dataview.h>
+#include <wx/bmpbuttn.h>
 
 //(*Headers(xLightsImportChannelMapDialog)
 #include <wx/button.h>
@@ -30,6 +31,7 @@
 //*)
 
 #include <map>
+#include <set>
 #include <vector>
 #include "Color.h"
 #include <wx/arrstr.h>
@@ -287,6 +289,7 @@ public:     // public to avoid getters/setters
     int _height = 0;
     int _effectCount = 0;
     std::string _mappingModelType;
+    bool _isStackDuplicate = false;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -393,9 +396,19 @@ public:
     virtual unsigned int GetChildren(const wxDataViewItem &parent,
         wxDataViewItemArray &array) const wxOVERRIDE;
 
+    bool _hideUnmapped = false;
+    void SetHideUnmapped(bool h) { _hideUnmapped = h; }
+
+    bool GetSortSubmodelsByName() const { return _sortSubmodelsByName; }
+    void SetSortSubmodelsByName(bool sort) { _sortSubmodelsByName = sort; Resort(); }
+
+    void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
+
 private:
     xLightsImportModelNodePtrArray   m_children;
     wxDataViewItemArray _pendingAdditions;
+    wxDataViewCtrl* _ctrl = nullptr;
+    bool _sortSubmodelsByName = false;
 };
 
 class StashedMapping
@@ -427,6 +440,7 @@ struct ImportChannel
     int height = 0;
     std::vector<std::string> subModelNames;
     std::vector<std::string> aliases;
+    std::vector<std::pair<int,int>> effectIntervals; // merged [startMS, endMS] active ranges
 
     //ImportChannel(std::string name_, std::string type_):
     //    name(std::move(name_)), type(std::move(type_))
@@ -461,6 +475,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string const& model, std::string const& strand = "", std::string const& node = "");
     wxDataViewItem FindItem(std::string const& model, std::string const& strand = "", std::string const& node = "");
+    long FindAvailableByName(const wxString& name) const;
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
@@ -516,12 +531,16 @@ class xLightsImportChannelMapDialog: public wxDialog
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
         void SortChannels();
-        void AddChannel(std::string const& name, int effectCount = 0, bool isNode = false);
+        void AddChannel(std::string const& name, int effectCount = 0, bool isNode = false,
+                        std::vector<std::pair<int,int>> intervals = {});
+        void SetSequenceDuration(int durationMS) { _sequenceDurationMS = durationMS; }
         void LoadMappingFile(wxString const& filepath, bool hideWarnings = false);
+        void AutoMap();
 
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
+		wxBitmapButton* StashWarningButton;
 		wxButton* ButtonImportOptions;
 		wxButton* Button_AIMap;
 		wxButton* Button_AutoMap;
@@ -571,6 +590,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
+		static const wxWindowID ID_BITMAPBUTTON_STASH;
 		static const wxWindowID ID_SPINCTRL1;
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_CHECKBOX11;
@@ -608,6 +628,8 @@ protected:
         static const wxWindowID ID_MNU_CLEARALL;
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
+        static const wxWindowID ID_MNU_SORT_SUBMODELS_BY_NAME;
+        static const wxWindowID ID_MNU_EDIT_DISPLAY_ELEMENTS;
 
 	private:
         wxString FindTab(wxString &line);
@@ -639,12 +661,14 @@ protected:
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void RightClickModels(wxDataViewEvent& event);
-        void RightClickModelsAvail(wxDataViewEvent& event);
+        void RightClickModelsAvail(wxContextMenuEvent& event);
         void CollapseAll();
         void ExpandAll();
         void ClearAll();
         void ClearSelected();
         void AddEmptyGroup();
+        void EditDisplayElements();
+        void AddNewMasterViewItems(std::set<std::string>& snapshot);
         void ShowAllMapped();
         void OnPopupTimingTracks(wxCommandEvent& event);
         void OnPopupModels(wxCommandEvent& event);
@@ -655,20 +679,32 @@ protected:
         void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
         void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
         std::string findModelType(std::string modelName);
+        void NotifyMappingItemsChanged();
         void DoAutoMap(
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_model,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_strand,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_node,
             const std::string& extra1, const std::string& extra2, const std::string& mg, const bool& select);
+        void DoSubModelFallback(bool select);
         void DoAIAutoMap(bool select);
 
 
+        void UpdateStashWarning();
+        void OnStashWarningClick(wxCommandEvent& event);
+        void InsertStackDuplicate(const wxDataViewItem& afterItem, const std::string& availableModelName, const std::string& availableModelType);
+        wxDataViewItem FindLastItem(const wxString& model, const wxString& strand, const wxString& node);
+        void ApplyMappingItem(wxString const& mapping, wxDataViewItem item, wxColor const& color);
+        bool PromptAndApplyMapping(const wxDataViewItemArray& targets, const std::string& availName, const std::string& modelType, wxDataViewItem& lastApplied, bool* wasAddedAsStack = nullptr);
         void LoadXMapMapping(wxString const& filename, bool hideWarnings);
         void LoadJSONMapping(wxString const& filename, bool hideWarnings);
         void loadMapHintsFile(wxString const& filename);
         void SaveXMapMapping(wxString const& filename);
         void SaveJSONMapping(wxString const& filename);
         void generateMapHintsFile(wxString const& filename);
+        void RefreshTimelineColumnImages();
+        static wxBitmap GenerateTimelineBitmap(int width, int height,
+                                               const std::vector<std::pair<int,int>>& intervals,
+                                               int durationMS);
 
         static wxString AggressiveAutomap(const wxString& name);
         std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> aggressive =
@@ -716,6 +752,12 @@ protected:
             };
 
         SequencePackage* _xsqPkg {nullptr};
+        int _sequenceDurationMS {0};
+        wxCheckBox* CheckBox_ShowTimeline {nullptr};
+        wxCheckBox* CheckBox_HideUnmapped {nullptr};
+        std::vector<wxCheckBox*> _timingCheckboxes;
+        int _timelineCol {-1};
+        std::map<ImportChannel*, int> _channelImageMap;
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
         std::map<int, int> m_iconIndexMap; // Order in list->one we got

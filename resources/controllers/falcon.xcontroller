@@ -58,6 +58,7 @@
         <SupportsSmartRemotes>3</SupportsSmartRemotes>
         <AllSmartRemoteTypesPerPortMustBeSame/>
         <MaxPixelPortChannels>3072</MaxPixelPortChannels>
+        <MaxDDPChannels>42000</MaxDDPChannels>
         <SupportsDefaultGamma/>
         <InputProtocols>
             <Protocol>e131</Protocol>

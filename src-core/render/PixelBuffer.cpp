@@ -17,6 +17,7 @@
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
 #include <log.h>
+#include "utils/FloatChecks.h"
 #include "utils/xlPoint.h"
 #include <cassert>
 #include <cstdlib>
@@ -144,8 +145,8 @@ namespace {
             return fabs(Len2() - 1) < 1e-6;
         }
         Vec2D Rotate(const double& fAngle) const {
-            float cs = RenderBuffer::cos(fAngle);
-            float sn = RenderBuffer::sin(fAngle);
+            float const cs = RenderBuffer::cos(fAngle);
+            float const sn = RenderBuffer::sin(fAngle);
             return Vec2D(x * cs + y * sn, -x * sn + y * cs);
         }
         Vec2D RotateAbout(double angle, const Vec2D& pt) const {
@@ -597,29 +598,30 @@ namespace {
                (c - a) * u.y * (1.0 - u.x) +
                (d - b) * u.x * u.y;
     }
-    xlColor blobs(const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double scale) {
+    xlColor blobs(const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double scale, float smoothness) {
         xlColor fromColor((rb1 == nullptr) ? xlBLACK : tex2D(*rb1, s, t));
         xlColor toColor(tex2D(cb0, s, t));
         float n = blobsNoise(scale * Vec2D(s, t));
 
-        float p = lerp(-blobsSmoothness, 1. - +blobsSmoothness, progress);
-        float lo = p - blobsSmoothness;
-        float hi = p + blobsSmoothness;
+        float p = lerp(-smoothness, 1.f - smoothness, (float)progress);
+        float lo = p - smoothness;
+        float hi = p + smoothness;
 
         float q = SmoothStep(lo, hi, n);
 
         return lerp(fromColor, toColor, 1.f - q);
     }
-    void blobs(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjust) {
+    void blobs(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjust, int blur = 0) {
         if (progress < 0. || progress > 1.)
             return;
         double scale = interpolate(double(adjust), 0., 4., 100., 14., LinearInterpolater());
+        float smoothness = blobsSmoothness + (blur / 25.0f) * 0.49f;
         parallel_for(
-            0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, scale](int y) {
+            0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, scale, smoothness](int y) {
                 double t = double(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
                     double s = double(x) / (rb0.BufferWi - 1);
-                    rb0.SetPixel(x, y, blobs(cb0, rb1, s, t, progress, scale));
+                    rb0.SetPixel(x, y, blobs(cb0, rb1, s, t, progress, scale, smoothness));
                 }
             },
             25);
@@ -908,6 +910,23 @@ PixelBufferClass::~PixelBufferClass() {
 }
 
 void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
+    // Callers are required to AbortRender before changing/deleting the
+    // model this buffer points at, so model should always be non-null
+    // here. Crash reports show otherwise (top mac/iPad crash); guard
+    // and log so the buffer is left empty rather than dereferencing
+    // a null model in InitRenderBufferNodes below.
+    if (model == nullptr) {
+        if (auto l = spdlog::get("render")) {
+            l->error("PixelBufferClass::reset called with null model ({} layers, modelName='{}') — likely a missing AbortRender before a model change.",
+                     nlayers, modelName);
+        }
+        for (int x = 0; x < numLayers; x++) {
+            delete layers[x];
+        }
+        layers.clear();
+        numLayers = 0;
+        return;
+    }
     for (int x = 0; x < numLayers; x++) {
         delete layers[x];
     }
@@ -1930,6 +1949,8 @@ static const std::string SLIDER_In_Transition_Adjust("SLIDER_In_Transition_Adjus
 static const std::string SLIDER_Out_Transition_Adjust("SLIDER_Out_Transition_Adjust");
 static const std::string CHECKBOX_In_Transition_Reverse("CHECKBOX_In_Transition_Reverse");
 static const std::string CHECKBOX_Out_Transition_Reverse("CHECKBOX_Out_Transition_Reverse");
+static const std::string SLIDER_In_Transition_Blur("SLIDER_In_Transition_Blur");
+static const std::string SLIDER_Out_Transition_Blur("SLIDER_Out_Transition_Blur");
 
 void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve, int divisor = 1) {
     if (valueCurve == STR_EMPTY) {
@@ -2085,12 +2106,14 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
 
     inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
-    inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
-    inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 0);
+    inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 50);
+    inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 50);
     inf->InTransitionAdjustValueCurve = valueCurveFromSettingsMap(settingsMap, "In_Transition_Adjust");
     inf->OutTransitionAdjustValueCurve = valueCurveFromSettingsMap(settingsMap, "Out_Transition_Adjust");
     inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
     inf->outTransitionReverse = settingsMap.GetBool(CHECKBOX_Out_Transition_Reverse);
+    inf->inTransitionBlur = settingsMap.GetInt(SLIDER_In_Transition_Blur, 0);
+    inf->outTransitionBlur = settingsMap.GetInt(SLIDER_Out_Transition_Blur, 0);
 
     inf->blur = settingsMap.GetInt(SLIDER_Blur, 1);
     inf->rotation = settingsMap.GetInt(SLIDER_Rotation, 0);
@@ -2151,6 +2174,19 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     const std::string& pivotpointyValueCurve = settingsMap.Get(VALUECURVE_PivotPointY, STR_EMPTY);
     const std::string& xpivotValueCurve = settingsMap.Get(VALUECURVE_XPivot, STR_EMPTY);
     const std::string& ypivotValueCurve = settingsMap.Get(VALUECURVE_YPivot, STR_EMPTY);
+
+    // If the effect uses "Default" style on a group whose defaultBufferStyle is a Per Model variant,
+    // resolve now so the Per Model detection below fires correctly (the resolution inside
+    // InitRenderBufferNodes is too late — Per Model needs separate buffer allocation here first).
+    if (type == "Default") {
+        const ModelGroup* mg = dynamic_cast<const ModelGroup*>(model);
+        if (mg != nullptr) {
+            const std::string& dbs = mg->GetDefaultBufferStyle();
+            if (dbs.compare(0, 9, "Per Model") == 0) {
+                type = dbs;
+            }
+        }
+    }
 
     if (inf->bufferType != type ||
         inf->camera != camera ||
@@ -2445,7 +2481,7 @@ static inline bool IsInRange(const std::vector<bool>& restrictRange, size_t star
     return restrictRange[start];
 }
 
-void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange) {
+void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels) {
     // KW ... I think this needs to be optimised
 
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
@@ -2453,6 +2489,11 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
             // smaller model, no sense in setting up the parallel_for
             for (auto& n : layers[0]->buffer.Nodes) {
                 size_t start = n->ActChan;
+                // Mirror SetColors: never write past fdata. A stale ActChan
+                // (model node count changed / seqData reallocated under a
+                // live render job) would otherwise overrun the channel
+                // buffer in GetForChannels (crash sig 62b47aa9b8).
+                if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
                     if (n->model != nullptr) { // nor this
                         DimmingCurve* curve = n->model->GetDimmingCurve();
@@ -2483,6 +2524,8 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                     // function already does this.
                     if (n == nullptr) return;
                     size_t start = n->ActChan;
+                    // Mirror SetColors: never write past fdata (see above).
+                    if (start >= numChannels) return;
                     if (IsInRange(restrictRange, start)) {
                         if (n->model != nullptr) { // nor this
                             DimmingCurve* curve = n->model->GetDimmingCurve();
@@ -2664,7 +2707,9 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
 }
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset) {
-    if (std::isinf(offset))
+    // xl::isinf: std::isinf may fold to `false` under -ffinite-math-only
+    // (Release -ffast-math); use the helper to keep the clamp working.
+    if (xl::isinf(offset))
         offset = 1.0;
 
     GPURenderUtils::RotoZoomSettings settings;
@@ -3439,6 +3484,74 @@ namespace {
     }
 }
 
+void PixelBufferClass::LayerInfo::blurMaskToAlpha(int blurAmount) {
+    if (blurAmount <= 0 || maskSize == 0) return;
+
+    GPURenderUtils::waitForRenderCompletion(&buffer);
+
+    int w = BufferWi;
+    int h = BufferHt;
+    int radius = blurAmount;
+
+    // Convert the binary 0/255 mask to float (mask[x * h + y])
+    std::vector<float> maskFloat(w * h);
+    std::vector<float> tmp(w * h);
+    for (int x = 0; x < w; x++) {
+        for (int y = 0; y < h; y++) {
+            maskFloat[x * h + y] = mask[x * h + y] / 255.0f;
+        }
+    }
+
+    // Horizontal box blur pass
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            float sum = 0.0f;
+            int count = 0;
+            for (int dx = -radius; dx <= radius; dx++) {
+                int nx = x + dx;
+                if (nx >= 0 && nx < w) {
+                    sum += maskFloat[nx * h + y];
+                    count++;
+                }
+            }
+            tmp[x * h + y] = count > 0 ? sum / count : 0.0f;
+        }
+    }
+
+    // Vertical box blur pass
+    for (int x = 0; x < w; x++) {
+        for (int y = 0; y < h; y++) {
+            float sum = 0.0f;
+            int count = 0;
+            for (int dy = -radius; dy <= radius; dy++) {
+                int ny = y + dy;
+                if (ny >= 0 && ny < h) {
+                    sum += tmp[x * h + ny];
+                    count++;
+                }
+            }
+            maskFloat[x * h + y] = count > 0 ? sum / count : 0.0f;
+        }
+    }
+
+    // Bake the blurred mask into pixel alpha (0=visible, 1=hidden).
+    // Pixels near the wipe boundary get partial alpha, creating a soft edge.
+    // Keep the binary mask for fully-hidden pixels so non-alpha-aware blend
+    // modes still treat them as masked.
+    constexpr float kFullyHiddenEps = 1e-6f;
+    for (int x = 0; x < w; x++) {
+        for (int y = 0; y < h; y++) {
+            float alphaFactor = 1.0f - maskFloat[x * h + y];
+            xlColor c;
+            buffer.GetPixel(x, y, c);
+            c.alpha = static_cast<uint8_t>(c.alpha * alphaFactor);
+            buffer.SetPixel(x, y, c);
+
+            mask[x * h + y] = (alphaFactor <= kFullyHiddenEps) ? 255 : 0;
+        }
+    }
+}
+
 void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, RenderBuffer* prevRB) {
     bool hasMask = false;
     if (inMaskFactor < 1.0 || outMaskFactor < 1.0) {
@@ -3481,7 +3594,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, RenderBuf
                 if (InTransitionAdjustValueCurve.IsActive())
                     adjust = static_cast<int>(InTransitionAdjustValueCurve.GetOutputValueAt(inMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
                 GPURenderUtils::waitForRenderCompletion(prevRB);
-                blobs(buffer, cb, prevRB, inMaskFactor, adjust);
+                blobs(buffer, cb, prevRB, inMaskFactor, adjust, inTransitionBlur);
             } else if (inTransitionType == STR_PINWHEEL) {
                 int adjust = inTransitionAdjust;
                 if (InTransitionAdjustValueCurve.IsActive())
@@ -3509,6 +3622,9 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, RenderBuf
             }
         } else {
             calculateMask(inTransitionType, false, isFirstFrame);
+            if (inTransitionBlur > 0) {
+                blurMaskToAlpha(inTransitionBlur);
+            }
         }
         hasMask = true;
     }
@@ -3542,7 +3658,7 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, RenderBuf
                 if (OutTransitionAdjustValueCurve.IsActive())
                     adjust = static_cast<int>(OutTransitionAdjustValueCurve.GetOutputValueAt(outMaskFactor, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
                 GPURenderUtils::waitForRenderCompletion(prevRB);
-                blobs(buffer, cb, prevRB, outMaskFactor, adjust);
+                blobs(buffer, cb, prevRB, outMaskFactor, adjust, outTransitionBlur);
             } else if (outTransitionType == STR_PINWHEEL) {
                 int adjust = outTransitionAdjust;
                 if (OutTransitionAdjustValueCurve.IsActive())
@@ -3570,6 +3686,9 @@ void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, RenderBuf
             }
         } else {
             calculateMask(outTransitionType, true, isFirstFrame);
+            if (outTransitionBlur > 0) {
+                blurMaskToAlpha(outTransitionBlur);
+            }
         }
         hasMask = true;
     }

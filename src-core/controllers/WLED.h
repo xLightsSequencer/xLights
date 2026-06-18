@@ -11,7 +11,9 @@
  **************************************************************/
 
 #include <list>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
@@ -19,11 +21,12 @@
 #include "ControllerUploadData.h"
 
 struct WLEDOutput;
+class Discovery;
 
 class WLED : public BaseController
 {
     #pragma region Member Variables
-    std::vector<WLEDOutput*> _pixelOutputs;
+    std::vector<std::unique_ptr<WLEDOutput>> _pixelOutputs;
     int _vid;
 
     #pragma endregion
@@ -32,11 +35,11 @@ class WLED : public BaseController
     bool SetupInput(Controller* controller, nlohmann::json& jsonVal, bool rgbw);
     void UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber, bool& rgbw) const;
 
-    WLEDOutput* FindPortData(int port);
+    WLEDOutput* FindPortData(int port) const;
 
     bool ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, ControllerCaps* caps, bool fullControl);
 
-    WLEDOutput* ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps, bool fullControl);
+    std::unique_ptr<WLEDOutput> ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps, bool fullControl);
 
     int EncodeColorOrder(const std::string& colorOrder) const;
     bool EncodeDirection(const std::string& direction) const;
@@ -68,5 +71,11 @@ public:
     virtual bool SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* controller, UICallbacks* ui) override;
 #endif
     virtual bool UsesHTTP() const override { return true; }
+    #pragma endregion
+
+    #pragma region Static Functions
+    // Registers an mDNS browse for the WLED service type; discovered devices are
+    // identified via their /json/info endpoint.
+    static void PrepareDiscovery(Discovery& discovery);
     #pragma endregion
 };

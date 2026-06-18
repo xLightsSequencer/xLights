@@ -109,6 +109,17 @@ if(WIN32 AND wxWidgets_LIB_DIR)
     link_directories(${wxWidgets_LIB_DIR})
 endif()
 
+# ANGLE build: wx's USE_FILE appends opengl32/glu32 to wxWidgets_LIBRARIES.  The
+# MSVC linker resolves each gl* import to the FIRST lib that exports it, so if
+# opengl32 stays in the wx libs it shadows ANGLE's libGLESv2 (opengl32 exports
+# the GL 1.1 set: glClear/glGetString/glViewport/…) and the ANGLE canvas renders
+# black.  Strip them here; opengl32/glu32 are re-added dead-last (only wx's own
+# wgl* references still need them) in the platform-link block below.
+option(XLIGHTS_USE_ANGLE "Build the ANGLE (OpenGL ES) variant instead of native desktop GL" OFF)
+if(XLIGHTS_USE_ANGLE AND NOT APPLE AND WIN32)
+    list(REMOVE_ITEM wxWidgets_LIBRARIES opengl32 glu32 opengl32.lib glu32.lib)
+endif()
+
 # ─── OpenGL ─────────────────────────────────────────────────────────────────
 find_package(OpenGL REQUIRED)
 
@@ -224,11 +235,14 @@ else()
     find_path(CURL_INCLUDE_DIR curl/curl.h
         HINTS ${XL_INC}
         PATHS /usr/include /usr/local/include)
-    # On Windows the vendored file is a MinGW .dll.a — not usable by MSVC.
-    # Look for a proper .lib; if absent, skip linking (project may use WinHTTP).
     find_library(CURL_LIB NAMES libcurl_msvc curl libcurl curl_imp libcurl_a
         HINTS ${XL_LIB}/windows64
         PATHS /usr/lib /usr/local/lib)
+    # The vcxproj links via #pragma comment(lib,"libcurl.dll.a") which MSVC accepts.
+    # Fall back to the same vendored file when no .lib variant is found.
+    if(NOT CURL_LIB AND MSVC AND EXISTS "${XL_LIB}/windows64/libcurl.dll.a")
+        set(CURL_LIB "${XL_LIB}/windows64/libcurl.dll.a")
+    endif()
     if(CURL_LIB)
         set(CURL_LINK_TARGET ${CURL_LIB})
     else()
@@ -257,8 +271,11 @@ file(GLOB_RECURSE SRC_CORE
     src-core/ai/*.cpp
     src-core/cad/*.cpp
     src-core/controllers/*.cpp
+	src-core/diagnostics/*.cpp
     src-core/discovery/*.cpp
     src-core/import_export/*.cpp
+    src-core/graphics/AngleEGL.cpp
+    src-core/graphics/GLBackend.cpp
     src-core/graphics/GLContextManager.cpp
     src-core/graphics/xlFontInfo.cpp
     src-core/graphics/xlGraphicsAccumulators.cpp
@@ -277,8 +294,10 @@ file(GLOB_RECURSE SRC_CORE
     src-core/media/Spectrogram.cpp
     src-core/media/StemSeparator.cpp
     src-core/media/TempoDetector.cpp
+    src-core/media/FFmpegVideoWriter.cpp
     src-core/media/VideoReader.cpp
     src-core/media/VideoTranscoder.cpp
+    src-core/media/VideoWriter.cpp
     src-core/media/kiss_fft/kiss_fft.c
     src-core/media/kiss_fft/tools/kiss_fftr.c
     src-core/models/*.cpp
@@ -296,6 +315,7 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_osx.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp)
 elseif(APPLE)
+    list(APPEND SRC_CORE src-core/media/AVFoundationVideoWriter.cpp)
     list(REMOVE_ITEM SRC_CORE
         ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
@@ -401,6 +421,7 @@ endif()
 file(GLOB_RECURSE SRC_UI
     src-ui-wx/xLightsApp.cpp
     src-ui-wx/xLightsMain.cpp
+    src-ui-wx/CommandPaletteDialog.cpp
     src-ui-wx/ai/*.cpp
     src-ui-wx/app-shell/*.cpp
     src-ui-wx/automation/*.cpp
@@ -428,6 +449,14 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/shared/utils/*.cpp
     src-ui-wx/support/*.cpp
 )
+
+# macOS-only Objective-C++ helper for the command palette (SF Symbols / colors).
+# Must be appended after the glob: file(GLOB) does not evaluate generator
+# expressions, so a $<...> entry inside the glob above would be silently dropped.
+if(APPLE)
+    enable_language(OBJCXX)
+    list(APPEND SRC_UI ${CMAKE_SOURCE_DIR}/src-ui-wx/CommandPaletteHelper_mac.mm)
+endif()
 
 # Vendored third-party sources
 set(SRC_DEPS
@@ -549,6 +578,43 @@ endif()
 if(FFMPEG_LIBRARY_DIRS)
     target_link_directories(xLights PRIVATE ${FFMPEG_LIBRARY_DIRS})
 endif()
+# ANGLE (USE_GLES): the gl* provider MUST be linked BEFORE wxWidgets, which
+# pulls in opengl32.  MSVC resolves each gl* import to the FIRST lib on the link
+# line that exports it, so linking libGLESv2 first makes the GL functions bind
+# to ANGLE while wgl* (only in opengl32) still fall through to opengl32 for wx's
+# own GL-canvas code.  If linked after wx, opengl32's GL 1.1 exports (glClear,
+# glGetString, glViewport, glScissor, …) win and the ANGLE canvas renders black
+# (drawing goes to opengl32 with no WGL context).  See plans/angle-support.md.
+if(XLIGHTS_USE_ANGLE AND NOT APPLE)
+    if(XLIGHTS_ANGLE_DIR)
+        # Prebuilt ANGLE SDK: headers + import libs from a directory (e.g. a
+        # release downloaded from mmozeiko/build-angle, or the repo-vendored copy
+        # in include/ + lib/windows64).  No vcpkg, no source build — the slowest
+        # dependency ships as a prebuilt DLL.  find_library matches both the
+        # plain "libGLESv2.lib" (repo-vendored) and "libGLESv2.dll.lib"
+        # (mmozeiko) import-lib naming.
+        message(STATUS "ANGLE: using prebuilt SDK at ${XLIGHTS_ANGLE_DIR}")
+        find_library(XL_ANGLE_GLESV2 NAMES libGLESv2 libGLESv2.dll
+            PATHS ${XLIGHTS_ANGLE_DIR}/lib ${XLIGHTS_ANGLE_DIR}/lib/x64 ${XLIGHTS_ANGLE_DIR}
+            NO_DEFAULT_PATH REQUIRED)
+        find_library(XL_ANGLE_EGL NAMES libEGL libEGL.dll
+            PATHS ${XLIGHTS_ANGLE_DIR}/lib ${XLIGHTS_ANGLE_DIR}/lib/x64 ${XLIGHTS_ANGLE_DIR}
+            NO_DEFAULT_PATH REQUIRED)
+        if(EXISTS ${XLIGHTS_ANGLE_DIR}/include)
+            target_include_directories(xLights PRIVATE ${XLIGHTS_ANGLE_DIR}/include)
+        endif()
+        target_link_libraries(xLights PRIVATE ${XL_ANGLE_GLESV2} ${XL_ANGLE_EGL})
+    else()
+        # vcpkg-provided ANGLE (builds the port from source the first time).
+        find_package(unofficial-angle CONFIG REQUIRED)
+        target_link_libraries(xLights PRIVATE
+            unofficial::angle::libGLESv2
+            unofficial::angle::libEGL)
+    endif()
+    target_compile_definitions(xLights PRIVATE USE_GLES)
+    message(STATUS "OpenGL backend: ANGLE (USE_GLES; libGLESv2 before wx, opengl32 last)")
+endif()
+
 target_link_libraries(xLights PRIVATE
     ${wxWidgets_LIBRARIES}
     ${FFMPEG_LIBS}
@@ -605,12 +671,19 @@ else()
     endif()
 endif()
 
-# OpenGL 
-target_link_libraries(xLights PRIVATE OpenGL::GL)
-if(WIN32)
-	target_link_libraries(xLights PRIVATE glu32)
-elseif(UNIX AND NOT APPLE)
-	target_link_libraries(xLights PRIVATE GL GLU)
+# OpenGL backend — COMPILE-TIME choice of native desktop GL OR ANGLE (OpenGL
+# ES).  Build EITHER one or the other.  The ANGLE/USE_GLES variant links
+# libGLESv2+libEGL earlier (just before the wxWidgets link) so its gl* win
+# symbol resolution over opengl32.  Here we only add the NATIVE desktop-GL libs
+# (default build).  macOS selects ANGLE via macOS/ANGLE.xcconfig, not this path.
+if(NOT (XLIGHTS_USE_ANGLE AND NOT APPLE))
+    target_link_libraries(xLights PRIVATE OpenGL::GL)
+    if(WIN32)
+        target_link_libraries(xLights PRIVATE glu32)
+    elseif(UNIX AND NOT APPLE)
+        target_link_libraries(xLights PRIVATE GL GLU)
+    endif()
+    message(STATUS "OpenGL backend: native desktop GL")
 endif()
 
 # vcpkg FFmpeg ships avfilter with vsrc_gfxcapture_winrt compiled against the
@@ -663,6 +736,15 @@ if(WIN32)
     target_link_libraries(xLights PRIVATE ws2_32 winmm comctl32 rpcrt4
                                           mfuuid propsys wmcodecdspuuid
                                           iphlpapi)
+    # ANGLE build: supply opengl32/glu32 as DEFAULT libs (/DEFAULTLIB).  Default
+    # libraries are searched by the linker AFTER every explicit lib, so ANGLE's
+    # libGLESv2 (an explicit lib) wins gl* symbol resolution and opengl32 is used
+    # only for the wgl* that wx's own GL-canvas code references.  Linking opengl32
+    # explicitly instead would let its GL 1.1 exports shadow libGLESv2 and the
+    # ANGLE canvas would render black.
+    if(XLIGHTS_USE_ANGLE AND NOT APPLE)
+        target_link_options(xLights PRIVATE "/DEFAULTLIB:opengl32.lib" "/DEFAULTLIB:glu32.lib")
+    endif()
     if(NOT XLIGHTS_USE_VCPKG)
         # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs
         target_link_directories(xLights PRIVATE ${XL_LIB}/windows64 ${XL_DEPS}/lua/src)
@@ -690,11 +772,24 @@ endif()
 # in StemSeparator.cpp is already suppressed — no per-block define needed.
 #
 # Usage:
-#   cmake -DXLIGHTS_USE_ORT=ON      # ONNX Runtime (vcpkg: onnxruntime[directml])
-#   cmake -DXLIGHTS_USE_OPENVINO=ON # OpenVINO     (vcpkg: openvino)
+#   cmake -DXLIGHTS_USE_ORT=ON               # ONNX Runtime (vcpkg: onnxruntime[directml])
+#   cmake -DXLIGHTS_USE_OPENVINO=ON          # OpenVINO Runtime — stem separation only
+#   cmake -DXLIGHTS_USE_OPENVINO_GENAI=ON    # OpenVINO Runtime + GenAI:
+#                                            #   stem separation, image generation (SD),
+#                                            #   speech-to-text with alignment (Whisper)
+#
+# XLIGHTS_USE_OPENVINO_GENAI implies XLIGHTS_USE_OPENVINO; you do not need both.
+#
+# Prerequisites for XLIGHTS_USE_OPENVINO_GENAI:
+#   vcpkg install openvino openvino-genai      (or install OpenVINO 2024.4+)
+#   Models must be exported with optimum-cli:
+#     optimum-cli export openvino --model stabilityai/stable-diffusion-v1-5 sd-v1-5-ov/
+#     optimum-cli export openvino --model openai/whisper-base whisper-base-ov/
+#   Paths are configured in xLights > Preferences > Services > OpenVINO (local).
 
-option(XLIGHTS_USE_ORT      "Enable ONNX Runtime stem separation" ON)
-option(XLIGHTS_USE_OPENVINO "Enable OpenVINO stem separation"     OFF)
+option(XLIGHTS_USE_ORT           "Enable ONNX Runtime stem separation"                  ON)
+option(XLIGHTS_USE_OPENVINO      "Enable OpenVINO stem separation"                      OFF)
+option(XLIGHTS_USE_OPENVINO_GENAI "Enable OpenVINO GenAI: image gen + speech-to-text"   OFF)
 
 if(XLIGHTS_USE_ORT)
     find_package(onnxruntime CONFIG
@@ -730,21 +825,52 @@ if(XLIGHTS_USE_ORT)
     target_compile_definitions(xLights PRIVATE HAVE_ORT)
 endif()
 
-if(XLIGHTS_USE_OPENVINO)
+if(XLIGHTS_USE_OPENVINO OR XLIGHTS_USE_OPENVINO_GENAI)
+    # OpenVINO Runtime is required for stem separation and as a base for GenAI.
+    # Install via vcpkg: vcpkg install "openvino[cpu,auto,ir,onnx]"
     find_package(OpenVINO REQUIRED COMPONENTS Runtime)
     target_link_libraries(xLights PRIVATE openvino::runtime)
     target_compile_definitions(xLights PRIVATE HAVE_OPENVINO)
-    message(STATUS "Stem separation: OpenVINO enabled")
+
+    if(XLIGHTS_USE_OPENVINO_GENAI)
+        # OpenVINOGenAI is a separate package from the core OpenVINO Runtime.
+        # Install via the overlay port: vcpkg install openvino-genai
+        #   (requires vcpkg-configuration.json to point at ports/ overlay directory)
+        # Or install via the official OpenVINO toolkit installer / pip install openvino-genai.
+        find_package(OpenVINOGenAI REQUIRED)
+        target_link_libraries(xLights PRIVATE openvino::genai)
+        target_compile_definitions(xLights PRIVATE HAVE_OPENVINO_GENAI)
+        message(STATUS "OpenVINO: Runtime + GenAI enabled (stem separation, image gen, speech-to-text)")
+    else()
+        message(STATUS "Stem separation: OpenVINO Runtime enabled")
+    endif()
 endif()
 
 
 # ─── Windows post-build: copy DLLs and resources to output dir ──────────────
 # Mirrors the PostBuildEvent in xLights/Xlights.vcxproj.
 if(WIN32)
+    # Use safe_copy_dlls.cmake so the copy is a no-op when the build output
+    # directory is the same as the source bin/ directory (happens on CI when
+    # Ninja builds directly into bin/).  Plain `copy` fails with "cannot copy
+    # file onto itself" in that case.
+    set(_SAFE_COPY "${CMAKE_SOURCE_DIR}/cmake/safe_copy_dlls.cmake")
     add_custom_command(TARGET xLights POST_BUILD
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\*.dll\" \"$<TARGET_FILE_DIR:xLights>\\\""
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin64\\*.dll\" \"$<TARGET_FILE_DIR:xLights>\\\""
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\*.cfg\" \"$<TARGET_FILE_DIR:xLights>\\\""
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.dll"
+            -P "${_SAFE_COPY}"
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin64"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.dll"
+            -P "${_SAFE_COPY}"
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.cfg"
+            -P "${_SAFE_COPY}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/dictionaries"
             "$<TARGET_FILE_DIR:xLights>/dictionaries"

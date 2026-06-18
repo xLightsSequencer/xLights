@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <string>
+#include <atomic>
 
 #include "graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsContext.h"
@@ -77,6 +78,14 @@ class Waveform : public GRAPHICS_BASE_CLASS
         // false on user cancel / download / inference failure.
         // ONNX Runtime/OpenVINO: download ONNX model from huggingface and put in ai-models/ folder in the show folder.
         bool PrepareStemData();
+        // Re-entrancy guard for PrepareStemData. The progress-dialog
+        // wait loop pumps the event queue via wxApp::Yield, which can
+        // re-dispatch the stem menu command and re-enter
+        // PrepareStemData while the first worker is still running —
+        // starting a second CoreML/ONNX inference against the same
+        // _media. Concurrent inference is not safe and freed objects
+        // get messaged on the worker thread (crash sig 0b727679d7).
+        std::atomic<bool> _stemSeparationActive{false};
 #endif
 
         int GetActiveAudioTrackIndex() const { return _activeAudioTrackIndex; }
@@ -103,7 +112,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
     private:
       	DECLARE_EVENT_TABLE()
         //void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
-        float GetSamplesPerLineFromZoomLevel(int ZoomLevel) const;
+        float GetSamplesPerLineFromZoomLevel() const;
 		TimeLine* mTimeline;
         wxPanel* mParent;
         //wxWindow* mMainWindow;
@@ -113,6 +122,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
         //int mMediaTrackSize;
         int mFrequency;
         int mZoomLevel;
+        int mLastEffectiveTick = 0;
         //bool mPointSize;
         bool m_dragging;
         DRAG_MODE m_drag_mode;

@@ -650,6 +650,7 @@ struct DMXButtonsRowView: View {
     @State private var showOverwriteConfirm = false
     @State private var pendingSaveName: String = ""
     @State private var remapStatus: String? = nil
+    @State private var showRemapGrid = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -661,6 +662,8 @@ struct DMXButtonsRowView: View {
                     Button("Invert All") { applyRemap(3) }
                     Button("Double") { applyRemap(4) }
                     Button("Half") { applyRemap(5) }
+                    Divider()
+                    Button("Custom Mapping…") { showRemapGrid = true }
                 } label: {
                     Label("Remap", systemImage: "shuffle")
                         .font(.caption)
@@ -727,6 +730,14 @@ struct DMXButtonsRowView: View {
         } message: {
             Text("A state named \"\(pendingSaveName)\" already exists on this model. Overwrite it?")
         }
+        .sheet(isPresented: $showRemapGrid) {
+            if let sel = viewModel.selectedEffect {
+                DMXRemapGridSheet(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex) {
+                    remapStatus = "Custom remap applied."
+                }
+                .environment(viewModel)
+            }
+        }
     }
 
     // MARK: - State list
@@ -736,7 +747,7 @@ struct DMXButtonsRowView: View {
         guard let sel = viewModel.selectedEffect else { return [] }
         let arr = viewModel.document.states(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) ?? []
+            at: Int32(sel.effectIndex))
         return arr.sorted()
     }
 

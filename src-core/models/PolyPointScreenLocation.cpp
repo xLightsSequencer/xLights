@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <spdlog/fmt/fmt.h>
@@ -18,6 +19,7 @@
 #include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Shapes.h"
+#include "../utils/FloatChecks.h"
 #include "../utils/VectorMath.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
@@ -32,8 +34,21 @@ static float BB_OFF = 5.0f;
 
 static glm::mat4 Identity(glm::mat4(1.0f));
 
+// `id.index` sentinel on AxisArrow/Cube/Ring descriptors emitted
+// while the centre handle is active. Per-vertex / per-curve-control
+// axis gizmos carry their owning sub-handle's index instead.
+// CreateDragSession dispatches on this value to choose between the
+// per-handle and the whole-model session classes.
+static constexpr int kWholeModelAxisIndex = -1;
+
+// Substitute a tiny non-zero value for a scale factor of exactly
+// zero, so downstream divisions don't produce NaN/Inf. Vertices /
+// curve CPs collapse onto the same world point at scale 0 anyway;
+// the 0.001 floor matches the legacy MoveHandle3D behavior.
+static inline float SafeScale(float s) { return s == 0.0f ? 0.001f : s; }
+
 PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
-   num_points(2), selected_handle(-1), selected_segment(-1) {
+   num_points(2), selected_segment(-1) {
     mPos.resize(2);
     mPos[0].x = 0.0f;
     mPos[0].y = 0.0f;
@@ -51,8 +66,6 @@ PolyPointScreenLocation::PolyPointScreenLocation() : ModelScreenLocation(2),
     mPos[1].mod_matrix = nullptr;
     mPos[1].curve = nullptr;
     mPos[1].has_curve = false;
-    handle_aabb_max.resize(7);
-    handle_aabb_min.resize(7);
     seg_aabb_min.resize(1);
     seg_aabb_max.resize(1);
     mSelectableHandles = 3;
@@ -100,24 +113,25 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create)
 
 void PolyPointScreenLocation::Init()
 {
-    if (std::isnan(worldPos_x)) worldPos_x = 0.0;
-    if (std::isnan(worldPos_y)) worldPos_y = 0.0;
-    if (std::isnan(worldPos_z)) worldPos_z = 0.0;
+    // Use xl::isnan/isinf — desktop+iPad Release builds with -ffast-math
+    // license clang to assume operands are finite and may elide std::isnan
+    // entirely. The helper wraps __builtin_isnan on clang/gcc and std::isnan
+    // on MSVC. See `src-core/utils/FloatChecks.h`.
+    if (xl::isnan(worldPos_x)) worldPos_x = 0.0;
+    if (xl::isnan(worldPos_y)) worldPos_y = 0.0;
+    if (xl::isnan(worldPos_z)) worldPos_z = 0.0;
 
-    if (scalex <= 0 || std::isinf(scalex) || std::isnan(scalex)) {
+    if (scalex <= 0 || xl::isinf(scalex) || xl::isnan(scalex)) {
         scalex = 1.0f;
     }
-    if (scaley <= 0 || std::isinf(scaley) || std::isnan(scaley)) {
+    if (scaley <= 0 || xl::isinf(scaley) || xl::isnan(scaley)) {
         scaley = 1.0f;
     }
-    if (scalez <= 0 || std::isinf(scalez) || std::isnan(scalez)) {
+    if (scalez <= 0 || xl::isinf(scalez) || xl::isnan(scalez)) {
         scalez = 1.0f;
     }
 
-    mHandlePosition.resize(num_points + 5);
     mSelectableHandles = num_points + 1;
-    handle_aabb_min.resize(num_points + 5);
-    handle_aabb_max.resize(num_points + 5);
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
 }
@@ -262,20 +276,16 @@ bool PolyPointScreenLocation::IsContained(IModelPreview* preview, int x1, int y1
 
 bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const
 {
-
     bool ret_value = false;
-    selected_segment = -1;
 
     for (int i = 0; i < num_points - 1; ++i) {
         if (mPos[i].has_curve && mPos[i].curve != nullptr) {
             if (mPos[i].curve->HitTest(ray_origin)) {
-                selected_segment = i;
                 ret_value = true;
                 break;
             }
         }
         else {
-            // perform normal line segment hit detection
             if (mPos[i].mod_matrix != nullptr) {
                 if (VectorMath::TestRayOBBIntersection2D(
                     ray_origin,
@@ -283,7 +293,6 @@ bool PolyPointScreenLocation::HitTest(glm::vec3& ray_origin, glm::vec3& ray_dire
                     seg_aabb_max[i],
                     *mPos[i].mod_matrix)
                     ) {
-                    selected_segment = i;
                     ret_value = true;
                     break;
                 }
@@ -304,15 +313,11 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
     float distance = 1000000000.0f;
     bool ret_value = false;
 
-    // FIXME: Speed up by having initial check for overall boundaries?
-
-    selected_segment = -1;
     for (int i = 0; i < num_points - 1; ++i) {
         if (mPos[i].has_curve && mPos[i].curve != nullptr) {
             if (mPos[i].curve->HitTest3D(ray_origin, ray_direction, distance)) {
                 if (distance < intersection_distance) {
                     intersection_distance = distance;
-                    selected_segment = i;
                 }
                 ret_value = true;
             }
@@ -322,7 +327,6 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
                 continue;
             }
 
-            // perform normal line segment hit detection
             if (VectorMath::TestRayOBBIntersection(
                 ray_origin,
                 ray_direction,
@@ -333,7 +337,6 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
                 ) {
                 if (distance < intersection_distance) {
                     intersection_distance = distance;
-                    selected_segment = i;
                 }
                 ret_value = true;
             }
@@ -343,301 +346,46 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
     return ret_value;
 }
 
-CursorType PolyPointScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
+
+void PolyPointScreenLocation::SetActiveHandle(const std::optional<handles::Id>& id)
 {
-    CursorType return_value = CursorType::Default;
-    handle = NO_HANDLE;
-
-    if (_locked) {
-        return CursorType::Default;
+    // Axis-gizmo roles are modifiers on the body handle — see the
+    // base default comment for why we ignore them here.
+    if (id && (id->role == handles::Role::AxisArrow ||
+               id->role == handles::Role::AxisCube ||
+               id->role == handles::Role::AxisRing)) {
+        return;
     }
-
-    return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
-
-    // test control point handles
-    if (handle == NO_HANDLE) {
-        float distance = 1000000000.0f;
-
-        float hw = GetRectHandleWidth(zoom, scale);
-        if (selected_segment != -1) {
-            // add control point handles for selected segments
-            int s = selected_segment;
-            if ((int)mPos.size() > s && mPos[s].has_curve && mPos[s].curve != nullptr) {
-                glm::vec3 cp_handle_aabb_min[2];
-                glm::vec3 cp_handle_aabb_max[2];
-                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX) * scalex - hw;
-                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY) * scaley - hw;
-                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ) * scalez - hw;
-                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX) * scalex + hw;
-                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY) * scaley + hw;
-                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ) * scalez + hw;
-                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX) * scalex - hw;
-                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY) * scaley - hw;
-                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ) * scalez - hw;
-                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX) * scalex + hw;
-                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY) * scaley + hw;
-                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ) * scalez + hw;
-
-                // Test each each Oriented Bounding Box (OBB).
-                for (size_t i = 0; i < 2; i++) {
-                    float intersection_distance; // Output of TestRayOBBIntersection()
-
-                    if (VectorMath::TestRayOBBIntersection(
-                        ray_origin,
-                        ray_direction,
-                        cp_handle_aabb_min[i],
-                        cp_handle_aabb_max[i],
-                        ModelMatrix,
-                        intersection_distance)
-                        ) {
-                        if (intersection_distance < distance) {
-                            distance = intersection_distance;
-                            handle = ((i == 0) ? s | HANDLE_CP0 : s | HANDLE_CP1);
-                            return_value = CursorType::Hand;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // test the normal handles
-    if (handle == NO_HANDLE) {
-        float distance = 1000000000.0f;
-        handle = -1;
-
-        // Test each each Oriented Bounding Box (OBB).
-        for (int i = 0; i < mSelectableHandles; i++) {
-            float intersection_distance; // Output of TestRayOBBIntersection()
-
-            if (VectorMath::TestRayOBBIntersection(
-                ray_origin,
-                ray_direction,
-                handle_aabb_min[i],
-                handle_aabb_max[i],
-                ModelMatrix,
-                intersection_distance)
-                ) {
-                if (intersection_distance < distance) {
-                    distance = intersection_distance;
-                    handle = i;
-                    return_value = CursorType::Hand;
-                }
-            }
-        }
-    }
-
-    // test for clicking a new segment
-    if (handle == NO_HANDLE) {
-        float distance = 1000000000.0f;
-        float intersection_distance = 1000000000.0f;
-        // FIXME: Speed up by having initial check for overall boundaries?
-
-        for (int i = 0; i < num_points - 1; ++i) {
-            if (mPos[i].has_curve && mPos[i].curve != nullptr) {
-                if (mPos[i].curve->HitTest3D(ray_origin, ray_direction, intersection_distance)) {
-                    handle = i | HANDLE_SEGMENT;
-                    return_value = CursorType::Default;
-                }
-            }
-            else {
-                // perform normal line segment hit detection
-                if (mPos[i].mod_matrix != nullptr) {
-                    if (VectorMath::TestRayOBBIntersection(
-                        ray_origin,
-                        ray_direction,
-                        seg_aabb_min[i],
-                        seg_aabb_max[i],
-                        *mPos[i].mod_matrix,
-                        distance)
-                        ) {
-                        if (distance < intersection_distance) {
-                            intersection_distance = distance;
-                            handle = i | HANDLE_SEGMENT;
-                            return_value = CursorType::Default;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return return_value;
+    // selected_handle and active_handle must stay in lockstep, and we
+    // can set both Id directly without lossy int round-tripping.
+    active_handle = id;
+    selected_handle = id;
+    highlighted_handle.reset();
+    SetAxisTool(axis_tool);
 }
 
-CursorType PolyPointScreenLocation::CheckIfOverHandles(IModelPreview* preview, int& handle, int x, int y) const
+void PolyPointScreenLocation::SetAxisTool(handles::Tool mode)
 {
-    assert(!preview->Is3D());
-
-    CursorType return_value = CursorType::Default;
-
-    if (preview == nullptr) return return_value;
-
-    handle = NO_HANDLE;
-    float zoom = preview->GetCameraZoomForHandles();
-    int scale = preview->GetHandleScale();
-
-    if (_locked) {
-        return CursorType::Default;
-    }
-
-    //Get a world position for the mouse
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-
-    VectorMath::ScreenPosToWorldRay(
-        x, preview->getHeight() - y,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetProjViewMatrix(),
-        ray_origin,
-        ray_direction
-    );
-
-    // test control point handles
-    if (handle == NO_HANDLE) {
-        if (selected_segment != -1) {
-            int s = selected_segment;
-            if (mPos[s].has_curve && mPos[s].curve != nullptr) {
-                glm::vec3 cp_handle_aabb_min[2];
-                glm::vec3 cp_handle_aabb_max[2];
-
-                float hw = GetRectHandleWidth(zoom, scale);
-                cp_handle_aabb_min[0].x = (mPos[s].curve->get_cp0x() - minX) * scalex - hw;
-                cp_handle_aabb_min[0].y = (mPos[s].curve->get_cp0y() - minY) * scaley - hw;
-                cp_handle_aabb_min[0].z = (mPos[s].curve->get_cp0z() - minZ) * scalez - hw;
-                cp_handle_aabb_max[0].x = (mPos[s].curve->get_cp0x() - minX) * scalex + hw;
-                cp_handle_aabb_max[0].y = (mPos[s].curve->get_cp0y() - minY) * scaley + hw;
-                cp_handle_aabb_max[0].z = (mPos[s].curve->get_cp0z() - minZ) * scalez + hw;
-                cp_handle_aabb_min[1].x = (mPos[s].curve->get_cp1x() - minX) * scalex - hw;
-                cp_handle_aabb_min[1].y = (mPos[s].curve->get_cp1y() - minY) * scaley - hw;
-                cp_handle_aabb_min[1].z = (mPos[s].curve->get_cp1z() - minZ) * scalez - hw;
-                cp_handle_aabb_max[1].x = (mPos[s].curve->get_cp1x() - minX) * scalex + hw;
-                cp_handle_aabb_max[1].y = (mPos[s].curve->get_cp1y() - minY) * scaley + hw;
-                cp_handle_aabb_max[1].z = (mPos[s].curve->get_cp1z() - minZ) * scalez + hw;
-
-                // Test each each Oriented Bounding Box (OBB).
-                for (size_t i = 0; i < 2; i++) {
-                    if (VectorMath::TestRayOBBIntersection2D(
-                        ray_origin,
-                        cp_handle_aabb_min[i],
-                        cp_handle_aabb_max[i],
-                        ModelMatrix)
-                        ) {
-                        handle = ((i == 0) ? s | HANDLE_CP0 : s | HANDLE_CP1);
-                        return_value = CursorType::Hand;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // test the normal handles
-    if (handle == NO_HANDLE) {
-        // Test each each Oriented Bounding Box (OBB).
-        for (int i = 1; i < mSelectableHandles; i++) {
-            if (VectorMath::TestRayOBBIntersection2D(
-                ray_origin,
-                handle_aabb_min[i],
-                handle_aabb_max[i],
-                ModelMatrix)
-                ) {
-                handle = i;
-                return_value = CursorType::Hand;
-                break;
-            }
-        }
-    }
-
-    // test for over a segment
-    if (handle == NO_HANDLE) {
-        for (int i = 0; i < num_points - 1; ++i) {
-            if (mPos[i].has_curve && mPos[i].curve != nullptr) {
-                if (mPos[i].curve->HitTest(ray_origin)) {
-                    if (i != selected_segment) {
-                        handle = i | HANDLE_SEGMENT;
-                        return_value = CursorType::Bullseye;
-                    }
-                    break;
-                }
-            }
-            else {
-                if (mPos[i].mod_matrix != nullptr) {
-                    if (VectorMath::TestRayOBBIntersection2D(
-                        ray_origin,
-                        seg_aabb_min[i],
-                        seg_aabb_max[i],
-                        *mPos[i].mod_matrix)
-                        ) {
-                        if (i != selected_segment) {
-                            handle = i | HANDLE_SEGMENT;
-                            return_value = CursorType::Bullseye;
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // test for clicking a boundary handle
-    if (handle == NO_HANDLE) {
-        float hw = GetRectHandleWidth(zoom, scale);
-        for (int h = num_points + 1; h < num_points + 5; h++) {
-            handle_aabb_min[h].x = mHandlePosition[h].x - hw;
-            handle_aabb_min[h].y = mHandlePosition[h].y - hw;
-            handle_aabb_min[h].z = mHandlePosition[h].z - hw;
-            handle_aabb_max[h].x = mHandlePosition[h].x + hw;
-            handle_aabb_max[h].y = mHandlePosition[h].y + hw;
-            handle_aabb_max[h].z = mHandlePosition[h].z + hw;
-
-            // Test each each Oriented Bounding Box (OBB).
-            if (VectorMath::TestRayOBBIntersection2D(
-                ray_origin,
-                handle_aabb_min[h],
-                handle_aabb_max[h],
-                Identity)
-                ) {
-                handle = h;
-                return_value = CursorType::Hand;
-                break;
-            }
-        }
-    }
-
-    return return_value;
-}
-
-void PolyPointScreenLocation::SetActiveHandle(int handle)
-{
-    selected_handle = handle;
-    active_handle = handle;
-    highlighted_handle = -1;
-    SetAxisTool(axis_tool);  // run logic to disallow certain tools
-}
-
-void PolyPointScreenLocation::SetAxisTool(MSLTOOL mode)
-{
-    if (active_handle == CENTER_HANDLE) {
+    if (IsRole(active_handle, handles::Role::CentreCycle)) {
         ModelScreenLocation::SetAxisTool(mode);
     }
     else {
-        if (mode == MSLTOOL::TOOL_TRANSLATE || mode == MSLTOOL::TOOL_XY_TRANS) {
+        if (mode == handles::Tool::Translate || mode == handles::Tool::XYTranslate) {
             axis_tool = mode;
         }
         else {
-            axis_tool = MSLTOOL::TOOL_TRANSLATE;
+            axis_tool = handles::Tool::Translate;
         }
     }
 }
 
 void PolyPointScreenLocation::AdvanceAxisTool()
 {
-    if (active_handle == CENTER_HANDLE) {
+    if (IsRole(active_handle, handles::Role::CentreCycle)) {
         ModelScreenLocation::AdvanceAxisTool();
     }
     else {
-        axis_tool = MSLTOOL::TOOL_TRANSLATE;
+        axis_tool = handles::Tool::Translate;
     }
 }
 
@@ -648,7 +396,7 @@ void PolyPointScreenLocation::SetActiveAxis(MSLAXIS axis)
 bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     std::unique_lock<std::mutex> locker(_mutex);
 
-    if (active_handle != NO_HANDLE || mouse_down) {
+    if (active_handle.has_value() || mouse_down) {
         auto vac = program->getAccumulator();
         int startVertex = vac->getCount();
         vac->PreAlloc(10 * num_points + 12);
@@ -664,158 +412,112 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
             h2c = LOCKED_HANDLES_COLOUR;
             h3c = LOCKED_HANDLES_COLOUR;
         } else {
-            h1c = (highlighted_handle == START_HANDLE) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
+            h1c = IsHandle(highlighted_handle, handles::Role::Vertex, 0) ? xlYELLOWTRANSLUCENT : xlGREENTRANSLUCENT;
             h2c = xlBLUETRANSLUCENT;
-            h3c = (highlighted_handle == CENTER_HANDLE) ? xlYELLOWTRANSLUCENT : xlORANGETRANSLUCENT;
+            h3c = IsRole(highlighted_handle, handles::Role::CentreCycle) ? xlYELLOWTRANSLUCENT : xlORANGETRANSLUCENT;
         }
 
-        // add center handle
-        float cx, cy, cz;
-        float hw = GetRectHandleWidth(zoom, scale);
-        if (!mouse_down) {
-            cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
-            cy = (maxY + minY) * scaley / 2.0f + worldPos_y;
-            cz = (maxZ + minZ) * scalez / 2.0f + worldPos_z;
-            mHandlePosition[CENTER_HANDLE].x = cx;
-            mHandlePosition[CENTER_HANDLE].y = cy;
-            mHandlePosition[CENTER_HANDLE].z = cz;
-            handle_aabb_min[CENTER_HANDLE].x = (maxX - minX) * scalex / 2.0f - hw;
-            handle_aabb_min[CENTER_HANDLE].y = (maxY - minY) * scaley / 2.0f - hw;
-            handle_aabb_min[CENTER_HANDLE].z = (maxZ - minZ) * scalez / 2.0f - hw;
-            handle_aabb_max[CENTER_HANDLE].x = (maxX - minX) * scalex / 2.0f + hw;
-            handle_aabb_max[CENTER_HANDLE].y = (maxY - minY) * scaley / 2.0f + hw;
-            handle_aabb_max[CENTER_HANDLE].z = (maxZ - minZ) * scalez / 2.0f + hw;
-        }
-        vac->AddSphereAsTriangles(mHandlePosition[CENTER_HANDLE].x, mHandlePosition[CENTER_HANDLE].y, mHandlePosition[CENTER_HANDLE].z, hw, h3c);
+        // Centroid sphere: drawn at the same point GetHandles() emits
+        // for the CentreCycle descriptor and that GetActiveSubHandleWorldPos
+        // returns when CentreCycle is active.
+        const glm::vec3 centerPos(GetHcenterPos(), GetVcenterPos(), GetDcenterPos());
+        const float hw = GetRectHandleWidth(zoom, scale);
+        vac->AddSphereAsTriangles(centerPos.x, centerPos.y, centerPos.z, hw, h3c);
         int count = vac->getCount();
         program->addStep([=](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count - startVertex);
         });
         startVertex = count;
 
+        // Segment lines / bezier samples — uses mPos directly because
+        // GetHandles only carries segment endpoints, not the full curve
+        // sampling needed to render bezier arcs.
         for (int i = 0; i < num_points - 1; ++i) {
-            int x1_pos = mPos[i].x * scalex + worldPos_x;
-            int x2_pos = mPos[i + 1].x * scalex + worldPos_x;
-            int y1_pos = mPos[i].y * scaley + worldPos_y;
-            int y2_pos = mPos[i + 1].y * scaley + worldPos_y;
-            int z1_pos = mPos[i].z * scalez + worldPos_z;
-            int z2_pos = mPos[i + 1].z * scalez + worldPos_z;
-
-            if (i == selected_segment) {
-                count = vac->getCount();
-                if (count != startVertex) {
-                    program->addStep([=](xlGraphicsContext *ctx) {
-                        ctx->drawTriangles(vac, startVertex, count - startVertex);
-                    });
-                    startVertex = count;
-                }
-                
-                if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
-                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
-                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
-                } else {
-                    // draw bezier curve
-                    x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
-                    y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
-                    z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
-                    for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
-                        x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
-                        y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
-                        z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
-                        vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
-                        vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
-                        x1_pos = x2_pos;
-                        y1_pos = y2_pos;
-                        z1_pos = z2_pos;
-                    }
-                    // draw control lines
-                    x1_pos = mPos[i].curve->get_p0x() * scalex + worldPos_x;
-                    y1_pos = mPos[i].curve->get_p0y() * scaley + worldPos_y;
-                    z1_pos = mPos[i].curve->get_p0z() * scalez + worldPos_z;
-                    x2_pos = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
-                    y2_pos = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
-                    z2_pos = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
-                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
-                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
-                    x1_pos = mPos[i].curve->get_p1x() * scalex + worldPos_x;
-                    y1_pos = mPos[i].curve->get_p1y() * scaley + worldPos_y;
-                    z1_pos = mPos[i].curve->get_p1z() * scalez + worldPos_z;
-                    x2_pos = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
-                    y2_pos = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
-                    z2_pos = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
-                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
-                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
-                }
-                count = vac->getCount();
+            if (i != selected_segment) continue;
+            count = vac->getCount();
+            if (count != startVertex) {
                 program->addStep([=](xlGraphicsContext *ctx) {
-                    ctx->drawLines(vac, startVertex, count - startVertex);
+                    ctx->drawTriangles(vac, startVertex, count - startVertex);
                 });
                 startVertex = count;
             }
 
-            // add handle for start of this vector
-            float sx = mPos[i].x * scalex + worldPos_x - hw / 2;
-            float sy = mPos[i].y * scaley + worldPos_y - hw / 2;
-            float sz = mPos[i].z * scalez + worldPos_z - hw / 2;
-            int hpos = i + 1;
-            vac->AddSphereAsTriangles(sx, sy, sz, hw, i == 0 ? h1c : (hpos == highlighted_handle ? xlYELLOW : h2c));
-            mHandlePosition[hpos].x = sx;
-            mHandlePosition[hpos].y = sy;
-            mHandlePosition[hpos].z = sz;
-            handle_aabb_min[hpos].x = (mPos[i].x - minX) * scalex - hw;
-            handle_aabb_min[hpos].y = (mPos[i].y - minY) * scaley - hw;
-            handle_aabb_min[hpos].z = (mPos[i].z - minZ) * scalez - hw;
-            handle_aabb_max[hpos].x = (mPos[i].x - minX) * scalex + hw;
-            handle_aabb_max[hpos].y = (mPos[i].y - minY) * scaley + hw;
-            handle_aabb_max[hpos].z = (mPos[i].z - minZ) * scalez + hw;
-
-            // add final handle
-            if (i == num_points - 2) {
-                hpos++;
-                sx = mPos[i + 1].x * scalex + worldPos_x - hw / 2;
-                sy = mPos[i + 1].y * scaley + worldPos_y - hw / 2;
-                sz = mPos[i + 1].z * scalez + worldPos_z - hw / 2;
-                vac->AddSphereAsTriangles(sx, sy, sz, hw, (hpos == highlighted_handle ? xlYELLOW : h2c));
-                mHandlePosition[hpos].x = sx;
-                mHandlePosition[hpos].y = sy;
-                mHandlePosition[hpos].z = sz;
-                handle_aabb_min[hpos].x = (mPos[i + 1].x - minX) * scalex - hw;
-                handle_aabb_min[hpos].y = (mPos[i + 1].y - minY) * scaley - hw;
-                handle_aabb_min[hpos].z = (mPos[i + 1].z - minZ) * scalez - hw;
-                handle_aabb_max[hpos].x = (mPos[i + 1].x - minX) * scalex + hw;
-                handle_aabb_max[hpos].y = (mPos[i + 1].y - minY) * scaley + hw;
-                handle_aabb_max[hpos].z = (mPos[i + 1].z - minZ) * scalez + hw;
+            if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
+                const float x1_pos = mPos[i].x * scalex + worldPos_x;
+                const float y1_pos = mPos[i].y * scaley + worldPos_y;
+                const float z1_pos = mPos[i].z * scalez + worldPos_z;
+                const float x2_pos = mPos[i + 1].x * scalex + worldPos_x;
+                const float y2_pos = mPos[i + 1].y * scaley + worldPos_y;
+                const float z2_pos = mPos[i + 1].z * scalez + worldPos_z;
+                vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
+                vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
+            } else {
+                // bezier curve sample chain
+                float x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
+                float y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
+                float z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
+                for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
+                    const float x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
+                    const float y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
+                    const float z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
+                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
+                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
+                    x1_pos = x2_pos;
+                    y1_pos = y2_pos;
+                    z1_pos = z2_pos;
+                }
+                // control lines from each endpoint to its CP
+                const float p0x = mPos[i].curve->get_p0x() * scalex + worldPos_x;
+                const float p0y = mPos[i].curve->get_p0y() * scaley + worldPos_y;
+                const float p0z = mPos[i].curve->get_p0z() * scalez + worldPos_z;
+                const float cp0x = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
+                const float cp0y = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
+                const float cp0z = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
+                vac->AddVertex(p0x, p0y, p0z, xlRED);
+                vac->AddVertex(cp0x, cp0y, cp0z, xlRED);
+                const float p1x = mPos[i].curve->get_p1x() * scalex + worldPos_x;
+                const float p1y = mPos[i].curve->get_p1y() * scaley + worldPos_y;
+                const float p1z = mPos[i].curve->get_p1z() * scalez + worldPos_z;
+                const float cp1x = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
+                const float cp1y = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
+                const float cp1z = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
+                vac->AddVertex(p1x, p1y, p1z, xlRED);
+                vac->AddVertex(cp1x, cp1y, cp1z, xlRED);
             }
+            count = vac->getCount();
+            program->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawLines(vac, startVertex, count - startVertex);
+            });
+            startVertex = count;
         }
 
-        glm::vec3 cp_handle_pos[2];
-        if (selected_segment != -1) {
-            // add control point handles for selected segments
-            int i = selected_segment;
-            if (mPos[i].has_curve && mPos[i].curve != nullptr) {
-                float cxx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - hw / 2;
-                float cyy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - hw / 2;
-                float czz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
-                h2c = highlighted_handle & HANDLE_CP0 ? ((highlighted_handle & HANDLE_MASK) == i ? xlYELLOW : xlRED) : xlRED;
-                vac->AddSphereAsTriangles(cxx, cyy, czz, hw, h2c);
-                mPos[i].cp0.x = mPos[i].curve->get_cp0x();
-                mPos[i].cp0.y = mPos[i].curve->get_cp0y();
-                mPos[i].cp0.z = mPos[i].curve->get_cp0z();
-                cp_handle_pos[0].x = cxx;
-                cp_handle_pos[0].y = cyy;
-                cp_handle_pos[0].z = czz;
-                cxx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - hw / 2;
-                cyy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - hw / 2;
-                czz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - hw / 2;
-                h2c = highlighted_handle & HANDLE_CP0 ? ((highlighted_handle & HANDLE_MASK) == i ? xlYELLOW : xlRED) : xlRED;
-                vac->AddSphereAsTriangles(cxx, cyy, czz, hw, h2c);
-                mPos[i].cp1.x = mPos[i].curve->get_cp1x();
-                mPos[i].cp1.y = mPos[i].curve->get_cp1y();
-                mPos[i].cp1.z = mPos[i].curve->get_cp1z();
-                cp_handle_pos[1].x = cxx;
-                cp_handle_pos[1].y = cyy;
-                cp_handle_pos[1].z = czz;
+        // Vertex + CurveControl spheres come from GetHandles(): the
+        // descriptor pipeline owns the position, draw matches hit-test
+        // exactly (no -hw/2 offset).
+        const auto descriptors = GetHandles(handles::ViewMode::ThreeD, handles::Tool::Translate);
+        for (const auto& d : descriptors) {
+            if (d.id.role == handles::Role::Vertex) {
+                xlColor c = (d.id.index == 0)
+                    ? h1c
+                    : (IsHandle(highlighted_handle, handles::Role::Vertex, d.id.index) ? xlYELLOW : h2c);
+                vac->AddSphereAsTriangles(d.worldPos.x, d.worldPos.y, d.worldPos.z, hw, c);
+            } else if (d.id.role == handles::Role::CurveControl && d.id.segment == selected_segment) {
+                xlColor c = IsHandle(highlighted_handle, handles::Role::CurveControl, d.id.index, d.id.segment)
+                    ? xlYELLOW : xlRED;
+                vac->AddSphereAsTriangles(d.worldPos.x, d.worldPos.y, d.worldPos.z, hw, c);
             }
+        }
+        // Keep the legacy cp0/cp1 cache in sync with the live curve;
+        // SpaceMouse curve-CP drag (ApplySpaceMouse* on mPos[seg].cp0/cp1)
+        // relies on it. The cache is otherwise unrelated to drawing.
+        if (selected_segment != -1 && mPos[selected_segment].has_curve && mPos[selected_segment].curve != nullptr) {
+            auto& mp = mPos[selected_segment];
+            mp.cp0.x = mp.curve->get_cp0x();
+            mp.cp0.y = mp.curve->get_cp0y();
+            mp.cp0.z = mp.curve->get_cp0z();
+            mp.cp1.x = mp.curve->get_cp1x();
+            mp.cp1.y = mp.curve->get_cp1y();
+            mp.cp1.z = mp.curve->get_cp1z();
         }
         count = vac->getCount();
         program->addStep([=](xlGraphicsContext *ctx) {
@@ -824,43 +526,28 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         startVertex = count;
 
         if (!_locked) {
-            if ((active_handle & HANDLE_CP0) > 0) {
-                active_handle_pos = cp_handle_pos[0];
-            }
-            else if ((active_handle & HANDLE_CP1) > 0) {
-                active_handle_pos = cp_handle_pos[1];
-            }
-            else {
-                active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
-            }
+            // Gizmo position: GetActiveSubHandleWorldPos covers
+            // CentreCycle / Vertex / CurveControl in one place, matching
+            // the descriptors we just drew.
+            const glm::vec3 active_handle_pos = GetActiveSubHandleWorldPos();
             DrawAxisTool(active_handle_pos, program, zoom, scale);
-            if (active_axis != MSLAXIS::NO_AXIS) {
-                if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
-                    vac->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
-                    vac->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
-                    vac->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
-                    vac->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
-                }
-                switch (active_axis) {
-                case MSLAXIS::X_AXIS:
-                    vac->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
-                    vac->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
-                    break;
-                case MSLAXIS::Y_AXIS:
-                    vac->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
-                    vac->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
-                    break;
-                case MSLAXIS::Z_AXIS:
-                    vac->AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
-                    vac->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
-                    break;
-                default:
-                    break;
-                }
-                count = vac->getCount();
-                program->addStep([=](xlGraphicsContext *ctx) {
-                    ctx->drawLines(vac, startVertex, count - startVertex);
+            if (axis_tool == handles::Tool::XYTranslate && active_axis != MSLAXIS::NO_AXIS) {
+                // XY_TRANS draws a planar cross (X + Y lines) rather than
+                // a single-axis indicator. Inline; the base helper handles
+                // the simpler single-axis case. Snapshot AFTER
+                // DrawAxisTool so the addStep below covers only the
+                // 4 cross vertices, not the gizmo triangles.
+                int xyStart = vac->getCount();
+                vac->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                vac->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
+                vac->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
+                vac->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
+                int xyEnd = vac->getCount();
+                program->addStep([xyStart, xyEnd, program, vac](xlGraphicsContext *ctx) {
+                    ctx->drawLines(vac, xyStart, xyEnd - xyStart);
                 });
+            } else {
+                DrawActiveAxisIndicator(active_handle_pos, program);
             }
         }
     } else if (drawBounding) {
@@ -900,10 +587,8 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     float boundary_offset = 2.0f * hw;
     float x1 = minX * scalex + worldPos_x - hw / 2 - boundary_offset;
     float y1 = minY * scaley + worldPos_y - hw / 2 - boundary_offset;
-    float z1 = minZ * scalez + worldPos_z - hw / 2 - boundary_offset;
     float x2 = maxX * scalex + worldPos_x + hw / 2 + boundary_offset;
     float y2 = maxY * scaley + worldPos_y + hw / 2 + boundary_offset;
-    float z2 = maxZ * scalez + worldPos_z + hw / 2 + boundary_offset;
     xlColor handleColor = xlBLUETRANSLUCENT;
     if (fromBase) {
         handleColor = FROM_BASE_HANDLES_COLOUR;
@@ -915,139 +600,88 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     vac->AddRectAsTriangles(x1, y2, x1 + hw, y2 + hw, handleColor);
     vac->AddRectAsTriangles(x2, y1, x2 + hw, y1 + hw, handleColor);
     vac->AddRectAsTriangles(x2, y2, x2 + hw, y2 + hw, handleColor);
-    while ((int)mHandlePosition.size() < num_points + 5) { // not sure this is the best way to do this but it stops a crash
-        xlPoint pt;
-        mHandlePosition.push_back(pt);
-    }
-    mHandlePosition[num_points + 1].x = x1;
-    mHandlePosition[num_points + 1].y = y1;
-    mHandlePosition[num_points + 1].z = z1;
-    mHandlePosition[num_points + 2].x = x1;
-    mHandlePosition[num_points + 2].y = y2;
-    mHandlePosition[num_points + 2].z = z2;
-    mHandlePosition[num_points + 3].x = x2;
-    mHandlePosition[num_points + 3].y = y1;
-    mHandlePosition[num_points + 3].z = z1;
-    mHandlePosition[num_points + 4].x = x2;
-    mHandlePosition[num_points + 4].y = y2;
-    mHandlePosition[num_points + 4].z = z2;
 
 
+    // Segment lines / bezier samples — uses mPos directly because
+    // GetHandles only carries segment endpoints, not the full curve
+    // sampling needed to render bezier arcs.
     for (int i = 0; i < num_points - 1; ++i) {
-        int x1_pos = mPos[i].x * scalex + worldPos_x;
-        int x2_pos = mPos[i + 1].x * scalex + worldPos_x;
-        int y1_pos = mPos[i].y * scaley + worldPos_y;
-        int y2_pos = mPos[i + 1].y * scaley + worldPos_y;
-        [[maybe_unused]] int z1_pos = mPos[i].z * scalez + worldPos_z;
-        int z2_pos = mPos[i + 1].z * scalez + worldPos_z;
-
-        if (i == selected_segment) {
-            int count = vac->getCount();
-            if (count != startVertex) {
-                program->addStep([=](xlGraphicsContext *ctx) {
-                    ctx->drawTriangles(vac, startVertex, count - startVertex);
-                });
-                startVertex = count;
-            }
-            if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
+        if (i != selected_segment) continue;
+        int count = vac->getCount();
+        if (count != startVertex) {
+            program->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawTriangles(vac, startVertex, count - startVertex);
+            });
+            startVertex = count;
+        }
+        if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
+            const float x1_pos = mPos[i].x * scalex + worldPos_x;
+            const float y1_pos = mPos[i].y * scaley + worldPos_y;
+            const float x2_pos = mPos[i + 1].x * scalex + worldPos_x;
+            const float y2_pos = mPos[i + 1].y * scaley + worldPos_y;
+            vac->AddVertex(x1_pos, y1_pos, xlMAGENTA);
+            vac->AddVertex(x2_pos, y2_pos, xlMAGENTA);
+        } else {
+            // bezier curve sample chain
+            float x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
+            float y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
+            for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
+                const float x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
+                const float y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
                 vac->AddVertex(x1_pos, y1_pos, xlMAGENTA);
                 vac->AddVertex(x2_pos, y2_pos, xlMAGENTA);
-            } else {
-                // draw bezier curve
-                x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
-                for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
-                    x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
-                    y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
-                    z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
-                    vac->AddVertex(x1_pos, y1_pos, xlMAGENTA);
-                    vac->AddVertex(x2_pos, y2_pos, xlMAGENTA);
-                    x1_pos = x2_pos;
-                    y1_pos = y2_pos;
-                    z1_pos = z2_pos;
-                }
-                // draw control lines
-                x1_pos = mPos[i].curve->get_p0x() * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_p0y() * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_p0z() * scalez + worldPos_z;
-                x2_pos = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
-                y2_pos = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
-                z2_pos = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
-                vac->AddVertex(x1_pos, y1_pos, xlRED);
-                vac->AddVertex(x2_pos, y2_pos, xlRED);
-                x1_pos = mPos[i].curve->get_p1x() * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_p1y() * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_p1z() * scalez + worldPos_z;
-                x2_pos = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
-                y2_pos = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
-                z2_pos = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
-                vac->AddVertex(x1_pos, y1_pos, xlRED);
-                vac->AddVertex(x2_pos, y2_pos, xlRED);
+                x1_pos = x2_pos;
+                y1_pos = y2_pos;
             }
-            count = vac->getCount();
-            if (count != startVertex) {
-                program->addStep([=](xlGraphicsContext *ctx) {
-                    ctx->drawLines(vac, startVertex, count - startVertex);
-                });
-                startVertex = count;
-            }
+            // control lines from each endpoint to its CP
+            const float p0x = mPos[i].curve->get_p0x() * scalex + worldPos_x;
+            const float p0y = mPos[i].curve->get_p0y() * scaley + worldPos_y;
+            const float cp0x = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
+            const float cp0y = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
+            vac->AddVertex(p0x, p0y, xlRED);
+            vac->AddVertex(cp0x, cp0y, xlRED);
+            const float p1x = mPos[i].curve->get_p1x() * scalex + worldPos_x;
+            const float p1y = mPos[i].curve->get_p1y() * scaley + worldPos_y;
+            const float cp1x = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
+            const float cp1y = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
+            vac->AddVertex(p1x, p1y, xlRED);
+            vac->AddVertex(cp1x, cp1y, xlRED);
         }
-
-        // add handle for start of this vector
-        float sx = mPos[i].x * scalex + worldPos_x - hw / 2;
-        float sy = mPos[i].y * scaley + worldPos_y - hw / 2;
-        float sz = mPos[i].z * scalez + worldPos_z - hw / 2;
-        vac->AddRectAsTriangles(sx, sy, sx + hw, sy + hw, i == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : (i == 0 ? xlGREENTRANSLUCENT : handleColor));
-        int hpos = i + 1;
-        mHandlePosition[hpos].x = sx;
-        mHandlePosition[hpos].y = sy;
-        mHandlePosition[hpos].z = sz;
-        handle_aabb_min[hpos].x = (mPos[i].x - minX) * scalex - hw;
-        handle_aabb_min[hpos].y = (mPos[i].y - minY) * scaley - hw;
-        handle_aabb_min[hpos].z = (mPos[i].z - minZ) * scalez - hw;
-        handle_aabb_max[hpos].x = (mPos[i].x - minX) * scalex + hw;
-        handle_aabb_max[hpos].y = (mPos[i].y - minY) * scaley + hw;
-        handle_aabb_max[hpos].z = (mPos[i].z - minZ) * scalez + hw;
-
-        // add final handle
-        if (i == num_points - 2) {
-            sx = mPos[i + 1].x * scalex + worldPos_x - hw / 2;
-            sy = mPos[i + 1].y * scaley + worldPos_y - hw / 2;
-            sz = mPos[i + 1].z * scalez + worldPos_z - hw / 2;
-            vac->AddRectAsTriangles(sx, sy, sx + hw, sy + hw, i + 1 == (selected_handle - 1) ? xlMAGENTATRANSLUCENT : handleColor);
-            hpos++;
-            mHandlePosition[hpos].x = sx;
-            mHandlePosition[hpos].y = sy;
-            mHandlePosition[hpos].z = sz;
-            handle_aabb_min[hpos].x = (mPos[i + 1].x - minX) * scalex - hw;
-            handle_aabb_min[hpos].y = (mPos[i + 1].y - minY) * scaley - hw;
-            handle_aabb_min[hpos].z = (mPos[i + 1].z - minZ) * scalez - hw;
-            handle_aabb_max[hpos].x = (mPos[i + 1].x - minX) * scalex + hw;
-            handle_aabb_max[hpos].y = (mPos[i + 1].y - minY) * scaley + hw;
-            handle_aabb_max[hpos].z = (mPos[i + 1].z - minZ) * scalez + hw;
+        count = vac->getCount();
+        if (count != startVertex) {
+            program->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawLines(vac, startVertex, count - startVertex);
+            });
+            startVertex = count;
         }
     }
 
-    if (selected_segment != -1) {
-        // add control point handles for selected segments
-        int i = selected_segment;
-        if (mPos[i].has_curve && mPos[i].curve != nullptr) {
-            float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - hw / 2;
-            float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - hw / 2;
-            [[maybe_unused]] float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
-            vac->AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
-            mPos[i].cp0.x = mPos[i].curve->get_cp0x();
-            mPos[i].cp0.y = mPos[i].curve->get_cp0y();
-            mPos[i].cp0.z = mPos[i].curve->get_cp0z();
-            cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - hw / 2;
-            cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - hw / 2;
-            cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - hw / 2;
-            vac->AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
-            mPos[i].cp1.x = mPos[i].curve->get_cp1x();
-            mPos[i].cp1.y = mPos[i].curve->get_cp1y();
-            mPos[i].cp1.z = mPos[i].curve->get_cp1z();
+    // Vertex + CurveControl rects come from GetHandles(): the descriptor
+    // pipeline owns the position so draw and hit-test agree.
+    const auto descriptors = GetHandles(handles::ViewMode::TwoD, handles::Tool::Translate);
+    for (const auto& d : descriptors) {
+        if (d.id.role == handles::Role::Vertex) {
+            xlColor c = IsHandle(selected_handle, handles::Role::Vertex, d.id.index)
+                ? xlMAGENTATRANSLUCENT
+                : (d.id.index == 0 ? xlGREENTRANSLUCENT : handleColor);
+            vac->AddRectAsTriangles(d.worldPos.x - hw / 2, d.worldPos.y - hw / 2,
+                                     d.worldPos.x + hw / 2, d.worldPos.y + hw / 2, c);
+        } else if (d.id.role == handles::Role::CurveControl && d.id.segment == selected_segment) {
+            vac->AddRectAsTriangles(d.worldPos.x - hw / 2, d.worldPos.y - hw / 2,
+                                     d.worldPos.x + hw / 2, d.worldPos.y + hw / 2, xlREDTRANSLUCENT);
         }
+    }
+    if (selected_segment != -1 && mPos[selected_segment].has_curve && mPos[selected_segment].curve != nullptr) {
+        // Same cp0/cp1 cache sync as the 3D path — keeps SpaceMouse
+        // CP-drag (which mutates mPos[seg].cp0/cp1 directly) in lockstep
+        // with the live curve.
+        auto& mp = mPos[selected_segment];
+        mp.cp0.x = mp.curve->get_cp0x();
+        mp.cp0.y = mp.curve->get_cp0y();
+        mp.cp0.z = mp.curve->get_cp0z();
+        mp.cp1.x = mp.curve->get_cp1x();
+        mp.cp1.y = mp.curve->get_cp1y();
+        mp.cp1.z = mp.curve->get_cp1z();
     }
     int count = vac->getCount();
     if (count != startVertex) {
@@ -1059,435 +693,107 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     return true;
 }
 
-int PolyPointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
-{
-    if (_locked) return MODEL_UNCHANGED;
-    std::unique_lock<std::mutex> locker(_mutex);
 
-    if (handle != CENTER_HANDLE) {
+namespace {
+// SpaceMouse session for PolyPointScreenLocation. Handle dispatch:
+//   - CentreCycle / no id   → rotate + translate whole model
+//   - CurveControl(seg, ix) → move that curve control point
+//   - Vertex(idx)           → move that vertex
+class PolyPointSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    PolyPointSpaceMouseSession(PolyPointScreenLocation* loc,
+                               std::optional<handles::Id> id)
+        : _loc(loc), _id(id) {}
 
-        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
-            if (latch) {
-                saved_position.x = active_handle_pos.x;
-                saved_position.y = active_handle_pos.y;
-                saved_position.z = active_handle_pos.z;
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rot,
+                                     const glm::vec3& mov) override {
+        if (!_loc) return handles::SpaceMouseResult::Unchanged;
+        if (_id.has_value()) {
+            if (_id->role == handles::Role::CurveControl) {
+                _loc->ApplySpaceMouseCurveCp(_id->segment, _id->index, scale, mov);
+                return handles::SpaceMouseResult::NeedsInit;
             }
-
-            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
-
-            if (scalex == 0) scalex = 0.001f;
-            if (scaley == 0) scaley = 0.001f;
-            if (scalez == 0) scalez = 0.001f;
-            if (std::isnan(scalex)) scalex = 1.0f;
-            if (std::isnan(scaley)) scaley = 1.0f;
-            if (std::isnan(scalez)) scalez = 1.0f;
-
-            float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
-            float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
-            float newz = (saved_position.z + drag_delta.z - worldPos_z) / scalez;
-
-            // check for control point handles
-            if (handle & HANDLE_CP0) {
-                int seg = handle & HANDLE_MASK;
-                if (seg < (int)mPos.size()) {
-                    switch (active_axis) {
-                    case MSLAXIS::X_AXIS:
-                        mPos[seg].cp0.x = newx;
-                        break;
-                    case MSLAXIS::Y_AXIS:
-                        mPos[seg].cp0.y = newy;
-                        break;
-                    case MSLAXIS::Z_AXIS:
-                        mPos[seg].cp0.z = newz;
-                        break;
-                    default:
-                        break;
-                    }
-                    if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
-                }
-            }
-            else if (handle & HANDLE_CP1) {
-                int seg = handle & HANDLE_MASK;
-                if (seg < (int)mPos.size()) {
-                    switch (active_axis) {
-                    case MSLAXIS::X_AXIS:
-                        mPos[seg].cp1.x = newx;
-                        break;
-                    case MSLAXIS::Y_AXIS:
-                        mPos[seg].cp1.y = newy;
-                        break;
-                    case MSLAXIS::Z_AXIS:
-                        mPos[seg].cp1.z = newz;
-                        break;
-                    default:
-                        break;
-                    }
-                    if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
-                }
-                FixCurveHandles();
-            }
-            else {
-                int point = handle - 1;
-                if (point < (int)mPos.size()) {
-                    switch (active_axis) {
-                    case MSLAXIS::X_AXIS:
-                        mPos[point].x = newx;
-                        break;
-                    case MSLAXIS::Y_AXIS:
-                        mPos[point].y = newy;
-                        break;
-                    case MSLAXIS::Z_AXIS:
-                        mPos[point].z = newz;
-                        break;
-                    default:
-                        break;
-                    }
-                }
-                FixCurveHandles();
-            }
-        } else if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
-            if (latch && mHandlePosition.size() > 1) {
-                saved_position.x = mHandlePosition[1].x * scalex + worldPos_x;
-                saved_position.y = mHandlePosition[1].y * scaley + worldPos_y;
-                saved_position.z = 0.0f;
-            }
-
-            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
-
-            if (scalex == 0) scalex = 0.001f;
-            if (scaley == 0) scaley = 0.001f;
-            if (std::isnan(scalex)) scalex = 1.0f;
-            if (std::isnan(scaley)) scaley = 1.0f;
-
-            float newx = (saved_position.x + drag_delta.x - worldPos_x) / scalex;
-            float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
-            int point = handle - 1;
-            if (point < (int)mPos.size()) {
-                mPos[point].x = newx;
-                mPos[point].y = newy;
+            if (_id->role == handles::Role::Vertex) {
+                _loc->ApplySpaceMouseVertex(_id->index, scale, mov);
+                return handles::SpaceMouseResult::NeedsInit;
             }
         }
-        return MODEL_NEEDS_INIT;
+        _loc->ApplySpaceMouseCenter(scale, rot, mov);
+        return handles::SpaceMouseResult::Dirty;
     }
-    else {
-        if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
-            if (latch) {
-                saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-            }
-            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
-            switch (active_axis) {
-            case MSLAXIS::X_AXIS:
-                worldPos_x = saved_position.x + drag_delta.x;
-                break;
-            case MSLAXIS::Y_AXIS:
-                worldPos_y = saved_position.y + drag_delta.y;
-                break;
-            case MSLAXIS::Z_AXIS:
-                worldPos_z = saved_position.z + drag_delta.z;
-                break;
-            default:
-                break;
-            }
-        } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
-            if (latch) {
-                center.x = mHandlePosition[CENTER_HANDLE].x;
-                center.y = mHandlePosition[CENTER_HANDLE].y;
-                center.z = mHandlePosition[CENTER_HANDLE].z;
-                saved_position = center;
-                saved_angle = 0.0f;
-            }
-            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
-            double angle = 0.0f;
-            float new_angle = 0.0f;
-            glm::vec3 start_vector = saved_intersect - saved_position;
-            glm::vec3 end_vector = start_vector + drag_delta;
 
-            switch (active_axis) {
-            case MSLAXIS::X_AXIS:
-            {
-                double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
-                double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
-                angle = end_angle - start_angle;
-                angles.x = angle;
-                new_angle = saved_angle - angle;
-            }
-            break;
-            case MSLAXIS::Y_AXIS:
-            {
-                double start_angle = atan2(start_vector.x, start_vector.z) * 180.0 / M_PI;
-                double end_angle = atan2(end_vector.x, end_vector.z) * 180.0 / M_PI;
-                angle = end_angle - start_angle;
-                angles.y = angle;
-                new_angle = angle - saved_angle;
-            }
-            break;
-            case MSLAXIS::Z_AXIS:
-            {
-                double start_angle = atan2(start_vector.y, start_vector.x) * 180.0 / M_PI;
-                double end_angle = atan2(end_vector.y, end_vector.x) * 180.0 / M_PI;
-                angle = end_angle - start_angle;
-                angles.z = angle;
-                new_angle = angle - saved_angle;
-            }
-            break;
-            default:
-                break;
-            }
-            rotate_pt = center;
-            Rotate(active_axis, new_angle);
-            saved_angle = angle;
-        } else if (axis_tool == MSLTOOL::TOOL_SCALE) {
-            if (latch) {
-                saved_position = glm::vec3(mHandlePosition[0].x, mHandlePosition[0].y, mHandlePosition[0].z);
-                saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-            }
-            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
-            if (saved_position.x == worldPos_x) saved_position.x += 0.001f;
-            if (saved_position.y == worldPos_y) saved_position.y += 0.001f;
-            if (saved_position.z == worldPos_z) saved_position.z += 0.001f;
-            float change_x = (saved_position.x - worldPos_x + drag_delta.x) / (saved_position.x - worldPos_x);
-            float change_y = (saved_position.y - worldPos_y + drag_delta.y) / (saved_position.y - worldPos_y);
-            float change_z = (saved_position.z - worldPos_z + drag_delta.z) / (saved_position.z - worldPos_z);
-
-            if (ShiftKeyPressed) {
-                float change = 1.0f;
-                switch (active_axis) {
-                case MSLAXIS::X_AXIS:
-                    change = change_x;
-                    break;
-                case MSLAXIS::Y_AXIS:
-                    change = change_y;
-                    break;
-                case MSLAXIS::Z_AXIS:
-                    change = change_z;
-                    break;
-                default:
-                    break;
-                }
-                float new_half_size_x = (saved_position.x - saved_point.x) * change;
-                if (new_half_size_x < 0.0f) return 0;
-                float new_half_size_y = (saved_position.y - saved_point.y) * change;
-                if (new_half_size_y < 0.0f) return 0;
-                float new_half_size_z = (saved_position.z - saved_point.z) * change;
-                if (new_half_size_z < 0.0f) return 0;
-                scalex = saved_scale.x * change;
-                scaley = saved_scale.y * change;
-                scalez = saved_scale.z * change;
-                if (!CtrlKeyPressed) {
-                    float change_size_x = new_half_size_x - saved_position.x + saved_point.x;
-                    worldPos_x = saved_point.x - change_size_x;
-                    float change_size_y = new_half_size_y - saved_position.y + saved_point.y;
-                    worldPos_y = saved_point.y - change_size_y;
-                    float change_size_z = new_half_size_z - saved_position.z + saved_point.z;
-                    worldPos_z = saved_point.z - change_size_z;
-                }
-            }
-
-            switch (active_axis) {
-            case MSLAXIS::X_AXIS:
-            {
-                float new_half_size_x = (saved_position.x - saved_point.x) * change_x;
-                if (new_half_size_x < 0.0f) return 0;
-                scalex = saved_scale.x * change_x;
-                if (!CtrlKeyPressed) {
-                    float change_size_x = new_half_size_x - saved_position.x + saved_point.x;
-                    worldPos_x = saved_point.x - change_size_x;
-                }
-            }
-            break;
-            case MSLAXIS::Y_AXIS:
-            {
-                float new_half_size_y = (saved_position.y - saved_point.y) * change_y;
-                if (new_half_size_y < 0.0f) return 0;
-                scaley = saved_scale.y * change_y;
-                if (!CtrlKeyPressed) {
-                    float change_size_y = new_half_size_y - saved_position.y + saved_point.y;
-                    worldPos_y = saved_point.y - change_size_y;
-                }
-            }
-            break;
-            case MSLAXIS::Z_AXIS:
-            {
-                float new_half_size_z = (saved_position.z - saved_point.z) * change_z;
-                if (new_half_size_z < 0.0f) return 0;
-                scalez = saved_scale.z * change_z;
-                if (!CtrlKeyPressed) {
-                    float change_size_z = new_half_size_z - saved_position.z + saved_point.z;
-                    worldPos_z = saved_point.z - change_size_z;
-                }
-            }
-            break;
-            default:
-                break;
-            }
-        }
-        return MODEL_UPDATE_RGBEFFECTS;
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
     }
-    return MODEL_UNCHANGED;
+
+private:
+    PolyPointScreenLocation*    _loc;
+    std::optional<handles::Id>  _id;
+};
+} // namespace
+
+void PolyPointScreenLocation::ApplySpaceMouseCenter(float scale,
+                                                     const glm::vec3& rot,
+                                                     const glm::vec3& mov) {
+    constexpr float rscale = 10.0f;
+    Rotate(ModelScreenLocation::MSLAXIS::X_AXIS,  rot.x * rscale);
+    Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
+    Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS,  rot.y * rscale);
+    AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
 }
-int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (handle == CENTER_HANDLE) {
-        constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
-        Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
-        Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
-        Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
-        AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
-        return MODEL_UPDATE_RGBEFFECTS;
+
+void PolyPointScreenLocation::ApplySpaceMouseCurveCp(int segment,
+                                                      int cpIndex,
+                                                      float scale,
+                                                      const glm::vec3& mov) {
+    if (segment < 0 || segment >= (int)mPos.size()) return;
+    if (cpIndex == 0) {
+        mPos[segment].cp0.x += mov.x * scale;
+        mPos[segment].cp0.y -= mov.z * scale;
+        mPos[segment].cp0.z += mov.y * scale;
+        if (mPos[segment].curve != nullptr) {
+            mPos[segment].curve->set_cp0(mPos[segment].cp0.x,
+                                          mPos[segment].cp0.y,
+                                          mPos[segment].cp0.z);
+        }
     } else {
-        if (handle & HANDLE_CP0) {
-            int seg = handle & HANDLE_MASK;
-            if (seg < (int)mPos.size()) {
-                mPos[seg].cp0.x += mov.x * scale;
-                mPos[seg].cp0.y -= mov.z * scale;
-                mPos[seg].cp0.z += mov.y * scale;
-                if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
-                FixCurveHandles();
-            }
-        } else if (handle & HANDLE_CP1) {
-            int seg = handle & HANDLE_MASK;
-            if (seg < (int)mPos.size()) {
-                mPos[seg].cp1.x += mov.x * scale;
-                mPos[seg].cp1.y -= mov.z * scale;
-                mPos[seg].cp1.z += mov.y * scale;
-                if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
-                FixCurveHandles();
-            }
-        } else {
-            int point = handle - 1;
-            if (point < (int)mPos.size()) {
-                mPos[point].x += mov.x * scale;
-                mPos[point].y -= mov.z * scale;
-                mPos[point].z += mov.y * scale;
-                FixCurveHandles();
-            }
+        mPos[segment].cp1.x += mov.x * scale;
+        mPos[segment].cp1.y -= mov.z * scale;
+        mPos[segment].cp1.z += mov.y * scale;
+        if (mPos[segment].curve != nullptr) {
+            mPos[segment].curve->set_cp1(mPos[segment].cp1.x,
+                                          mPos[segment].cp1.y,
+                                          mPos[segment].cp1.z);
         }
-        return MODEL_NEEDS_INIT;
     }
-    return MODEL_UNCHANGED;
+    FixCurveHandles();
 }
 
-int PolyPointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
-
-    if (_locked) return MODEL_UNCHANGED;
-
-    glm::vec3 ray_origin;
-    glm::vec3 ray_direction;
-    float zoom = preview->GetCameraZoomForHandles();
-    int scale = preview->GetHandleScale();
-    float hw = GetRectHandleWidth(zoom, scale);
-
-    VectorMath::ScreenPosToWorldRay(
-        mouseX, preview->getHeight() - mouseY,
-        preview->getWidth(), preview->getHeight(),
-        preview->GetProjViewMatrix(),
-        ray_origin,
-        ray_direction
-    );
-
-    if (scalex == 0) scalex = 0.001f;
-    if (scaley == 0) scaley = 0.001f;
-    if (std::isnan(scalex)) scalex = 1.0f;
-    if (std::isnan(scaley)) scaley = 1.0f;
-
-    float newx = (ray_origin.x - worldPos_x) / scalex;
-    float newy = (ray_origin.y - worldPos_y) / scaley;
-    float newz = 0.0f;
-
-    // check for control point handles
-    if( handle & HANDLE_CP0) {
-        int seg = handle & HANDLE_MASK;
-        mPos[seg].cp0.x = ray_origin.x - hw / 2;
-        mPos[seg].cp0.y = ray_origin.y - hw / 2;
-        mPos[seg].cp0.z = newz;
-        if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp0( newx, newy, newz );
-    } else if( handle & HANDLE_CP1) {
-        int seg = handle & HANDLE_MASK;
-        mPos[seg].cp1.x = ray_origin.x - hw / 2;
-        mPos[seg].cp1.y = ray_origin.y - hw / 2;
-        mPos[seg].cp1.z = newz;
-        if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp1( newx, newy, newz );
-
-    // check normal handles
-    } else if( handle < num_points+1 ) {
-        mPos[handle-1].x = newx;
-        mPos[handle-1].y = newy;
-        FixCurveHandles();
-    } else {
-        float boundary_offset = 2.0f * hw;
-        // move a boundary handle
-        float trans_x = 0.0f;
-        float trans_y = 0.0f;
-        float scale_x = 1.0f;
-        float scale_y = 1.0f;
-        if( handle == num_points+1 ) {  // bottom-left corner
-            newx = (ray_origin.x + boundary_offset - worldPos_x) / scalex;
-            newy = (ray_origin.y + boundary_offset - worldPos_y) / scaley;
-            if( newx >= maxX-0.01f || newy >= maxY-0.01f ) return 0;
-            if (maxX - minX != 0.0f) {
-                trans_x = newx - minX;
-                scale_x -= trans_x / (maxX - minX);
-            }
-            if (maxY - minY != 0.0f) {
-                trans_y = newy - minY;
-                scale_y -= trans_y / (maxY - minY);
-            }
-        } else if( handle == num_points+2 ) {  // top left corner
-            newx = (ray_origin.x + boundary_offset - worldPos_x) / scalex;
-            newy = (ray_origin.y - boundary_offset - worldPos_y) / scaley;
-            if( newx >= maxX-0.01f || newy <= minY+0.01f ) return 0;
-            if (maxX - minX != 0.0f) {
-                trans_x = newx - minX;
-                scale_x -= trans_x / (maxX - minX);
-            }
-            if (maxY - minY != 0.0f) {
-                scale_y = (newy - minY) / (maxY - minY);
-            }
-        } else if( handle == num_points+3 ) {  // bottom right corner
-            newx = (ray_origin.x - boundary_offset - worldPos_x) / scalex;
-            newy = (ray_origin.y + boundary_offset - worldPos_y) / scaley;
-            if( newx <= minX+0.01f|| newy >= maxY-0.01f ) return 0;
-            if (maxX - minX != 0.0f) {
-                scale_x = (newx - minX) / (maxX - minX);
-            }
-            if (maxY - minY != 0.0f) {
-                trans_y = newy - minY;
-                scale_y -= trans_y / (maxY - minY);
-            }
-        } else if( handle == num_points+4 ) {  // top right corner
-            newx = (ray_origin.x - boundary_offset - worldPos_x) / scalex;
-            newy = (ray_origin.y - boundary_offset - worldPos_y) / scaley;
-            if( newx <= minX+0.01f || newy <= minY+0.01f ) return 0;
-            if (maxX - minX != 0.0f) {
-                scale_x = (newx - minX) / (maxX - minX);
-            }
-            if (maxY - minY != 0.0f) {
-                scale_y = (newy - minY) / (maxY - minY);
-            }
-        } else {
-            return 0;
-        }
-
-        glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scale_x, scale_y, 1.0f));
-        glm::mat4 translateMatrix = glm::translate(Identity, glm::vec3( minX + trans_x, minY + trans_y, 0.0f));
-        glm::mat4 mat4 = translateMatrix * scalingMatrix;
-
-        AdjustAllHandles(mat4);
-    }
-
-    return MODEL_NEEDS_INIT;
+void PolyPointScreenLocation::ApplySpaceMouseVertex(int vertexIndex,
+                                                     float scale,
+                                                     const glm::vec3& mov) {
+    if (vertexIndex < 0 || vertexIndex >= (int)mPos.size()) return;
+    mPos[vertexIndex].x += mov.x * scale;
+    mPos[vertexIndex].y -= mov.z * scale;
+    mPos[vertexIndex].z += mov.y * scale;
+    FixCurveHandles();
 }
 
-void PolyPointScreenLocation::SelectHandle(int handle) {
-    selected_handle = handle;
-    if( handle != -1 && handle < HANDLE_CP0) {
-        selected_segment = -1;
-    }
+std::unique_ptr<handles::SpaceMouseSession>
+PolyPointScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<PolyPointSpaceMouseSession>(this, id);
+}
+
+
+void PolyPointScreenLocation::SelectHandle() {
+    selected_handle.reset();
 }
 
 void PolyPointScreenLocation::SelectSegment(int segment) {
     selected_segment = segment;
     if( segment != -1 ) {
-        selected_handle = -1;
+        selected_handle.reset();
     }
 }
 
@@ -1496,9 +802,6 @@ void PolyPointScreenLocation::AddHandle(IModelPreview* preview, int mouseX, int 
 
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
-    float zoom = preview->GetCameraZoomForHandles();
-    int scale = preview->GetHandleScale();
-    float hw = GetRectHandleWidth(zoom, scale);
 
     VectorMath::ScreenPosToWorldRay(
         mouseX, preview->getHeight() - mouseY,
@@ -1516,14 +819,11 @@ void PolyPointScreenLocation::AddHandle(IModelPreview* preview, int mouseX, int 
 
     if (draw_3d) {
         // use drag handle function to find plane intersection
-        glm::vec3 backup = saved_position;
-        glm::vec3 backup2 = saved_intersect;
-        saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        DragHandle(preview, mouseX, mouseY, true);
-        new_point.x = (saved_intersect.x - worldPos_x) / scalex;
-        new_point.y = (saved_intersect.y - worldPos_y) / scaley;
-        saved_position = backup;
-        saved_intersect = backup2;
+        glm::vec3 intersect(0.0f);
+        const glm::vec3 planePoint(worldPos_x, worldPos_y, worldPos_z);
+        DragHandle(preview, mouseX, mouseY, intersect, planePoint);
+        new_point.x = (intersect.x - worldPos_x) / scalex;
+        new_point.y = (intersect.y - worldPos_y) / scaley;
     }
 
     new_point.matrix = nullptr;
@@ -1532,27 +832,11 @@ void PolyPointScreenLocation::AddHandle(IModelPreview* preview, int mouseX, int 
     new_point.has_curve = false;
     new_point.seg_scale = 1.0f;
     mPos.push_back(new_point);
-    xlPoint new_handle;
-    float sx = new_point.x * scalex + worldPos_x - hw / 2;
-    float sy = new_point.y * scaley + worldPos_y - hw / 2;
-    float sz = new_point.z * scalez + worldPos_z - hw / 2;
-    new_handle.x = sx;
-    new_handle.y = sy;
-    new_handle.z = sz;
-    mHandlePosition.insert(mHandlePosition.begin() + num_points + 1, new_handle);
     num_points++;
     mSelectableHandles++;
-    handle_aabb_max.resize(num_points+5);
-    handle_aabb_min.resize(num_points+5);
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
 
-    handle_aabb_min[num_points].x = sx - hw;
-    handle_aabb_min[num_points].y = sy - hw;
-    handle_aabb_min[num_points].z = sz - hw;
-    handle_aabb_max[num_points].x = sx + hw;
-    handle_aabb_max[num_points].y = sy + hw;
-    handle_aabb_max[num_points].z = sz + hw;
 }
 
 void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int scale) {
@@ -1577,30 +861,19 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int sca
     new_point.has_curve = false;
     mPos.insert(mPos.begin() + pos + 1, new_point);
     mPos[pos].length = new_point.length;
-    xlPoint new_handle;
-    float hw = GetRectHandleWidth(zoom, scale);
-    float sx = mPos[pos+1].x * scalex + worldPos_x - hw / 2;
-    float sy = mPos[pos+1].y * scaley + worldPos_y - hw / 2;
-    float sz = mPos[pos+1].z * scalez + worldPos_z - hw / 2;
-    new_handle.x = sx;
-    new_handle.y = sy;
-    new_handle.z = sz;
-    mHandlePosition.insert(mHandlePosition.begin() + after_handle + 1, new_handle);
     num_points++;
-    selected_handle = after_handle+1;
+    // Highlight the newly-inserted vertex. Legacy convention: int
+    // handle was 1-based, descriptor index is 0-based — so the new
+    // vertex's id.index equals after_handle.
+    handles::Id sel;
+    sel.role = handles::Role::Vertex;
+    sel.index = after_handle;
+    selected_handle = sel;
     selected_segment = -1;
     mSelectableHandles++;
-    handle_aabb_max.resize(num_points+5);
-    handle_aabb_min.resize(num_points+5);
     seg_aabb_min.resize(num_points - 1);
     seg_aabb_max.resize(num_points - 1);
 
-    handle_aabb_min[num_points].x = sx - hw;
-    handle_aabb_min[num_points].y = sy - hw;
-    handle_aabb_min[num_points].z = sz - hw;
-    handle_aabb_max[num_points].x = sx + hw;
-    handle_aabb_max[num_points].y = sy + hw;
-    handle_aabb_max[num_points].z = sz + hw;
 }
 
 void PolyPointScreenLocation::DeleteHandle(int handle) {
@@ -1628,28 +901,29 @@ void PolyPointScreenLocation::DeleteHandle(int handle) {
 
     // now delete the handle
     mPos.erase(mPos.begin() + handle);
-    mHandlePosition.erase(mHandlePosition.begin() + handle + 1);
     num_points--;
-    selected_handle = -1;
+    selected_handle.reset();
     selected_segment = -1;
 }
 
 CursorType PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
-    float zoom = 1.0;
-    int scale = 1;
     if (preview != nullptr) {
-        zoom = preview->GetCameraZoomForHandles();
-        scale = preview->GetHandleScale();
         active_axis = MSLAXIS::X_AXIS;
-        saved_position = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-        DragHandle(preview, x, y, true);
-        worldPos_x = saved_intersect.x;
-        worldPos_y = saved_intersect.y;
+        glm::vec3 intersect(0.0f);
+        const glm::vec3 planePoint(worldPos_x, worldPos_y, worldPos_z);
+        DragHandle(preview, x, y, intersect, planePoint);
+        worldPos_x = intersect.x;
+        worldPos_y = intersect.y;
         worldPos_z = 0.0f;
         if (preview->Is3D()) {
             // what we do here is define a position at origin so that the DragHandle function will calculate the intersection
-            // of the mouse click with the ground plane
-            active_handle = 2;
+            // of the mouse click with the ground plane. Legacy END_HANDLE
+            // here means "place vertex 1 as active" (the second polyline
+            // vertex; index 0-based = 1).
+            handles::Id endId;
+            endId.role = handles::Role::Vertex;
+            endId.index = 1;
+            active_handle = endId;
         }
     }
     else {
@@ -1662,26 +936,6 @@ CursorType PolyPointScreenLocation::InitializeLocation(int &handle, int x, int y
     mPos[1].x = 0.0f;
     mPos[1].y = 0.0f;
     mPos[1].z = 0.0f;
-
-    float hw = GetRectHandleWidth(zoom, scale);
-    handle_aabb_min[0].x = -hw;
-    handle_aabb_min[0].y = -hw;
-    handle_aabb_min[0].z = -hw;
-    handle_aabb_max[0].x = hw;
-    handle_aabb_max[0].y = hw;
-    handle_aabb_max[0].z = hw;
-    handle_aabb_min[1].x = -hw;
-    handle_aabb_min[1].y = -hw;
-    handle_aabb_min[1].z = -hw;
-    handle_aabb_max[1].x = hw;
-    handle_aabb_max[1].y = hw;
-    handle_aabb_max[1].z = hw;
-    handle_aabb_min[2].x = -hw;
-    handle_aabb_min[2].y = -hw;
-    handle_aabb_min[2].z = -hw;
-    handle_aabb_max[2].x = hw;
-    handle_aabb_max[2].y = hw;
-    handle_aabb_max[2].z = hw;
 
     handle = 2;
     return CursorType::Sizing;
@@ -1824,16 +1078,42 @@ glm::vec2 PolyPointScreenLocation::GetScreenOffset(IModelPreview* preview) const
     return position;
 }
 
+glm::vec3 PolyPointScreenLocation::GetActiveSubHandleWorldPos() const {
+    if (!active_handle) return glm::vec3(0.0f);
+    const auto& id = *active_handle;
+    if (id.role == handles::Role::CurveControl) {
+        const int seg = id.segment;
+        if (seg < 0 || seg >= num_points || !HasSegmentCurve(seg)) return glm::vec3(0.0f);
+        const glm::vec3 cp = (id.index == 0) ? GetCurveCp0(seg) : GetCurveCp1(seg);
+        return glm::vec3(cp.x * scalex + worldPos_x,
+                          cp.y * scaley + worldPos_y,
+                          cp.z * scalez + worldPos_z);
+    }
+    if (id.role == handles::Role::CentreCycle) {
+        return glm::vec3(GetHcenterPos(), GetVcenterPos(), GetDcenterPos());
+    }
+    if (id.role == handles::Role::Vertex) {
+        const int vIdx = id.index;
+        if (vIdx < 0 || vIdx >= num_points) return glm::vec3(0.0f);
+        return glm::vec3(mPos[vIdx].x * scalex + worldPos_x,
+                          mPos[vIdx].y * scaley + worldPos_y,
+                          mPos[vIdx].z * scalez + worldPos_z);
+    }
+    return glm::vec3(0.0f);
+}
+
+// Centroid formula matches the CentreCycle descriptor's worldPos —
+// no DrawHandles pass required.
 float PolyPointScreenLocation::GetHcenterPos() const {
-    return mHandlePosition[CENTER_HANDLE].x;
+    return (maxX + minX) * scalex / 2.0f + worldPos_x;
 }
 
 float PolyPointScreenLocation::GetVcenterPos() const {
-    return mHandlePosition[CENTER_HANDLE].y;
+    return (maxY + minY) * scaley / 2.0f + worldPos_y;
 }
 
 float PolyPointScreenLocation::GetDcenterPos() const {
-    return mHandlePosition[CENTER_HANDLE].z;
+    return (maxZ + minZ) * scalez / 2.0f + worldPos_z;
 }
 
 void PolyPointScreenLocation::SetHcenterPos(float f) {
@@ -2087,4 +1367,1383 @@ std::string PolyPointScreenLocation::GetCurveDataAsString() const
         }
     }
     return cpoint_data;
+}
+
+void PolyPointScreenLocation::SwapStartEnd() {
+    if (_locked) return;
+    if (num_points < 2) return;
+    std::unique_lock<std::mutex> locker(_mutex);
+
+    struct SegCurve {
+        bool has_curve;
+        float cp0x, cp0y, cp0z;
+        float cp1x, cp1y, cp1z;
+    };
+    std::vector<SegCurve> curves(num_points - 1, {false, 0, 0, 0, 0, 0, 0});
+    for (int i = 0; i < num_points - 1; ++i) {
+        curves[i].has_curve = mPos[i].has_curve;
+        if (mPos[i].has_curve && mPos[i].curve != nullptr) {
+            curves[i].cp0x = mPos[i].curve->get_cp0x();
+            curves[i].cp0y = mPos[i].curve->get_cp0y();
+            curves[i].cp0z = mPos[i].curve->get_cp0z();
+            curves[i].cp1x = mPos[i].curve->get_cp1x();
+            curves[i].cp1y = mPos[i].curve->get_cp1y();
+            curves[i].cp1z = mPos[i].curve->get_cp1z();
+        }
+    }
+
+    for (int i = 0; i < num_points - 1; ++i) {
+        mPos[i].has_curve = false;
+        if (mPos[i].curve != nullptr) {
+            delete mPos[i].curve;
+            mPos[i].curve = nullptr;
+        }
+    }
+
+    for (int i = 0; i < num_points / 2; ++i) {
+        int j = num_points - 1 - i;
+        std::swap(mPos[i].x, mPos[j].x);
+        std::swap(mPos[i].y, mPos[j].y);
+        std::swap(mPos[i].z, mPos[j].z);
+    }
+
+    // Segment direction is reversed, so cp0 and cp1 are swapped in the rebuilt curves.
+    for (int i = 0; i < num_points - 1; ++i) {
+        int oldSeg = num_points - 2 - i;
+        if (curves[oldSeg].has_curve) {
+            mPos[i].has_curve = true;
+            mPos[i].curve = new BezierCurveCubic3D();
+            mPos[i].curve->set_p0(mPos[i].x, mPos[i].y, mPos[i].z);
+            mPos[i].curve->set_p1(mPos[i + 1].x, mPos[i + 1].y, mPos[i + 1].z);
+            mPos[i].curve->set_cp0(curves[oldSeg].cp1x, curves[oldSeg].cp1y, curves[oldSeg].cp1z);
+            mPos[i].curve->set_cp1(curves[oldSeg].cp0x, curves[oldSeg].cp0y, curves[oldSeg].cp0z);
+            mPos[i].curve->UpdatePoints();
+        }
+    }
+
+    FixCurveHandles();
+}
+
+// ============================================================
+// PolyPoint vertex + curve control-point drag.
+// ============================================================
+
+glm::vec3 PolyPointScreenLocation::GetCurveCp0(int segment) const {
+    if (!HasSegmentCurve(segment)) return glm::vec3(0.0f);
+    return glm::vec3(mPos[segment].curve->get_cp0x(),
+                     mPos[segment].curve->get_cp0y(),
+                     mPos[segment].curve->get_cp0z());
+}
+
+glm::vec3 PolyPointScreenLocation::GetCurveCp1(int segment) const {
+    if (!HasSegmentCurve(segment)) return glm::vec3(0.0f);
+    return glm::vec3(mPos[segment].curve->get_cp1x(),
+                     mPos[segment].curve->get_cp1y(),
+                     mPos[segment].curve->get_cp1z());
+}
+
+void PolyPointScreenLocation::SetCurveCp0(int segment, const glm::vec3& world) {
+    if (!HasSegmentCurve(segment)) return;
+    const float sx = SafeScale(scalex);
+    const float sy = SafeScale(scaley);
+    const float lx = (world.x - worldPos_x) / sx;
+    const float ly = (world.y - worldPos_y) / sy;
+    mPos[segment].curve->set_cp0(lx, ly, 0.0f);
+}
+
+void PolyPointScreenLocation::SetCurveCp1(int segment, const glm::vec3& world) {
+    if (!HasSegmentCurve(segment)) return;
+    const float sx = SafeScale(scalex);
+    const float sy = SafeScale(scaley);
+    const float lx = (world.x - worldPos_x) / sx;
+    const float ly = (world.y - worldPos_y) / sy;
+    mPos[segment].curve->set_cp1(lx, ly, 0.0f);
+}
+
+namespace {
+
+// Encodes which kind of poly handle the user grabbed.
+enum class PolyHandleKind : uint8_t {
+    Vertex,
+    Cp0,
+    Cp1,
+};
+
+// 2D bounding-box corner resize session. Builds a per-corner
+// scale + translate matrix from the cursor world position and
+// feeds it through `AdjustAllHandles`.
+class PolyBoundaryResizeSession : public handles::DragSession {
+public:
+    PolyBoundaryResizeSession(PolyPointScreenLocation* loc,
+                              std::string modelName,
+                              handles::Id handleId)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId) {
+        const int n = _loc->GetNumPoints();
+        _savedPoints.reserve(n);
+        for (int i = 0; i < n; ++i) {
+            _savedPoints.push_back(_loc->GetPoint(i));
+        }
+        _savedCurves.resize(n);
+        for (int s = 0; s < n; ++s) {
+            if (_loc->HasSegmentCurve(s)) {
+                _savedCurves[s].present = true;
+                _savedCurves[s].cp0 = _loc->GetCurveCp0(s);
+                _savedCurves[s].cp1 = _loc->GetCurveCp1(s);
+            }
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        const float boundary_offset = 8.0f;     // matches BOUNDING_RECT_OFFSET literal in BoxedScreenLocation
+        const auto wp = _loc->GetWorldPosition();
+        const auto sm = _loc->GetScaleMatrix();
+        const float sx = SafeScale(sm.x);
+        const float sy = SafeScale(sm.y);
+        const float minX = _loc->GetMinX();
+        const float maxX = _loc->GetMaxX();
+        const float minY = _loc->GetMinY();
+        const float maxY = _loc->GetMaxY();
+
+        float newx = 0.0f, newy = 0.0f;
+        float trans_x = 0.0f, trans_y = 0.0f;
+        float scale_x = 1.0f, scale_y = 1.0f;
+        switch (_handleId.index) {
+            case 0:    // bottom-left
+                newx = (ray.origin.x + boundary_offset - wp.x) / sx;
+                newy = (ray.origin.y + boundary_offset - wp.y) / sy;
+                if (newx >= maxX - 0.01f || newy >= maxY - 0.01f) return handles::UpdateResult::Unchanged;
+                if (maxX - minX != 0.0f) { trans_x = newx - minX; scale_x -= trans_x / (maxX - minX); }
+                if (maxY - minY != 0.0f) { trans_y = newy - minY; scale_y -= trans_y / (maxY - minY); }
+                break;
+            case 1:    // top-left
+                newx = (ray.origin.x + boundary_offset - wp.x) / sx;
+                newy = (ray.origin.y - boundary_offset - wp.y) / sy;
+                if (newx >= maxX - 0.01f || newy <= minY + 0.01f) return handles::UpdateResult::Unchanged;
+                if (maxX - minX != 0.0f) { trans_x = newx - minX; scale_x -= trans_x / (maxX - minX); }
+                if (maxY - minY != 0.0f) { scale_y = (newy - minY) / (maxY - minY); }
+                break;
+            case 2:    // bottom-right
+                newx = (ray.origin.x - boundary_offset - wp.x) / sx;
+                newy = (ray.origin.y + boundary_offset - wp.y) / sy;
+                if (newx <= minX + 0.01f || newy >= maxY - 0.01f) return handles::UpdateResult::Unchanged;
+                if (maxX - minX != 0.0f) { scale_x = (newx - minX) / (maxX - minX); }
+                if (maxY - minY != 0.0f) { trans_y = newy - minY; scale_y -= trans_y / (maxY - minY); }
+                break;
+            case 3:    // top-right
+                newx = (ray.origin.x - boundary_offset - wp.x) / sx;
+                newy = (ray.origin.y - boundary_offset - wp.y) / sy;
+                if (newx <= minX + 0.01f || newy <= minY + 0.01f) return handles::UpdateResult::Unchanged;
+                if (maxX - minX != 0.0f) { scale_x = (newx - minX) / (maxX - minX); }
+                if (maxY - minY != 0.0f) { scale_y = (newy - minY) / (maxY - minY); }
+                break;
+            default:
+                return handles::UpdateResult::Unchanged;
+        }
+
+        glm::mat4 scaling   = glm::scale(glm::mat4(1.0f), glm::vec3(scale_x, scale_y, 1.0f));
+        glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(minX + trans_x, minY + trans_y, 0.0f));
+        glm::mat4 mat       = translate * scaling;
+        _loc->ApplyAffineToAllHandles(mat);
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        for (int i = 0; i < static_cast<int>(_savedPoints.size()); ++i) {
+            _loc->SetPoint(i, _savedPoints[i]);
+        }
+        for (int s = 0; s < static_cast<int>(_savedCurves.size()); ++s) {
+            if (_savedCurves[s].present && _loc->HasSegmentCurve(s)) {
+                const auto wp = _loc->GetWorldPosition();
+                const auto sm = _loc->GetScaleMatrix();
+                glm::vec3 cp0World(_savedCurves[s].cp0.x * sm.x + wp.x,
+                                    _savedCurves[s].cp0.y * sm.y + wp.y,
+                                    _savedCurves[s].cp0.z * sm.z + wp.z);
+                glm::vec3 cp1World(_savedCurves[s].cp1.x * sm.x + wp.x,
+                                    _savedCurves[s].cp1.y * sm.y + wp.y,
+                                    _savedCurves[s].cp1.z * sm.z + wp.z);
+                _loc->SetCurveCp0(s, cp0World);
+                _loc->SetCurveCp1(s, cp1World);
+            }
+        }
+        _loc->FixCurveHandlesPublic();
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Dimensions : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    struct CurveBackup {
+        bool      present = false;
+        glm::vec3 cp0{0.0f};
+        glm::vec3 cp1{0.0f};
+    };
+    PolyPointScreenLocation* _loc;
+    std::string              _modelName;
+    handles::Id              _handleId;
+    std::vector<glm::vec3>   _savedPoints;
+    std::vector<CurveBackup> _savedCurves;
+    bool                     _changed = false;
+};
+
+// 3D axis-translate session for a curve control point.
+// Same math as the vertex variant but mutates
+// `BezierCurveCubic3D::set_cp0/1` instead of the vertex.
+class PolyCurveCp3DTranslateSession : public handles::DragSession {
+public:
+    PolyCurveCp3DTranslateSession(PolyPointScreenLocation* loc,
+                                  std::string modelName,
+                                  handles::Id handleId,
+                                  const handles::WorldRay& startRay,
+                                  glm::vec3 activeHandlePos)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _isCp1(handleId.index == 1),
+          _segment(handleId.segment),
+          _savedActivePos(activeHandlePos),
+          _savedLocal(_isCp1 ? loc->GetCurveCp1(handleId.segment)
+                              : loc->GetCurveCp0(handleId.segment)) {
+        ComputeConstraintPlane(handleId.axis);
+        if (!Intersect(startRay, _savedIntersect)) {
+            _savedIntersect = _savedActivePos;
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        glm::vec3 cur(0.0f);
+        if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+        const glm::vec3 dragDelta = cur - _savedIntersect;
+        const auto wp = _loc->GetWorldPosition();
+        const auto sm = _loc->GetScaleMatrix();
+        const float sx = SafeScale(sm.x);
+        const float sy = SafeScale(sm.y);
+        const float sz = SafeScale(sm.z);
+        glm::vec3 newLocal = _savedLocal;
+        switch (_handleId.axis) {
+            case handles::Axis::X:
+                newLocal.x = (_savedActivePos.x + dragDelta.x - wp.x) / sx;
+                break;
+            case handles::Axis::Y:
+                newLocal.y = (_savedActivePos.y + dragDelta.y - wp.y) / sy;
+                break;
+            case handles::Axis::Z:
+                newLocal.z = (_savedActivePos.z + dragDelta.z - wp.z) / sz;
+                break;
+        }
+        // SetCurveCp{0,1} expect world coords; rebuild from local.
+        glm::vec3 worldCp(newLocal.x * sm.x + wp.x,
+                          newLocal.y * sm.y + wp.y,
+                          newLocal.z * sm.z + wp.z);
+        if (_isCp1) {
+            _loc->SetCurveCp1(_segment, worldCp);
+        } else {
+            _loc->SetCurveCp0(_segment, worldCp);
+        }
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        const auto wp = _loc->GetWorldPosition();
+        const auto sm = _loc->GetScaleMatrix();
+        glm::vec3 worldCp(_savedLocal.x * sm.x + wp.x,
+                           _savedLocal.y * sm.y + wp.y,
+                           _savedLocal.z * sm.z + wp.z);
+        if (_isCp1) {
+            _loc->SetCurveCp1(_segment, worldCp);
+        } else {
+            _loc->SetCurveCp0(_segment, worldCp);
+        }
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Curve : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    void ComputeConstraintPlane(handles::Axis axis) {
+        switch (axis) {
+            case handles::Axis::X:
+            case handles::Axis::Y:
+                _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+                _planePoint  = glm::vec3(0.0f, 0.0f, _savedActivePos.z);
+                break;
+            case handles::Axis::Z:
+                _planeNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                _planePoint  = glm::vec3(0.0f, _savedActivePos.y, 0.0f);
+                break;
+        }
+    }
+
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    PolyPointScreenLocation* _loc;
+    std::string              _modelName;
+    handles::Id              _handleId;
+    bool                     _isCp1;
+    int                      _segment;
+    glm::vec3                _savedActivePos;
+    glm::vec3                _savedLocal;
+    glm::vec3                _savedIntersect{0.0f};
+    glm::vec3                _planePoint    {0.0f};
+    glm::vec3                _planeNormal   {0.0f, 0.0f, 1.0f};
+    bool                     _changed = false;
+};
+
+// 3D axis-translate session for a single PolyPoint vertex.
+// `id.index` carries the vertex index (0..num_points-1);
+// `id.axis` is the world axis the user grabbed. Plane setup
+// matches Boxed translate at the vertex's saved position.
+class PolyVertex3DTranslateSession : public handles::DragSession {
+public:
+    PolyVertex3DTranslateSession(PolyPointScreenLocation* loc,
+                                 std::string modelName,
+                                 handles::Id handleId,
+                                 const handles::WorldRay& startRay,
+                                 glm::vec3 activeHandlePos)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _savedActivePos(activeHandlePos),
+          _savedLocal(loc->GetPoint(handleId.index)) {
+        ComputeConstraintPlane(handleId.axis);
+        if (!Intersect(startRay, _savedIntersect)) {
+            _savedIntersect = _savedActivePos;
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        glm::vec3 cur(0.0f);
+        if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+        const glm::vec3 dragDelta = cur - _savedIntersect;
+
+        const auto wp = _loc->GetWorldPosition();
+        const auto sm = _loc->GetScaleMatrix();
+        const float sx = SafeScale(sm.x);
+        const float sy = SafeScale(sm.y);
+        const float sz = SafeScale(sm.z);
+        glm::vec3 newLocal = _savedLocal;
+        switch (_handleId.axis) {
+            case handles::Axis::X:
+                newLocal.x = (_savedActivePos.x + dragDelta.x - wp.x) / sx;
+                break;
+            case handles::Axis::Y:
+                newLocal.y = (_savedActivePos.y + dragDelta.y - wp.y) / sy;
+                break;
+            case handles::Axis::Z:
+                newLocal.z = (_savedActivePos.z + dragDelta.z - wp.z) / sz;
+                break;
+        }
+        _loc->SetPoint(_handleId.index, newLocal);
+        _loc->FixCurveHandlesPublic();
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        _loc->SetPoint(_handleId.index, _savedLocal);
+        _loc->FixCurveHandlesPublic();
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Vertex : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    void ComputeConstraintPlane(handles::Axis axis) {
+        switch (axis) {
+            case handles::Axis::X:
+            case handles::Axis::Y:
+                _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+                _planePoint  = glm::vec3(0.0f, 0.0f, _savedActivePos.z);
+                break;
+            case handles::Axis::Z:
+                _planeNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                _planePoint  = glm::vec3(0.0f, _savedActivePos.y, 0.0f);
+                break;
+        }
+    }
+
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    PolyPointScreenLocation* _loc;
+    std::string              _modelName;
+    handles::Id              _handleId;
+    glm::vec3                _savedActivePos;
+    glm::vec3                _savedLocal;
+    glm::vec3                _savedIntersect{0.0f};
+    glm::vec3                _planePoint    {0.0f};
+    glm::vec3                _planeNormal   {0.0f, 0.0f, 1.0f};
+    bool                     _changed = false;
+};
+
+class PolyVertexSession : public handles::DragSession {
+public:
+    PolyVertexSession(PolyPointScreenLocation* loc,
+                      std::string modelName,
+                      handles::Id handleId,
+                      PolyHandleKind kind,
+                      int segOrVertex)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _kind(kind),
+          _segOrVertex(segOrVertex) {
+        if (_kind == PolyHandleKind::Vertex) {
+            _savedLocal = _loc->GetPoint(_segOrVertex);
+        } else if (_kind == PolyHandleKind::Cp0) {
+            _savedLocal = _loc->GetCurveCp0(_segOrVertex);
+        } else {
+            _savedLocal = _loc->GetCurveCp1(_segOrVertex);
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        // Vertex stores model-local (subtract worldPos / scale);
+        // cp0/cp1 delegate to BezierCurveCubic3D's public helpers.
+        if (_kind == PolyHandleKind::Vertex) {
+            const float sx = _loc->GetScaleMatrix().x == 0.0f ? 0.001f : _loc->GetScaleMatrix().x;
+            const float sy = _loc->GetScaleMatrix().y == 0.0f ? 0.001f : _loc->GetScaleMatrix().y;
+            const float wx = _loc->GetWorldPosition().x;
+            const float wy = _loc->GetWorldPosition().y;
+            const float lx = (ray.origin.x - wx) / sx;
+            const float ly = (ray.origin.y - wy) / sy;
+            _loc->SetPoint(_segOrVertex, lx, ly, 0.0f);
+            _loc->FixCurveHandlesPublic();
+        } else if (_kind == PolyHandleKind::Cp0) {
+            _loc->SetCurveCp0(_segOrVertex, ray.origin);
+        } else {
+            _loc->SetCurveCp1(_segOrVertex, ray.origin);
+        }
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        if (_kind == PolyHandleKind::Vertex) {
+            _loc->SetPoint(_segOrVertex, _savedLocal);
+            _loc->FixCurveHandlesPublic();
+        } else if (_kind == PolyHandleKind::Cp0) {
+            // _savedLocal is in model-local; SetCurveCp0 expects
+            // world. Rebuild world from saved local.
+            const auto wp = _loc->GetWorldPosition();
+            const auto sm = _loc->GetScaleMatrix();
+            glm::vec3 world(_savedLocal.x * sm.x + wp.x,
+                             _savedLocal.y * sm.y + wp.y,
+                             _savedLocal.z * sm.z + wp.z);
+            _loc->SetCurveCp0(_segOrVertex, world);
+        } else {
+            const auto wp = _loc->GetWorldPosition();
+            const auto sm = _loc->GetScaleMatrix();
+            glm::vec3 world(_savedLocal.x * sm.x + wp.x,
+                             _savedLocal.y * sm.y + wp.y,
+                             _savedLocal.z * sm.z + wp.z);
+            _loc->SetCurveCp1(_segOrVertex, world);
+        }
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        const auto field = (_kind == PolyHandleKind::Vertex)
+            ? handles::DirtyField::Vertex
+            : handles::DirtyField::Curve;
+        return CommitResult{_modelName, _changed ? field : handles::DirtyField::None};
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    PolyPointScreenLocation* _loc;
+    std::string              _modelName;
+    handles::Id              _handleId;
+    PolyHandleKind           _kind;
+    int                      _segOrVertex;
+    glm::vec3                _savedLocal{0.0f};
+    bool                     _changed = false;
+};
+
+// Placement gesture for newly-created, extended, or moved
+// PolyPoint vertices. 2D reads ray.origin directly. 3D picks the
+// plane to project onto from `loc->GetActivePlane()` (XY / XZ /
+// YZ) and anchors that plane through the vertex's current world
+// position — so dragging a vertex from a top-down view moves it
+// in X+Z (Y stays), from a side view in Y+Z (X stays), and from
+// the front in X+Y (Z stays). The caller is expected to seed
+// `active_plane` via `GetBestIntersection` (or `FindPlaneIntersection`)
+// based on the current camera angles before opening the session.
+class PolyPointCreationSession : public handles::DragSession {
+public:
+    PolyPointCreationSession(PolyPointScreenLocation* loc,
+                             std::string modelName,
+                             const handles::WorldRay& clickRay,
+                             handles::ViewMode mode,
+                             int vertexIndex)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _vertexIndex(vertexIndex),
+          _is3D(mode == handles::ViewMode::ThreeD),
+          _savedLocal(loc->GetPoint(vertexIndex)) {
+        if (_is3D) {
+            // Anchor the plane through the vertex's current world
+            // position so the unprojected intersect snaps to where
+            // the user clicked, not to a far-away Z=0 / Y=0 spot.
+            const auto wp = loc->GetWorldPosition();
+            const auto sm = loc->GetScaleMatrix();
+            const glm::vec3 vp = loc->GetPoint(vertexIndex);
+            const glm::vec3 anchor(wp.x + vp.x * sm.x,
+                                    wp.y + vp.y * sm.y,
+                                    wp.z + vp.z * sm.z);
+            _plane = loc->GetActivePlane();
+            switch (_plane) {
+                case ModelScreenLocation::MSLPLANE::XZ_PLANE:
+                    _planeNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                    _planePoint  = glm::vec3(0.0f, anchor.y, 0.0f);
+                    break;
+                case ModelScreenLocation::MSLPLANE::YZ_PLANE:
+                    _planeNormal = glm::vec3(1.0f, 0.0f, 0.0f);
+                    _planePoint  = glm::vec3(anchor.x, 0.0f, 0.0f);
+                    break;
+                case ModelScreenLocation::MSLPLANE::XY_PLANE:
+                default:
+                    _plane       = ModelScreenLocation::MSLPLANE::XY_PLANE;
+                    _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+                    _planePoint  = glm::vec3(0.0f, 0.0f, anchor.z);
+                    break;
+            }
+            if (!Intersect(clickRay, _savedIntersect)) {
+                _savedIntersect = anchor;
+            }
+        }
+        _handleId.role  = handles::Role::Vertex;
+        _handleId.index = vertexIndex;
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        // Vertex may have been deleted between sessions
+        // (FinalizeModel's polyline trim, etc.). Bail rather than
+        // crash on out-of-bounds SetPoint.
+        if (_vertexIndex < 0 || _vertexIndex >= _loc->GetNumPoints()) {
+            return handles::UpdateResult::Unchanged;
+        }
+        const auto wp = _loc->GetWorldPosition();
+        const auto sm = _loc->GetScaleMatrix();
+        const float sx = SafeScale(sm.x);
+        const float sy = SafeScale(sm.y);
+        const float sz = SafeScale(sm.z);
+        if (_is3D) {
+            glm::vec3 cur(0.0f);
+            if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+            // The two in-plane axes move with the cursor; the
+            // perpendicular axis keeps its saved local value so
+            // the vertex stays on the chosen plane.
+            const float lx = (cur.x - wp.x) / sx;
+            const float ly = (cur.y - wp.y) / sy;
+            const float lz = (cur.z - wp.z) / sz;
+            float nx = _savedLocal.x;
+            float ny = _savedLocal.y;
+            float nz = _savedLocal.z;
+            switch (_plane) {
+                case ModelScreenLocation::MSLPLANE::XZ_PLANE:
+                    nx = lx; nz = lz; break;          // Y locked
+                case ModelScreenLocation::MSLPLANE::YZ_PLANE:
+                    ny = ly; nz = lz; break;          // X locked
+                case ModelScreenLocation::MSLPLANE::XY_PLANE:
+                default:
+                    nx = lx; ny = ly; break;          // Z locked
+            }
+            _loc->SetPoint(_vertexIndex, nx, ny, nz);
+        } else {
+            const float newx = (ray.origin.x - wp.x) / sx;
+            const float newy = (ray.origin.y - wp.y) / sy;
+            _loc->SetPoint(_vertexIndex, newx, newy, 0.0f);
+        }
+        _loc->FixCurveHandlesPublic();
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        _loc->SetPoint(_vertexIndex, _savedLocal);
+        _loc->FixCurveHandlesPublic();
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Vertex : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    PolyPointScreenLocation*       _loc;
+    std::string                    _modelName;
+    handles::Id                    _handleId;
+    int                            _vertexIndex;
+    bool                           _is3D;
+    glm::vec3                      _savedLocal;
+    glm::vec3                      _savedIntersect{0.0f};
+    glm::vec3                      _planePoint    {0.0f};
+    glm::vec3                      _planeNormal   {0.0f, 0.0f, 1.0f};
+    ModelScreenLocation::MSLPLANE  _plane = ModelScreenLocation::MSLPLANE::XY_PLANE;
+    bool                           _changed = false;
+};
+
+// Single-axis translate of the entire PolyPoint via worldPos.
+// Active when CENTER is selected and the user grabs an axis arrow.
+class PolyCenterTranslateSession : public handles::DragSession {
+public:
+    PolyCenterTranslateSession(PolyPointScreenLocation* loc,
+                                std::string modelName,
+                                handles::Id handleId,
+                                const handles::WorldRay& startRay)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _savedWorldPos(loc->GetWorldPosition()) {
+        ComputeConstraintPlane(handleId.axis);
+        if (!Intersect(startRay, _savedIntersect)) {
+            _savedIntersect = _savedWorldPos;
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        glm::vec3 cur(0.0f);
+        if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+        const glm::vec3 delta = cur - _savedIntersect;
+
+        glm::vec3 newPos = _savedWorldPos;
+        switch (_handleId.axis) {
+            case handles::Axis::X: newPos.x += delta.x; break;
+            case handles::Axis::Y: newPos.y += delta.y; break;
+            case handles::Axis::Z: newPos.z += delta.z; break;
+        }
+        if (newPos == _loc->GetWorldPosition()) {
+            return handles::UpdateResult::Unchanged;
+        }
+        _loc->SetWorldPosition(newPos);
+        _changed = true;
+        return handles::UpdateResult::Updated;
+    }
+
+    void Revert() override {
+        _loc->SetWorldPosition(_savedWorldPos);
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Position : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    void ComputeConstraintPlane(handles::Axis axis) {
+        switch (axis) {
+            case handles::Axis::X:
+            case handles::Axis::Y:
+                _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+                _planePoint  = glm::vec3(0.0f, 0.0f, _savedWorldPos.z);
+                break;
+            case handles::Axis::Z:
+                _planeNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                _planePoint  = glm::vec3(0.0f, _savedWorldPos.y, 0.0f);
+                break;
+        }
+    }
+
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    PolyPointScreenLocation* _loc;
+    std::string              _modelName;
+    handles::Id              _handleId;
+    glm::vec3                _savedWorldPos;
+    glm::vec3                _savedIntersect{0.0f};
+    glm::vec3                _planePoint    {0.0f};
+    glm::vec3                _planeNormal   {0.0f, 0.0f, 1.0f};
+    bool                     _changed = false;
+};
+
+// Single-axis scale of the entire PolyPoint around the centroid.
+// The centroid is the fixed pivot, scale[xyz] grows by
+// ratio = (newOffset / oldOffset), and worldPos is adjusted so the
+// centroid stays put. Ctrl skips the worldPos adjust (scale
+// around worldPos instead).
+class PolyCenterScaleSession : public handles::DragSession {
+public:
+    PolyCenterScaleSession(PolyPointScreenLocation* loc,
+                            std::string modelName,
+                            handles::Id handleId,
+                            const handles::WorldRay& startRay)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _savedScale(loc->GetScaleMatrix()),
+          _savedWorldPos(loc->GetWorldPosition()) {
+        // Centroid in world coords.
+        _savedCentroid = glm::vec3(loc->GetMinX() + (loc->GetMaxX() - loc->GetMinX()) / 2.0f,
+                                    loc->GetMinY() + (loc->GetMaxY() - loc->GetMinY()) / 2.0f,
+                                    0.0f) * _savedScale + _savedWorldPos;
+        ComputeConstraintPlane(handleId.axis);
+        if (!Intersect(startRay, _savedIntersect)) {
+            _savedIntersect = _savedCentroid;
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier mods) override {
+        glm::vec3 cur(0.0f);
+        if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+        const glm::vec3 dragDelta = cur - _savedIntersect;
+
+        // Avoid divide-by-zero when worldPos is exactly at the
+        // centroid on this axis (matches legacy `+= 0.001f` guard).
+        glm::vec3 centroid = _savedCentroid;
+        if (centroid.x == _savedWorldPos.x) centroid.x += 0.001f;
+        if (centroid.y == _savedWorldPos.y) centroid.y += 0.001f;
+        if (centroid.z == _savedWorldPos.z) centroid.z += 0.001f;
+        const float dx0 = centroid.x - _savedWorldPos.x;
+        const float dy0 = centroid.y - _savedWorldPos.y;
+        const float dz0 = centroid.z - _savedWorldPos.z;
+        const float change_x = (dx0 + dragDelta.x) / dx0;
+        const float change_y = (dy0 + dragDelta.y) / dy0;
+        const float change_z = (dz0 + dragDelta.z) / dz0;
+
+        const bool ctrl = handles::HasModifier(mods, handles::Modifier::Control);
+
+        glm::vec3 newScale = _savedScale;
+        glm::vec3 newPos   = _savedWorldPos;
+        switch (_handleId.axis) {
+            case handles::Axis::X: {
+                const float newHalfX = dx0 * change_x;
+                if (newHalfX < 0.0f) return handles::UpdateResult::Unchanged;
+                newScale.x = _savedScale.x * change_x;
+                if (!ctrl) newPos.x = _savedWorldPos.x - (newHalfX - dx0);
+                break;
+            }
+            case handles::Axis::Y: {
+                const float newHalfY = dy0 * change_y;
+                if (newHalfY < 0.0f) return handles::UpdateResult::Unchanged;
+                newScale.y = _savedScale.y * change_y;
+                if (!ctrl) newPos.y = _savedWorldPos.y - (newHalfY - dy0);
+                break;
+            }
+            case handles::Axis::Z: {
+                const float newHalfZ = dz0 * change_z;
+                if (newHalfZ < 0.0f) return handles::UpdateResult::Unchanged;
+                newScale.z = _savedScale.z * change_z;
+                if (!ctrl) newPos.z = _savedWorldPos.z - (newHalfZ - dz0);
+                break;
+            }
+        }
+
+        if (newScale == _loc->GetScaleMatrix() && newPos == _loc->GetWorldPosition()) {
+            return handles::UpdateResult::Unchanged;
+        }
+        _loc->SetScaleMatrix(newScale);
+        _loc->SetWorldPosition(newPos);
+        _changed = true;
+        // Scale changes mPos→world mapping. NeedsInit so the
+        // mouse-move handler runs Model::Setup() and rebuilds Nodes
+        // (otherwise lights stay at pre-scale positions during drag).
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        _loc->SetScaleMatrix(_savedScale);
+        _loc->SetWorldPosition(_savedWorldPos);
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Dimensions : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    void ComputeConstraintPlane(handles::Axis axis) {
+        switch (axis) {
+            case handles::Axis::X:
+            case handles::Axis::Y:
+                _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+                _planePoint  = glm::vec3(0.0f, 0.0f, _savedCentroid.z);
+                break;
+            case handles::Axis::Z:
+                _planeNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                _planePoint  = glm::vec3(0.0f, _savedCentroid.y, 0.0f);
+                break;
+        }
+    }
+
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    PolyPointScreenLocation* _loc;
+    std::string              _modelName;
+    handles::Id              _handleId;
+    glm::vec3                _savedScale;
+    glm::vec3                _savedWorldPos;
+    glm::vec3                _savedCentroid;
+    glm::vec3                _savedIntersect{0.0f};
+    glm::vec3                _planePoint    {0.0f};
+    glm::vec3                _planeNormal   {0.0f, 0.0f, 1.0f};
+    bool                     _changed = false;
+};
+
+// Single-axis rotate of the entire PolyPoint around the centroid,
+// using the same atan2-difference accumulator as Boxed/TwoPoint
+// rotate sessions.
+class PolyCenterRotateSession : public handles::DragSession {
+public:
+    PolyCenterRotateSession(PolyPointScreenLocation* loc,
+                             std::string modelName,
+                             handles::Id handleId,
+                             const handles::WorldRay& startRay)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _rotationAxis(handles::NextAxis(handleId.axis)) {
+        // Compute the centroid (pivot) in world coords.
+        const auto wp = loc->GetWorldPosition();
+        const auto sm = loc->GetScaleMatrix();
+        _savedCentroid = glm::vec3(loc->GetMinX() + (loc->GetMaxX() - loc->GetMinX()) / 2.0f,
+                                    loc->GetMinY() + (loc->GetMaxY() - loc->GetMinY()) / 2.0f,
+                                    0.0f) * sm + wp;
+        ComputeConstraintPlane(_rotationAxis);
+        if (!Intersect(startRay, _savedIntersect)) {
+            _savedIntersect = _savedCentroid;
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        glm::vec3 cur(0.0f);
+        if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+        const glm::vec3 startVec = _savedIntersect - _savedCentroid;
+        const glm::vec3 endVec   = cur - _savedCentroid;
+
+        double startAngle = 0.0, endAngle = 0.0;
+        switch (_rotationAxis) {
+            case handles::Axis::X:
+                startAngle = std::atan2(startVec.y, startVec.z) * 180.0 / M_PI;
+                endAngle   = std::atan2(endVec.y,   endVec.z)   * 180.0 / M_PI;
+                break;
+            case handles::Axis::Y:
+                startAngle = std::atan2(startVec.x, startVec.z) * 180.0 / M_PI;
+                endAngle   = std::atan2(endVec.x,   endVec.z)   * 180.0 / M_PI;
+                break;
+            case handles::Axis::Z:
+                startAngle = std::atan2(startVec.y, startVec.x) * 180.0 / M_PI;
+                endAngle   = std::atan2(endVec.y,   endVec.x)   * 180.0 / M_PI;
+                break;
+        }
+        const double total = endAngle - startAngle;
+        double delta;
+        switch (_rotationAxis) {
+            case handles::Axis::X: delta = _accumulatedAngle - total; break;
+            default:                delta = total - _accumulatedAngle; break;
+        }
+        _accumulatedAngle = total;
+        if (std::fabs(delta) < 1e-6) return handles::UpdateResult::Unchanged;
+
+        ModelScreenLocation::MSLAXIS axisLegacy = ModelScreenLocation::MSLAXIS::X_AXIS;
+        switch (_rotationAxis) {
+            case handles::Axis::Y: axisLegacy = ModelScreenLocation::MSLAXIS::Y_AXIS; break;
+            case handles::Axis::Z: axisLegacy = ModelScreenLocation::MSLAXIS::Z_AXIS; break;
+            default:               axisLegacy = ModelScreenLocation::MSLAXIS::X_AXIS; break;
+        }
+        _loc->SetRotatePoint(_savedCentroid);
+        _loc->Rotate(axisLegacy, static_cast<float>(delta));
+        _changed = true;
+        // Rotate updates mPos for every vertex. NeedsInit so the
+        // mouse-move handler runs Model::Setup() and rebuilds Nodes
+        // — otherwise lights stay at pre-rotation positions while
+        // the handle spheres (which read mPos directly) move.
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        // Roll back by applying the negation of the accumulated angle.
+        if (std::fabs(_accumulatedAngle) > 1e-6) {
+            ModelScreenLocation::MSLAXIS axisLegacy = ModelScreenLocation::MSLAXIS::X_AXIS;
+            switch (_rotationAxis) {
+                case handles::Axis::Y: axisLegacy = ModelScreenLocation::MSLAXIS::Y_AXIS; break;
+                case handles::Axis::Z: axisLegacy = ModelScreenLocation::MSLAXIS::Z_AXIS; break;
+                default:               axisLegacy = ModelScreenLocation::MSLAXIS::X_AXIS; break;
+            }
+            _loc->SetRotatePoint(_savedCentroid);
+            const float undo = (_rotationAxis == handles::Axis::X)
+                ? static_cast<float>(_accumulatedAngle)
+                : -static_cast<float>(_accumulatedAngle);
+            _loc->Rotate(axisLegacy, undo);
+            _accumulatedAngle = 0.0;
+        }
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Rotation : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    void ComputeConstraintPlane(handles::Axis axis) {
+        // Constraint plane is perpendicular to the rotation axis,
+        // passing through the centroid pivot.
+        switch (axis) {
+            case handles::Axis::X:
+                _planeNormal = glm::vec3(1.0f, 0.0f, 0.0f);
+                _planePoint  = _savedCentroid;
+                break;
+            case handles::Axis::Y:
+                _planeNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                _planePoint  = _savedCentroid;
+                break;
+            case handles::Axis::Z:
+                _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+                _planePoint  = _savedCentroid;
+                break;
+        }
+    }
+
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    PolyPointScreenLocation* _loc;
+    std::string              _modelName;
+    handles::Id              _handleId;
+    handles::Axis            _rotationAxis;
+    glm::vec3                _savedCentroid;
+    glm::vec3                _savedIntersect{0.0f};
+    glm::vec3                _planePoint    {0.0f};
+    glm::vec3                _planeNormal   {0.0f, 0.0f, 1.0f};
+    double                   _accumulatedAngle = 0.0;
+    bool                     _changed = false;
+};
+
+} // namespace
+
+std::vector<handles::Descriptor> PolyPointScreenLocation::GetHandles(
+    handles::ViewMode mode, handles::Tool tool,
+    const handles::ViewParams& view) const {
+    std::vector<handles::Descriptor> out;
+    {
+        // Rough upper bound: vertices + 1 segment per gap (curve
+        // segs emit ~N chord descriptors, so this under-reserves
+        // for heavily curved poly-lines; one realloc is still
+        // cheaper than ~N per-descriptor reallocs).
+        int reserveN = num_points + (num_points - 1) + 4;
+        if (mode == handles::ViewMode::ThreeD) reserveN += 1 + 3;
+        out.reserve(static_cast<size_t>(reserveN));
+    }
+
+    if (mode == handles::ViewMode::ThreeD) {
+        // Centroid sphere — selectionOnly. Picking it sets
+        // active_handle = CentreCycle so the whole-model axis gizmo
+        // (translate / scale / rotate) appears around the centroid.
+        {
+            const float cx = (minX + (maxX - minX) / 2.0f) * scalex + worldPos_x;
+            const float cy = (minY + (maxY - minY) / 2.0f) * scaley + worldPos_y;
+            const float cz = (minZ + (maxZ - minZ) / 2.0f) * scalez + worldPos_z;
+            handles::Descriptor d;
+            d.id.role  = handles::Role::CentreCycle;
+            d.id.index = CENTER_HANDLE;
+            d.worldPos = glm::vec3(cx, cy, cz);
+            d.suggestedRadius = 5.0f;
+            d.editable = !IsLocked();
+            d.selectionOnly = true;
+            out.push_back(d);
+        }
+        // 3D vertex / CP descriptors. In `Translate` mode
+        // they are `selectionOnly` so a click selects the vertex
+        // (LayoutPanel translates the id to a SetActiveHandle and
+        // axis arrows then appear). In `XYTranslate` mode (PolyPoint
+        // default) they are draggable directly — the click opens a
+        // free-XY-plane drag session, no axis arrows involved.
+        const bool xyTrans = (tool == handles::Tool::XYTranslate);
+        for (int i = 0; i < num_points; ++i) {
+            handles::Descriptor d;
+            d.id.role  = handles::Role::Vertex;
+            d.id.index = i;
+            d.worldPos = glm::vec3(mPos[i].x * scalex + worldPos_x,
+                                    mPos[i].y * scaley + worldPos_y,
+                                    mPos[i].z * scalez + worldPos_z);
+            d.suggestedRadius = 5.0f;
+            d.editable = !IsLocked();
+            d.selectionOnly = !xyTrans;
+            out.push_back(d);
+        }
+        // segment descriptors (line hit-test). Click anywhere
+        // on a segment to select it. For curve segments emit
+        // multiple chord descriptors approximating the curve so
+        // hits on the bowed-out part don't miss.
+        for (int s = 0; s < num_points - 1; ++s) {
+            const bool isCurve = HasSegmentCurve(s) && mPos[s].curve != nullptr;
+            if (isCurve) {
+                const int n = mPos[s].curve->GetNumPoints();
+                for (int i = 0; i < n - 1; ++i) {
+                    handles::Descriptor d;
+                    d.id.role    = handles::Role::Segment;
+                    d.id.index   = s;
+                    d.worldPos   = glm::vec3(mPos[s].curve->get_px(i)     * scalex + worldPos_x,
+                                              mPos[s].curve->get_py(i)     * scaley + worldPos_y,
+                                              mPos[s].curve->get_pz(i)     * scalez + worldPos_z);
+                    d.endPos     = glm::vec3(mPos[s].curve->get_px(i + 1) * scalex + worldPos_x,
+                                              mPos[s].curve->get_py(i + 1) * scaley + worldPos_y,
+                                              mPos[s].curve->get_pz(i + 1) * scalez + worldPos_z);
+                    d.editable = !IsLocked();
+                    d.selectionOnly = true;
+                    out.push_back(d);
+                }
+            } else {
+                handles::Descriptor d;
+                d.id.role    = handles::Role::Segment;
+                d.id.index   = s;
+                d.worldPos   = glm::vec3(mPos[s].x * scalex + worldPos_x,
+                                          mPos[s].y * scaley + worldPos_y,
+                                          mPos[s].z * scalez + worldPos_z);
+                d.endPos     = glm::vec3(mPos[s + 1].x * scalex + worldPos_x,
+                                          mPos[s + 1].y * scaley + worldPos_y,
+                                          mPos[s + 1].z * scalez + worldPos_z);
+                d.editable = !IsLocked();
+                d.selectionOnly = true;
+                out.push_back(d);
+            }
+        }
+        for (int s = 0; s < num_points; ++s) {
+            if (!HasSegmentCurve(s)) continue;
+            const auto cp0 = GetCurveCp0(s);
+            const auto cp1 = GetCurveCp1(s);
+            handles::Descriptor d0;
+            d0.id.role    = handles::Role::CurveControl;
+            d0.id.index   = 0;
+            d0.id.segment = s;
+            d0.worldPos   = glm::vec3(cp0.x * scalex + worldPos_x,
+                                       cp0.y * scaley + worldPos_y,
+                                       cp0.z * scalez + worldPos_z);
+            d0.suggestedRadius = 5.0f;
+            d0.editable = !IsLocked();
+            d0.selectionOnly = true;
+            out.push_back(d0);
+            handles::Descriptor d1 = d0;
+            d1.id.index = 1;
+            d1.worldPos = glm::vec3(cp1.x * scalex + worldPos_x,
+                                     cp1.y * scaley + worldPos_y,
+                                     cp1.z * scalez + worldPos_z);
+            out.push_back(d1);
+        }
+
+        // 3D vertex + curve-CP axis-translate
+        // gizmo emitted at the active sub-handle position when in
+        // translate mode. also Scale/Rotate axis cubes/rings
+        // for the CENTER handle (whole-model gizmos).
+        const bool toolIsTransScaleRot = (tool == handles::Tool::Translate ||
+                                           tool == handles::Tool::Scale ||
+                                           tool == handles::Tool::Rotate);
+        if (!toolIsTransScaleRot) return out;
+        if (!active_handle) return out;
+        const auto& ah = *active_handle;
+        const glm::vec3 activePos = GetActiveSubHandleWorldPos();
+        const float kArrowLen = view.axisArrowLength;
+        const float kHitOffset = kArrowLen - view.axisHeadLength * 0.5f;
+        auto emitAxisArrow = [&](handles::Axis a, glm::vec3 dir, int idx, int seg) {
+            handles::Descriptor d;
+            d.id.role    = handles::Role::AxisArrow;
+            d.id.axis    = a;
+            d.id.index   = idx;
+            d.id.segment = seg;
+            d.worldPos   = activePos + dir * kHitOffset;
+            d.suggestedRadius = view.axisRadius;
+            d.editable   = !IsLocked();
+            out.push_back(d);
+        };
+        if (ah.role == handles::Role::CurveControl && ah.index == 0) {
+            const int seg = ah.segment;
+            // id.index = 0 (cp0), id.segment = seg
+            emitAxisArrow(handles::Axis::X, glm::vec3(1, 0, 0), 0, seg);
+            emitAxisArrow(handles::Axis::Y, glm::vec3(0, 1, 0), 0, seg);
+            emitAxisArrow(handles::Axis::Z, glm::vec3(0, 0, 1), 0, seg);
+            return out;
+        }
+        if (ah.role == handles::Role::CurveControl && ah.index == 1) {
+            const int seg = ah.segment;
+            emitAxisArrow(handles::Axis::X, glm::vec3(1, 0, 0), 1, seg);
+            emitAxisArrow(handles::Axis::Y, glm::vec3(0, 1, 0), 1, seg);
+            emitAxisArrow(handles::Axis::Z, glm::vec3(0, 0, 1), 1, seg);
+            return out;
+        }
+        if (ah.role == handles::Role::CentreCycle) {
+            // CENTER active: emit per-tool gizmos. The
+            // `kWholeModelAxisIndex` sentinel routes CreateDragSession
+            // to the appropriate PolyCenter*Session.
+            const handles::Role centerRole =
+                (tool == handles::Tool::Scale)  ? handles::Role::AxisCube  :
+                (tool == handles::Tool::Rotate) ? handles::Role::AxisRing  :
+                                                  handles::Role::AxisArrow;
+            auto emitCenterAxis = [&](handles::Axis a, glm::vec3 dir) {
+                handles::Descriptor d;
+                d.id.role    = centerRole;
+                d.id.axis    = a;
+                d.id.index   = kWholeModelAxisIndex;
+                d.id.segment = -1;
+                d.worldPos   = activePos + dir * kHitOffset;
+                d.suggestedRadius = view.axisRadius;
+                d.editable   = !IsLocked();
+                out.push_back(d);
+            };
+            emitCenterAxis(handles::Axis::X, glm::vec3(1, 0, 0));
+            emitCenterAxis(handles::Axis::Y, glm::vec3(0, 1, 0));
+            emitCenterAxis(handles::Axis::Z, glm::vec3(0, 0, 1));
+            return out;
+        }
+        // Scale/Rotate on a vertex/CP isn't supported — only CENTER
+        // shows those gizmos. Translate-only past this point.
+        if (tool != handles::Tool::Translate) return out;
+        if (ah.role != handles::Role::Vertex) return out;
+        const int vertexIndex = ah.index;
+        if (vertexIndex < 0 || vertexIndex >= num_points) return out;
+        emitAxisArrow(handles::Axis::X, glm::vec3(1, 0, 0), vertexIndex, -1);
+        emitAxisArrow(handles::Axis::Y, glm::vec3(0, 1, 0), vertexIndex, -1);
+        emitAxisArrow(handles::Axis::Z, glm::vec3(0, 0, 1), vertexIndex, -1);
+        return out;
+    }
+
+    if (mode != handles::ViewMode::TwoD) return out;
+    (void)tool;
+    (void)view;
+
+    auto pushVertex = [&](int idx, glm::vec3 worldPos) {
+        handles::Descriptor d;
+        d.id.role  = handles::Role::Vertex;
+        d.id.index = idx;
+        d.worldPos = worldPos;
+        d.suggestedRadius = 5.0f;
+        d.editable = !IsLocked();
+        out.push_back(d);
+    };
+    auto pushCurveCp = [&](int seg, int cpIdx, glm::vec3 worldPos) {
+        handles::Descriptor d;
+        d.id.role    = handles::Role::CurveControl;
+        d.id.index   = cpIdx;     // 0 = cp0, 1 = cp1
+        d.id.segment = seg;
+        d.worldPos   = worldPos;
+        d.suggestedRadius = 5.0f;
+        d.editable = !IsLocked();
+        out.push_back(d);
+    };
+
+    for (int i = 0; i < num_points; ++i) {
+        const float wx = mPos[i].x * scalex + worldPos_x;
+        const float wy = mPos[i].y * scaley + worldPos_y;
+        const float wz = mPos[i].z * scalez + worldPos_z;
+        pushVertex(i, glm::vec3(wx, wy, wz));
+    }
+    // 2D segment descriptors. Curve segments emit chord
+    // sub-segments along the curve so clicks on the bowed-out
+    // part hit; straight segments emit a single chord.
+    for (int s = 0; s < num_points - 1; ++s) {
+        const bool isCurve = HasSegmentCurve(s) && mPos[s].curve != nullptr;
+        if (isCurve) {
+            const int n = mPos[s].curve->GetNumPoints();
+            for (int i = 0; i < n - 1; ++i) {
+                handles::Descriptor d;
+                d.id.role    = handles::Role::Segment;
+                d.id.index   = s;
+                d.worldPos   = glm::vec3(mPos[s].curve->get_px(i)     * scalex + worldPos_x,
+                                          mPos[s].curve->get_py(i)     * scaley + worldPos_y,
+                                          mPos[s].curve->get_pz(i)     * scalez + worldPos_z);
+                d.endPos     = glm::vec3(mPos[s].curve->get_px(i + 1) * scalex + worldPos_x,
+                                          mPos[s].curve->get_py(i + 1) * scaley + worldPos_y,
+                                          mPos[s].curve->get_pz(i + 1) * scalez + worldPos_z);
+                d.editable = !IsLocked();
+                d.selectionOnly = true;
+                out.push_back(d);
+            }
+        } else {
+            handles::Descriptor d;
+            d.id.role    = handles::Role::Segment;
+            d.id.index   = s;
+            d.worldPos   = glm::vec3(mPos[s].x * scalex + worldPos_x,
+                                      mPos[s].y * scaley + worldPos_y,
+                                      mPos[s].z * scalez + worldPos_z);
+            d.endPos     = glm::vec3(mPos[s + 1].x * scalex + worldPos_x,
+                                      mPos[s + 1].y * scaley + worldPos_y,
+                                      mPos[s + 1].z * scalez + worldPos_z);
+            d.editable = !IsLocked();
+            d.selectionOnly = true;
+            out.push_back(d);
+        }
+    }
+    for (int s = 0; s < num_points; ++s) {
+        if (!HasSegmentCurve(s)) continue;
+        const auto cp0 = GetCurveCp0(s);
+        const auto cp1 = GetCurveCp1(s);
+        pushCurveCp(s, 0, glm::vec3(cp0.x * scalex + worldPos_x,
+                                     cp0.y * scaley + worldPos_y,
+                                     cp0.z * scalez + worldPos_z));
+        pushCurveCp(s, 1, glm::vec3(cp1.x * scalex + worldPos_x,
+                                     cp1.y * scaley + worldPos_y,
+                                     cp1.z * scalez + worldPos_z));
+    }
+
+    // 2D boundary corner handles for box-resize.
+    // Mirrors `DrawHandles`'s 4-corner draw at the bbox extents
+    // offset by `boundary_offset`.
+    const float hw = 5.0f;
+    const float boundary_offset = 2.0f * hw;
+    const float bx1 = minX * scalex + worldPos_x - hw / 2.0f - boundary_offset;
+    const float by1 = minY * scaley + worldPos_y - hw / 2.0f - boundary_offset;
+    const float bx2 = maxX * scalex + worldPos_x + hw / 2.0f + boundary_offset;
+    const float by2 = maxY * scaley + worldPos_y + hw / 2.0f + boundary_offset;
+    auto pushBoundary = [&](int idx, float x, float y) {
+        handles::Descriptor d;
+        d.id.role  = handles::Role::ResizeCorner;
+        d.id.index = idx;
+        d.worldPos = glm::vec3(x, y, 0.0f);
+        d.suggestedRadius = 5.0f;
+        d.editable = !IsLocked();
+        out.push_back(d);
+    };
+    pushBoundary(0, bx1, by1);    // bottom-left
+    pushBoundary(1, bx1, by2);    // top-left
+    pushBoundary(2, bx2, by1);    // bottom-right
+    pushBoundary(3, bx2, by2);    // top-right
+    return out;
+}
+
+std::unique_ptr<handles::DragSession> PolyPointScreenLocation::CreateDragSession(
+    const std::string& modelName,
+    const handles::Id& id,
+    const handles::WorldRay& startRay) {
+    if (_locked) return nullptr;
+    if (id.role == handles::Role::Vertex) {
+        if (id.index < 0 || id.index >= num_points) return nullptr;
+        // 3D `XYTranslate` vertex drag: free-XY-plane intersection.
+        // 2D vertex drag: ray.origin is already world XY.
+        if (draw_3d) {
+            return std::make_unique<PolyPointCreationSession>(
+                this, modelName, startRay, handles::ViewMode::ThreeD, id.index);
+        }
+        return std::make_unique<PolyVertexSession>(this, modelName, id,
+                                                    PolyHandleKind::Vertex, id.index);
+    }
+    if (id.role == handles::Role::CurveControl) {
+        if (id.segment < 0 || id.segment >= num_points) return nullptr;
+        if (!HasSegmentCurve(id.segment)) return nullptr;
+        const PolyHandleKind kind = (id.index == 0) ? PolyHandleKind::Cp0 : PolyHandleKind::Cp1;
+        (void)startRay;
+        return std::make_unique<PolyVertexSession>(this, modelName, id, kind, id.segment);
+    }
+    if (id.role == handles::Role::AxisArrow) {
+        if (id.segment >= 0) {
+            // Curve CP axis-translate (cp0 / cp1 carried in id.index).
+            if (id.segment >= num_points) return nullptr;
+            if (!HasSegmentCurve(id.segment)) return nullptr;
+            if (id.index != 0 && id.index != 1) return nullptr;
+            return std::make_unique<PolyCurveCp3DTranslateSession>(this, modelName, id, startRay,
+                                                                    GetActiveSubHandleWorldPos());
+        }
+        // Whole-model translate routes to PolyCenterTranslateSession
+        // (updates worldPos along the active axis).
+        if (id.index == kWholeModelAxisIndex) {
+            return std::make_unique<PolyCenterTranslateSession>(this, modelName, id, startRay);
+        }
+        if (id.index < 0 || id.index >= num_points) return nullptr;
+        return std::make_unique<PolyVertex3DTranslateSession>(this, modelName, id, startRay,
+                                                              GetActiveSubHandleWorldPos());
+    }
+    if (id.role == handles::Role::AxisCube && id.index == kWholeModelAxisIndex) {
+        return std::make_unique<PolyCenterScaleSession>(this, modelName, id, startRay);
+    }
+    if (id.role == handles::Role::AxisRing && id.index == kWholeModelAxisIndex) {
+        return std::make_unique<PolyCenterRotateSession>(this, modelName, id, startRay);
+    }
+    if (id.role == handles::Role::ResizeCorner) {
+        if (id.index < 0 || id.index > 3) return nullptr;
+        (void)startRay;
+        return std::make_unique<PolyBoundaryResizeSession>(this, modelName, id);
+    }
+    return nullptr;
+}
+
+std::unique_ptr<handles::DragSession> PolyPointScreenLocation::BeginCreate(
+    const std::string& modelName,
+    const handles::WorldRay& clickRay,
+    handles::ViewMode mode) {
+    if (_locked) return nullptr;
+    // First click: drag the END vertex (index 1, since
+    // InitializeLocation places vertex 0 at the click point and
+    // initialises vertex 1 to the same spot).
+    return std::make_unique<PolyPointCreationSession>(
+        this, modelName, clickRay, mode, /*vertexIndex*/ 1);
+}
+
+std::unique_ptr<handles::DragSession> PolyPointScreenLocation::BeginExtend(
+    const std::string& modelName,
+    const handles::WorldRay& clickRay,
+    handles::ViewMode mode,
+    int vertexIndex) {
+    if (_locked) return nullptr;
+    if (vertexIndex < 0 || vertexIndex >= num_points) return nullptr;
+    return std::make_unique<PolyPointCreationSession>(
+        this, modelName, clickRay, mode, vertexIndex);
 }

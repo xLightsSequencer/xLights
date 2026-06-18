@@ -19,7 +19,7 @@
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
-					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="`pkg-config --cflags freetype2 harfbuzz fontconfig`" />
@@ -55,7 +55,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
-					<Add option="`pkg-config --libs libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -85,7 +85,7 @@
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
-					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="`pkg-config --cflags freetype2 harfbuzz fontconfig`" />
 					<Add option="-Winvalid-pch" />
@@ -120,7 +120,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
-					<Add option="`pkg-config --libs libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -183,6 +183,8 @@
 		<Unit filename="../src-ui-wx/model/AlignmentDialog.h" />
 		<Unit filename="../src-core/media/AudioManager.cpp" />
 		<Unit filename="../src-core/media/AudioManager.h" />
+		<Unit filename="../src-core/media/NoteImporter.cpp" />
+		<Unit filename="../src-core/media/NoteImporter.h" />
 		<Unit filename="../src-core/media/OnsetDetector.cpp" />
 		<Unit filename="../src-core/media/OnsetDetector.h" />
 		<Unit filename="../src-core/media/TempoDetector.cpp" />
@@ -217,6 +219,12 @@
 		<Unit filename="../src-core/import_export/ImportMappingNode.h" />
 		<Unit filename="../src-core/import_export/MapHintsIO.cpp" />
 		<Unit filename="../src-core/import_export/MapHintsIO.h" />
+		<Unit filename="../src-core/import_export/SuperStarImporter.cpp" />
+		<Unit filename="../src-core/import_export/SuperStarImporter.h" />
+		<Unit filename="../src-core/import_export/MusicCatalog.cpp" />
+		<Unit filename="../src-core/import_export/MusicCatalog.h" />
+		<Unit filename="../src-core/import_export/VendorCatalog.cpp" />
+		<Unit filename="../src-core/import_export/VendorCatalog.h" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.cpp" />
@@ -243,8 +251,12 @@
 		<Unit filename="../src-ui-wx/model/ChannelLayoutDialog.h" />
 		<Unit filename="../src-ui-wx/effects/CharMapDialog.cpp" />
 		<Unit filename="../src-ui-wx/effects/CharMapDialog.h" />
-		<Unit filename="../src-ui-wx/diagnostics/CheckSequenceReport.cpp" />
-		<Unit filename="../src-ui-wx/diagnostics/CheckSequenceReport.h" />
+		<Unit filename="../src-ui-wx/CommandPaletteDialog.cpp" />
+		<Unit filename="../src-ui-wx/CommandPaletteDialog.h" />
+		<Unit filename="../src-core/diagnostics/CheckSequenceReport.cpp" />
+		<Unit filename="../src-core/diagnostics/CheckSequenceReport.h" />
+		<Unit filename="../src-core/diagnostics/SequenceChecker.cpp" />
+		<Unit filename="../src-core/diagnostics/SequenceChecker.h" />
 		<Unit filename="../src-ui-wx/shared/dialogs/CheckboxSelectDialog.cpp" />
 		<Unit filename="../src-ui-wx/shared/dialogs/CheckboxSelectDialog.h" />
 		<Unit filename="../src-core/utils/Color.cpp" />
@@ -269,6 +281,10 @@
 		<Unit filename="../src-ui-wx/color/ColoursPanel.h" />
 		<Unit filename="../src-core/models/ControllerConnection.cpp" />
 		<Unit filename="../src-core/models/ControllerConnection.h" />
+		<Unit filename="../src-core/models/handles/DragSession.h" />
+		<Unit filename="../src-core/models/handles/Handles.h" />
+		<Unit filename="../src-core/models/handles/HitTest.cpp" />
+		<Unit filename="../src-core/models/handles/HitTest.h" />
 		<Unit filename="../src-ui-wx/setup/ControllerConnectionDialog.cpp" />
 		<Unit filename="../src-ui-wx/setup/ControllerConnectionDialog.h" />
 		<Unit filename="../src-ui-wx/setup/ControllerModelDialog.cpp" />
@@ -313,10 +329,12 @@
 		<Unit filename="../src-ui-wx/sequencer/EffectListDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.h" />
-		<Unit filename="../src-ui-wx/effects/EffectPresetManager.cpp" />
-		<Unit filename="../src-ui-wx/effects/EffectPresetManager.h" />
+		<Unit filename="../src-core/effects/EffectPresetManager.cpp" />
+		<Unit filename="../src-core/effects/EffectPresetManager.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectWheelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectWheelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.h" />
 		<Unit filename="../src-ui-wx/app-shell/EmailDialog.cpp" />
@@ -360,8 +378,22 @@
 		<Unit filename="../src-ui-wx/app-shell/KeyBindings.h" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" />
-		<Unit filename="../src-ui-wx/import_export/LOREdit.cpp" />
-		<Unit filename="../src-ui-wx/import_export/LOREdit.h" />
+		<Unit filename="../src-core/import_export/ExportModels.cpp" />
+		<Unit filename="../src-core/import_export/ExportModels.h" />
+		<Unit filename="../src-core/import_export/ExportEffectsReport.cpp" />
+		<Unit filename="../src-core/import_export/ExportEffectsReport.h" />
+		<Unit filename="../src-core/import_export/LOREdit.cpp" />
+		<Unit filename="../src-core/import_export/LOREdit.h" />
+		<Unit filename="../src-core/import_export/HLSFile.cpp" />
+		<Unit filename="../src-core/import_export/HLSFile.h" />
+		<Unit filename="../src-core/import_export/ImportDataRow.cpp" />
+		<Unit filename="../src-core/import_export/ImportDataRow.h" />
+		<Unit filename="../src-core/import_export/Vixen2File.cpp" />
+		<Unit filename="../src-core/import_export/Vixen2File.h" />
+		<Unit filename="../src-core/import_export/LORMusic.cpp" />
+		<Unit filename="../src-core/import_export/LORMusic.h" />
+		<Unit filename="../src-core/import_export/LORPixelEditor.cpp" />
+		<Unit filename="../src-core/import_export/LORPixelEditor.h" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.cpp" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.h" />
 		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.cpp" />
@@ -370,12 +402,15 @@
 		<Unit filename="../src-ui-wx/layout/LayoutGroup.h" />
 		<Unit filename="../src-ui-wx/layout/LayoutPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/LayoutPanel.h" />
+		<Unit filename="../src-ui-wx/layout/ReplaceModelDialog.h" />
 		<Unit filename="../src-ui-wx/layout/LayoutUtils.cpp" />
 		<Unit filename="../src-ui-wx/layout/LayoutUtils.h" />
 		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/LRCLIBSearchDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/LRCLIBSearchDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/LyricsDialog.cpp" />
@@ -438,6 +473,8 @@
 		<Unit filename="../src-ui-wx/model/PathGenerationDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.h" />
+		<Unit filename="../src-core/lyrics/LRCParser.cpp" />
+		<Unit filename="../src-core/lyrics/LRCParser.h" />
 		<Unit filename="../src-core/lyrics/PhonemeDictionary.cpp" />
 		<Unit filename="../src-core/lyrics/PhonemeDictionary.h" />
 		<Unit filename="../src-core/render/IRenderJobStatus.h" />
@@ -460,6 +497,10 @@
 		<Unit filename="../src-core/render/ViewpointMgr.cpp" />
 		<Unit filename="../src-core/render/ViewpointMgr.h" />
 		<Unit filename="../src-ui-wx/render/RenderUI.cpp" />
+		<Unit filename="../src-core/render/ModelGifExporter.cpp" />
+		<Unit filename="../src-core/render/ModelGifExporter.h" />
+		<Unit filename="../src-core/render/ModelVideoExporter.cpp" />
+		<Unit filename="../src-core/render/ModelVideoExporter.h" />
 		<Unit filename="../src-core/render/RenderBuffer.cpp" />
 		<Unit filename="../src-core/render/RenderBuffer.h" />
 		<Unit filename="../src-core/render/RenderCache.cpp" />
@@ -485,6 +526,8 @@
 		<Unit filename="../src-ui-wx/sequencer/SelectPanel.h" />
 		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/SelectModelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SelectModelDialog.h" />
 		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.cpp" />
 		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/SeqExportDialog.cpp" />
@@ -571,18 +614,23 @@
 		<Unit filename="../src-ui-wx/media/VideoExporter.h" />
 		<Unit filename="../src-core/media/FFmpegVideoReader.cpp" />
 		<Unit filename="../src-core/media/FFmpegVideoReader.h" />
+		<Unit filename="../src-core/media/FFmpegVideoWriter.cpp" />
+		<Unit filename="../src-core/media/FFmpegVideoWriter.h" />
 		<Unit filename="../src-core/media/VideoFrame.h" />
 		<Unit filename="../src-core/media/VideoReader.cpp" />
 		<Unit filename="../src-core/media/VideoReader.h" />
 		<Unit filename="../src-core/media/VideoReaderImpl.h" />
+		<Unit filename="../src-core/media/VideoWriter.cpp" />
+		<Unit filename="../src-core/media/VideoWriter.h" />
+		<Unit filename="../src-core/media/VideoWriterImpl.h" />
 		<Unit filename="../src-ui-wx/layout/ViewObjectPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ViewObjectPanel.h" />
 		<Unit filename="../src-ui-wx/model/ViewpointDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ViewpointDialog.h" />
 		<Unit filename="../src-ui-wx/layout/ViewsModelsPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ViewsModelsPanel.h" />
-		<Unit filename="../src-ui-wx/import_export/Vixen3.cpp" />
-		<Unit filename="../src-ui-wx/import_export/Vixen3.h" />
+		<Unit filename="../src-core/import_export/Vixen3.cpp" />
+		<Unit filename="../src-core/import_export/Vixen3.h" />
 		<Unit filename="../src-ui-wx/import_export/VsaImportDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/VsaImportDialog.h" />
 		<Unit filename="../src-ui-wx/model/WiringDialog.cpp" />
@@ -705,7 +753,7 @@
 		<Unit filename="../src-core/controllers/WebSocketClient.h" />
 		<Unit filename="../src-ui-wx/import_export/ExportEffects.cpp" />
 		<Unit filename="../src-ui-wx/import_export/ImportEffects.cpp" />
-		<Unit filename="../src-ui-wx/import_export/TimingImport.cpp" />
+		<Unit filename="../src-core/import_export/TimingImport.cpp" />
 		<Unit filename="../src-core/effects/AdjustEffect.cpp" />
 		<Unit filename="../src-core/effects/AdjustEffect.h" />
 		<Unit filename="../src-core/effects/BarsEffect.cpp" />
@@ -839,6 +887,8 @@
 		<Unit filename="../src-core/effects/SketchEffect.h" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.cpp" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.h" />
+		<Unit filename="../src-core/effects/SketchSVGImport.cpp" />
+		<Unit filename="../src-core/effects/SketchSVGImport.h" />
 		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.h" />
 		<Unit filename="../src-core/effects/SnowflakesEffect.cpp" />
@@ -960,6 +1010,10 @@
 		<Unit filename="../src-core/graphics/xlFontInfo.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.cpp" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.h" />
+		<Unit filename="../src-core/graphics/AngleEGL.cpp" />
+		<Unit filename="../src-core/graphics/AngleEGL.h" />
+		<Unit filename="../src-core/graphics/GLBackend.cpp" />
+		<Unit filename="../src-core/graphics/GLBackend.h" />
 		<Unit filename="../src-core/graphics/GLContextManager.cpp" />
 		<Unit filename="../src-core/graphics/GLContextManager.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsContext.h" />
@@ -1066,6 +1120,10 @@
 		<Unit filename="../src-core/models/ModelManager.h" />
 		<Unit filename="../src-core/models/ModelScreenLocation.cpp" />
 		<Unit filename="../src-core/models/ModelScreenLocation.h" />
+		<Unit filename="../src-core/models/ModelSet.cpp" />
+		<Unit filename="../src-core/models/ModelSet.h" />
+		<Unit filename="../src-core/models/ModelSetManager.cpp" />
+		<Unit filename="../src-core/models/ModelSetManager.h" />
 		<Unit filename="../src-core/models/MultiPointModel.cpp" />
 		<Unit filename="../src-core/models/MultiPointModel.h" />
 		<Unit filename="../src-core/models/MultiPointScreenLocation.cpp" />
@@ -1093,6 +1151,8 @@
 		<Unit filename="../src-core/models/StarModel.h" />
 		<Unit filename="../src-core/models/SubModel.cpp" />
 		<Unit filename="../src-core/models/SubModel.h" />
+		<Unit filename="../src-core/models/SubModelSymmetrize.cpp" />
+		<Unit filename="../src-core/models/SubModelSymmetrize.h" />
 		<Unit filename="../src-core/models/TerrainObject.cpp" />
 		<Unit filename="../src-core/models/TerrainObject.h" />
 		<Unit filename="../src-core/models/TerrainScreenLocation.cpp" />
@@ -1223,6 +1283,10 @@
 		<Unit filename="../src-ui-wx/sequencer/RowHeading.h" />
 		<Unit filename="../src-core/render/SequenceElements.cpp" />
 		<Unit filename="../src-core/render/SequenceElements.h" />
+		<Unit filename="../src-core/render/SongStructureManager.cpp" />
+		<Unit filename="../src-core/render/SongStructureManager.h" />
+		<Unit filename="../src-core/render/SeqMediaMigration.cpp" />
+		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
 		<Unit filename="../src-core/render/SequenceMedia.h" />
 		<Unit filename="../src-core/render/TextDrawingContext.cpp" />
@@ -1351,11 +1415,15 @@
 		<Unit filename="../src-core/utils/GitUtils.h" />
 		<Unit filename="../src-core/utils/CurlManager.cpp" />
 		<Unit filename="../src-core/utils/CurlManager.h" />
+		<Unit filename="../src-core/utils/FloatChecks.h" />
+		<Unit filename="../src-core/utils/AutoReleasePool.h" />
 		<Unit filename="../src-core/utils/ip_utils.cpp" />
 		<Unit filename="../src-core/utils/ip_utils.h" />
 		<Unit filename="../src-core/utils/nanosvg_xl.h" />
 		<Unit filename="../src-core/utils/string_utils.cpp" />
 		<Unit filename="../src-core/utils/string_utils.h" />
+		<Unit filename="../src-core/utils/ZipUtils.cpp" />
+		<Unit filename="../src-core/utils/ZipUtils.h" />
 		<Unit filename="../src-core/utils/FileUtils.cpp" />
 		<Unit filename="../src-core/utils/FileUtils.h" />
 		<Unit filename="../src-core/utils/NodeUtils.cpp" />
@@ -1545,6 +1613,10 @@
 		<Unit filename="../src-ui-wx/color/xlColorPickerFields.h" />
 		<Unit filename="../src-ui-wx/color/xlColourData.cpp" />
 		<Unit filename="../src-ui-wx/color/xlColourData.h" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerButton.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerButton.h" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerDialog.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerDialog.h" />
 		<Unit filename="../src-core/utils/xlImage.cpp" />
 		<Unit filename="../src-core/utils/xlImage.h" />
 		<Unit filename="../src-core/utils/Base64.h" />

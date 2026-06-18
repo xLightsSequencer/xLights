@@ -27,8 +27,19 @@ mkdir -p $CI_DERIVED_DATA_PATH
 cd $CI_DERIVED_DATA_PATH
 ls -lart
 
-#install zstd so we can decompress the deps
-brew install zstd
+#install zstd so we can decompress the deps. Retry: Homebrew's bottle
+#downloads occasionally fail with transient DNS errors on the Xcode Cloud
+#builders, and without zstd on PATH the download_deps tar extract silently
+#falls over with "unable to run program zstd -d -qq".
+for i in 1 2 3; do
+    brew install zstd && break
+    echo "brew install zstd failed (attempt $i); retrying after 15s..."
+    sleep 15
+done
+if ! command -v zstd >/dev/null 2>&1; then
+    echo "ci_pre_xcodebuild: zstd is not on PATH after 3 brew install attempts" >&2
+    exit 1
+fi
 
 # Fetch the prebuilt dependency tarball (XCFrameworks, libs, headers)
 # into macOS/dependencies/. This MUST run before xcodebuild begins:

@@ -298,6 +298,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 
     SetEscapeId(wxID_CANCEL);
     EnableCloseButton(false);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnClose);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelStateDialog::OnCancelButton);
 
     ValidateWindow();
 
@@ -306,6 +308,25 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
         _outputManager->StopOutput();
         SetConfigBool("OutputActive", false);
     }
+}
+
+void ModelStateDialog::ConfirmClose()
+{
+    if (wxMessageBox("Are you sure you want to close the States window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        return;
+    }
+    StopOutputToLights();
+    ModelStateDialog::EndDialog(wxID_CANCEL);
+}
+
+void ModelStateDialog::OnClose(wxCloseEvent& event)
+{
+    ConfirmClose();
+}
+
+void ModelStateDialog::OnCancelButton(wxCommandEvent& event)
+{
+    ConfirmClose();
 }
 
 ModelStateDialog::~ModelStateDialog()
@@ -386,11 +407,27 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
         StateTypeChoice->Disable();
     }
 
+    size_t nodeCount = cls->GetNodeCount();
+    _nodeNameToIndex.clear();
+    _nodeNameToIndex.reserve(nodeCount);
+
+    static constexpr size_t MAX_NODES_FOR_DROPDOWN = 5000;
+    const bool buildDropdown = (nodeCount <= MAX_NODES_FOR_DROPDOWN);
+
     wxArrayString names;
-    names.push_back("");
-    for (size_t x = 0; x < cls->GetNodeCount(); x++) {
-        wxString nn = cls->GetNodeName(x, true);
-        names.push_back(nn);
+    if (buildDropdown) {
+        names.reserve(nodeCount + 1);
+        names.push_back("");
+        for (size_t x = 0; x < nodeCount; x++) {
+            std::string nn = cls->GetNodeName(x, true);
+            _nodeNameToIndex[nn].push_back(x);
+            names.push_back(wxString(nn));
+        }
+    } else {
+        for (size_t x = 0; x < nodeCount; x++) {
+            std::string nn = cls->GetNodeName(x, true);
+            _nodeNameToIndex[nn].push_back(x);
+        }
     }
 
     for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
@@ -400,12 +437,14 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
         nvalidator.SetCharIncludes(nfilter);
         neditor->SetValidator(nvalidator);
 
-        NodesGridCellEditor* editor = new NodesGridCellEditor();
-        editor->names = names;
-
         SingleNodeGrid->SetCellEditor(x, NAME_COL, neditor);
-        SingleNodeGrid->SetCellEditor(x, CHANNEL_COL, editor);
         SingleNodeGrid->SetReadOnly(x, COLOUR_COL);
+
+        if (buildDropdown) {
+            NodesGridCellEditor* editor = new NodesGridCellEditor();
+            editor->names = names;
+            SingleNodeGrid->SetCellEditor(x, CHANNEL_COL, editor);
+        }
     }
 
     for (int x = 0; x < NodeRangeGrid->GetNumberRows(); x++) {
@@ -695,10 +734,10 @@ void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor c
     wxString v = grid->GetCellValue(row, CHANNEL_COL);
     wxStringTokenizer wtkz(v, ",");
     while (wtkz.HasMoreTokens()) {
-        wxString valstr = wtkz.GetNextToken();
-        for (size_t n = 0; n < model->GetNodeCount(); n++) {
-            wxString ns = model->GetNodeName(n, true);
-            if (ns == valstr) {
+        std::string valstr = wtkz.GetNextToken().ToStdString();
+        auto it = _nodeNameToIndex.find(valstr);
+        if (it != _nodeNameToIndex.end()) {
+            for (size_t n : it->second) {
                 model->SetNodeColor(n, c);
                 if (highlight) _selected.push_back(n);
             }
@@ -1272,16 +1311,25 @@ void ModelStateDialog::ImportStates(const wxString & filename)
         pugi::xml_node root = doc.document_element();
         bool stateFound = false;
 
-        for (pugi::xml_node n : root.children("stateInfo"))
-        {
-            std::map<std::string, std::map<std::string, std::string> > stateInfo;
-            XmlSerialize::DeserializeStateInfo(n, stateInfo);
-            if (stateInfo.size() == 0)
-            {
-                continue;
+        // New format: <models><model>...<stateInfo/></model></models>
+        // Old format: <custommodel>...<stateInfo/></custommodel>
+        auto processStateInfoChildren = [&](pugi::xml_node parent) {
+            for (pugi::xml_node n : parent.children("stateInfo")) {
+                std::map<std::string, std::map<std::string, std::string>> stateInfo;
+                XmlSerialize::DeserializeStateInfo(n, stateInfo);
+                if (stateInfo.size() == 0)
+                    continue;
+                stateFound = true;
+                AddStates(stateInfo);
             }
-            stateFound = true;
-            AddStates(stateInfo);
+        };
+
+        std::string_view rootName = root.name();
+        if (rootName == "models") {
+            for (pugi::xml_node model : root.children("model"))
+                processStateInfoChildren(model);
+        } else {
+            processStateInfoChildren(root);
         }
         overRide = false;
         showDialog = true;

@@ -8,8 +8,14 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
+#include <filesystem>
 #include <map>
+#include <system_error>
+#include <thread>
 
+#include <wx/progdlg.h>
+#include <wx/choicdlg.h>
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
@@ -40,6 +46,7 @@
 #include "MidiFile.h"
 #include "import_export/MusicXML.h"
 #include "diagnostics/SeqElementMismatchDialog.h"
+#include "sequencer/SelectModelDialog.h"
 #include "media/SequenceVideoPanel.h"
 #include "sequencer/RenderCommandEvent.h"
 #include "xLightsVersion.h"
@@ -50,6 +57,7 @@
 #include "sequencer/EffectsPanel.h"
 #include "effects/EffectAssist.h"
 #include "color/ColorPanel.h"
+#include "color/xlColourPickerButton.h"
 #include "sequencer/BlendingPanel.h"
 #include "layout/ModelPreview.h"
 #include "MainSequencer.h"
@@ -279,15 +287,20 @@ void xLightsFrame::InitSequencer()
             spdlog::info("Number of channels has changed ... reallocating sequence data memory.");
             spdlog::info("Channels prior {} and channels current {}", _seqData.NumChannels(), roundTo4(GetMaxNumChannels()));
 
-            AbortRender();
+            // Reallocating _seqData frees the channel buffer a live render
+            // job may still be writing into. Only proceed if the render has
+            // actually drained — AbortRender() returns false if it timed out.
+            if (AbortRender()) {
+                wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+                int ms = wxAtoi(mss);
 
-            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-            int ms = wxAtoi(mss);
+                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                _sequenceElements.IncrementChangeCount(nullptr);
 
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-            _sequenceElements.IncrementChangeCount(nullptr);
-
-            SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
+                SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
+            } else {
+                spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
+            }
         }
     }
 
@@ -408,16 +421,16 @@ static void HandleChoices(xLightsFrame *frame,
                 switch (dlg.GetSelection()) {
                 case 0: {
                     // Rename Model
-                    wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
-                        "Select Model", ToArrayString(ModelNames));
+                    SelectModelDialog namedlg(frame, ModelNames);
                     if (namedlg.ShowModal() == wxID_OK) {
-                        std::string newName = namedlg.GetStringSelection().ToStdString();
+                        std::string newName = namedlg.GetSelectedModel();
+                        std::string oldName = element->GetName();
 
                         spdlog::debug("Sequence Element Mismatch 2: rename '{}' to '{}'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
 
                         // remove the existing element before we rename
-                        if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                            SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        if (sme != nullptr) {
                             sme->GetModelElement()->RemoveSubModel(newName);
                         }
                         else {
@@ -427,6 +440,20 @@ static void HandleChoices(xLightsFrame *frame,
                         element->SetName(newName);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
+
+                        if (namedlg.ShouldAddAlias()) {
+                            Model* target = nullptr;
+                            if (sme != nullptr) {
+                                target = frame->AllModels[sme->GetModelElement()->GetName() + "/" + newName];
+                            } else {
+                                target = frame->AllModels[newName];
+                            }
+                            if (target != nullptr && !target->IsAlias("oldname:" + oldName)) {
+                                target->AddAlias("oldname:" + oldName);
+                                frame->UnsavedRgbEffectsChanges = true;
+                                spdlog::debug("Sequence Element Mismatch 2: added alias 'oldname:{}' to '{}'", oldName.c_str(), newName.c_str());
+                            }
+                        }
                     }
                     else {
                         ok = false;
@@ -613,11 +640,13 @@ void xLightsFrame::CheckForValidModels()
                             } else {
                                 dialog.ChoiceModels->SetStringSelection(mapto);
                                 dialog.RadioButtonRename->SetValue(true);
+                                dialog.CheckBoxAddAlias->Enable(true);
                             }
                         }
                         else {
                             dialog.ChoiceModels->Hide();
                             dialog.RadioButtonRename->Hide();
+                            dialog.CheckBoxAddAlias->Hide();
                             dialog.Layout();
                         }
                         dialog.Fit();
@@ -658,6 +687,12 @@ void xLightsFrame::CheckForValidModels()
                             ((ModelElement*)_sequenceElements.GetElement(x))->Init(*AllModels[newName]);
                             Remove(AllNames, newName);
                             Remove(ModelNames, newName);
+                            if (dialog.CheckBoxAddAlias->IsChecked() && AllModels[newName] != nullptr &&
+                                !AllModels[newName]->IsAlias("oldname:" + name)) {
+                                AllModels[newName]->AddAlias("oldname:" + name);
+                                UnsavedRgbEffectsChanges = true;
+                                spdlog::debug("Sequence Element Mismatch: added alias 'oldname:{}' to '{}'", (const char*)name.c_str(), (const char*)newName.c_str());
+                            }
                         }
                         else {
                             spdlog::error("Sequence Element Mismatch: rename '{}' to '{}' tried to rename to blank.", (const char*)name.c_str(), (const char*)newName.c_str());
@@ -788,27 +823,45 @@ void xLightsFrame::CheckForValidModels()
                             if (sme != nullptr &&
                                 dynamic_cast<StrandElement*>(sme) == nullptr &&
                                 m->GetSubModel(sme->GetName()) == nullptr) {
-                                std::vector<std::string> AllSMNames;
-                                std::vector<std::string> ModelSMNames;
+                                // Check for an oldname alias match — auto-remap silently without prompting
+                                bool submodelRenameAlias = false;
                                 for (int z = 0; z < m->GetNumSubModels(); z++) {
-                                    AllSMNames.push_back(m->GetSubModel(z)->GetName());
-                                    ModelSMNames.push_back(m->GetSubModel(z)->GetName());
-                                }
-                                if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
-                                    int priorCnt = el->GetSubModelAndStrandCount();
-                                    if (ringBell && _renderMode) {
-                                        ringBell = false; 
-                                        if (IsRenderBell()) {
-                                            wxBell();
+                                    Model* sm = m->GetSubModel(z);
+                                    if (sm != nullptr && sm->IsAlias(sme->GetName(), true)) {
+                                        // Only silently remap if the target name doesn't already exist in
+                                        // the sequence — never delete an existing row or its effects.
+                                        if (el->GetSubModel(sm->GetName(), false) == nullptr) {
+                                            spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
+                                                sme->GetName(), sm->GetName());
+                                            sme->SetName(sm->GetName());
+                                            submodelRenameAlias = true;
                                         }
+                                        break;
                                     }
-                                    HandleChoices(this, AllSMNames, ModelSMNames, sme,
-                                        "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
-                                        + "How should we handle this?",
-                                        toMap, ignore, mapall);
-                                    // if count after is less than the count before then the submodel list is shorter, so rewind the index
-                                    if (priorCnt != el->GetSubModelAndStrandCount()) {
-                                        --x1;
+                                }
+                                if (!submodelRenameAlias) {
+                                    std::vector<std::string> AllSMNames;
+                                    std::vector<std::string> ModelSMNames;
+                                    for (int z = 0; z < m->GetNumSubModels(); z++) {
+                                        AllSMNames.push_back(m->GetSubModel(z)->GetName());
+                                        ModelSMNames.push_back(m->GetSubModel(z)->GetName());
+                                    }
+                                    if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+                                        int priorCnt = el->GetSubModelAndStrandCount();
+                                        if (ringBell && _renderMode) {
+                                            ringBell = false;
+                                            if (IsRenderBell()) {
+                                                wxBell();
+                                            }
+                                        }
+                                        HandleChoices(this, AllSMNames, ModelSMNames, sme,
+                                            "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
+                                            + "How should we handle this?",
+                                            toMap, ignore, mapall);
+                                        // if count after is less than the count before then the submodel list is shorter, so rewind the index
+                                        if (priorCnt != el->GetSubModelAndStrandCount()) {
+                                            --x1;
+                                        }
                                     }
                                 }
                             }
@@ -883,7 +936,7 @@ void xLightsFrame::LoadAudioData(SequenceFile& xml_file)
     mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
     mainSequencer->PanelTimeLine->Initialize();
     int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-    mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+    mainSequencer->PanelTimeLine->SetFitZoom();  // default: sequence fills the full viewport
     mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();  // force refresh when new media is loaded
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
@@ -1066,6 +1119,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
             }
         }
     }
+    displayElementsPanel->UpdateModelsForSelectedView();
     _sequenceElements.PopulateRowInformation();
     displayElementsPanel->Initialize();
     ResizeMainSequencer();
@@ -1181,7 +1235,7 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
     EffectSettingsTimer.Start(25);
-    
+
     // prevent re-entry notification of effect selected changed
     static bool reentry = false;
     if (reentry) {
@@ -1554,7 +1608,13 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     int effectIndex = 0;
     for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++) {
         if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName) {
-            EffectsPanel1->EffectChoicebook->SetSelection(i);
+            // SetEffectType (not SetSelection) so the deferred
+            // SelectedEffectChangedEvent is suppressed. The deferred event
+            // would otherwise fire ResetPanelDefaultSettings, clear the file
+            // picker the sync handler just populated, then EffectSettingsTimer
+            // would diff the cleared panel against selectedEffectString and
+            // call eff->SetSettings(...) — wiping the dropped filename.
+            EffectsPanel1->SetEffectType(i);
             effectIndex = i;
             break;
         }
@@ -1672,9 +1732,19 @@ void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString().StartsWith("All"), event.GetString() == "AllInclSub");
 }
 
+void xLightsFrame::CopyModelEffectsToModels(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->CopyModelEffectsToModels(event.GetInt());
+}
+
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
 {
     mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt(), event.GetString() == "All");
+}
+
+void xLightsFrame::PasteModelEffectsWithSubModelLayers(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->PasteModelEffectsWithSubModelLayers(event.GetInt());
 }
 
 void xLightsFrame::ModelSelected(wxCommandEvent& event)
@@ -2998,18 +3068,35 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			oldfont.SetNativeFontInfoUserDesc(value);
 			picker->SetSelectedFont(oldfont);
 		} else if (name.StartsWith("ID_COLOURPICKER")) {
-            wxColourPickerCtrl* picker = (wxColourPickerCtrl*)CtrlWin;
             wxColour c(value);
-            picker->SetColour(c);
+            // BulkEditColourPickerCtrl (used by JsonEffectPanel) extends
+            // xlColourPickerButton → wxPanel, NOT wxColourPickerCtrl.  Both
+            // types share the same name prefix and both expose SetColour(), so
+            // check via dynamic_cast to avoid calling into the wrong vtable.
+            xlColourPickerButton* pickerBtn = dynamic_cast<xlColourPickerButton*>(CtrlWin);
+            if (pickerBtn != nullptr) {
+                pickerBtn->SetColour(c);
+            } else {
+                wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(CtrlWin);
+                if (picker != nullptr) {
+                    picker->SetColour(c);
+                }
+            }
         } else if (name.StartsWith("ID_CUSTOM")) {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
-            custom->SetValue(value.ToStdString());
+            if (custom != nullptr) {
+                custom->SetValue(value.ToStdString());
+            }
         } else if (name.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
-            vcb->SetValue(value.ToStdString());
+            if (vcb != nullptr) {
+                vcb->SetValue(value.ToStdString());
+            }
         } else if (name.StartsWith("ID_TOGGLEBUTTON")) {
             wxToggleButton *vcb = dynamic_cast<wxToggleButton *>(CtrlWin);
-            vcb->SetValue(wxAtoi(value) != 0);
+            if (vcb != nullptr) {
+                vcb->SetValue(wxAtoi(value) != 0);
+            }
         } else {
 			spdlog::error("ApplySetting: Unknown type: {}", (const char*)name.c_str());
             res = false;
@@ -3094,6 +3181,14 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
     EffectsPanel1->SetDefaultEffectValues(effect);
 }
 void xLightsFrame::ResetAllPanelDefaultSettings() {
+    // CloseSequence() runs on paths (e.g. show-folder setup) that fire before
+    // the sequencer tab is built, leaving these panel pointers null. Calling
+    // through a null EffectsPanel1 faults inside SetDefaultEffectValues (its
+    // own guard can't help once 'this' is null) — guard at the call site, as
+    // the rest of CloseSequence() already does for its panels.
+    if (EffectsPanel1 == nullptr || blendingPanel == nullptr || bufferPanel == nullptr || colorPanel == nullptr) {
+        return;
+    }
     EffectsPanel1->SetDefaultEffectValues(); // set ALL the panel defaults
     
     // Now do the explicits to set to what we want for the default state
@@ -3109,10 +3204,19 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
     bool applylast = false;
 
+    for (const auto& it : settings) {
+        if (it.first.find("APPLYLAST") == std::string::npos &&
+            it.first.find("Definition") != std::string::npos) {
+            ApplySetting(it.first, ToWXString(it.second));
+        }
+    }
+
 	// Apply those settings without APPLYLAST in their name first
     for (const auto& it : settings) {
 		if (it.first.find("APPLYLAST") == std::string::npos) {
-			ApplySetting(it.first, ToWXString(it.second));
+            if (it.first.find("Definition") == std::string::npos) {
+                ApplySetting(it.first, ToWXString(it.second));
+            }
         } else {
             applylast = true;
         }
@@ -3225,6 +3329,42 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         _modelPreviewPanel->Refresh(false);
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
+    }
+
+    // After a perspective load creates a floating House Preview / Model Preview
+    // frame, the embedded Metal canvas comes up gray until the user manually
+    // docks and re-floats the pane. The exact root cause is in MTKView /
+    // CAMetalLayer state set up during AUI's initial reparent, but the user
+    // workaround is reliable, so apply it programmatically: dock the pane and
+    // re-float it at the same position. The original perspective string is
+    // untouched — only the live layout cycles.
+    {
+        std::vector<std::string> recoverNames;
+        std::vector<wxPoint> recoverPos;
+        std::vector<wxSize> recoverSize;
+        wxAuiPaneInfoArray& panes = m_mgr->GetAllPanes();
+        for (size_t x = 0; x < panes.size(); ++x) {
+            if (!panes[x].IsFloating() || !panes[x].IsShown() || panes[x].frame == nullptr) continue;
+            std::string name = panes[x].name.ToStdString();
+            if (name != "HousePreview" && name != "ModelPreview") continue;
+            recoverNames.push_back(name);
+            recoverPos.push_back(panes[x].frame->GetPosition());
+            recoverSize.push_back(panes[x].frame->GetSize());
+        }
+        if (!recoverNames.empty()) {
+            for (const auto& nm : recoverNames) {
+                wxAuiPaneInfo& pane = m_mgr->GetPane(nm);
+                if (pane.IsOk()) pane.Dock();
+            }
+            m_mgr->Update();
+            for (size_t i = 0; i < recoverNames.size(); ++i) {
+                wxAuiPaneInfo& pane = m_mgr->GetPane(recoverNames[i]);
+                if (pane.IsOk()) {
+                    pane.Float().FloatingPosition(recoverPos[i]).FloatingSize(recoverSize[i]);
+                }
+            }
+            m_mgr->Update();
+        }
     }
 
     if (m_mgr->GetPane("EffectPresets").IsShown() && !_effectPresetsInitialized && EffectTreeDlg != nullptr) {
@@ -3633,7 +3773,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string fil
     std::map<int, std::vector<float>> res;
 
     spdlog::debug("Processing audacity file " + file);
-    spdlog::debug("Interval %d.", intervalMS);
+    spdlog::debug("Interval {}.", intervalMS);
     spdlog::debug("Start,End,midinote");
 
     wxTextFile f(file);
@@ -3837,7 +3977,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
                                     f.push_back(k);
                                 }
                             }
-                            res[j] = f;
+                            res.insert({j, f});
                         }
                     }
 
@@ -3849,7 +3989,17 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
                 } else if (e.isNoteOff()) {
                     notestate[e.getKeyNumber()]--;
                     if (notestate[e.getKeyNumber()] < 0) {
-                        // this should never happen
+                        notestate[e.getKeyNumber()] = 0;
+                    }
+                    int frame = LowerTS(time, intervalMS);
+                    if (frame >= 0) {
+                        std::vector<float> f;
+                        for (int k = 0; k <= 127; ++k) {
+                            if (notestate[k] > 0) {
+                                f.push_back(k);
+                            }
+                        }
+                        res[frame] = f;
                     }
                 }
             }
@@ -3969,9 +4119,33 @@ void xLightsFrame::ImportTimingElement()
             } else if (file1.GetExt().Lower() == "msq") {
                 CurrentSeqXmlFile->ProcessLSPTiming( filenames, this);
             } else if (file1.GetExt().Lower() == "xml" || file1.GetExt().Lower() == "xsq") {
-                CurrentSeqXmlFile->ProcessXLightsTiming( filenames, this);
+                for (const auto& fn : filenames) {
+                    std::vector<std::string> trackNames = CurrentSeqXmlFile->GetXLightsTimingTrackNames(fn, this);
+                    if (trackNames.empty()) continue;
+                    wxArrayString choices;
+                    for (const auto& n : trackNames) choices.Add(wxString(n));
+                    wxMultiChoiceDialog dlg(this, "Select timing tracks to import", "Import Timing Tracks", choices);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxArrayInt sel = dlg.GetSelections();
+                        std::vector<int> indices;
+                        for (size_t s = 0; s < sel.size(); ++s) indices.push_back(sel[s]);
+                        CurrentSeqXmlFile->ProcessXLightsTiming(fn, indices, this);
+                    }
+                }
             } else if (file1.GetExt().Lower() == "tim") {
-                CurrentSeqXmlFile->ProcessVixen3Timing(filenames, this);
+                for (const auto& fn : filenames) {
+                    std::vector<std::string> trackNames = CurrentSeqXmlFile->GetVixen3TimingTrackNames(fn);
+                    if (trackNames.empty()) continue;
+                    wxArrayString choices;
+                    for (const auto& n : trackNames) choices.Add(wxString(n));
+                    wxMultiChoiceDialog dlg(this, "Select timing tracks to import", "Import Timing Tracks", choices);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxArrayInt sel = dlg.GetSelections();
+                        std::vector<int> indices;
+                        for (size_t s = 0; s < sel.size(); ++s) indices.push_back(sel[s]);
+                        CurrentSeqXmlFile->ProcessVixen3Timing(fn, indices, this);
+                    }
+                }
             } else if (file1.GetExt().Lower() == "json") {
                 CurrentSeqXmlFile->ProcessElevenLabsTimingFiles(filenames, this);
             } else {
@@ -4213,9 +4387,9 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
     return res;
 }
 
-void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion)
+void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion, bool layerMode)
 {
-    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
+    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion, false, layerMode);
 }
 
 void xLightsFrame::PromoteEffects(wxCommandEvent& command)
@@ -4396,8 +4570,95 @@ void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb)
 
 void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
     if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-        auto service = GetAIService(aiType::SPEECH2TEXT);
-        auto lyrics = service->GenerateLyricTrack(CurrentSeqXmlFile->GetMedia()->FileName());
+        auto services = GetAIServices(aiType::SPEECH2TEXT);
+        if (services.empty()) {
+            wxMessageBox("No speech-to-text AI service is configured. Configure one under Preferences → Services.",
+                         "Error", wxICON_ERROR);
+            return;
+        }
+
+        // Same pattern as PicturesPanel's AI image flow: use the
+        // single registered service when there's only one, prompt
+        // when there are multiple.
+        aiBase* service = services[0];
+        if (services.size() > 1) {
+            wxArrayString choices;
+            for (auto* s : services) {
+                choices.push_back(s->GetLLMName());
+            }
+            wxSingleChoiceDialog pick(this, "Choose Speech-to-Text Service",
+                                       "Generate Lyrics from Audio", choices);
+            if (pick.ShowModal() == wxID_CANCEL) return;
+            service = services[pick.GetSelection()];
+        }
+
+        // Use whichever audio the user currently has selected in the
+        // waveform. That's a combination of two things: which track
+        // (main or one of the alt tracks attached under the audio-
+        // track manager) and which filter/stem (RAW, STEM_VOCALS, a
+        // band-passed filter, etc.). The track picks the AudioManager;
+        // the filter is reflected in that AudioManager's playback
+        // buffers (SwitchTo overwrites _data[0]/_data[1] each time the
+        // user changes filter/stem). WriteCurrentToTempWav serializes
+        // those buffers to a temp WAV so the recogniser sees exactly
+        // what the user is hearing — including HTDemucs-isolated
+        // vocals, which are dramatically cleaner for speech-to-text
+        // than the full mix.
+        AudioManager* media = CurrentSeqXmlFile->GetMedia();
+        if (GetMainSequencer() != nullptr) {
+            int trackIdx = GetMainSequencer()->GetActiveAudioTrackIndex();
+            if (trackIdx > 0) {
+                int altTrackIdx = trackIdx - 1;
+                if (altTrackIdx < CurrentSeqXmlFile->GetAltTrackCount()) {
+                    AudioManager* alt = CurrentSeqXmlFile->GetAltTrackMedia(altTrackIdx);
+                    if (alt != nullptr) {
+                        media = alt;
+                    }
+                }
+            }
+        }
+        std::string tempAudioPath = media->WriteCurrentToTempWav();
+        // Fall back to the original file if we couldn't materialise the
+        // current selection (e.g. audio not yet fully loaded). Note
+        // that the fallback path is owned by the AudioManager and
+        // must NOT be deleted on cleanup.
+        std::string audioPath = tempAudioPath.empty() ? media->FileName() : tempAudioPath;
+        auto cleanupTemp = [&]() {
+            if (!tempAudioPath.empty()) {
+                std::error_code ec;
+                std::filesystem::remove(tempAudioPath, ec);
+            }
+        };
+
+        // Run the recognition on a worker thread so the main thread
+        // stays free to service the OS speech-permission prompt and
+        // the recognizer's main-thread callbacks. Pumping wxYield in
+        // the wait loop is what lets those callbacks reach the
+        // framework — blocking main directly here deadlocks against
+        // SFSpeechRecognizer's prompt UI.
+        wxProgressDialog dlg("Generating Lyrics",
+                              "Transcribing audio with on-device speech recognition. This can take a minute…",
+                              100, this,
+                              wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+        dlg.Show();
+        dlg.Pulse();
+
+        aiBase::AILyricTrack lyrics;
+        std::atomic<bool> recognitionDone{false};
+        std::thread worker([&]() {
+            lyrics = service->GenerateLyricTrack(audioPath);
+            recognitionDone = true;
+        });
+
+        while (!recognitionDone) {
+            wxYield();
+            wxMilliSleep(50);
+            dlg.Pulse();
+        }
+        worker.join();
+
+        cleanupTemp();
+
         if (!lyrics.error.empty()) {
             wxMessageBox("Failed to generate lyrics. Please check the media file and try again.", "Error", wxICON_ERROR);
             return;

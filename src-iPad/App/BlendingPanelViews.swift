@@ -62,6 +62,14 @@ let kTransitionsNoReverse: Set<String> = [
     "Doorway", "Blobs", "Pinwheel", "Swap", "Shatter", "Circles",
 ]
 
+/// Transitions that support the Blur slider. Kept in sync with desktop
+/// `BlendingPanel.cpp:82` (`TRANSITIONS_WITH_BLUR`) so the Blur row
+/// enables / disables for the same types on both platforms.
+let kTransitionsWithBlur: Set<String> = [
+    "Wipe", "Blobs", "Clock", "Blinds", "From Middle",
+    "Square Explode", "Circle Explode", "Blend", "Slide Checks", "Slide Bars",
+]
+
 /// Common preset fade times (seconds) shown in the drop-down — matches
 /// BlendingPanel.cpp:283.
 let kFadePresets: [String] = ["0.00", "0.25", "0.50", "0.75", "1.00", "1.50", "2.00"]
@@ -516,13 +524,15 @@ struct TransitionHeaderRowView: View {
     }
 
     /// The stored fade time is a plain decimal string; trim whitespace
-    /// and reject non-numeric input so the settings map doesn't get
-    /// garbage strings. Empty / "0" variants normalise to "0.00" which
-    /// matches desktop's suppress-zero fade behaviour.
+    /// and reject non-numeric or negative input so the settings map
+    /// doesn't get garbage strings. Empty / "0" / negative variants
+    /// normalise to "0.00" which matches desktop's BlendingPanel
+    /// ValidateWindow clamp.
     private func normalizeFade(_ s: String) -> String {
         let trimmed = s.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty { return defaultFade }
-        if Double(trimmed) == nil { return defaultFade }
+        guard let d = Double(trimmed) else { return defaultFade }
+        if d < 0 { return defaultFade }
         return trimmed
     }
 }

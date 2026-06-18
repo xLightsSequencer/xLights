@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <list>
+#include <mutex>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -30,17 +31,15 @@ extern "C" {
 #include <log.h>
 
 #ifdef __APPLE__
-extern void InitVideoToolboxAcceleration();
-extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
-extern void CleanupVideoToolbox(AVCodecContext *s, void * cache);
-extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm);
-extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
+#include "media/VideoToolboxBridge.h"
 #else
-extern void InitVideoToolboxAcceleration() {}
-static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
-static inline void CleanupVideoToolbox(AVCodecContext *s, void * cache) {}
-static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm) { return false; }
-static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
+namespace AppleVideoToolboxBridge {
+inline void InitVideoToolboxAcceleration() {}
+inline bool SetupVideoToolboxAcceleration(AVCodecContext*, bool) { return false; }
+inline void CleanupVideoToolbox(AVCodecContext*, void*) {}
+inline bool VideoToolboxScaleImage(AVCodecContext*, AVFrame*, AVFrame*, void*&, int) { return false; }
+inline bool IsVideoToolboxAcceleratedFrame(AVFrame*) { return false; }
+} // namespace AppleVideoToolboxBridge
 #endif
 
 #ifdef _WIN32
@@ -48,7 +47,7 @@ static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false
 #include <VersionHelpers.h>
 #endif
 
-static enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
+static thread_local enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
     const enum AVPixelFormat* p;
@@ -89,7 +88,7 @@ void FFmpegVideoReader::SetHardwareRenderType(int type)
 }
 
 void FFmpegVideoReader::InitHWAcceleration() {
-    InitVideoToolboxAcceleration();
+    AppleVideoToolboxBridge::InitVideoToolboxAcceleration();
 }
 
 void FFmpegVideoReader::SetScaleAlgorithm(VideoScaleAlgorithm algorithm) {
@@ -337,24 +336,8 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
 void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     spdlog::debug("VideoReader: reopenContext({}) for {}", allowHWDecoder, _filename);
 
-#if LIBAVFORMAT_VERSION_MAJOR > 57
-    if (_cudaScaledFrame != nullptr) {
-        av_frame_free(&_cudaScaledFrame);
-        _cudaScaledFrame = nullptr;
-    }
-    if (_cudaFilterGraph != nullptr) {
-        avfilter_graph_free(&_cudaFilterGraph);
-        _cudaFilterGraph   = nullptr;
-        _cudaBufferSrcCtx  = nullptr;
-        _cudaScaleCtx      = nullptr;
-        _cudaBufferSinkCtx = nullptr;
-    }
-    _cudaScaleFilterActive = false;
-    _cudaScaleFilterFailed = false;
-#endif
-
     if (_codecContext != nullptr) {
-        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        AppleVideoToolboxBridge::CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
@@ -439,24 +422,8 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         return;
     }
 
-    if (allowHWDecoder && IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE) {
-        _codecContext->thread_type = 0;
-        _codecContext->thread_count = 1;
-    } else {
-        _codecContext->thread_type = FF_THREAD_SLICE;
-        _codecContext->thread_count = 0;
-        if (!allowHWDecoder) {
-            _abandonHardwareDecode = true;
-            if (_hw_device_ctx) {
-                av_buffer_unref(&_hw_device_ctx);
-                _hw_device_ctx = nullptr;
-            }
-            if (_swsCtx != nullptr) {
-                sws_freeContext(_swsCtx);
-                _swsCtx = nullptr;
-            }
-        }
-    }
+    _codecContext->thread_type = 0;
+    _codecContext->thread_count = 1;
     _codecContext->skip_frame = AVDISCARD_NONE;
     _codecContext->skip_loop_filter = AVDISCARD_NONE;
     _codecContext->skip_idct = AVDISCARD_NONE;
@@ -469,6 +436,10 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     _codecContext->hwaccel_context = nullptr;
     {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE) {
+            // Serialize HW device creation: concurrent CUDA/NVDEC init from many
+            // render threads exhausts driver session limits and corrupts shared state.
+            static std::mutex s_hwDeviceCreateMutex;
+            std::lock_guard<std::mutex> hwLock(s_hwDeviceCreateMutex);
             const char* opt = nullptr;
             if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0) {
                 spdlog::warn("VideoReader: Failed to create HW device '{}' for {} - falling back to software decode.", av_hwdevice_get_type_name(type), _filename.c_str());
@@ -488,7 +459,7 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
             spdlog::debug("Software decoding enabled for codec '{}'", decoderToUse->long_name);
         }
     }
-    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
+    _videoToolboxAccelerated = AppleVideoToolboxBridge::SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
     AVDictionary *opts = nullptr;
     if (usingCuvid) {
@@ -593,12 +564,10 @@ FFmpegVideoReader::~FFmpegVideoReader()
         _swsCtx = nullptr;
     }
     if (_srcFrame != nullptr) {
-        av_free(_srcFrame);
-        _srcFrame = nullptr;
+        av_frame_free(&_srcFrame);
     }
     if (_srcFrame2 != nullptr) {
-        av_free(_srcFrame2);
-        _srcFrame2 = nullptr;
+        av_frame_free(&_srcFrame2);
     }
     if (_dstFrame != nullptr) {
         if (_dstFrame->data[0] != nullptr) {
@@ -618,7 +587,7 @@ FFmpegVideoReader::~FFmpegVideoReader()
         if (_keyFrameCount != _codecContext->keyint_min) {
             spdlog::debug("Key frame count was adjusted from {} to {}.", _codecContext->keyint_min, _keyFrameCount);
         }
-        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        AppleVideoToolboxBridge::CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
@@ -631,116 +600,7 @@ FFmpegVideoReader::~FFmpegVideoReader()
         av_buffer_unref(&_hw_device_ctx);
         _hw_device_ctx = nullptr;
     }
-#if LIBAVFORMAT_VERSION_MAJOR > 57
-    if (_cudaScaledFrame != nullptr) {
-        av_frame_free(&_cudaScaledFrame);
-        _cudaScaledFrame = nullptr;
-    }
-    if (_cudaFilterGraph != nullptr) {
-        avfilter_graph_free(&_cudaFilterGraph);
-        _cudaFilterGraph   = nullptr;
-        _cudaBufferSrcCtx  = nullptr;
-        _cudaScaleCtx      = nullptr;
-        _cudaBufferSinkCtx = nullptr;
-    }
-#endif
 }
-
-#if LIBAVFORMAT_VERSION_MAJOR > 57
-bool FFmpegVideoReader::initCudaScaleFilter()
-{
-    if (!_srcFrame || !_srcFrame->hw_frames_ctx) {
-        spdlog::warn("VideoReader: scale_cuda init: no hw_frames_ctx on source frame");
-        return false;
-    }
-
-    const AVFilter* buffersrc_flt  = avfilter_get_by_name("buffer");
-    const AVFilter* buffersink_flt = avfilter_get_by_name("buffersink");
-    const AVFilter* scalecuda_flt  = avfilter_get_by_name("scale_cuda");
-
-    if (!scalecuda_flt) {
-        spdlog::warn("VideoReader: scale_cuda filter not available in this FFmpeg build — GPU scaling disabled");
-        return false;
-    }
-
-    _cudaFilterGraph = avfilter_graph_alloc();
-    if (!_cudaFilterGraph)
-        return false;
-
-    int ret;
-    char args[256];
-
-    snprintf(args, sizeof(args),
-             "video_size=%dx%d:pix_fmt=%d:time_base=1/1000:pixel_aspect=1/1",
-             _srcFrame->width, _srcFrame->height, _srcFrame->format);
-    ret = avfilter_graph_create_filter(&_cudaBufferSrcCtx, buffersrc_flt, "in",
-                                       args, nullptr, _cudaFilterGraph);
-    if (ret < 0) {
-        spdlog::warn("VideoReader: scale_cuda init: buffersrc create failed ({})", ret);
-        goto fail;
-    }
-
-    {
-        AVBufferSrcParameters* par = av_buffersrc_parameters_alloc();
-        if (!par) goto fail;
-        par->hw_frames_ctx = av_buffer_ref(_srcFrame->hw_frames_ctx);
-        ret = av_buffersrc_parameters_set(_cudaBufferSrcCtx, par);
-        av_free(par);
-        if (ret < 0) {
-            spdlog::warn("VideoReader: scale_cuda init: av_buffersrc_parameters_set failed ({})", ret);
-            goto fail;
-        }
-    }
-
-    {
-        snprintf(args, sizeof(args), "w=%d:h=%d", _width, _height);
-        ret = avfilter_graph_create_filter(&_cudaScaleCtx, scalecuda_flt, "scale_cuda",
-                                           args, nullptr, _cudaFilterGraph);
-        if (ret < 0) {
-            spdlog::warn("VideoReader: scale_cuda init: scale_cuda filter create failed ({})", ret);
-            goto fail;
-        }
-        if (_hw_device_ctx)
-            _cudaScaleCtx->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
-    }
-
-    ret = avfilter_graph_create_filter(&_cudaBufferSinkCtx, buffersink_flt, "out",
-                                       nullptr, nullptr, _cudaFilterGraph);
-    if (ret < 0) {
-        spdlog::warn("VideoReader: scale_cuda init: buffersink create failed ({})", ret);
-        goto fail;
-    }
-
-    ret = avfilter_link(_cudaBufferSrcCtx, 0, _cudaScaleCtx, 0);
-    if (ret < 0) goto fail;
-    ret = avfilter_link(_cudaScaleCtx, 0, _cudaBufferSinkCtx, 0);
-    if (ret < 0) goto fail;
-
-    ret = avfilter_graph_config(_cudaFilterGraph, nullptr);
-    if (ret < 0) {
-        char errbuf[256];
-        av_strerror(ret, errbuf, sizeof(errbuf));
-        spdlog::warn("VideoReader: scale_cuda filter graph config failed: {}", errbuf);
-        goto fail;
-    }
-
-    _cudaScaledFrame = av_frame_alloc();
-    if (!_cudaScaledFrame) goto fail;
-
-    spdlog::debug("VideoReader: scale_cuda initialized: {}x{} -> {}x{} (GPU scaling active)",
-                 _srcFrame->width, _srcFrame->height, _width, _height);
-    _cudaScaleFilterActive = true;
-    return true;
-
-fail:
-    avfilter_graph_free(&_cudaFilterGraph);
-    _cudaFilterGraph   = nullptr;
-    _cudaBufferSrcCtx  = nullptr;
-    _cudaScaleCtx      = nullptr;
-    _cudaBufferSinkCtx = nullptr;
-    return false;
-}
-#endif // LIBAVFORMAT_VERSION_MAJOR > 57
 
 void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
 {
@@ -764,6 +624,8 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
         if (_atEnd && !_abandonHardwareDecode && (_videoToolboxAccelerated || _hw_device_ctx)) {
             reopenContext();
         }
+
+        if (_codecContext == nullptr) return;
 
         if (timestampMS < _lengthMS) {
             _atEnd = false;
@@ -796,6 +658,7 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
 }
 
 bool FFmpegVideoReader::readFrame(int timestampMS) {
+    if (_codecContext == nullptr) return false;
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
         if (_srcFrame->pts == (int64_t)0x8000000000000000LL) {
@@ -810,108 +673,60 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
             timestampMS = _firstFramePos;
         }
         bool unrefSrcFrame2 = false;
-        // Only run the expensive scale/transfer/sws pipeline for frames close to the
-        // target. The old condition used (2.0 * _frames) as a millisecond window which
-        // for long videos was many seconds, causing sws_scale to fire for every
-        // catch-up frame and multiplying the per-call cost by 20x or more.
-        const int scaleWindowMs = std::max(2 * _frameMS, 60);
-        if (_curPos >= timestampMS - scaleWindowMs) {
+        if ((double)_curPos / (double)_frames >= ((double)timestampMS / (double)_frames) - 2.0) {
             #ifdef VIDEO_EXTRALOGGING
             spdlog::debug("    Decoding video frame {}.", _curPos);
             #endif
             bool hardwareScaled = false;
-            // SWS_FAST_BILINEAR is significantly faster than SWS_BICUBIC for the large
-            // downscaling typical in xLights (e.g. 4K → 404x90).  At these ratios both
-            // algorithms average hundreds of source pixels per output pixel so the visual
-            // difference is imperceptible.  User-specified algorithms are still honoured.
-            int scaleAlgorithm = (_scaleAlgorithm == VideoScaleAlgorithm::Default)
-                                 ? SWS_FAST_BILINEAR : VideoScaleAlgorithmToSWS(_scaleAlgorithm);
-            if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
+            int scaleAlgorithm = VideoScaleAlgorithmToSWS(_scaleAlgorithm);
+            if (AppleVideoToolboxBridge::IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 if (_wantsHWType) {
                     hardwareScaled = true;
                     std::swap(_dstFrame2, _srcFrame);
                 } else {
-                    hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache, scaleAlgorithm);
+                    hardwareScaled = AppleVideoToolboxBridge::VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache, scaleAlgorithm);
                 }
             }
 
             if (!hardwareScaled) {
                 AVFrame* f = nullptr;
-                if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
-#if LIBAVFORMAT_VERSION_MAJOR > 57
-                    // Lazy-init GPU-side scaling on first CUDA frame. If successful,
-                    // only the small output frame (~110 KB) crosses PCIe instead of
-                    // the full native 4K frame (~8 MB).
-                    if (!_cudaScaleFilterActive && !_cudaScaleFilterFailed) {
-                        if (!initCudaScaleFilter())
-                            _cudaScaleFilterFailed = true;
-                    }
-
-                    bool gpuScaleOk = false;
-                    if (_cudaScaleFilterActive) {
-                        int ret = av_buffersrc_add_frame_flags(_cudaBufferSrcCtx, _srcFrame,
-                                                               AV_BUFFERSRC_FLAG_KEEP_REF);
-                        if (ret >= 0)
-                            ret = av_buffersink_get_frame(_cudaBufferSinkCtx, _cudaScaledFrame);
-
-                        if (ret >= 0) {
-                            if (av_hwframe_transfer_data(_srcFrame2, _cudaScaledFrame, 0) >= 0) {
-                                av_frame_unref(_cudaScaledFrame);
-                                unrefSrcFrame2 = true;
-                                f = _srcFrame2;
-                                gpuScaleOk = true;
-                            } else {
-                                av_frame_unref(_cudaScaledFrame);
-                            }
-                        }
-
-                        if (!gpuScaleOk) {
-                            spdlog::warn("VideoReader: scale_cuda pipeline failed; disabling GPU scaling");
-                            _cudaScaleFilterActive = false;
-                            if (_cudaScaledFrame != nullptr) {
-                                av_frame_free(&_cudaScaledFrame);
-                                _cudaScaledFrame = nullptr;
-                            }
-                            if (_cudaFilterGraph != nullptr) {
-                                avfilter_graph_free(&_cudaFilterGraph);
-                                _cudaFilterGraph   = nullptr;
-                                _cudaBufferSrcCtx  = nullptr;
-                                _cudaScaleCtx      = nullptr;
-                                _cudaBufferSinkCtx = nullptr;
-                            }
-                            if (_swsCtx != nullptr) { sws_freeContext(_swsCtx); _swsCtx = nullptr; }
-                        }
-                    }
-
-                    if (!gpuScaleOk) {
-#endif
+                // Detect hw-backed frames via hw_frames_ctx OR a matching hw pixel format.
+                // h264_cuvid can report format=NV12 while data is in CUDA device memory,
+                // so hw_frames_ctx is the reliable indicator.
+                bool srcIsHwBacked = IsHardwareAcceleratedVideo() &&
+                                     _codecContext->hw_device_ctx != nullptr &&
+                                     !_abandonHardwareDecode &&
+                                     (_srcFrame->hw_frames_ctx != nullptr ||
+                                      (_srcFrame->format == __hw_pix_fmt && __hw_pix_fmt != AV_PIX_FMT_NONE));
+                if (srcIsHwBacked) {
+                    bool hwscale = false;
+                    if (!hwscale) {
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
-                            f = _srcFrame;
+                            spdlog::warn("VideoReader: av_hwframe_transfer_data failed for {} — abandoning hardware decode.", _filename);
+                            spdlog::default_logger()->flush();
+                            _abandonHardwareDecode = true;
+                            if (_swsCtx != nullptr) {
+                                sws_freeContext(_swsCtx);
+                                _swsCtx = nullptr;
+                            }
                         } else {
                             unrefSrcFrame2 = true;
                             f = _srcFrame2;
                         }
-#if LIBAVFORMAT_VERSION_MAJOR > 57
-                    }
-#endif
-
-                    if (_abandonHardwareDecode && _swsCtx != nullptr) {
-                        spdlog::warn("VideoReader: This could get ugly ... we have abandoned hardware decode but we already had a sws Context.");
                     }
                 } else {
                     f = _srcFrame;
                 }
 
                 if (f == nullptr) {
-                    spdlog::warn("VideoReader: Strange f was not valid so setting it to the source frame.");
-                    f = _srcFrame;
+                    spdlog::warn("VideoReader: No valid CPU frame available — skipping sws_scale for this frame.");
                 }
 
-                if (_swsCtx == nullptr) {
+                if (f != nullptr && _swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
                         spdlog::debug("VideoReader: Using software decode (hardware decoding unavailable for this file).");
                     }
-                    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
+                    if (srcIsHwBacked) {
                         spdlog::debug("Hardware format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
@@ -934,7 +749,26 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     }
                 }
 
-                if (_swsCtx != nullptr) {
+                if (f != nullptr) {
+                    // Guard: reject any frame that is still hardware-backed — either
+                    // because hw_frames_ctx is set, or because the pixel format is a
+                    // hardware-accelerated format (AV_PIX_FMT_FLAG_HWACCEL). Passing
+                    // such a frame to sws_scale causes an access violation reading
+                    // GPU/device memory as if it were CPU data.
+                    bool isHwFrame = (f->hw_frames_ctx != nullptr);
+                    if (!isHwFrame) {
+                        const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get((AVPixelFormat)f->format);
+                        isHwFrame = (desc != nullptr && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL));
+                    }
+                    if (isHwFrame) {
+                        const char* fmtName = av_get_pix_fmt_name((AVPixelFormat)f->format);
+                        spdlog::warn("VideoReader: frame is still hardware-backed (fmt={}, hw_frames_ctx={}) — skipping sws_scale.",
+                            fmtName ? fmtName : "unknown", (void*)f->hw_frames_ctx);
+                        spdlog::default_logger()->flush();
+                        f = nullptr;
+                    }
+                }
+                if (f != nullptr && _swsCtx != nullptr) {
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
                         _dstFrame2->linesize);
@@ -1023,12 +857,6 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                (av_read_frame(_formatContext, _packet)) == 0)
         {
             if (_packet->stream_index == _streamIndex) {
-                // Skip non-reference (B-)frames when far from the target to reduce decode
-                // cost on all FFmpeg paths including CUDA/DXVA. Switch to full decode once
-                // within 4 frames so reference frames are in place for an accurate result.
-                _codecContext->skip_frame = (currenttime != -1000 && currenttime >= timestampMS - _frameMS * 4)
-                                           ? AVDISCARD_NONE : AVDISCARD_NONREF;
-
                 int decodeCount = 0;
                 int ret = avcodec_send_packet(_codecContext, _packet);
                 while (!_abort && ret != 0) {
@@ -1037,6 +865,12 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                         av_strerror(ret, errbuf, sizeof(errbuf));
                         spdlog::warn("VideoReader: Hardware video decoding failed for {} (error: {}). Reverting to software decoding.", (const char*)_filename.c_str(), errbuf);
                         reopenContext(false);
+                        if (_codecContext == nullptr) {
+                            spdlog::error("VideoReader: Failed to reopen context for {} after HW decode error; aborting render.", (const char*)_filename.c_str());
+                            _valid = false;
+                            av_packet_unref(_packet);
+                            return nullptr;
+                        }
                         Seek(timestampMS, false);
                         currenttime = GetPos();
                         ret = 0;
@@ -1047,26 +881,10 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                         } else {
                             decodeCount++;
                             if (decodeCount == 100) {
-                                _codecContext->skip_frame = AVDISCARD_NONE;
                                 return nullptr;
                             }
                         }
                         ret = avcodec_send_packet(_codecContext, _packet);
-                    }
-                }
-
-                // Drain all frames the decoder has queued after accepting this packet.
-                // Without this, currenttime only updates on EAGAIN (every ~4-8 packets for
-                // H.264 with B-frames), causing the outer loop to read far more packets than
-                // needed and delaying early exit once the target timestamp is reached.
-                while (!_abort) {
-                    if (readFrame(timestampMS)) {
-                        firstframe = false;
-                        currenttime = _curPos;
-                        if (currenttime + (_frameMS / 2.0) >= timestampMS)
-                            break;
-                    } else {
-                        break;
                     }
                 }
 
@@ -1085,7 +903,6 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
             }
             av_packet_unref(_packet);
         }
-        _codecContext->skip_frame = AVDISCARD_NONE;
     } else {
         _atEnd = true;
         return nullptr;

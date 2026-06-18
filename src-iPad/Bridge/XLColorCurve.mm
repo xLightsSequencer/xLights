@@ -19,23 +19,30 @@ UIColor* uiColorFromXl(const xlColor& c) {
 }
 
 xlColor xlColorFromUI(UIColor* u) {
-    // Convert through sRGB so wide-gamut sources don't escape
-    // [0, 1] and produce bad byte values — same pattern as the
-    // palette ColorPicker hex writer.
-    CGFloat r = 0, g = 0, b = 0, a = 0;
-    if (![u getRed:&r green:&g blue:&b alpha:&a]) {
-        CGColorSpaceRef srgb = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-        CGColorRef cg = CGColorCreateCopyByMatchingToColorSpace(
-            srgb, kCGRenderingIntentDefault, u.CGColor, nullptr);
-        CGColorSpaceRelease(srgb);
-        if (cg) {
-            const CGFloat* comps = CGColorGetComponents(cg);
-            if (comps) {
-                r = comps[0]; g = comps[1]; b = comps[2];
-                a = CGColorGetNumberOfComponents(cg) > 3 ? comps[3] : 1.0;
-            }
-            CGColorRelease(cg);
+    // Always convert via sRGB before reading components. UIColor's
+    // -getRed:green:blue:alpha: reports values in the source color
+    // space; on Display-P3 iPads the Color the SwiftUI ColorPicker
+    // hands back lives in extended-sRGB, and getRed dumps extended-
+    // range values directly. That mangles the exact #RRGGBB hex the
+    // user typed (e.g. #FF0000 round-trips as a slightly different
+    // red). CGColorCreateCopyByMatchingToColorSpace clamps + maps
+    // to bona fide sRGB before we read the bytes.
+    CGFloat r = 0, g = 0, b = 0;
+    CGColorSpaceRef srgb = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+    CGColorRef cg = CGColorCreateCopyByMatchingToColorSpace(
+        srgb, kCGRenderingIntentDefault, u.CGColor, nullptr);
+    CGColorSpaceRelease(srgb);
+    if (cg) {
+        const CGFloat* comps = CGColorGetComponents(cg);
+        if (comps) {
+            r = comps[0]; g = comps[1]; b = comps[2];
         }
+        CGColorRelease(cg);
+    } else {
+        // Conversion failed (unusual) — fall back to a device-space
+        // read so we still return *something* rather than black.
+        CGFloat a = 0;
+        [u getRed:&r green:&g blue:&b alpha:&a];
     }
     auto clamp = [](CGFloat v) -> uint8_t {
         if (v < 0) v = 0;

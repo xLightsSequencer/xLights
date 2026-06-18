@@ -95,5 +95,32 @@
             "max": 40,
             "settingPrefix": "TEXTCTRL"
         }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Warp_Type", "notOneOf": ["dissolve", "drop", "wavy"] },
+            "enable": ["Warp_X"]
+        },
+        {
+            "when": { "property": "Warp_Type", "notOneOf": ["dissolve", "drop", "wavy", "speed"] },
+            "enable": ["Warp_Y"]
+        },
+        {
+            "when": {
+                "allOf": [
+                    { "property": "Warp_Type", "notOneOf": ["water drops", "wavy", "sample on", "mirror", "transpose", "speed"] },
+                    { "property": "Warp_Treatment_APPLYLAST", "equals": "constant" }
+                ]
+            },
+            "enable": ["Warp_Cycle_Count"]
+        },
+        {
+            "when": { "property": "Warp_Type", "oneOf": ["water drops", "ripple", "circular swirl", "wavy"] },
+            "enable": ["Warp_Speed"]
+        },
+        {
+            "when": { "property": "Warp_Type", "oneOf": ["banded swirl", "ripple"] },
+            "enable": ["Warp_Frequency"]
+        }
     ]
 }

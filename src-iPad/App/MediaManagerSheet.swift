@@ -5,13 +5,16 @@ import UniformTypeIdentifiers
 // Sequence-wide media manager (G28 — C5). Lists every media file
 // referenced by any effect in the currently-open sequence with
 // status (Embedded / External / Missing), size / frame metadata, and
-// a per-type grouped layout. Read-only for now — embed / extract,
-// rename with reference update, remove-unused, and video compat
-// checks land in later sessions (G29–G32).
+// a per-type grouped layout. Full management surface: embed / extract,
+// rename with reference update, remove-unused, video compat checks,
+// add (multi-file), bulk-find-missing, and reload-from-disk.
 //
-// Backed by `XLSequenceDocument.mediaInventoryInSequence`. Opened
-// from the per-effect picker's "Manage All Media…" entry and from
-// the missing-media banner on sequence open.
+// Backed by `XLSequenceDocument.mediaInventoryInSequence`. Add /
+// bulk-find-missing / reload-from-disk round out the management
+// surface to match desktop's ManageMediaPanel.
+//
+// Opened from the per-effect picker's "Manage All Media…" entry and
+// from the missing-media banner on sequence open.
 
 struct MediaInventoryItem: Identifiable {
     let id = UUID()
@@ -20,6 +23,11 @@ struct MediaInventoryItem: Identifiable {
     let resolvedPath: String
     let isEmbedded: Bool
     let isBroken: Bool
+    /// Empty when the media is fine, "missing" when the resolved path
+    /// doesn't exist, otherwise the AVFoundation reason (e.g.
+    /// "Unsupported video codec", "Unable to read frames"). Drives
+    /// the status chip + tooltip.
+    let brokenReason: String
     let widthPx: Int
     let heightPx: Int
     let frameCount: Int
@@ -30,7 +38,14 @@ struct MediaInventoryItem: Identifiable {
 
     /// Status label for the trailing chip.
     var statusLabel: String {
-        if isBroken { return "Missing" }
+        if isBroken {
+            // "missing" → file isn't on disk; anything else is the
+            // codec / decode reason returned by the AVFoundation
+            // probe. Showing "Unsupported" reads better in the chip
+            // than the raw probe text — the tooltip / row detail
+            // can carry the specifics later if we add a popover.
+            return brokenReason == "missing" ? "Missing" : "Unsupported"
+        }
         if isEmbedded { return "Embedded" }
         return "External"
     }
@@ -82,6 +97,8 @@ struct MediaManagerContent: View {
     var showsDoneButton: Bool = true
 
     @State private var items: [MediaInventoryItem] = []
+    // MED-5 — the media entry pending a per-item "Remove" confirmation.
+    @State private var removeTarget: MediaInventoryItem?
     @State private var didLoad = false
     @State private var renameTarget: MediaInventoryItem? = nil
     @State private var showingRemoveUnusedConfirm = false
@@ -93,6 +110,18 @@ struct MediaManagerContent: View {
     // the picked URL through the bridge.
     @State private var replaceTarget: MediaInventoryItem? = nil
     @State private var replaceError: String? = nil
+
+    // MED-6 — multi-file Add. The picker is presented from the
+    // toolbar; each picked file is relocated under the show folder
+    // and registered in the inventory.
+    @State private var showingAddPicker = false
+    @State private var addSummary: String? = nil
+
+    // MED-8 — Bulk Find Missing. User picks a folder; we scan its
+    // tree for basename matches against every missing entry and
+    // relink via `replaceMissingMedia`.
+    @State private var showingBulkFindPicker = false
+    @State private var bulkFindSummary: String? = nil
 
     private static let typeOrder: [String] = [
         "image", "video", "svg", "shader", "text", "binary"
@@ -119,52 +148,7 @@ struct MediaManagerContent: View {
                             }
                         }
                         ForEach(Self.typeOrder, id: \.self) { typeKey in
-                            let group = items.filter { $0.type == typeKey }
-                            if !group.isEmpty {
-                                Section {
-                                    ForEach(group) { item in
-                                        MediaInventoryRow(
-                                            item: item,
-                                            onEmbed: { embedOne(item) },
-                                            onExtract: { extractOne(item) },
-                                            onRename: { beginRename(item) },
-                                            onReplace: { beginReplace(item) })
-                                    }
-                                    // Bulk actions on the section
-                                    // footer — desktop has Embed All
-                                    // / Extract All per type on
-                                    // ManageMediaPanel. Only shown
-                                    // for embeddable types; even
-                                    // then, only when there's
-                                    // something to do.
-                                    if supportsBulk(typeKey) {
-                                        let embeddable = group.filter {
-                                            $0.isEmbeddable && !$0.isEmbedded
-                                        }
-                                        let extractable = group.filter {
-                                            $0.isEmbedded
-                                        }
-                                        if !embeddable.isEmpty {
-                                            Button {
-                                                bulkEmbed(typeKey)
-                                            } label: {
-                                                Label("Embed All (\(embeddable.count))",
-                                                      systemImage: "tray.and.arrow.down")
-                                            }
-                                        }
-                                        if !extractable.isEmpty {
-                                            Button {
-                                                bulkExtract(typeKey)
-                                            } label: {
-                                                Label("Extract All (\(extractable.count))",
-                                                      systemImage: "tray.and.arrow.up")
-                                            }
-                                        }
-                                    }
-                                } header: {
-                                    Text(sectionLabel(typeKey))
-                                }
-                            }
+                            mediaSection(typeKey)
                         }
                     }
                 }
@@ -176,7 +160,22 @@ struct MediaManagerContent: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingAddPicker = true
+                    } label: {
+                        Label("Add…", systemImage: "plus")
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
+                        Button {
+                            showingBulkFindPicker = true
+                        } label: {
+                            Label("Bulk Find Missing…",
+                                  systemImage: "magnifyingglass")
+                        }
+                        .disabled(brokenCount == 0)
+                        Divider()
                         Button(role: .destructive) {
                             showingRemoveUnusedConfirm = true
                         } label: {
@@ -214,6 +213,23 @@ struct MediaManagerContent: View {
                )) {
             Button("OK", role: .cancel) { removedCount = nil }
         }
+        .confirmationDialog(
+            "Remove Media?",
+            isPresented: Binding(
+                get: { removeTarget != nil },
+                set: { if !$0 { removeTarget = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: removeTarget
+        ) { target in
+            Button("Remove", role: .destructive) {
+                if viewModel.document.removeMedia(atPath: target.path) { reload() }
+                removeTarget = nil
+            }
+            Button("Cancel", role: .cancel) { removeTarget = nil }
+        } message: { target in
+            Text("Remove \u{201C}\(target.filename)\u{201D} from the sequence. If it is still used by an effect, that effect loses its media until you re-import. Embedded payloads are deleted; external files on disk are not touched.")
+        }
         // E-4 relocation picker. `allowedContentTypes` is broad
         // (`.item`) because the user is telling us this IS the
         // replacement — filtering to the type-derived UTIs would
@@ -246,6 +262,109 @@ struct MediaManagerContent: View {
         } message: {
             Text(replaceError ?? "")
         }
+        .modifier(AddBulkFindModifier(
+            showingAddPicker: $showingAddPicker,
+            addSummary: $addSummary,
+            showingBulkFindPicker: $showingBulkFindPicker,
+            bulkFindSummary: $bulkFindSummary,
+            onAdd: addPickedFiles,
+            onBulkFind: bulkFindMissing))
+    }
+
+    // MARK: - Add media (MED-6)
+
+    /// Canonical show-folder subdirectory for a file, by extension —
+    /// mirrors the bridge's per-type relocation subdir so Add and the
+    /// per-effect picker drop files in the same place.
+    private func subdirectory(for url: URL) -> String {
+        switch url.pathExtension.lowercased() {
+        case "fs":                                   return "Shaders"
+        case "svg":                                  return "Images"
+        case "txt":                                  return "Text"
+        case "gled", "out", "csv":                   return "Other"
+        case "avi", "mp4", "mkv", "mov", "asf",
+             "flv", "mpg", "mpeg", "m4v", "wmv":     return "Videos"
+        case "mp3", "ogg", "m4a", "wav", "flac",
+             "aac", "wma":                           return "Audio"
+        default:                                     return "Images"
+        }
+    }
+
+    private func addPickedFiles(_ urls: [URL]) {
+        var added = 0
+        var failed = 0
+        for url in urls {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+
+            // If the file is already under the show / media folder,
+            // register it in place; otherwise copy it into the show
+            // folder first (collision-suffixed by the bridge).
+            let stored: String?
+            if viewModel.document.pathIs(inShowOrMediaFolder: url.path) {
+                let showDir = viewModel.document.showFolderPath()
+                stored = (!showDir.isEmpty && url.path.hasPrefix(showDir))
+                    ? viewModel.document.makeRelativePath(url.path)
+                    : url.path
+            } else {
+                stored = viewModel.document.moveFile(
+                    toShowFolder: url.path,
+                    subdirectory: subdirectory(for: url))
+                    .flatMap { viewModel.document.makeRelativePath($0) }
+            }
+            if let stored, viewModel.document.addMedia(atPath: stored) {
+                added += 1
+            } else {
+                failed += 1
+            }
+        }
+        if added > 0 { reload() }
+        if failed == 0 {
+            addSummary = "Added \(added) media \(added == 1 ? "file" : "files")."
+        } else {
+            addSummary = "Added \(added), failed \(failed). Failures were already in the sequence or couldn't be copied into the show folder."
+        }
+    }
+
+    // MARK: - Bulk Find Missing (MED-8)
+
+    private func bulkFindMissing(in folder: URL) {
+        let missing = items.filter { $0.isBroken }
+        guard !missing.isEmpty else {
+            bulkFindSummary = "No missing media to find."
+            return
+        }
+        let scoped = folder.startAccessingSecurityScopedResource()
+        defer { if scoped { folder.stopAccessingSecurityScopedResource() } }
+
+        // One pass over the folder tree, indexed by lowercased
+        // basename, so N missing entries don't trigger N walks.
+        var byName: [String: URL] = [:]
+        if let en = FileManager.default.enumerator(
+            at: folder,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]) {
+            for case let f as URL in en {
+                let isFile = (try? f.resourceValues(
+                    forKeys: [.isRegularFileKey]))?.isRegularFile ?? false
+                guard isFile else { continue }
+                let key = f.lastPathComponent.lowercased()
+                if byName[key] == nil { byName[key] = f }
+            }
+        }
+
+        var relinked = 0
+        for item in missing {
+            let base = item.filename.lowercased()
+            guard let match = byName[base] else { continue }
+            if viewModel.document.replaceMissingMedia(
+                atPath: item.path, fromSourcePath: match.path) != nil {
+                relinked += 1
+            }
+        }
+        if relinked > 0 { reload() }
+        let stillMissing = missing.count - relinked
+        bulkFindSummary = "Relinked \(relinked), still missing \(stillMissing)."
     }
 
     private var brokenCount: Int {
@@ -271,6 +390,48 @@ struct MediaManagerContent: View {
     }
 
     // MARK: - Per-row + bulk embed / extract
+
+    // One media-type section (rows + bulk footer). Extracted from the body so
+    // the List ViewBuilder stays within the Swift type-checker's budget.
+    @ViewBuilder
+    private func mediaSection(_ typeKey: String) -> some View {
+        let group = items.filter { $0.type == typeKey }
+        if !group.isEmpty {
+            Section {
+                ForEach(group) { item in
+                    MediaInventoryRow(
+                        item: item,
+                        onEmbed: { embedOne(item) },
+                        onExtract: { extractOne(item) },
+                        onRename: { beginRename(item) },
+                        onReplace: { beginReplace(item) },
+                        onReload: { reloadFromDisk(item) },
+                        onRemove: { removeTarget = item })
+                }
+                bulkMediaActions(typeKey, group: group)
+            } header: {
+                Text(sectionLabel(typeKey))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func bulkMediaActions(_ typeKey: String, group: [MediaInventoryItem]) -> some View {
+        if supportsBulk(typeKey) {
+            let embeddable = group.filter { $0.isEmbeddable && !$0.isEmbedded }
+            let extractable = group.filter { $0.isEmbedded }
+            if !embeddable.isEmpty {
+                Button { bulkEmbed(typeKey) } label: {
+                    Label("Embed All (\(embeddable.count))", systemImage: "tray.and.arrow.down")
+                }
+            }
+            if !extractable.isEmpty {
+                Button { bulkExtract(typeKey) } label: {
+                    Label("Extract All (\(extractable.count))", systemImage: "tray.and.arrow.up")
+                }
+            }
+        }
+    }
 
     private func embedOne(_ item: MediaInventoryItem) {
         if viewModel.document.embedMedia(atPath: item.path) {
@@ -362,8 +523,16 @@ struct MediaManagerContent: View {
         if n > 0 { reload() }
     }
 
+    // MARK: - Reload from Disk (MED-7)
+
+    private func reloadFromDisk(_ item: MediaInventoryItem) {
+        if viewModel.document.reloadMedia(atPath: item.path) {
+            reload()
+        }
+    }
+
     private func reload() {
-        let raw = viewModel.document.mediaInventoryInSequence() ?? []
+        let raw = viewModel.document.mediaInventoryInSequence()
         items = raw.compactMap { d in
             guard let path = d["path"] as? String,
                   let type = d["type"] as? String else { return nil }
@@ -373,6 +542,7 @@ struct MediaManagerContent: View {
                 resolvedPath: (d["resolvedPath"] as? String) ?? "",
                 isEmbedded: (d["isEmbedded"] as? NSNumber)?.boolValue ?? false,
                 isBroken:   (d["isBroken"]   as? NSNumber)?.boolValue ?? false,
+                brokenReason: (d["brokenReason"] as? String) ?? "",
                 widthPx:    (d["widthPx"]    as? NSNumber)?.intValue ?? 0,
                 heightPx:   (d["heightPx"]   as? NSNumber)?.intValue ?? 0,
                 frameCount: (d["frameCount"] as? NSNumber)?.intValue ?? 0)
@@ -389,6 +559,55 @@ struct MediaManagerContent: View {
     }
 }
 
+// Add (MED-6) + Bulk Find Missing (MED-8) pickers and result alerts,
+// split out of `MediaManagerContent.body` to keep that view's
+// modifier chain within the Swift type-checker's budget.
+private struct AddBulkFindModifier: ViewModifier {
+    @Binding var showingAddPicker: Bool
+    @Binding var addSummary: String?
+    @Binding var showingBulkFindPicker: Bool
+    @Binding var bulkFindSummary: String?
+    let onAdd: ([URL]) -> Void
+    let onBulkFind: (URL) -> Void
+
+    func body(content: Content) -> some View {
+        content
+            // `.item` is broad on purpose: the user is adding media of
+            // any type and we derive the kind from the extension.
+            .fileImporter(
+                isPresented: $showingAddPicker,
+                allowedContentTypes: [.item],
+                allowsMultipleSelection: true
+            ) { result in
+                if case .success(let urls) = result { onAdd(urls) }
+            }
+            .alert("Add Media",
+                   isPresented: Binding(
+                    get: { addSummary != nil },
+                    set: { if !$0 { addSummary = nil } }
+                   )) {
+                Button("OK", role: .cancel) { addSummary = nil }
+            } message: {
+                Text(addSummary ?? "")
+            }
+            .fileImporter(
+                isPresented: $showingBulkFindPicker,
+                allowedContentTypes: [.folder]
+            ) { result in
+                if case .success(let url) = result { onBulkFind(url) }
+            }
+            .alert("Bulk Find Missing",
+                   isPresented: Binding(
+                    get: { bulkFindSummary != nil },
+                    set: { if !$0 { bulkFindSummary = nil } }
+                   )) {
+                Button("OK", role: .cancel) { bulkFindSummary = nil }
+            } message: {
+                Text(bulkFindSummary ?? "")
+            }
+    }
+}
+
 struct MediaInventoryRow: View {
     @Environment(SequencerViewModel.self) private var viewModel
     let item: MediaInventoryItem
@@ -396,6 +615,8 @@ struct MediaInventoryRow: View {
     let onExtract: () -> Void
     let onRename: () -> Void
     let onReplace: () -> Void
+    let onReload: () -> Void
+    let onRemove: () -> Void
 
     var body: some View {
         HStack(spacing: 10) {
@@ -453,14 +674,31 @@ struct MediaInventoryRow: View {
                         Label("Extract", systemImage: "tray.and.arrow.up")
                     }
                     .tint(.blue)
-                } else if item.isEmbeddable {
+                } else {
+                    // MED-7 — external entries can be re-read from
+                    // disk after an out-of-app edit. Embedded payloads
+                    // have nothing on disk to reload.
                     Button {
-                        onEmbed()
+                        onReload()
                     } label: {
-                        Label("Embed", systemImage: "tray.and.arrow.down")
+                        Label("Reload from Disk", systemImage: "arrow.clockwise")
                     }
-                    .tint(.purple)
+                    .tint(.teal)
+                    if item.isEmbeddable {
+                        Button {
+                            onEmbed()
+                        } label: {
+                            Label("Embed", systemImage: "tray.and.arrow.down")
+                        }
+                        .tint(.purple)
+                    }
                 }
+            }
+            // MED-5 — forget this media entry (even if still referenced).
+            Button(role: .destructive) {
+                onRemove()
+            } label: {
+                Label("Remove", systemImage: "trash")
             }
         }
     }

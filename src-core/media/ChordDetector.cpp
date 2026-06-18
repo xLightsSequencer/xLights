@@ -132,7 +132,10 @@ HarmonyAnalysis DetectChords(AudioManager* audio,
         // Match against templates — dot product is fine since both
         // sides are non-negative and unit-summed.
         int bestIdx = 0;
-        float bestScore = -std::numeric_limits<float>::infinity();
+        // -ffinite-math-only on Release can fold the infinity sentinel to 0
+        // (see HitTest.cpp). Score >= 0 here so the bug is latent, but use a
+        // finite sentinel to stay robust if templates ever go non-positive.
+        float bestScore = std::numeric_limits<float>::lowest();
         for (size_t t = 0; t < templates.size(); t++) {
             float s = 0.0f;
             for (int i = 0; i < 12; i++) s += chroma[i] * templates[t].v[i];
@@ -212,7 +215,9 @@ HarmonyAnalysis DetectChords(AudioManager* audio,
     if (sum > 1e-9) {
         for (int i = 0; i < 12; i++) avgChroma[i] = float(trackChroma[i] / sum);
     }
-    float bestKeyScore = -std::numeric_limits<float>::infinity();
+    // Finite sentinel to dodge -ffinite-math-only folding `-inf` to 0
+    // (see HitTest.cpp + the per-frame match above).
+    float bestKeyScore = std::numeric_limits<float>::lowest();
     std::string bestKey;
     for (int root = 0; root < 12; root++) {
         float sMaj = 0, sMin = 0;

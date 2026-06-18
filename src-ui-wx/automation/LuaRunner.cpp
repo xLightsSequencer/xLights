@@ -73,6 +73,25 @@ std::string LuaRunner::PromptSelection(sol::object const& items, std::string con
     return {};
 }
 
+std::list<std::string> LuaRunner::PromptMultiSelection(sol::object const& items, std::string const& message) const
+{
+    wxArrayString itemList = getArrayString(items);
+    wxMultiChoiceDialog dlg(_frame, message, message, itemList);
+
+    // pre-select all items
+    wxArrayInt allSelected;
+    for (size_t i = 0; i < itemList.GetCount(); ++i) allSelected.push_back(static_cast<int>(i));
+    dlg.SetSelections(allSelected);
+
+    std::list<std::string> result;
+    if (dlg.ShowModal() == wxID_OK) {
+        for (int idx : dlg.GetSelections()) {
+            result.push_back(ToStdString(itemList[idx]));
+        }
+    }
+    return result;
+}
+
 std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
@@ -87,9 +106,9 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
         for (auto const& f : files) {
             wxFileName fname(_frame->GetShowDirectory() + GetPathSeparator() + f);
             if (FileExists(fname)) {
-                sequenceList.push_back(fname.GetFullPath());
+                sequenceList.push_back(fname.GetFullPath().utf8_string());
             } else {
-                spdlog::info("PromptSequences: Sequence File not Found: {}.", (const char*)fname.GetFullPath().c_str());
+                spdlog::info("PromptSequences: Sequence File not Found: {}.", fname.GetFullPath().utf8_string());
             }
         }
         if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
@@ -139,6 +158,7 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
     lua.set_function("PromptOption", &LuaRunner::PromptOption, this);
     lua.set_function("PromptString", &LuaRunner::PromptString, this);
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
+    lua.set_function("PromptMultiSelection", &LuaRunner::PromptMultiSelection, this);
     lua.set_function("SplitString", &LuaRunner::SplitString, this);
     lua.set_function("JoinString", &LuaRunner::JoinString, this);
     lua.set_function("JSONToTable", &LuaRunner::JSONToTable, this);
@@ -156,7 +176,7 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it's successfully loaded
         if (!lr.valid()) {
             sol::error err = lr;
-            spdlog::info("LuaRunner: Script is Invalid: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Script is Invalid: {}.", filepath);
             spdlog::info("LuaRunner: Error: {}.", err.what());
             wxMessageBox("Script is Invalid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
             return false;
@@ -166,14 +186,14 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it was done properly
         if (!result2.valid()) {
             sol::error err2 = result2;
-            spdlog::info("LuaRunner: Error Running Script: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Error Running Script: {}.", filepath);
             spdlog::info("LuaRunner: Error: {}.", err2.what());
             SendResponse(err2.what());
             wxMessageBox("Error Running Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
-        spdlog::info("LuaRunner: Throw Running Script: {}.", (const char*)filepath.c_str());
+        spdlog::info("LuaRunner: Throw Running Script: {}.", filepath);
         spdlog::info("LuaRunner: Error: {}.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
@@ -300,7 +320,7 @@ sol::object LuaRunner::getObjectType( nlohmann::json const& val, sol::state_view
     if (val.is_array()) {
         sol::table arry = lua.create_table();
         for (size_t x = 0; x < val.size(); x++) {
-            arry[x] = getObjectType(val.at(x), lua);
+            arry[x + 1] = getObjectType(val.at(x), lua);
         }
         return arry;
     }

@@ -15,6 +15,8 @@
 class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
+        enum class CubeShape { Cube = 0, Cylinder = 1 };
+        enum class RowOffset { None = 0, Positive = 1, Negative = 2 };
     
         CubeModel(const ModelManager &manager);
         virtual ~CubeModel();
@@ -65,6 +67,22 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetStrandStyleIndex(int idx) { _strandStyle = idx; }
         void SetStrandPerLayer(bool val) { _strandPerLayer = val; }
 
+        [[nodiscard]] int GetCubeShape() const { return static_cast<int>(_cubeShape); }
+        void SetCubeShape(int val) { _cubeShape = (val == static_cast<int>(CubeShape::Cylinder)) ? CubeShape::Cylinder : CubeShape::Cube; }
+        [[nodiscard]] bool IsCylinder() const { return _cubeShape == CubeShape::Cylinder; }
+        [[nodiscard]] int GetHollowPct() const { return _hollowPct; }
+        void SetHollowPct(int val) {
+            if (val < 0) { _hollowPct = 0; }
+            else if (val > 99) { _hollowPct = 99; }
+            else { _hollowPct = val; }
+        }
+        [[nodiscard]] int GetRowOffset() const { return static_cast<int>(_rowOffset); }
+        void SetRowOffset(int val) {
+            if (val == static_cast<int>(RowOffset::Positive)) _rowOffset = RowOffset::Positive;
+            else if (val == static_cast<int>(RowOffset::Negative)) _rowOffset = RowOffset::Negative;
+            else _rowOffset = RowOffset::None;
+        }
+
     protected:
         void FlipX(std::tuple<int, int, int>& pt, int width) const;
         void RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const;
@@ -90,4 +108,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _cubeStyle = 0;
         int _strandStyle = 0;
         bool _strandPerLayer = false;
+        CubeShape _cubeShape = CubeShape::Cube;
+        int _hollowPct = 0;
+        RowOffset _rowOffset = RowOffset::None;
 };

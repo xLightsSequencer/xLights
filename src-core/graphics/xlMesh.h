@@ -42,6 +42,13 @@ public:
     float GetZMax() const { return zMax; }
     
     void SetMaterialColor(const std::string materialName, const xlColor *c);
+
+    // True only when ParseFromFile succeeded in the constructor. Subclasses
+    // (xlGLMesh / xlMetalMesh) consult this before walking objects' shapes /
+    // attrib vectors, which on a half-init tinyobj state can crash on the
+    // very first vertices.size() read (Windows bucket 7f18c56ac4).
+    bool IsLoaded() const { return objectsLoaded; }
+    bool HasGeometry() const { return objectsLoaded && (!objects.GetShapes().empty() || !objects.GetAttrib().vertices.empty()); }
     
     static bool InvalidMaterialsList(const std::vector<std::string>& mtls);
     static std::vector<std::string> GetMaterialFilenamesFromOBJ(const std::string& obj, bool strict = true);

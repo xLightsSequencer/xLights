@@ -12,11 +12,11 @@
 
  //(*Headers(BulkEditColourPickerDialog)
 #include <wx/button.h>
-#include <wx/clrpicker.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 //*)
+#include "color/xlColourPickerButton.h"
 
 class BulkEditColourPickerDialog: public wxDialog
 {
@@ -29,7 +29,7 @@ class BulkEditColourPickerDialog: public wxDialog
 		//(*Declarations(BulkEditColourPickerDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;
-		wxColourPickerCtrl* ColourPickerCtrl1;
+		xlColourPickerButton* ColourPickerCtrl1;
 		wxStaticText* StaticText1;
 		//*)
 

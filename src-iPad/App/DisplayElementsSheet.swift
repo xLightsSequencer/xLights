@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // F-6 — Display Elements editor. Ports the desktop
 // `ViewsModelsPanel` (src-ui-wx/layout/ViewsModelsPanel.cpp) into a
@@ -45,17 +46,89 @@ struct DisplayElementsSheet: View {
     }
     @State private var confirmRemove: RemoveTarget? = nil
 
+    // Master-View "Remove Unused" bulk confirmation — deletes every
+    // element with no effects from the sequence.
+    @State private var confirmRemoveUnused = false
+
+    // "Copy To Master" (user view → Master) confirmation + import-view
+    // config from another sequence (.fileImporter) + result message.
+    @State private var confirmCopyToMaster = false
+    @State private var showViewImporter = false
+    @State private var infoMessage: String? = nil
+
+    // Local "Add Timing Track" sheet state. iOS only allows one
+    // sheet per ancestor chain at a time — flipping
+    // `viewModel.showingAddTimingTrack` from inside this sheet would
+    // log "Currently, only presenting a single sheet is supported"
+    // because the app-level sheet can't open on top of us. A local
+    // @State + .sheet on this body stacks the new sheet correctly.
+    @State private var showingAddTimingTrackLocal = false
+
+    // Filter text for the Available pane (Master + user view). Reset
+    // automatically whenever an item is added so the cleared row
+    // doesn't leave a stale needle in the field.
+    @State private var availableFilter: String = ""
+
+    // Effect-sequence mode: when the sequence type is "Effect", the
+    // Views section is hidden (desktop SetEffectSequenceMode hides
+    // ListCtrlViews). Set once on appear from the bridge.
+    @State private var isEffectSequence: Bool = false
+
+    // Keyboard-delete selection: track the focused member ID so
+    // .onDeleteCommand knows which item to remove.
+    @State private var focusedMemberID: String? = nil
+
     var body: some View {
         NavigationStack {
-            NavigationSplitView {
-                sidebar
-                    .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
-            } detail: {
-                detail
+            Group {
+                if isEffectSequence {
+                    masterViewDetail
+                } else {
+                    NavigationSplitView {
+                        sidebar
+                            .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
+                    } detail: {
+                        detail
+                    }
+                }
             }
             .navigationTitle("Display Elements")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                if selectedViewIdx == 0 {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Menu {
+                            Button {
+                                _ = viewModel.document.setAllElementsVisible(true)
+                                model.refresh()
+                            } label: { Label("Show All", systemImage: "eye") }
+                            Button {
+                                _ = viewModel.document.setAllElementsVisible(false)
+                                model.refresh()
+                            } label: { Label("Hide All", systemImage: "eye.slash") }
+                            Button {
+                                _ = viewModel.document.hideUnusedElements()
+                                model.refresh()
+                            } label: { Label("Hide Unused", systemImage: "eye.slash.circle") }
+                            Divider()
+                            Button(role: .destructive) {
+                                confirmRemoveUnused = true
+                            } label: { Label("Remove Unused", systemImage: "trash") }
+                        } label: {
+                            Label("Bulk Actions", systemImage: "ellipsis.circle")
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        sortMenu
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showViewImporter = true
+                    } label: {
+                        Label("Import View…", systemImage: "square.and.arrow.down")
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
@@ -64,9 +137,24 @@ struct DisplayElementsSheet: View {
         .onAppear {
             model.attach(document: viewModel.document)
             model.refresh()
+            isEffectSequence = viewModel.document.sequenceType() == "Effect"
             // Seed to the currently-active view.
             let cur = Int(viewModel.document.currentViewIndex())
             selectedViewIdx = max(0, min(cur, max(model.views.count - 1, 0)))
+        }
+        .background {
+            // Hardware keyboard Delete on the selected master-view member.
+            // The Button is invisible and always present; it only dispatches
+            // when focusedMemberID points to a known member.
+            Button("") {
+                if let fid = focusedMemberID,
+                   let item = model.masterMembers().first(where: { $0.id == fid }) {
+                    requestMasterRemove(item)
+                }
+            }
+            .keyboardShortcut(.delete, modifiers: [])
+            .opacity(0)
+            .allowsHitTesting(false)
         }
         .onDisappear {
             model.detach()
@@ -124,6 +212,63 @@ struct DisplayElementsSheet: View {
             Button("Cancel", role: .cancel) { confirmRemove = nil }
         } message: {
             Text(removeConfirmationMessage)
+        }
+        .confirmationDialog("Copy To Master View?",
+                            isPresented: $confirmCopyToMaster,
+                            titleVisibility: .visible) {
+            Button("Copy To Master") {
+                let kept = viewModel.document.copyViewToMaster(atIndex: Int32(selectedViewIdx)) ?? []
+                model.refresh()
+                viewModel.reloadRows()
+                if !kept.isEmpty {
+                    let names = kept.joined(separator: ", ")
+                    infoMessage = "\(kept.count) model\(kept.count == 1 ? "" : "s") had effects and were kept: \(names)"
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Replaces the Master View's model list and order with this view's. Master models not in this view are removed (unless they have effects).")
+        }
+        .fileImporter(isPresented: $showViewImporter,
+                      allowedContentTypes: [UTType(filenameExtension: "xsq") ?? .xml, .xml],
+                      allowsMultipleSelection: false) { result in
+            if case .success(let urls) = result, let url = urls.first {
+                let needsStop = url.startAccessingSecurityScopedResource()
+                defer { if needsStop { url.stopAccessingSecurityScopedResource() } }
+                if let name = viewModel.document.importViewConfig(fromSequencePath: url.path) {
+                    model.refresh()
+                    infoMessage = "Imported view \"\(name)\"."
+                } else {
+                    errorText = "No importable views found in that file."
+                }
+            }
+        }
+        .alert("Display Elements", isPresented: Binding(
+            get: { infoMessage != nil },
+            set: { if !$0 { infoMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { infoMessage = nil }
+        } message: {
+            Text(infoMessage ?? "")
+        }
+        .confirmationDialog("Remove Unused Models?",
+                            isPresented: $confirmRemoveUnused,
+                            titleVisibility: .visible) {
+            Button("Remove Unused", role: .destructive) {
+                _ = viewModel.document.removeUnusedElements()
+                model.refresh()
+                viewModel.reloadRows()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Deletes every element with no effects from the sequence. This cannot be undone.")
+        }
+        // Local "Add Timing Track" sheet — stacked on top of this
+        // sheet so iOS doesn't reject it the way the app-level
+        // viewModel.showingAddTimingTrack sheet would.
+        .sheet(isPresented: $showingAddTimingTrackLocal) {
+            AddTimingTrackSheet()
+                .environment(viewModel)
         }
     }
 
@@ -253,7 +398,7 @@ struct DisplayElementsSheet: View {
     // (with a confirmation warning when effects exist).
     private var masterViewDetail: some View {
         let members = model.masterMembers()
-        let available = model.masterAvailable()
+        let available = filtered(model.masterAvailable())
         return VStack(alignment: .leading, spacing: 0) {
             Text("Master View — models and timing tracks that this sequence can hold effects on. Adding a model brings it in from the show layout; removing deletes the element and any effects on it.")
                 .font(.caption)
@@ -273,7 +418,7 @@ struct DisplayElementsSheet: View {
                                 .font(.headline)
                             Spacer()
                             Button {
-                                textAlert = (.newTimingTrack, "")
+                                showingAddTimingTrackLocal = true
                             } label: {
                                 Label("Add Timing Track…",
                                       systemImage: "plus.rectangle")
@@ -288,9 +433,13 @@ struct DisplayElementsSheet: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
 
+                        filterField
+
                         List {
                             if available.isEmpty {
-                                Text("Every model in the show layout is already in this sequence.")
+                                Text(availableFilter.isEmpty
+                                     ? "Every model in the show layout is already in this sequence."
+                                     : "No matches for \"\(availableFilter)\".")
                                     .foregroundStyle(.secondary)
                                     .font(.caption)
                             } else {
@@ -301,6 +450,7 @@ struct DisplayElementsSheet: View {
                                         Spacer()
                                         Button {
                                             _ = viewModel.document.addModel(toMasterView: item.name)
+                                            availableFilter = ""
                                         } label: {
                                             Image(systemName: "plus.circle.fill")
                                                 .foregroundStyle(.blue)
@@ -382,12 +532,21 @@ struct DisplayElementsSheet: View {
             }
             .buttonStyle(.plain)
         }
+        .contentShape(Rectangle())
+        .onTapGesture { focusedMemberID = item.id }
+        .listRowBackground(focusedMemberID == item.id
+                           ? Color.accentColor.opacity(0.15)
+                           : Color.clear)
     }
 
     // User view: two panes. "Available" (pool) on top with buttons to
     // add to the view; "Members" below with reorder + remove.
     private var userViewDetail: some View {
-        let membership = model.userViewMembership(viewIdx: selectedViewIdx)
+        let rawMembership = model.userViewMembership(viewIdx: selectedViewIdx)
+        let membership = DisplayElementsVM.Membership(
+            members: rawMembership.members,
+            available: filtered(rawMembership.available)
+        )
         return VStack(alignment: .leading, spacing: 0) {
             Text("\(model.views[safe: selectedViewIdx] ?? "") — pick which models and timing tracks appear when this view is active. Reorder members with drag handles.")
                 .font(.caption)
@@ -412,9 +571,13 @@ struct DisplayElementsSheet: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
 
+                        filterField
+
                         List {
                             if membership.available.isEmpty {
-                                Text("Every model and timing track is already in this view.")
+                                Text(availableFilter.isEmpty
+                                     ? "Every model and timing track is already in this view."
+                                     : "No matches for \"\(availableFilter)\".")
                                     .foregroundStyle(.secondary)
                                     .font(.caption)
                             } else {
@@ -425,6 +588,7 @@ struct DisplayElementsSheet: View {
                                         Spacer()
                                         Button {
                                             addItem(item)
+                                            availableFilter = ""
                                         } label: {
                                             Image(systemName: "plus.circle.fill")
                                                 .foregroundStyle(.blue)
@@ -446,6 +610,12 @@ struct DisplayElementsSheet: View {
                             Text("In This View")
                                 .font(.headline)
                             Spacer()
+                            Button {
+                                confirmCopyToMaster = true
+                            } label: {
+                                Label("Copy To Master", systemImage: "arrow.up.to.line")
+                            }
+                            .disabled(membership.members.isEmpty)
                             Button(role: .destructive) {
                                 removeAllMembers(membership.members)
                             } label: {
@@ -532,6 +702,185 @@ struct DisplayElementsSheet: View {
                 .foregroundStyle(.orange)
                 .frame(width: 22)
         }
+    }
+
+    // MARK: - Sort Menu
+
+    private var sortMenu: some View {
+        Menu {
+            Button { sortMasterView(.byName) } label: {
+                Label("By Name", systemImage: "textformat.abc")
+            }
+            Button { sortMasterView(.byNameGroupsAtTop) } label: {
+                Label("By Name, Groups at Top", systemImage: "folder.badge.person.crop")
+            }
+            Button { sortMasterView(.byNameGroupsAtTopBySize) } label: {
+                Label("By Name, Groups at Top by Size", systemImage: "folder.badge.plus")
+            }
+            Button { sortMasterView(.byNameGroupsAtTopByCount) } label: {
+                Label("By Name, Groups at Top by Node Count", systemImage: "folder.badge.gearshape")
+            }
+            Divider()
+            Button { sortMasterView(.byStartChannel) } label: {
+                Label("By Start Channel, Groups at Top", systemImage: "number")
+            }
+            Button { sortMasterView(.byStartChannelGroupsAtTopBySize) } label: {
+                Label("By Start Channel, Groups at Top by Size", systemImage: "number.circle")
+            }
+            Button { sortMasterView(.byControllerPort) } label: {
+                Label("By Controller/Port, Groups at Top", systemImage: "cable.connector")
+            }
+            Button { sortMasterView(.byControllerPortGroupsAtTopBySize) } label: {
+                Label("By Controller/Port, Groups at Top by Size", systemImage: "cable.connector.horizontal")
+            }
+            Divider()
+            Button { sortMasterView(.byType) } label: {
+                Label("By Type", systemImage: "tag")
+            }
+            Button { sortMasterView(.bubbleUpGroups) } label: {
+                Label("Bubble Up Groups", systemImage: "arrow.up.to.line")
+            }
+        } label: {
+            Label("Sort", systemImage: "arrow.up.arrow.down")
+        }
+        .disabled(model.allModels.count < 2)
+    }
+
+    private enum SortStrategy {
+        case byName
+        case byNameGroupsAtTop
+        case byNameGroupsAtTopBySize
+        case byNameGroupsAtTopByCount
+        case byStartChannel
+        case byStartChannelGroupsAtTopBySize
+        case byControllerPort
+        case byControllerPortGroupsAtTopBySize
+        case byType
+        case bubbleUpGroups
+    }
+
+    private func sortMasterView(_ strategy: SortStrategy) {
+        let modelNames = model.allModels
+        guard modelNames.count > 1 else { return }
+
+        // Fetch layout summaries for all models in one pass.
+        let rawSummaries = viewModel.document.modelsListSummary() as NSArray
+        var summaries: [String: NSDictionary] = [:]
+        for item in rawSummaries {
+            if let d = item as? NSDictionary, let name = d["name"] as? String {
+                summaries[name] = d
+            }
+        }
+
+        let rawGroups = viewModel.document.modelGroupsListSummary() as NSArray
+        var groupSummaries: [String: NSDictionary] = [:]
+        for item in rawGroups {
+            if let d = item as? NSDictionary, let name = d["name"] as? String {
+                groupSummaries[name] = d
+            }
+        }
+        let groupNames: Set<String> = Set(groupSummaries.keys)
+
+        func isGroup(_ n: String) -> Bool { groupNames.contains(n) }
+        func memberCount(_ n: String) -> Int {
+            (groupSummaries[n]?["modelCount"] as? Int) ?? 0
+        }
+        func startChannel(_ n: String) -> Int {
+            (summaries[n]?["firstChannel"] as? NSNumber)?.intValue ?? 0
+        }
+        func controllerKey(_ n: String) -> String {
+            let ctrl = summaries[n]?["controllerName"] as? String ?? ""
+            return ctrl.isEmpty ? "\u{FFFF}" : ctrl
+        }
+        func typeKey(_ n: String) -> String {
+            summaries[n]?["displayAs"] as? String ?? ""
+        }
+
+        let sorted: [String]
+        switch strategy {
+        case .byName:
+            sorted = modelNames.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+
+        case .byNameGroupsAtTop:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            sorted = groups + plain
+
+        case .byNameGroupsAtTopBySize:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { memberCount($0) > memberCount($1) }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            sorted = groups + plain
+
+        case .byNameGroupsAtTopByCount:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { memberCount($0) > memberCount($1) }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            sorted = groups + plain
+
+        case .byStartChannel:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted { startChannel($0) < startChannel($1) }
+            sorted = groups + plain
+
+        case .byStartChannelGroupsAtTopBySize:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { memberCount($0) > memberCount($1) }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted { startChannel($0) < startChannel($1) }
+            sorted = groups + plain
+
+        case .byControllerPort:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted { controllerKey($0) < controllerKey($1) }
+            sorted = groups + plain
+
+        case .byControllerPortGroupsAtTopBySize:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { memberCount($0) > memberCount($1) }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted { controllerKey($0) < controllerKey($1) }
+            sorted = groups + plain
+
+        case .byType:
+            let groups = modelNames.filter { isGroup($0) }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            let plain = modelNames.filter { !isGroup($0) }
+                .sorted {
+                    let t0 = typeKey($0), t1 = typeKey($1)
+                    if t0 != t1 { return t0.localizedStandardCompare(t1) == .orderedAscending }
+                    return $0.localizedStandardCompare($1) == .orderedAscending
+                }
+            sorted = groups + plain
+
+        case .bubbleUpGroups:
+            let groups = modelNames.filter { isGroup($0) }
+            let plain = modelNames.filter { !isGroup($0) }
+            sorted = groups + plain
+        }
+
+        applyMasterViewOrder(sorted)
+    }
+
+    private func applyMasterViewOrder(_ names: [String]) {
+        // Move each element into its target position using the name-before variant.
+        // Walk forward: after moving names[i] before names[i+1], it sits at
+        // position i; subsequent names[i+1..] are still in their original slots.
+        for i in 0..<names.count {
+            let beforeName = i + 1 < names.count ? names[i + 1] : ""
+            _ = viewModel.document.moveTopLevelElement(named: names[i],
+                                                        beforeNamed: beforeName)
+        }
+        model.refresh()
+        viewModel.reloadRows()
     }
 
     // MARK: - Actions
@@ -621,6 +970,7 @@ struct DisplayElementsSheet: View {
         for item in items where item.kind == .model {
             _ = viewModel.document.addModel(toMasterView: item.name)
         }
+        availableFilter = ""
     }
 
     private func performDelete(idx: Int) {
@@ -653,6 +1003,38 @@ struct DisplayElementsSheet: View {
     private func addAllAvailable() {
         let membership = model.userViewMembership(viewIdx: selectedViewIdx)
         for item in membership.available { addItem(item) }
+        availableFilter = ""
+    }
+
+    // Case-insensitive substring match against member names. An empty
+    // filter passes the list through untouched.
+    private func filtered(_ items: [DisplayElementsVM.Member]) -> [DisplayElementsVM.Member] {
+        let needle = availableFilter.trimmingCharacters(in: .whitespacesAndNewlines)
+        if needle.isEmpty { return items }
+        let lower = needle.lowercased()
+        return items.filter { $0.name.lowercased().contains(lower) }
+    }
+
+    private var filterField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Filter models, groups, timings…", text: $availableFilter)
+                .textFieldStyle(.roundedBorder)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+            if !availableFilter.isEmpty {
+                Button {
+                    availableFilter = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 4)
     }
 
     private func removeItem(_ item: DisplayElementsVM.Member) {

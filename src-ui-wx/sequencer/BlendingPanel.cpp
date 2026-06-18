@@ -78,6 +78,12 @@ const std::vector<wxString> TRANSITIONS_NO_REVERSE = {
     "Doorway", "Blobs", "Pinwheel", "Swap", "Shatter", "Circles"
 };
 
+// Transitions that support the Blur slider.
+const std::vector<wxString> TRANSITIONS_WITH_BLUR = {
+    "Wipe", "Blobs", "Clock", "Blinds", "From Middle",
+    "Square Explode", "Circle Explode", "Blend", "Slide Checks", "Slide Bars"
+};
+
 // Layer method options in the legacy display order (the map order is
 // alphabetical which isn't what we want).
 const std::vector<wxString> LAYER_METHODS = {
@@ -300,7 +306,14 @@ wxWindow* BlendingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* siz
     fadeCombo->Bind(wxEVT_TEXT, commit);
     fadeCombo->Bind(wxEVT_COMBOBOX, commit);
     // Safety net for GTK: Tab/focus-away always commits whatever the user typed.
-    fadeCombo->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+    // Also the only place where we rewrite the visible text — clamps negative
+    // / unparseable values to "0.00" on commit (not on every keystroke, which
+    // would clobber a mid-edit value like ".").
+    fadeCombo->Bind(wxEVT_KILL_FOCUS, [this, fadeCombo](wxFocusEvent& e) {
+        double v = 0.0;
+        if (!fadeCombo->GetValue().ToCDouble(&v) || v < 0) {
+            fadeCombo->SetValue("0.00");
+        }
         ValidateWindow();
         FireChangeEvent();
         e.Skip();
@@ -448,6 +461,15 @@ void BlendingPanel::SetDefaultControls(const Model* /*model*/, bool optionbased)
     resetVC("ID_VALUECURVE_In_Transition_Adjust");
     resetVC("ID_VALUECURVE_Out_Transition_Adjust");
 
+    // Reset blur sliders to 0.
+    auto resetSlider = [this](const char* name) {
+        if (auto* w = wxWindow::FindWindowByName(name, this)) {
+            if (auto* s = dynamic_cast<wxSlider*>(w)) s->SetValue(0);
+        }
+    };
+    resetSlider("ID_SLIDER_In_Transition_Blur");
+    resetSlider("ID_SLIDER_Out_Transition_Blur");
+
     ValidateWindow();
 }
 
@@ -465,7 +487,13 @@ void BlendingPanel::ValidateWindow() {
         }
     }
 
-    // Clamp negative fade times (users can type anything into the combo box).
+    // Compute the numeric fade time for the enable/disable logic below. Do
+    // NOT rewrite the combo's text here — ValidateWindow runs on every
+    // wxEVT_TEXT keystroke, so an intermediate value like "." (user typed
+    // a decimal point and is about to type a digit) would otherwise get
+    // overwritten with "0.00", causing the next keystroke to land in the
+    // wrong cursor position (e.g. typing ".5" produces "50.00"). Text
+    // normalization happens on KILL_FOCUS instead.
     // Use ToCDouble so '.' is the decimal separator regardless of the system
     // locale — otherwise wxAtof would return 0 for "0.50" on locales that
     // expect ',' as the separator and wrongly enable/disable the adjust rows.
@@ -473,13 +501,11 @@ void BlendingPanel::ValidateWindow() {
     double fadeOut = 0.0;
     if (_fadeinCombo) {
         wxString v = _fadeinCombo->GetValue();
-        v.ToCDouble(&fadeIn);
-        if (fadeIn < 0) { _fadeinCombo->SetValue("0.00"); fadeIn = 0; }
+        if (!v.ToCDouble(&fadeIn) || fadeIn < 0) fadeIn = 0.0;
     }
     if (_fadeoutCombo) {
         wxString v = _fadeoutCombo->GetValue();
-        v.ToCDouble(&fadeOut);
-        if (fadeOut < 0) { _fadeoutCombo->SetValue("0.00"); fadeOut = 0; }
+        if (!v.ToCDouble(&fadeOut) || fadeOut < 0) fadeOut = 0.0;
     }
 
     // Compound enable/disable: transition adjust / reverse are only active
@@ -488,6 +514,8 @@ void BlendingPanel::ValidateWindow() {
     auto* outAdjust = GetPropertyInfo("Out_Transition_Adjust");
     auto* inReverse = GetPropertyInfo("In_Transition_Reverse");
     auto* outReverse = GetPropertyInfo("Out_Transition_Reverse");
+    auto* inBlur = GetPropertyInfo("In_Transition_Blur");
+    auto* outBlur = GetPropertyInfo("Out_Transition_Blur");
 
     auto enableRow = [this](JsonEffectPanel::PropertyInfo* p, bool enabled) {
         if (p == nullptr) return;
@@ -512,11 +540,13 @@ void BlendingPanel::ValidateWindow() {
     wxString inTypeSel = _inTypeChoice ? _inTypeChoice->GetStringSelection() : wxString("Fade");
     enableRow(inAdjust, inEnable && !inList(TRANSITIONS_NO_ADJUST, inTypeSel));
     enableRow(inReverse, inEnable && !inList(TRANSITIONS_NO_REVERSE, inTypeSel));
+    enableRow(inBlur, inEnable && inList(TRANSITIONS_WITH_BLUR, inTypeSel));
 
     bool outEnable = fadeOut != 0.0;
     wxString outTypeSel = _outTypeChoice ? _outTypeChoice->GetStringSelection() : wxString("Fade");
     enableRow(outAdjust, outEnable && !inList(TRANSITIONS_NO_ADJUST, outTypeSel));
     enableRow(outReverse, outEnable && !inList(TRANSITIONS_NO_REVERSE, outTypeSel));
+    enableRow(outBlur, outEnable && inList(TRANSITIONS_WITH_BLUR, outTypeSel));
 }
 
 wxString BlendingPanel::GetBlendingString() {
@@ -586,11 +616,13 @@ wxString BlendingPanel::GetBlendingString() {
         stripSetting("E_SLIDER_In_Transition_Adjust");
         stripSetting("E_VALUECURVE_In_Transition_Adjust");
         stripSetting("E_CHECKBOX_In_Transition_Reverse");
+        stripSetting("E_SLIDER_In_Transition_Blur");
     }
     if (fadeOutZero) {
         stripSetting("E_SLIDER_Out_Transition_Adjust");
         stripSetting("E_VALUECURVE_Out_Transition_Adjust");
         stripSetting("E_CHECKBOX_Out_Transition_Reverse");
+        stripSetting("E_SLIDER_Out_Transition_Blur");
     }
 
     s.Replace(",E_", ",T_");

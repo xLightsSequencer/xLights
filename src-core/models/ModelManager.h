@@ -17,6 +17,7 @@
 #include <atomic>
 
 #include "ObjectManager.h"
+#include "ModelSetManager.h"
 #include <pugixml.hpp>
 
 class Model;
@@ -69,10 +70,12 @@ class ModelManager : public ObjectManager
         bool ModelHasNoDependencyOnNoController(Model* m, std::list<std::string>& visited) const;
 
         bool RenameController(const std::string& oldName, const std::string& newName);
+        bool DeleteController(const std::string& name);
 
         std::vector<std::string> GetLayoutGroupNames() const;
 
         void clear();
+        void clearUIObjects();
 
         std::map<std::string, Model*>::const_iterator begin() const;
         std::map<std::string, Model*>::const_iterator end() const;
@@ -106,6 +109,18 @@ class ModelManager : public ObjectManager
 
         std::map<std::string, Model *> GetModels() const { return models; }
 
+        // Bumped on every structural mutation (add / replace / delete /
+        // clear). The render tree folds this into its change-count gate so
+        // a freed Model* can never survive in the cached tree — see
+        // RenderEngine::BuildRenderTree. Atomic because models load in
+        // parallel.
+        unsigned int GetModelGeneration() const { return _modelGeneration.load(); }
+
+        // Model Sets - persistent translation-only links between models.
+        // See plans/layout-group-move-lock.md and ModelSetManager.h.
+        ModelSetManager& GetSetManager() { return _setManager; }
+        const ModelSetManager& GetSetManager() const { return _setManager; }
+
     private:
 
     OutputManager* _outputManager = nullptr;
@@ -116,6 +131,8 @@ class ModelManager : public ObjectManager
     std::map<std::string, Model *> models;
     mutable std::recursive_mutex _modelMutex;
     std::atomic<bool> _modelsLoading;
+    std::atomic<unsigned int> _modelGeneration{ 0 };
     mutable std::string lastGeneratedModelName = "";
+    ModelSetManager _setManager;
 };
 

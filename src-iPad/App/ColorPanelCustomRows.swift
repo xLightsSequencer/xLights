@@ -208,6 +208,10 @@ struct SparklesRowView: View {
 
 /// Parse a `#RRGGBB` hex string into a SwiftUI Color. Returns nil on
 /// malformed input so the caller can fall back to a sentinel.
+///
+/// Constructs the Color in sRGB explicitly — `Color(red:green:blue:)` uses
+/// the device color space, which on Display-P3 iPads silently drifts the
+/// hex the user typed. Pinning to `.sRGB` keeps round-trip exact.
 func colorFromHex(_ hex: String) -> Color? {
     var s = hex.trimmingCharacters(in: .whitespaces)
     if s.hasPrefix("#") { s.removeFirst() }
@@ -217,7 +221,7 @@ func colorFromHex(_ hex: String) -> Color? {
     let r = Double((val >> 16) & 0xFF) / 255.0
     let g = Double((val >> 8) & 0xFF) / 255.0
     let b = Double(val & 0xFF) / 255.0
-    return Color(red: r, green: g, blue: b)
+    return Color(.sRGB, red: r, green: g, blue: b, opacity: 1)
 }
 
 /// Serialise a SwiftUI Color as a `#RRGGBB` string matching desktop's

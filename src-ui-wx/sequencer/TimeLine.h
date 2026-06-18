@@ -14,6 +14,7 @@
 #include "wx/window.h"
 
 class SequenceElements;
+struct SongStructureRegion;
 
 #define HORIZONTAL_PADDING      10
 #define PIXELS_PER_MAJOR_HASH   100
@@ -34,6 +35,8 @@ enum class EFFECT_SCREEN_MODE {
 
 wxDECLARE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
+
+class SequenceElements;
 
 class TimeLine : public wxWindow
 {
@@ -81,6 +84,8 @@ public:
 
     void SetZoomLevel(int level);
     int GetZoomLevel() const;
+    bool IsFitZoom() const { return mInFitZoom; }
+    void SetFitZoom();
 
     int GetZoomLevelValue() const;
     int GetMaxZoomLevel();
@@ -188,6 +193,8 @@ private:
     bool m_dragging;
     bool timeline_initiated_play;
     bool mShowAlternateTimingFormat;
+    bool mInFitZoom = false;
+    double mFitTimePerMajorTickMS = 0.0;
 
     void Paint(wxPaintEvent& event);
     void render(wxDC& dc);
@@ -200,7 +207,38 @@ private:
     void DrawTriangleMarkerFacingRight(wxDC& dc, int& play_start_mark, const int& tri_size, int& height);
     void DrawRectangle(wxDC& dc, int x1, int y1, int x2, int y2);
     void RecalcMarkerPositions();
+
+    // Song structure drawing and interaction
+    wxColour GetSongStructureBandColor(const SongStructureRegion& region) const;
+    void DrawSongStructureBands(wxDC& dc, int w, int h);
+    void DrawSongStructureRegions(wxDC& dc, int w, int h);
+    void DrawSongStructureBoundaries(wxDC& dc, int w, int h);
+    void OnSongStructurePopup(wxCommandEvent& event);
+    void CopyEffectsToRegion(int sourceRegionIdx, int targetRegionIdx);
+    void ApplyPaletteToRegion(int regionIdx);
+    int HitTestBoundary(int x);
+
     wxPanel* mParent;
+
+    // Song structure interaction state
+    bool mDraggingBoundary = false;
+    int mDragBoundaryTimeMS = -1;
+
+    static const long ID_SONG_ADD_BOUNDARY;
+    static const long ID_SONG_DELETE_BOUNDARY;
+    static const long ID_SONG_EDIT_REGION;
+    static const long ID_SONG_CLEAR_STRUCTURE;
+    static const long ID_SONG_COPY_EFFECTS_BASE;
+    static const long ID_SONG_APPLY_PALETTE;
+    static const long ID_SONG_EXPORT_REGION;
+    static const long ID_SONG_EXPORT_ALL_REGIONS;
+
+    // Song structure view management
+    static const long ID_SONG_VIEW_BASE;  // +index for switching (reserve 50)
+    static const long ID_SONG_VIEW_NEW;
+    static const long ID_SONG_VIEW_DUPLICATE;
+    static const long ID_SONG_VIEW_RENAME;
+    static const long ID_SONG_VIEW_DELETE;
 };
 
 class TimelineChangeArguments

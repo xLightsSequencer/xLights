@@ -172,6 +172,10 @@ bool LORPreview::LoadPreview( pugi::xml_node root, wxString const& name ) {
 }
 
 bool LORPreview::ReadPreview( pugi::xml_node preview ) {
+    // Bulk-add of models/groups inside the loop below races render jobs.
+    // Stop the renderer once for the whole import.
+    xlights->AbortRender();
+
     int previewWidth  = xlights->AllModels.GetPreviewWidth();
     int previewHeight = xlights->AllModels.GetPreviewHeight();
 

@@ -29,11 +29,24 @@ struct EffectFilenameBlockView: View {
 
     @State private var presentingPicker = false
     @State private var presentingMediaSheet = false
+    @State private var presentingAIImageSheet = false
     @State private var pendingPick: URL?
+    /// Non-nil → the resize-on-add sheet is offered for a freshly
+    /// committed Pictures image (desktop ResizeImageDialog parity).
+    @State private var resizeCandidatePath: String? = nil
     /// Populated after a video commit fails AVFoundation's decode
     /// check. Non-nil → the "Video may not play on iPad" alert is
     /// visible. Drives a dialog with a Transcode-on-Desktop hint.
     @State private var videoCompatIssue: String? = nil
+
+    /// AI image generation only makes sense for the Pictures effect's
+    /// `Images/` flow — Video and Shader effects don't have an
+    /// equivalent service. Gated on a configured + enabled IMAGES
+    /// service so the button hides cleanly when no provider is set up.
+    private var canShowAIButton: Bool {
+        subdirectory == "Images"
+            && XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityImages)
+    }
 
     private var currentPath: String {
         viewModel.settingValue(forKey: settingKey, defaultValue: "")
@@ -70,6 +83,16 @@ struct EffectFilenameBlockView: View {
                 Button("Select…") { presentingMediaSheet = true }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                if canShowAIButton {
+                    Button {
+                        presentingAIImageSheet = true
+                    } label: {
+                        Label("AI", systemImage: "wand.and.stars")
+                            .labelStyle(.titleAndIcon)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
                 if !currentPath.isEmpty {
                     Button(action: { viewModel.setSettingValue("", forKey: settingKey) }) {
                         Image(systemName: "xmark.circle.fill")
@@ -90,8 +113,7 @@ struct EffectFilenameBlockView: View {
             picked: $pendingPick,
             subdirectory: subdirectory
         ) { storedPath in
-            viewModel.setSettingValue(storedPath, forKey: settingKey)
-            checkVideoCompat(storedPath)
+            commitPicked(storedPath, offerResize: true)
         }
         .sheet(isPresented: $presentingMediaSheet) {
             MediaPickerSheet(
@@ -102,8 +124,7 @@ struct EffectFilenameBlockView: View {
                 // folders (that's an iPad invariant), so commit the
                 // path as-is without re-running MediaRelocation.
                 onPick: { storedPath in
-                    viewModel.setSettingValue(storedPath, forKey: settingKey)
-                    checkVideoCompat(storedPath)
+                    commitPicked(storedPath, offerResize: false)
                 },
                 onBrowse: { presentingPicker = true },
                 onClear: {
@@ -111,6 +132,23 @@ struct EffectFilenameBlockView: View {
                 }
             )
             .environment(viewModel)
+        }
+        .sheet(isPresented: $presentingAIImageSheet) {
+            AIImageGenerationSheet { storedPath in
+                viewModel.setSettingValue(storedPath, forKey: settingKey)
+            }
+            .environment(viewModel)
+        }
+        .sheet(isPresented: Binding(
+            get: { resizeCandidatePath != nil },
+            set: { if !$0 { resizeCandidatePath = nil } }
+        )) {
+            if let path = resizeCandidatePath {
+                PicturesResizeOnAddSheet(storedPath: path) { resizedPath in
+                    viewModel.setSettingValue(resizedPath, forKey: settingKey)
+                }
+                .environment(viewModel)
+            }
         }
         .alert("Video May Not Play on iPad",
                isPresented: Binding(
@@ -122,6 +160,19 @@ struct EffectFilenameBlockView: View {
             if let reason = videoCompatIssue {
                 Text("\(reason)\n\niPad can only play videos AVFoundation supports. Convert the file on your desktop with Handbrake or ffmpeg (H.264 / HEVC in a .mov or .mp4 container works) and replace it here.")
             }
+        }
+    }
+
+    /// Commit a picked file path to the effect setting. For the Pictures
+    /// effect (Images subdirectory) freshly browsed-in from outside the
+    /// show folder, offer the resize-on-add sheet afterwards (desktop
+    /// ResizeImageDialog parity). `offerResize` is false for in-sequence
+    /// re-picks where the user already chose an existing sized asset.
+    private func commitPicked(_ storedPath: String, offerResize: Bool) {
+        viewModel.setSettingValue(storedPath, forKey: settingKey)
+        checkVideoCompat(storedPath)
+        if offerResize && subdirectory == "Images" && !storedPath.isEmpty {
+            resizeCandidatePath = storedPath
         }
     }
 

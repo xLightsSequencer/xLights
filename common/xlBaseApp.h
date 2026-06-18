@@ -45,6 +45,8 @@ public:
     void HandleAssertFailure(wxChar const* file, int line, wxChar const* func, wxChar const* cond, wxChar const* msg);
     void HandleCrash(bool const isFatalException, std::string const& msg);
     void HandleUnhandledException();
+    // Must be called from within a catch handler — rethrows and describes the in-flight exception.
+    static std::string DescribeCurrentException();
     void ProcessCrashReport(SendReportOptions sendType);
     static void SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report);
     static void SetupCrashHandlerForNonWxThread();
@@ -78,7 +80,7 @@ public:
 
     virtual bool OnExceptionInMainLoop() override
     {
-        HandleCrash(true, "Exception from main loop.");
+        HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException());
         return false;
     }
 

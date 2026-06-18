@@ -1,0 +1,1952 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include "LOREdit.h"
+
+#include <regex>
+#include <cstdlib>
+#include <cctype>
+
+#include <spdlog/fmt/fmt.h>
+
+#include "render/RenderUtils.h"
+#include "utils/string_utils.h"
+#include "models/Model.h"
+
+#include "effects/SpiralsEffect.h"
+#include "effects/ButterflyEffect.h"
+#include "effects/BarsEffect.h"
+#include "effects/CurtainEffect.h"
+#include "effects/FireEffect.h"
+#include "effects/GarlandsEffect.h"
+#include "effects/MarqueeEffect.h"
+#include "effects/MeteorsEffect.h"
+#include "effects/PinwheelEffect.h"
+#include "effects/SnowflakesEffect.h"
+#include "effects/RippleEffect.h"
+
+#include <spdlog/spdlog.h>
+
+// Current working assumptions
+//
+// A prop can be sequenced using channels or tracks ... not both
+// There can be multiple tracks
+// Each effect on a track can have a left/right side
+// Channels have rows and columns but i dont know how they work
+
+namespace {
+    int loreAtoi(const std::string& s) {
+        return (int)std::strtol(s.c_str(), nullptr, 10);
+    }
+
+    double loreAtof(const std::string& s) {
+        return std::strtod(s.c_str(), nullptr);
+    }
+
+    // Mirrors wxString::IsNumber — true for an optionally-signed integer
+    // or decimal, with no other characters.
+    bool isNumber(const std::string& s) {
+        if (s.empty()) return false;
+        size_t i = 0;
+        if (s[i] == '+' || s[i] == '-') ++i;
+        bool digits = false;
+        bool dot = false;
+        for (; i < s.size(); ++i) {
+            char c = s[i];
+            if (c == '.') {
+                if (dot) return false;
+                dot = true;
+            } else if (c >= '0' && c <= '9') {
+                digits = true;
+            } else {
+                return false;
+            }
+        }
+        return digits;
+    }
+
+    // Minimal URL percent-decode, matching the wxURI::Unescape that the
+    // text effect's encoded label needs.
+    std::string unescapeURI(const std::string& in) {
+        std::string out;
+        out.reserve(in.size());
+        for (size_t i = 0; i < in.size(); ++i) {
+            if (in[i] == '%' && i + 2 < in.size() && isHexChar(in[i + 1]) && isHexChar(in[i + 2])) {
+                out += HexToChar(in[i + 1], in[i + 2]);
+                i += 2;
+            } else {
+                out += in[i];
+            }
+        }
+        return out;
+    }
+}
+
+std::string LOREditEffect::GetPalette() const
+{
+    if (type == loreditType::CHANNELS)
+    {
+        if (startColour != endColour)
+        {
+            // colour ramp - so a colour curve
+            return "C_BUTTON_Palette1=Active=TRUE|Id=ID_BUTTON_Palette1|Values=x=0.000^c=" + (std::string)startColour + ";x=1.000^c=" + (std::string)endColour + "|,C_CHECKBOX_Palette1=1,"
+                + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0";
+        }
+
+        return "C_BUTTON_Palette1=" + (std::string)startColour + ",C_CHECKBOX_Palette1=1,"
+            + "C_BUTTON_Palette2=#000000,C_CHECKBOX_Palette2=0";
+    }
+
+    if (effectSettings.size() == 0) return "";
+
+    std::string palette;
+
+    int cnum = 0;
+    std::vector<std::string> c = Split(effectSettings[0], ';');
+    for (int i = 0; i < (int)c.size(); i++)
+    {
+        std::string n = fmt::format("{}", cnum + 1);
+
+        std::vector<std::string> cc = Split(c[i], ',');
+        if (cc.size() == 2)
+        {
+            std::string c1 = cc[0].substr(2); // drop transparency
+            std::string active = cc[1];
+
+            palette += ",C_BUTTON_Palette" + n + "=#" + c1;
+            if (active == "1")
+            {
+                palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+            }
+            cnum++;
+        }
+        else if (cc.size() == 3)
+        {
+            std::string c1 = cc[0].substr(2); // drop transparency
+            std::string c2 = cc[1].substr(2); // drop transparency
+            std::string active = cc[2];
+
+            if (c1 == c2)
+            {
+                palette += ",C_BUTTON_Palette" + n + "=#" + c1;
+                if (active == "1")
+                {
+                    palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+                }
+            }
+            else
+            {
+                palette += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=x=0.000^c=#" + c1 + ";x=1.000^c=#" + c2 + "|";
+                if (active == "1")
+                {
+                    palette += ",C_CHECKBOX_Palette" + n + "=" + active;
+                }
+            }
+            cnum++;
+        }
+        else
+        {
+            // Not sure what the last value is so ignoring it
+            //int unknown1 = loreAtoi(c[i]);
+            break;
+        }
+    }
+
+    int sparkle = loreAtoi(otherSettings[2]);
+
+    if (sparkle > 0)
+    {
+        palette += ",C_SLIDER_SparkleFrequency=" + fmt::format("{}", sparkle);
+    }
+
+    if (type == loreditType::TRACKS)
+    {
+        if (startIntensity == 100 && endIntensity == 100)
+        {
+            // dont need to do anything
+        }
+        else if (startIntensity == endIntensity)
+        {
+            // need to set brightness
+            palette += ",C_SLIDER_Brightness=" + fmt::format("{}", startIntensity);
+        }
+        else
+        {
+            palette += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=" + fmt::format("{}", startIntensity) + "|P2=" + fmt::format("{}", endIntensity) + "|RV=TRUE|";
+        }
+    }
+
+    return palette;
+}
+
+std::string LOREditEffect::GetxLightsEffect() const
+{
+    if (effectType == "INTENSITY") return "On";
+    if (effectType == "DMX_INTENSITY") return "DMX";
+    if (effectType == "SHIMMER") return "On";
+
+    if (effectType == "colorwash") return "Color Wash";
+    if (effectType == "picture") return "Pictures";
+    if (effectType == "picturexy") return "Pictures";
+    if (effectType == "lineshorizontal") return "Lines";
+    if (effectType == "linesvertical") return "Lines";
+    if (effectType == "straightlines") return "Lines";
+    if (effectType == "garland") return "Garlands";
+    if (effectType == "spinner") return "Pinwheel";
+    if (effectType == "blendedbars") return "Bars";
+    if (effectType == "singleblock") return "SingleStrand";
+    if (effectType == "countdown") return "Text"; // we dont support countdown
+
+    return Capitalise(effectType);
+}
+
+// Used to rescale a parameter to a broader scale.
+// Assumes the range is different but the translation is direct.
+// If this is not the case then set the source Min/Max to the range that does map to the targetMin/Max and the conversion will
+// clamp original values outside the supported range to the largest practical in the target
+float LOREditEffect::Rescale(float original, float sourceMin, float sourceMax, float targetMin, float targetMax)
+
+{
+    if (original < sourceMin) original = sourceMin;
+    if (original > sourceMax) original = sourceMax;
+
+    return ((original - sourceMin) / (sourceMax - sourceMin))*(targetMax - targetMin) + targetMin;
+}
+
+std::string LOREditEffect::RescaleWithRangeI(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax)
+{
+    if (Contains(r, "R"))
+    {
+        // it is a range
+        std::vector<std::string> rr = Split(r, 'R');
+        vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
+            "|Max=" + fmt::format("{:.2f}", targetRealMax) +
+            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|RV=TRUE|";
+        return fmt::format("{}", (int)Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax));
+    }
+    else
+    {
+        vc = "";
+        return fmt::format("{}", (int)Rescale(loreAtof(r), sourceMin, sourceMax, targetMin, targetMax));
+    }
+}
+
+std::string LOREditEffect::RescaleWithRangeF(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax)
+{
+    if (Contains(r, "R"))
+    {
+        // it is a range
+        std::vector<std::string> rr = Split(r, 'R');
+        vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
+            "|Max=" + fmt::format("{:.2f}", targetRealMax) +
+            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|RV=TRUE|";
+    }
+    else
+    {
+        vc = "";
+    }
+    return fmt::format("{:.1f}", Rescale(loreAtof(r), sourceMin, sourceMax, targetMin, targetMax));
+}
+
+std::string LOREditEffect::GetBlend() const
+{
+    if (!left) return "Normal";
+    if (otherSettings.size() == 0) return "Normal";
+
+    std::string blend = otherSettings[0];
+
+    if (blend == "Mix_Average") return "Average";
+    if (blend == "Mix_Overlay") return "Normal";
+    if (blend == "Mix_Maximum") return "Max";
+    if (blend == "Mix_Bottom_Top") return "Bottom-Top";
+    if (blend == "Mix_Left-Right") return "Left-Right";
+    if (blend == "Mix_Rt_Hides_Lt") return "1 is Mask";
+    if (blend == "Mix_Rt_Reveals_Lt") return "2 reveals 1";
+
+    return "Normal";
+}
+
+std::string LOREditEffect::GetSettings(std::string& palette) const
+{
+
+
+    if (effectType == "INTENSITY") {
+        // intensity ramp 0-100
+        return fmt::format("E_TEXTCTRL_Eff_On_End={},E_TEXTCTRL_Eff_On_Start={}", endIntensity, startIntensity);
+    }
+    if (effectType == "DMX_INTENSITY") {
+        return fmt::format("E_VALUECURVE_DMX1=Active=TRUE|Id=ID_VALUECURVE_DMX1|Type=Ramp|Min=0.00|Max=255.00|P1={}|P2={}|RV=TRUE|", startIntensity, endIntensity);
+    }
+    if (effectType == "SHIMMER") {
+        return fmt::format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End={},E_TEXTCTRL_Eff_On_Start={}", endIntensity, startIntensity);
+    }
+    if (effectType == "TWINKLE") {
+        return "E_SLIDER_Twinkle_Count=48";
+    }
+
+    if (effectSettings.size() == 0) {
+        return "";
+    }
+
+    std::string et = effectType;
+    if (StartsWith(et, "lightorama_")) {
+        et = AfterFirst(et, '_');
+    }
+
+    std::string settings;
+    auto parms = Split(effectSettings[1], ',');
+    if (et == "butterfly") {
+        std::string style = parms[0];
+        std::string chunks = parms[1];
+        std::string vcChunks;
+        // VC bounds come from the effect's statics populated via Butterfly.json at startup.
+        chunks = RescaleWithRangeI(chunks, "E_VALUECURVE_Butterfly_Chunks", 1, 10, 1, 10, vcChunks, ButterflyEffect::sChunksMin, ButterflyEffect::sChunksMax);
+        std::string skip = parms[2];
+        std::string vcSkip;
+        skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip, ButterflyEffect::sSkipMin, ButterflyEffect::sSkipMax);
+        std::string direction = parms[3];
+        std::string hue = parms[4];
+        std::string vcHue;
+        hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
+        std::string speed = parms[5];
+        std::string vcSpeed;
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, ButterflyEffect::sSpeedMin, ButterflyEffect::sSpeedMax);
+        std::string colours = parms[6];
+
+        if (style == "linear") {
+            settings += ",E_SLIDER_Butterfly_Style=1";
+        }
+        else if (style == "radial") {
+            settings += ",E_SLIDER_Butterfly_Style=2";
+        }
+        else if (style == "blocks") {
+            settings += ",E_SLIDER_Butterfly_Style=3";
+        }
+        else if (style == "corner") {
+            settings += ",E_SLIDER_Butterfly_Style=5";
+        }
+        settings += ",E_CHOICE_Butterfly_Colors=" + Capitalise(colours);
+        settings += ",E_CHOICE_Butterfly_Direction=" + Capitalise(direction);
+        settings += ",E_SLIDER_Butterfly_Chunks=" + chunks;
+        settings += vcChunks;
+        settings += ",E_SLIDER_Butterfly_Skip=" + skip;
+        settings += vcSkip;
+        settings += ",E_SLIDER_Butterfly_Speed=" + speed;
+        settings += vcSpeed;
+
+        if (hue != "0") {
+            palette += ",C_SLIDER_Color_HueAdjust=" + hue;
+            palette += vcHue;
+        }
+    }
+    else if (et == "colorwash") {
+        //full, full, none, 12
+        std::string horizontalFade = parms[0];
+        std::string verticalFade = parms[1];
+
+        if (horizontalFade == "full") {
+        }
+        else if (horizontalFade == "left_to_right") {
+            settings += ",E_CHECKBOX_ColorWash_HFade=1";
+        }
+        else if (horizontalFade == "right_to_left") {
+            settings += ",E_CHECKBOX_ColorWash_HFade=1";
+        }
+        else if (horizontalFade == "center_on") {
+            settings += ",E_CHECKBOX_ColorWash_HFade=1";
+        }
+        else if (horizontalFade == "center_off") {
+            settings += ",E_CHECKBOX_ColorWash_HFade=1";
+        }
+
+        if (verticalFade == "full") {
+        }
+        else if (verticalFade == "top_to_bottom") {
+            settings += ",E_CHECKBOX_ColorWash_VFade=1";
+        }
+        else if (verticalFade == "bottom_to_top") {
+            settings += ",E_CHECKBOX_ColorWash_VFade=1";
+        }
+        else if (verticalFade == "center_on") {
+            settings += ",E_CHECKBOX_ColorWash_VFade=1";
+        }
+        else if (verticalFade == "center_off") {
+            settings += ",E_CHECKBOX_ColorWash_VFade=1";
+        }
+    }
+    else if (et == "spirals") {
+        // 1, left_to_right, 20, 50, 0, False, none, 12
+        std::string repeat = parms[0];
+        std::string vcRepeat;
+        repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Spirals_Count", 1, 5, 1, 5, vcRepeat, SpiralsEffect::sCountMin, SpiralsEffect::sCountMax);
+        std::string direction = parms[1];
+        std::string rotation = parms[2];
+        rotation = fmt::format("{:.2f}", loreAtof(rotation) / 60.0);
+        std::string vcRotation;
+        rotation = RescaleWithRangeF(rotation, "E_VALUECURVE_Spirals_Rotation", 0, 50, 0, 50, vcRotation, SpiralsEffect::sRotationMin, SpiralsEffect::sRotationMax);
+        rotation = fmt::format("{}", (int)(loreAtof(rotation) * 10.0));
+        std::string thickness = parms[3];
+        std::string vcThickness;
+        thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 100, vcThickness, SpiralsEffect::sThicknessMin, SpiralsEffect::sThicknessMax);
+        // std::string thicknessChange = parms[4]; //unused
+        std::string blend = parms[5];
+        std::string show3d = parms[6];
+        std::string speed = parms[7];
+        speed = fmt::format("{}", (int)(loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
+        std::string vcSpeed;
+        if (direction == "right_to_left") {
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -50, vcSpeed, SpiralsEffect::sMovementMin, SpiralsEffect::sMovementMax);
+        }
+        else {
+            speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, 50, vcSpeed, SpiralsEffect::sMovementMin, SpiralsEffect::sMovementMax);
+        }
+
+        settings += ",E_SLIDER_Spirals_Count=" + repeat;
+        settings += vcRepeat;
+
+        settings += ",E_TEXTCTRL_Spirals_Movement=" + speed;
+        settings += vcSpeed;
+
+        settings += ",E_SLIDER_Spirals_Rotation=" + rotation;
+        settings += vcRotation;
+
+        settings += ",E_SLIDER_Spirals_Thickness=" + thickness;
+        settings += vcThickness;
+
+        // dont know what to do with thickness change
+
+        if (blend == "True") {
+            settings += ",E_CHECKBOX_Spirals_Blend=1,";
+        }
+
+        if (show3d == "none") {
+        }
+        else if (show3d == "trail_left") {
+            settings += ",E_CHECKBOX_Spirals_3D=1";
+        }
+        else if (show3d == "trail_right") {
+            settings += ",E_CHECKBOX_Spirals_3D=1";
+        }
+    }
+    else if (et == "bars") {
+        // down,2,False,False,8,0
+        std::string direction = parms[0];
+        std::string repeat = parms[1];
+        std::string vcRepeat;
+        // VC bounds come from the effect's statics populated via Bars.json at startup.
+        repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Bars_BarCount", 1, 5, 1, 5, vcRepeat, BarsEffect::sBarCountMin, BarsEffect::sBarCountMax);
+        std::string highlight = parms[2];
+        std::string show3d = parms[3];
+        std::string speed = parms[4];
+        speed = fmt::format("{}", (int)(loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
+        std::string vcSpeed;
+        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BarsEffect::sCyclesMin, BarsEffect::sCyclesMax);
+        std::string centre = parms[5];
+        std::string vcCentre;
+        centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BarsEffect::sCenterMin, BarsEffect::sCenterMax);
+
+        settings += ",E_SLIDER_Bars_BarCount=" + repeat;
+        settings += vcRepeat;
+
+        if (direction == "V_expand") direction = "expand";
+        if (direction == "V_compress") direction = "compress";
+        if (direction == "H_expand") direction = "H-expand";
+        if (direction == "H_compress") direction = "H-compress";
+        if (direction == "left") direction = "Left";
+        if (direction == "right") direction = "Right";
+        if (direction == "block_up") direction = "Alternate Up";
+        if (direction == "block_down") direction = "Alternate Down";
+        if (direction == "block_left") direction = "Alternate Right";
+        if (direction == "block_right") direction = "Alternate Right";
+        settings += ",E_CHOICE_Bars_Direction=" + direction;
+
+        if (show3d == "True") {
+            settings += ",E_CHECKBOX_Bars_3D=1";
+        }
+
+        if (highlight == "True") {
+            settings += "E_CHECKBOX_Bars_Highlight=1";
+        }
+
+        settings += ",E_TEXTCTRL_Bars_Cycles=" + speed;
+        settings += vcSpeed;
+
+        settings += ",E_TEXTCTRL_Bars_Center=" + centre;
+        settings += vcCentre;
+    }
+    else if (et == "countdown") {
+        // 0,Arial,75,7
+        std::string seconds = parms[0];
+        std::string font = parms[1];
+        std::string fontSize = parms[2];
+        std::string vcCrap;
+        fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
+        std::string position = parms[3];
+        position = RescaleWithRangeI(position, "IGNORE", -50, 50, -200, 200, vcCrap, -1, -1);
+
+        settings += ",E_TEXTCTRL_Text=" + seconds;
+        settings += ",E_CHOICE_Text_Count=seconds";
+        settings += ",E_CHOICE_Text_Font=Use OS Fonts";
+        settings += ",E_FONTPICKER_Text_Font='" + font + "' " + fontSize;
+        settings += ",E_SLIDER_Text_XStart=" + position;
+    }
+    else if (et == "lineshorizontal") {
+        // Bottom_to_Top,8,38
+
+        // No xLights equivalent
+
+        spdlog::warn("LPE conversion for Lines Horizontal does not exist.");
+    }
+    else if (et == "linesvertical") {
+        // Left_to_Right,4,32
+
+        // No xLights equivalent
+
+        spdlog::warn("LPE conversion for Lines Vertical does not exist.");
+    }
+    else if (et == "curtain") {
+        // center,open,0,once_at_speed,12
+        std::string edge = parms[0];
+        std::string movement = parms[1];
+        std::string swag = parms[2];
+        std::string vcSwag;
+        swag = RescaleWithRangeF(swag, "E_VALUECURVE_Curtain_Swag", 0, 10, 0, 10, vcSwag, CurtainEffect::sSwagMin, CurtainEffect::sSwagMax);
+        std::string repeat = parms[3];
+        std::string speed = parms[4];
+        std::string vcSpeed;
+        // Curtain_Speed's pre-migration range was (0, 10) post-divisor. Write the VC in
+        // that legacy form — UpgradeValueCurve rescales it to the new (0, 100) pre-divisor
+        // form on the first sequence load. Keeping the literal here avoids a second rescale
+        // (post-divisor slider vs pre-divisor VC) in the import path.
+        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Curtain_Speed", 0, 50, 0, 10, vcSpeed, 0, 10);
+
+        settings += ",E_CHOICE_Curtain_Edge=" + edge;
+        Replace(movement, "_", " ");
+        settings += ",E_CHOICE_Curtain_Effect=" + movement;
+        settings += ",E_SLIDER_Curtain_Swag=" + swag;
+        settings += vcSwag;
+
+        if (repeat == "once_at_speed") {
+            settings += ",E_CHECKBOX_Curtain_Repeat=0";
+        }
+        else if (repeat == "once_fit_to_duration") {
+            settings += ",E_CHECKBOX_Curtain_Repeat=0";
+        }
+        else if (repeat == "repeat_at_speed_rotate_colors") {
+            settings += ",E_CHECKBOX_Curtain_Repeat=1";
+        }
+        else if (repeat == "repeat_at_speed_blend_colors") {
+            settings += ",E_CHECKBOX_Curtain_Repeat=1";
+        }
+        settings += ",E_TEXTCTRL_Curtain_Speed=" + speed;
+        settings += vcSpeed;
+    }
+    else if (et == "fire") {
+        //50,0
+        std::string height = parms[0];
+        std::string vcHeight;
+        height = RescaleWithRangeI(height, "E_VALUECURVE_Fire_Height", 10, 100, 0, 100, vcHeight, FireEffect::sHeightMin, FireEffect::sHeightMax);
+        std::string hueShift = parms[1];
+        std::string vcHueShift;
+        hueShift = RescaleWithRangeI(hueShift, "E_VALUECURVE_Fire_HueShift", 0, 359, 0, 100, vcHueShift, FireEffect::sHueShiftMin, FireEffect::sHueShiftMax);
+
+        settings += ",E_SLIDER_Fire_Height=" + height;
+        settings += vcHeight;
+        settings += ",E_SLIDER_Fire_HueShift=" + hueShift;
+        settings += vcHueShift;
+    }
+    else if (et == "fireworks") {
+        // 10,50,2,30,normal,continuous
+        std::string explosionRate = parms[0];
+        std::string vcCrap;
+        explosionRate = RescaleWithRangeI(explosionRate, "IGNORE", 1, 95, 1, 50, vcCrap, -1, -1);
+        std::string particles = parms[1];
+        particles = RescaleWithRangeI(particles, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
+        std::string velocity = parms[2];
+        velocity = RescaleWithRangeI(velocity, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
+        std::string fade = parms[3];
+        fade = RescaleWithRangeI(fade, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
+        // std::string pattern = parms[4]; // not used
+        // std::string rateChange = parms[5]; // not used
+        settings += ",E_SLIDER_Fireworks_Explosions=" + explosionRate;
+        settings += ",E_SLIDER_Fireworks_Count=" + particles;
+        settings += ",E_SLIDER_Fireworks_Fade=" + fade;
+        settings += ",E_SLIDER_Fireworks_Velocity=" + velocity;
+    }
+    else if (et == "garland") {
+        // 3,34,once_at_speed,12,bottom_to_top
+        std::string type = parms[0];
+        std::string vcCrap;
+        type = RescaleWithRangeI(type, "IGNORE", 0, 4, 0, 4, vcCrap, -1, -1);
+        std::string spacing = parms[1];
+        std::string vcSpacing;
+        spacing = RescaleWithRangeI(spacing, "E_VALUECURVE_Garlands_Spacing", 0, 100, 1, 100, vcSpacing, GarlandsEffect::sSpacingMin, GarlandsEffect::sSpacingMax);
+        std::string repeat = parms[2];
+        std::string speed = parms[3];
+        std::string vcSpeed;
+        // Garlands_Cycles pre-migration range was (0, 20) post-divisor. Write the VC in
+        // that legacy form — UpgradeValueCurve rescales it to the new (0, 200) pre-divisor
+        // form with divisor 10 on the first sequence load.
+        speed = RescaleWithRangeF(speed, "E_VALUECURVE_Garlands_Cycles", 0, 50, 0, 20, vcSpeed, 0, 20);
+        std::string fill = parms[4];
+
+        settings += ",E_SLIDER_Garlands_Type=" + type;
+
+        if (fill == "bottom_to_top") {
+            settings += ",E_CHOICE_Garlands_Direction=Up";
+        }
+        else if (fill == "top_to_bottom") {
+            settings += ",E_CHOICE_Garlands_Direction=Down";
+        }
+        else if (fill == "left_to_right") {
+            settings += ",E_CHOICE_Garlands_Direction=Right";
+        }
+        else if (fill == "right_to_left") {
+            settings += ",E_CHOICE_Garlands_Direction=Left";
+        }
+
+        settings += ",E_SLIDER_Garlands_Spacing=" + spacing;
+        settings += vcSpacing;
+
+        if (repeat == "repeat_at_speed") {
+            settings += ",E_TEXTCTRL_Garlands_Cycles=" + speed;
+            settings += vcSpeed;
+        }
+        else if (repeat == "once_at_speed") {
+            settings += ",E_TEXTCTRL_Garlands_Cycles=1.0";
+        }
+        else if (repeat == "once_fit_to_duration") {
+            settings += ",E_TEXTCTRL_Garlands_Cycles=1.0";
+        }
+    }
+    else if (et == "marquee") {
+        //4,1,1,12
+        //spacing,filled space,size,speed
+        std::string spacing = parms[0];
+        std::string filledspace = parms[1];
+        std::string size = parms[2];
+        std::string speed = parms[4];
+        std::string vcSpacing;
+        spacing = RescaleWithRangeI(spacing, "E_SLIDER_Marquee_Skip_Size", 1, 20, 1, 20, vcSpacing, MarqueeEffect::sSkipSizeMin, MarqueeEffect::sSkipSizeMax);
+        settings += ",E_SLIDER_Marquee_Skip_Size=" + spacing;
+        settings += vcSpacing;
+
+        std::string vcBandSize;
+        filledspace = RescaleWithRangeI(filledspace, "E_SLIDER_Marquee_Band_Size", 1, 100, 1, 100, vcBandSize, MarqueeEffect::sBandSizeMin, MarqueeEffect::sBandSizeMax);
+        settings += ",E_SLIDER_Marquee_Band_Size=" + filledspace;
+        settings += vcBandSize;
+
+        std::string vcSize;
+        size = RescaleWithRangeI(size, "E_SLIDER_Marquee_Thickness", 1, 20, 1, 20, vcSize, MarqueeEffect::sThicknessMin, MarqueeEffect::sThicknessMax);
+        settings += ",E_SLIDER_Marquee_Thickness=" + size;
+        settings += vcSize;
+
+        std::string vcSpeed;
+        speed = RescaleWithRangeI(speed, "E_SLIDER_Marquee_Speed", 1, 50, 1, 50, vcSpeed, MarqueeEffect::sSpeedMin, MarqueeEffect::sSpeedMax);
+        settings += ",E_SLIDER_Marquee_Speed=" + speed;
+        settings += vcSpeed;
+    }
+    else if (et == "meteors") {
+        // rainbow,10,25,down,0,12
+        std::string colourScheme = parms[0];
+        std::string count = parms[1];
+        std::string vcCount;
+        count = RescaleWithRangeI(count, "E_VALUECURVE_Meteors_Count", 1, 100, 1, 100, vcCount, MeteorsEffect::sCountMin, MeteorsEffect::sCountMax);
+        std::string length = parms[2];
+        std::string vcLength;
+        length = RescaleWithRangeI(length, "E_VALUECURVE_Meteors_Length", 1, 100, 1, 100, vcLength, MeteorsEffect::sLengthMin, MeteorsEffect::sLengthMax);
+        std::string effect = parms[3];
+        std::string swirl = parms[4];
+        std::string vcSwirl;
+        swirl = RescaleWithRangeI(swirl, "E_VALUECURVE_Meteors_Swirl_Intensity", 0, 20, 0, 20, vcSwirl, MeteorsEffect::sSwirlMin, MeteorsEffect::sSwirlMax);
+        std::string speed = parms[5];
+        std::string vcSpeed;
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Meteors_Speed", 1, 50, 1, 50, vcSpeed, MeteorsEffect::sSpeedMin, MeteorsEffect::sSpeedMax);
+
+        settings += ",E_CHOICE_Meteors_Type=" + Lower(colourScheme);
+        settings += ",E_SLIDER_Meteors_Count=" + count;
+        settings += vcCount;
+        settings += ",E_SLIDER_Meteors_Length=" + length;
+        settings += vcLength;
+        settings += ",E_CHOICE_Meteors_Effect=" + Capitalise(effect);
+        settings += ",E_SLIDER_Meteors_Swirl_Intensity=" + swirl;
+        settings += vcSwirl;
+        settings += ",E_SLIDER_Meteors_Speed=" + speed;
+        settings += vcSpeed;
+    }
+    else if (et == "movie") {
+        // xxx.avi,True,False
+        std::string file = parms[0];
+        std::string scale = parms[1];
+        std::string fullLength = parms[2];
+
+        settings += ",E_FILEPICKERCTRL_Video_Filename=" + file;
+
+        if (scale == "True") {
+            settings += ",E_CHECKBOX_Video_AspectRatio=0";
+        }
+        else {
+            settings += ",E_CHECKBOX_Video_AspectRatio=1";
+        }
+        if (fullLength == "True") {
+            settings += ",E_CHOICE_Video_DurationTreatment=Slow/Accelerate";
+        }
+        else {
+            settings += ",E_CHOICE_Video_DurationTreatment=Normal";
+        }
+    }
+    else if (et == "picture") {
+        // file.jpg,True,none,0,10,19,12
+        std::string file = parms[0];
+        std::string scale = parms[1];
+        std::string movement = parms[2];
+        std::string x = parms[3];
+        std::string vcCrap;
+        x = RescaleWithRangeI(x, "IGNORE", -50, 50, -100, 100, vcCrap, -1, -1);
+        std::string peekabooHoldTime = parms[4]; // not used
+        peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
+        std::string wiggle = parms[5]; // not used
+        wiggle = RescaleWithRangeI(wiggle, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
+        std::string speed = parms[6];
+        speed = RescaleWithRangeF(speed, "IGNORE", 0, 50, 0, 20, vcCrap, -1, -1);
+
+        size_t pos;
+        while ((pos = file.find('%')) != std::string::npos) {
+            if (pos + 2 < file.size()) {
+                char c = HexToChar(file[pos + 1], file[pos + 2]);
+                file.replace(pos, 3, std::string(1, c));
+            } else {
+                break;
+            }
+        }
+
+        settings += ",E_TEXTCTRL_Pictures_Filename=" + file;
+        if (scale == "True") {
+            settings += ",E_CHOICE_Scaling=Scale To Fit";
+        }
+        else {
+            settings += ",E_CHOICE_Scaling=No Scaling";
+        }
+
+        Replace(movement, "_", "-");
+        if (movement == "peekaboo-bottom") {
+            movement = "peekaboo";
+        }
+        else if (movement == "peekaboo-top") {
+            movement = "peekaboo 180";
+        }
+        else if (movement == "peekaboo-left") {
+            movement = "peekaboo 90";
+        }
+        else if (movement == "peekaboo-right") {
+            movement = "peekaboo 270";
+        }
+        settings += ",E_CHOICE_Pictures_Direction=" + movement;
+        settings += ",E_SLIDER_PicturesXC=" + x;
+        settings += ",E_TEXTCTRL_Pictures_Speed=" + speed;
+    } else if (et == "picturexy") {
+        // file.jpg,71,104,0,R32R0R1.00,100,100,100,100,FFFF
+        // file.jpg,58,136,0,0         ,100,100,100,100,FFFF,0
+
+        std::string file = parms[0];
+        std::string scaleX = parms[1];
+        //std::string scaleY = parms[2];
+        std::string movementLeft = parms[3];
+        std::string movementTop = parms[4];
+
+        size_t pos;
+        while ((pos = file.find('%')) != std::string::npos) {
+            if (pos + 2 < file.size()) {
+                char c = HexToChar(file[pos + 1], file[pos + 2]);
+                file.replace(pos, 3, std::string(1, c));
+            } else {
+                break;
+            }
+        }
+
+        settings += ",E_TEXTCTRL_Pictures_Filename=" + file;
+        settings += ",E_CHOICE_Scaling=No Scaling";
+
+        settings += ",E_CHOICE_Pictures_Direction=vector";
+        if (Contains(movementLeft, "R"))
+        {
+            std::vector<std::string> rr = Split(movementLeft, 'R');
+            settings += ",E_SLIDER_PicturesXC=" + rr[1];
+            settings += ",E_SLIDER_PicturesEndXC=" + rr[2];
+        } else if (isNumber(movementLeft)) {
+            settings += ",E_SLIDER_PicturesXC=" + movementLeft;
+            settings += ",E_SLIDER_PicturesEndXC=" + movementLeft;
+        }
+        if (Contains(movementTop, "R")) {
+            std::vector<std::string> rr = Split(movementTop, 'R');
+            settings += ",E_SLIDER_PicturesYC=" + rr[1];
+            settings += ",E_SLIDER_PicturesEndYC=" + rr[2];
+        } else if (isNumber(movementTop)) {
+            settings += ",E_SLIDER_PicturesYC=" + movementTop;
+            settings += ",E_SLIDER_PicturesEndYC=" + movementTop;
+        }
+        if (Contains(scaleX, "R")) {
+            std::vector<std::string> rr = Split(scaleX, 'R');
+            settings += ",E_SLIDER_Pictures_StartScale=" + rr[1];
+            settings += ",E_SLIDER_Pictures_EndScale=" + rr[2];
+        } else if (isNumber(scaleX)) {
+            settings += ",E_SLIDER_Pictures_StartScale=" + scaleX;
+            settings += ",E_SLIDER_Pictures_EndScale=" + scaleX;
+        }
+
+        settings += ",E_TEXTCTRL_Pictures_Speed=1.0";
+    }
+    else if (et == "spinner") {
+        //           style,   colour_mode, arms, arm width, inner_radius, bend, curvature, speed, width, height,   x,   y
+        //               0,             1,    2,         3,            4,    5,         6,     7,     8,      9,  10,  11
+        // MIN: pinwheel_1, color_per_arm,    1,         0,          -32,    0,         0,   -32,     1,      1, -50, -50
+        // MAX: pinwheel_1, color_per_arm,   10,       100,           32,   50,        10,    32,   200,    200,  50,  50
+        // pinwheel_1,color_per_arm,10,15,0,0,5,15,200,200,-24,0
+
+        // std::string style = parms[0]; // unused
+        // std::string colour_mode = parms[1]; //unused
+        std::string arms = parms[2];
+        std::string vcCrap;
+        arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
+        std::string armwidth = parms[3];
+        std::string vcArmWidth;
+        armwidth = RescaleWithRangeI(armwidth, "E_VALUECURVE_Pinwheel_Thickness", 0, 100, 0, 100, vcArmWidth, PinwheelEffect::sThicknessMin, PinwheelEffect::sThicknessMax);
+        // std::string innerRadius = parms[4]; // not used
+        std::string bend = parms[5];
+        std::string vcBend;
+        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", 0, 50, -360, 360, vcBend, PinwheelEffect::sTwistMin, PinwheelEffect::sTwistMax);
+        // std::string curvature = parms[6]; // not used
+        std::string speed = parms[7];
+        std::string vcSpeed;
+        bool ccw = false;
+        // need to do some funkiness with the ranges as we dont support negative numbers
+        if (loreAtoi(speed) < 0)
+        {
+            ccw = true;
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, 0, 100, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
+            speed = fmt::format("{}", 50 - loreAtoi(speed));
+        }
+        else             {
+            speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, -50, 50, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
+        }
+
+        std::string length = parms[8];
+        std::string vcLength;
+        length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PinwheelEffect::sArmSizeMin, PinwheelEffect::sArmSizeMax);
+
+        // std::string height = parms[9]; //unused
+
+        std::string x = parms[10];
+        std::string vcX;
+        x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PinwheelEffect::sXCMin, PinwheelEffect::sXCMax);
+        std::string y = parms[11];
+        std::string vcY;
+        y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PinwheelEffect::sYCMin, PinwheelEffect::sYCMax);
+
+        settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
+        settings += ",E_SLIDER_Pinwheel_Thickness=" + armwidth;
+        settings += vcArmWidth;
+        settings += ",E_SLIDER_Pinwheel_Twist=" + bend;
+        settings += vcBend;
+        if (ccw) {
+            settings += ",E_CHECKBOX_Pinwheel_Rotation=1";
+        }
+        else {
+            settings += ",E_CHECKBOX_Pinwheel_Rotation=0";
+        }
+        settings += ",E_SLIDER_Pinwheel_Speed=" + speed;
+        settings += vcSpeed;
+        settings += ",E_SLIDER_Pinwheel_ArmSize=" + length;
+        settings += vcLength;
+        settings += ",E_CHOICE_Pinwheel_Style=New Render Method";
+        settings += ",E_SLIDER_PinwheelXC=" + x;
+        settings += vcX;
+        settings += ",E_SLIDER_PinwheelYC=" + y;
+        settings += vcY;
+    }
+    else if (et == "pinwheel") {
+        // 3,1,6,color_per_arm,True,12,100,10,-23
+
+        std::string arms = parms[0];
+        std::string vcCrap;
+        arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
+        std::string width = parms[1];
+        std::string vcWidth;
+        width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth, PinwheelEffect::sThicknessMin, PinwheelEffect::sThicknessMax);
+        std::string bend = parms[2];
+        std::string vcBend;
+        bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PinwheelEffect::sTwistMin, PinwheelEffect::sTwistMax);
+        // std::string colour = parms[3]; // not used
+        std::string CCW = parms[4];
+        std::string speed = parms[5];
+        std::string vcSpeed;
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
+        std::string length = parms[6];
+        std::string vcLength;
+        length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PinwheelEffect::sArmSizeMin, PinwheelEffect::sArmSizeMax);
+        std::string x = parms[7];
+        std::string vcX;
+        x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PinwheelEffect::sXCMin, PinwheelEffect::sXCMax);
+        std::string y = parms[8];
+        std::string vcY;
+        y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PinwheelEffect::sYCMin, PinwheelEffect::sYCMax);
+
+        settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
+        settings += ",E_SLIDER_Pinwheel_Thickness=" + width;
+        settings += vcWidth;
+        settings += ",E_SLIDER_Pinwheel_Twist=" + bend;
+        settings += vcBend;
+        if (CCW == "True") {
+            settings += ",E_CHECKBOX_Pinwheel_Rotation=1";
+        }
+        else {
+            settings += ",E_CHECKBOX_Pinwheel_Rotation=0";
+        }
+        settings += ",E_SLIDER_Pinwheel_Speed=" + speed;
+        settings += vcSpeed;
+        settings += ",E_SLIDER_Pinwheel_ArmSize=" + length;
+        settings += vcLength;
+        settings += ",E_CHOICE_Pinwheel_Style=New Render Method";
+        settings += ",E_SLIDER_PinwheelXC=" + x;
+        settings += vcX;
+        settings += ",E_SLIDER_PinwheelYC=" + y;
+        settings += vcY;
+    }
+    else if (et == "snowflakes") {
+        //5,1,0,12,60
+        std::string count = parms[0];
+        std::string vcCount;
+        count = RescaleWithRangeI(count, "E_VALUECURVE_Snowflakes_Count", 1, 20, 1, 20, vcCount, SnowflakesEffect::sCountMin, SnowflakesEffect::sCountMax);
+        std::string type = parms[1];
+        std::string vcCrap;
+        type = RescaleWithRangeI(type, "IGNORE", 0, 5, 0, 5, vcCrap, -1, -1);
+        std::string direction = parms[2]; // not used
+        direction = RescaleWithRangeI(direction, "IGNORE", -8, 8, -8, 8, vcCrap, -1, -1);
+        std::string speed = parms[3];
+        std::string vcSpeed;
+        speed = RescaleWithRangeI(speed, "E_VALUECURVE_Snowflakes_Speed", 0, 50, 0, 50, vcSpeed, SnowflakesEffect::sSpeedMin, SnowflakesEffect::sSpeedMax);
+        std::string accumulation = parms[4];
+        accumulation = RescaleWithRangeI(accumulation, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
+
+        settings += ",E_SLIDER_Snowflakes_Count=" + count;
+        settings += ",E_SLIDER_Snowflakes_Type=" + type;
+        settings += ",E_SLIDER_Snowflakes_Speed=" + speed;
+        if (accumulation == "0") {
+            settings += ",E_CHOICE_Falling=Falling";
+            settings += vcCount;
+            settings += vcSpeed;
+        }
+        else {
+            settings += ",E_CHOICE_Falling=Falling & Accumulating";
+            settings += vcCount;
+            settings += vcSpeed;
+        }
+    }
+    else if (et == "text") {
+        //Hello%26nbsp%3B%20Keith,50,left,0,10,0,4,True
+        std::string text = unescapeURI(parms[0]);
+        Replace(text, "&gt;", ">");
+        Replace(text, "&lt;", "<");
+        Replace(text, "&nbsp;", " ");
+        Replace(text, "&amp;", "&");
+        std::string fontSize = parms[1];
+        std::string vcCrap;
+        fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 149, 0, 149, vcCrap, -1, -1);
+        std::string movement = parms[2];
+        std::string position = parms[3];
+        position = RescaleWithRangeI(position, "IGNORE", -50, 49, -200, 200, vcCrap, -1, -1);
+        std::string peekabooHoldTime = parms[4]; // unused
+        peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
+        std::string bounce = parms[5]; // unused
+        bounce = RescaleWithRangeI(bounce, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
+        std::string speed = parms[6];
+        speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap, -1, -1);
+        if (parms.size() > 7) {
+            // std::string unknown1 = parms[7]; // unused
+        }
+
+        settings += ",E_TEXTCTRL_Text=" + text;
+        settings += ",E_CHOICE_Text_Font=Use OS Fonts";
+        settings += ",E_FONTPICKER_Text_Font='segoe ui' " + fontSize;
+
+        if (movement == "peekaboo_bottom") {
+            settings += ",E_CHECKBOX_TextToCenter=1";
+            movement = "up";
+        }
+        if (movement == "peekaboo_top") {
+            settings += ",E_CHECKBOX_TextToCenter=1";
+            movement = "down";
+        }
+        if (movement == "peekaboo_left") {
+            settings += ",E_CHECKBOX_TextToCenter=1";
+            movement = "left";
+        }
+        if (movement == "peekaboo_right") {
+            settings += ",E_CHECKBOX_TextToCenter=1";
+            movement = "right";
+        }
+        settings += ",E_CHOICE_Text_Dir=" + movement;
+        settings += ",E_SLIDER_Text_XStart=" + position;
+        settings += ",E_TEXTCTRL_Text_Speed=" + speed;
+    }
+    else if (et == "twinkle") {
+        // 50,25,twinkle,random
+        std::string rate = parms[0];
+        std::string vcCrap;
+        rate = RescaleWithRangeI(rate, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
+        std::string density = parms[1];
+        density = RescaleWithRangeI(density, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
+        std::string mode = parms[2];
+        std::string layout = parms[3];
+
+        settings += ",E_SLIDER_Twinkle_Count=" + density;
+        settings += ",E_SLIDER_Twinkle_Steps=" + rate;
+        if (layout == "interval") {
+            settings += ",E_CHECKBOX_Twinkle_ReRandom=0";
+        }
+        else if (layout == "random") {
+            settings += ",E_CHECKBOX_Twinkle_ReRandom=1";
+        }
+
+        if (mode == "twinkle") {
+            settings += ",E_CHECKBOX_Twinkle_Strobe=0";
+        }
+        else // pulse/flash
+        {
+            settings += ",E_CHECKBOX_Twinkle_Strobe=1";
+        }
+    }
+    else if (et == "straightlines") {
+    }
+    else if (et == "blendedbars") {
+    }
+    else if (et == "singleblock") {
+    } else if (et == "ripple") {
+        // I actually think some of these should be shockwaves
+        // Mix_Average|0|0|full|20|lightorama_ripple:FFFF8000,1;FF800080,1;FF0000FF,0;FFFF0000,1;FFFFFFFF,0;FF00FF00,1:circle,21,47,46,50,0,0,37,False,50|lightorama_none::
+        std::string vcCrap;
+        auto type = SafeGetStringParm(parms, 0);
+        auto repeatcount = SafeGetStringParm(parms, 1);    // 1-20 -> 1-30
+        repeatcount = RescaleWithRangeI(repeatcount, "IGNORE", 1, 20, 1 /*RIPPLE_CYCLES_MIN*/, RippleEffect::sCyclesMax, vcCrap, -1, -1); // not using min because i dont want it to scale to 0
+        auto ringwidth = SafeGetIntParm(parms, 2);      // narrow is less
+        //auto spacing = SafeGetIntParm(parms, 3);        // narrow is less
+        //auto speed = SafeGetIntParm(parms, 4);          // slow is less
+        auto leftright = SafeGetStringParm(parms, 5);      // left is negative ... zero centre
+        leftright = RescaleWithRangeI(leftright, "IGNORE", -50, 50, RippleEffect::sXCMin, RippleEffect::sXCMax, vcCrap, -1, -1);
+        auto topbottom = SafeGetStringParm(parms, 6);      // top is negative ... zero centre
+        topbottom = RescaleWithRangeI(topbottom, "IGNORE", -50, 50, RippleEffect::sYCMin, RippleEffect::sYCMax, vcCrap, -1, -1);
+        //auto highlightangle = SafeGetIntParm(parms, 7); // 0 = none
+        auto inward = SafeGetBoolParm(parms, 8);
+        //auto outerlimit = SafeGetIntParm(parms, 9); // 0 = small
+        settings += ",E_CHOICE_Ripple_Object_To_Draw=" + ProperCase(type);
+        if (inward) {
+            settings += ",E_CHOICE_Ripple_Movement=Implode";
+        } else {
+            settings += ",E_CHOICE_Ripple_Movement=Explode";
+        }
+        settings += ",E_SLIDER_Ripple_XC=" + leftright;
+        settings += ",E_SLIDER_Ripple_YC=" + topbottom;
+        settings += ",E_TEXTCTRL_Ripple_Cycles=" + repeatcount;
+        settings += ",E_SLIDER_Ripple_Thickness=" + std::to_string(ringwidth);
+    }
+    else if (et == "wave") {
+        // left,along_wave_scrolling,rainbow,triple,50,23,88,A3A50A1.00,A-14A50A1.00
+        if (parms[0] == "left") {
+            settings += ",E_CHOICE_Wave_Direction=Right to Left";
+        }
+        else {
+            settings += ",E_CHOICE_Wave_Direction=Left to Right";
+        }
+
+        // none is not handled because i dont have a sample of a file with that
+        if (parms[2] == "rainbow") {
+            settings += "E_CHOICE_Fill_Colors=Rainbow";
+        }
+        else {
+            settings += "E_CHOICE_Fill_Colors=Palette";
+        }
+
+        // I dont have enough samples to know what the rest of the settings are
+        spdlog::warn("Wave effects I have never seen enough samples to truly decode the settings.");
+    }
+    else {
+        spdlog::warn("S5 conversion for {} not created yet.", et);
+    }
+
+    std::string blend = GetBlend();
+    settings += ",T_CHOICE_LayerMethod=" + blend;
+
+    int blendPos = loreAtoi(otherSettings[1]);
+    if (left && blendPos > 0) {
+        settings += ",T_SLIDER_EffectLayerMix=" + fmt::format("{}", blendPos);
+    }
+
+    return settings;
+}
+
+LOREdit::LOREdit(pugi::xml_document& input_xml, int frequency) : _input_xml(input_xml), _frequency(frequency)
+{
+
+}
+
+// gets a list of all the free timing tracks
+std::vector<std::string> LOREdit::GetTimingTracks() const
+{
+    std::vector<std::string> res;
+
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "TimingGrids") {
+            for (pugi::xml_node timing = e.first_child(); timing; timing = timing.next_sibling()) {
+                if (std::string_view(timing.name()) == "TimingGridFree") {
+                    res.push_back(timing.attribute("name").as_string());
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+// returns the timing begin/end for the named timing track
+std::vector<std::pair<uint32_t, uint32_t>> LOREdit::GetTimings(const std::string& timingTrackName, int offset) const
+{
+    std::vector<std::pair<uint32_t, uint32_t>> res;
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "TimingGrids") {
+            for (pugi::xml_node timing = e.first_child(); timing; timing = timing.next_sibling()) {
+                if (std::string_view(timing.name()) == "TimingGridFree") {
+                    if (std::string_view(timing.attribute("name").as_string()) == timingTrackName) {
+                        int lastMS = offset;
+                        if (lastMS < 0) lastMS = 0;
+                        for (pugi::xml_node t = timing.first_child(); t; t = t.next_sibling())
+                        {
+                            if (std::string_view(t.name()) == "timing")
+                            {
+                                int time = t.attribute("centisecond").as_int() * 10 + offset;
+                                int adjTime = RoundToMultipleOfPeriod(time, _frequency);
+                                if (adjTime > lastMS)
+                                {
+                                    res.push_back({ lastMS, adjTime });
+                                }
+                                lastMS = adjTime;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+// Uses prop definition to work out how many strands a model has
+// that can then be used out to work out channel sequencing mapping
+std::map<int, std::string> LOREdit::GetModelStrands(const std::string& model) const
+{
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        if (std::string_view(e.name()) == "PreviewClass") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                if (std::string_view(prop.name()) == "PropClass") {
+                    if (std::string_view(prop.attribute("Name").as_string()) == model) {
+                        std::string const grid = prop.attribute("ChannelGrid").as_string();
+                        if(grid.empty()) return { { 1, "" } };
+                        std::vector<std::string> strands = Split(grid, ';');
+                        int strandCnts = 1;
+                        std::map<int, std::string> strandMap;
+                        for (std::string const& strand: strands) {
+                            strandMap[strandCnts] = GetColor(strand);
+                            strandCnts++;
+                        }
+                        return strandMap;
+                    }
+                }
+            }
+        }
+    }
+    return std::map<int, std::string>();
+}
+
+// Calculate the number of layers necessary for pixel effects on this model
+// basically one per track * whether or not there are effects on left and right
+int LOREdit::GetModelLayers(const std::string& model) const
+{
+    int count = 0;
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "")
+                    {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
+                            {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name == model) {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "track") {
+                                int l1 = 0;
+                                int l2 = 0;
+                                for (pugi::xml_node ef = tc.first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
+                                    int ll1 = 0;
+                                    int ll2 = 0;
+                                    GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
+                                    if (ll1 == 1) l1 = 1;
+                                    if (ll2 == 1) l2 = 1;
+                                }
+                                count += l1 + l2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return count;
+}
+
+// If a prop has sequenced channels this calculates how many there are
+int LOREdit::GetModelChannels(const std::string& model, int& rows, int& cols) const
+{
+    bool match = false;
+    rows = 0;
+    cols = 0;
+    int count = 0;
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e && !match; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            // look for a match first
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "") {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name == model) {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel") {
+                                if (tc.first_child()) {
+                                    rows = std::max(rows, tc.attribute("row").as_int(0) + 1);
+                                    cols = std::max(cols, tc.attribute("col").as_int(0) + 1);
+                                    count++;
+                                    match = true;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            if (!match) {
+                // no match so try a starts with
+                for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                    std::string propName = prop.name();
+                    if (propName == "SeqProp" || propName == "ArchiveProp") {
+                        std::string name = prop.attribute("name").as_string();
+                        if (name == "") {
+                            for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                                if (std::string_view(ap.name()) == "PropClass") {
+                                    name = ap.attribute("Name").as_string();
+                                }
+                            }
+                        }
+                        if (StartsWith(model, name)) {
+                            for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                                if (std::string_view(tc.name()) == "channel") {
+                                    if (tc.first_child()) {
+                                        rows = std::max(rows, tc.attribute("row").as_int(0) + 1);
+                                        cols = std::max(cols, tc.attribute("col").as_int(0) + 1);
+                                        count++;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // I only think I want to use count when nothing matched perfectly
+    if (!match && count > 1 && rows == 1 && cols == 1) {
+        cols = count;
+    }
+
+    return count;
+}
+
+// returns the type of sequencing on the named model
+// assumes you cant have both channel and track sequencing on the same model ... this may not be true
+loreditType LOREdit::GetSequencingType(const std::string& model) const
+{
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            // check first for exact name matches
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "")
+                    {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
+                            {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (model == name)
+                    {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel" && tc.first_child()) {
+                                return loreditType::CHANNELS;
+                            }
+                            if (std::string_view(tc.name()) == "track" && tc.first_child())
+                            {
+                                return loreditType::TRACKS;
+                            }
+                        }
+                    }
+                }
+            }
+            // now check for starts with (for some decorated names)
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "") {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (StartsWith(model, name)) {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel" && tc.first_child()) {
+                                return loreditType::CHANNELS;
+                            }
+                            if (std::string_view(tc.name()) == "track" && tc.first_child()) {
+                                return loreditType::TRACKS;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return loreditType::NONE;
+}
+
+std::vector<std::string> LOREdit::GetModelsWithEffects() const
+{
+    std::vector<std::string> res;
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "")
+                    {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
+                            {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name != "")
+                    {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            std::string tcName = tc.name();
+                            if ((tcName == "channel" || tcName == "track") && tc.first_child()) {
+                                res.push_back(name);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::vector<std::string> LOREdit::GetNodesWithEffects() const
+{
+    std::string lastName;
+    int standIndex = 1;;
+    std::vector<std::string> res;
+    std::map<int, std::string> strands;
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "") {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name != "") {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel" && tc.first_child()) {
+                                if (lastName != name) {
+                                    standIndex = 0;
+                                    strands = GetModelStrands(name);
+                                    lastName = name;
+                                }
+                                standIndex++;
+                                {
+                                    int row = tc.attribute("row").as_int(0);
+                                    int col = tc.attribute("col").as_int(0);
+                                    int colour = tc.attribute("color").as_int(0);
+                                    res.push_back(name + "[" + std::to_string(row) + "," + std::to_string(col) + ","
+                                        + std::to_string(colour) + "][" + strands[standIndex] + "]");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+void LOREdit::GetLayers(const std::string& settings, int& ll1, int& ll2)
+{
+    ll1 = 0;
+    ll2 = 0;
+    auto ss = Split(settings, '|');
+
+    if (ss.size() >= 7)
+    {
+        if (StartsWith(ss[5], "lightorama_") && !StartsWith(ss[5], "lightorama_none"))
+        {
+            ll1 = 1;
+        }
+        if (StartsWith(ss[6], "lightorama_") && !StartsWith(ss[6], "lightorama_none"))
+        {
+            ll2 = 1;
+        }
+    }
+}
+
+std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, int offset) const
+{
+    std::vector<LOREditEffect> res;
+
+    for (pugi::xml_node ef = track.first_child(); ef; ef = ef.next_sibling()) {
+        LOREditEffect effect;
+        effect.left = left;
+        effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
+        effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+        int si = ef.attribute("intensity").as_int(9999);
+        if (si != 9999)
+        {
+            effect.startColour = xlWHITE;
+            effect.endColour = xlWHITE;
+            effect.startIntensity = si;
+            effect.endIntensity = si;
+        }
+        else
+        {
+            effect.startIntensity = ef.attribute("startIntensity").as_int(100);
+            effect.endIntensity = ef.attribute("endIntensity").as_int(100);
+            effect.startColour = xlWHITE;
+            effect.endColour = xlWHITE;
+        }
+        effect.type = loreditType::TRACKS;
+
+        std::string s = ef.attribute("settings").as_string();
+        auto ss = Split(s, '|');
+
+        if (ss.size() >= 7)
+        {
+            std::string es;
+            if (left)
+            {
+                es = ss[5];
+            }
+            else
+            {
+                es = ss[6];
+            }
+            auto ees = Split(es, ':');
+
+            if (ees.size() > 0)
+            {
+                if (StartsWith(ees[0], "lightorama_"))
+                {
+                    if (!StartsWith(ees[0], "lightorama_none"))
+                    {
+                        effect.effectType = AfterFirst(ees[0], '_');
+                        for (auto it2 : ees)
+                        {
+                            if (!StartsWith(it2, "lightorama_"))
+                            {
+                                effect.effectSettings.push_back(it2);
+                            }
+                        }
+                    }
+                }
+            }
+            effect.otherSettings.push_back(ss[0]); // blend
+            effect.otherSettings.push_back(ss[1]);
+            effect.otherSettings.push_back(ss[2]);
+            effect.otherSettings.push_back(ss[3]);
+            effect.otherSettings.push_back(ss[4]);
+            if (ss.size() == 8) {
+                effect.otherSettings.push_back(ss[7]);
+            }
+            else                 {
+                effect.otherSettings.push_back("");
+            }
+        }
+
+        res.push_back(effect);
+    }
+
+    return res;
+}
+
+std::vector<LOREditEffect> LOREdit::GetTrackEffects(const std::string& model, int layer, int offset) const
+{
+    std::vector<LOREditEffect> res;
+
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "")
+                    {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
+                            {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name == model)
+                    {
+                        int tcount = 0;
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "track") {
+                                if (tc.first_child())
+                                {
+                                    int l1 = 0;
+                                    int l2 = 0;
+                                    for (pugi::xml_node ef = tc.first_child(); (l1 == 0 || l2 == 0) && ef; ef = ef.next_sibling()) {
+                                        int ll1, ll2;
+                                        GetLayers(ef.attribute("settings").as_string(), ll1, ll2);
+                                        if (ll1 == 1) l1 = 1;
+                                        if (ll2 == 1) l2 = 1;
+                                    }
+
+                                    if (tcount == layer && l1 == 1)
+                                    {
+                                        return AddEffects(tc, true, offset);
+                                    }
+                                    if (l1 == 1) tcount++;
+
+                                    if (l2 == 1 && tcount == layer)
+                                    {
+                                        return AddEffects(tc, false, offset);
+                                    }
+                                    if (l2 == 1) tcount++;
+                                }
+                            }
+                        }
+                        return res;
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::vector<LOREditEffect> LOREdit::GetChannelEffectsForNode(int targetRow, int targetCol, int targetColor, pugi::xml_node prop, int offset) const
+{
+    std::vector<LOREditEffect> res;
+
+    for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+        if (std::string_view(tc.name()) == "channel") {
+            int row = tc.attribute("row").as_int(0);
+            int col = tc.attribute("col").as_int(0);
+            int colour = tc.attribute("color").as_int(0);
+
+            if ((targetRow == -1 && targetCol == -1 && targetColor == -1) || // map regardless
+                (row == targetRow && col == targetCol && targetColor == -1) || // map because the node matches
+                (row == 0 && col == 0 && colour == targetCol && targetRow == 0 && targetColor == -1) ||
+                (row == targetRow && col == targetCol && colour == targetColor)) {//match stand/color
+                for (pugi::xml_node ef = tc.first_child(); ef; ef = ef.next_sibling()) {
+                    LOREditEffect effect;
+                    effect.pixelChannels = std::string_view(prop.attribute("EnablePixelChannels").as_string("0")) == "1";
+                    effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
+                    effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+                    int si = ef.attribute("intensity").as_int(9999);
+                    if (si != 9999) {
+                        if (si < 0) {
+                            if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY") {
+                                effect.startIntensity = 255;
+                                effect.endIntensity = 255;
+                            }
+                            else {
+                                effect.startIntensity = 100;
+                                effect.endIntensity = 100;
+                            }
+                            effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                            effect.endColour = effect.startColour;
+                        }
+                        else {
+                            effect.startIntensity = si;
+                            effect.endIntensity = si;
+                            effect.startColour = xlWHITE;
+                            effect.endColour = xlWHITE;
+                        }
+                    }
+                    else {
+                        si = ef.attribute("startIntensity").as_int(9999);
+                        if (si != 9999) {
+                            if (si < 0) {
+                                if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY") {
+                                    effect.startIntensity = 255;
+                                    effect.endIntensity = 255;
+                                }
+                                else {
+                                    effect.startIntensity = 100;
+                                    effect.endIntensity = 100;
+                                }
+                                effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                                int ei = ef.attribute("endIntensity").as_int(-1);
+                                effect.endColour = xlColor((ei & 0xFF0000) >> 16, (ei & 0xFF00) >> 8, ei & 0xFF);
+                            }
+                            else {
+                                effect.startIntensity = si;
+                                effect.endIntensity = ef.attribute("endIntensity").as_int(100);
+                                effect.startColour = xlWHITE;
+                                effect.endColour = xlWHITE;
+                            }
+                        }
+                    }
+                    effect.type = loreditType::CHANNELS;
+                    effect.effectType = ef.attribute("settings").as_string();
+                    res.push_back(effect);
+                }
+                return res;
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, Model* m, int offset) const
+{
+    std::vector<LOREditEffect> res;
+
+    if (m == nullptr)
+    {
+        return res;
+    }
+
+    int rows = 0;
+    int cols = 0;
+    int channels = GetModelChannels(model, rows, cols);
+
+    if (channel >= channels && channels > 1)
+    {
+        // Tried to map a model with less channels than the target model so stop once we run out
+        return res;
+        //channel = channels - 1;
+    }
+
+    int mw = m->GetDefaultBufferWi();
+    int mh = m->GetDefaultBufferHt();
+
+    std::vector<xlPoint> coords;
+    m->GetNodeCoords(channel, coords);
+    int bufx = -1;
+    int bufy = -1;
+    if (channels != 1) {
+        (void)mw;
+        (void)mh;
+
+        if (coords.size() != 0) {
+            bufx = coords[0].x;
+            bufy = coords[0].y;
+        }
+        else {
+            // this is not encouraging
+        }
+    }
+
+    int targetRow = bufy;
+    int targetCol = bufx;
+
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "")
+                    {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
+                            {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name == model)
+                    {
+                        res = GetChannelEffectsForNode(targetRow, targetCol, -1, prop, offset);
+                        if (res.size() != 0) {
+                            return res;
+                        }
+
+                        // if we got here and the source only has one node just map it regardless
+                        if (rows == 1 && cols == 1)
+                        {
+                            return GetChannelEffectsForNode(-1, -1, -1, prop, offset);
+                        }
+
+                        // still no match
+
+                        return res;
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int targetRow, int targetCol, int targetColor, int offset) const
+{
+    std::vector<LOREditEffect> res;
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "") {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass") {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name == model) {
+                        res = GetChannelEffectsForNode(targetRow, targetCol, targetColor, prop, offset);
+                        if (res.size() != 0) {
+                            return res;
+                        }
+                        return res;
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, int channel, int nodes, int offset) const
+{
+    std::vector<LOREditEffect> res;
+
+    int rows = 0;
+    int cols = 0;
+    int channels = GetModelChannels(model, rows, cols);
+
+    if (channel >= channels)
+    {
+        channel = channels - 1;
+    }
+
+    int targetRow = 0;
+    int targetCol = 0;
+
+    if (rows > 1)
+    {
+        targetRow = channel;
+        if (channel >= rows) return res;
+    }
+    else
+    {
+        targetCol = channel;
+        if (channel >= cols) return res;
+    }
+
+    for (pugi::xml_node e = _input_xml.document_element().first_child(); e; e = e.next_sibling()) {
+        std::string eName = e.name();
+        if (eName == "SequenceProps" || eName == "ArchivedProps") {
+            for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
+                std::string propName = prop.name();
+                if (propName == "SeqProp" || propName == "ArchiveProp") {
+                    std::string name = prop.attribute("name").as_string();
+                    if (name == "")
+                    {
+                        for (pugi::xml_node ap = prop.first_child(); ap; ap = ap.next_sibling()) {
+                            if (std::string_view(ap.name()) == "PropClass")
+                            {
+                                name = ap.attribute("Name").as_string();
+                            }
+                        }
+                    }
+                    if (name == model)
+                    {
+                        for (pugi::xml_node tc = prop.first_child(); tc; tc = tc.next_sibling()) {
+                            if (std::string_view(tc.name()) == "channel") {
+                                int row = tc.attribute("row").as_int(0);
+                                int col = tc.attribute("col").as_int(0);
+
+                                if (row == targetRow && col == targetCol)
+                                {
+                                    for (pugi::xml_node ef = tc.first_child(); ef; ef = ef.next_sibling()) {
+                                        LOREditEffect effect;
+                                        effect.pixelChannels = std::string_view(prop.attribute("EnablePixelChannels").as_string("0")) == "1";
+                                        effect.startMS = ef.attribute("startCentisecond").as_int() * 10 + offset;
+                                        effect.endMS = ef.attribute("endCentisecond").as_int() * 10 + offset;
+                                        int si = ef.attribute("intensity").as_int(9999);
+                                        if (si != 9999)
+                                        {
+                                            if (si < 0)
+                                            {
+                                                if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY")
+                                                {
+                                                    effect.startIntensity = 255;
+                                                    effect.endIntensity = 255;
+                                                }
+                                                else
+                                                {
+                                                    effect.startIntensity = 100;
+                                                    effect.endIntensity = 100;
+                                                }
+                                                effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                                                effect.endColour = effect.startColour;
+                                            }
+                                            else
+                                            {
+                                                effect.startIntensity = si;
+                                                effect.endIntensity = si;
+                                                effect.startColour = xlWHITE;
+                                                effect.endColour = xlWHITE;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            si = ef.attribute("startIntensity").as_int(9999);
+                                            if (si != 9999)
+                                            {
+                                                if (si < 0)
+                                                {
+                                                    if (std::string_view(ef.attribute("settings").as_string()) == "DMX_INTENSITY")
+                                                    {
+                                                        effect.startIntensity = 255;
+                                                        effect.endIntensity = 255;
+                                                    }
+                                                    else
+                                                    {
+                                                        effect.startIntensity = 100;
+                                                        effect.endIntensity = 100;
+                                                    }
+                                                    effect.startColour = xlColor((si & 0xFF0000) >> 16, (si & 0xFF00) >> 8, si & 0xFF);
+                                                    int ei = ef.attribute("endIntensity").as_int(-1);
+                                                    effect.endColour = xlColor((ei & 0xFF0000) >> 16, (ei & 0xFF00) >> 8, ei & 0xFF);
+                                                }
+                                                else
+                                                {
+                                                    effect.startIntensity = si;
+                                                    effect.endIntensity = ef.attribute("endIntensity").as_int(100);
+                                                    effect.startColour = xlWHITE;
+                                                    effect.endColour = xlWHITE;
+                                                }
+                                            }
+                                        }
+                                        effect.type = loreditType::CHANNELS;
+                                        effect.effectType = ef.attribute("settings").as_string();
+                                        res.push_back(effect);
+                                    }
+                                    return res;
+                                }
+                            }
+                        }
+                        return res;
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::string LOREdit::GetColor(const std::string& settings)
+{
+    std::vector<std::string> const savedUploadItems = Split(settings, ',');
+    if (savedUploadItems.size() == 6)
+        return savedUploadItems[5];
+    return "";
+}
+
+bool LOREdit::IsNodeStrandMapping(const std::string& mapping)
+{
+    static const std::regex regex("\\[([0-9]+),([0-9]+),([0-9]+)\\]");
+    return std::regex_search(mapping, regex);
+}
+
+void LOREdit::setNodeColor(const std::string& color, LOREditEffect & effect)
+{
+    if (color.empty())
+        return;
+
+    if (color.find("Multi") != std::string::npos)
+        return;
+
+    effect.startColour.SetFromString(color);
+    effect.endColour.SetFromString(color);
+}

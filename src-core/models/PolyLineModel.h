@@ -19,12 +19,15 @@ public:
     virtual ~PolyLineModel();
 
     virtual int GetLightsPerNode() const override { return _lightsPerNode; }
+    bool UsesBufCoordsForModelPreview() const override { return _maxH > 1; }
     virtual int GetStrandLength(int strand) const override;
     virtual int MapToNodeIndex(int strand, int node) const override;
 
     int GetPolyLineSize(int polyLineLayer) const;
     virtual bool SupportsExportAsCustom() const override { return false; }
     virtual bool SupportsWiringView() const override { return false; }
+    virtual bool SupportsSwapStartEnd() const override { return true; }
+    virtual void SwapStartEnd() override;
     virtual int GetNumStrands() const override;
     virtual const std::vector<std::string>& GetBufferStyles() const override;
     virtual void InitRenderBufferNodes(const std::string& type, const std::string& camera, const std::string& transform, std::vector<NodeBaseClassPtr>& Nodes, int& BufferWi, int& BufferHi, int stagger, bool deep = false) const override;

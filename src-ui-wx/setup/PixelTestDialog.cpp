@@ -1518,6 +1518,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer1->Add(StatusBar1, 1, wxALL|wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
     Timer1.SetOwner(this, ID_TIMER1);
+    Timer1.SetName("PixelTestTimer");
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BUTTON_Load, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PixelTestDialog::OnButton_LoadClick);

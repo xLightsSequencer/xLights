@@ -16,6 +16,7 @@
 #include <wx/rawbmp.h>
 
 #include "UtilFunctions.h"
+#include "color/xlColourPickerDialog.h"
 namespace
 {
     const int BorderWidth = 5;
@@ -53,17 +54,7 @@ MHRgbPickerPanel::~MHRgbPickerPanel()
 }
 
 void MHRgbPickerPanel::OnSize(wxSizeEvent& event){
-    wxSize old_sz = GetSize();
-    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
-        if (old_sz.GetWidth() > 270) {
-            wxSize new_size = old_sz;
-            new_size.SetHeight(new_size.GetWidth() + 30);
-            SetMinSize(new_size);
-            SetSize(new_size);
-        }
-    }
     Refresh();
-    //skip the event.
     event.Skip();
 }
 
@@ -132,10 +123,17 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
             pdc.SetBrush(*wxWHITE_BRUSH);
         }
         pdc.DrawPolygon(num_points, points, wxODDEVEN_RULE);
+        // Restore value to compute RGB
+        hsv.value = value;
+        xlColor rgb;
+        rgb.fromHSV(hsv);
         pdc.SetTextForeground(*wxBLACK);
-        wxString text = wxString::Format("H:%i,S:%i,V:%i",
-                        int(hsv.hue * 360.0), int(hsv.saturation * 100.0), int(value * 100.0));
-        pdc.DrawText(text, 0 , 0);
+        wxString hsvText = wxString::Format("H:%i S:%i V:%i",
+                           int(hsv.hue * 360.0), int(hsv.saturation * 100.0), int(value * 100.0));
+        wxString rgbText = wxString::Format("R:%i G:%i B:%i", rgb.red, rgb.green, rgb.blue);
+        int lineH = pdc.GetCharHeight();
+        pdc.DrawText(hsvText, 0, 0);
+        pdc.DrawText(rgbText, 0, lineH + 2);
     }
 }
 
@@ -170,6 +168,50 @@ void MHRgbPickerPanel::OnKeyUp(wxKeyEvent& event)
 void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event) {
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
+
+    // Ctrl+click (Cmd+click on macOS): open colour picker and place/move the active handle
+    if (event.CmdDown()) {
+        xlColor initialColor = xlWHITE;
+        int hitHandle = HitTest(ptUI);
+        if (hitHandle >= 0) {
+            initialColor = m_handles[hitHandle].color;
+            active_handle = hitHandle;
+            selected_point = hitHandle;
+        } else if (active_handle >= 0 && active_handle < (int)m_handles.size()) {
+            initialColor = m_handles[active_handle].color;
+        } else if (insideColors(ptUI.m_x, ptUI.m_y)) {
+            initialColor = GetPointColor(ptUI.m_x, ptUI.m_y);
+        }
+
+        xlColourPickerDialog dlg(this, xlColorToWxColour(initialColor));
+        if (dlg.ShowModal() == wxID_OK) {
+            xlColor chosen = wxColourToXlColor(dlg.GetColour());
+            HSVValue hsv;
+            chosen.toHSV(hsv);
+
+            // Place handle at the wheel position for this HSV (same maths as SetColours)
+            double hyp = hsv.saturation * radius;
+            double phi = hsv.hue * 360.0 * PI / 180.0;
+            double px  = std::cos(phi) * hyp + center + circle_offset_x;
+            double py  = std::sin(phi) * hyp + center;
+            wxPoint2DDouble ptWheel(px, py);
+            wxPoint2DDouble ptNorm = UItoNormalized(ptWheel);
+            ptNorm.m_y = 1.0 - ptNorm.m_y;
+
+            if (active_handle >= 0 && active_handle < (int)m_handles.size()) {
+                m_handles[active_handle].pt    = ptNorm;
+                m_handles[active_handle].color = hsv;
+            } else if (m_handles.size() < 8) {
+                m_handles.push_back(HandlePoint(ptNorm, hsv));
+                active_handle  = (int)m_handles.size() - 1;
+                selected_point = active_handle;
+            }
+            m_rgbPickerParent->NotifyColorUpdated();
+            Refresh();
+        }
+        return;   // do not fall through to normal click handling
+    }
+
     m_mousePos = UItoNormalized(ptUI);
     m_mouseDown = true;
     if (m_handles.empty()) {
@@ -298,23 +340,30 @@ int MHRgbPickerPanel::HitTest( wxPoint2DDouble& ptUI )
 
 wxPoint2DDouble MHRgbPickerPanel::UItoNormalized(const wxPoint2DDouble& pt) const
 {
-    wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
+    // Normalise relative to the circle region (offset by circle_offset_x horizontally)
+    double circ_side = 2.0 * center;
+    double ox = circle_offset_x + BorderWidth + 1;
+    double oy = BorderWidth + 1;
+    double szw = circ_side - 2 * BorderWidth - 2;
+    double szh = circ_side - 2 * BorderWidth - 2;
 
-    double x = double(pt.m_x - o.x) / sz.GetWidth();
-    double y = double(pt.m_y - o.y) / sz.GetHeight();
+    double x = (pt.m_x - ox) / szw;
+    double y = (pt.m_y - oy) / szh;
 
     return wxPoint2DDouble(x, 1. - y);
 }
 
 wxPoint2DDouble MHRgbPickerPanel::NormalizedToUI(const wxPoint2DDouble& pt) const
 {
-    wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
+    double circ_side = 2.0 * center;
+    double ox = circle_offset_x + BorderWidth + 1;
+    double oy = BorderWidth + 1;
+    double szw = circ_side - 2 * BorderWidth - 2;
+    double szh = circ_side - 2 * BorderWidth - 2;
 
-    double x = pt.m_x * sz.GetWidth();
-    double y = pt.m_y * sz.GetHeight();
-    return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y));
+    double x = pt.m_x * szw;
+    double y = pt.m_y * szh;
+    return wxPoint2DDouble(ox + x, oy + (szh - y));
 }
 
 wxPoint MHRgbPickerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
@@ -325,11 +374,16 @@ wxPoint MHRgbPickerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
 
 void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
 {
-    center = (float)newSize.GetWidth() / 2.0f;
+    // Fit the circle in min(width, height - value-bar), centred horizontally
+    const int vbar_reserve = (int)v_size + 10;
+    float side = (float)std::min(newSize.GetWidth(),
+                                 std::max(50, newSize.GetHeight() - vbar_reserve));
+    circle_offset_x = (newSize.GetWidth() - side) / 2.0f;
+    center = side / 2.0f;
     radius = center - 10.0f;
 
-    v_left = center - radius;
-    v_top = radius * 2.0 + v_size;
+    v_left  = circle_offset_x + center - radius;
+    v_top   = side;
     v_width = radius * 2.0;
 
     if( m_hsvBitmap != nullptr ) {
@@ -363,14 +417,10 @@ void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
 
 bool MHRgbPickerPanel::insideColors(int x, int y)
 {
-    float xleg = (float)x - center;
+    float xleg = (float)x - (circle_offset_x + center);
     float yleg = (float)y - center;
     float hyp = sqrt(xleg * xleg + yleg * yleg);
-    if( hyp <= radius ) {  // inside circle
-        return true;
-    } else {
-        return false;
-    }
+    return hyp <= radius;
 }
 
 xlColor MHRgbPickerPanel::GetPointColor(int x, int y)
@@ -378,13 +428,13 @@ xlColor MHRgbPickerPanel::GetPointColor(int x, int y)
     HSVValue v;
     v.value = 1.0f;
     xlColor c;
-    float xleg = (float)x - center;
+    float xleg = (float)x - (circle_offset_x + center);
     float yleg = (float)y - center;
     float hyp = sqrt(xleg * xleg + yleg * yleg);
     if( hyp <= radius ) {  // inside circle
         float phi = atan2(xleg, yleg) * 180.0f / PI + 630.0f;
         phi = fmod(phi, 360.0f);
-        v.saturation = hyp / center;
+        v.saturation = std::min(1.0f, (float)(std::ceil(hyp / radius * 100.0f) / 100.0f));
         v.hue = phi / 360.0f;
         c.fromHSV(v);
     } else {
@@ -433,9 +483,9 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
         double sat { wxAtof(colors[i*3+1]) };
         double val { wxAtof(colors[i*3+2]) };
         HSVValue v(hue, sat, val);
-        double hyp {v.saturation * center};
+        double hyp {v.saturation * radius};
         double phi {v.hue * 360.0f * PI / 180.0f};
-        float x = cos(phi) * hyp + center;
+        float x = cos(phi) * hyp + center + circle_offset_x;
         float y = sin(phi) * hyp + center;
         wxPoint2DDouble pt((int)x, (int)y);
         wxPoint2DDouble pt2(UItoNormalized(pt));

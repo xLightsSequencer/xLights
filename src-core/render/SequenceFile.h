@@ -166,8 +166,15 @@ public:
     void ProcessPapagayo(const std::vector<std::string>& filenames, RenderContext* renderContext);
     void ProcessSRT(const std::vector<std::string>& filenames, RenderContext* renderContext);
     void ProcessLSPTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
-    void ProcessXLightsTiming(const std::vector<std::string>& filenames, RenderContext* renderContext);
-    void ProcessVixen3Timing(const std::vector<std::string>& filenames, RenderContext* renderContext);
+    // XLights (.xsq/.xml) and Vixen3 (.tim) imports support per-track selection.
+    // Two-step so the track chooser can be hosted by either UI (desktop
+    // wxMultiChoiceDialog / iPad multi-select sheet): Get*TimingTrackNames
+    // enumerates the importable tracks; the matching Process* imports the
+    // selected indices (an empty selection imports all of them).
+    std::vector<std::string> GetXLightsTimingTrackNames(const std::string& filename, RenderContext* renderContext);
+    void ProcessXLightsTiming(const std::string& filename, const std::vector<int>& selectedIndices, RenderContext* renderContext);
+    std::vector<std::string> GetVixen3TimingTrackNames(const std::string& filename);
+    void ProcessVixen3Timing(const std::string& filename, const std::vector<int>& selectedIndices, RenderContext* renderContext);
     void ProcessElevenLabsTimingFiles(const std::vector<std::string>& filenames, RenderContext* xLightsParent);
     std::string UniqueTimingName(RenderContext* renderContext, std::string name) const;
     void UpdateVersion();

@@ -408,6 +408,17 @@
 				<flag>wxALL|wxEXPAND</flag>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX_CustomColorPicker" variable="CheckBox_UseCustomColorPicker" member="yes">
+					<label>Use custom color picker (experimental)</label>
+					<handler function="OnControlChanged" entry="EVT_CHECKBOX" />
+				</object>
+				<col>0</col>
+				<row>13</row>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

@@ -288,6 +288,8 @@ struct ValueCurveEditorSheet: View {
     @State private var vc: EditableValueCurve?
     @State private var showingLoadPreset = false
     @State private var showingSavePreset = false
+    @State private var showingExport = false
+    @State private var exportDocument: ValueCurveExportDocument? = nil
 
     var body: some View {
         NavigationStack {
@@ -351,10 +353,20 @@ struct ValueCurveEditorSheet: View {
                 let typeHasCustom = XLValueCurve.typeHasCustomPoints(vc.type)
 
                 if typeHasCustom {
+                    // For Custom curves P1 is the cycle count; when >1 the
+                    // points are replicated in core, so point editing (and
+                    // Reverse/Flip below) is disabled to match desktop.
+                    let customCyclesLocked = vc.type == "Custom" && Int(vc.parameter1.rounded()) > 1
                     Section("Points") {
                         ValueCurveCustomPointEditor(vc: vc)
                             .frame(height: 220)
                             .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
+                            .disabled(customCyclesLocked)
+                        if customCyclesLocked {
+                            Text("Point editing is disabled while Cycles > 1.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
 
@@ -445,6 +457,7 @@ struct ValueCurveEditorSheet: View {
                 // lands on them after scrolling through the curve
                 // definition.
                 Section {
+                    let customCyclesLocked = vc.type == "Custom" && Int(vc.parameter1.rounded()) > 1
                     HStack {
                         Button {
                             vc.reverse()
@@ -454,6 +467,7 @@ struct ValueCurveEditorSheet: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
+                        .disabled(customCyclesLocked)
                         Button {
                             vc.flip()
                         } label: {
@@ -462,6 +476,7 @@ struct ValueCurveEditorSheet: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
+                        .disabled(customCyclesLocked)
                     }
                     HStack {
                         Button {
@@ -502,6 +517,14 @@ struct ValueCurveEditorSheet: View {
                         Label("Save As Preset…",
                               systemImage: "square.and.arrow.down")
                     }
+                    Button {
+                        if let doc = viewModel.document.valueCurveXvcDocument(vc.core.serialise()) {
+                            exportDocument = ValueCurveExportDocument(text: doc)
+                            showingExport = true
+                        }
+                    } label: {
+                        Label("Export…", systemImage: "square.and.arrow.up")
+                    }
                 } header: {
                     Text("Presets")
                 }
@@ -518,6 +541,12 @@ struct ValueCurveEditorSheet: View {
                 _ = viewModel.document.saveValueCurveSerialised(
                     vc.core.serialise(), asName: name)
             }
+        }
+        .fileExporter(isPresented: $showingExport,
+                      document: exportDocument,
+                      contentType: ValueCurveExportDocument.xvcType,
+                      defaultFilename: "ValueCurve") { _ in
+            exportDocument = nil
         }
     }
 
@@ -608,6 +637,7 @@ struct ValueCurveEditorSheet: View {
         case ("Random", 1): return "Min"
         case ("Random", 2): return "Max"
         case ("Random", 3): return "Points"
+        case ("Custom", 1): return "Cycles"
         default: return "P\(index)"
         }
     }

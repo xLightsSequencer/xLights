@@ -1133,6 +1133,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     std::map<std::string, std::string> virtualDisplayData;
     FPP::CreateVirtualDisplayMap(frame->AllModels, frame->AllObjects, pw, ph, virtualDisplayData);
     bool cancelled = false;
+
     int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
@@ -1167,15 +1168,24 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     inst->SetRestartFlag();
                 }
                 if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
-                    //auto vendor = FPP::GetVendor(inst->pixelControllerType);
-                    //auto model = FPP::GetModel(inst->pixelControllerType);
-                    //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
-                        cancelled |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
+                        bool controllerCancelled = false;
+                        controllerCancelled |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->SetInputUniversesBridge(c.front());
+                        cancelled |= controllerCancelled;
+
+                        if (!controllerCancelled) {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = c.front()->GetName();
+                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                        }
                     }
                 }
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
@@ -1196,8 +1206,15 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 //if restart flag is now set, restart and recheck range
                 inst->Restart(true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
-                BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
-                bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame);
+                BaseController* bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
+                if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
+                    auto ts = FormatTimestamp();
+                    auto* config = GetXLightsConfig();
+                    auto ctrlName = controller.front()->GetName();
+                    config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                    config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                    config->Flush();
+                }
                 delete bc;
             }
         }

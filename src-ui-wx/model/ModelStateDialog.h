@@ -29,6 +29,9 @@
 #include <glm/glm.hpp>
 
 #include <map>
+#include <unordered_map>
+#include <vector>
+#include <string>
 
 class Model;
 class ModelPreview;
@@ -140,6 +143,9 @@ private:
     void OnChoiceColorDrawSelect(wxCommandEvent& event);
     //*)
 
+    void OnClose(wxCloseEvent& event);
+    void OnCancelButton(wxCommandEvent& event);
+    void ConfirmClose();
     void OnAddBtnPopup(wxCommandEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);
@@ -165,6 +171,7 @@ private:
     bool overRide = false;
     bool showDialog = true;
 
+    std::unordered_map<std::string, std::vector<size_t>> _nodeNameToIndex;
     std::map<std::string, std::map<std::string, std::string>> stateData;
     void SelectStateModel(const std::string& s);
     void UpdateStateType();

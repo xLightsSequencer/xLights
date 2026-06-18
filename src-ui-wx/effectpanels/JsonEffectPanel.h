@@ -112,7 +112,7 @@ protected:
         wxSpinCtrl* spinCtrl = nullptr;
         wxFilePickerCtrl* filePicker = nullptr;
         wxFontPickerCtrl* fontPicker = nullptr;
-        wxColourPickerCtrl* colourPicker = nullptr;
+        wxWindow* colourPicker = nullptr;  // actually xlColourPickerButton / BulkEditColourPickerCtrl
         ValueCurveButton* valueCurveBtn = nullptr;
         wxWindow* buddySlider = nullptr;   // IDD_SLIDER for float props
         wxTextCtrl* buddyText = nullptr;   // IDD_TEXTCTRL for int slider props
@@ -145,6 +145,11 @@ private:
         // For "any" conditions (OR of multiple checkbox properties):
         std::vector<std::string> conditionAnyIds;
 
+        // FX-14: compound AND. When non-empty, the rule's condition is met
+        // iff EVERY sub-condition (each carrying only its own condition
+        // fields) is met. Lets a rule gate on two properties at once.
+        std::vector<VisibilityRule> allOf;
+
         std::vector<std::string> enableIds;
         std::vector<std::string> disableIds;
         std::vector<std::string> showIds;
@@ -169,7 +174,14 @@ private:
     // logical grouping like "Mouth Movements" or "Eyes" on the Faces panel.
     void BuildSection(wxSizer* parentSizer, const nlohmann::json& group, const nlohmann::json& allProps);
     void ParseVisibilityRules(const nlohmann::json& metadata);
+    // Parse the condition fields of a single `when` object into `vr`
+    // (recursing into `allOf` sub-conditions). Shared by the top-level
+    // rule and each compound sub-condition.
+    void ParseWhenCondition(const nlohmann::json& when, VisibilityRule& vr);
     void ApplyVisibilityRules();
+    // Evaluate whether a rule's condition is currently met against the
+    // live control values (recurses for `allOf`).
+    bool EvaluateRuleCondition(const VisibilityRule& rule);
 
     wxWindow* FindControlForProperty(const std::string& propId);
 

@@ -139,7 +139,7 @@ void SpinnerModel::InitModel() {
     int pixelsperstring = _armsPerString*_nodesPerArm;
     int armcount = _armsPerString*_numStrings;
     SetNodeCount(stringcount, pixelsperstring, rgbOrder);
-    screenLocation.SetRenderSize(2 * nodesperarm + 3 + (_hollow * 2.0 * nodesperarm) / 100.0, 2 * nodesperarm + 3 + (_hollow * 2.0 * nodesperarm) / 100.0);
+    screenLocation.SetRenderSize(2 * nodesperarm + 3 + (_hollow * 4.0 * nodesperarm) / 100.0, 2 * nodesperarm + 3 + (_hollow * 2.0 * nodesperarm) / 100.0);
 
     // create output mapping
     if (SingleNode) {

@@ -24,6 +24,7 @@
 #include "EffectsGrid.h"
 #include "color/ColorManager.h"
 #include "render/SequenceElements.h"
+#include "render/SongStructureManager.h"
 #include "media/AudioManager.h"
 #include "media/OnsetDetector.h"
 #include "media/TempoDetector.h"
@@ -39,8 +40,11 @@
 #include <log.h>
 #include "shared/utils/wxUtilities.h"
 #include "sequencer/LyricsDialog.h"
+#include "LRCLIBSearchDialog.h"
 #include "lyrics/LyricBreakdown.h"
 #include "TimeLine.h"
+
+#include <sstream>
 
 #define ICON_SPACE FromDIP(25)
 
@@ -187,6 +191,7 @@ const long RowHeading::ID_ROW_MNU_CUT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS = wxNewId();
+const long RowHeading::ID_ROW_MNU_COPY_MODEL_TO_MODELS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_RENDERENABLE_MODEL = wxNewId();
@@ -213,6 +218,7 @@ const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_UNFIX_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_NOTES = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SEARCH_LYRICS_ONLINE = wxNewId();
 const long RowHeading::ID_ROW_MNU_AI_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
@@ -225,7 +231,10 @@ const long RowHeading::ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_ONSETS = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_TEMPO = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_CHORDS = wxNewId();
+const long RowHeading::ID_ROW_MNU_CREATE_SONG_REGIONS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SETLAYERNAME = wxNewId();
+const long RowHeading::ID_ROW_MNU_HIDE_UNUSED_SUBMODELS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SHOW_ALL_SUBMODELS = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
@@ -249,6 +258,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     auto* config = GetXLightsConfig();
     int w = config->ReadLong("xLightsRowHeaderWidth", _minRowHeadingWidth);
     CallAfter(&RowHeading::SetWidth, w);
+    _scrollTimer.Bind(wxEVT_TIMER, &RowHeading::OnScrollTimer, this);
 }
 
 RowHeading::~RowHeading()
@@ -274,16 +284,16 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
             wxClientDC dc(this);
             wxSize size = dc.GetTextExtent(e->GetName() + layers);
 
-            // Only set tooltip if the text looks too big to display correctly
+            wxString tip;
             if (size.x > getWidth() - DEFAULT_ROW_HEADING_MARGIN - ICON_SPACE) {
-                auto s1 = GetToolTipText().ToStdString();
-                auto s2 = e->GetName();
-                if (GetToolTipText() != e->GetName() + layers) {
-                    SetToolTip(e->GetName() + layers);
-                }
+                tip = e->GetName() + layers;
             }
-            else {
-                SetToolTip("");
+            if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                if (!tip.empty()) tip += "\n";
+                tip += "Double-click: show/hide submodels\nShift+double-click: show/hide submodels and strands";
+            }
+            if (GetToolTipText() != tip) {
+                SetToolTip(tip);
             }
         }
         else {
@@ -305,6 +315,57 @@ void RowHeading::mouseLeave(wxMouseEvent& event)
     SetToolTip("");
 }
 
+void RowHeading::OnScrollTimer(wxTimerEvent&)
+{
+    if (!_rowDragging) {
+        _scrollTimer.Stop();
+        return;
+    }
+    MainSequencer* ms = static_cast<MainSequencer*>(GetParent());
+    int cur = mSequenceElements->GetFirstVisibleModelRow();
+    int maxRow = mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed();
+    int next = std::clamp(cur + _scrollDir, 0, std::max(0, maxRow));
+    bool scrolled = (next != cur);
+    if (scrolled) {
+        int scroll = mSequenceElements->SetFirstVisibleModelRow(next);
+        ms->PanelEffectGrid->ScrollBy(scroll);
+        ms->UpdateEffectGridVerticalScrollBar();
+    }
+    ComputeRowDragTarget(_lastDragY);
+    if (!scrolled) Refresh(false);
+}
+
+void RowHeading::ComputeRowDragTarget(int cursorY)
+{
+    int view = mSequenceElements->GetCurrentView();
+    int visCount = (int)mSequenceElements->GetVisibleRowInformationSize();
+    int elemCount = (int)mSequenceElements->GetElementCount(view);
+
+    struct TopLevelBlock { int viewIdx; int blockStartY; int blockEndY; };
+    std::vector<TopLevelBlock> blocks;
+    for (int r = 0; r < visCount; ++r) {
+        auto* ri = mSequenceElements->GetVisibleRowInformation(r);
+        if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
+            int idx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
+            if (idx < 0) continue;
+            if (!blocks.empty()) blocks.back().blockEndY = r * DEFAULT_ROW_HEADING_HEIGHT;
+            blocks.push_back({idx, r * DEFAULT_ROW_HEADING_HEIGHT, visCount * DEFAULT_ROW_HEADING_HEIGHT});
+        }
+    }
+
+    _rowDragTargetBefore = elemCount;
+    _rowDragIndicatorY = visCount * DEFAULT_ROW_HEADING_HEIGHT;
+    for (const auto& b : blocks) {
+        if (cursorY < (b.blockStartY + b.blockEndY) / 2) {
+            _rowDragTargetBefore = b.viewIdx;
+            _rowDragIndicatorY = b.blockStartY;
+            break;
+        }
+        _rowDragTargetBefore = b.viewIdx + 1;
+        _rowDragIndicatorY = b.blockEndY;
+    }
+}
+
 void RowHeading::SetWidth(int w)
 {
     auto minSize = GetMinSize();
@@ -317,23 +378,81 @@ void RowHeading::SetWidth(int w)
 
 void RowHeading::mouseMove(wxMouseEvent& event)
 {
+    if (_rowDragging) {
+        int cursorY = std::max(0, event.GetY());
+        _lastDragY = cursorY;
+        ComputeRowDragTarget(cursorY);
+
+        int h = GetSize().GetHeight();
+        int zone = FromDIP(40);
+        if (cursorY < zone) {
+            _scrollDir = -1;
+            if (!_scrollTimer.IsRunning()) _scrollTimer.Start(150);
+        } else if (cursorY > h - zone) {
+            _scrollDir = 1;
+            if (!_scrollTimer.IsRunning()) _scrollTimer.Start(150);
+        } else {
+            _scrollDir = 0;
+            _scrollTimer.Stop();
+        }
+
+        static const wxCursor s_hand(wxCURSOR_HAND);
+        SetCursor(s_hand);
+        Refresh(false);
+        return;
+    }
+
+    if (_rowDragSourceIdx >= 0 && !_rowDragging) {
+        int dy = event.GetY() - _rowDragStart.y;
+        if (dy > FromDIP(5) || dy < -FromDIP(5)) {
+            _rowDragging = true;
+            if (!HasCapture()) CaptureMouse();
+            return;
+        }
+    }
+
     ProcessTooltip(event);
 
     if (_dragging) {
         SetWidth(event.GetX());
     }
 
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_arrow(wxCURSOR_ARROW);
     auto size = GetSize();
     if (HasCapture() || (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth())) {
-        SetCursor(wxCURSOR_SIZEWE);
-    }
-    else {
-        SetCursor(wxCURSOR_ARROW);
+        SetCursor(s_sizeWE);
+    } else {
+        SetCursor(s_arrow);
     }
 }
 
 void RowHeading::mouseLeftUp(wxMouseEvent& event)
 {
+    if (_rowDragging) {
+        if (HasCapture()) ReleaseMouse();
+        _rowDragging = false;
+
+        if (_rowDragSourceIdx >= 0 && _rowDragTargetBefore >= 0
+            && _rowDragTargetBefore != _rowDragSourceIdx
+            && _rowDragTargetBefore != _rowDragSourceIdx + 1) {
+            int view = mSequenceElements->GetCurrentView();
+            int dest = _rowDragTargetBefore;
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            mSequenceElements->MoveSequenceElement(_rowDragSourceIdx, dest, view);
+            wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), evt);
+        }
+
+        _scrollTimer.Stop();
+        _scrollDir = 0;
+        _rowDragSourceIdx = -1;
+        _rowDragTargetBefore = -1;
+        _rowDragIndicatorY = -1;
+        Refresh(false);
+        return;
+    }
+
     if (_dragging) {
         auto size = GetSize();
         auto* config = GetXLightsConfig();
@@ -341,11 +460,16 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
         ReleaseMouse();
         _dragging = false;
     }
+
+    _rowDragSourceIdx = -1;
 }
 
 void RowHeading::mouseLeftDown(wxMouseEvent& event)
 {
     _dragging = false;
+    _rowDragging = false;
+    _rowDragSourceIdx = -1;
+
     auto size = GetSize();
     if (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth()) {
         CaptureMouse();
@@ -355,7 +479,14 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
     mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow < (int)mSequenceElements->GetVisibleRowInformationSize()) {
         bool result;
-        Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
+        Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+        if (rowInfo == nullptr) {
+            return;
+        }
+        Element* e = rowInfo->element;
+        if (e == nullptr) {
+            return;
+        }
         if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             mSequenceElements->UnSelectAllElements();
             ModelElement* me = dynamic_cast<ModelElement*>(e);
@@ -373,11 +504,17 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
             mSequenceElements->DeactivateAllTimingElements();
             TimingElement* te = dynamic_cast<TimingElement*>(e);
             te->SetActive(!result);
-            // Set the selected timing row.
             int selectedTimingRow = result ? mSelectedRow : -1;
             mSequenceElements->SetSelectedTimingRow(selectedTimingRow);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
+        } else {
+            Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+            if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
+                int view = mSequenceElements->GetCurrentView();
+                _rowDragSourceIdx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
+                _rowDragStart = event.GetPosition();
+            }
         }
     }
 }
@@ -448,6 +585,34 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
 
+    if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        if (event.ShiftDown()) {
+            // Shift+DblClick: submodels + strands
+            bool showAll = !(me->ShowSubModels() && me->ShowStrands());
+            me->ShowSubModels(showAll);
+            me->ShowStrands(showAll);
+        } else {
+            Model* m = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
+            bool isGroup = m && m->GetDisplayAs() == DisplayAsType::ModelGroup;
+            if (isGroup) {
+                // Groups expand via ShowStrands — ShowSubModels has no effect on them
+                me->ShowStrands(!me->ShowStrands());
+            } else {
+                // Plain DblClick: submodels only (no strands)
+                if (me->ShowSubModels()) {
+                    me->ShowSubModels(false);
+                    me->ShowStrands(false);
+                } else {
+                    me->ShowSubModels(true);
+                }
+            }
+        }
+        wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
+        evt.SetString(element->GetModelName());
+        wxPostEvent(GetParent(), evt);
+        return;
+    }
     ToggleExpand(element);
 }
 
@@ -480,15 +645,32 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
                     if (element->GetEffectLayerCount() > 1) {
                         mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER, "Delete Layer");
-
                         mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
-                        mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
+                    }
+                    {
+                        bool canDeleteUnused = element->GetEffectLayerCount() > 1;
+                        if (!canDeleteUnused) {
+                            ModelElement* checkMe = dynamic_cast<ModelElement*>(element);
+                            if (checkMe != nullptr) {
+                                for (int s = 0; s < checkMe->GetSubModelCount() && !canDeleteUnused; ++s) {
+                                    if (checkMe->GetSubModel(s)->GetEffectLayerCount() > 1)
+                                        canDeleteUnused = true;
+                                }
+                            }
+                        }
+                        if (canDeleteUnused)
+                            mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
                     }
                     mnuLayer.Append(ID_ROW_MNU_SETLAYERNAME, "Edit Layer Name");
                     mnuLayer.AppendSeparator();
                 }
                 if (mSequenceElements->GetHiddenTimingCount() > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW) {
                     mnuLayer.Append(ID_ROW_MNU_SHOWALLTIMING, "Show All Timing Tracks");
+                }
+                if (mSequenceElements->GetHideUnusedSubmodels()) {
+                    mnuLayer.Append(ID_ROW_MNU_SHOW_ALL_SUBMODELS, "Show All Submodels");
+                } else {
+                    mnuLayer.Append(ID_ROW_MNU_HIDE_UNUSED_SUBMODELS, "Hide Unused Submodels");
                 }
                 bool canPromote = false;
                 ModelElement* me = dynamic_cast<ModelElement*>(element);
@@ -499,7 +681,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     if (element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
                         canPromote = true;
                     }
-                    mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS, "Toggle Strands");
+                    mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS, "Toggle Strands (Shift+DblClick)");
                     if (ri->strandIndex >= 0) {
                         mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES, "Toggle Nodes");
                     }
@@ -565,6 +747,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS, "Copy Effects incl SubModels");
+                modelMenu->Append(ID_ROW_MNU_COPY_MODEL_TO_MODELS, "Copy Layers/SubModels to Models");
                 wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
                 wxMenuItem* menu_pastem = modelMenu->Append(ID_ROW_MNU_PASTE_MODEL, "Paste Effects");
                 if (!mCanPaste) {
@@ -602,11 +785,6 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS, "Add Timing Tracks to All Views");
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
                     mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
-                    // A2/A4/A9: audio-analysis generators live inside
-                    // the "Add Timing Track" dialog's timing-type
-                    // picker (alongside VAMP plugins), not here —
-                    // keep this row-popup focused on operations on
-                    // the existing timing track.
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     if ( xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
                         SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
@@ -616,6 +794,8 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     }
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
+                    mnuLayer.Append(ID_ROW_MNU_CREATE_SONG_REGIONS, "Create Song Regions from Timing Track");
+                    mnuLayer.Append(ID_ROW_MNU_SEARCH_LYRICS_ONLINE, "Search for Lyrics Online...");
                     TimingElement *te = dynamic_cast<TimingElement*>(element);
                     if (te->GetSubType() == "") {
                         mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
@@ -740,6 +920,122 @@ static void ImportLyrics(SequenceElements* seqElements, TimingElement* element, 
     }
 }
 
+static void ImportSyncedLyrics(SequenceElements* seqElements, TimingElement* element, wxWindow* parent)
+{
+    wxString songTitle;
+    wxString artistName;
+    if (xLightsFrame::CurrentSeqXmlFile) {
+        songTitle = xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::SONG);
+        artistName = xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::ARTIST);
+    }
+
+    LRCLIBSearchDialog dlg(parent, songTitle, artistName);
+
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+
+    int sequenceEndMS = seqElements->GetSequenceEnd();
+
+    seqElements->get_undo_mgr().CreateUndoStep();
+
+    element->SetFixedTiming(0);
+    int num_layers = element->GetEffectLayerCount();
+    for (int k = num_layers - 1; k >= 0; k--) {
+        element->RemoveEffectLayer(k);
+    }
+    EffectLayer* phrase_layer = element->AddEffectLayer();
+
+    if (dlg.HasSyncedLyrics()) {
+        auto lines = ParseLRC(dlg.GetSelectedSyncedLyrics());
+
+        std::vector<std::pair<int, std::string>> filtered;
+        for (const auto& line : lines) {
+            if (!line.second.empty()) {
+                filtered.push_back(line);
+            }
+        }
+
+        if (filtered.empty()) {
+            DisplayError("No synced lyrics lines found.");
+            return;
+        }
+
+        for (size_t i = 0; i < filtered.size(); i++) {
+            int startMS = TimeLine::RoundToMultipleOfPeriod(filtered[i].first, seqElements->GetFrequency());
+
+            int endMS;
+            if (i + 1 < filtered.size()) {
+                endMS = TimeLine::RoundToMultipleOfPeriod(filtered[i + 1].first, seqElements->GetFrequency());
+            } else {
+                endMS = sequenceEndMS;
+            }
+
+            if (startMS >= sequenceEndMS)
+                break;
+            if (endMS > sequenceEndMS)
+                endMS = sequenceEndMS;
+            if (endMS <= startMS)
+                continue;
+
+            wxString text(filtered[i].second);
+            text.Replace(wxT("’"), "'", true);
+            text.Replace(wxT("Ș"), "'", true);
+            text.Replace(wxT("“"), "\"", true);
+            text.Replace(wxT("”"), "\"", true);
+            text.Replace(wxT("\""), "", true);
+            text.Replace(wxT("<"), "", true);
+            text.Replace(wxT(">"), "", true);
+
+            if (!text.Trim().IsEmpty()) {
+                std::string s = text.ToStdString();
+                PhonemeDictionary::InsertSpacesAfterPunctuation(s);
+                Effect* ef = phrase_layer->AddEffect(0, s, "", "",
+                    startMS, endMS, EFFECT_NOT_SELECTED, false);
+                seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+            }
+        }
+    } else {
+        std::string plainLyrics = dlg.GetSelectedPlainLyrics();
+        std::istringstream stream(plainLyrics);
+        std::string line;
+        std::vector<std::string> phrases;
+        while (std::getline(stream, line)) {
+            wxString wl(line);
+            wl = wl.Trim().Trim(false);
+            wl.Replace(wxT("’"), "'", true);
+            wl.Replace(wxT("Ș"), "'", true);
+            wl.Replace(wxT("“"), "\"", true);
+            wl.Replace(wxT("”"), "\"", true);
+            wl.Replace(wxT("\""), "", true);
+            wl.Replace(wxT("<"), "", true);
+            wl.Replace(wxT(">"), "", true);
+            if (!wl.Trim().IsEmpty()) {
+                phrases.push_back(wl.ToStdString());
+            }
+        }
+
+        if (phrases.empty()) {
+            DisplayError("No lyrics lines found.");
+            return;
+        }
+
+        int interval_ms = sequenceEndMS / phrases.size();
+        int start_time = 0;
+        for (size_t i = 0; i < phrases.size(); i++) {
+            int end_time = TimeLine::RoundToMultipleOfPeriod(start_time + interval_ms, seqElements->GetFrequency());
+            if (i == phrases.size() - 1 || end_time > sequenceEndMS)
+                end_time = sequenceEndMS;
+
+            std::string s = phrases[i];
+            PhonemeDictionary::InsertSpacesAfterPunctuation(s);
+            Effect* ef = phrase_layer->AddEffect(0, s, "", "",
+                start_time, end_time, EFFECT_NOT_SELECTED, false);
+            seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+            start_time = end_time;
+        }
+    }
+}
+
 void RowHeading::OnLayerPopup(wxCommandEvent& event)
 {
     int id = event.GetId();
@@ -857,18 +1153,21 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_DELETE_UNUSEDLAYERS) {
         spdlog::debug("RowHeading::OnLayerPopup Deleting unused layers.");
         bool deleted = false;
-        for (int i = 0; i < (int)element->GetEffectLayerCount(); ++i) {
-            if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
-                // dont delete this layer
-            } else {
-                if (element->GetEffectLayerCount() == 1) {
-                    // last layer ... dont delete it
-                } else {
+        auto deleteUnusedLayers = [&](Element* elem) {
+            for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
+                if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
                     xLightsApp::GetFrame()->AbortRender();
-                    element->RemoveEffectLayer(i);
+                    elem->RemoveEffectLayer(i);
                     --i;
                     deleted = true;
                 }
+            }
+        };
+        deleteUnusedLayers(element);
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        if (me != nullptr) {
+            for (int s = 0; s < me->GetSubModelCount(); ++s) {
+                deleteUnusedLayers(me->GetSubModel(s));
             }
         }
         if (deleted) {
@@ -923,7 +1222,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (vampMedia != nullptr) {
             plugins = vampMedia->GetVamp()->GetAvailablePlugins(vampMedia);
 
-            // A2/A4/A9: the built-in detectors produce timing tracks
+            // The built-in detectors produce timing tracks
             // directly from audio analysis. Listed after the FPP
             // options (which end the default list) but before VAMP
             // plugins so the dialog reads as: built-in → xLights
@@ -932,6 +1231,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 dialog.Choice_New_Fixed_Timing->Append("Audio Onsets");
                 dialog.Choice_New_Fixed_Timing->Append("Audio Tempo");
                 dialog.Choice_New_Fixed_Timing->Append("Audio Chords");
+                // AI lyric transcription. Reuses the existing
+                // EVT_AI_LYRICS handler in tabSequencer.cpp; only
+                // offered when at least one SPEECH2TEXT service is
+                // configured (Apple Intelligence on Apple Silicon
+                // covers this without an API key).
+                if (xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
+                    dialog.Choice_New_Fixed_Timing->Append("AI Lyrics from Audio");
+                }
             }
 
             if (plugins.size() == 0) {
@@ -965,6 +1272,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 dialog.Destroy();
                 wxCommandEvent evt(wxEVT_MENU, detectorId);
                 OnLayerPopup(evt);
+                return;
+            } else if (selected_timing == "AI Lyrics from Audio") {
+                // Reuse the EVT_AI_LYRICS handler that powers the
+                // row-context-menu "AI Speech 2 Lyrics" entry.
+                dialog.Destroy();
+                wxCommandEvent aiEvt(EVT_AI_LYRICS);
+                wxPostEvent(GetParent(), aiEvt);
                 return;
             } else {
                 if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end()) {
@@ -1523,6 +1837,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), aiLyricsEvent);
     } else if (id == ID_ROW_MNU_IMPORT_LYRICS) {
         ImportLyrics(mSequenceElements, dynamic_cast<TimingElement*>(element), GetParent());
+    } else if (id == ID_ROW_MNU_SEARCH_LYRICS_ONLINE) {
+        ImportSyncedLyrics(mSequenceElements, dynamic_cast<TimingElement*>(element), GetParent());
     } else if (id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
         int result = wxOK;
         if (element->GetEffectLayerCount() > 1) {
@@ -1557,11 +1873,84 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->HideAllTimingTracks(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_HIDE_UNUSED_SUBMODELS) {
+        mSequenceElements->SetHideUnusedSubmodels(true);
+        GetXLightsConfig()->Write("HideUnusedSubmodels", true);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_SHOW_ALL_SUBMODELS) {
+        mSequenceElements->SetHideUnusedSubmodels(false);
+        GetXLightsConfig()->Write("HideUnusedSubmodels", false);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
             te->RemoveEffectLayer(2);
             te->RemoveEffectLayer(1);
+        }
+    } else if (id == ID_ROW_MNU_CREATE_SONG_REGIONS) {
+        TimingElement* te = dynamic_cast<TimingElement*>(element);
+        if (te != nullptr && mSequenceElements != nullptr) {
+            EffectLayer* el = te->GetEffectLayer(0);
+            if (el != nullptr && el->GetEffectCount() > 0) {
+                SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+
+                if (ssm.GetViewCount() > 0 || ssm.AnyViewHasRegions()) {
+                    int result = wxMessageBox(
+                        "This will replace existing song structure views and regions. Continue?",
+                        "Create Song Regions", wxYES_NO | wxICON_QUESTION, this);
+                    if (result != wxYES) {
+                        return;
+                    }
+                    ssm.Clear();
+                }
+
+                int viewIdx = ssm.AddView("Default");
+                ssm.SetActiveView(viewIdx);
+
+                int seqEndMS = mSequenceElements->GetSequenceEnd();
+                int regionId = 1;
+                int colorIdx = 0;
+                int lastEndMS = 0;
+
+                std::vector<SongStructureRegion> regions;
+
+                for (int k = 0; k < el->GetEffectCount(); ++k) {
+                    Effect* eff = el->GetEffect(k);
+                    int markStart = eff->GetStartTimeMS();
+                    int markEnd = eff->GetEndTimeMS();
+
+                    std::string label = eff->GetEffectName();
+                    if (label.empty()) {
+                        label = wxString::Format("Region %d", k + 1).ToStdString();
+                    }
+
+                    if (markStart > lastEndMS) {
+                        regions.emplace_back(regionId++, lastEndMS, markStart, "", 0x40808080);
+                    }
+
+                    uint32_t color = SongStructureManager::GetPaletteColor(colorIdx % SongStructureManager::PALETTE_SIZE);
+                    regions.emplace_back(regionId++, markStart, markEnd, label, color);
+                    colorIdx++;
+
+                    lastEndMS = markEnd;
+                }
+
+                if (lastEndMS < seqEndMS) {
+                    regions.emplace_back(regionId++, lastEndMS, seqEndMS, "", 0x40808080);
+                }
+
+                ssm.SetRegions(regions);
+
+                wxCommandEvent eventSequenceChanged(EVT_SEQUENCE_CHANGED);
+                wxPostEvent(GetParent(), eventSequenceChanged);
+                MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
+                if (ms != nullptr) {
+                    ms->PanelTimeLine->Refresh(false);
+                    if (ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+                }
+            }
         }
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
@@ -1646,6 +2035,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         copyRowEvent.SetString("AllInclSub");
         wxPostEvent(GetParent(), copyRowEvent);
         mCanPaste = true;
+    } else if (id == ID_ROW_MNU_COPY_MODEL_TO_MODELS) {
+        wxCommandEvent evt(EVT_COPY_MODEL_EFFECTS_TO_MODELS);
+        evt.SetInt(mSelectedRow);
+        wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
@@ -1797,8 +2190,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
     } else if (id == ID_ROW_MNU_PASTE_MODEL) {
-        wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS);
-        pasteRowEvent.SetString("All");
+        wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS);
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
     } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
@@ -1808,7 +2200,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             me = se->GetModelElement();
         }
         if (me != nullptr) {
-            me->ShowStrands(!me->ShowStrands());
+            bool show = !me->ShowStrands();
+            me->ShowStrands(show);
+            if (show) me->ShowSubModels(true);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             eventRowHeaderChanged.SetString(element->GetModelName());
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -1821,8 +2215,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (ExpandElementIfEffects(e)) {
                     ModelElement* me = dynamic_cast<ModelElement*>(e);
-                    if (me != nullptr)
+                    if (me != nullptr) {
                         me->ShowStrands(true);
+                        me->ShowSubModels(true);
+                    }
                 }
             }
         }
@@ -1836,6 +2232,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 ModelElement* me = dynamic_cast<ModelElement*>(e);
                 if (me != nullptr) {
                     me->ShowStrands(false);
+                    me->ShowSubModels(false);
                 }
             }
         }
@@ -1848,6 +2245,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         for (int i = 0; i < (int)mSequenceElements->GetElementCount(view); ++i) {
             Element* e = mSequenceElements->GetElement(i, view);
             e->SetCollapsed(true);
+        }
+        for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); ++i) {
+            mSequenceElements->GetTimingElement(i)->SetCollapsed(true);
         }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -1952,8 +2352,10 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
                     hasEffects = mm->HasEffects();
                     hasEffects |= ExpandElementIfEffects(mSequenceElements->GetElement(*it));
 
-                    if (hasEffects)
+                    if (hasEffects) {
                         me->ShowStrands(true);
+                        me->ShowSubModels(true);
+                    }
                 }
             }
         } else {
@@ -1964,8 +2366,10 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
                 hasEffects |= ExpandElementIfEffects(me->GetSubModel(i));
             }
 
-            if (hasEffects)
+            if (hasEffects) {
                 me->ShowStrands(true);
+                me->ShowSubModels(true);
+            }
         }
     } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         StrandElement* se = dynamic_cast<StrandElement*>(e);
@@ -2401,6 +2805,12 @@ void RowHeading::render( wxPaintEvent& event )
     wxBrush b(xlColorToWxColour(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER)),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
+
+    if (_rowDragging && _rowDragIndicatorY >= 0) {
+        wxPen linePen(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT), FromDIP(3));
+        dc.SetPen(linePen);
+        dc.DrawLine(0, _rowDragIndicatorY, w, _rowDragIndicatorY);
+    }
 }
 
 xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info, int dragRow) const
@@ -2418,6 +2828,9 @@ xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info, int dragRow) co
 void RowHeading::SetSequenceElements(SequenceElements* elements)
 {
     mSequenceElements = elements;
+    if (mSequenceElements != nullptr) {
+        mSequenceElements->SetHideUnusedSubmodels(GetXLightsConfig()->ReadBool("HideUnusedSubmodels", false));
+    }
 }
 
 void RowHeading::DrawHeading(wxPaintDC* dc, pugi::xml_node model, int width, int row)

@@ -13,8 +13,10 @@
 //(*Headers(EffectTreeDialog)
 #include <wx/button.h>
 #include <wx/panel.h>
+#include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
+#include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/timer.h>
 #include <wx/treectrl.h>
@@ -46,6 +48,8 @@ class EffectTreeDialog : public wxPanel
 		wxButton* Button_MoveUp;
 		wxButton* Button_Top;
 		wxButton* ETButton1;
+		wxRadioButton* btLayers;
+		wxRadioButton* btPosition;
 		wxButton* btAddGroup;
 		wxButton* btApply;
 		wxButton* btDelete;
@@ -55,6 +59,7 @@ class EffectTreeDialog : public wxPanel
 		wxButton* btRename;
 		wxButton* btUpdate;
 		wxStaticBitmap* StaticBitmapGif;
+		wxStaticText* StaticTextApplyLabel;
 		wxTextCtrl* TextCtrl1;
 		wxTimer TimerGif;
 		wxTreeCtrl* TreeCtrl1;
@@ -84,9 +89,12 @@ class EffectTreeDialog : public wxPanel
 		static const wxWindowID ID_BUTTON8;
 		static const wxWindowID ID_BUTTON3;
 		static const wxWindowID ID_BUTTON5;
+		static const wxWindowID ID_BTN_POSITION;
+		static const wxWindowID ID_BTN_LAYERS;
 		static const wxWindowID ID_TEXTCTRL_SEARCH;
 		static const wxWindowID ID_BUTTON_SEARCH;
 		static const wxWindowID ID_TIMER_GIF;
+		static const wxWindowID ID_STATICTEXT_APPLY;
 		//*)
 
 	private:
@@ -112,6 +120,8 @@ class EffectTreeDialog : public wxPanel
 		void OnButton_MoveDownClick(wxCommandEvent& event);
 		void OnButton_BottomClick(wxCommandEvent& event);
 		void OnTreeCtrl1ItemRightClick(wxTreeEvent& event);
+		void OnBtnPositionClick(wxCommandEvent& event);
+		void OnBtnLayersClick(wxCommandEvent& event);
 		//*)
 
         void OnShow(wxShowEvent& event);
@@ -125,6 +135,7 @@ class EffectTreeDialog : public wxPanel
         wxTreeItemId m_draggedItem;
         std::mutex preset_mutex;
         bool _effectsFixed = false;
+        bool _layerMode = false;
         void OnGridPopup(wxCommandEvent& event);
         void AddTreeElementsRecursive(EffectPresetGroup& group, wxTreeItemId curGroupID);
         void ApplyEffect(bool dblClick=false);
@@ -156,7 +167,15 @@ class EffectTreeDialog : public wxPanel
         void DeleteGifsRecursive(wxTreeItemId parentId);
         void PurgeDanglingGifs();
         bool PromptForName(wxWindow* parent, wxString& name, bool isNew, bool isGroup);
+        void UpdateModeButtons();
         void OnDropEffect(wxCommandEvent& event);
+
+        EffectPresetManager _basePresetManager;
+        wxTreeItemId _baseRootID;
+        void PromptAndSaveBasePresets();
+
+public:
+        bool IsInBaseSection(wxTreeItemId id) const;
 
 };
 

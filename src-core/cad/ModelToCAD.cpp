@@ -57,6 +57,7 @@ namespace ModelToCAD
 		cadFile->WriteHeader();
 		for (auto m = allmodels->begin(); m != allmodels->end(); ++m) {
 			Model* mm = m->second;
+			if (mm == nullptr) continue;
 
 			if (mm->GetLayoutGroup() != layout) {
 				continue;

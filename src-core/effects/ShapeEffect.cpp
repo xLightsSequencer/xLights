@@ -418,7 +418,7 @@ public:
         if (randomMovement)
         {
             speed = rand01() * (ShapeEffect::sVelocityMax - ShapeEffect::sVelocityMin) - ShapeEffect::sVelocityMin;
-            angle = rand01() * (ShapeEffect::sDirectionMax - ShapeEffect::sDirectionMin) - ShapeEffect::sVelocityMin;
+            angle = rand01() * (ShapeEffect::sDirectionMax - ShapeEffect::sDirectionMin) - ShapeEffect::sDirectionMin;
         }
         _shapes.push_back(new ShapeData(centre, size, oset, color, shape, angle, speed, holdColour, colourIndex));
     }
@@ -534,7 +534,6 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     int count = GetValueCurveInt("Shape_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int startSize = GetValueCurveInt("Shape_StartSize", sStartSizeDefault, SettingsMap, oset, sStartSizeMin, sStartSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int emoji = SettingsMap.GetInt("SPINCTRL_Shape_Char", 127876);
-    int emojiTone = 0;
     std::string font = SettingsMap["FONTPICKER_Shape_Font"];
     std::string svgFilename = SettingsMap["FILEPICKERCTRL_SVG"];
     int direction = GetValueCurveInt("Shapes_Direction", sDirectionDefault, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -546,6 +545,8 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
     int rotation = GetValueCurveInt("Shape_Rotation", sRotationDefault, SettingsMap, oset, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     int Object_To_Draw = DecodeShape(Object_To_DrawStr);
+
+    int emojiTone = mapSkinTone(SettingsMap["CHOICE_Shape_SkinTone"]);
 
     float f = 0.0;
     bool useMusic = SettingsMap.GetBool("CHECKBOX_Shape_UseMusic", sUseMusicDefault);
@@ -809,7 +810,6 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             Drawpresent(buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness, rotation);
             break;
         case RENDER_SHAPE_EMOJI:
-            emojiTone = mapSkinTone(SettingsMap["CHOICE_Shape_SkinTone"]);
             Drawemoji(buffer, it->_centre.x, it->_centre.y, it->_size, color, emoji, emojiTone, _font, cache);
             break;
         case RENDER_SHAPE_SVG:

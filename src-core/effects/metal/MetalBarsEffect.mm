@@ -11,9 +11,6 @@ public:
     MetalBarsEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("BarsEffect");
     }
-    ~MetalBarsEffectData() {
-        if (fn) { [fn release]; }
-    }
 
     bool canRender() { return fn != nil; }
 

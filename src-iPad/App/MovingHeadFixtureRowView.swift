@@ -91,16 +91,17 @@ struct MovingHeadFixtureRowView: View {
     }
 }
 
-/// Read-only banner above the Moving Head fixture row. Calls out
-/// the parts of the desktop Effect Assist story that aren't yet
-/// covered on iPad — currently just full waypoint path editing.
+/// Read-only banner above the Moving Head fixture row. iPad now
+/// covers waypoint path drawing, presets and the colour-wheel
+/// picker; the remaining gap is the desktop double-selector
+/// multi-colour wheel animation.
 struct MovingHeadInfoRowView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 6) {
             Image(systemName: "info.circle")
                 .foregroundStyle(.tint)
                 .font(.caption)
-            Text("Full waypoint path drawing still uses desktop's Effect Assist panel. iPad supports fixture selection, Pan / Tilt / Offset / Groupings / Cycles, single-colour and dimmer-intensity authoring.")
+            Text("iPad supports fixture selection, Pan / Tilt / Offset / Groupings / Cycles, single-colour, dimmer intensity, waypoint path drawing, path / dimmer presets and the colour-wheel picker. Multi-colour wheel animation still uses desktop.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
@@ -158,7 +159,7 @@ struct MovingHeadColorRowView: View {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.movingHeadCommand("Color",
                                                       forRow: Int32(sel.rowIndex),
-                                                      atIndex: Int32(sel.effectIndex)) ?? ""
+                                                      atIndex: Int32(sel.effectIndex))
     }
 
     private var currentColor: Color {
@@ -230,10 +231,11 @@ struct MovingHeadDimmerRowView: View {
                 .disabled(rawDimmerString.isEmpty)
             }
             if isMultiSegment {
-                Text("Multi-segment dimmer envelope authored on desktop. Editing here will replace it with a constant intensity.")
+                Text("Multi-segment dimmer envelope. The slider sets a constant intensity; tap a preset for a ramp or pulse.")
                     .font(.caption2)
                     .foregroundStyle(.orange)
             }
+            MovingHeadDimmerPresetStrip()
         }
         .padding(.vertical, 4)
     }
@@ -243,7 +245,7 @@ struct MovingHeadDimmerRowView: View {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.movingHeadCommand("Dimmer",
                                                       forRow: Int32(sel.rowIndex),
-                                                      atIndex: Int32(sel.effectIndex)) ?? ""
+                                                      atIndex: Int32(sel.effectIndex))
     }
 
     /// Desktop dimmer ramps are x,y pairs over 0..1. We surface the
@@ -284,58 +286,3 @@ struct MovingHeadDimmerRowView: View {
     }
 }
 
-/// Path read + clear. Full waypoint authoring still requires
-/// desktop; iPad surfaces the current Path: command (so users
-/// know whether one is set) and exposes a Clear action so a
-/// stale path doesn't fight a fresh Pan / Tilt setup.
-struct MovingHeadPathRowView: View {
-    @Environment(SequencerViewModel.self) var viewModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Path")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            if rawPath.isEmpty {
-                Text("No path set. Use desktop's Effect Assist to draw one.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                HStack(alignment: .top) {
-                    Text(rawPath)
-                        .font(.caption2.monospaced())
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                        .truncationMode(.middle)
-                    Spacer()
-                    Button {
-                        clearPath()
-                    } label: {
-                        Label("Clear", systemImage: "xmark.circle")
-                            .labelStyle(.iconOnly)
-                    }
-                    .buttonStyle(.borderless)
-                }
-            }
-        }
-        .padding(.vertical, 4)
-    }
-
-    private var rawPath: String {
-        _ = viewModel.inspectorRevision
-        guard let sel = viewModel.selectedEffect else { return "" }
-        return viewModel.document.movingHeadCommand("Path",
-                                                      forRow: Int32(sel.rowIndex),
-                                                      atIndex: Int32(sel.effectIndex)) ?? ""
-    }
-
-    private func clearPath() {
-        guard let sel = viewModel.selectedEffect else { return }
-        _ = viewModel.document.setMovingHeadCommand(
-            "Path", value: "",
-            forRow: Int32(sel.rowIndex),
-            atIndex: Int32(sel.effectIndex))
-        viewModel.refreshSelectedEffectSettings()
-        viewModel.inspectorRevision &+= 1
-    }
-}

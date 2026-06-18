@@ -13,6 +13,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSString* displayName;
 @property (nonatomic, copy, readonly) NSString* canonicalName;
 @property (nonatomic, copy, readonly) NSString* modelType;
+// Per-source timeline summary surfaced in the mapping list (the iPad analogue
+// of the desktop per-row timeline column). `effectCount` is the number of
+// source effects under this entry; `durationMs` is its last effect's end time.
+// Both 0 for sources whose reader doesn't compute them (legacy channel-data
+// formats).
+@property (nonatomic, assign, readonly) NSInteger effectCount;
+@property (nonatomic, assign, readonly) NSInteger durationMs;
 @end
 
 // A timing track from the source sequence that the user can choose
@@ -37,6 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSString* node;
 @property (nonatomic, copy, readonly) NSString* mapping;       // empty if unmapped
 @property (nonatomic, copy, readonly) NSString* mappingModelType;
+@property (nonatomic, copy, readonly) NSArray<NSString*>* stackedMappings; // extra merged sources (empty for the common case)
 @property (nonatomic, assign, readonly) BOOL isGroup;
 @property (nonatomic, assign, readonly) BOOL isSubmodel;
 @property (nonatomic, assign, readonly) NSInteger effectCount;
@@ -93,6 +101,29 @@ NS_ASSUME_NONNULL_BEGIN
             sourceDisplayName:(nullable NSString*)sourceDisplayName
                     modelType:(nullable NSString*)modelType;
 
+// Append an additional source onto an already-mapped destination row — the
+// "Add Additional" branch of the desktop merge/stack prompt (#6474). The
+// primary `mapping` is kept; the extra source is replayed as appended layers
+// (separator + layers) at apply time, like the desktop's `_isStackDuplicate`.
+- (void)addStackedMappingForRow:(intptr_t)nodeID
+              sourceDisplayName:(NSString*)sourceDisplayName
+                      modelType:(nullable NSString*)modelType
+    NS_SWIFT_NAME(addStackedMapping(forRow:sourceDisplayName:modelType:));
+
+// Sort a destination model's submodel children alphabetically by name
+// (#4636). `nodeID` must be a top-level model row; strands keep their
+// order. No-op if the row isn't a root model. Returns YES if a re-sort
+// happened.
+- (BOOL)sortSubmodelsForRow:(intptr_t)nodeID
+    NS_SWIFT_NAME(sortSubmodels(forRow:));
+
+// Rebuild the destination mapping tree from the active sequence — used after
+// the user edits display elements mid-import so newly-added models appear as
+// targets. Mappings on rows that still exist are preserved by (model, strand,
+// node) name; rows that vanished drop their mappings.
+- (void)rebuildDestinationTree
+    NS_SWIFT_NAME(rebuildDestinationTree());
+
 // Run the desktop's Auto Map button: norm pass + aggressive pass +
 // every regex hint in `<showdir>/maphints/*.xmaphint`.
 - (void)runAutoMap;
@@ -103,18 +134,122 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)runAutoMapSelectedTargets:(NSArray<NSNumber*>*)selectedNodeIDs
                           sources:(NSArray<NSString*>*)selectedSourceDisplayNames;
 
+// Desktop "AI Map": asks the MAPPING-capable AI service (e.g. Claude
+// GenerateModelMapping) for target→source suggestions over the
+// currently-unmapped destination rows, applying validated results
+// like Auto Map. The network call runs on a utility queue; the
+// completion fires on the main queue with the applied-mapping count
+// or an error message.
+- (void)runAIMapWithCompletion:(void (^)(NSInteger applied, NSString* _Nullable error))completion
+    NS_SWIFT_NAME(runAIMap(completion:));
+
 // Write the current mapping state out to a `.xmaphint` file. `path`
 // must be writable. Returns NO on write failure.
 - (BOOL)saveMapHintsToPath:(NSString*)path;
 
+// IE-3: load a specific `.xmaphint` file and apply its regex hints to
+// the destination tree — the same `MatchRegex` AutoMapper pass that the
+// show-dir scan runs in `runAutoMap`, but for one user-picked file.
+// Returns the number of hint entries applied (0 if none / load failed).
+// (The legacy `.xmap` / `.xjmap` formats are wx-bound and would need a
+// new core MappingIO module — tracked separately, not here.)
+- (int)loadMapHintsFromPath:(NSString*)path
+    NS_SWIFT_NAME(loadMapHints(fromPath:));
+
+// Clear every destination mapping (the "Overwrite" branch of the multi-file
+// load-hints prompt). The AutoMapper regex pass that `loadMapHints` runs only
+// fills *unmapped* rows, so callers that want hints to win over the existing
+// mapping call this first.
+- (void)clearAllMappings
+    NS_SWIFT_NAME(clearAllMappings());
+
+// IE-12: add each mapped source model name as an alias on its
+// destination model so future imports auto-map without re-mapping.
+// Mirrors the desktop "Update Aliases". `Model::AddAlias` is idempotent
+// (dedups / lowercases / rejects self-name), so this can be called
+// repeatedly. Marks affected models dirty so `saveLayoutChanges`
+// persists the aliases. Returns the number of aliases added.
+- (int)updateModelAliasesFromMapping
+    NS_SWIFT_NAME(updateModelAliasesFromMapping());
+
 // Apply the current mappings to the host document's sequence. Runs
 // EffectMapper for each mapped row, registers undo on the document,
-// triggers a grid reload. `eraseExisting` and `lock` are the
-// import-options-sheet toggles. Returns NO if no mappings exist or
-// the source sequence wasn't loaded.
+// triggers a grid reload. `eraseExisting`, `lock`, and
+// `convertRenderStyle` are the import-options-sheet toggles
+// (`convertRenderStyle` maps to the `convertRender` arg of
+// `MapXLightsEffects` — converts per-model render style on import).
+// Returns NO if no mappings exist or the source sequence wasn't loaded.
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
                                 lock:(BOOL)lock
+                  convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)error;
+
+// Parse a LOR S5 `.loredit` source at `path` using the wx-free core
+// LOREdit reader (the same reader the desktop's ImportS5 uses). Builds
+// the available source list (props with effects + per-node/strand
+// channels) and the importable timing tracks, then reuses the shared
+// destination tree + AutoMapper / MapHints mapping flow. Returns a
+// non-nil error on parse failure. Discovery, mapping, AND the effect-synthesis
+// apply path (the iPad analogue of desktop MapS5*) are all wired.
+- (BOOL)loadLOREditSourceAtPath:(NSString*)path
+                          error:(NSError**)error NS_SWIFT_NAME(loadLOREditSource(atPath:));
+
+// Load a Vixen 3 `.tim` file as an EFFECT-import source (IE-25 — the iPad
+// analogue of desktop xLightsFrame::ImportVixen3). Parses the .tim + sibling
+// SystemConfig.xml via the wx-free core Vixen3 reader and populates the shared
+// available/destination tree; apply replays through core MapVixen3*. Returns a
+// non-nil error if SystemConfig.xml is missing or the file can't be parsed.
+// (Distinct from the timing-only `.tim` path in XLSequenceDocument used by the
+// Settings → Timings tab.)
+- (BOOL)loadVixen3SourceAtPath:(NSString*)path
+                         error:(NSError**)error NS_SWIFT_NAME(loadVixen3Source(atPath:));
+
+// Load a Light-O-Rama Music `.lms` or Animation `.las` file as an EFFECT-import
+// source (the iPad analogue of desktop xLightsFrame::ImportLMS — both extensions
+// share one XML schema and reader). Parses the document with the wx-free core
+// LORMusic reader and populates the shared available/destination tree; apply
+// synthesizes On / Color Wash / Twinkle effects (and per-pixel CCR fan-out)
+// onto the mapped layers. Returns a non-nil error on parse failure.
+- (BOOL)loadLMSSourceAtPath:(NSString*)path
+                      error:(NSError**)error NS_SWIFT_NAME(loadLMSSource(atPath:));
+
+// Load a LOR Pixel Editor `.lpe` file as an EFFECT-import source (the iPad
+// analogue of desktop xLightsFrame::ImportLPE). Parses the document with the
+// wx-free core LORPixelEditor reader and populates the shared
+// available/destination tree; apply synthesizes the translated pixel effects
+// (per LPE left/right side + layer) onto the mapped layers. Returns a non-nil
+// error on parse failure.
+- (BOOL)loadLPESourceAtPath:(NSString*)path
+                      error:(NSError**)error NS_SWIFT_NAME(loadLPESource(atPath:));
+
+// Load an HLS `.hlsIdata` file as an EFFECT-import source (the iPad analogue of
+// desktop xLightsFrame::ImportHLS). Parses the document with the wx-free core
+// HLSFile reader and populates the shared available/destination tree; apply
+// decodes each mapped channel's per-frame colour stream into On / Color Wash
+// effects (with per-pixel CCR strand fan-out). Returns a non-nil error on parse
+// failure.
+- (BOOL)loadHLSSourceAtPath:(NSString*)path
+                      error:(NSError**)error NS_SWIFT_NAME(loadHLSSource(atPath:));
+
+// Load a Vixen 2.x `.vix` file as an EFFECT-import source (the iPad analogue of
+// desktop xLightsFrame::ImportVix). Parses the document with the wx-free core
+// Vixen2File reader — including the optional sibling `<name>.pro` profile and
+// the base64 `<EventValues>` stream — and populates the shared
+// available/destination tree; apply decodes each mapped channel's per-frame
+// intensity stream into On / Color Wash effects. Returns a non-nil error on
+// parse failure (e.g. no channels / no event data resolved).
+- (BOOL)loadVixen2SourceAtPath:(NSString*)path
+                         error:(NSError**)error NS_SWIFT_NAME(loadVixen2Source(atPath:));
+
+// IE-7 — source-sequence metadata for pre-import warnings. Only meaningful for
+// an `.xsq` / package source (nil / 0 / empty for `.loredit` / `.tim`).
+// `sourceFrequency` is frames-per-second. `sourceMissingMedia` is only
+// populated after the media walk that runs during apply, so query it
+// post-apply (it is empty at discovery time).
+- (nullable NSString*)sourceVersion;
+- (NSInteger)sourceFrequency;
+- (NSInteger)targetFrequency;
+- (NSArray<NSString*>*)sourceMissingMedia;
 
 @end
 

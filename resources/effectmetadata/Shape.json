@@ -344,5 +344,39 @@
             "default": false,
             "description": "When enabled, the Filter Label is treated as a regular expression for matching timing mark labels instead of a plain text match."
         }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Shape_ObjectToDraw", "oneOf": ["Star", "Ellipse", "Polygon"] },
+            "enable": ["Shape_Points"]
+        },
+        {
+            "when": { "property": "Shape_ObjectToDraw", "notOneOf": ["Snowflake", "Emoji"] },
+            "enable": ["Shape_Thickness"]
+        },
+        {
+            "when": { "property": "Shape_ObjectToDraw", "notOneOf": ["Emoji", "Candy Cane", "SVG", "Random", "Circle"] },
+            "enable": ["Shape_Rotation"]
+        },
+        {
+            "when": { "property": "Shape_ObjectToDraw", "notEquals": "SVG" },
+            "enable": ["Shape_HoldColour"]
+        },
+        {
+            "when": { "property": "Shapes_RandomMovement", "equals": false },
+            "enable": ["Shapes_Direction", "Shapes_Velocity"]
+        },
+        {
+            "when": { "property": "Shape_RandomLocation", "equals": false },
+            "enable": ["Shape_CentreX", "Shape_CentreY"]
+        },
+        {
+            "when": { "property": "Shape_UseMusic", "equals": true },
+            "enable": ["Shape_Sensitivity"]
+        },
+        {
+            "when": { "property": "Shape_FireTiming", "equals": true },
+            "enable": ["Shape_FireTimingTrack", "Shape_FilterLabel", "Shape_FilterReg"]
+        }
     ]
 }

@@ -77,4 +77,23 @@ public:
 
 
     static CachedFileDownloader& GetDefaultCache();
+
+    // Pluggable URL fetcher for `FileCacheItem::DownloadURL`. When
+    // set, the cache calls this synchronous fetcher in place of
+    // the bundled libcurl path. iPad installs an `NSURLSession`-
+    // based fetcher at init because Apple's modern network stack
+    // negotiates with several vendor-catalog servers (efl-designs,
+    // buildalightshow, twinkle-forge, mattosdesigns,
+    // ledpixelshow, …) that the bundled libcurl/Secure-Transport
+    // combo trips over with SSL connect / 421 errors. Desktop and
+    // Linux leave this nullptr → curl handles every fetch.
+    //
+    // The fetcher must write the response body to `filename` and
+    // return `true` on success. Called from the same thread as
+    // `GetFile`; iPad's fetcher uses a semaphore to block on the
+    // URLSession completion.
+    using URLFetcher = std::function<bool(const std::string& url,
+                                          const std::string& filename)>;
+    static void SetURLFetcher(URLFetcher fetcher);
+    static URLFetcher GetURLFetcher();
 };

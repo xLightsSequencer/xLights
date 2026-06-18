@@ -13,6 +13,7 @@ let kXTimingFileType: UTType = UTType(filenameExtension: "xtiming") ?? .xml
 /// know the file type.
 let kESEQFileType: UTType = UTType(filenameExtension: "eseq") ?? .data
 
+
 /// File document wrapper for the Save / Export timing-track flow.
 /// Holds the bytes already-written to a temp path so SwiftUI's
 /// `.fileExporter` can copy them to the user's destination.
@@ -109,7 +110,7 @@ private struct TransitionPickerDialog: ViewModifier {
             let current = viewModel.document.effectSettingValue(
                 forKey: typeKey,
                 inRow: Int32(tgt.rowIndex),
-                at: Int32(tgt.effectIndex)) ?? ""
+                at: Int32(tgt.effectIndex))
             let display = current.isEmpty ? "Fade" : current
             Text(tgt.isIn
                  ? "In transition (current: \(display))"
@@ -157,6 +158,52 @@ private struct EditDescriptionAlert: ViewModifier {
 /// B47 insert-multiple-layers alert wrapper. Extracted as its
 /// own ViewModifier because tacking it onto the body's long
 /// modifier chain pushed SwiftUI's type-checker over budget.
+/// B-CL: model-picker sheet for "Copy Layers/SubModels to Models…".
+/// Lists all sequencer model names, lets the user pick one or more
+/// destinations (excluding the source), then fires `onCopy`. Mirrors
+/// desktop's checkbox dialog (`RowHeading.cpp:594`, `CopyModelEffectsToModels`).
+private struct CopyLayersToModelsSheet: View {
+    let sourceModelName: String
+    let allModelNames: [String]
+    @Binding var pickedModels: Set<String>
+    let onCopy: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            List(allModelNames.filter { $0 != sourceModelName }, id: \.self) { name in
+                Button {
+                    if pickedModels.contains(name) {
+                        pickedModels.remove(name)
+                    } else {
+                        pickedModels.insert(name)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: pickedModels.contains(name)
+                              ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(pickedModels.contains(name)
+                                             ? Color.accentColor : Color.secondary)
+                        Text(name)
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .navigationTitle("Copy to Models")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Copy") { onCopy() }
+                        .disabled(pickedModels.isEmpty)
+                }
+            }
+        }
+    }
+}
+
 private struct InsertLayersAlert: ViewModifier {
     @Binding var targetRow: Int?
     @Binding var countText: String
@@ -182,6 +229,106 @@ private struct InsertLayersAlert: ViewModifier {
     }
 }
 
+/// Delete-multiple-layers alert wrapper (desktop
+/// ID_ROW_MNU_DELETE_LAYERS). Same extracted-ViewModifier shape as
+/// `InsertLayersAlert` for the same type-check-budget reason.
+private struct DeleteLayersAlert: ViewModifier {
+    @Binding var targetRow: Int?
+    @Binding var countText: String
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.alert("Delete Multiple Layers",
+                      isPresented: Binding(
+                        get: { targetRow != nil },
+                        set: { if !$0 { targetRow = nil } }
+                      ),
+                      presenting: targetRow) { row in
+            TextField("Count", text: $countText)
+                .keyboardType(.numberPad)
+            Button("Delete", role: .destructive) {
+                let count = Int(countText) ?? 0
+                _ = viewModel.deleteLayersBelow(rowIndex: row, count: count)
+                targetRow = nil
+            }
+            Button("Cancel", role: .cancel) { targetRow = nil }
+        } message: { _ in
+            Text("How many layers to delete, starting at this one and moving down? Effects on them will be lost.")
+        }
+    }
+}
+
+/// #6268 — pick the target region for Copy-Effects-to-Region.
+/// Extracted as a ViewModifier (same type-check-budget reason as
+/// InsertLayersAlert / DeleteLayersAlert).
+private struct SongRegionCopyDialog: ViewModifier {
+    @Binding var sourceIdx: Int?
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.confirmationDialog(
+            "Copy Effects to…",
+            isPresented: Binding(
+                get: { sourceIdx != nil },
+                set: { if !$0 { sourceIdx = nil } })
+        ) {
+            if let src = sourceIdx {
+                ForEach(Array(viewModel.songRegions.enumerated()), id: \.offset) { i, r in
+                    if i != src {
+                        Button(r.name.isEmpty ? "Region \(i + 1)" : r.name) {
+                            viewModel.copySongRegionEffects(from: src, to: i)
+                        }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+}
+
+/// Per-region .xsq export — folds the destination-folder importer +
+/// result alert out of the main body to keep it under the Swift
+/// type-checker's complexity limit (same reason as the other
+/// extracted export modifiers).
+private struct SongRegionExportModifier: ViewModifier {
+    @Binding var pickerPresented: Bool
+    @Binding var exportIdx: Int?
+    @Binding var message: String?
+    @Binding var exportAllPresented: Bool
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content
+            .fileImporter(isPresented: $pickerPresented,
+                          allowedContentTypes: [.folder],
+                          allowsMultipleSelection: false) { result in
+                guard let idx = exportIdx,
+                      idx < viewModel.songRegions.count else { return }
+                exportIdx = nil
+                if case .success(let urls) = result, let dir = urls.first {
+                    let needsStop = dir.startAccessingSecurityScopedResource()
+                    defer { if needsStop { dir.stopAccessingSecurityScopedResource() } }
+                    message = viewModel.exportSongRegion(
+                        viewModel.songRegions[idx], toFolder: dir.path)
+                }
+            }
+            .fileImporter(isPresented: $exportAllPresented,
+                          allowedContentTypes: [.folder],
+                          allowsMultipleSelection: false) { result in
+                if case .success(let urls) = result, let dir = urls.first {
+                    let needsStop = dir.startAccessingSecurityScopedResource()
+                    defer { if needsStop { dir.stopAccessingSecurityScopedResource() } }
+                    message = viewModel.exportAllSongRegions(toFolder: dir.path)
+                }
+            }
+            .alert("Export Region", isPresented: Binding(
+                get: { message != nil },
+                set: { if !$0 { message = nil } }
+            )) {
+                Button("OK", role: .cancel) { message = nil }
+            } message: {
+                Text(message ?? "")
+            }
+    }
+}
+
 /// B49 — Falcon Player sub-sequence export document. Same
 /// temp-path → `.fileExporter` pattern as `XTimingExportDoc`.
 struct FSEQExportDoc: FileDocument {
@@ -196,6 +343,58 @@ struct FSEQExportDoc: FileDocument {
             return FileWrapper(regularFileWithContents: data)
         }
         return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
+/// Bundles the `.xtiming` / `.eseq` `.fileExporter` modifiers + the video
+/// export progress overlay into a single `ViewModifier`. Folding them out of
+/// the main `body` keeps that already-large modifier chain under the Swift
+/// type-checker's complexity limit. (Video export itself hands off via the
+/// system share sheet, not a `.fileExporter` — stacking a third exporter on
+/// one view didn't reliably present.)
+private struct ExportFileExportersModifier: ViewModifier {
+    @Binding var showingXTimingExporter: Bool
+    @Binding var xtimingExportDoc: XTimingExportDoc?
+    let xtimingDefaultName: String
+    @Binding var showingFSEQExporter: Bool
+    @Binding var fseqExportDoc: FSEQExportDoc?
+    let fseqDefaultName: String
+    /// Non-nil while a model media export (video or GIF) is encoding; the
+    /// string is shown under the spinner.
+    let exportInProgressMessage: String?
+
+    func body(content: Content) -> some View {
+        content
+            .fileExporter(
+                isPresented: $showingXTimingExporter,
+                document: xtimingExportDoc,
+                contentType: kXTimingFileType,
+                defaultFilename: xtimingDefaultName
+            ) { _ in xtimingExportDoc = nil }
+            .fileExporter(
+                isPresented: $showingFSEQExporter,
+                document: fseqExportDoc,
+                contentType: kESEQFileType,
+                defaultFilename: fseqDefaultName
+            ) { _ in fseqExportDoc = nil }
+            .overlay {
+                if let msg = exportInProgressMessage {
+                    ZStack {
+                        Color.black.opacity(0.35).ignoresSafeArea()
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .controlSize(.large)
+                                .tint(.white)
+                            Text(msg)
+                                .foregroundStyle(.white)
+                                .font(.headline)
+                        }
+                        .padding(28)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                    .transition(.opacity)
+                }
+            }
     }
 }
 
@@ -231,6 +430,33 @@ struct SequencerGridV2View: View {
     /// 96 pt "double-height" mode. Persisted so the user's choice
     /// survives app restarts.
     @AppStorage("waveformDoubleHeight") private var waveformDoubleHeight: Bool = false
+
+    // Desktop prefs xLightsSnapToTimingMarks / mTimingPlayOnDClick (both
+    // default ON). Read directly by the grid drag handlers / double-tap
+    // handler via UserDefaults; surfaced as toggles in the options menu.
+    @AppStorage("snapToTimingMarks") private var snapToTimingMarks: Bool = true
+    @AppStorage("timingPlayOnDoubleTap") private var timingPlayOnDoubleTap: Bool = true
+    @AppStorage("pasteByCell") private var pasteByCell: Bool = true
+    // Desktop Effects-Grid display prefs (all default ON except the
+    // alternate timing format). The grid-render toggles are gated in the
+    // Metal grid views; grid spacing scales the row height in `metrics`.
+    @AppStorage("grid.showEffectBackgrounds") private var showEffectBackgrounds: Bool = true
+    @AppStorage("grid.showTransitionMarks") private var showTransitionMarks: Bool = true
+    @AppStorage("grid.alternateTimingFormat") private var alternateTimingFormat: Bool = false
+    // XS/S/M/L/XL → multiplier on the default 24 pt row height.
+    @AppStorage("grid.spacing") private var gridSpacing: String = "M"
+    // Effects-Grid ▸ "Hide Color Update Warning" — consumed by
+    // ColorPaletteView's Update-Palette action (skips the confirm alert).
+    @AppStorage("hideColorUpdateWarning") private var hideColorUpdateWarning: Bool = false
+    private static func rowHeightMultiplier(_ spacing: String) -> CGFloat {
+        switch spacing {
+        case "XS": return 0.66
+        case "S": return 0.83
+        case "L": return 1.25
+        case "XL": return 1.5
+        default: return 1.0
+        }
+    }
     private var metrics: GridMetrics {
         var m = GridMetrics.standard
         m.rowHeaderWidth = CGFloat(
@@ -238,6 +464,11 @@ struct SequencerGridV2View: View {
                 max(Self.rowHeaderMinWidth, rowHeaderWidthStorage)))
         if waveformDoubleHeight {
             m.waveformHeight = 96
+        }
+        let mult = Self.rowHeightMultiplier(gridSpacing)
+        if mult != 1.0 {
+            m.rowHeight = (m.rowHeight * mult).rounded()
+            m.timingRowHeight = (m.timingRowHeight * mult).rounded()
         }
         return m
     }
@@ -267,10 +498,10 @@ struct SequencerGridV2View: View {
     }
     @State private var timingMarkMenuTarget: TimingMarkMenuTarget?
 
-    /// B73 add-timing-track alert state.
-    @State private var showAddTimingTrackAlert: Bool = false
-    @State private var newTimingTrackName: String = ""
-
+    /// Empty-area long-press menu (model-band filler space below
+    /// the last row). Drives a confirmationDialog with "Add Timing
+    /// Track…" / "Edit Display Elements…" entries.
+    @State private var emptyAreaMenuPresented: Bool = false
 
     /// B70 rename-timing-mark alert state.
     @State private var renameMarkTarget: TimingMarkMenuTarget?
@@ -280,9 +511,19 @@ struct SequencerGridV2View: View {
     @State private var savePresetRequested: Bool = false
     @State private var savePresetName: String = ""
 
+
     /// B47 insert-N-layers prompt state.
     @State private var insertLayersTargetRow: Int? = nil
     @State private var insertLayersCountText: String = "3"
+    @State private var deleteLayersTargetRow: Int? = nil
+    @State private var deleteLayersCountText: String = "2"
+
+    /// #6507 top-level row drag-reorder. `rowDragSourceId` is the
+    /// visible row id of the row being dragged; `rowDropTargetId` is
+    /// the row the drop indicator currently sits above (nil = drop at
+    /// the end). Both reset on drop / cancel.
+    @State private var rowDragSourceId: Int? = nil
+    @State private var rowDropTargetId: Int? = nil
 
     /// B20 edit-description prompt state.
     @State private var editDescriptionTarget: EditDescriptionTarget? = nil
@@ -297,16 +538,27 @@ struct SequencerGridV2View: View {
     @State private var loopMenuPresented: Bool = false
     /// B41 waveform filter-picker trigger.
     @State private var waveformMenuPresented: Bool = false
+    /// #6268 song-structure region menu / edit-sheet state. `regionMenuMS`
+    /// is the long-press time used by Add/Delete-boundary; `regionEditID`
+    /// is the region being edited in the name+color sheet.
+    @State private var songRegionMenuMS: Int? = nil
+    @State private var songRegionCopySourceIdx: Int? = nil
+    @State private var songRegionEditID: Int? = nil
+    @State private var songRegionEditName: String = ""
+    /// Per-region .xsq export — the region pending a destination-folder
+    /// pick, plus the folder importer toggle + result message.
+    @State private var songRegionExportIdx: Int? = nil
+    @State private var songRegionExportPickerPresented: Bool = false
+    @State private var songRegionExportMessage: String? = nil
+    @State private var songRegionExportAllPickerPresented: Bool = false
+    @State private var songViewRenamePresented: Bool = false
+    @State private var songViewRenameText: String = ""
+    @State private var songViewAddPresented: Bool = false
+    @State private var songViewAddText: String = ""
     /// A9.1 custom-band picker sheet trigger.
     @State private var customBandSheetPresented: Bool = false
     /// A7 sound-class picker sheet trigger.
     @State private var classifyPickerPresented: Bool = false
-    /// A4 tempo-preview sheet trigger + stashed result.
-    @State private var tempoPreviewPresented: Bool = false
-    @State private var tempoPreview: (bpm: Float, confidence: Float, beats: [Int])? = nil
-    /// A9 chord-preview sheet trigger + stashed result.
-    @State private var chordPreviewPresented: Bool = false
-    @State private var chordPreview: (key: String, chords: [(Int, Int, String)])? = nil
     /// B97 Find / Replace replace-text buffer (sheet trigger lives
     /// on the view model so the Edit menu can flip it via ⌘F).
     @State private var findReplaceText: String = ""
@@ -359,6 +611,17 @@ struct SequencerGridV2View: View {
     @State private var fseqExportDoc: FSEQExportDoc? = nil
     @State private var showingFSEQExporter: Bool = false
     @State private var fseqDefaultName: String = "Model.eseq"
+
+    /// Export-model-as-video state. The submenu fires with the codec
+    /// flags + extension; the bridge encodes to a temp file, then
+    /// `.fileExporter` copies it to the user's chosen destination.
+    @State private var videoExportInProgress: Bool = false
+    @State private var gifExportInProgress: Bool = false
+
+    /// B-CL: "Copy Layers/SubModels to Models…" sheet state. Non-nil
+    /// while the model-picker sheet is presented; holds the source row.
+    @State private var copyLayersSourceRow: Int? = nil
+    @State private var copyLayersPickedModels: Set<String> = []
 
     /// B21 edit-timing dialog state. Fields are bound to seconds
     /// strings so users enter `5.25` and see `0.75` for duration;
@@ -458,19 +721,9 @@ struct SequencerGridV2View: View {
 
                     // Row 3 — fills remaining space
                     HStack(alignment: .top, spacing: 0) {
-                        SyncedScrollView(
-                            targetHOffset: nil,
-                            targetVOffset: rowsScroll.vScrollOffsetPx,
-                            contentWidth: metrics.rowHeaderWidth,
-                            contentHeight: modelAreaH,
-                            showsIndicators: false,
-                            onScroll: { newOffset in
-                                rowsScroll.vScrollOffsetPx = newOffset.y
-                            }
-                        ) {
-                            modelHeaders(modelRows)
-                        }
-                        .frame(width: metrics.rowHeaderWidth)
+                        modelRowHeaderColumn(modelRows: modelRows,
+                                              modelAreaH: modelAreaH,
+                                              availableModelBandH: availableGridH - timingBandH)
                         rowHeaderResizeHandle(height: nil)
                         modelEffectsMetalView(modelRows: modelRows)
                             .overlay(alignment: .trailing) {
@@ -602,17 +855,31 @@ struct SequencerGridV2View: View {
                 Button("Reset \(n) Effects", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
-                ForEach(viewModel.presets) { preset in
+                Button("Save \(n) as Preset…") {
+                    savePresetName = ""
+                    savePresetRequested = true
+                }
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
                     Button("Apply Preset: \(preset.name) to \(n)") {
-                        _ = viewModel.applyPreset(preset)
+                        _ = viewModel.applyPreset(atPath: preset.path)
                     }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
                 }
                 Button("Deselect All") {
                     viewModel.clearSelection()
                 }
                 Button("Cancel", role: .cancel) {}
             } else {
+                Button("Play Effect") { viewModel.playSelectedEffect() }
+                if !viewModel.songRegions.isEmpty {
+                    Button("Fill Region from Timing Marks") {
+                        viewModel.fillSongRegionFromTimingMarks()
+                    }
+                }
                 Button("Copy") { viewModel.copySelectedEffect() }
+                Button("Cut") { viewModel.cutSelectedEffects() }
                 if viewModel.hasClipboard {
                     Button("Paste Here") {
                         let startMS = (viewModel.rows[target.rowIndex].effects[target.effectIndex]).startTimeMS
@@ -629,6 +896,11 @@ struct SequencerGridV2View: View {
                         } else {
                             viewModel.pasteEffect(rowIndex: target.rowIndex,
                                                    startMS: startMS)
+                        }
+                    }
+                    if viewModel.clipboardHasOriginalTime {
+                        Button("Paste at Original Time") {
+                            viewModel.pasteAtOriginalTime()
                         }
                     }
                 }
@@ -654,6 +926,14 @@ struct SequencerGridV2View: View {
                     viewModel.selectAllEffectsInColumn(spanStartMS: e.startTimeMS,
                                                        spanEndMS: e.endTimeMS)
                 }
+                // Desktop EffectsGrid.cpp:386 "Create Timing" — also
+                // surfaced here on the effect menu (not just top-chrome).
+                Button("Create Timing From Effect(s)") {
+                    let base = (viewModel.document.rowModelName(at: Int32(target.rowIndex)) as String?) ?? "Model"
+                    _ = viewModel.createTimingTrackFromEffects(
+                        modelRowIndex: target.rowIndex,
+                        trackName: "\(base) Timing")
+                }
                 Button(viewModel.isEffectLocked(rowIndex: target.rowIndex,
                                                  effectIndex: target.effectIndex)
                        ? "Unlock" : "Lock") {
@@ -672,9 +952,9 @@ struct SequencerGridV2View: View {
                 Button("Reset to Defaults", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
-                // B19 — session-only effect presets. Save captures
-                // the current effect; apply replaces settings on
-                // every selected effect.
+                // PRE-1 — persistent effect presets. Save captures the
+                // current selection into the on-disk library; apply
+                // drops the chosen preset onto every selected effect.
                 Button("Edit Description…") {
                     editDescriptionText = viewModel.effectDescription(
                         rowIndex: target.rowIndex,
@@ -687,10 +967,13 @@ struct SequencerGridV2View: View {
                     savePresetName = ""
                     savePresetRequested = true
                 }
-                ForEach(viewModel.presets) { preset in
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
                     Button("Apply Preset: \(preset.name)") {
-                        _ = viewModel.applyPreset(preset)
+                        _ = viewModel.applyPreset(atPath: preset.path)
                     }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
                 }
                 Button("Delete", role: .destructive) {
                     viewModel.deleteEffect(rowIndex: target.rowIndex,
@@ -764,22 +1047,6 @@ struct SequencerGridV2View: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
-        // B73 add-timing-track alert. A simple text-field prompt
-        // sufficient for the initial cut; NewTimingDialog's fixed /
-        // lyric / variable choice can land later.
-        .alert("Add Timing Track",
-               isPresented: $showAddTimingTrackAlert) {
-            TextField("Name", text: $newTimingTrackName)
-            Button("Add") {
-                _ = viewModel.addTimingTrack(name: newTimingTrackName)
-                newTimingTrackName = ""
-            }
-            Button("Cancel", role: .cancel) {
-                newTimingTrackName = ""
-            }
-        } message: {
-            Text("Name for the new variable timing track.")
-        }
         // B21 edit-timing alert. Two fields (start, end) in seconds
         // with 3 decimal places; parses with `strtod` per repo rule
         // (no throwing std::stod). Calls `moveEffect` on commit.
@@ -807,7 +1074,15 @@ struct SequencerGridV2View: View {
                 editTimingTarget = nil
             }
         } message: { _ in
-            Text("Enter start and end times in seconds.")
+            // SEQ-18 — live duration readout as start/end are edited. (An
+            // editable Duration field + frame-stepped Steppers need an
+            // alert→sheet conversion — SwiftUI alerts can't host Steppers.)
+            let durMS = (Self.parseSeconds(editTimingEndText) ?? 0) - (Self.parseSeconds(editTimingStartText) ?? 0)
+            if durMS > 0 {
+                Text(String(format: "Enter start and end times in seconds. Duration: %.3f s", Double(durMS) / 1000.0))
+            } else {
+                Text("Enter start and end times in seconds.")
+            }
         }
         // B89 auto-label-marks alert.
         .alert("Auto-Label Marks",
@@ -871,26 +1146,18 @@ struct SequencerGridV2View: View {
                                                   enforceWritable: false)
             _ = viewModel.importXTiming(path: path)
         }
-        // B75 .xtiming export.
-        .fileExporter(
-            isPresented: $showingXTimingExporter,
-            document: xtimingExportDoc,
-            contentType: kXTimingFileType,
-            defaultFilename: xtimingDefaultName
-        ) { _ in
-            // Nothing more to do — bridge already wrote the temp
-            // file; the exporter copied it to the user's pick.
-            xtimingExportDoc = nil
-        }
-        // B49 export model as Falcon Player `.eseq` sub-sequence.
-        .fileExporter(
-            isPresented: $showingFSEQExporter,
-            document: fseqExportDoc,
-            contentType: kESEQFileType,
-            defaultFilename: fseqDefaultName
-        ) { _ in
-            fseqExportDoc = nil
-        }
+        // B75/B49/video file exporters — bundled into one modifier so the
+        // main body's modifier chain stays within the Swift type-checker's
+        // complexity budget.
+        .modifier(ExportFileExportersModifier(
+            showingXTimingExporter: $showingXTimingExporter,
+            xtimingExportDoc: $xtimingExportDoc,
+            xtimingDefaultName: xtimingDefaultName,
+            showingFSEQExporter: $showingFSEQExporter,
+            fseqExportDoc: $fseqExportDoc,
+            fseqDefaultName: fseqDefaultName,
+            exportInProgressMessage: videoExportInProgress ? "Exporting video…"
+                                   : (gifExportInProgress ? "Exporting GIF…" : nil)))
         // B41 waveform filter picker.
         .confirmationDialog(
             "Waveform",
@@ -1014,25 +1281,6 @@ struct SequencerGridV2View: View {
             Button("Cancel", role: .cancel) {}
         }
         // A9 chord-detection preview sheet.
-        .sheet(isPresented: $chordPreviewPresented) {
-            if let cp = chordPreview {
-                ChordPreviewSheet(
-                    key: cp.key,
-                    chords: cp.chords,
-                    onCommit: {
-                        _ = viewModel.generateChordTimingTrack()
-                        chordPreviewPresented = false
-                        chordPreview = nil
-                    },
-                    onCancel: {
-                        chordPreviewPresented = false
-                        chordPreview = nil
-                    })
-            } else {
-                Text("No chords detected.")
-                    .padding()
-            }
-        }
         // A8 stem install-location picker (first run).
         .sheet(isPresented: stemsInstallPickerBinding) {
             StemInstallSheet(
@@ -1045,27 +1293,6 @@ struct SequencerGridV2View: View {
             StemProgressSheet(
                 phase: viewModel.stemsPhase,
                 pct: viewModel.stemsProgressPct)
-        }
-        // A4 tempo-detection preview sheet.
-        .sheet(isPresented: $tempoPreviewPresented) {
-            if let tp = tempoPreview {
-                TempoPreviewSheet(
-                    bpm: tp.bpm,
-                    confidence: tp.confidence,
-                    beatCount: tp.beats.count,
-                    onCommit: {
-                        _ = viewModel.generateTempoTimingTrack()
-                        tempoPreviewPresented = false
-                        tempoPreview = nil
-                    },
-                    onCancel: {
-                        tempoPreviewPresented = false
-                        tempoPreview = nil
-                    })
-            } else {
-                Text("No tempo detected.")
-                    .padding()
-            }
         }
         // A7 class picker sheet.
         .sheet(isPresented: $classifyPickerPresented) {
@@ -1116,6 +1343,115 @@ struct SequencerGridV2View: View {
             }
             Button("Cancel", role: .cancel) {}
         }
+        // #6268 Song Structure region context menu (long-press over a
+        // band in the waveform strip). Edit name/color, add or delete
+        // a boundary at the press point, and switch / manage views.
+        .confirmationDialog(
+            "Song Region",
+            isPresented: Binding(
+                get: { songRegionMenuMS != nil },
+                set: { if !$0 { songRegionMenuMS = nil } })
+        ) {
+            if let ms = songRegionMenuMS,
+               let idx = viewModel.songRegionIndexAtMS(ms) {
+                Button("Edit Region…") {
+                    let r = viewModel.songRegions[idx]
+                    songRegionEditName = r.name
+                    songRegionEditID = r.id
+                }
+                if viewModel.songRegions.count > 1 {
+                    Button("Copy Effects to Region…") {
+                        songRegionCopySourceIdx = idx
+                    }
+                }
+                if viewModel.selectedEffect != nil {
+                    Button("Apply Selected Effect's Palette") {
+                        viewModel.applySelectedPaletteToSongRegion(at: idx)
+                    }
+                }
+                Button("Export Region as Sequence…") {
+                    songRegionExportIdx = idx
+                    songRegionExportPickerPresented = true
+                }
+                if viewModel.songRegions.count > 1 {
+                    Button("Export All Regions…") {
+                        songRegionExportAllPickerPresented = true
+                    }
+                }
+            }
+            if let ms = songRegionMenuMS {
+                Button("Add Boundary Here") {
+                    viewModel.addSongBoundary(atMS: ms)
+                }
+                Button("Delete Boundary", role: .destructive) {
+                    viewModel.deleteSongBoundary(nearMS: ms)
+                }
+            }
+            ForEach(Array(viewModel.songViewNames.enumerated()), id: \.offset) { i, name in
+                Button(i == viewModel.songActiveViewIndex ? "✓ \(name)" : name) {
+                    viewModel.setActiveSongView(index: i)
+                }
+            }
+            Button("New View…") {
+                songViewAddText = ""
+                songViewAddPresented = true
+            }
+            if viewModel.songActiveViewIndex >= 0 {
+                Button("Duplicate View") {
+                    let cur = viewModel.songActiveViewIndex
+                    let nm = (cur < viewModel.songViewNames.count
+                              ? viewModel.songViewNames[cur] : "View") + " Copy"
+                    viewModel.duplicateSongView(at: cur, name: nm)
+                }
+                Button("Rename View…") {
+                    let cur = viewModel.songActiveViewIndex
+                    songViewRenameText = cur < viewModel.songViewNames.count
+                        ? viewModel.songViewNames[cur] : ""
+                    songViewRenamePresented = true
+                }
+                Button("Delete View", role: .destructive) {
+                    viewModel.deleteSongView(at: viewModel.songActiveViewIndex)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .sheet(isPresented: Binding(
+            get: { songRegionEditID != nil },
+            set: { if !$0 { songRegionEditID = nil } })) {
+            SongRegionEditSheet(
+                regionID: songRegionEditID ?? 0,
+                name: $songRegionEditName,
+                viewModel: viewModel,
+                onDone: { songRegionEditID = nil })
+                .presentationDetents([.height(280)])
+        }
+        .modifier(SongRegionCopyDialog(
+            sourceIdx: $songRegionCopySourceIdx,
+            viewModel: viewModel))
+        .modifier(SongRegionExportModifier(
+            pickerPresented: $songRegionExportPickerPresented,
+            exportIdx: $songRegionExportIdx,
+            message: $songRegionExportMessage,
+            exportAllPresented: $songRegionExportAllPickerPresented,
+            viewModel: viewModel))
+        .alert("New Song Structure View", isPresented: $songViewAddPresented) {
+            TextField("Name", text: $songViewAddText)
+            Button("Add") {
+                let t = songViewAddText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty { viewModel.addSongView(name: t) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("Rename View", isPresented: $songViewRenamePresented) {
+            TextField("Name", text: $songViewRenameText)
+            Button("OK") {
+                let t = songViewRenameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty, viewModel.songActiveViewIndex >= 0 {
+                    viewModel.renameSongView(at: viewModel.songActiveViewIndex, name: t)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         // F-6 — Display Elements editor modal. State lives on the
         // view model so F-4 menu-bar "Edit Display Elements…" can
         // flip the same flag.
@@ -1130,6 +1466,23 @@ struct SequencerGridV2View: View {
                               onDone: { viewModel.findReplacePresented = false })
                 .environment(viewModel)
                 .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: Bindable(viewModel).sourceEffectsPresented) {
+            SourceEffectsSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
+        // SEQ-2 whole-sequence Color Replace sheet (Edit ▸ Color Replace).
+        .sheet(isPresented: Bindable(viewModel).colorReplacePresented) {
+            ColorReplaceSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
+        // Shift Effects sheet (Edit ▸ Shift Effects…).
+        .sheet(isPresented: Bindable(viewModel).shiftEffectsPresented) {
+            ShiftEffectsSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium])
         }
         // B70 rename-timing-mark alert.
         .alert("Rename Mark",
@@ -1164,12 +1517,43 @@ struct SequencerGridV2View: View {
             }
             Button("Cancel", role: .cancel) { savePresetName = "" }
         } message: {
-            Text("Saves the current effect's settings + palette under a name you can re-apply to other effects in this session.")
+            Text("Saves the current selection to the show's preset library (xlights_effectpresets.json) so you can re-apply it later and on desktop.")
+        }
+        // PRE-1 preset library browser.
+        .sheet(isPresented: Bindable(viewModel).presetBrowserPresented) {
+            PresetBrowserSheet(viewModel: viewModel)
         }
         .modifier(InsertLayersAlert(
             targetRow: $insertLayersTargetRow,
             countText: $insertLayersCountText,
             viewModel: viewModel))
+        .modifier(DeleteLayersAlert(
+            targetRow: $deleteLayersTargetRow,
+            countText: $deleteLayersCountText,
+            viewModel: viewModel))
+
+        .sheet(isPresented: Binding(
+            get: { copyLayersSourceRow != nil },
+            set: { if !$0 { copyLayersSourceRow = nil; copyLayersPickedModels = [] } }
+        )) {
+            if let srcRow = copyLayersSourceRow {
+                CopyLayersToModelsSheet(
+                    sourceModelName: (viewModel.document.rowModelName(at: Int32(srcRow)) as String?) ?? "",
+                    allModelNames: viewModel.sequencerModelNames(),
+                    pickedModels: $copyLayersPickedModels,
+                    onCopy: {
+                        viewModel.copyLayersSubmodelsToModels(
+                            sourceRowIndex: srcRow,
+                            targetModelNames: Array(copyLayersPickedModels))
+                        copyLayersSourceRow = nil
+                        copyLayersPickedModels = []
+                    },
+                    onCancel: {
+                        copyLayersSourceRow = nil
+                        copyLayersPickedModels = []
+                    })
+            }
+        }
         .modifier(EditDescriptionAlert(
             target: $editDescriptionTarget,
             text: $editDescriptionText,
@@ -1254,6 +1638,73 @@ struct SequencerGridV2View: View {
         showingFSEQExporter = true
     }
 
+    /// Export only the selected effects' time span on the row's model
+    /// (desktop "Export Selected Model Effects"). Falls back silently
+    /// when no selected effect belongs to this model.
+    private func startSelectedFSEQExport(rowIndex: Int) {
+        guard let span = viewModel.selectedEffectsSpanForModel(rowIndex: rowIndex) else { return }
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).eseq").path
+        guard viewModel.exportModelAsFSEQ(rowIndex: rowIndex, path: tempPath,
+                                           startMS: span.start, endMS: span.end) else {
+            return
+        }
+        fseqExportDoc = FSEQExportDoc(sourcePath: tempPath)
+        fseqDefaultName = "\(safeName).eseq"
+        showingFSEQExporter = true
+    }
+
+    /// Encode the row's model to a temp video file (codec from the flags +
+    /// `ext`), then hand the path to `.fileExporter` for the user to place.
+    /// Synchronous — a single model's buffer is small, so encoding the whole
+    /// sequence is quick. (The slow, full-resolution house-preview export
+    /// runs off the main thread with progress; see ExportHousePreview.)
+    private func startVideoExport(rowIndex: Int, compressed: Bool, highQuality: Bool,
+                                  forceProRes: Bool, ext: String, label: String,
+                                  exportWidth: Int = 0, exportHeight: Int = 0) {
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).\(ext)").path
+        videoExportInProgress = true
+        viewModel.exportModelAsVideo(
+            rowIndex: rowIndex, path: tempPath,
+            compressed: compressed, highQuality: highQuality, forceProRes: forceProRes,
+            exportWidth: exportWidth, exportHeight: exportHeight,
+            completion: { success in
+                videoExportInProgress = false
+                guard success else { return }
+                // Hand the encoded file to the system share sheet ("Save to
+                // Files", AirDrop, …). Imperative presentation (not a stacked
+                // SwiftUI `.fileExporter`, which doesn't reliably present when
+                // several are chained on the same view).
+                XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+            })
+    }
+
+    /// Encode the row's model to a temp animated GIF (wx-free core encoder),
+    /// then hand the path to the system share sheet. The encode runs off the
+    /// main thread; the overlay spinner shows "Exporting GIF…" meanwhile.
+    private func startGifExport(rowIndex: Int) {
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).gif").path
+        gifExportInProgress = true
+        viewModel.exportModelAsGif(
+            rowIndex: rowIndex, path: tempPath,
+            completion: { success in
+                gifExportInProgress = false
+                guard success else { return }
+                XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+            })
+    }
+
     /// B75: write the timing track to a temp `.xtiming` file and
     /// hand that path off to SwiftUI's `.fileExporter` so the user
     /// picks a destination. The exporter then copies the bytes.
@@ -1267,6 +1718,20 @@ struct SequencerGridV2View: View {
         xtimingExportDoc = XTimingExportDoc(sourcePath: tempPath)
         xtimingDefaultName = "\(safeName).xtiming"
         showingXTimingExporter = true
+    }
+
+    /// Write the timing track to a temp `.pgo` (Papagayo) file and hand
+    /// it to the system share sheet. Imperative presentation (not a
+    /// stacked `.fileExporter`) so it doesn't conflict with the other
+    /// exporters chained on this view.
+    private func startPapagayoExport(rowIndex: Int, trackName: String) {
+        let safeName = trackName.isEmpty ? "Timing" : trackName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent("\(safeName)-\(UUID().uuidString).pgo").path
+        guard viewModel.exportTimingTrackAsPapagayo(rowIndex: rowIndex, path: tempPath) else {
+            return
+        }
+        XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
     }
 
     /// B67: default add-mark duration is 500 ms, clamped against the
@@ -1322,13 +1787,13 @@ struct SequencerGridV2View: View {
                             }
                         }
                     }
-                    // B73 entry-point lives here (rather than only on
-                    // timing-row headers) so users with zero timing
-                    // tracks still have a path to add one.
+                    // Add Timing Track + Audio Onsets / Tempo / Chords
+                    // / AI Lyrics now all live in the unified
+                    // AddTimingTrackSheet (presented at app level).
+                    // Just one entry point here that flips the flag.
                     Divider()
                     Button {
-                        newTimingTrackName = ""
-                        showAddTimingTrackAlert = true
+                        viewModel.showingAddTimingTrack = true
                     } label: {
                         Label("Add Timing Track…", systemImage: "plus.rectangle")
                     }
@@ -1338,32 +1803,15 @@ struct SequencerGridV2View: View {
                         Label("Import Timing Track…",
                                systemImage: "square.and.arrow.down")
                     }
-                    // A2: derive a timing track from the audio's
-                    // percussive onsets. Disabled when there's no
-                    // loaded audio.
-                    Button {
-                        _ = viewModel.generateTimingTrackFromOnsets()
-                    } label: {
-                        Label("Generate Timing Track from Onsets",
-                               systemImage: "waveform.badge.plus")
-                    }
-                    .disabled(!viewModel.hasAudio || viewModel.isComputingOnsets)
-                    // A4: detect tempo and drop a beat-aligned fixed
-                    // timing track. Confirmation in a preview sheet
-                    // lets the user back out if the BPM is wrong.
-                    Button {
-                        tempoPreview = viewModel.detectTempo()
-                        tempoPreviewPresented = tempoPreview != nil
-                    } label: {
-                        Label("Detect Tempo…",
-                               systemImage: "metronome")
-                    }
-                    .disabled(!viewModel.hasAudio)
                     // B83: derive a timing track from the selected
                     // effect's owning model. One mark per
                     // distinct effect range across the model's rows.
                     // Gated on a selection since we need a model to
-                    // source from.
+                    // source from. Stays here (rather than moving to
+                    // the unified sheet) because it's bound to the
+                    // current effect selection — surfacing it from a
+                    // sheet that doesn't know which effect is
+                    // selected would be more confusing than useful.
                     Button {
                         if let sel = viewModel.selectedEffect {
                             _ = viewModel.createTimingTrackFromEffects(
@@ -1374,16 +1822,6 @@ struct SequencerGridV2View: View {
                                systemImage: "waveform.path.badge.plus")
                     }
                     .disabled(viewModel.selectedEffect == nil)
-                    // A9: detect chord progression; preview sheet
-                    // shows key + chord count before committing.
-                    Button {
-                        chordPreview = viewModel.detectChords()
-                        chordPreviewPresented = chordPreview != nil
-                    } label: {
-                        Label("Detect Chords…",
-                               systemImage: "pianokeys")
-                    }
-                    .disabled(!viewModel.hasAudio)
                     // B37: re-fit the whole sequence into the viewport.
                     Divider()
                     Button {
@@ -1400,17 +1838,29 @@ struct SequencerGridV2View: View {
                             Label("Zoom to Selection", systemImage: "arrow.up.backward.and.arrow.down.forward")
                         }
                     }
-                    // B57: global collapse / expand.
+                    // B57: global collapse / expand. Desktop splits
+                    // "Collapse All Models" (hide strands/submodels) from
+                    // "Collapse All Layers" (SetCollapsed on every element).
                     Divider()
+                    Button {
+                        viewModel.collapseAllModelSubrows()
+                    } label: {
+                        Label("Collapse All Models", systemImage: "rectangle.compress.vertical")
+                    }
                     Button {
                         viewModel.collapseAllModels()
                     } label: {
-                        Label("Collapse All", systemImage: "chevron.up.chevron.down")
+                        Label("Collapse All Layers", systemImage: "chevron.up.chevron.down")
                     }
                     Button {
                         viewModel.expandAllElements()
                     } label: {
                         Label("Expand All", systemImage: "arrow.up.and.down")
+                    }
+                    Button {
+                        viewModel.expandElementsWithEffects()
+                    } label: {
+                        Label("Show All Effects", systemImage: "rectangle.expand.vertical")
                     }
                     // B81: hide / show every timing row at once.
                     let allHidden = viewModel.allTimingTracksHidden
@@ -1439,6 +1889,49 @@ struct SequencerGridV2View: View {
                               systemImage: waveformDoubleHeight
                                 ? "rectangle.compress.vertical"
                                 : "rectangle.expand.vertical")
+                    }
+                    // Sequencer behaviour toggles — desktop parity with
+                    // the Effects-Grid / Timing prefs.
+                    Divider()
+                    Toggle(isOn: $snapToTimingMarks) {
+                        Label("Snap to Timing Marks", systemImage: "ruler")
+                    }
+                    Toggle(isOn: $timingPlayOnDoubleTap) {
+                        Label("Timing Play on Double-Tap", systemImage: "play.circle")
+                    }
+                    // Desktop EditToolBar Paste-By-Cell / Paste-By-Time
+                    // toggle. By Cell stretches a single-effect paste to
+                    // fill the active timing cell (the long-standing iPad
+                    // auto behavior, kept as the default); By Time always
+                    // preserves the copied duration.
+                    Picker(selection: $pasteByCell) {
+                        Text("By Time").tag(false)
+                        Text("By Cell").tag(true)
+                    } label: {
+                        Label("Paste Mode", systemImage: "doc.on.clipboard")
+                    }
+                    // Desktop Effects-Grid display prefs.
+                    Divider()
+                    Toggle(isOn: $showEffectBackgrounds) {
+                        Label("Effect Backgrounds", systemImage: "paintpalette")
+                    }
+                    Toggle(isOn: $showTransitionMarks) {
+                        Label("Transition Marks", systemImage: "triangle")
+                    }
+                    Toggle(isOn: $alternateTimingFormat) {
+                        Label("Alternate Timing Format", systemImage: "clock")
+                    }
+                    Toggle(isOn: $hideColorUpdateWarning) {
+                        Label("Hide Color Update Warning", systemImage: "paintbrush")
+                    }
+                    Picker(selection: $gridSpacing) {
+                        Text("Extra Small").tag("XS")
+                        Text("Small").tag("S")
+                        Text("Medium").tag("M")
+                        Text("Large").tag("L")
+                        Text("Extra Large").tag("XL")
+                    } label: {
+                        Label("Grid Spacing", systemImage: "arrow.up.and.down.text.horizontal")
                     }
                     // B34 / B35 numbered-tag markers. Set / go-to /
                     // clear at the current play head. Desktop parity
@@ -1519,8 +2012,16 @@ struct SequencerGridV2View: View {
             spectrogramFetcher: { s, e, w, h in
                 viewModel.spectrogramBGRA(fromMS: s, toMS: e,
                                            width: w, height: h)
-            }
+            },
+            songRegionBounds: viewModel.songRegions.map {
+                ($0.startMS, $0.endMS, $0.colorARGB)
+            },
+            songRegionNames: viewModel.songRegions.map { $0.name },
+            songRegionRevision: viewModel.songStructureRevision,
+            onRegionMenu: { ms in songRegionMenuMS = ms },
+            alternateTimingFormat: alternateTimingFormat
         )
+        .id(viewModel.songStructureRevision)
     }
 
     /// B34 / B35 — tag menu entries for the View-picker. Extracted
@@ -1536,8 +2037,17 @@ struct SequencerGridV2View: View {
             }
         }
         Menu("Go To Tag") {
+            Button("Next Tag") { viewModel.goToNextTag() }
+            Button("Prior Tag") { viewModel.goToPriorTag() }
+            Divider()
             ForEach(0..<10, id: \.self) { i in
                 Button("Tag \(i)") { viewModel.goToTag(i) }
+                    .disabled(viewModel.tagPositions[i] < 0)
+            }
+        }
+        Menu("Delete Tag") {
+            ForEach(0..<10, id: \.self) { i in
+                Button("Tag \(i)", role: .destructive) { viewModel.clearTag(i) }
                     .disabled(viewModel.tagPositions[i] < 0)
             }
         }
@@ -1685,6 +2195,10 @@ struct SequencerGridV2View: View {
                     onRemoveWordsAndPhonemes: {
                         _ = viewModel.removeWordsAndPhonemes(rowIndex: row.id)
                     },
+                    canRemovePhonemes: viewModel.canRemovePhonemes(rowIndex: row.id),
+                    onRemovePhonemes: {
+                        _ = viewModel.removePhonemes(rowIndex: row.id)
+                    },
                     canMakeVariable: viewModel.timingTrackIsFixed(rowIndex: row.id),
                     onMakeVariable: {
                         _ = viewModel.makeTimingTrackVariable(rowIndex: row.id)
@@ -1699,6 +2213,18 @@ struct SequencerGridV2View: View {
                     onExportTimingTrack: {
                         startXTimingExport(rowIndex: row.id,
                                              trackName: row.timing?.elementName ?? row.displayName)
+                    },
+                    canExportPapagayo: viewModel.canExportPapagayo(rowIndex: row.id),
+                    onExportPapagayo: {
+                        startPapagayoExport(rowIndex: row.id,
+                                             trackName: row.timing?.elementName ?? row.displayName)
+                    },
+                    canSpeechToLyrics: viewModel.canSpeechToLyrics(rowIndex: row.id),
+                    onSpeechToLyrics: {
+                        // Reuse the unified Add-Timing flow's AI-Lyrics path
+                        // (mirrors desktop, which also creates a new track).
+                        viewModel.pendingSpeechToLyricsRowIndex = row.id
+                        viewModel.showingAddTimingTrack = true
                     },
                     onImportLyrics: {
                         importLyricsTargetRow = row.id
@@ -1715,13 +2241,81 @@ struct SequencerGridV2View: View {
                     },
                     onHalveTimingMarks: {
                         _ = viewModel.halveTimingMarks(rowIndex: row.id)
-                    }
+                    },
+                    onDivideTimingMarks: { divisor in
+                        _ = viewModel.divideTimingMarks(byN: divisor, rowIndex: row.id)
+                    },
+                    canSelectMarks: !row.effects.isEmpty,
+                    onSelectMarks: {
+                        viewModel.selectAllEffectsInRow(rowIndex: row.id)
+                    },
+                    onCreateSongRegions: row.layerIndex == 0 && !row.effects.isEmpty ? {
+                        viewModel.createSongRegionsFromTimingRow(row.id)
+                    } : nil
                 )
             }
         }
     }
 
     // MARK: - Row 3: model area
+
+    /// Row-headers column for the model band. The scroll view is
+    /// constrained to the natural row-content height (or the full
+    /// model band's height if rows overflow); any leftover vertical
+    /// space below is occupied by an invisible Color.clear that
+    /// hosts the empty-area long-press menu. Doing it as a sibling
+    /// of the scroll view (instead of inside its content) sidesteps
+    /// the pan recogniser eating the long-press, and gives the
+    /// empty area visible pixels to register the gesture in (a
+    /// Color.clear inside the scroll view would be sized to zero by
+    /// the bounded contentHeight).
+    @ViewBuilder
+    private func modelRowHeaderColumn(modelRows: [SequencerViewModel.RowInfo],
+                                        modelAreaH: CGFloat,
+                                        availableModelBandH: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            SyncedScrollView(
+                targetHOffset: nil,
+                targetVOffset: rowsScroll.vScrollOffsetPx,
+                contentWidth: metrics.rowHeaderWidth,
+                contentHeight: modelAreaH,
+                showsIndicators: false,
+                onScroll: { newOffset in
+                    rowsScroll.vScrollOffsetPx = newOffset.y
+                }
+            ) {
+                modelHeaders(modelRows)
+            }
+            .frame(width: metrics.rowHeaderWidth,
+                   height: min(modelAreaH, max(0, availableModelBandH)))
+            if modelAreaH < availableModelBandH {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .frame(width: metrics.rowHeaderWidth)
+                    .frame(maxHeight: .infinity)
+                    .onLongPressGesture(minimumDuration: 0.5) {
+                        emptyAreaMenuPresented = true
+                    }
+            }
+        }
+        .frame(width: metrics.rowHeaderWidth)
+        .confirmationDialog("",
+                             isPresented: $emptyAreaMenuPresented,
+                             titleVisibility: .hidden) {
+            Button {
+                viewModel.showingAddTimingTrack = true
+            } label: {
+                Label("Add Timing Track…", systemImage: "plus.rectangle")
+            }
+            Button {
+                viewModel.showingDisplayElements = true
+            } label: {
+                Label("Edit Display Elements…",
+                       systemImage: "rectangle.stack.badge.plus")
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
 
     private func modelHeaders(_ rows: [SequencerViewModel.RowInfo]) -> some View {
         let selectedRowId = viewModel.selectedEffect?.rowIndex
@@ -1748,17 +2342,43 @@ struct SequencerGridV2View: View {
                     onDeleteAllEffectsOnRow: {
                         _ = viewModel.deleteAllEffectsOnRow(rowIndex: row.id)
                     },
+                    onDeleteModelEffects: {
+                        viewModel.deleteModelEffects(rowIndex: row.id)
+                    },
                     elementRenderDisabled: viewModel.isElementRenderDisabled(rowIndex: row.id),
                     onToggleRenderDisabled: {
                         viewModel.toggleElementRenderDisabled(rowIndex: row.id)
                     },
+                    onEnableRenderAll: {
+                        viewModel.enableRenderOnAllModels()
+                    },
+                    onPlayModel: {
+                        viewModel.playModel(rowIndex: row.id)
+                    },
                     onCopyRow: { viewModel.copyRow(rowIndex: row.id) },
                     onCutRow: { viewModel.cutRow(rowIndex: row.id) },
                     onCopyModel: { viewModel.copyModel(rowIndex: row.id) },
+                    onCopyModelInclSubmodels: { viewModel.copyModelInclSubmodels(rowIndex: row.id) },
                     onCutModel: { viewModel.cutModel(rowIndex: row.id) },
+                    onCopyLayersToModels: {
+                        copyLayersPickedModels = []
+                        copyLayersSourceRow = row.id
+                    },
+                    onPaste: { viewModel.pasteAtRow(rowIndex: row.id) },
+                    hasClipboard: viewModel.hasClipboard,
+                    onFindSourceEffects: { viewModel.findSourceEffects(rowIndex: row.id) },
                     hasLoopRegion: viewModel.hasLoopRegion,
                     onExportModelFSEQ: { useLoop in
                         startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
+                    },
+                    onExportModelVideo: { compressed, highQuality, forceProRes, ext, label, expW, expH in
+                        startVideoExport(rowIndex: row.id, compressed: compressed,
+                                         highQuality: highQuality, forceProRes: forceProRes,
+                                         ext: ext, label: label,
+                                         exportWidth: expW, exportHeight: expH)
+                    },
+                    onExportModelGif: {
+                        startGifExport(rowIndex: row.id)
                     },
                     onConvertToPerModel: { allLayers in
                         viewModel.convertEffectsToPerModel(rowIndex: row.id,
@@ -1766,6 +2386,19 @@ struct SequencerGridV2View: View {
                     },
                     onPromoteNodeEffects: {
                         viewModel.promoteNodeEffects(rowIndex: row.id)
+                    },
+                    onConvertDataToEffects: {
+                        viewModel.convertDataToEffects(rowIndex: row.id)
+                    },
+                    onDeleteScopedEffects: { scope in
+                        let name = scope == 0 ? "Delete SubModel Effects"
+                                 : scope == 1 ? "Delete Strand Effects"
+                                              : "Delete Node Effects"
+                        viewModel.deleteScopedEffects(rowIndex: row.id, scope: scope, actionName: name)
+                    },
+                    hasSelectedEffectsOnModel: viewModel.selectedEffectsSpanForModel(rowIndex: row.id) != nil,
+                    onExportSelectedModelFSEQ: {
+                        startSelectedFSEQExport(rowIndex: row.id)
                     },
                     unusedLayerCount: Int(viewModel.document.unusedLayerCount(atRow: Int32(row.id))),
                     onDeleteUnusedLayers: {
@@ -1775,12 +2408,37 @@ struct SequencerGridV2View: View {
                         insertLayersCountText = "3"
                         insertLayersTargetRow = row.id
                     },
+                    onDeleteMultipleLayers: {
+                        deleteLayersCountText = "2"
+                        deleteLayersTargetRow = row.id
+                    },
                     isSelected: row.id == selectedRowId
                 )
+                .overlay(alignment: .top) {
+                    if isTopLevelRow(row), rowDropTargetId == row.id,
+                       rowDragSourceId != nil, rowDragSourceId != row.id {
+                        Rectangle()
+                            .fill(Color.accentColor)
+                            .frame(height: 2)
+                    }
+                }
+                .modifier(TopLevelRowReorderModifier(
+                    isTopLevel: isTopLevelRow(row),
+                    rowId: row.id,
+                    sourceId: $rowDragSourceId,
+                    dropTargetId: $rowDropTargetId,
+                    onCommit: { src, dest in
+                        viewModel.moveTopLevelRow(from: src, toBefore: dest)
+                    }
+                ))
             }
-            Spacer(minLength: 0)
         }
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func isTopLevelRow(_ row: SequencerViewModel.RowInfo) -> Bool {
+        row.layerIndex == 0 && row.strandIndex < 0
+            && row.nodeIndex < 0 && !row.isSubmodel
     }
 
     /// Interactive Metal grid for the model-effect column. Builds
@@ -1840,6 +2498,17 @@ struct SequencerGridV2View: View {
         actions.onDoubleTapEmpty = { rowIdx, ms in
             viewModel.doubleTapCreateInCell(rowIndex: rowIdx, atMS: ms)
         }
+        actions.isPaletteArmed = { viewModel.selectedPaletteEffect != nil }
+        actions.onCreateEffectDrag = { rowIdx, startMS, endMS in
+            viewModel.createEffectFromPaletteDrag(rowIndex: rowIdx,
+                                                  startMS: startMS, endMS: endMS)
+        }
+        actions.onToggleSelectEffect = { rowIdx, effIdx in
+            viewModel.toggleSelectEffect(rowIndex: rowIdx, effectIndex: effIdx)
+        }
+        actions.onExtendSelectEffect = { rowIdx, effIdx in
+            viewModel.extendSelectEffect(rowIndex: rowIdx, effectIndex: effIdx)
+        }
         var stateLookup = EffectStateLookup()
         stateLookup.isLocked = { [document = viewModel.document] rowIdx, effIdx in
             document.effectIsLocked(inRow: Int32(rowIdx), at: Int32(effIdx))
@@ -1852,12 +2521,13 @@ struct SequencerGridV2View: View {
             metrics: metrics,
             pixelsPerMS: timeline.pixelsPerMS,
             selection: viewModel.selectedEffect,
-            previousSelection: viewModel.previousSelectedEffect,
             selectedEffects: viewModel.selectedEffects,
             activeDrag: viewModel.activeDrag,
             timingMarkTimesMS: collectActiveTimingMarkTimes(),
             renderedBackgroundsRevision: viewModel.renderedBackgroundsRevision,
             inspectorRevision: viewModel.inspectorRevision,
+            showEffectBackgrounds: showEffectBackgrounds,
+            showTransitionMarks: showTransitionMarks,
             scrollOffsetX: Binding(
                 get: { timeline.hScrollOffsetPx },
                 set: { timeline.hScrollOffsetPx = $0 }),
