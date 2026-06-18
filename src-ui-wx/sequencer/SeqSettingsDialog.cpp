@@ -2436,8 +2436,11 @@ void SeqSettingsDialog::OnButton_SetDefaultDurationClick(wxCommandEvent& /*event
 {
     auto* cfg = GetXLightsConfig();
     cfg->Write("DefaultSeqDuration", TextCtrl_Xml_Seq_Duration->GetValue());
+    if (m_activeDefaultBtn) {
+        m_activeDefaultBtn->SetLabel(_("Set Default"));
+    }
     m_activeDefaultBtn = Button_SetDefaultDuration;
-    Button_SetDefaultDuration->SetLabel("Saved!");
+    Button_SetDefaultDuration->SetLabel(_("Saved!"));
     m_defaultSavedTimer.StartOnce(1500);
 }
 
@@ -2445,15 +2448,18 @@ void SeqSettingsDialog::OnButton_SetDefaultTimingClick(wxCommandEvent& /*event*/
 {
     auto* cfg = GetXLightsConfig();
     cfg->Write("DefaultSeqTiming", xml_file->GetSequenceTiming());
+    if (m_activeDefaultBtn) {
+        m_activeDefaultBtn->SetLabel(_("Set Default"));
+    }
     m_activeDefaultBtn = Button_SetDefaultTiming;
-    Button_SetDefaultTiming->SetLabel("Saved!");
+    Button_SetDefaultTiming->SetLabel(_("Saved!"));
     m_defaultSavedTimer.StartOnce(1500);
 }
 
 void SeqSettingsDialog::OnDefaultSavedTimer(wxTimerEvent& /*event*/)
 {
     if (m_activeDefaultBtn) {
-        m_activeDefaultBtn->SetLabel("Set Default");
+        m_activeDefaultBtn->SetLabel(_("Set Default"));
         m_activeDefaultBtn = nullptr;
     }
 }
