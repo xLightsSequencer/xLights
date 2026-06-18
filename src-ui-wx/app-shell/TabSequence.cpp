@@ -905,10 +905,6 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
                     DisplayError("Unable to save effect presets file", this);
                 }
             }
-            // Remove any stale autosave backup now that the main file is current
-            if (FileExists(presetsBkp.GetFullPath())) {
-                wxRemoveFile(presetsBkp.GetFullPath());
-            }
         }
     }
 
