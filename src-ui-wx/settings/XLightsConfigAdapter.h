@@ -97,6 +97,9 @@ XLightsConfigAdapter* GetXLightsBookmarksConfig();
 /// Determines AppData path, loads JSON, and imports legacy wxConfig on first run.
 void InitializeXLightsConfig();
 
+/// Returns the path to the xLights settings file (settings.json in the platform AppData dir).
+std::filesystem::path GetSettingsFilePath();
+
 /// Returns the path to the xLights log file.
 std::filesystem::path GetLogFilePath();
 std::filesystem::path GetLogFileFolder();

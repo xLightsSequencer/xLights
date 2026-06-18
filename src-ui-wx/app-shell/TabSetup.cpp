@@ -440,8 +440,19 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     spdlog::debug("    Networks updated.");
 
     wxFileName kbf;
-    kbf.AssignDir(CurrentDir);
+    kbf.AssignDir(GetSettingsFilePath().parent_path().string());
     kbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+
+    // One-time migration: copy from show folder to AppData if not yet there
+    if (!kbf.FileExists()) {
+        wxFileName legacy;
+        legacy.AssignDir(CurrentDir);
+        legacy.SetFullName(XLIGHTS_KEYBINDING_FILE);
+        if (legacy.FileExists()) {
+            wxCopyFile(legacy.GetFullPath(), kbf.GetFullPath());
+        }
+    }
+
     mainSequencer->keyBindings.Load(kbf);
 
     // Merge controllers from base show folder before loading effects file
