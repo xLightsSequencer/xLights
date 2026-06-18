@@ -2052,7 +2052,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 #endif
         }
     } else {
-        if (!PromptForShowDirectory(true)) {
+        if (!OfferDefaultShowDirectory(true)) {
             CurrentDir = "";
             splash.Hide();
             wxMessageBox("Exiting as setting a show folder is not optional.");

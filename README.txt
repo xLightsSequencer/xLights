@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.12  June ??, 2026
+    -enh (scott)                 First run with no show folder set: offer to create and use a default show folder at Documents/xLights (or pick one)
     -enh (scott)                 Update dialog can download the new release installer from GitHub and run it (instead of opening a browser)
     -enh (scott)                 Show the active OpenGL backend (ANGLE vs native) in the About dialog and startup log
     -enh (cybercop23)            Sequencer timeline fits the full sequence to the viewport width on load, keep same width for 20/40 fps.

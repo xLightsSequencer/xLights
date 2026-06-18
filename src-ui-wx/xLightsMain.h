@@ -1489,6 +1489,7 @@ public:
     void UpdateRecentFilesList(bool reload);
     void AddToMRU(const std::string& filename);
     bool PromptForShowDirectory(bool permanent, const std::string &defaultDir = "");
+    bool OfferDefaultShowDirectory(bool permanent);
     bool PromptForDirectorySelection(const std::string &msg, std::string &dir);
     bool SaveNetworksFile();
     bool IsControllerUploadLinked() { return _linkedControllerUpload == "Inputs and Outputs"; }

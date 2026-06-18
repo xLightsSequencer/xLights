@@ -16,6 +16,7 @@
 #include <wx/time.h>
 #include <wx/stopwatch.h>
 #include <wx/settings.h>
+#include <wx/stdpaths.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>
@@ -625,6 +626,33 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &def
         }
     }
     return false;
+}
+
+bool xLightsFrame::OfferDefaultShowDirectory(bool permanent) {
+    wxString documents = wxStandardPaths::Get().GetDocumentsDir();
+    wxString defaultShowDir = documents + wxFileName::GetPathSeparator() + "xLights";
+
+    int answer = wxMessageBox("No show folder is set.\n\nWould you like xLights to create and use a default show folder at:\n\n" + defaultShowDir + "\n\nChoose No to pick a different folder.",
+                              "Create Default Show Folder", wxYES_NO | wxICON_QUESTION, this);
+
+    if (answer != wxYES) {
+        return PromptForShowDirectory(permanent);
+    }
+
+    ObtainAccessToURL(documents, true);
+    if (!wxFileName::DirExists(defaultShowDir)) {
+        if (!wxFileName::Mkdir(defaultShowDir, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)) {
+            DisplayError(ToStdString("Unable to create the default show folder:\n" + defaultShowDir + "\n\nPlease choose a folder instead."), this);
+            return PromptForShowDirectory(permanent);
+        }
+    }
+    ObtainAccessToURL(defaultShowDir, true);
+    if (SetDir(defaultShowDir, permanent)) {
+        return true;
+    }
+
+    // Creating/applying the default failed for some reason - fall back to the picker.
+    return PromptForShowDirectory(permanent);
 }
 #pragma endregion
 
