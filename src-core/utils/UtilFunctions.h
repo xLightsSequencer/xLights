@@ -13,6 +13,10 @@
 #include "globals.h"
 #include "string_utils.h"
 
+#include <fstream>
+#include <set>
+#include <nlohmann/json.hpp>
+
 #include <chrono>
 #include <ctime>
 #include <spdlog/fmt/fmt.h>
@@ -43,15 +47,6 @@ inline int64_t GetCurrentTimeMillis() {
         std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
-inline uint32_t fnv1a(const std::string& str) {
-    uint32_t hash = 2166136261u;
-    for (char c : str) {
-        hash ^= static_cast<uint8_t>(c);
-        hash *= 16777619u;
-    }
-    return hash;
-}
-
 inline std::string FormatTimestamp() {
     auto now = std::chrono::system_clock::now();
     auto tt = std::chrono::system_clock::to_time_t(now);
@@ -68,19 +63,56 @@ inline std::string FormatTimestamp() {
     return buf;
 }
 
-inline std::string MakeControllerTimestampKey(const std::string& prefix, const std::string& ctrlName, const std::string& showDir) {
-    std::string showPart = "default";
-    if (!showDir.empty()) {
-        auto normPath = std::filesystem::path(showDir).lexically_normal();
-        std::string bname = normPath.filename().string();
-        if (bname.empty() || bname == "/") bname = "root";
-        showPart = bname + "_" + fmt::format("{:08x}", fnv1a(showDir));
+inline std::string GetControllerTimestampPath(const std::string& showDir) {
+    if (showDir.empty()) return {};
+    return (std::filesystem::path(showDir) / "xlights_local.json").string();
+}
+
+inline std::string ReadControllerTimestamp(const std::string& showDir,
+    const std::string& prefix, const std::string& ctrlName) {
+    auto path = GetControllerTimestampPath(showDir);
+    if (path.empty()) return {};
+    std::error_code ec;
+    if (!std::filesystem::exists(path, ec)) return {};
+    std::ifstream f(path);
+    if (!f) return {};
+    auto j = nlohmann::json::parse(f, nullptr, false);
+    if (j.is_discarded()) return {};
+    auto it = j.find(prefix + "_" + ctrlName);
+    if (it == j.end() || !it->is_string()) return {};
+    return it->get<std::string>();
+}
+
+inline void WriteControllerTimestamp(const std::string& showDir,
+    const std::string& prefix, const std::string& ctrlName,
+    const std::string& ts,
+    const std::set<std::string>& validCtrls) {
+    auto path = GetControllerTimestampPath(showDir);
+    if (path.empty()) return;
+    nlohmann::json j;
+    std::error_code ec;
+    if (std::filesystem::exists(path, ec)) {
+        std::ifstream f(path);
+        if (f) j = nlohmann::json::parse(f, nullptr, false);
     }
-    std::string key = prefix + "/" + showPart + "/" + ctrlName;
-    for (auto& c : key) {
-        if (c == ':' || c == '/' || c == '\\' || c == '.' || c == ' ') c = '_';
+    if (j.is_discarded()) j = nlohmann::json::object();
+    j[prefix + "_" + ctrlName] = ts;
+    if (!validCtrls.empty()) {
+        auto marker = prefix + "_";
+        auto it = j.begin();
+        while (it != j.end()) {
+            auto key = it.key();
+            if (key.compare(0, marker.size(), marker) == 0) {
+                auto namePart = key.substr(marker.size());
+                if (validCtrls.find(namePart) == validCtrls.end()) {
+                    it = j.erase(it);
+                    continue;
+                }
+            }
+            ++it;
+        }
     }
-    return key;
+    std::ofstream(path) << j.dump(2);
 }
 
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))

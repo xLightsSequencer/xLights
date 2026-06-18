@@ -29,6 +29,8 @@
 
 #include "nlohmann/json.hpp"
 
+#include <set>
+
 #include <log.h>
 
 #include "utils/XsqFileScanner.h"
@@ -1180,11 +1182,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
 
                         if (!controllerCancelled) {
                             auto ts = FormatTimestamp();
-                            auto* config = GetXLightsConfig();
                             auto ctrlName = c.front()->GetName();
-                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
-                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
-                            config->Flush();
+                            std::set<std::string> allCtrls;
+                            for (auto* ctrl : _outputManager->GetControllers()) {
+                                allCtrls.insert(ctrl->GetName());
+                            }
+                            WriteControllerTimestamp(frame->showDirectory, "LastInputUpload", ctrlName, ts, allCtrls);
+                            WriteControllerTimestamp(frame->showDirectory, "LastOutputUpload", ctrlName, ts, allCtrls);
                         }
                     }
                 }
@@ -1209,11 +1213,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 BaseController* bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
                 if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
                     auto ts = FormatTimestamp();
-                    auto* config = GetXLightsConfig();
                     auto ctrlName = controller.front()->GetName();
-                    config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
-                    config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
-                    config->Flush();
+                    std::set<std::string> allCtrls;
+                    for (auto* ctrl : _outputManager->GetControllers()) {
+                        allCtrls.insert(ctrl->GetName());
+                    }
+                    WriteControllerTimestamp(frame->showDirectory, "LastInputUpload", ctrlName, ts, allCtrls);
+                    WriteControllerTimestamp(frame->showDirectory, "LastOutputUpload", ctrlName, ts, allCtrls);
                 }
                 delete bc;
             }

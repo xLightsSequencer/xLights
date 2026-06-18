@@ -2081,8 +2081,16 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
             }
 
             {
-                auto* config = GetXLightsConfig();
                 auto ctrlName = controller->GetName();
+                std::string tsStr;
+                if (showDirectory.empty()) {
+                    wxString tmp;
+                    auto* config = GetXLightsConfig();
+                    if (config->Read("LastInputUpload_" + ctrlName, &tmp)) tsStr = tmp.ToStdString();
+                } else {
+                    tsStr = ReadControllerTimestamp(showDirectory, "LastInputUpload", ctrlName);
+                }
+                wxString ts = wxString::FromUTF8(tsStr.empty() ? "Never" : tsStr.c_str());
 
                 wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
                 if (!p) {
@@ -2090,8 +2098,6 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                wxString ts;
-                if (!config->Read(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
                 p->SetValue(ts);
 
                 p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
@@ -2100,7 +2106,15 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                if (!config->Read(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
+                tsStr.clear();
+                if (showDirectory.empty()) {
+                    wxString tmp;
+                    auto* config = GetXLightsConfig();
+                    if (config->Read("LastOutputUpload_" + ctrlName, &tmp)) tsStr = tmp.ToStdString();
+                } else {
+                    tsStr = ReadControllerTimestamp(showDirectory, "LastOutputUpload", ctrlName);
+                }
+                ts = wxString::FromUTF8(tsStr.empty() ? "Never" : tsStr.c_str());
                 p->SetValue(ts);
             }
 
@@ -2826,10 +2840,12 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         res = true;
                         {
                             auto ts = FormatTimestamp();
-                            auto* config = GetXLightsConfig();
                             auto ctrlName = controller->GetName();
-                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
-                            config->Flush();
+                            std::set<std::string> allCtrls;
+                            for (auto* c : _outputManager.GetControllers()) {
+                                allCtrls.insert(c->GetName());
+                            }
+                            WriteControllerTimestamp(showDirectory, "LastInputUpload", ctrlName, ts, allCtrls);
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
                                 prop->SetValue(wxString::FromUTF8(ts.c_str()));
                             }
@@ -2901,10 +2917,12 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                         res = true;
                         {
                             auto ts = FormatTimestamp();
-                            auto* config = GetXLightsConfig();
                             auto ctrlName = controller->GetName();
-                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
-                            config->Flush();
+                            std::set<std::string> allCtrls;
+                            for (auto* c : _outputManager.GetControllers()) {
+                                allCtrls.insert(c->GetName());
+                            }
+                            WriteControllerTimestamp(showDirectory, "LastOutputUpload", ctrlName, ts, allCtrls);
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
                                 prop->SetValue(wxString::FromUTF8(ts.c_str()));
                             }

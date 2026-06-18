@@ -2722,6 +2722,8 @@ struct LayoutEditorView: View {
                     }
                     return out.isEmpty ? nil : out
                 }
+                let lastInputUpload = (detail["lastInputUpload"] as? String) ?? ""
+                let lastOutputUpload = (detail["lastOutputUpload"] as? String) ?? ""
                 LayoutEditorControllerDetailView(
                     name: name,
                     descriptors: descriptors,
@@ -2732,6 +2734,8 @@ struct LayoutEditorView: View {
                     proxyURL: proxyURL,
                     pingState: controllerPingStates[name],
                     pingInFlight: controllerPingInFlight.contains(name),
+                    lastInputUpload: lastInputUpload,
+                    lastOutputUpload: lastOutputUpload,
                     onTapModel: { modelName in
                         sidebarTab = .models
                         viewModel.layoutSelectSingle(modelName)
@@ -12213,6 +12217,8 @@ private struct LayoutEditorControllerDetailView: View {
     let proxyURL: URL?
     let pingState: String?
     let pingInFlight: Bool
+    let lastInputUpload: String
+    let lastOutputUpload: String
     let onTapModel: (String) -> Void
     let onOpenURL: (URL) -> Void
     let onPing: () -> Void
@@ -12337,9 +12343,31 @@ private struct LayoutEditorControllerDetailView: View {
                     .padding(.vertical, 2)
                 }
             }
+
+            Divider()
+
+            TimestampRow(label: "Last Input Upload", timestamp: lastInputUpload)
+            TimestampRow(label: "Last Output Upload", timestamp: lastOutputUpload)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
+    }
+}
+
+private struct TimestampRow: View {
+    let label: String
+    let timestamp: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label)
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 130, alignment: .leading)
+            Spacer(minLength: 8)
+            Text(timestamp.isEmpty ? "Never" : timestamp)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
     }
 }
 

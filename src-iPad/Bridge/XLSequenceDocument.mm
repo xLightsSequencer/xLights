@@ -49,6 +49,7 @@
 #include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
 #include <xlsxwriter.h>
 #include <filesystem>
+#include <set>
 #include "media/MediaCompatibility.h"
 #include "media/VideoReader.h"
 #include "render/ValueCurve.h"
@@ -14597,6 +14598,12 @@ static NSDictionary* BuildControllerSummary(const Controller* c) {
     }
     // FPP proxy (when set) — drives the detail-pane "Open Proxy" button.
     d[@"proxy"] = [NSString stringWithUTF8String:c->GetFPPProxy().c_str()];
+    std::string ctrlName(name.UTF8String);
+    std::string showDir = _context->GetShowDirectory();
+    d[@"lastInputUpload"] = [NSString stringWithUTF8String:
+        ReadControllerTimestamp(showDir, "LastInputUpload", ctrlName).c_str()];
+    d[@"lastOutputUpload"] = [NSString stringWithUTF8String:
+        ReadControllerTimestamp(showDir, "LastOutputUpload", ctrlName).c_str()];
     return d;
 }
 
@@ -15913,6 +15920,16 @@ public:
     if (ok) {
         result[@"message"] = [NSString stringWithFormat:
             @"%@ upload complete.", label];
+        auto showDir = _context->GetShowDirectory();
+        std::string ts = FormatTimestamp();
+        std::string ctrlName(name.UTF8String);
+        std::set<std::string> allCtrls;
+        for (auto* c : om.GetControllers()) {
+            allCtrls.insert(c->GetName());
+        }
+        WriteControllerTimestamp(showDir,
+            isInputUpload ? "LastInputUpload" : "LastOutputUpload",
+            ctrlName, ts, allCtrls);
     } else {
         result[@"message"] = [NSString stringWithFormat:
             @"%@ upload failed. Check the log for details.", label];
