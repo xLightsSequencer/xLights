@@ -12,6 +12,7 @@
 
 #include "globals.h"
 #include "string_utils.h"
+#include "ExternalHooks.h"
 
 #include <fstream>
 #include <set>
@@ -72,8 +73,8 @@ inline std::string ReadControllerTimestamp(const std::string& showDir,
     const std::string& prefix, const std::string& ctrlName) {
     auto path = GetControllerTimestampPath(showDir);
     if (path.empty()) return {};
-    std::error_code ec;
-    if (!std::filesystem::exists(path, ec)) return {};
+    if (!FileExists(path)) return {};
+    ObtainAccessToURL(path, false);
     std::ifstream f(path);
     if (!f) return {};
     auto j = nlohmann::json::parse(f, nullptr, false);
@@ -90,8 +91,8 @@ inline void WriteControllerTimestamp(const std::string& showDir,
     auto path = GetControllerTimestampPath(showDir);
     if (path.empty()) return;
     nlohmann::json j;
-    std::error_code ec;
-    if (std::filesystem::exists(path, ec)) {
+    if (FileExists(path)) {
+        ObtainAccessToURL(path, false);
         std::ifstream f(path);
         if (f) j = nlohmann::json::parse(f, nullptr, false);
     }
@@ -112,6 +113,7 @@ inline void WriteControllerTimestamp(const std::string& showDir,
             ++it;
         }
     }
+    ObtainAccessToURL(path, true);
     std::ofstream(path) << j.dump(2);
 }
 

@@ -2841,11 +2841,17 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         {
                             auto ts = FormatTimestamp();
                             auto ctrlName = controller->GetName();
-                            std::set<std::string> allCtrls;
-                            for (auto* c : _outputManager.GetControllers()) {
-                                allCtrls.insert(c->GetName());
+                            if (showDirectory.empty()) {
+                                auto* config = GetXLightsConfig();
+                                config->Write("LastInputUpload_" + ctrlName, wxString::FromUTF8(ts.c_str()));
+                                config->Flush();
+                            } else {
+                                std::set<std::string> allCtrls;
+                                for (auto* c : _outputManager.GetControllers()) {
+                                    allCtrls.insert(c->GetName());
+                                }
+                                WriteControllerTimestamp(showDirectory, "LastInputUpload", ctrlName, ts, allCtrls);
                             }
-                            WriteControllerTimestamp(showDirectory, "LastInputUpload", ctrlName, ts, allCtrls);
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
                                 prop->SetValue(wxString::FromUTF8(ts.c_str()));
                             }
@@ -2918,11 +2924,17 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                         {
                             auto ts = FormatTimestamp();
                             auto ctrlName = controller->GetName();
-                            std::set<std::string> allCtrls;
-                            for (auto* c : _outputManager.GetControllers()) {
-                                allCtrls.insert(c->GetName());
+                            if (showDirectory.empty()) {
+                                auto* config = GetXLightsConfig();
+                                config->Write("LastOutputUpload_" + ctrlName, wxString::FromUTF8(ts.c_str()));
+                                config->Flush();
+                            } else {
+                                std::set<std::string> allCtrls;
+                                for (auto* c : _outputManager.GetControllers()) {
+                                    allCtrls.insert(c->GetName());
+                                }
+                                WriteControllerTimestamp(showDirectory, "LastOutputUpload", ctrlName, ts, allCtrls);
                             }
-                            WriteControllerTimestamp(showDirectory, "LastOutputUpload", ctrlName, ts, allCtrls);
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
                                 prop->SetValue(wxString::FromUTF8(ts.c_str()));
                             }
