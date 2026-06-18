@@ -440,7 +440,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     spdlog::debug("    Networks updated.");
 
     wxFileName kbf;
-    kbf.AssignDir(GetSettingsFilePath().parent_path().string());
+    kbf.AssignDir(wxString(GetSettingsFilePath().parent_path().wstring()));
     kbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
 
     // One-time migration: copy from show folder to AppData if not yet there
@@ -449,7 +449,10 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         legacy.AssignDir(CurrentDir);
         legacy.SetFullName(XLIGHTS_KEYBINDING_FILE);
         if (legacy.FileExists()) {
-            wxCopyFile(legacy.GetFullPath(), kbf.GetFullPath());
+            if (!wxCopyFile(legacy.GetFullPath(), kbf.GetFullPath())) {
+                spdlog::warn("Failed to migrate key bindings from show folder to AppData: {}",
+                             (const char*)legacy.GetFullPath().c_str());
+            }
         }
     }
 
