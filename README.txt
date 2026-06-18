@@ -24,6 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
     -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
                                  dropdown-style property, caused by GTK event-pumping while the property grid was frozen (#6215, #4175)
+    -bug (cybercop23)            Fix model rename in Layout not preserving position in non-master Display Element views (6191)
 
 2026.11  June 14, 2026
     NOTE:   Support for macOS versions 10.15 and 11 will likely be dropped fairly soon as the tools we use to build xLights are dropping support.
