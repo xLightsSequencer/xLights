@@ -2130,40 +2130,13 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     // itself starts empty, so this just keeps the static in sync.
     BaseCMObject::_visualizerFilterLower.Clear();
 
-    // Add a realtime "find on controller" filter above Panel3's existing
-    // content. The existing sizer (FlexGridSizer5) is preserved intact by
-    // wrapping it inside a new vertical box sizer whose first row is the
-    // search control. Done outside the wxSmith guard so the .wxs file does
-    // not need touching.
-    TextCtrl_VisualizerFilter = new wxSearchCtrl(Panel3, wxID_ANY, wxEmptyString,
-        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    TextCtrl_VisualizerFilter->SetDescriptiveText(_("Find on controller..."));
-    TextCtrl_VisualizerFilter->ShowCancelButton(true);
-    TextCtrl_VisualizerFilter->SetToolTip(_(
-        "Type to dim non-matching models on the visualizer. Matching models "
-        "stay at full opacity so you can find them in a dense wiring view. "
-        "Empty filter = normal view."));
-    TextCtrl_VisualizerFilter->Bind(wxEVT_TEXT,
-        &ControllerModelDialog::OnTextCtrl_VisualizerFilterText, this);
-    TextCtrl_VisualizerFilter->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN,
-        &ControllerModelDialog::OnTextCtrl_VisualizerFilterText, this);
-    TextCtrl_VisualizerFilter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
-        [this](wxCommandEvent&) {
-            TextCtrl_VisualizerFilter->SetValue(wxEmptyString);
-            BaseCMObject::_visualizerFilterLower.Clear();
-            PanelController->Refresh();
-        });
-
-    // Re-parent Panel3's content: put the filter on top, keep the original
-    // FlexGridSizer5 as everything-below. SetSizer(..., false) preserves
-    // the existing sizer (does not delete it) so its child widget bindings
-    // and growable-row config remain intact.
-    wxSizer* existingSizer = Panel3->GetSizer();
-    wxBoxSizer* wrapSizer = new wxBoxSizer(wxVERTICAL);
-    wrapSizer->Add(TextCtrl_VisualizerFilter, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 5);
-    wrapSizer->Add(existingSizer, 1, wxEXPAND);
-    Panel3->SetSizer(wrapSizer, false);
-    Panel3->Layout();
+    // The model-pool filter (TextCtrl_ModelFilter) is the single filter for
+    // this dialog: it hides non-matching unassigned models in the pool AND
+    // dims non-matching assigned models on the controller visualizer (see
+    // OnTextCtrl_ModelFilterText). No separate visualizer filter box.
+    TextCtrl_ModelFilter->SetToolTip(_(
+        "Filters the model pool and dims non-matching models on the "
+        "controller visualizer. Empty filter = normal view."));
 
     ::SetColours(false);
 
@@ -4900,26 +4873,23 @@ void ControllerModelDialog::OnSlider_ScaleCmdSliderUpdated(wxScrollEvent& event)
 
 void ControllerModelDialog::OnTextCtrl_ModelFilterText(wxCommandEvent& event)
 {
+    // Single filter for both panes: rebuild the model pool (hiding
+    // non-matching unassigned models) and update the visualizer dim filter
+    // that ModelCMObject::Draw reads at paint time (dimming non-matching
+    // assigned models on the controller). Lowercased once here so the
+    // Draw-time match is a cheap Contains() per model.
+    BaseCMObject::_visualizerFilterLower = TextCtrl_ModelFilter->GetValue().Lower();
     ScrollBar_Models->SetThumbPosition(0);
     ReloadModels();
+    PanelController->Refresh();
 }
 
 void ControllerModelDialog::OnTextCtrl_ModelFilterCancel(wxCommandEvent& event)
 {
     TextCtrl_ModelFilter->SetValue(wxEmptyString);
+    BaseCMObject::_visualizerFilterLower.Clear();
     ScrollBar_Models->SetThumbPosition(0);
     ReloadModels();
-}
-
-void ControllerModelDialog::OnTextCtrl_VisualizerFilterText(wxCommandEvent& event)
-{
-    // Update the static filter state that ModelCMObject::Draw reads at paint
-    // time, then trigger a repaint so the dimming / un-dimming is applied
-    // immediately (realtime). Lowercased once here so the Draw-time match is
-    // a cheap Contains() call per model rather than re-lowercasing every
-    // paint frame.
-    if (TextCtrl_VisualizerFilter == nullptr) return;
-    BaseCMObject::_visualizerFilterLower = TextCtrl_VisualizerFilter->GetValue().Lower();
     PanelController->Refresh();
 }
 

@@ -122,13 +122,6 @@ class ControllerModelDialog: public wxDialog
 		wxSearchCtrl* TextCtrl_ModelFilter;
 		//*)
 
-		// Live filter for the controller visualizer pane (Panel3) - lets the
-		// user narrow down which already-assigned models on the controller
-		// are highlighted. Non-matching models are drawn dimmed so the user
-		// keeps the spatial context of the controller wiring. Added outside
-		// the wxSmith guard so the .wxs file doesn't need to be touched.
-		wxSearchCtrl* TextCtrl_VisualizerFilter = nullptr;
-
         static const long CONTROLLERModel_PRINT;
 		static const long CONTROLLERModel_SAVE_CSV;
 		static const long CONTROLLER_REMOVEALLMODELS;
@@ -221,12 +214,6 @@ class ControllerModelDialog: public wxDialog
 		void OnTextCtrl_ModelFilterText(wxCommandEvent& event);
 		void OnTextCtrl_ModelFilterCancel(wxCommandEvent& event);
 		//*)
-
-		// Declared outside the wxSmith //(*Handlers ...) block because the
-		// visualizer filter is bound via Bind() rather than wxSmith-generated
-		// event wiring - keeping this decl outside the guard means wxSmith
-		// can safely regenerate the block without dropping this handler.
-		void OnTextCtrl_VisualizerFilterText(wxCommandEvent& event);
 
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
