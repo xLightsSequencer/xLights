@@ -44,6 +44,9 @@
 #include "utils/CurlManager.h"
 #include "render/SequencePackage.h"
 #include "utils/AppCallbacks.h"
+#ifdef __APPLE__
+#include "osxUtils/XLMetricKit.h"
+#endif
 #include <SpecialOptions.h>
 
 #ifndef __WXMSW__
@@ -59,7 +62,7 @@
 #include <GL/glut.h>
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(XLIGHTS_CMAKE_BUILD)
 #ifdef _DEBUG
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud.lib")
     #pragma comment(lib, "wxbase" WXWIDGETS_VERSION "ud_net.lib")
@@ -143,6 +146,69 @@
 
 xLightsFrame* xLightsApp::__frame = nullptr;
 
+#ifdef __WXOSX__
+// Resolve the .app bundle path of the currently-running xLights process by
+// walking up from the executable. Returns empty if the layout doesn't match
+// the expected `<Bundle>.app/Contents/MacOS/<exe>` shape (e.g. unbundled dev
+// run). Callers must check for empty before using the result.
+wxString GetRunningAppBundlePath() {
+    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+    wxFileName fn(exePath);
+    if (fn.GetDirCount() < 2) {
+        spdlog::warn("Cannot resolve .app bundle: executable path too shallow: {}",
+                     exePath.ToStdString());
+        return wxEmptyString;
+    }
+    fn.RemoveLastDir(); // strip MacOS
+    fn.RemoveLastDir(); // strip Contents
+    wxString candidate = fn.GetPath();
+    if (!candidate.EndsWith(".app")) {
+        spdlog::warn("Cannot resolve .app bundle from executable path '{}' (got '{}')",
+                     exePath.ToStdString(), candidate.ToStdString());
+        return wxEmptyString;
+    }
+    return candidate;
+}
+
+// Spawn a new xLights instance using `open -n -a <bundle> [--args <file>]`.
+// Uses the argv form of wxExecute to avoid shell quoting / escaping issues
+// for paths containing spaces, quotes, or other shell metacharacters.
+// Returns false if the bundle path cannot be resolved.
+bool SpawnNewXLightsInstance(const wxString& fileToOpen) {
+    wxString bundle = GetRunningAppBundlePath();
+    if (bundle.IsEmpty()) {
+        return false;
+    }
+    // Keep backing storage alive for the duration of the wxExecute call.
+    std::string sOpen = "/usr/bin/open";
+    std::string sN = "-n";
+    std::string sA = "-a";
+    std::string sBundle(bundle.ToUTF8().data());
+    std::string sArgs = "--args";
+    std::string sFile(fileToOpen.ToUTF8().data());
+
+    long pid = 0;
+    if (fileToOpen.IsEmpty()) {
+        char* argv[] = { sOpen.data(), sN.data(), sA.data(), sBundle.data(), nullptr };
+        spdlog::info("Spawning new xLights instance: open -n -a '{}'", sBundle);
+        pid = wxExecute(argv, wxEXEC_ASYNC);
+    } else {
+        char* argv[] = { sOpen.data(), sN.data(), sA.data(), sBundle.data(),
+                         sArgs.data(), sFile.data(), nullptr };
+        spdlog::info("Spawning new xLights instance: open -n -a '{}' --args '{}'",
+                     sBundle, sFile);
+        pid = wxExecute(argv, wxEXEC_ASYNC);
+    }
+    // wxExecute async returns 0 on launch failure; non-zero is the child PID.
+    if (pid == 0) {
+        spdlog::warn("wxExecute failed to launch new xLights instance for '{}'",
+                     sFile.empty() ? sBundle : sFile);
+        return false;
+    }
+    return true;
+}
+#endif
+
 void InitialiseLogging(bool fromMain)
 {
     static bool loggingInitialised = false;
@@ -153,25 +219,12 @@ void InitialiseLogging(bool fromMain)
         SpecialOptions::StashExeDir(
             wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath().ToStdString());
 
-        std::string const logFileName = "xLights_spdlog.log";
-#ifdef __WXMSW__
-        wxString dir;
-        wxGetEnv("APPDATA", &dir);
-        std::string const logFilePath = std::string(dir.c_str()) + "\\xLights\\" + logFileName;
-#endif
-#ifdef __WXOSX__
-        wxFileName home;
-        home.AssignHomeDir();
-        wxString const dir = home.GetFullPath();
-        std::string const logFilePath = std::string(dir.c_str()) + "/Library/Logs/" + logFileName;
-#endif
-#ifdef __LINUX__
-        std::string const logFilePath = "/tmp/" + logFileName;
-#endif
+        std::string const logFilePath = GetLogFilePath().string();
+
 
         // wxStandardPaths::Get().Get()
 
-        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
+        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 20, 10);
 
         auto file_logger = std::make_shared<spdlog::logger>("xLights", rotating_file_sink);
 
@@ -215,21 +268,17 @@ void InitialiseLogging(bool fromMain)
 
 void ApplyLoggingSpecialOptions()
 {
-    static bool levelsApplied = false;
-    if (!levelsApplied) {
-        levelsApplied = true;
-        auto applyLevel = [](const std::string& name, const std::string& option, const std::string& defaultLevel) {
-            std::string level = SpecialOptions::GetOption(option, defaultLevel);
-            spdlog::get(name)->set_level(spdlog::level::from_str(level));
-            spdlog::info("Logger '{}' level set to '{}'", name, level);
-        };
-        applyLevel("xLights", "xLights_logger", "info");
-        applyLevel("render", "render_logger", "warn");
-        applyLevel("curl",   "curl_logger",   "info");
-        applyLevel("opengl", "opengl_logger", "info");
-        applyLevel("job",    "job_logger",    "info");
-        applyLevel("work",   "work_logger",   "info");
-    }
+    auto applyLevel = [](const std::string& name, const std::string& option, const std::string& defaultLevel) {
+        std::string level = SpecialOptions::GetOption(option, defaultLevel);
+        spdlog::get(name)->set_level(spdlog::level::from_str(level));
+        spdlog::info("Logger '{}' level set to '{}'", name, level);
+    };
+    applyLevel("xLights", "xLights_logger", "info");
+    applyLevel("render", "render_logger", "warn");
+    applyLevel("curl",   "curl_logger",   "info");
+    applyLevel("opengl", "opengl_logger", "info");
+    applyLevel("job",    "job_logger",    "info");
+    applyLevel("work",   "work_logger",   "info");
 
     if (SpecialOptions::GetOption("console_logger", "false") != "true") return;
 
@@ -313,6 +362,9 @@ void DumpConfig()
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
     spdlog::info("  OS: {} {}.{}", (const char*)DecodeOS(o).c_str(), verMaj, verMin);
+#ifdef USE_GLES
+    spdlog::info("  Graphics backend: ANGLE (OpenGL ES / Direct3D)");
+#endif
     if (wxIsPlatform64Bit())
     {
         spdlog::info("      64 bit");
@@ -467,8 +519,18 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     if (__frame) {
         xLightsFrame* frame = __frame;
         frame->CallAfter([showDir, fileName, frame] {
-            
+
             if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
+
+                // If a sequence is already loaded in this instance, spawn a separate
+                // xLights process for the package instead of replacing the current
+                // show. Matches the Windows behavior where double-clicking an xsqz
+                // launches a fresh instance with the package as its show folder.
+                // Falls back to in-place handling if we can't resolve the bundle
+                // (e.g. running unbundled).
+                if (frame->IsSequenceLoaded() && SpawnNewXLightsInstance(fileName)) {
+                    return;
+                }
 
                 SequencePackage xsqPkg(std::filesystem::path(fileName.ToStdString()),
                                        __frame->GetShowDirectory(), __frame->GetSeqXmlFileName().ToStdString(), &__frame->AllModels);
@@ -538,12 +600,14 @@ bool xLightsApp::OnInit()
         xlCrashHandler::SetupCrashHandlerForNonWxThread();
     });
 
-    spdlog::info("******* OnInit: XLights started.");
-#ifdef __WXMSW__
-    if (!IsSuppressDarkMode()) {
-        MSWEnableDarkMode();
-    }
+#ifdef __APPLE__
+    // MetricKit (macOS 12+): payloads land in {logfile parent}/Diagnostics/
+    // and AddDebugFilesToReport sweeps them into the next crash zip.
+    StartMetricKitCollection(
+        (GetLogFilePath().parent_path() / "Diagnostics").string());
 #endif
+
+    spdlog::info("******* OnInit: XLights started.");
 #ifdef __WXGTK__
     // On Linux (GTK), wxWidgets 3.3 defaults to EGL for GL canvases (even on X11).
     // EGL surface creation fails in virtual GPU environments (virgl/Parallels, QEMU).
@@ -565,6 +629,24 @@ bool xLightsApp::OnInit()
     GetResourcesDirectory(); // bootstrap GetResourcesDir() with wx-dependent path lookup
     InitializeXLightsConfig();
     DumpConfig();
+
+#ifdef __WXMSW__
+    if (!IsSuppressDarkMode()) {
+        MSWEnableDarkMode();
+    }
+#endif
+
+    // Stash the remembered show folder so show-folder special.options is applied
+    // before the frame is constructed. InitialiseLogging() only knew the exe folder;
+    // this re-applies logger levels now that the show folder is known.
+    {
+        wxString lastDir;
+        if (GetXLightsConfig()->Read("LastDir", &lastDir) && !lastDir.IsEmpty()) {
+            SpecialOptions::StashShowDir(lastDir.ToStdString());
+            SpecialOptions::GetOption("", ""); // reset cache to pick up show folder
+            ApplyLoggingSpecialOptions();
+        }
+    }
 
     int id = (int)wxThread::GetCurrentId();
     spdlog::info("Main thread id: 0x{:x} or {}", id, id);
@@ -684,6 +766,10 @@ bool xLightsApp::OnInit()
             GetXLightsConfig()->Read("LastDir", &lastDir);
             if (lastDir != showDir) {
                 info += _("Setting show directory to ") + showDir + "\n";
+                // re-apply logging with the command-line show dir overriding LastDir
+                SpecialOptions::StashShowDir(showDir.ToStdString());
+                SpecialOptions::GetOption("", "");
+                ApplyLoggingSpecialOptions();
             }
         }
 

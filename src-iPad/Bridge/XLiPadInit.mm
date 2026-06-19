@@ -9,19 +9,25 @@
  **************************************************************/
 
 #import "XLiPadInit.h"
+#import "XLAIServices.h"
 
 #import <Metal/Metal.h>
 #import <ImageIO/ImageIO.h>
 #import <CoreGraphics/CoreGraphics.h>
+#import <UIKit/UIKit.h>
+#import <sys/utsname.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include "graphics/GLContextManager.h"
 #include "osxUtils/MetalDeviceManager.h"
+#include "osxUtils/XLMetricKit.h"
 #include "render/SequenceMedia.h"
+#include "utils/CachedFileDownloader.h"
 #include "utils/FileUtils.h"
 #include "utils/xlImage.h"
+#include "xLightsVersion.h"
 
 // Forward declaration — implemented in CoreGraphicsTextDrawingContext.mm
 void RegisterCoreGraphicsTextDrawingContext();
@@ -86,7 +92,7 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
         // so the output matches xlImage's RGBA-interleaved layout directly.
         std::unique_ptr<uint8_t[]> rgba(new uint8_t[(size_t)w * h * 4]());
         CGContextRef ctx = CGBitmapContextCreate(rgba.get(), w, h, 8, w * 4, cs,
-                                                   kCGImageAlphaPremultipliedLast
+                                                   (uint32_t)kCGImageAlphaPremultipliedLast
                                                    | kCGBitmapByteOrder32Big);
         if (ctx) {
             CGContextSetBlendMode(ctx, kCGBlendModeCopy);
@@ -140,6 +146,38 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
     return result;
 }
 
+static void LogMachineConfig() {
+    NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
+    NSString* shortVer = info[@"CFBundleShortVersionString"] ?: @"?";
+    NSString* buildVer = info[@"CFBundleVersion"] ?: @"?";
+    spdlog::info("Version: {} (build {})", [shortVer UTF8String], [buildVer UTF8String]);
+    spdlog::info("Build Date: {}", xlights_build_date);
+
+    UIDevice* dev = [UIDevice currentDevice];
+    struct utsname u;
+    uname(&u);
+    spdlog::info("Machine configuration:");
+    spdlog::info("  OS: {} {}", [dev.systemName UTF8String], [dev.systemVersion UTF8String]);
+    spdlog::info("  Device model: {}", u.machine);
+    spdlog::info("  Device name: {}", [dev.name UTF8String]);
+    spdlog::info("  CPU Arch: {}", u.machine);
+
+    NSProcessInfo* proc = [NSProcessInfo processInfo];
+    long long memBytes = (long long)proc.physicalMemory;
+    spdlog::info("  Total memory: {} MB", memBytes / (1024 * 1024));
+    spdlog::info("  Active processors: {}", (unsigned long)proc.activeProcessorCount);
+    spdlog::info("  Thermal state: {}", (long)proc.thermalState);
+
+    NSError* err = nil;
+    NSDictionary* fsAttrs = [[NSFileManager defaultManager]
+        attributesOfFileSystemForPath:NSHomeDirectory() error:&err];
+    if (!err && fsAttrs) {
+        long long freeBytes = [fsAttrs[NSFileSystemFreeSize] longLongValue];
+        spdlog::info("  Free disk: {} MB", freeBytes / (1024 * 1024));
+    }
+    spdlog::info("  Locale: {}", [[NSLocale currentLocale].localeIdentifier UTF8String]);
+}
+
 } // namespace
 
 @implementation XLiPadInit
@@ -148,10 +186,34 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
     if (sInitialized) return;
     sInitialized = true;
 
-    // Set up log file in the app's Documents directory
+    // Logs live in <sandbox>/Library/Logs/ — same relative path the
+    // sandboxed desktop app uses (~/Library/Containers/.../Library/Logs).
+    // Library/Logs is excluded from iCloud backup and not visible to the
+    // user via the Files app, both of which Documents/ would have wrong.
+    NSFileManager* fm = [NSFileManager defaultManager];
+    NSString* libraryPath = NSSearchPathForDirectoriesInDomains(
+        NSLibraryDirectory, NSUserDomainMask, YES).firstObject;
+    NSString* logsDir = [libraryPath stringByAppendingPathComponent:@"Logs"];
+    [fm createDirectoryAtPath:logsDir
+        withIntermediateDirectories:YES
+                         attributes:nil
+                              error:nil];
+
+    // One-time migration: pre-2026.05 builds put xLights.log{,.1,.2}
+    // in Documents/. Move any survivors into Library/Logs/ so the new
+    // Package Logs flow picks them up.
     NSString* docsPath = NSSearchPathForDirectoriesInDomains(
         NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
-    std::string logPath = std::string([docsPath UTF8String]) + "/xLights.log";
+    for (NSString* name in @[@"xLights.log", @"xLights.1.log", @"xLights.2.log"]) {
+        NSString* legacy = [docsPath stringByAppendingPathComponent:name];
+        if ([fm fileExistsAtPath:legacy]) {
+            NSString* dest = [logsDir stringByAppendingPathComponent:name];
+            [fm removeItemAtPath:dest error:nil];
+            [fm moveItemAtPath:legacy toPath:dest error:nil];
+        }
+    }
+
+    std::string logPath = std::string([logsDir UTF8String]) + "/xLights.log";
 
     try {
         auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logPath, 1024 * 1024 * 5, 3);
@@ -182,23 +244,21 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
         spdlog::register_logger(work_logger);
 
         spdlog::info("xLights iPad initialized, log at {}", logPath);
+        LogMachineConfig();
     } catch (const spdlog::spdlog_ex& ex) {
         NSLog(@"spdlog init failed: %s", ex.what());
     }
 
+    // MetricKit collector — JSON payloads land alongside the log files,
+    // and Tools > Package Logs sweeps them into the user-shared zip.
+    std::string diagnosticsDir = std::string([logsDir UTF8String]) + "/Diagnostics";
+    StartMetricKitCollection(diagnosticsDir);
+
     // Register CoreGraphics-based TextDrawingContext for text/shape effects
     RegisterCoreGraphicsTextDrawingContext();
 
-    // Register GIF and WebP animation loaders using iOS ImageIO.
-    // SequenceMedia's ImageCacheEntry calls these when decoding an
-    // animated asset — without them, animated-GIF picture effects log
-    // "Animation loader not registered" and render nothing.
-    ImageCacheEntry::SetGIFLoader([](const uint8_t* data, size_t len,
-                                      const std::string& /*filename*/) -> AnimatedImageData {
-        return DecodeAnimatedImageIO(data, len,
-                                      kCGImagePropertyGIFDictionary,
-                                      kCGImagePropertyGIFUnclampedDelayTime);
-    });
+    // GIF loading is handled by the core stb_image loader (LoadAnimatedGIFFromMemory) — no registration needed.
+    // Register WebP animation loader using iOS ImageIO.
     // ImageIO exposes WebP via kCGImagePropertyWebPDictionary on
     // sufficiently new SDKs; fall back to the GIF dict's delay key
     // since the ImageIO WebP-specific key isn't universally available.
@@ -224,6 +284,94 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
 
     spdlog::info("GLContextManager initialized with ANGLE Metal backend, device registry ID: {}",
                  glParams.metalDeviceRegistryID);
+
+    // Construct the AI ServiceManager + iPad settings store. Built-in
+    // services (chatGPT, claude, ollama, gemini, GenericClient) are
+    // registered immediately and load any persisted settings/secrets
+    // from NSUserDefaults + Keychain. AI plugin loading is intentionally
+    // skipped on iOS — App Store policy forbids dynamic libraries.
+    (void)[XLAIServices shared];
+
+    // Phase J-4 (vendor catalog) — install an NSURLSession-based
+    // URL fetcher into the shared CachedFileDownloader. The
+    // bundled libcurl/Secure-Transport combo on iOS fails the TLS
+    // handshake on several vendor catalog servers (efl-designs,
+    // buildalightshow, twinkle-forge, mattosdesigns,
+    // ledpixelshow, …) — same servers browsers handle fine and
+    // that desktop's curl handles fine. NSURLSession uses Apple's
+    // current network stack and works.
+    CachedFileDownloader::SetURLFetcher([](const std::string& url,
+                                            const std::string& filename) -> bool {
+        @autoreleasepool {
+            NSURL* nsUrl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+            if (!nsUrl) return false;
+            __block NSData* responseData = nil;
+            __block NSInteger statusCode = 0;
+            __block NSError* networkError = nil;
+            dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+            // Use a per-request session so iOS doesn't keep
+            // sockets warm and trip the same coalescing issues
+            // the curl path hit. The catalog only fetches ~30
+            // small files per session — connection setup cost
+            // is irrelevant.
+            NSURLSessionConfiguration* cfg = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+            cfg.timeoutIntervalForRequest = 30;
+            cfg.timeoutIntervalForResource = 60;
+            NSURLSession* session = [NSURLSession sessionWithConfiguration:cfg];
+            NSURLRequest* req = [NSURLRequest requestWithURL:nsUrl];
+            NSURLSessionDataTask* task =
+                [session dataTaskWithRequest:req
+                              completionHandler:^(NSData* data, NSURLResponse* resp, NSError* err) {
+                    // Force a copy. NSURLSession can hand back
+                    // an OS_dispatch_data toll-free bridged
+                    // NSData whose `writeToFile:atomically:`
+                    // crashes for reasons that aren't worth
+                    // debugging — copying coalesces it into a
+                    // plain NSData that writes cleanly.
+                    // Also makes the lifetime obvious — we own
+                    // a strong NSData that lives until the
+                    // outer std::function returns.
+                    responseData = data ? [[NSData alloc] initWithData:data] : nil;
+                    networkError = err;
+                    if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
+                        statusCode = [(NSHTTPURLResponse*)resp statusCode];
+                    }
+                    dispatch_semaphore_signal(sem);
+                }];
+            [task resume];
+            dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+            [session finishTasksAndInvalidate];
+            if (networkError) {
+                // Snapshot the description into std::string BEFORE
+                // letting the autoreleasepool drain — passing
+                // `.UTF8String` directly into spdlog hands it a
+                // pointer that's only valid for the current
+                // autorelease scope and can be reaped before
+                // spdlog's format machinery copies it (crashed
+                // intermittently when ATS rejected cleartext
+                // URLs).
+                std::string desc = networkError.localizedDescription
+                    ? std::string(networkError.localizedDescription.UTF8String)
+                    : std::string("unknown error");
+                auto curl_logger = spdlog::get("curl");
+                if (curl_logger) {
+                    curl_logger->error("URLSession fetch '{}' failed: {}", url, desc);
+                }
+                return false;
+            }
+            if (statusCode >= 400) {
+                auto curl_logger = spdlog::get("curl");
+                if (curl_logger) {
+                    curl_logger->error("URLSession fetch '{}' returned HTTP {}",
+                                       url, (long)statusCode);
+                }
+                return false;
+            }
+            if (!responseData) return false;
+            return [responseData writeToFile:[NSString stringWithUTF8String:filename.c_str()]
+                                  atomically:YES] ? true : false;
+        }
+    });
 }
 
 @end

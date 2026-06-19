@@ -26,7 +26,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - run: docker pull ghcr.io/xlightssequencer/xlights-build-docker:master
-      - run: docker run --name buildvm ghcr.io/xlightssequencer/xlights-build-docker:master /bin/bash Recipe.appimage
+      - run: docker run -e XLIGHTS_REF="${GITHUB_REF_NAME}" -e XLIGHTS_VERSION="${GITHUB_REF_NAME}" --name buildvm ghcr.io/xlightssequencer/xlights-build-docker:master /bin/bash Recipe.appimage
       - run: 'docker cp buildvm:/xLights/xLights/AppImage/ /tmp/'
       - run: ls -lh /tmp/AppImage
 
@@ -71,6 +71,15 @@ jobs:
     - name: Build Installer
       working-directory: build_scripts\msw
       run: ISCC.exe xLights_4_64bit_VS.iss
+
+    - name: Stage Windows symbol map
+      shell: pwsh
+      run: |
+        if (-not (Test-Path bin64\xLights.map)) {
+          throw "bin64\xLights.map not produced - PrepMap step likely failed"
+        }
+        Copy-Item bin64\xLights.map "build_scripts\msw\output\xLights-${{ github.ref_name }}-win64.map"
+        Write-Host "Staged symbol map: $((Get-Item bin64\xLights.map).Length) bytes"
 
     - uses: ncipollo/release-action@v1
       with:

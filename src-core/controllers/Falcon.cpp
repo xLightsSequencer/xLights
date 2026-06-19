@@ -2267,7 +2267,7 @@ Falcon::Falcon(const std::string& ip, const std::string& proxy) :
                 if (std::regex_search(_firmwareVersion, mm, majminregex)) {
                     _majorFirmwareVersion = (int)std::strtol(mm[1].str().c_str(), nullptr, 10);
                     _minorFirmwareVersion = (int)std::strtol(mm[2].str().c_str(), nullptr, 10);
-                    spdlog::error("    Parsed firmware version {}.{}.", _majorFirmwareVersion, _minorFirmwareVersion);
+                    spdlog::debug("    Parsed firmware version {}.{}.", _majorFirmwareVersion, _minorFirmwareVersion);
                 }
             }
         }
@@ -3163,12 +3163,19 @@ bool Falcon::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, C
 
                 spdlog::info("Serial Port {} Protocol {} Start Channel {}.", sp, (const char*)port->GetProtocol().c_str(), sc);
 
+                const int maxDDPChannels = caps ? caps->GetMaxDDPChannels() : 0;
+                if (maxDDPChannels > 0 && sc >= maxDDPChannels) {
+                    check += fmt::format("ERROR: Serial port {} start channel {} exceeds the maximum DDP channel number {} supported by this controller. Consider changing the start channel or unchecking Keep Channel Numbers.\n",
+                                         sp, sc, maxDDPChannels - 1);
+                    success = false;
+                }
+
                 uri += "&";
                 uri += GetSerialOutputURI(caps, port->GetPort(), outputManager, DecodeSerialOutputProtocol(port->GetProtocol()), sc, ui);
             }
         }
 
-        if (sendSerial) {
+        if (sendSerial && success) {
             PutURL("/SerialOutputs.htm", uri);
         }
     } else {

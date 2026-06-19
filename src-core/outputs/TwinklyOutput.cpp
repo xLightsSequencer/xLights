@@ -106,7 +106,8 @@ bool TwinklyOutput::SetLEDMode(bool rt)
         if (!MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"rt\"}")) {
             return false;
         }
-        _lastLEDModeTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+        _lastLEDModeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
     }
     else
     {
@@ -140,16 +141,33 @@ bool TwinklyOutput::Open()
 
     OpenDatagram();
 
+    if (_datagram == nullptr) {
+        return false;
+    }
+
     // set real time mode
     if (!SetLEDMode(true)) {
         return false;
     }
 
-    return _datagram != nullptr;
+    _ledModeStop = false;
+    _ledModeNeeded = false;
+    _ledModeThread = std::thread(&TwinklyOutput::LEDModeThread, this);
+
+    return true;
 }
 
 void TwinklyOutput::Close()
 {
+    {
+        std::lock_guard<std::mutex> lock(_ledModeMutex);
+        _ledModeStop = true;
+    }
+    _ledModeCv.notify_one();
+    if (_ledModeThread.joinable()) {
+        _ledModeThread.join();
+    }
+
     if (_datagram != nullptr) {
         delete _datagram;
         _datagram = nullptr;
@@ -159,6 +177,17 @@ void TwinklyOutput::Close()
         SetLEDMode(false);
 
     IPOutput::Close();
+}
+void TwinklyOutput::LEDModeThread()
+{
+    while (true) {
+        std::unique_lock<std::mutex> lock(_ledModeMutex);
+        _ledModeCv.wait(lock, [this] { return _ledModeNeeded.load() || _ledModeStop.load(); });
+        if (_ledModeStop) break;
+        _ledModeNeeded = false;
+        lock.unlock();
+        SetLEDMode(true);
+    }
 }
 #pragma endregion
 
@@ -235,10 +264,12 @@ void TwinklyOutput::EndFrame(int suppressFrames)
 
     FrameOutput();
 
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    if ((now - _lastLEDModeTime).count() > ENSURELEDMODE_SECS * 1000)
-    {
-        SetLEDMode(true);
+    long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    if ((now - _lastLEDModeMs.load()) > ENSURELEDMODE_SECS * 1000) {
+        _lastLEDModeMs = now; // update now to prevent re-triggering before the thread runs
+        _ledModeNeeded = true;
+        _ledModeCv.notify_one();
     }
 }
 
@@ -325,17 +356,21 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     try {
         result = nlohmann::json::parse(httpResponse, nullptr, false);
         if (result.is_discarded()) {
-            spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+            spdlog::error("Twinkly: Returned json is not valid: '{}'", httpResponse);
             return false;
         }
         // int32_t code;
-        if (!result.contains("code") && result.at("code").get<int>() != 1000) {
-            spdlog::error("Twinkly: Server returned: " + std::to_string(result.at("code").get<int>()));
+        if (!result.contains("code")) {
+            spdlog::error("Twinkly: Response missing 'code' field: '{}'", httpResponse);
             return false;
         }
-    } catch (const nlohmann::json::parse_error& e) {
-        spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
-        spdlog::error("Twinkly: JSON parse error: {}", e.what());
+        if (result.at("code").get<int>() != 1000) {
+            spdlog::error("Twinkly: Server returned error code: {}", result.at("code").get<int>());
+            return false;
+        }
+    } catch (const nlohmann::json::exception& e) {
+        spdlog::error("Twinkly: Unexpected JSON structure in response: '{}'", httpResponse);
+        spdlog::error("Twinkly: JSON error: {}", e.what());
         return false;
     }
     return true;
@@ -664,24 +699,28 @@ bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<floa
     try {
         jsonDoc = nlohmann::json::parse(httpResponse);
         // int32_t code;
-        if (!jsonDoc.contains("code") && jsonDoc.at("code").get<int>() != 1000) {
-            spdlog::error("Twinkly: Server returned: " + std::to_string(jsonDoc.at("code").get<int>()));
+        if (!jsonDoc.contains("code")) {
+            spdlog::error("Twinkly: Response missing 'code' field: '{}'", httpResponse);
             return false;
         }
-    } catch (const nlohmann::json::parse_error& e) {
-        spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
-        spdlog::error("Twinkly: JSON parse error: {}", e.what());
+        if (jsonDoc.at("code").get<int>() != 1000) {
+            spdlog::error("Twinkly: Server returned error code: {}", jsonDoc.at("code").get<int>());
+            return false;
+        }
+
+        is3D = jsonDoc.at("source").get<std::string>() == "3d";
+
+        auto coords = jsonDoc.at("coordinates").array();
+
+        for (uint32_t i = 0; i < coords.size(); i++) {
+            auto v = coords.at(i);
+            // we invert Y as that is how it comes from Twinkly
+            result.push_back(std::tuple<float, float, float>(v["x"].get<float>(), 1.0 - v["y"].get<float>(), v["z"].get<float>()));
+        }
+    } catch (const nlohmann::json::exception& e) {
+        spdlog::error("Twinkly: Unexpected JSON structure in response: '{}'", httpResponse);
+        spdlog::error("Twinkly: JSON error: {}", e.what());
         return false;
-    }
-
-    is3D = jsonDoc.at("source").get<std::string>() == "3d";
-
-    auto coords = jsonDoc.at("coordinates").array();
-
-    for (uint32_t i = 0; i < coords.size(); i++) {
-        auto v = coords.at(i);
-        // we invert Y as that is how it comes from Twinkly
-        result.push_back(std::tuple<float, float, float>(v["x"].get<float>(), 1.0 - v["y"].get<float>(), v["z"].get<float>()));
     }
 
     return true;

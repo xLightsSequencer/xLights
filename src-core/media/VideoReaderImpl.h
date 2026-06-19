@@ -30,4 +30,9 @@ public:
     virtual int GetPos() = 0;
     virtual std::string GetFilename() const = 0;
     virtual int GetPixelChannels() const = 0;
+
+    // Change the output size without recreating the underlying file/decoder.
+    // Returns true if the impl handled the resize; false means the caller should
+    // delete and reconstruct. Default: not supported.
+    virtual bool Resize(int /*width*/, int /*height*/) { return false; }
 };

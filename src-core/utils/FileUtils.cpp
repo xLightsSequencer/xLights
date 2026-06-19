@@ -29,10 +29,12 @@ static std::vector<std::string> _fixFileNonExistent;
 static std::map<std::string, std::string> _fixFileMap;
 
 void SetFixFileShowDir(const std::string& showDir) {
+    std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
     _fixFileShowDir = showDir;
 }
 
 void SetFixFileDirectories(const std::list<std::string>& dirs) {
+    std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
     _fixFileSearchDirs = dirs;
 }
 
@@ -97,10 +99,6 @@ static bool doesFileExistInDirs(const std::string& baseDir, const std::string& a
 }
 
 std::string FixFile(const std::string& showDir, const std::string& file) {
-    if (showDir != _fixFileShowDir && !showDir.empty() && _fixFileShowDir.empty()) {
-        _fixFileShowDir = showDir;
-    }
-
     if (file.empty()) return file;
 
     if (FileExists(file, false)) return file;
@@ -112,6 +110,9 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     }
 
     std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
+    if (showDir != _fixFileShowDir && !showDir.empty() && _fixFileShowDir.empty()) {
+        _fixFileShowDir = showDir;
+    }
 
     // Check cache
     auto it = _fixFileMap.find(file);

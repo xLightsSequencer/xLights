@@ -30,674 +30,33 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
+#include "import_export/VendorCatalog.h"
 
-class MModel;
+// R-VendorCatalog (2026-05-13): the data classes + XML parser
+// for the vendor catalog moved to `src-core/import_export/`
+// (single-source with iPad's vendor-browser sheet). Local M*
+// aliases preserve the rest of this dialog's call sites.
+using MVendor = vendor_catalog::Vendor;
+using MModel = vendor_catalog::Model;
+using MModelWiring = vendor_catalog::ModelWiring;
+using MVendorCategory = vendor_catalog::Category;
 
-class MModelWiring
-{
-public:
-    std::list<wxURI> _images;
-    std::list<wxFileName> _imageFiles;
-    std::string _name;
-    std::string _wiringDescription;
-    wxURI _xmodelLink;
-    wxFileName _xmodelFile;
-    MModel* _model;
-    int _modelWidthMM = -1;
-    int _modelHeightMM = -1;
-    int _modelDepthMM = -1;
-
-    std::string GetDescription();
-
-    ~MModelWiring() { }
-
-    [[nodiscard]] int GetWidthMM() const { return _modelWidthMM; }
-    [[nodiscard]] int GetHeightMM() const { return _modelHeightMM; }
-        [[nodiscard]] int GetDepthMM() const {
-        return _modelDepthMM;
-    }
-
-    [[nodiscard]] wxColor GetColour() const
-    {
-        if (_xmodelLink.BuildURI() == "") {
-            return wxColour(255, 128, 0);
-        }
-        else {
-            return CyanOrBlue();
-        }
-    }
-
-    void DownloadImages()
-    {
-        if (_imageFiles.size() != _images.size()) {
-            _imageFiles.clear();
-            for (const auto& it : _images) {
-                std::string fn = VendorModelDialog::GetCache().GetFile(it.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG);
-                if (fn != "") {
-                    _imageFiles.push_back(wxFileName(fn));
-                }
-            }
-        }
-    }
-
-    void DownloadXModel();
-
-    MModelWiring(pugi::xml_node n, MModel* m, int widthMM, int heightMM, int depthMM)
-    {
-        _model = m;
-        _modelWidthMM = widthMM;
-        _modelHeightMM = heightMM;
-        _modelDepthMM = depthMM;
-
-        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
-            if (l.type() != pugi::node_comment) {
-                std::string nn = ::Lower(l.name());
-                if (nn == "name") {
-                    _name = l.text().get();
-                }
-                else if (nn == "description") {
-                    _wiringDescription = l.text().get();
-                }
-                else if (nn == "xmodellink") {
-                    _xmodelLink = wxURI(l.text().get());
-                }
-                else if (nn == "imagefile") {
-                    wxURI uri(l.text().get());
-                    if (!uri.BuildURI().empty()) {
-                        _images.push_back(uri);
-                    }
-                }
-                else {
-                    spdlog::warn("MModelWiring: Error processing vendor xml: {} ", (const char*)nn.c_str());
-                    wxASSERT(false);
-                }
-            }
-        }
-    }
-
-    void AddImages(std::list<wxURI> images)
-    {
-        for (const auto& it : images) {
-            _images.push_back(it);
-        }
-    }
-};
-
-class MModel
-{
-public:
-    std::string _id;
-    std::list<std::string> _categoryIds;
-    std::string _name;
-    std::string _type;
-    std::string _material;
-    std::string _thickness;
-    std::string _width;
-    std::string _height;
-    std::string _depth;
-    std::string _pixelCount;
-    std::string _pixelSpacing;
-    std::string _pixelDescription;
-    wxURI _webpage;
-    std::list<wxURI> _images;
-    std::list<wxFileName> _imageFiles;
-    std::string _notes;
-    std::list<MModelWiring*> _wiring;
-    MVendor* _vendor = nullptr;
-
-    [[nodiscard]] int InterpretSize(const std::string& size)
-    {
-        static 
-
-        // strip out all spaces and tabs first
-        std::string s = size;
-        s.erase(remove_if(s.begin(), s.end(), isspace), s.end());
-
-        if (s == "") {
-			return -1;
-		}
-
-        // Because there is no standardisation we need to do our best to interpret sizes
-
-        // numbers and mm (assume mm)
-        // check using regex that the string is just a decimal number and mm
-        wxRegEx regex;
-        if (regex.Compile("^\\d+\\.*\\d*mm$")) {
-            if (regex.Matches(s)) {
-                if (wxAtoi(s) != 0) {
-                    return wxAtoi(s);
-                }
-			}
-        }
-
-        // (xxmm) included
-        if (regex.Compile("\\((\\d+\\.*\\d*)mm\\)")) {
-            if (regex.Matches(s)) {
-                auto ss = regex.GetMatch(s, 1);
-                if (wxAtof(ss) != 0) {
-                    return wxAtoi(ss);
-                }
-            }
-        }
-
-        // numbers and cm (assume cm)
-        if (regex.Compile("^\\d+\\.*\\d*cm$")) {
-            if (regex.Matches(s)) {
-                if (wxAtof(s) != 0) {
-                    return (int)(wxAtof(s) * 10);
-				}
-            }
-        }
-
-        // (xxcm) included
-        if (regex.Compile("\\((\\d+\\.*\\d*)cm\\)")) {
-            if (regex.Matches(s)) {
-                auto ss = regex.GetMatch(s, 1);
-                if (wxAtof(ss) != 0) {
-                    return (int)(wxAtof(ss) * 10);
-				}
-            }
-        }
-
-        // just numbers (assume inches)
-        if (regex.Compile("^\\d+\\.*\\d*$")) {
-            if (regex.Matches(s)) {
-                if (wxAtof(s) != 0) {
-                    return (int)(wxAtof(s) * 25.4);
-                }
-            }
-        }
-
-        if (regex.Compile("^(\\d+\\.*\\d*)'(\\d+\\.*\\d*)\"$")) {
-            if (regex.Matches(s)) {
-                float foot = wxAtof(regex.GetMatch(s, 1));
-                float inch = wxAtof(regex.GetMatch(s, 2));
-                if (foot != 0 || inch != 0) {
-                    return (int)(((foot * 12) + inch) * 25.4);
-				}
-            }
-        }
-
-        // numbers and " (assume inches)
-        if (regex.Compile("^\\d+\\.*\\d*\"$")) {
-            if (regex.Matches(s)) {
-                if (wxAtof(s) != 0) {
-                    return (int)(wxAtof(s) * 25.4);
-				}
-            }
-        }
-
-        spdlog::warn("Unable to interpret size from '{}'", size.c_str());
-
-        return -1;
-    }
-
-    [[nodiscard]] bool InCategory(std::string category)
-    {
-        for (const auto& it : _categoryIds) {
-            if (it == category) return true;
-        }
-
-        return false;
-    }
-
-    [[nodiscard]] wxColor GetColour() const
-    {
-        if (_wiring.size() == 0 || _wiring.front()->_xmodelLink.BuildURI() == "") {
-            return wxColour(255, 128, 0);
-        }
-        else {
-            return CyanOrBlue();
-        }
-    }
-
-    MModel(pugi::xml_node n, MVendor* vendor)
-    {
-        _vendor = vendor;
-
-        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
-            if (l.type() != pugi::node_comment) {
-                std::string nn = ::Lower(l.name());
-                if (nn == "id") {
-                    _id = l.text().get();
-                }
-                else if (nn == "categoryid") {
-                    _categoryIds.push_back(l.text().get());
-                }
-                else if (nn == "name") {
-                    _name = l.text().get();
-                }
-                else if (nn == "type") {
-                    _type = l.text().get();
-                }
-                else if (nn == "material") {
-                    _material = l.text().get();
-                }
-                else if (nn == "thickness") {
-                    _thickness = l.text().get();
-                }
-                else if (nn == "width") {
-                    _width = l.text().get();
-                }
-                else if (nn == "height") {
-                    _height = l.text().get();
-                } else if (nn == "depth") {
-                    _depth = l.text().get();
-                } else if (nn == "pixelcount") {
-                    _pixelCount = l.text().get();
-                }
-                else if (nn == "pixelspacing") {
-                    _pixelSpacing = l.text().get();
-                }
-                else if (nn == "pixeldescription") {
-                    _pixelDescription = l.text().get();
-                }
-                else if (nn == "notes") {
-                    _notes = l.text().get();
-                }
-                else if (nn == "weblink") {
-                    _webpage = wxURI(l.text().get());
-                }
-                else if (nn == "imagefile") {
-                    wxURI uri(l.text().get());
-                    if (!uri.BuildURI().empty()) {
-                        _images.push_back(uri);
-                    }
-                }
-                else if (nn == "wiring") {
-                    // dont handle this until we have processed all the other properties
-                }
-                else {
-                    spdlog::warn("MModel: Error processing vendor xml: {} ", nn);
-                    wxASSERT(false);
-                }
-            }
-        }
-
-        // now we can handle wiring
-        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
-            if (l.type() != pugi::node_comment) {
-                std::string nn = ::Lower(l.name());
-                if (nn == "wiring") {
-                    _wiring.push_back(new MModelWiring(l, this, InterpretSize(_width), InterpretSize(_height), InterpretSize(_depth)));
-
-                    //if (_wiring.back()->GetWidthMM() != -1 || _wiring.back()->GetHeightMM() != -1 || _wiring.back()->GetDepthMM() != -1)
-                    //{
-                    //    logger_base.debug("Size W: '%s'->%dmm H: '%s'->%dmm D: '%s'->%dmm", _width.c_str(), _wiring.back()->GetWidthMM(), _height.c_str(), _wiring.back()->GetHeightMM(), _depth.c_str(), _wiring.back()->GetDepthMM());
-                    //}
-                }
-            }
-        }
-
-        for (const auto& it : _wiring) {
-            it->AddImages(_images);
-        }
-    }
-
-    virtual ~MModel()
-    {
-        for (auto& it : _wiring)
-        {
-            delete it;
-        }
-    }
-
-    [[nodiscard]] std::string PadTitle(std::string t) const
-    {
-        std::string res = t;
-        while (res.size() < 18) res += " ";
-        return res;
-    }
-
-    [[nodiscard]] std::string GetDescription() const
-    {
-        std::string desc;
-
-        if (_name != "") {
-            desc += PadTitle("Name:") + _name + "\n\n";
-        }
-        if (_type != "") {
-            desc += PadTitle("Type:") + _type + "\n";
-        }
-        if (_material != "") {
-            desc += PadTitle("Material:") + _material + "\n";
-        }
-        if (_thickness != "") {
-            desc += PadTitle("Thickness:") + _thickness + "\n";
-        }
-        if (_width != "") {
-            desc += PadTitle("Width:") + _width + "\n";
-        }
-        if (_height != "") {
-            desc += PadTitle("Height:") + _height + "\n";
-        }
-        if (_depth != "") {
-            desc += PadTitle("Depth:") + _depth + "\n";
-        }
-        if (_pixelCount != "") {
-            desc += PadTitle("Pixel Count:") + _pixelCount + "\n";
-        }
-        if (_pixelSpacing != "") {
-            desc += PadTitle("Minimum Pixel Spacing:") + _pixelSpacing + "\n";
-        }
-        if (_pixelDescription != "") {
-            desc += PadTitle("Pixel Description:") + _pixelDescription + "\n";
-        }
-        if (_notes != "") {
-            desc += "\n" + _notes + "\n";
-        }
-
-        return desc;
-    }
-
-    void DownloadImages()
-    {
-        if (_imageFiles.size() == _images.size()) {
-            return;
-        }
-        _imageFiles.clear();
-
-        for (const auto& it : _images) {
-            std::string fn = VendorModelDialog::GetCache().GetFile(it.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG);
-            if (fn != "") {
-                _imageFiles.push_back(wxFileName(fn));
-            }
-        }
-    }
-};
-
-void MModelWiring::DownloadXModel()
-{
-    if (!FileExists(_xmodelFile)) {
-        std::string ext = "xmodel";
-        if (_xmodelLink.GetPath().Lower().EndsWith("zip")) {
-            ext = "zip";
-        }
-
-        _xmodelFile = VendorModelDialog::GetCache().GetFile(_xmodelLink.BuildURI().ToStdString(), CACHEFOR::CACHETIME_LONG, ext);
-
-        if (ext == "xmodel") {
-            pugi::xml_document d;
-            d.load_file(_xmodelFile.GetFullPath().mb_str());
-            pugi::xml_node root = d.document_element();
-            if (root) {
-                bool changed = false;
-                if (!root.attribute("PixelType") && _model->_pixelDescription != "") {
-                    root.append_attribute("PixelType") = _model->_pixelDescription.c_str();
-                    changed = true;
-                }
-                if (!root.attribute("PixelMinimumSpacingInches") && wxAtoi(_model->_pixelSpacing) != 0) {
-                    root.append_attribute("PixelMinimumSpacingInches") = wxAtoi(_model->_pixelSpacing);
-                    changed = true;
-                }
-                if (!root.attribute("PixelCount") && wxAtoi(_model->_pixelCount) != 0) {
-                    root.append_attribute("PixelCount") = wxAtoi(_model->_pixelCount);
-                    changed = true;
-                }
-                if (changed) {
-                    d.save_file(_xmodelFile.GetFullPath().mb_str());
-                }
-            }
-        }
-    }
+// Replaces the legacy `MModel::GetColour()` / `MModelWiring::GetColour()`
+// methods which lived on the data classes when they used `wxColour`.
+// Orange = no downloadable xmodel; cyan-or-blue = a wiring exists.
+static wxColour TreeItemColourForModel(const MModel* m) {
+    return m->HasDownloadableXmodel() ? CyanOrBlue() : wxColour(255, 128, 0);
 }
 
-std::string MModelWiring::GetDescription()
-{
-    std::string desc = _model->GetDescription();
-    desc += "\n";
-
-    if (_name != "") {
-        desc += "Wiring Option: " + _name + "\n\n";
-    }
-    if (_wiringDescription != "") {
-        desc += _wiringDescription;
-    }
-
-    return desc;
-}
-
-
-class MVendorCategory
-{
-    void ParseCategories(pugi::xml_node n)
-    {
-        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
-            if (l.type() != pugi::node_comment) {
-                std::string nn = ::Lower(l.name());
-                if (nn == "category") {
-                    _categories.push_back(new MVendorCategory(l, this, _vendor));
-
-                }
-                else {
-                    spdlog::warn("MVendorCategory: Error processing vendor categories xml: {} ", nn);
-                }
-            }
-        }
-    }
-
-    public:
-        std::string _id;
-        std::string _name;
-        MVendorCategory* _parent;
-        std::list<MVendorCategory*> _categories;
-        MVendor* _vendor;
-
-        std::string GetPath() const
-        {
-            if (_parent != nullptr) {
-                return _parent->GetPath() + "/" + _name;
-            }
-            else {
-                return _name;
-            }
-        }
-
-    MVendor* GetVendor() const { return _vendor; }
-
-    MVendorCategory(pugi::xml_node n, MVendorCategory* parent, MVendor* vendor);
-    virtual ~MVendorCategory()
-    {
-        for (auto& it : _categories) {
-            delete it;
-        }
-    }
-};
-
-class MVendor
-{
-public:
-    std::string _name = "";
-    std::string _contact = "";
-    std::string _email = "";
-    std::string _phone = "";
-    wxURI _website;
-    wxURI _facebook;
-    std::string _twitter = "";
-    std::string _notes = "";
-    wxFileName _logoFile;
-    std::list<MVendorCategory*> _categories;
-    std::list<MModel*> _models;
-    int _maxModels = 0;
-
-    std::list<MModel*> GetModels(std::string categoryId)
-    {
-        std::list<MModel*> res;
-
-        for (const auto& it : _models) {
-            if (it->InCategory(categoryId)) {
-                res.push_back(it);
-            }
-        }
-
-        return res;
-    }
-
-    void ParseCategories(pugi::xml_node n)
-    {
-        for (pugi::xml_node l = n.first_child(); l; l = l.next_sibling()) {
-            if (l.type() != pugi::node_comment) {
-                std::string nn = ::Lower(l.name());
-                if (nn == "category") {
-                    _categories.push_back(new MVendorCategory(l, nullptr, this));
-                } else if (!nn.empty()) {
-                    spdlog::warn("MVendor: Error processing vendor categories xml: {} ", nn);
-                    wxASSERT(false);
-                }
-            }
-        }
-    }
-
-    std::string PadTitle(std::string t) const
-    {
-        std::string res = t;
-        while (res.size() < 9) res += " ";
-        return res;
-    }
-
-    std::string GetDescription() const
-    {
-        std::string desc;
-
-        if (_name != "") {
-            desc += PadTitle("Name:") + _name + "\n\n";
-        }
-        if (_contact != "") {
-            desc += PadTitle("Contact:") + _contact + "\n";
-        }
-        if (_phone != "") {
-            desc += PadTitle("Phone:") + _phone + "\n";
-        }
-        if (_email != "") {
-            desc += PadTitle("Email:") + _email + "\n";
-        }
-        if (_twitter != "") {
-            desc += PadTitle("Twitter:") + _twitter + "\n";
-        }
-        if (_notes != "") {
-            desc += "\n" + _notes + "\n";
-        }
-
-        return desc;
-    }
-
-    MVendor(const std::string& name)
-    {
-        _name = name;
-    }
-
-    MVendor(pugi::xml_document& doc, int maxModels)
-    {
-        _maxModels = maxModels;
-
-        pugi::xml_node root = doc.document_element();
-        if (root) {
-            std::string nn = ::Lower(root.name());
-            if (nn == "modelinventory") {
-                for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
-                    if (e.type() != pugi::node_comment) {
-                        nn = ::Lower(e.name());
-                        if (nn == "vendor") {
-                            for (pugi::xml_node v = e.first_child(); v; v = v.next_sibling()) {
-                                if (v.type() != pugi::node_comment) {
-                                    nn = ::Lower(v.name());
-                                    if (nn == "name") {
-                                        _name = v.text().get();
-                                    }
-                                    else if (nn == "contact") {
-                                        _contact = v.text().get();
-                                    }
-                                    else if (nn == "email") {
-                                        _email = v.text().get();
-                                    }
-                                    else if (nn == "phone") {
-                                        _phone = v.text().get();
-                                    }
-                                    else if (nn == "website") {
-                                        _website = wxURI(v.text().get());
-                                    }
-                                    else if (nn == "facebook") {
-                                        _facebook = wxURI(v.text().get());
-                                    }
-                                    else if (nn == "twitter") {
-                                        _twitter = v.text().get();
-                                    }
-                                    else if (nn == "notes") {
-                                        _notes = v.text().get();
-                                    }
-                                    else if (nn == "logolink") {
-                                        std::string logoUrl = v.text().get();
-                                        _logoFile = wxFileName(VendorModelDialog::GetCache().GetFile(logoUrl, CACHEFOR::CACHETIME_LONG));
-                                    }
-                                    else {
-                                        spdlog::warn("MVendor: Error processing vendor xml: {} ", nn);
-                                        wxASSERT(false);
-                                    }
-                                }
-                            }
-                        }
-                        else if (nn == "categories") {
-                            ParseCategories(e);
-                        }
-                        else if (nn == "models") {
-                            int models = 0;
-                            for (pugi::xml_node m = e.first_child(); m; m = m.next_sibling()) {
-                                nn = ::Lower(m.name());
-                                if (nn == "model") {
-                                    models++;
-                                    if (maxModels < 1 || models < _maxModels) {
-                                        _models.push_back(new MModel(m, this));
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            spdlog::warn("MVendor: Error processing vendor xml: {} ", nn);
-                            wxASSERT(false);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    virtual ~MVendor()
-    {
-        for (auto& it : _categories)
-        {
-            delete it;
-        }
-
-        for (auto& it : _models)
-        {
-            delete it;
-        }
-    }
-};
-
-MVendorCategory::MVendorCategory(pugi::xml_node n, MVendorCategory* parent, MVendor* vendor)
-{
-    _vendor = vendor;
-    _parent = parent;
-    for (pugi::xml_node e = n.first_child(); e; e = e.next_sibling()) {
-        // ignore comment nodes
-        if (e.type() != pugi::node_comment) {
-            std::string nn = ::Lower(e.name());
-            if (nn == "id") {
-                _id = e.text().get();
-            }
-            else if (nn == "name") {
-                _name = e.text().get();
-            }
-            else if (nn == "categories") {
-                ParseCategories(e);
-            }
-            else {
-                spdlog::warn("MVendorCategory: Error processing vendor xml: {} : {} : {} : {}", vendor->_name, (parent != nullptr ? parent->_name : ""), nn, GetPath());
-                wxASSERT(false);
-            }
-        }
-    }
+// Extract the host portion ("example.com") from a URL string.
+// Replaces `wxURI::GetServer()` for the link-formatting paths.
+static std::string ExtractURLServer(const std::string& url) {
+    const auto schemeEnd = url.find("://");
+    const size_t hostStart = (schemeEnd == std::string::npos) ? 0 : schemeEnd + 3;
+    const auto hostEnd = url.find('/', hostStart);
+    return (hostEnd == std::string::npos)
+        ? url.substr(hostStart)
+        : url.substr(hostStart, hostEnd - hostStart);
 }
 
 class VendorBaseTreeItemData : public wxTreeItemData
@@ -758,7 +117,6 @@ private:
 //(*IdInit(VendorModelDialog)
 const wxWindowID VendorModelDialog::ID_TREECTRL1 = wxNewId();
 const wxWindowID VendorModelDialog::ID_TEXTCTRL3 = wxNewId();
-const wxWindowID VendorModelDialog::ID_BUTTON4 = wxNewId();
 const wxWindowID VendorModelDialog::ID_PANEL3 = wxNewId();
 const wxWindowID VendorModelDialog::ID_CHECKBOX1 = wxNewId();
 const wxWindowID VendorModelDialog::ID_STATICBITMAP1 = wxNewId();
@@ -802,7 +160,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
-    wxFlexGridSizer* FlexGridSizer9;
+
 
     Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
     SetClientSize(wxSize(800,600));
@@ -820,13 +178,10 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     FlexGridSizer2->AddGrowableRow(0);
     TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
     FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer9->AddGrowableCol(0);
-    TextCtrl_Search = new wxTextCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
-    FlexGridSizer9->Add(TextCtrl_Search, 1, wxALL|wxEXPAND, 5);
-    Button_Search = new wxButton(Panel3, ID_BUTTON4, _("Search"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer9->Add(Button_Search, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
+    TextCtrl_Search = new wxSearchCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    TextCtrl_Search->SetDescriptiveText("Search models...");
+    TextCtrl_Search->ShowCancelButton(true);
+    FlexGridSizer2->Add(TextCtrl_Search, 0, wxALL|wxEXPAND, 5);
     Panel3->SetSizer(FlexGridSizer2);
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -899,13 +254,16 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     Panel1->SetSizer(FlexGridSizer3);
     SplitterWindow1->SplitVertically(Panel3, Panel1);
     FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+    StaticText_Disclaimer = new wxStaticText(this, wxID_ANY, _("NOTE: Models are provided by the vendors, not by xLights. They are free to use in your layout, but the designs are copyrighted and not licensed for recreation or public distribution."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL | wxST_NO_AUTORESIZE, _T("StaticText_Disclaimer"));
+    FlexGridSizer1->Add(StaticText_Disclaimer, 0, wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     Layout();
 
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorItemActivated);
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_SEL_CHANGED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged);
-    Connect(ID_TEXTCTRL3, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&VendorModelDialog::OnTextCtrl_SearchText);
-    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&VendorModelDialog::OnButton_SearchClick);
+    TextCtrl_Search->Bind(wxEVT_TEXT, &VendorModelDialog::OnTextCtrl_SearchText, this);
+    TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &VendorModelDialog::OnButton_SearchClick, this);
+    TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &VendorModelDialog::OnSearchCancelClick, this);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&VendorModelDialog::OnCheckBox_DontDownloadClick);
     Connect(ID_HYPERLINKCTRL4, wxEVT_COMMAND_HYPERLINK, (wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_FacebookClick);
     Connect(ID_HYPERLINKCTRL2, wxEVT_COMMAND_HYPERLINK, (wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_WebsiteClick);
@@ -919,6 +277,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     //*)
 
     SetSize(800, 600);
+    StaticText_Disclaimer->Wrap(std::max(1, GetClientSize().GetWidth() - 10));
 
     PopulateModelPanel((MModel*)nullptr);
     PopulateVendorPanel(nullptr);
@@ -926,8 +285,6 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     HyperlinkCtrl_Facebook->SetNormalColour(CyanOrBlue());
     HyperlinkCtrl_Website->SetNormalColour(CyanOrBlue());
     HyperlinkCtrl_ModelWebLink->SetNormalColour(CyanOrBlue());
-    Button_Search->SetDefault();
-
     ValidateWindow();
 }
 
@@ -1148,7 +505,7 @@ void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string c
             for (const auto& it2 : it->_wiring)
             {
                 wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, it2->_name, -1, -1, new MWiringTreeItemData(it2));
-                TreeCtrl_Navigator->SetItemTextColour(id, it->GetColour());
+                TreeCtrl_Navigator->SetItemTextColour(id, TreeItemColourForModel(it));
             }
         }
         else
@@ -1156,12 +513,12 @@ void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string c
             if (it->_wiring.size() == 0)
             {
                 wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MModelTreeItemData(it));
-                TreeCtrl_Navigator->SetItemTextColour(tid, it->GetColour());
+                TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(it));
             }
             else
             {
                 wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MWiringTreeItemData(it->_wiring.front()));
-                TreeCtrl_Navigator->SetItemTextColour(tid, it->GetColour());
+                TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(it));
             }
         }
     }
@@ -1244,7 +601,8 @@ bool VendorModelDialog::DownloadModel(MModelWiring* wiring)
         return false;
     }
 
-    if (wiring->_xmodelFile.GetExt().Lower() == "zip") {
+    const wxFileName xmodelPath(wiring->_xmodelFile);
+    if (xmodelPath.GetExt().Lower() == "zip") {
         // we need to open the zip ... place the files in the "modeldownload" folder in the show folder
         spdlog::debug("    opening zipped model " + _modelFile);
 
@@ -1255,7 +613,7 @@ bool VendorModelDialog::DownloadModel(MModelWiring* wiring)
         }
 
         // files should be .jpg/png/bmp/obj ... and one xmodel file
-        wxFileInputStream fin(wiring->_xmodelFile.GetFullPath());
+        wxFileInputStream fin(xmodelPath.GetFullPath());
         if (fin.IsOk()) {
             wxZipInputStream zin(fin);
             if (zin.IsOk()) {
@@ -1318,7 +676,7 @@ bool VendorModelDialog::DownloadModel(MModelWiring* wiring)
         }
     }
     else {
-        _modelFile = wiring->_xmodelFile.GetFullPath();
+        _modelFile = wiring->_xmodelFile;
         _modelWidthMM = wiring->GetWidthMM();
         _modelHeightMM = wiring->GetHeightMM();
         _modelDepthMM = wiring->GetDepthMM();
@@ -1462,23 +820,29 @@ void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 
 void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 {
-    static bool busy = false;
-
-    if (busy)
-    {
-        return;
+    wxTreeItemId startid = event.GetItem();
+    if (!startid.IsOk()) {
+        startid = GetFocusedItem();
     }
+    // User manually selected a different item — clear the search bold/cursor.
+    if (_lastSearchItem.IsOk() && startid != _lastSearchItem) {
+        TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+        _lastSearchItem = wxTreeItemId();
+    }
+    UpdatePanelForItem(startid);
+}
 
-    // Because this code triggers a web download this function can be re-entered and this is not good
+void VendorModelDialog::UpdatePanelForItem(wxTreeItemId item)
+{
+    static bool busy = false;
+    if (busy) return;
     busy = true;
-
-    wxTreeItemId startid = GetFocusedItem();
 
     SetCursor(wxCURSOR_WAIT);
 
-    if (startid.IsOk())
+    if (item.IsOk())
     {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(item);
 
         if (tid != nullptr)
         {
@@ -1491,14 +855,12 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->SetSelection(0);
                 PopulateVendorPanel(((MVendorTreeItemData*)tid)->GetVendor());
                 PopulateModelPanel((MModel*)nullptr);
-                TreeCtrl_Navigator->SetFocus();
             }
             else if (type == "Model")
             {
                 NotebookPanels->GetPage(0)->Hide();
                 NotebookPanels->GetPage(1)->Show();
                 NotebookPanels->SetSelection(1);
-                TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MModelTreeItemData*)tid)->GetModel());
                 PopulateVendorPanel(((MModelTreeItemData*)tid)->GetModel()->_vendor);
             }
@@ -1507,7 +869,6 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->GetPage(0)->Hide();
                 NotebookPanels->GetPage(1)->Show();
                 NotebookPanels->SetSelection(1);
-                TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MWiringTreeItemData*)tid)->GetWiring());
                 PopulateVendorPanel(((MWiringTreeItemData*)tid)->GetWiring()->_model->_vendor);
             }
@@ -1516,9 +877,8 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->GetPage(0)->Show();
                 NotebookPanels->GetPage(1)->Hide();
                 NotebookPanels->SetSelection(0);
-                PopulateVendorPanel(((MCategoryTreeItemData*)tid)->GetCategory()->GetVendor());
+                PopulateVendorPanel(((MCategoryTreeItemData*)tid)->GetCategory()->_vendor);
                 PopulateModelPanel((MModel*)nullptr);
-                TreeCtrl_Navigator->SetFocus();
             }
         }
         else
@@ -1534,16 +894,8 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     }
 
     ValidateWindow();
-
     SetCursor(wxCURSOR_DEFAULT);
-
     busy = false;
-
-    if (startid != GetFocusedItem())
-    {
-        // selection changed while we were processing so lets try again
-        wxPostEvent(this, event);
-    }
 }
 
 void VendorModelDialog::OnHyperlinkCtrl_WebsiteClick(wxCommandEvent& event)
@@ -1558,15 +910,6 @@ void VendorModelDialog::OnHyperlinkCtrl_FacebookClick(wxCommandEvent& event)
 
 void VendorModelDialog::ValidateWindow()
 {
-    wxTreeItemId current = GetFocusedItem();
-    if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !current.IsOk())
-    {
-        Button_Search->Disable();
-    }
-    else
-    {
-        Button_Search->Enable();
-    }
 
     // Check multi-select for Insert button state and label
     auto wirings = GetSelectedWirings();
@@ -1646,7 +989,7 @@ void VendorModelDialog::PopulateVendorPanel(MVendor* vendor)
 
     if (FileExists(vendor->_logoFile))
     {
-        _vendorImage.LoadFile(vendor->_logoFile.GetFullPath());
+        _vendorImage.LoadFile(wxString(vendor->_logoFile));
         if (_vendorImage.IsOk())
         {
             StaticBitmap_VendorImage->Show();
@@ -1664,24 +1007,24 @@ void VendorModelDialog::PopulateVendorPanel(MVendor* vendor)
 
     TextCtrl_VendorDetails->SetValue(vendor->GetDescription());
 
-    if (vendor->_facebook.GetPath() != "")
+    if (!vendor->_facebook.empty())
     {
         StaticText6->Show();
         HyperlinkCtrl_Facebook->Show();
-        HyperlinkCtrl_Facebook->SetURL(vendor->_facebook.BuildURI());
-        HyperlinkCtrl_Facebook->SetLabel(vendor->_facebook.BuildURI());
+        HyperlinkCtrl_Facebook->SetURL(vendor->_facebook);
+        HyperlinkCtrl_Facebook->SetLabel(vendor->_facebook);
     }
     else
     {
         StaticText6->Hide();
         HyperlinkCtrl_Facebook->Hide();
     }
-    if (vendor->_website.GetPath() != "")
+    if (!vendor->_website.empty())
     {
         StaticText2->Show();
         HyperlinkCtrl_Website->Show();
-        HyperlinkCtrl_Website->SetURL(vendor->_website.BuildURI());
-        HyperlinkCtrl_Website->SetLabel(vendor->_website.BuildURI());
+        HyperlinkCtrl_Website->SetURL(vendor->_website);
+        HyperlinkCtrl_Website->SetLabel(vendor->_website);
     }
     else
     {
@@ -1704,7 +1047,7 @@ void VendorModelDialog::LoadImage(wxStaticBitmap* sb, wxImage* image) const
     sb->SetBitmap(disp.Rescale((float)disp.GetWidth() * scale, (float)disp.GetHeight() * scale));
 }
 
-void VendorModelDialog::LoadModelImage(std::list<wxFileName> imageFiles, int image)
+void VendorModelDialog::LoadModelImage(const std::list<std::string>& imageFiles, int image)
 {
     wxAnimation animation;
 
@@ -1718,10 +1061,11 @@ void VendorModelDialog::LoadModelImage(std::list<wxFileName> imageFiles, int ima
     }
 
     if (FileExists(*it)) {
-        wxString ext = it->GetExt().Lower();
+        const wxFileName fn(*it);
+        wxString ext = fn.GetExt().Lower();
         bool isAnimation = false;
         if (ext != "jpg" && ext != "jpeg" && ext != "png" && ext != "bmp") {
-            if (animation.LoadFile(it->GetFullPath(), wxANIMATION_TYPE_GIF)) {
+            if (animation.LoadFile(fn.GetFullPath(), wxANIMATION_TYPE_GIF)) {
                 isAnimation = true;
                 StaticBitmap_ModelImage->Hide();
                 AnimationCtrl1->Show();
@@ -1730,7 +1074,7 @@ void VendorModelDialog::LoadModelImage(std::list<wxFileName> imageFiles, int ima
             }
         }
         if (!isAnimation) {
-            _modelImage.LoadFile(it->GetFullPath());
+            _modelImage.LoadFile(fn.GetFullPath());
             if (_modelImage.IsOk()) {
                 StaticBitmap_ModelImage->Show();
                 AnimationCtrl1->Hide();
@@ -1773,12 +1117,12 @@ void VendorModelDialog::PopulateModelPanel(MModel* model)
     TextCtrl_ModelDetails->Show();
     TextCtrl_ModelDetails->SetValue(model->GetDescription());
 
-    if (model->_webpage.GetPath() != "")
+    if (!model->_webpage.empty())
     {
         StaticText5->Show();
         HyperlinkCtrl_ModelWebLink->Show();
-        HyperlinkCtrl_ModelWebLink->SetURL(model->_webpage.BuildURI());
-        HyperlinkCtrl_ModelWebLink->SetLabel("View model at " + model->_webpage.GetServer());
+        HyperlinkCtrl_ModelWebLink->SetURL(model->_webpage);
+        HyperlinkCtrl_ModelWebLink->SetLabel("View model at " + ExtractURLServer(model->_webpage));
     }
     else
     {
@@ -1786,7 +1130,7 @@ void VendorModelDialog::PopulateModelPanel(MModel* model)
         HyperlinkCtrl_ModelWebLink->Hide();
     }
 
-    if (model->_wiring.size() == 0 || model->_wiring.front()->_xmodelLink.BuildURI() == "")
+    if (model->_wiring.size() == 0 || model->_wiring.front()->_xmodelLink.empty())
     {
         Button_InsertModel->Hide();
     }
@@ -1831,12 +1175,12 @@ void VendorModelDialog::PopulateModelPanel(MModelWiring* wiring)
     TextCtrl_ModelDetails->Show();
     TextCtrl_ModelDetails->SetValue(wiring->GetDescription());
 
-    if (wiring->_model->_webpage.GetPath() != "")
+    if (!wiring->_model->_webpage.empty())
     {
         StaticText5->Show();
         HyperlinkCtrl_ModelWebLink->Show();
-        HyperlinkCtrl_ModelWebLink->SetURL(wiring->_model->_webpage.BuildURI());
-        HyperlinkCtrl_ModelWebLink->SetLabel("View model at " + wiring->_model->_webpage.GetServer());
+        HyperlinkCtrl_ModelWebLink->SetURL(wiring->_model->_webpage);
+        HyperlinkCtrl_ModelWebLink->SetLabel("View model at " + ExtractURLServer(wiring->_model->_webpage));
     }
     else
     {
@@ -1844,7 +1188,7 @@ void VendorModelDialog::PopulateModelPanel(MModelWiring* wiring)
         HyperlinkCtrl_ModelWebLink->Hide();
     }
 
-    if (wiring->_xmodelLink.BuildURI() == "")
+    if (wiring->_xmodelLink.empty())
     {
         Button_InsertModel->Hide();
     }
@@ -1864,6 +1208,8 @@ void VendorModelDialog::OnClose(wxCloseEvent& event)
 void VendorModelDialog::OnResize(wxSizeEvent& event)
 {
     wxDialog::OnSize(event);
+    StaticText_Disclaimer->SetLabel(_("NOTE: Models are provided by the vendors, not by xLights. They are free to use in your layout, but the designs are copyrighted and not licensed for recreation or public distribution."));
+    StaticText_Disclaimer->Wrap(StaticText_Disclaimer->GetSize().GetWidth());
 
     if (NotebookPanels->GetSelection() == 0)
     {
@@ -1950,6 +1296,21 @@ void VendorModelDialog::SuppressVendor(const std::string& vendor, bool suppress)
 
 void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 {
+	if (_lastSearchItem.IsOk()) {
+		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+	}
+	_lastSearchItem = wxTreeItemId();
+	ValidateWindow();
+}
+
+void VendorModelDialog::OnSearchCancelClick(wxCommandEvent& event)
+{
+	if (_lastSearchItem.IsOk()) {
+		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+	}
+	_lastSearchItem = wxTreeItemId();
+	TextCtrl_Search->SetValue("");
+	TreeCtrl_Navigator->SetFocus();
 	ValidateWindow();
 }
 
@@ -1962,7 +1323,17 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 		return;
 	}
 
-	wxTreeItemId current = GetFocusedItem();
+	// Prefer the item we last landed on, so repeated presses advance through results.
+	// GetSelection() is undefined for wxTR_MULTIPLE trees; GetFocusedItem() loses its
+	// value when the tree doesn't have application focus (Windows). A member variable
+	// is the only reliable way to track the search cursor.
+	wxTreeItemId current = _lastSearchItem;
+	if (!current.IsOk()) {
+		current = GetFocusedItem();
+	}
+	if (!current.IsOk()) {
+		current = TreeCtrl_Navigator->GetRootItem();
+	}
 	wxTreeItemId start = current;
 	if (current.IsOk())
 	{
@@ -2021,8 +1392,16 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 
 			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
 			{
-				TreeCtrl_Navigator->SelectItem(current);
+				// Bold the found item for visual feedback without touching the
+				// selection — SelectItem on wxTR_MULTIPLE clears all other selections
+				// on Windows, which would wipe out the user's Ctrl+click choices.
+				if (_lastSearchItem.IsOk()) {
+					TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+				}
+				_lastSearchItem = current;
+				TreeCtrl_Navigator->SetItemBold(current, true);
 				TreeCtrl_Navigator->EnsureVisible(current);
+				UpdatePanelForItem(current);
 				if (current == start)
 				{
 					wxBell();

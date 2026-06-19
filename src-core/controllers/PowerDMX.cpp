@@ -183,6 +183,9 @@ int32_t PowerDMX::SetInputUniverses(nlohmann::json& data, Controller* controller
 
     // Get universes based on IP
     std::list<Output*> outputs = controller->GetOutputs();
+    if (outputs.empty()) {
+        return startChannel;
+    }
 
     auto out = outputs.front();
     startChannel = out->GetStartChannel();

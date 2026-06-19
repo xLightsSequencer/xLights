@@ -24,6 +24,7 @@
 #include "CircleModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
+#include "utils/AutoReleasePool.h"
 #include "utils/ExternalHooks.h"
 #include "IciclesModel.h"
 #include "ImageModel.h"
@@ -110,6 +111,18 @@ ModelManager::~ModelManager()
     clear();
 }
 
+void ModelManager::clearUIObjects()
+{
+    while (_modelsLoading)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+    for (auto& it : models) {
+        if (it.second != nullptr) {
+            it.second->ClearRenderCaches();
+        }
+    }
+}
+
 void ModelManager::clear()
 {
     std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
@@ -120,6 +133,8 @@ void ModelManager::clear()
         }
     }
     models.clear();
+    _setManager.Clear();
+    _modelGeneration++;
 }
 
 inline BaseObject* ModelManager::GetObject(const std::string& name) const
@@ -198,6 +213,9 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
                 changed |= mg->ModelRenamed(on, nn);
             }
         }
+
+        // Keep Model Sets coherent with the rename.
+        _setManager.OnModelRenamed(on, nn);
 
         return changed;
     }
@@ -282,7 +300,10 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     std::function<void(pugi::xml_node&, int)> f = [this, previewW, previewH](pugi::xml_node e, int idx) {
         createAndAddModel(e, previewW, previewH);
     };
-    RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
+    {
+        AutoReleasePool pool;
+        parallel_for(modelsToLoad, f);
+    }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
     spdlog::debug("Models loaded in {}ms", timerElapsed);
@@ -1235,6 +1256,17 @@ bool ModelManager::RenameController(const std::string& oldName, const std::strin
     return changed;
 }
 
+bool ModelManager::DeleteController(const std::string& name)
+{
+    bool changed = false;
+
+    for (auto& it : *this) {
+        changed |= it.second->DeleteController(name);
+    }
+
+    return changed;
+}
+
 // generate the next similar model name to the candidateName we are given
 std::string ModelManager::GenerateModelName(const std::string& candidateName) const
 {
@@ -1461,6 +1493,7 @@ void ModelManager::AddModel(Model* model)
             ResetModelGroups();
         }
         models[model->name] = model;
+        _modelGeneration++;
     }
 }
 
@@ -1469,8 +1502,9 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
         std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
         Model *oldm = models[name];
         models[nm->name] = nm;
-        ResetModelGroups();       
+        ResetModelGroups();
         delete oldm;
+        _modelGeneration++;
     }
 }
 
@@ -1707,6 +1741,11 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
         if (localAttr.empty() || std::string_view(localAttr.as_string()) != aValue) {
             // SourceVersion is just the xLights version that last saved the model — not a real change
             if (aName == "SourceVersion") continue;
+            // Controller is locally managed in the show folder.
+            if (aName == "Controller") {
+                auto isNoCtrl = [](std::string_view v) { return v.empty() || v == NO_CONTROLLER; };
+                if (isNoCtrl(aValue) && !isNoCtrl(localAttr.as_string(""))) continue;
+            }
             if (aName != "StartChannel" || local.attribute("Controller").empty()) {
                 // For float attributes, compare rounded to 4 decimal places as older versions of xLights only output to 4 decimals
                 if (FLOAT_ATTRIBUTES.count(std::string(aName)) > 0 && !localAttr.empty()) {
@@ -1754,6 +1793,7 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
     }
     // Check child nodes (local → base): detect children removed from base (e.g. dimmingCurve reset to default)
     for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
+        if (std::string_view(cc.name()) == "ControllerConnection") continue;
         bool found = false;
         for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
             if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckNameAttrs(nn, cc)) {
@@ -1790,24 +1830,28 @@ static void PreserveLocalControllerAttrs(pugi::xml_node localNode, pugi::xml_nod
     }
 }
 
-// Helper: copy the local ControllerConnection port onto the new node's ControllerConnection child if it has no port
+// Helper: preserve the local ControllerConnection onto the new node.
 static void PreserveLocalControllerPort(pugi::xml_node localNode, pugi::xml_node newNode)
 {
+    pugi::xml_node localCC;
     std::string port;
     for (pugi::xml_node p = localNode.first_child(); p; p = p.next_sibling()) {
         if (std::string_view(p.name()) == "ControllerConnection") {
+            localCC = p;
             port = p.attribute("Port").as_string();
         }
     }
-    if (!port.empty()) {
-        for (pugi::xml_node bp = newNode.first_child(); bp; bp = bp.next_sibling()) {
-            if (std::string_view(bp.name()) == "ControllerConnection") {
-                if (bp.attribute("Port").empty()) {
-                    bp.append_attribute("Port") = port;
-                }
+    if (port.empty() || !localCC) return;
+
+    for (pugi::xml_node bp = newNode.first_child(); bp; bp = bp.next_sibling()) {
+        if (std::string_view(bp.name()) == "ControllerConnection") {
+            if (bp.attribute("Port").empty()) {
+                bp.append_attribute("Port") = port.c_str();
             }
+            return;
         }
     }
+    newNode.append_copy(localCC);
 }
 static void RemoveControllerConnection(pugi::xml_node node) {
     pugi::xml_node cc = node.child("ControllerConnection");
@@ -2101,6 +2145,7 @@ bool ModelManager::Delete(const std::string& name)
                         group->ModelRemoved(mn);
                     }
                 }
+                _setManager.OnModelDeleted(mn);
                 models.erase(it);
                 ResetModelGroups();
 
@@ -2113,6 +2158,7 @@ bool ModelManager::Delete(const std::string& name)
                 }
 
                 delete model;
+                _modelGeneration++;
                 if (_renderContext) _renderContext->MarkRgbEffectsChanged();
                 return true;
             }

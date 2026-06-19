@@ -1518,6 +1518,7 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     FlexGridSizer1->Add(StatusBar1, 1, wxALL|wxEXPAND, 2);
     SetSizer(FlexGridSizer1);
     Timer1.SetOwner(this, ID_TIMER1);
+    Timer1.SetName("PixelTestTimer");
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_BUTTON_Load, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PixelTestDialog::OnButton_LoadClick);
@@ -3428,7 +3429,8 @@ void PixelTestDialog::OnTimer(long curtime)
                     }
                     if (curtime >= NextSequenceStart) {
                         rgbCycle++;
-                        rgbCycle = rgbCycle % ports;
+                        if (ports > 0) rgbCycle = rgbCycle % ports;
+                        else rgbCycle = 0;
                         NextSequenceStart = curtime + (interval * 2);
                     }
                 } else if (testFunc == PixelTestDialog::TestFunctions::ColorBlocks) {

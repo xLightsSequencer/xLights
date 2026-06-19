@@ -94,10 +94,40 @@ jobs:
         New-Item -ItemType Directory -Force -Path $wrapperDir | Out-Null
         # MSBuild invokes CLToolExe with cl-style args. The wrapper prepends
         # cl.exe as the first positional arg so sccache knows which compiler
-        # to wrap.
+        # to wrap. MSBuild's MultiToolTask drops the wrapped compiler's own
+        # stdout/stderr, so a bad compile would otherwise show up as just
+        # "cl.bat exited with code 2" with no diagnostic. Capture all of
+        # cl.exe's output to a per-TU log file and re-emit it from the
+        # wrapper's own streams (type) so the actual error text — and the
+        # source file that broke — always reach the build log.
+        #
+        # The log name is derived from the source basename (the last arg),
+        # NOT from %RANDOM%: MultiToolTask spawns many cl.bat at once and
+        # %RANDOM% is seeded from the clock, so same-tick launches collide on
+        # one filename. A locked-file redirect then aborts the line before
+        # sccache runs and the .obj is never produced. Source basenames are
+        # unique here (all objs share one flat /Fo dir), so this can't race.
+        # Plain setlocal (no delayed expansion) avoids corrupting any arg
+        # that contains '!'.
         @'
         @echo off
-        sccache.exe cl.exe %*
+        setlocal
+        :findsrc
+        set "SRC=%~1"
+        shift
+        if not "%~1"=="" goto findsrc
+        for %%F in ("%SRC%") do set "BASE=%%~nF"
+        if not defined BASE set "BASE=%RANDOM%"
+        set "CLLOG=%TEMP%\sccache-cl-%BASE%.log"
+        sccache.exe cl.exe %* > "%CLLOG%" 2>&1
+        set "RC=%ERRORLEVEL%"
+        type "%CLLOG%"
+        if not "%RC%"=="0" (
+            echo cl.bat FAILED ^(rc=%RC%^) for %SRC% 1>&2
+            type "%CLLOG%" 1>&2
+        )
+        del "%CLLOG%" 2>nul
+        exit /b %RC%
         '@ | Set-Content -Encoding Ascii "$wrapperDir\cl.bat"
         echo "SCCACHE_WRAPPER_DIR=$wrapperDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 

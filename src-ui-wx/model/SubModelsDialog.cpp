@@ -31,6 +31,8 @@
 #include <wx/mimetype.h>
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h>
+#include <wx/spinctrl.h>
+#include <wx/radiobox.h>
 #include <wx/tokenzr.h>
 #include <wx/textfile.h>
 
@@ -62,6 +64,7 @@
 #include "XmlSerializer/XmlSerializeFunctions.h"
 
 #include "utils/NodeUtils.h"
+#include "models/SubModelSymmetrize.h"
 
 #include <log.h>
 
@@ -145,6 +148,11 @@ const long SubModelsDialog::SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_ZERO = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_EMPTY = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS = wxNewId();
+
+const long SubModelsDialog::ID_BUTTON_PLAY_ANIM = wxNewId();
+const long SubModelsDialog::ID_SLIDER_ANIM_SPEED = wxNewId();
+const long SubModelsDialog::ID_SLIDER_ANIM_TRAIL = wxNewId();
+const long SubModelsDialog::ID_ANIM_TIMER = wxNewId();
 
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
@@ -363,8 +371,9 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     Connect(ID_NOTEBOOK1, wxEVT_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)& SubModelsDialog::OnTypeNotebookPageChanged);
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
     Connect(ID_GRID1, wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
-    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
-    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&SubModelsDialog::OnClose);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnCancelButton);
+    Connect(wxID_OK, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnOK);
     Connect(ID_TEXTCTRL_NAME, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&SubModelsDialog::ApplySubmodelName);
 
     TextCtrl_Name->Bind(wxEVT_KILL_FOCUS, &SubModelsDialog::OnTextCtrl_NameText_KillFocus, this);
@@ -419,6 +428,30 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
     subBufferPanel->Connect(wxEVT_SIZE, (wxObjectEventFunction)&SubModelsDialog::OnSubbufferSize, nullptr, this);
+
+    wxStaticBox* animBox = new wxStaticBox(ModelPreviewPanelLocation, wxID_ANY, _("Node Animation"));
+    wxStaticBoxSizer* animSizer = new wxStaticBoxSizer(animBox, wxVERTICAL);
+
+    Button_PlayAnim = new wxButton(animBox, ID_BUTTON_PLAY_ANIM, _("Play"));
+    animSizer->Add(Button_PlayAnim, 0, wxALL | wxEXPAND, 5);
+
+    wxBoxSizer* controlsRow = new wxBoxSizer(wxHORIZONTAL);
+    controlsRow->Add(new wxStaticText(animBox, wxID_ANY, _("Speed:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    Spin_AnimSpeed = new wxSpinCtrl(animBox, ID_SLIDER_ANIM_SPEED, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 10, 9);
+    controlsRow->Add(Spin_AnimSpeed, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    controlsRow->Add(new wxStaticText(animBox, wxID_ANY, _("Trail:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    Spin_AnimTrail = new wxSpinCtrl(animBox, ID_SLIDER_ANIM_TRAIL, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 10, 5);
+    controlsRow->Add(Spin_AnimTrail, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    animSizer->Add(controlsRow, 0, wxEXPAND);
+
+    PreviewSizer->SetRows(0);
+    PreviewSizer->Add(animSizer, 0, wxALL | wxEXPAND, 5);
+
+    Connect(ID_BUTTON_PLAY_ANIM, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnPlayAnimClick);
+    Connect(ID_SLIDER_ANIM_SPEED, wxEVT_SPINCTRL, (wxObjectEventFunction)&SubModelsDialog::OnAnimSpeedChange);
+
+    _animTimer.SetOwner(this, ID_ANIM_TIMER);
+    Connect(ID_ANIM_TIMER, wxEVT_TIMER, (wxObjectEventFunction)&SubModelsDialog::OnAnimTimerTick);
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -499,12 +532,29 @@ void SubModelsDialog::OnSubbufferSize(wxSizeEvent& event)
     subBufferPanel->Refresh();
 }
 
-void SubModelsDialog::OnCancel(wxCloseEvent& event)
+void SubModelsDialog::ConfirmClose()
 {
     if (wxMessageBox("Are you sure you want to close the Submodels window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
+    StopAnimation();
     SubModelsDialog::EndDialog(wxID_CANCEL);
+}
+
+void SubModelsDialog::OnClose(wxCloseEvent& event)
+{
+    ConfirmClose();
+}
+
+void SubModelsDialog::OnCancelButton(wxCommandEvent& event)
+{
+    ConfirmClose();
+}
+
+void SubModelsDialog::OnOK(wxCommandEvent& event)
+{
+    StopAnimation();
+    SubModelsDialog::EndDialog(wxID_OK);
 }
 
 SubModelsDialog::~SubModelsDialog()
@@ -523,6 +573,7 @@ SubModelsDialog::~SubModelsDialog()
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();
 
+    StopAnimation();
     StopOutputToLights();
     if (_oldOutputToLights) {
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
@@ -1223,6 +1274,7 @@ void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 
 void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
 {
+    StopAnimation();
     wxString name = GetSelectedName();
     if (name == "") {
         return;
@@ -1286,8 +1338,20 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.AppendSeparator();
     if (model->IsCustom()) {
         mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+        wxString mname = GetSelectedName();
+        SubModelInfo* sm = mname.empty() ? nullptr : GetSubModelInfo(mname);
+        bool hasNodes = sm != nullptr && !sm->strands.empty() &&
+                        std::any_of(sm->strands.begin(), sm->strands.end(),
+                                    [](const std::string& s) { return !s.empty(); });
+        mnu.Enable(SUBMODEL_DIALOG_SYMMETRIZE, hasNodes);
     }
-    mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
+    {
+        mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
+        wxString csname = GetSelectedName();
+        SubModelInfo* cssm = csname.empty() ? nullptr : GetSubModelInfo(csname);
+        bool hasMultipleStrands = cssm != nullptr && cssm->strands.size() > 1;
+        mnu.Enable(SUBMODEL_DIALOG_COMBINE_STRANDS, hasMultipleStrands);
+    }
 
     mnu.AppendSeparator();
     mnu.Append(SUBMODEL_DIALOG_EXPAND_STRANDS_ALL, "Expand All Strands");
@@ -1409,6 +1473,7 @@ void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
 
 void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
 {
+    StopAnimation();
     shouldProcessGridCellChanged = false;
     if (ListCtrl_SubModels->GetSelectedItemCount() == 1)
     {
@@ -1544,12 +1609,50 @@ void SubModelsDialog::Symmetrize()
     if (!sm)
         return;
 
-    // Get user input
-    wxNumberEntryDialog dlg(this, "Degree of Symmetry", "", "Select Degree of Rotational Symmetry", 8, 2, 100);
+    // Get user input — Degree of Symmetry and rotation direction, persisted between openings
+    auto* config = GetXLightsConfig();
+    int savedDos = (int)config->ReadLong("SymmetrizeDoS", 8);
+    if (savedDos < 2 || savedDos > 100) {
+        savedDos = 8;
+    }
+    bool savedClockwise = config->ReadBool("SymmetrizeClockwise", false);
+    bool savedBottomToTop = config->ReadBool("SymmetrizeBottomToTop", false);
+
+    wxDialog dlg(this, wxID_ANY, "Symmetrize (Rotational)");
+    auto* spin = new wxSpinCtrl(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                wxSP_ARROW_KEYS, 2, 100, savedDos);
+    wxString dirChoices[] = { "Clockwise", "Counter-Clockwise" };
+    auto* dirBox = new wxRadioBox(&dlg, wxID_ANY, "Direction", wxDefaultPosition, wxDefaultSize,
+                                  2, dirChoices, 1, wxRA_SPECIFY_COLS);
+    dirBox->SetSelection(savedClockwise ? 0 : 1);
+
+    wxString orderChoices[] = { "Top to Bottom", "Bottom to Top" };
+    auto* orderBox = new wxRadioBox(&dlg, wxID_ANY, "Build Order", wxDefaultPosition, wxDefaultSize,
+                                    2, orderChoices, 1, wxRA_SPECIFY_COLS);
+    orderBox->SetSelection(savedBottomToTop ? 1 : 0);
+    orderBox->SetToolTip("Top to Bottom: generated strands are added after original");
+
+    auto* dosRow = new wxBoxSizer(wxHORIZONTAL);
+    dosRow->Add(new wxStaticText(&dlg, wxID_ANY, "Degree of Symmetry:"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+    dosRow->Add(spin, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto* main = new wxBoxSizer(wxVERTICAL);
+    main->Add(dosRow, 0, wxALL, 10);
+    main->Add(dirBox, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 10);
+    main->Add(orderBox, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 10);
+    main->Add(dlg.CreateButtonSizer(wxOK | wxCANCEL), 0, wxALL | wxEXPAND, 10);
+    dlg.SetSizerAndFit(main);
+
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
-    int dos = dlg.GetValue();
+    int dos = spin->GetValue();
+    bool clockwise = (dirBox->GetSelection() == 0);
+    bool bottomToTop = (orderBox->GetSelection() == 1);
+
+    config->Write("SymmetrizeDoS", dos);
+    config->Write("SymmetrizeClockwise", clockwise);
+    config->Write("SymmetrizeBottomToTop", bottomToTop);
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsSymmetrize") + ".txt";
@@ -1580,310 +1683,44 @@ void SubModelsDialog::Symmetrize()
     }
     LogAndWrite(f, wxString::Format("Number of nodes: %d", int(coords.size())));
 
-    //  Calculate centroid
     if (coords.empty())
         return;
-    float cx = 0, cy = 0;
-    std::vector<float> xsv, ysv;
-    for (const auto& x : coords) {
-        cx += x.second.first;
-        cy += x.second.second;
-        xsv.push_back(x.second.first);
-        ysv.push_back(x.second.second);
-    }
-    cx /= float(coords.size());
-    cy /= float(coords.size());
-    LogAndWrite(f, wxString::Format("Centroid: %f, %f", cx, cy));
 
-    //  Calculate radius / centroid another way
-    float nx = cx, ny = cy, xx = cx, xy = cy;
-    float varx = 0, vary = 0;
-    for (const auto& x : coords) {
-        nx = std::min(nx, x.second.first);
-        xx = std::max(xx, x.second.first);
-        ny = std::min(ny, x.second.second);
-        xy = std::max(xy, x.second.second);
+    SubModelSymmetrize::Options opts;
+    opts.degreeOfSymmetry = dos;
+    opts.clockwise = clockwise;
+    opts.bottomToTop = bottomToTop;
+    opts.squarifyAspect = true;
+    opts.handleCenterNode = true;
 
-        varx += (x.second.first - cx) * (x.second.first - cx);
-        vary += (x.second.second - cy) * (x.second.second - cy);
-    }
-    LogAndWrite(f, wxString::Format("Ranges x:%.1f-%.1f, y:%1f-%1f", nx, xx, ny, xy));
-    float clx = (nx + xx) / 2;
-    float cly = (ny + xy) / 2;
-    LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", clx, cly));
-
-    // And another
-    std::sort(xsv.begin(), xsv.end());
-    std::sort(ysv.begin(), ysv.end());
-    float mcx, mcy;
-    if (xsv.size() % 2 == 1) {
-        mcx = xsv[xsv.size() / 2];
-        mcy = ysv[ysv.size() / 2];
-    } else {
-        mcx = (xsv[xsv.size() / 2] + xsv[xsv.size() / 2 + 1]) / 2;
-        mcy = (ysv[ysv.size() / 2] + ysv[ysv.size() / 2 + 1]) / 2;
-    }
-    LogAndWrite(f, wxString::Format("Center by median: %f, %f", mcx, mcy));
-
-    float dlx = xx - nx;
-    float dly = xy - ny;
-    if (dlx > 0 && dly > 0) {
-        float aspectx = dlx / std::max(dlx, dly);
-        float aspecty = dly / std::max(dlx, dly);
-
-        LogAndWrite(f, wxString::Format("Aspect ratio by extremity: %f / %f", aspectx, aspecty));
-
-        if (true) {
-            // Variance-based aspect ratio
-            float mvar = std::max(varx, vary);
-            aspectx = sqrtf(varx / mvar);
-            aspecty = sqrtf(vary / mvar);
-            LogAndWrite(f, wxString::Format("Aspect Ratio by variance: %f / %f", aspectx, aspecty));
-        }
-
-        if (aspectx < .98 || aspecty < .98) {
-            wxArrayString chs;
-            chs.push_back("Yes");
-            chs.push_back("No");
-            wxSingleChoiceDialog dlg(this, "Squarify aspect ratio?", "Aspect Ratio", chs);
-            dlg.ShowModal();
-            if (dlg.GetStringSelection() == "Yes") {
-                for (auto& pt : coords) {
-                    pt.second.first = (pt.second.first - cx) * aspecty + cx;
-                    pt.second.second = (pt.second.second - cy) * aspectx + cy;
-                }
-            }
-        }
+    if (SubModelSymmetrize::ShouldOfferSquarify(coords)) {
+        wxArrayString chs;
+        chs.push_back("Yes");
+        chs.push_back("No");
+        wxSingleChoiceDialog adlg(this, "Squarify aspect ratio?", "Aspect Ratio", chs);
+        adlg.ShowModal();
+        opts.squarifyAspect = (adlg.GetStringSelection() == "Yes");
     }
 
-    bool handleCenterNode = false;
     if (coords.size() % dos == 1) {
         wxArrayString chs;
         chs.push_back("Yes");
         chs.push_back("No");
-        wxSingleChoiceDialog dlg(this, "Shoud a center node be identified?", "Center Node", chs);
-        dlg.ShowModal();
-        if (dlg.GetStringSelection() == "Yes") {
-            handleCenterNode = true;
-        }
+        wxSingleChoiceDialog cdlg(this, "Shoud a center node be identified?", "Center Node", chs);
+        cdlg.ShowModal();
+        opts.handleCenterNode = (cdlg.GetStringSelection() == "Yes");
     }
 
-    //  Calculate locations in new space
-    std::map<int, std::pair<float, float>> fcoords1, fcoords2;
-    std::map<int, float> fturns;
-    for (const auto& p : coords) {
-        float dx = p.second.first - cx;
-        float dy = p.second.second - cy;
-        if (dx == 0 && dy == 0) {
-            fcoords1[p.first] = std::make_pair(cx, cy);
-            fturns[p.first] = 0;
-            continue;
-        }
-        float rad = sqrtf(dx * dx + dy * dy);
-        float ang = atan2f(dy, dx);
-        if (ang <= 0) {
-            ang += float(2 * PI);
-        }
-        ang *= float(dos);
-        float turn = float(ang / (2 * PI)); // Which trip around?  We want one from each trip.
-        if (turn >= dos)
-            turn -= dos;
-        fturns[p.first] = turn;
-        while (ang >= 2 * PI)
-            ang -= float(2 * PI);
-        ang /= float(dos);
-        fcoords1[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
-        if (ang < PI / dos / 2)
-            ang += 2 * PI / dos;
-        fcoords2[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
-    }
-    LogAndWrite(f, wxString::Format("Transformed nodes: %d", int(fcoords1.size())));
+    SubModelSymmetrize::Result sym = SubModelSymmetrize::Symmetrize(coords, w, h, sm->strands, opts);
 
-    //  Build list that need matched, and match list
-    std::set<int> nodesNeedMatch;
-    std::map<int, std::vector<int>> matchIDToNodeSet; // vector index is relative turn #
-    std::map<int, int> nodeToMatchIDs;
-
-    // Copy and expand data
-    int origStrands = sm->strands.size();
-    for (unsigned i = 0; i < sm->strands.size(); ++i) {
-        auto x = Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
-        for (auto n : x) {
-            if (n == "" || n == "0")
-                continue;
-            nodesNeedMatch.insert(wxAtoi(n));
-        }
-    }
-
-    // Handle the business of a center node, if any
-    if (handleCenterNode) {
-        bool first = true;
-        float ndst = 0;
-        int nnode = -1;
-        for (const auto& pt : coords) {
-            float dx = pt.second.first - cx;
-            float dy = pt.second.second - cy;
-            float dst = dx * dx + dy * dy;
-            if (first || dst < ndst) {
-                ndst = dst;
-                nnode = pt.first;
-            }
-            first = false;
-        }
-
-        nodesNeedMatch.erase(nnode);
-        nodeToMatchIDs[nnode] = matchIDToNodeSet.size();
-        matchIDToNodeSet[nodeToMatchIDs[nnode]] = std::vector<int>(dos, nnode);
-    }
-
-    int radius = 0;
-    //  For each of numerous search radii, calculate list per grid cell
-    //  We will stop if all nodes have matches
-    while (!nodesNeedMatch.empty()) {
-        std::vector<std::vector<std::vector<int>>> bins; // [x][y][which]
-        for (int x = 0; x < w; ++x) {
-            bins.push_back(std::vector<std::vector<int>>());
-            for (int y = 0; y < h; ++y) {
-                bins[x].push_back(std::vector<int>());
-            }
-        }
-
-        // Append to lists
-        for (const auto& pt : fcoords1) {
-            if (nodeToMatchIDs.count(pt.first))
-                continue; // Already matched
-
-            int bx = int(pt.second.first);
-            int by = int(pt.second.second);
-            for (int x = bx - radius; x <= bx + radius; ++x) {
-                if (x < 0 || x >= w)
-                    continue;
-                for (int y = by - radius; y <= by + radius; ++y) {
-                    if (y < 0 || y >= h)
-                        continue;
-                    bins[x][y].push_back(pt.first);
-                }
-            }
-        }
-        // Add redundant copy of some - should check if already in bin?
-        for (const auto& pt : fcoords2) {
-            if (nodeToMatchIDs.count(pt.first))
-                continue; // Already matched
-
-            int bx = int(pt.second.first);
-            int by = int(pt.second.second);
-            for (int x = bx - radius; x <= bx + radius; ++x) {
-                if (x < 0 || x >= w)
-                    continue;
-                for (int y = by - radius; y <= by + radius; ++y) {
-                    if (y < 0 || y >= h)
-                        continue;
-                    bins[x][y].push_back(pt.first);
-                }
-            }
-        }
-
-        // See if any lists are ready
-        for (int x = 0; x < w; ++x) {
-            for (int y = 0; y < h; ++y) {
-                if (int(bins[x][y].size()) < dos)
-                    continue; // Quick test without looking at bins closely, not enough here
-                std::vector<std::pair<float, int>> matches;
-                for (int pt : bins[x][y]) {
-                    if (nodeToMatchIDs.count(pt) != 0)
-                        continue; // Already matched this pass
-                    matches.push_back(std::make_pair(fturns[pt], pt));
-                }
-                if ((int)matches.size() < dos)
-                    continue;
-                std::sort(matches.begin(), matches.end()); // Sort CCW
-
-                // Try to pick
-                float tgt = matches[0].first;
-                int found = 0;
-                for (unsigned j = 0; j < matches.size(); ++j) {
-                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
-                        ++found;
-                        tgt += 1;
-                    }
-                    if (found == dos)
-                        break;
-                }
-                if (found != dos)
-                    continue; // On closer inspection, nope
-
-                // OK, repeat that process and record it
-                std::vector<int> matched;
-                tgt = matches[0].first;
-                int mid = matchIDToNodeSet.size();
-                for (unsigned j = 0; j < matches.size(); ++j) {
-                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
-                        ++found;
-                        tgt += 1;
-                        matched.push_back(matches[j].second);
-                        nodeToMatchIDs[matches[j].second] = mid;
-                        nodesNeedMatch.erase(matches[j].second);
-                    }
-                    if (found == dos)
-                        break;
-                }
-                matchIDToNodeSet[mid] = matched;
-
-                LogAndWrite(f, wxString::Format("Found Match for %d at radius %d", matched[0], radius));
-                for (auto n : matched) {
-                    LogAndWrite(f, wxString::Format("    Member %d", n));
-                }
-            }
-        }
-
-        // Sanity
-        ++radius;
-        if (radius > 20 && !nodesNeedMatch.empty()) {
-            LogAndWrite(f, wxString::Format("Maximum search radius hit: %d", radius));
-            break;
-        }
-
-        wxSafeYield();
-    }
-
-    bool fail = false;
-    // Report any trouble
-    if (!nodesNeedMatch.empty()) {
+    bool fail = !sym.success;
+    if (fail) {
         LogAndWrite(f, "Note the following nodes could not be matched.  Ensure that zoom in/out is reasonable, that the model is centered, and that the point locations are clean.");
-        for (auto x : nodesNeedMatch) {
+        for (auto x : sym.unmatchedNodes) {
             LogAndWrite(f, wxString::Format("  Node %d", x));
         }
-        fail = true;
-    }
-
-    // Use match list to make new strands
-    for (int t = 1; !fail && t < dos; ++t) {
-        for (int sn = 0; sn < origStrands; ++sn) {
-            bool first = true;
-            // auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - sn]), ',');
-            auto x = wxSplit(NodeUtils::ExpandNodes(sm->strands[sn]), ',');
-            wxString str;
-            for (auto n : x) {
-                if (first) {
-                    first = false;
-                } else {
-                    str += ",";
-                }
-                if (n == "" || n == "0")
-                    continue;
-                int nn = wxAtoi(n);
-                // Find it
-                auto& matchs = matchIDToNodeSet[nodeToMatchIDs[nn]];
-                for (int ii = 0; ii < dos; ++ii) {
-                    if (matchs[ii] == nn) {
-                        int mapn = matchs[(ii + t) % dos];
-                        str += wxString::Format("%d", mapn);
-                        break;
-                    }
-                }
-            }
-            sm->strands.push_back(NodeUtils::CompressNodes(str.ToStdString()));
-        }
+    } else {
+        sm->strands = sym.strands;
     }
 
     // Update UI
@@ -2422,6 +2259,11 @@ void SubModelsDialog::ValidateWindow()
         TypeNotebook->Disable();
         ChoiceBufferStyle->Disable();
     }
+
+    Button_PlayAnim->Enable(
+        _animPlaying ||
+        (ListCtrl_SubModels->GetSelectedItemCount() == 1 && TypeNotebook->GetSelection() == 0)
+    );
 }
 
 void SubModelsDialog::UnSelectAll()
@@ -3303,7 +3145,10 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
 
     std::vector<wxRealPoint> pts;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
 
     //toggle nodes if double click
     bool found = false;
@@ -3402,7 +3247,10 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
 
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
         bool found = false;
@@ -3449,7 +3297,10 @@ void SubModelsDialog::RemoveNodes(bool suppress)
     if (nodes.size() == 0)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
 
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
@@ -3462,13 +3313,7 @@ void SubModelsDialog::RemoveNodes(bool suppress)
                 }
             }
         } else {
-            for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-                if (*it == stNode) {
-                    oldNodeArrray.erase(it);
-                    // Note that this only erases once, in case it somehow got added multiple times...
-                    break;
-                }
-            }
+            oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), stNode), oldNodeArrray.end());
         }
     }
 
@@ -3493,6 +3338,9 @@ void SubModelsDialog::ImportSubModel(std::string filename)
     if (result)
     {
         pugi::xml_node root = doc.document_element();
+        if (std::string_view(root.name()) == "models") {
+            root = root.first_child();
+        }
         ImportSubModelXML(root);
     }
     else
@@ -3737,9 +3585,36 @@ void SubModelsDialog::CreateSubmodel(const std::string& name, const std::list<st
 
 void SubModelsDialog::ImportCustomModel(std::string filename)
 {
-    // Load custom model data using XmlSerializer
-    auto customModelOpt = XmlSerialize::LoadCustomModelFromFile(filename);
-    
+    std::optional<XmlSerialize::CustomModelImportData> customModelOpt;
+
+    pugi::xml_document fileDoc;
+    if (!fileDoc.load_file(filename.c_str())) {
+        DisplayError("Failure loading xModel file or model is not a 2D custom model.");
+        return;
+    }
+
+    pugi::xml_node root = fileDoc.document_element();
+    if (std::string_view(root.name()) == "models") {
+        // New-format xmodel: <models><model DisplayAs="Custom" ...>
+        pugi::xml_node modelNode = root.first_child();
+        if (!modelNode || std::string_view(modelNode.attribute("DisplayAs").as_string()) != "Custom") {
+            DisplayError("Failure loading xModel file or model is not a 2D custom model.");
+            return;
+        }
+        // Adapt to <custommodel> element so LoadCustomModelFromXml can parse it
+        pugi::xml_document tempDoc;
+        pugi::xml_node cmNode = tempDoc.append_child("custommodel");
+        for (pugi::xml_attribute attr = modelNode.first_attribute(); attr; attr = attr.next_attribute()) {
+            cmNode.append_attribute(attr.name()) = attr.value();
+        }
+        for (pugi::xml_node child = modelNode.first_child(); child; child = child.next_sibling()) {
+            cmNode.append_copy(child);
+        }
+        customModelOpt = XmlSerialize::LoadCustomModelFromXml(cmNode);
+    } else {
+        customModelOpt = XmlSerialize::LoadCustomModelFromFile(filename);
+    }
+
     if (!customModelOpt.has_value()) {
         DisplayError("Failure loading xModel file or model is not a 2D custom model.");
         return;
@@ -4889,4 +4764,139 @@ wxString SubModelsDialog::GetDownloadSubmodels() {
         }
     }
     return wxString();
+}
+
+void SubModelsDialog::ParseAnimRows()
+{
+    _animRows.clear();
+    _animMaxSteps = 0;
+
+    int nodeCount = (int)model->GetNodeCount();
+    for (int row = 0; row < NodesGrid->GetNumberRows(); ++row) {
+        wxString v = NodesGrid->GetCellValue(row, 0);
+        AnimRows::value_type rowSlots;
+
+        wxStringTokenizer wtkz(v, ",", wxTOKEN_RET_EMPTY_ALL);
+        while (wtkz.HasMoreTokens()) {
+            wxString token = wtkz.GetNextToken().Trim(true).Trim(false);
+            if (token.Contains("-")) {
+                int idx = token.Index('-');
+                int startRaw = wxAtoi(token.Left(idx));
+                int endRaw   = wxAtoi(token.Right(token.size() - idx - 1));
+                if (startRaw > 0 && endRaw > 0) {
+                    int start = startRaw - 1;
+                    int end   = endRaw - 1;
+                    int step  = (start <= end) ? 1 : -1;
+                    for (int n = start; n != end + step; n += step) {
+                        std::vector<int> slot;
+                        if (n < nodeCount)
+                            slot.push_back(n);
+                        rowSlots.push_back(std::move(slot));
+                    }
+                } else {
+                    rowSlots.push_back({});
+                }
+            } else {
+                std::vector<int> slot;
+                if (!token.empty()) {
+                    int n = wxAtoi(token) - 1;
+                    if (n >= 0 && n < nodeCount)
+                        slot.push_back(n);
+                }
+                rowSlots.push_back(std::move(slot));
+            }
+        }
+
+        _animMaxSteps = std::max(_animMaxSteps, (int)rowSlots.size());
+        _animRows.push_back(std::move(rowSlots));
+    }
+
+    // build flat deduplicated node list for efficient per-tick resets
+    _animSubmodelNodes.clear();
+    for (auto const& row : _animRows)
+        for (auto const& slot : row)
+            for (int n : slot)
+                _animSubmodelNodes.push_back(n);
+    std::sort(_animSubmodelNodes.begin(), _animSubmodelNodes.end());
+    _animSubmodelNodes.erase(
+        std::unique(_animSubmodelNodes.begin(), _animSubmodelNodes.end()),
+        _animSubmodelNodes.end());
+}
+
+void SubModelsDialog::StopAnimation()
+{
+    if (!_animPlaying)
+        return;
+    _animTimer.Stop();
+    _animPlaying = false;
+    Button_PlayAnim->SetLabel(_("Play"));
+    NodesGrid->EnableEditing(true);
+    SelectRow(NodesGrid->GetGridCursorRow());
+}
+
+void SubModelsDialog::OnPlayAnimClick(wxCommandEvent& event)
+{
+    if (_animPlaying) {
+        StopAnimation();
+        return;
+    }
+
+    if (TypeNotebook->GetSelection() != 0 || ListCtrl_SubModels->GetSelectedItemCount() != 1)
+        return;
+
+    ParseAnimRows();
+    if (_animMaxSteps == 0)
+        return;
+
+    // one-time clear: set all nodes dark, then paint submodel white
+    ClearNodeColor(model);
+    for (int n : _animSubmodelNodes)
+        model->SetNodeColor(n, xlWHITE);
+
+    _animPlaying = true;
+    _animStep = 0;
+    _animTotalSteps = 0;
+    Button_PlayAnim->SetLabel(_("Stop"));
+    NodesGrid->EnableEditing(false);
+
+    int interval = 520 - 50 * Spin_AnimSpeed->GetValue();
+    _animTimer.Start(interval);
+}
+
+void SubModelsDialog::OnAnimSpeedChange(wxSpinEvent& event)
+{
+    if (_animPlaying) {
+        int interval = 520 - 50 * Spin_AnimSpeed->GetValue();
+        _animTimer.Start(interval);
+    }
+}
+
+void SubModelsDialog::OnAnimTimerTick(wxTimerEvent& event)
+{
+    int trail = std::min(Spin_AnimTrail->GetValue(), _animTotalSteps);
+
+    // reset only submodel nodes to white — non-submodel nodes stay dark from play-start
+    for (int n : _animSubmodelNodes)
+        model->SetNodeColor(n, xlWHITE);
+
+    // paint trail first, head last — blue head fades back to white
+    static const xlColor animHead(0, 120, 255);
+    for (int offset = trail; offset >= 0; --offset) {
+        int step = ((_animStep - offset) % _animMaxSteps + _animMaxSteps) % _animMaxSteps;
+        float frac = (float)(trail - offset + 1) / (trail + 1);
+        xlColor c((uint8_t)(animHead.red   * frac + 255.0f * (1.0f - frac)),
+                  (uint8_t)(animHead.green * frac + 255.0f * (1.0f - frac)),
+                  (uint8_t)(animHead.blue  * frac + 255.0f * (1.0f - frac)));
+        for (auto const& row : _animRows) {
+            if (step < (int)row.size()) {
+                for (int node : row[step])
+                    model->SetNodeColor(node, c);
+            }
+        }
+    }
+
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
+    _animStep = (_animStep + 1) % _animMaxSteps;
+    if (_animTotalSteps < Spin_AnimTrail->GetMax())
+        ++_animTotalSteps;
 }

@@ -232,5 +232,23 @@
             "lockable": true,
             "description": "When enabled, applies a brightness gradient to the ripple rings to simulate a three-dimensional depth effect."
         }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Ripple_Object_To_Draw", "oneOf": ["Star", "Snow Flake", "Polygon"] },
+            "enable": ["RIPPLE_POINTS"]
+        },
+        {
+            "when": { "property": "Ripple_Object_To_Draw", "oneOf": ["Star", "Snow Flake", "Polygon"] },
+            "enable": ["Ripple_Rotation"]
+        },
+        {
+            "when": { "property": "Ripple_Draw_Style", "notEquals": "Old" },
+            "enable": ["Ripple_Rotation"]
+        },
+        {
+            "when": { "property": "Ripple_Draw_Style", "notEquals": "Old" },
+            "enable": ["Ripple_Scale", "Ripple_Spacing", "Ripple_Twist", "Ripple_Direction", "Ripple_Velocity", "Ripple_Outline"]
+        }
     ]
 }

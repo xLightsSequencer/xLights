@@ -217,11 +217,14 @@ END_EVENT_TABLE()
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../sequencer/MainSequencer.h"
-#include "../ai/aiBase.h"
-#include "ServiceManager.h"
+#include "ai/aiBase.h"
+#include "ai/ServiceManager.h"
+#include "ai/PropertyGridBuilder.h"
 #include "TempFileManager.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+
+#include <wx/propgrid/propgrid.h>
 
 #include <log.h>
 
@@ -247,7 +250,7 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
     ParametersSizer->AddGrowableRow(0);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _T("Prompt"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     ParametersSizer->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    PromptBox = new wxTextCtrl(this, ID_PROMPT, wxEmptyString, wxDefaultPosition, wxSize(400,50), wxTE_MULTILINE|wxVSCROLL, wxDefaultValidator, _T("ID_PROMPT"));
+    PromptBox = new wxTextCtrl(this, ID_PROMPT, wxEmptyString, wxDefaultPosition, wxSize(400,90), wxTE_MULTILINE|wxVSCROLL, wxDefaultValidator, _T("ID_PROMPT"));
     PromptBox->SetFocus();
     PromptBox->SetHelpText(_T("Enter a prompt"));
     ParametersSizer->Add(PromptBox, 1, wxALL|wxEXPAND, 2);
@@ -321,7 +324,30 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
     if (service) {
         ImagePanel->Hide();
         generator = service->createAIImageGenerator();
-        generator->addControls(this, ParametersSizer);
+        auto generatorProps = generator->GetProperties();
+        if (!generatorProps.empty()) {
+            aiBase::AIImageGenerator* gen = generator;
+            // Height scales with the number of rows so multi-property generators
+            // (e.g. OpenAI: Model + Size) aren't clipped.
+            int const gridHeight = static_cast<int>(generatorProps.size()) * 28 + 12;
+            auto* grid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxSize(-1, gridHeight),
+                                            wxPG_SPLITTER_AUTO_CENTER | wxPG_DEFAULT_STYLE);
+            grid->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, true);
+            PropertyGridBuilder::Append(grid, generatorProps);
+            grid->Bind(wxEVT_PG_CHANGED, [gen](wxPropertyGridEvent& e) {
+                PropertyGridBuilder::Dispatch(e,
+                    [gen](const std::string& id, bool v)               { gen->SetProperty(id, v); },
+                    [gen](const std::string& id, int v)                { gen->SetProperty(id, v); },
+                    [gen](const std::string& id, const std::string& v) { gen->SetProperty(id, v); });
+            });
+            // ParametersSizer is a 2-column grid (label | control). Put a label
+            // in column 0 and the property grid in column 1 — the growable
+            // column — so the dropdown gets full width instead of being squished
+            // into the narrow label column.
+            auto* optionsLabel = new wxStaticText(this, wxID_ANY, _T("Options"));
+            ParametersSizer->Add(optionsLabel, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+            ParametersSizer->Add(grid, 1, wxALL | wxEXPAND, 5);
+        }
 
         MainSizer->SetSizeHints(this);
         Center();
@@ -343,13 +369,20 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
         ImagePanel->Hide();
         ErrorText->SetValue("Generating image....");
         ErrorText->Show();
-        MainSizer->SetSizeHints(this);
-        Center();
+        RelayoutGrowOnly();
 
-        generator->generateImage(PromptBox->GetValue().ToStdString(), [this](const wxBitmap &i, const std::string &err) {
-            CallAfter([this, i, err] {
-                if (err.empty()) {
-                    _originalImage = i.ConvertToImage();
+        generator->generateImage(PromptBox->GetValue().ToStdString(), [this](aiBase::AIImageResult res) {
+            CallAfter([this, res = std::move(res)]() mutable {
+                wxImage decoded;
+                if (res.error.empty() && !res.pngBytes.empty()) {
+                    wxMemoryInputStream memStream(res.pngBytes.data(), res.pngBytes.size());
+                    decoded.LoadFile(memStream, wxBITMAP_TYPE_PNG);
+                    if (!decoded.IsOk()) {
+                        res.error = "Failed to decode generated image";
+                    }
+                }
+                if (res.error.empty()) {
+                    _originalImage = std::move(decoded);
                     _currentImage = _originalImage.Copy();
                     cropPanel->SetImage(_currentImage);
                     cropPanel->ClearSelection();
@@ -357,18 +390,16 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
                     UpdateSizeLabel();
                     ImagePanel->Show();
                     ErrorText->Hide();
-                    MainSizer->SetSizeHints(this);
-                    Center();
+                    RelayoutGrowOnly();
                     SaveButton->Enable();
                     ResizeButton->Enable();
                     CropButton->Disable();  // Will be enabled when user makes a selection
                     ResetButton->Enable();
                 } else {
                     ImagePanel->Hide();
-                    ErrorText->SetValue(err);
+                    ErrorText->SetValue(res.error);
                     ErrorText->Show();
-                    MainSizer->SetSizeHints(this);
-                    Center();
+                    RelayoutGrowOnly();
                     SaveButton->Disable();
                     ResizeButton->Disable();
                     CropButton->Disable();
@@ -382,6 +413,25 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
 void AIImageDialog::OnResize(wxSizeEvent& event) {
     OnSize(event);
     Refresh();
+}
+
+void AIImageDialog::RelayoutGrowOnly() {
+    // Re-flow children at the current size, then enlarge the dialog only if the
+    // content needs more room.  The handlers used to call
+    // MainSizer->SetSizeHints(this), which resizes the window down to the
+    // minimum fit every time — so each Generate (which first hides the image
+    // panel) snapped the dialog smaller.  Growing-only keeps whatever size the
+    // user/last-image established and never shrinks on generate.
+    Layout();
+    const wxSize fit = MainSizer->ComputeFittingWindowSize(this);
+    const wxSize cur = GetSize();
+    SetMinSize(fit);  // floor for manual resizing; doesn't force a shrink
+    const wxSize target(std::max(cur.GetWidth(), fit.GetWidth()),
+                        std::max(cur.GetHeight(), fit.GetHeight()));
+    if (target != cur) {
+        SetSize(target);
+    }
+    Layout();
 }
 
 void AIImageDialog::UpdateSizeLabel() {
@@ -538,8 +588,7 @@ void AIImageDialog::OnResizeButtonClick(wxCommandEvent& event)
     cropPanel->SetImage(_currentImage);
     cropPanel->ClearSelection();
     UpdateSizeLabel();
-    MainSizer->SetSizeHints(this);
-    Center();
+    RelayoutGrowOnly();
 }
 
 void AIImageDialog::OnCropButtonClick(wxCommandEvent& event)
@@ -557,8 +606,7 @@ void AIImageDialog::OnCropButtonClick(wxCommandEvent& event)
         cropPanel->SetImage(_currentImage);
         cropPanel->ClearSelection();
         UpdateSizeLabel();
-        MainSizer->SetSizeHints(this);
-        Center();
+        RelayoutGrowOnly();
     }
 }
 
@@ -569,8 +617,7 @@ void AIImageDialog::OnResetButtonClick(wxCommandEvent& event)
         cropPanel->SetImage(_currentImage);
         cropPanel->ClearSelection();
         UpdateSizeLabel();
-        MainSizer->SetSizeHints(this);
-        Center();
+        RelayoutGrowOnly();
     }
 }
 

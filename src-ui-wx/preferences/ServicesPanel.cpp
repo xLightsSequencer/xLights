@@ -3,6 +3,8 @@
 #include "xLightsMain.h"
 #include "ai/chatGPT.h"
 #include "ai/ServiceManager.h"
+#include "ai/PropertyGridBuilder.h"
+#include "ai/aiBase.h"
 
 //(*InternalHeaders(ServicesPanel)
 #include <wx/intl.h>
@@ -170,7 +172,13 @@ void ServicesPanel::SetupTests() {
 bool ServicesPanel::TransferDataToWindow() {
     servicesGrid->Clear();
     for (auto const& ss : m_serviceManager->getServices()) {
-        ss->PopulateLLMSettings(servicesGrid);
+        // Populate the model dropdown for services that can list their models.
+        // GetAvailableModels() is a no-op once it has fetched (or attempted),
+        // so this only hits the network on first open / after a credential edit.
+        if (ss->SupportsModelListing() && ss->IsAvailable()) {
+            (void)ss->GetAvailableModels(false); // called for its cache-populating side effect
+        }
+        PropertyGridBuilder::Append(servicesGrid, ss->GetProperties());
     }
     return true;
 }
@@ -208,12 +216,32 @@ void ServicesPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     if (names.size() < 2) {
         return; // Not a valid service property
     }
-    m_serviceManager->getService(names[0])->SetSetting(name, event.GetPropertyValue());
+    aiBase* service = m_serviceManager->getService(names[0].ToStdString());
+    if (!service) {
+        return;
+    }
+    PropertyGridBuilder::Dispatch(event,
+        [service](const std::string& id, bool v)               { service->SetProperty(id, v); },
+        [service](const std::string& id, int v)                { service->SetProperty(id, v); },
+        [service](const std::string& id, const std::string& v) { service->SetProperty(id, v); });
 
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
     }
     SetupTests();
+
+    // A credential/endpoint change clears the service's cached model list.
+    // Re-fetch it and rebuild the grid so the model setting turns into (or
+    // refreshes) a dropdown. Deferred via CallAfter so we don't fetch or
+    // rebuild the grid from inside its own change event. GetAvailableModels()
+    // only hits the network when the cache was actually invalidated.
+    if (service->SupportsModelListing()) {
+        CallAfter([this, service]() {
+            (void)service->GetAvailableModels(false); // cache-populating side effect
+            TransferDataToWindow();
+            SetupTests();
+        });
+    }
 }
 
 void ServicesPanel::OnChoiceServicesTestSelect(wxCommandEvent& event)

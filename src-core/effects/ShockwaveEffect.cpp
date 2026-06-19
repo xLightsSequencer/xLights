@@ -15,6 +15,7 @@
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
 #include "../render/Effect.h"
+#include "../render/SequenceElements.h"
 
 #include "../../include/shockwave-16.xpm"
 #include "../../include/shockwave-24.xpm"
@@ -24,6 +25,12 @@
 
 #include "ispc/ShockwaveFunctions.ispc.h"
 #include "Parallel.h"
+
+class ShockwaveRenderCache : public EffectRenderCache {
+public:
+    ShockwaveRenderCache() {}
+    virtual ~ShockwaveRenderCache() {}
+};
 
 // Fallback defaults (replaced from Shockwave.json in OnMetadataLoaded).
 int ShockwaveEffect::sCenterXDefault = 50;
@@ -46,8 +53,10 @@ int ShockwaveEffect::sEndWidthMin = 0;
 int ShockwaveEffect::sEndWidthMax = 255;
 int ShockwaveEffect::sAccelDefault = 0;
 int ShockwaveEffect::sCyclesDefault = 1;
+int ShockwaveEffect::sDurationDefault = 1000;
 bool ShockwaveEffect::sScaleDefault = true;
 bool ShockwaveEffect::sBlendEdgesDefault = true;
+bool ShockwaveEffect::sFilterRegexDefault = false;
 
 ShockwaveEffect::ShockwaveEffect(int id) :
     RenderableEffect(id, "Shockwave", shockwave_16, shockwave_24, shockwave_32, shockwave_48, shockwave_64)
@@ -82,14 +91,44 @@ void ShockwaveEffect::OnMetadataLoaded()
     sEndWidthMax = (int)GetMaxFromMetadata("Shockwave_End_Width", sEndWidthMax);
     sAccelDefault = GetIntDefault("Shockwave_Accel", sAccelDefault);
     sCyclesDefault = GetIntDefault("Shockwave_Cycles", sCyclesDefault);
+    sDurationDefault = GetIntDefault("Shockwave_Duration", sDurationDefault);
     sScaleDefault = GetBoolDefault("Shockwave_Scale", sScaleDefault);
     sBlendEdgesDefault = GetBoolDefault("Shockwave_Blend_Edges", sBlendEdgesDefault);
+    sFilterRegexDefault = GetBoolDefault("Shockwave_FilterRegex", sFilterRegexDefault);
 }
 
 int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
                                           xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps)
 {
+    std::string timingtrack = e->GetSettings().Get("E_CHOICE_Shockwave_TimingTrack", "");
+    if (!timingtrack.empty()) {
+        EffectLayer* el = GetTiming(timingtrack);
+        if (el) {            
+            int effectStartMs = (int)e->GetStartTimeMS();
+            int effectEndMs = (int)e->GetEndTimeMS();
+            
+            double x_size = (double)(x2 - x1) / ((double)(effectEndMs - effectStartMs));
+            bool found1 = false;
+            for (int j = 0; j < el->GetEffectCount(); j++) {
+                Effect* mark = el->GetEffect(j);
+                int startMs = mark->GetStartTimeMS();
+                if (startMs < effectStartMs) continue; // ignore marks before effect start
+                if (startMs > effectEndMs) return 2; //we are done
+                
+                double start = startMs - effectStartMs;
+                double end = std::min((int)mark->GetEndTimeMS(), effectEndMs) - effectStartMs;
+                backgrounds.AddHBlendedRectangleAsTriangles(x1 + x_size * start, y1, x1 + end * x_size, y2, colorMask, 0, e->GetPalette());
+                found1 = true;
+            }
+            if (found1) {
+                return 2;
+            }
+        }
+    }
+
+    
     int cycles = e->GetSettings().GetInt("E_SLIDER_Shockwave_Cycles", sCyclesDefault);
+    if (cycles < 1) cycles = 1;
     int totalsize = x2 - x1;
     double x_size = totalsize / (double)cycles;
     x_size = std::max(x_size, 0.01);
@@ -119,10 +158,86 @@ void ShockwaveEffect::adjustSettings(const std::string& version, Effect* effect,
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
+void ShockwaveEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Shockwave_TimingTrack", "");
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Shockwave_TimingTrack"] = newname;
+    }
+}
+
+double ShockwaveEffect::getEffectPosition(RenderBuffer& buffer, const SettingsMap& SettingsMap, const std::string &timingtrack) {
+    EffectLayer* el = GetTiming(timingtrack);
+    int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
+    if (cycles < 1) cycles = 1;
+
+    if (el == nullptr) {
+        return buffer.GetEffectTimeIntervalPosition(cycles);
+    }
+    bool filterRegex = SettingsMap.GetBool("CHECKBOX_Shockwave_FilterRegex", sFilterRegexDefault);
+    int effectStartMs = (int)buffer.GetStartTimeMS();
+    int currentMs = buffer.curPeriod * buffer.frameTimeInMs;
+    int lastMarkMs = -1;
+    for (int j = 0; j < el->GetEffectCount(); j++) {
+        Effect* mark = el->GetEffect(j);
+        int startMs = mark->GetStartTimeMS();
+        if (startMs < effectStartMs) continue; // ignore marks before effect start
+        if (startMs <= currentMs) {
+            std::string filterLabel = SettingsMap.Get("TEXTCTRL_Shockwave_FilterLabel", "");
+            if (mark->FilteredIn(filterLabel, filterRegex))
+                lastMarkMs = startMs;
+        } else {
+            break;
+        }
+    }
+
+    if (lastMarkMs < 0) return -1; // no timing mark within effect has fired yet
+
+    int durationMs = SettingsMap.GetInt("SLIDER_Shockwave_Duration", sDurationDefault);
+    if (durationMs < buffer.frameTimeInMs) durationMs = buffer.frameTimeInMs;
+
+    float periodsPerCycle = (float)durationMs / buffer.frameTimeInMs;
+    float lastMarkPeriod = (float)lastMarkMs / buffer.frameTimeInMs;
+    float periodsSinceMark = (float)buffer.curPeriod - lastMarkPeriod;
+
+    // All cycles for this mark have completed — nothing to draw
+    if (periodsSinceMark >= periodsPerCycle * cycles) return -1;
+
+    float retval = periodsSinceMark;
+    while (retval >= periodsPerCycle) retval -= periodsPerCycle;
+    retval /= (periodsPerCycle - 1.0f);
+    return retval > 1.0f ? 1.0f : retval;
+}
+
+
 void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
-    double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
+    std::string timingtrack = SettingsMap.Get("CHOICE_Shockwave_TimingTrack", "");
+
+    ShockwaveRenderCache* cache = static_cast<ShockwaveRenderCache*>(buffer.infoCache[id]);
+    if (cache == nullptr) {
+        cache = new ShockwaveRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+        if (!timingtrack.empty()) {
+            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->AddRenderDependency(timingtrack, buffer.cur_model);
+        }
+    }
+
+    double eff_pos;
+    if (timingtrack.empty()) {
+        int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
+        if (cycles < 1) cycles = 1;
+        eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
+    } else {
+        eff_pos = getEffectPosition(buffer, SettingsMap, timingtrack);
+        if (eff_pos < 0) {
+            //nothing to draw yet
+            return;
+        }
+    }
     int center_x = GetValueCurveInt("Shockwave_CenterX", sCenterXDefault, SettingsMap, eff_pos, sCenterXMin, sCenterXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int center_y = GetValueCurveInt("Shockwave_CenterY", sCenterYDefault, SettingsMap, eff_pos, sCenterYMin, sCenterYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int start_radius = GetValueCurveInt("Shockwave_Start_Radius", sStartRadiusDefault, SettingsMap, eff_pos, sStartRadiusMin, sStartRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

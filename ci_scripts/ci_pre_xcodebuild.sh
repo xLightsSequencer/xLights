@@ -27,8 +27,31 @@ mkdir -p $CI_DERIVED_DATA_PATH
 cd $CI_DERIVED_DATA_PATH
 ls -lart
 
-#install zstd so we can decompress the deps
-brew install zstd
+#install zstd so we can decompress the deps. Retry: Homebrew's bottle
+#downloads occasionally fail with transient DNS errors on the Xcode Cloud
+#builders, and without zstd on PATH the download_deps tar extract silently
+#falls over with "unable to run program zstd -d -qq".
+for i in 1 2 3; do
+    brew install zstd && break
+    echo "brew install zstd failed (attempt $i); retrying after 15s..."
+    sleep 15
+done
+if ! command -v zstd >/dev/null 2>&1; then
+    echo "ci_pre_xcodebuild: zstd is not on PATH after 3 brew install attempts" >&2
+    exit 1
+fi
+
+# Fetch the prebuilt dependency tarball (XCFrameworks, libs, headers)
+# into macOS/dependencies/. This MUST run before xcodebuild begins:
+# Xcode validates XCFramework references during CreateBuildDescription,
+# which happens before any target's build phases execute, so a cold-slate
+# CI VM would fail with "There is no XCFramework found at ..." before the
+# xLights-Apple-core build phase that normally handles the download could
+# run. Local developers still get the auto-download via that build phase;
+# the script is idempotent so calling it from both places is safe.
+# CI_DERIVED_DATA_PATH on Xcode Cloud points at the DerivedData dir, not
+# the macOS/ source dir, so cd to the source macOS/ before invoking.
+(cd $CI_PRIMARY_REPOSITORY_PATH/macOS && scripts/download_deps)
 
 # ccache for compiler caching against the remote backend.
 # CCACHE_REMOTE_URL is provided as a secret environment variable in the

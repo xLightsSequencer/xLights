@@ -51,30 +51,7 @@ EffectLayer::~EffectLayer()
     }
 }
 
-// Some actions can be done while rendering so we don't want to abort the render,
-// but we also need to allow the main thread effects to be rendered so the
-// locks can be released.
-//
-// Of course, the best option is to use a Mac where there aren't any
-// main thread rendered effects
 std::unique_lock<std::recursive_mutex> EffectLayer::acquireLockWaitForRender() {
-    if (IsMainThread()) {
-        std::unique_lock<std::recursive_mutex> locker(lock, std::try_to_lock);
-        while (!locker.owns_lock()) {
-            // could not get the lock, we'll render any main thread effects
-            // and then try again, possibly yielding to allow the background
-            // thread to get to a point where the lock can be released
-            if (mParentElement) {
-                mParentElement->GetSequenceElements()->GetRenderContext()->RenderMainThreadEffects();
-            }
-            UNUSED(locker.try_lock());
-            if (!locker.owns_lock()) {
-                std::this_thread::yield();
-                UNUSED(locker.try_lock());
-            }
-        }
-        return locker;
-    }
     return std::unique_lock<std::recursive_mutex>(lock);
 }
 
@@ -98,7 +75,7 @@ int EffectLayer::GetIndex() const
 
 Effect* EffectLayer::GetEffect(int index) const
 {
-    if(index < (int)mEffects.size()) {
+    if(index >= 0 && index < (int)mEffects.size()) {
         return mEffects[index];
     } else {
         return nullptr;

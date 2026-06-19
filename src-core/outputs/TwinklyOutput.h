@@ -13,7 +13,11 @@
 #include "IPOutput.h"
 #include "SocketAbstraction.h"
 #include <array>
+#include <atomic>
 #include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 class Discovery;
 
@@ -22,7 +26,7 @@ class Discovery;
 
 class TwinklyOutput : public IPOutput
 {
-    std::chrono::milliseconds _lastLEDModeTime{0};
+    std::atomic<long long> _lastLEDModeMs{0};
 
 public:
 #pragma region Constructors and Destructors
@@ -102,12 +106,19 @@ private:
     bool MakeCall(const std::string& method, const std::string& path, nlohmann::json& result, const char* body = nullptr);
 
     bool ReloadToken();
+    void LEDModeThread();
 
     uint16_t _httpPort = 80;
     std::string m_token;
     std::array<char, TOKEN_SIZE> m_decodedToken;
     std::vector<unsigned char> m_channelData;
     sockets::UDPSocket* _datagram = nullptr;
+
+    std::thread _ledModeThread;
+    std::mutex _ledModeMutex;
+    std::condition_variable _ledModeCv;
+    std::atomic<bool> _ledModeStop{false};
+    std::atomic<bool> _ledModeNeeded{false};
 
     void OpenDatagram();
 };

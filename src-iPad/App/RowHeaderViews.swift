@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Timing-row header (row 2 left). Renders a colored background, an
 /// active indicator circle (filled when active, outlined when not),
@@ -11,6 +12,65 @@ struct TimingRowHeader: View {
     let height: CGFloat
     let document: XLSequenceDocument
     let onRowsChanged: () -> Void
+    /// B84: surfaced as "Breakdown Phrases" in the context menu. The
+    /// outer view wires this to `SequencerViewModel.breakdownPhrases`;
+    /// nil hides the menu entry. Guarded separately by
+    /// `canBreakdownPhrases` so we don't flash an entry the user
+    /// can't use.
+    var canBreakdownPhrases: Bool = false
+    var onBreakdownPhrases: (() -> Void)?
+    /// B85: surfaced as "Breakdown Words" once a Words layer exists
+    /// (i.e. Breakdown Phrases has already run).
+    var canBreakdownWords: Bool = false
+    var onBreakdownWords: (() -> Void)?
+    /// B87: surfaced as "Remove Words / Phonemes" when the phrase
+    /// layer has extra sub-layers to strip.
+    var canRemoveWordsAndPhonemes: Bool = false
+    var onRemoveWordsAndPhonemes: (() -> Void)?
+    /// TIM-9: "Remove Phonemes Only" — strips just the phoneme layer,
+    /// keeping the phrase + word layers. Shown when a phoneme layer exists.
+    var canRemovePhonemes: Bool = false
+    var onRemovePhonemes: (() -> Void)?
+    /// B76: surfaced as "Make Variable" on fixed-interval timing
+    /// tracks. Nil hides the entry.
+    var canMakeVariable: Bool = false
+    var onMakeVariable: (() -> Void)?
+    /// B80: subdivision callback. Fired with the chosen
+    /// `SubdivisionMode.rawValue` so RowHeaderViews doesn't pull in
+    /// the whole view-model enum by type.
+    var onSubdivide: ((_ rawMode: Int) -> Void)?
+    var canSubdivide: Bool = false
+    /// B75: fires when the user picks "Export Timing Track…".
+    var onExportTimingTrack: (() -> Void)?
+    /// Fires when the user picks "Export as Papagayo (.pgo)…". Gated by
+    /// `canExportPapagayo` — the track must have a phrase/word/phoneme
+    /// breakdown (3 effect layers), matching desktop's writer.
+    var canExportPapagayo: Bool = false
+    var onExportPapagayo: (() -> Void)?
+    /// AUTO-3: fires when the user picks "Speech to Lyrics…" (AI audio
+    /// transcription). Gated by `canSpeechToLyrics` — audio is loaded and a
+    /// Speech-to-Text AI service is configured. Declared before
+    /// `onImportLyrics` to match the call-site argument order.
+    var canSpeechToLyrics: Bool = false
+    var onSpeechToLyrics: (() -> Void)?
+    /// B78: fires when the user picks "Import Lyrics…".
+    var onImportLyrics: (() -> Void)?
+    /// B89: fires when the user picks "Auto-Label Marks…".
+    var onAutoLabelMarks: (() -> Void)?
+    /// B91: fires when the user picks "Halve Timing Marks" —
+    /// splits every mark at its midpoint.
+    var onHalveTimingMarks: (() -> Void)?
+    /// TIM-5: fires with the divisor when the user picks a "Divide Timing
+    /// Marks" option — splits every mark into N equal pieces.
+    var onDivideTimingMarks: ((_ divisor: Int) -> Void)?
+    /// SEQ-19: fires when the user picks "Select All Marks" — multi-selects
+    /// every timing mark on this row. Gated by `canSelectMarks`.
+    var canSelectMarks: Bool = false
+    var onSelectMarks: (() -> Void)?
+    /// #6268: fires when the user picks "Create Song Regions from
+    /// Timing Track" — replaces the active song-structure view's
+    /// regions with one per timing mark (plus gap fillers).
+    var onCreateSongRegions: (() -> Void)?
 
     // Active state is carried on `row.timing?.isActive` so a toggle
     // here flips the struct equality and re-runs the grid body —
@@ -54,6 +114,7 @@ struct TimingRowHeader: View {
                     )
                     .frame(width: 14, height: 14)
                     .contentShape(Rectangle())
+                    .hoverEffect(.highlight)   // B30
                     .onTapGesture {
                         document.setTimingRowActive(!isActive, at: Int32(row.id))
                         onRowsChanged()
@@ -67,10 +128,22 @@ struct TimingRowHeader: View {
                     .foregroundStyle(Color.white.opacity(0.8))
                     .frame(width: 10)
             }
+            // B63: glyph for timing-row type. Lyric breakdown layers
+            // (Phrases / Words / Phonemes, surfaced via B84/B85) get
+            // a distinct icon so users scanning a busy timing band
+            // can tell lyric content from plain beat marks. Plain
+            // timing tracks stay clean — the coloured dot already
+            // signals the row type.
+            if let iconName = Self.timingLayerIcon(layerName: row.timing?.layerName ?? "") {
+                Image(systemName: iconName)
+                    .font(.caption2)
+                    .foregroundStyle(Color.white.opacity(0.8))
+            }
             Text(row.displayName)
                 .font(.caption)
                 .foregroundStyle(.white)
                 .lineLimit(1)
+                .help(row.displayName)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 6)
@@ -84,6 +157,7 @@ struct TimingRowHeader: View {
         // isn't included because its `.contentShape` carves out its
         // own hit area.
         .contentShape(Rectangle())
+        .hoverEffect(showCollapseOnHeading ? .highlight : .lift)   // B30
         .onTapGesture {
             if showCollapseOnHeading {
                 document.toggleElementCollapsed(at: Int32(row.id))
@@ -96,6 +170,121 @@ struct TimingRowHeader: View {
                     renameText = row.timing?.elementName ?? row.displayName
                     showRename = true
                 } label: { Label("Rename Timing Track", systemImage: "pencil") }
+                if canBreakdownPhrases, let fire = onBreakdownPhrases {
+                    Button { fire() } label: {
+                        Label("Breakdown Phrases",
+                               systemImage: "text.append")
+                    }
+                }
+                if canBreakdownWords, let fire = onBreakdownWords {
+                    Button { fire() } label: {
+                        Label("Breakdown Words",
+                               systemImage: "text.badge.plus")
+                    }
+                }
+                if canRemoveWordsAndPhonemes, let fire = onRemoveWordsAndPhonemes {
+                    if canRemovePhonemes, let firePh = onRemovePhonemes {
+                        Menu {
+                            Button(role: .destructive) { fire() } label: {
+                                Label("Remove Words & Phonemes",
+                                       systemImage: "rectangle.stack.badge.minus")
+                            }
+                            Button(role: .destructive) { firePh() } label: {
+                                Label("Remove Phonemes Only",
+                                       systemImage: "rectangle.badge.minus")
+                            }
+                        } label: {
+                            Label("Remove Words / Phonemes",
+                                   systemImage: "rectangle.stack.badge.minus")
+                        }
+                    } else {
+                        Button(role: .destructive) { fire() } label: {
+                            Label("Remove Words / Phonemes",
+                                   systemImage: "rectangle.stack.badge.minus")
+                        }
+                    }
+                }
+                if canMakeVariable, let fire = onMakeVariable {
+                    Button { fire() } label: {
+                        Label("Make Variable",
+                               systemImage: "pencil.and.list.clipboard")
+                    }
+                }
+                if canSubdivide, let fire = onSubdivide {
+                    Menu {
+                        Button("1/2") { fire(2) }
+                        Button("1/3") { fire(3) }
+                        Button("1/4") { fire(4) }
+                        Button("1/6") { fire(6) }
+                        Button("1/8") { fire(8) }
+                        Divider()
+                        Button("2×") { fire(-2) }
+                        Button("4×") { fire(-4) }
+                        Button("8×") { fire(-8) }
+                    } label: {
+                        Label("Generate Subdivided Timing Track…",
+                               systemImage: "square.split.2x1")
+                    }
+                }
+                if let fire = onExportTimingTrack {
+                    Button { fire() } label: {
+                        Label("Export Timing Track…",
+                               systemImage: "square.and.arrow.up")
+                    }
+                }
+                if canExportPapagayo, let fire = onExportPapagayo {
+                    Button { fire() } label: {
+                        Label("Export as Papagayo (.pgo)…",
+                               systemImage: "mouth")
+                    }
+                }
+                if canSpeechToLyrics, let fire = onSpeechToLyrics {
+                    Button { fire() } label: {
+                        Label("Speech to Lyrics…",
+                               systemImage: "waveform.circle")
+                    }
+                }
+                if let fire = onImportLyrics {
+                    Button { fire() } label: {
+                        Label("Import Lyrics…",
+                               systemImage: "text.bubble")
+                    }
+                }
+                if let fire = onAutoLabelMarks {
+                    Button { fire() } label: {
+                        Label("Auto-Label Marks…",
+                               systemImage: "number")
+                    }
+                }
+                if let fire = onHalveTimingMarks {
+                    Button { fire() } label: {
+                        Label("Halve Timing Marks",
+                               systemImage: "square.split.1x2")
+                    }
+                }
+                if let fire = onDivideTimingMarks {
+                    Menu {
+                        Button("÷2") { fire(2) }
+                        Button("÷3") { fire(3) }
+                        Button("÷4") { fire(4) }
+                        Button("÷6") { fire(6) }
+                        Button("÷8") { fire(8) }
+                    } label: {
+                        Label("Divide Timing Marks…",
+                               systemImage: "square.split.2x2")
+                    }
+                }
+                if canSelectMarks, let fire = onSelectMarks {
+                    Button { fire() } label: {
+                        Label("Select All Marks", systemImage: "checklist")
+                    }
+                }
+                if let fire = onCreateSongRegions {
+                    Button { fire() } label: {
+                        Label("Create Song Regions from Timing Track",
+                               systemImage: "rectangle.split.3x1")
+                    }
+                }
                 Button(role: .destructive) {
                     showDelete = true
                 } label: { Label("Delete Timing Track", systemImage: "trash") }
@@ -126,6 +315,17 @@ struct TimingRowHeader: View {
             Text("Delete \(row.timing?.elementName ?? row.displayName)? This also removes its layers and any references from effect settings.")
         }
     }
+
+    /// B63 — SF Symbol for a lyric-breakdown layer. Nil for plain
+    /// timing tracks (no decoration; the coloured dot is enough).
+    static func timingLayerIcon(layerName: String) -> String? {
+        switch layerName.lowercased() {
+        case "phrases":  return "text.bubble"
+        case "words":    return "textformat.abc"
+        case "phonemes": return "waveform.path"
+        default:         return nil
+        }
+    }
 }
 
 /// Model-row header (row 3 left). Shows the element display name (or
@@ -151,8 +351,121 @@ struct ModelRowHeader: View {
     let document: XLSequenceDocument
     let onSelect: () -> Void
     let onRowsChanged: () -> Void
+    /// B2: fires when the user picks "Select All Effects in Row" from
+    /// the row-heading long-press menu. Wired on the outer view to
+    /// `SequencerViewModel.selectAllEffectsInRow(rowIndex:)`.
+    var onSelectAllEffects: (() -> Void)?
+    /// B52 select-every-effect-in-the-model (row + sub-layers +
+    /// submodels + strands + nodes). Shown on model rows where it
+    /// differs from `onSelectAllEffects` (which is row-scoped only).
+    var onSelectAllEffectsInModel: (() -> Void)?
+    /// B46 rename-layer callback + initial label. The outer view
+    /// wires this to `SequencerViewModel.renameLayer(rowIndex:name:)`
+    /// and then refreshes rows.
+    var onRenameLayer: ((_ newName: String) -> Void)?
+    /// B50 delete-all-effects-on-row + count (for the confirm alert).
+    var effectCountOnRow: Int = 0
+    var onDeleteAllEffectsOnRow: (() -> Void)?
+    /// Desktop ID_ROW_MNU_DELETE_MODEL_EFFECTS — delete every effect
+    /// on the element (all layers + submodels/strands/nodes).
+    var onDeleteModelEffects: (() -> Void)?
+    /// B51 toggle element render-disabled flag.
+    var elementRenderDisabled: Bool = false
+    var onToggleRenderDisabled: (() -> Void)?
+    /// Clear render-disabled on every element (desktop
+    /// ID_ROW_MNU_RENDERENABLE_ALL).
+    var onEnableRenderAll: (() -> Void)?
+    /// Loop-play the element's effects span (desktop
+    /// ID_ROW_MNU_PLAY_MODEL).
+    var onPlayModel: (() -> Void)?
+    /// B53 / B54 row + model cut / copy. Paste is also exposed on
+    /// the menu via `onPaste` (in addition to the global Cmd+V
+    /// plumbed in B98) — fires `pasteAtRow` so a multi-layer
+    /// clipboard auto-inserts layers in the destination, matching
+    /// desktop PR #6363.
+    var onCopyRow: (() -> Void)?
+    var onCutRow: (() -> Void)?
+    var onCopyModel: (() -> Void)?
+    /// #5064 — copy the model's layers plus every submodel's layers,
+    /// reaching collapsed submodels the visible-row copy can't.
+    var onCopyModelInclSubmodels: (() -> Void)?
+    var onCutModel: (() -> Void)?
+    /// B-CL: fan-out copy of this model's layers + submodels to one
+    /// or more target models chosen by the user. The outer view owns
+    /// the model-picker sheet; this closure just triggers it.
+    var onCopyLayersToModels: (() -> Void)?
+    var onPaste: (() -> Void)?
+    var hasClipboard: Bool = false
+    /// Find Possible Source Effects (EffectsGrid.cpp:476) — node-row
+    /// only. Traces this node's channel range back to the model-level
+    /// effects rendering onto it and presents a pickable results list.
+    var onFindSourceEffects: (() -> Void)?
+    /// B49 export rendered-channel data for this row's model as a
+    /// Falcon Player `.eseq` sub-sequence. The closure receives
+    /// `true` when the caller should restrict the export to the
+    /// active loop region, `false` for the whole sequence. The
+    /// "selected range" entry only shows up when `hasLoopRegion`
+    /// is true — on iPad, loop-region is how we indicate a time
+    /// window (desktop uses a frame selection).
+    var hasLoopRegion: Bool = false
+    var onExportModelFSEQ: ((_ useLoopRegion: Bool) -> Void)?
+    /// Export this row's model as a video file. The closure receives the
+    /// codec flags + file extension + a short label for the temp/default
+    /// filename + optional upscale dimensions (0/0 = native). The outer
+    /// view writes the temp file via `SequencerViewModel.exportModelAsVideo`
+    /// and presents `.fileExporter`. Shown only on non-group model rows
+    /// (desktop disables video export for groups), matching the FSEQ entry's
+    /// gating.
+    var onExportModelVideo: ((_ compressed: Bool, _ highQuality: Bool, _ forceProRes: Bool, _ ext: String, _ label: String, _ exportWidth: Int, _ exportHeight: Int) -> Void)?
+    /// Export this row's model as an animated GIF. Same gating as the video
+    /// entry (non-group model rows). The outer view encodes via
+    /// `SequencerViewModel.exportModelAsGif` and shares the resulting file.
+    var onExportModelGif: (() -> Void)?
+    /// B55 — convert effects on the row's element to "Per Model"
+    /// buffer styles. The closure decides scope (true = all layers
+    /// of the model, false = just this row's layer); the outer view
+    /// owns the menu copy.
+    var onConvertToPerModel: ((_ allLayers: Bool) -> Void)?
+    /// B56 — coalesce identical node / strand effects up the
+    /// hierarchy. Only meaningful on ModelElement rows; outer view
+    /// gates visibility.
+    var onPromoteNodeEffects: (() -> Void)?
+    /// Convert To Effect (render-down): render the model and replace
+    /// its rendered node output with On / Color Wash effects. Model /
+    /// strand rows only (desktop RowHeading.cpp:541/548/552).
+    var onConvertDataToEffects: (() -> Void)?
+    /// Scoped effect deletes (desktop RowHeading.cpp:603-606). The
+    /// closure receives the scope (0 = submodels, 1 = strands,
+    /// 2 = nodes). Model-heading rows only.
+    var onDeleteScopedEffects: ((_ scope: Int) -> Void)?
+    /// Export only the selected effects' time span on this model as a
+    /// Falcon Player `.eseq` (desktop RowHeading.cpp:585). Shown only
+    /// when at least one selected effect belongs to this model.
+    var hasSelectedEffectsOnModel: Bool = false
+    var onExportSelectedModelFSEQ: (() -> Void)?
+    /// B48 — delete every empty layer on this row's element.
+    /// Shown only on the element's primary row (`layerIndex == 0`)
+    /// and only when there's > 1 layer to begin with.
+    var unusedLayerCount: Int = 0
+    var onDeleteUnusedLayers: (() -> Void)?
+    /// B47 — insert N empty layers in one shot. The outer view
+    /// owns the count prompt; we just fire the closure with the
+    /// chosen value.
+    var onInsertMultipleLayersBelow: (() -> Void)?
+    /// Delete N layers from this one down (desktop
+    /// ID_ROW_MNU_DELETE_LAYERS); opens the count prompt.
+    var onDeleteMultipleLayers: (() -> Void)?
+    /// True when this row hosts the currently-selected effect.
+    /// Drives a soft accent tint on the heading so the active row
+    /// is recognisable at a glance — pairs with the height bump
+    /// already applied by `SequencerGridV2View.modelHeaders`.
+    var isSelected: Bool = false
 
     @State private var showDeleteLayerConfirm: Bool = false
+    @State private var showDeleteAllEffectsConfirm: Bool = false
+    @State private var showDeleteModelEffectsConfirm: Bool = false
+    @State private var showRenameLayer: Bool = false
+    @State private var renameLayerText: String = ""
 
     var body: some View {
         let isSubLayer = row.layerIndex > 0
@@ -194,6 +507,7 @@ struct ModelRowHeader: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
+                .hoverEffect(.highlight)   // B30
             } else {
                 Spacer().frame(width: 14)
             }
@@ -208,6 +522,7 @@ struct ModelRowHeader: View {
                 }
                 .buttonStyle(.plain)
                 .frame(width: 12)
+                .hoverEffect(.highlight)   // B30
             }
 
             if isGroup {
@@ -221,23 +536,27 @@ struct ModelRowHeader: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                    .help(row.displayName)
             } else if isNodeRow {
                 Text(row.displayName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                    .help(row.displayName)
             } else if layerCount > 1 {
                 Text("\(row.displayName) [\(layerCount)]")
                     .font(.caption)
                     .fontWeight(isSubmodelRow ? .regular : .medium)
                     .foregroundStyle(isSubmodelRow ? Color.secondary : Color.primary)
                     .lineLimit(1)
+                    .help(row.displayName)
             } else {
                 Text(row.displayName)
                     .font(.caption)
                     .fontWeight(isSubmodelRow ? .regular : .medium)
                     .foregroundStyle(isSubmodelRow ? Color.secondary : Color.primary)
                     .lineLimit(1)
+                    .help(row.displayName)
             }
             Spacer(minLength: 0)
         }
@@ -247,6 +566,47 @@ struct ModelRowHeader: View {
         .background(row.id % 2 == 0
                     ? Color.black.opacity(0.25)
                     : Color.black.opacity(0.15))
+        .background(isSelected ? Color.accentColor.opacity(0.22) : Color.clear)
+        .overlay(alignment: .leading) {
+            if isSelected {
+                Rectangle()
+                    .fill(Color.accentColor)
+                    .frame(width: 3)
+            }
+        }
+        .overlay(alignment: .trailing) {
+            if row.hasEffects {
+                Rectangle()
+                    .fill(Color(red: 0.918, green: 0.667, blue: 0.0))
+                    .frame(width: 3)
+            }
+        }
+        .overlay(alignment: .trailing) {
+            if !row.nodeMaskColor.isEmpty,
+               let color = Color(hex: row.nodeMaskColor) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(color)
+                    .frame(width: 12, height: 12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 2)
+                            .stroke(Color.black, lineWidth: 1)
+                    )
+                    .padding(.trailing, 9)
+            }
+        }
+        .overlay(alignment: .leading) {
+            if !row.tagColor.isEmpty,
+               let color = Color(hex: row.tagColor) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(color)
+                    .frame(width: 6, height: height - 6)
+                    .padding(.leading, 16)
+            }
+        }
+        // B66 — render-disabled (desktop calls it "muted") rows
+        // show at 45 % opacity so the user can tell at a glance
+        // which models won't contribute to the render pass.
+        .opacity(elementRenderDisabled ? 0.45 : 1.0)
         .contentShape(Rectangle())
         // Double-tap comes first so SwiftUI's recognizer chain treats
         // it as the primary gesture on rows that have something to
@@ -259,7 +619,204 @@ struct ModelRowHeader: View {
             }
         ))
         .contextMenu {
+            if !row.effects.isEmpty, let fire = onSelectAllEffects {
+                Button {
+                    fire()
+                } label: {
+                    Label("Select All Effects in Row",
+                           systemImage: "checkmark.rectangle.stack")
+                }
+            }
+            if !isSubLayer && !isNodeRow,
+               let fire = onSelectAllEffectsInModel {
+                Button {
+                    fire()
+                } label: {
+                    Label("Select All Effects in Model",
+                           systemImage: "rectangle.stack.fill.badge.plus")
+                }
+            }
+            if effectCountOnRow > 0, onDeleteAllEffectsOnRow != nil {
+                Button(role: .destructive) {
+                    showDeleteAllEffectsConfirm = true
+                } label: {
+                    Label("Delete All Effects on Row",
+                           systemImage: "trash.slash")
+                }
+            }
+            if !isSubLayer && !isNodeRow, onDeleteModelEffects != nil {
+                Button(role: .destructive) {
+                    showDeleteModelEffectsConfirm = true
+                } label: {
+                    Label("Delete Model Effects",
+                           systemImage: "trash.fill")
+                }
+            }
+            // Scoped deletes (desktop RowHeading.cpp:603-606). Model
+            // heading rows only; the bridge walks the element's
+            // submodels / strands / node layers.
+            if !isSubLayer && !isNodeRow && !isGroup && !isSubmodelRow,
+               let fire = onDeleteScopedEffects {
+                Menu {
+                    Button(role: .destructive) { fire(0) } label: {
+                        Label("Delete SubModel Effects", systemImage: "trash")
+                    }
+                    Button(role: .destructive) { fire(1) } label: {
+                        Label("Delete Strand Effects", systemImage: "trash")
+                    }
+                    Button(role: .destructive) { fire(2) } label: {
+                        Label("Delete Node Effects", systemImage: "trash")
+                    }
+                } label: {
+                    Label("Delete Scoped Effects", systemImage: "trash.circle")
+                }
+            }
+            if effectCountOnRow > 0, let fire = onCopyRow {
+                Button { fire() } label: {
+                    Label("Copy Row", systemImage: "doc.on.doc")
+                }
+            }
+            if effectCountOnRow > 0, let fire = onCutRow {
+                Button(role: .destructive) { fire() } label: {
+                    Label("Cut Row", systemImage: "scissors")
+                }
+            }
+            if !isSubLayer && !isNodeRow, let fire = onCopyModel {
+                Button { fire() } label: {
+                    Label("Copy Model", systemImage: "square.stack.3d.up")
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onCopyModelInclSubmodels {
+                Button { fire() } label: {
+                    Label("Copy Effects incl SubModels",
+                           systemImage: "square.stack.3d.up.badge.a")
+                }
+            }
+            if !isSubLayer && !isNodeRow, let fire = onCutModel {
+                Button(role: .destructive) { fire() } label: {
+                    Label("Cut Model",
+                           systemImage: "square.stack.3d.up.trianglebadge.exclamationmark")
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onCopyLayersToModels {
+                Button { fire() } label: {
+                    Label("Copy Layers/SubModels to Models…",
+                           systemImage: "square.stack.3d.up.fill")
+                }
+            }
+            if hasClipboard, let fire = onPaste {
+                Button { fire() } label: {
+                    Label("Paste", systemImage: "doc.on.clipboard")
+                }
+            }
+            if !isSubLayer && !isNodeRow, let fire = onExportModelFSEQ {
+                Button { fire(false) } label: {
+                    Label("Export Model as FSEQ…",
+                           systemImage: "square.and.arrow.up.on.square")
+                }
+                if hasLoopRegion {
+                    Button { fire(true) } label: {
+                        Label("Export Model (Loop Range) as FSEQ…",
+                               systemImage: "arrow.up.doc")
+                    }
+                }
+                if hasSelectedEffectsOnModel, let fireSel = onExportSelectedModelFSEQ {
+                    Button { fireSel() } label: {
+                        Label("Export Selected Model Effects as FSEQ…",
+                               systemImage: "square.and.arrow.up.badge.clock")
+                    }
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelVideo {
+                Menu {
+                    Button { fire(true, false, false, "mp4", "Compressed", 0, 0) } label: {
+                        Label("Compressed (.mp4)", systemImage: "film")
+                    }
+                    Button { fire(true, true, false, "mp4", "High Quality", 0, 0) } label: {
+                        Label("High Quality (.mp4)", systemImage: "film")
+                    }
+                    Button { fire(false, false, true, "mov", "ProRes 4444", 0, 0) } label: {
+                        Label("ProRes 4444 (.mov)", systemImage: "film.stack")
+                    }
+                    Button { fire(false, false, true, "mov", "HD ProRes 1080p", 1920, 1080) } label: {
+                        Label("HD ProRes 1080p (.mov)", systemImage: "film.stack")
+                    }
+                    Button { fire(false, false, false, "mov", "Lossless RGB", 0, 0) } label: {
+                        Label("Lossless RGB (.mov)", systemImage: "film.stack")
+                    }
+                } label: {
+                    Label("Export Model as Video", systemImage: "film")
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelGif {
+                Button { fire() } label: {
+                    Label("Export Model as GIF", systemImage: "photo.stack")
+                }
+            }
+            // B55 — model-scope variant on the model heading; layer-
+            // scope variant on per-layer / submodel rows. Mirrors
+            // desktop's two RowHeading entries.
+            if let fire = onConvertToPerModel, !isNodeRow {
+                if !isSubLayer {
+                    Button { fire(true) } label: {
+                        Label("Convert Effects to 'Per Model'",
+                               systemImage: "rectangle.compress.vertical")
+                    }
+                } else {
+                    Button { fire(false) } label: {
+                        Label("Convert Effects on Layer to 'Per Model'",
+                               systemImage: "rectangle.compress.vertical")
+                    }
+                }
+            }
+            // B56 — only the model heading itself; promotion walks
+            // strands+nodes so it doesn't make sense on submodel /
+            // node rows.
+            if let fire = onPromoteNodeEffects, !isSubLayer, !isNodeRow {
+                Button { fire() } label: {
+                    Label("Promote Node Effects",
+                           systemImage: "arrow.up.to.line.compact")
+                }
+            }
+            // Convert To Effect (render-down). Model-heading, strand,
+            // and node rows — never groups/submodels (no single buffer
+            // of rendered node data to read back).
+            if let fire = onConvertDataToEffects, !isGroup, !isSubmodelRow,
+               (!isSubLayer && !isNodeRow) || isStrandRow || isNodeRow {
+                Button { fire() } label: {
+                    Label("Convert To Effects",
+                           systemImage: "wand.and.stars")
+                }
+            }
+            if !isSubLayer && !isNodeRow, let fire = onToggleRenderDisabled {
+                Button { fire() } label: {
+                    Label(elementRenderDisabled ? "Enable Render" : "Disable Render",
+                           systemImage: elementRenderDisabled ? "play.rectangle" : "stop.rectangle")
+                }
+            }
+            if !isSubLayer && !isNodeRow, let fireAll = onEnableRenderAll {
+                Button { fireAll() } label: {
+                    Label("Enable Render on All Models",
+                           systemImage: "play.rectangle.on.rectangle")
+                }
+            }
+            if !isNodeRow, !row.effects.isEmpty || !isSubLayer,
+               let firePlay = onPlayModel {
+                Button { firePlay() } label: {
+                    Label("Play Model", systemImage: "play.circle")
+                }
+            }
+            if !row.effects.isEmpty || onToggleRenderDisabled != nil
+                || onDeleteAllEffectsOnRow != nil {
+                Divider()
+            }
             if !isNodeRow {
+                if onRenameLayer != nil {
+                    Button {
+                        renameLayerText = document.rowLayerName(at: Int32(row.id))
+                        showRenameLayer = true
+                    } label: { Label("Rename Layer", systemImage: "pencil") }
+                }
                 Button {
                     if document.insertEffectLayerAbove(at: Int32(row.id)) {
                         onRowsChanged()
@@ -270,10 +827,28 @@ struct ModelRowHeader: View {
                         onRowsChanged()
                     }
                 } label: { Label("Insert Layer Below", systemImage: "square.3.layers.3d.bottom.filled") }
+                if let fire = onInsertMultipleLayersBelow {
+                    Button { fire() } label: {
+                        Label("Insert Multiple Layers Below…",
+                               systemImage: "square.stack.3d.down.right")
+                    }
+                }
                 if canDeleteLayer {
                     Button(role: .destructive) {
                         showDeleteLayerConfirm = true
                     } label: { Label("Delete Layer", systemImage: "trash") }
+                    if let fire = onDeleteMultipleLayers {
+                        Button(role: .destructive) { fire() } label: {
+                            Label("Delete Layers…", systemImage: "trash.slash")
+                        }
+                    }
+                }
+                if !isSubLayer, unusedLayerCount > 0,
+                   let fire = onDeleteUnusedLayers {
+                    Button(role: .destructive) { fire() } label: {
+                        Label("Delete \(unusedLayerCount) Unused Layer\(unusedLayerCount == 1 ? "" : "s")",
+                               systemImage: "trash.square")
+                    }
                 }
             }
             if canToggleSubmodels {
@@ -285,6 +860,13 @@ struct ModelRowHeader: View {
                     Label(showsChildren ? "Hide Strands/Submodels" : "Show Strands/Submodels",
                           systemImage: showsChildren ? "eye.slash" : "eye")
                 }
+                Button {
+                    document.setHideUnusedSubmodels(!document.hideUnusedSubmodels())
+                    onRowsChanged()
+                } label: {
+                    Label(document.hideUnusedSubmodels() ? "Show All Submodels" : "Hide Unused Submodels",
+                          systemImage: document.hideUnusedSubmodels() ? "eye" : "eye.slash")
+                }
             }
             if canToggleNodes {
                 Divider()
@@ -294,6 +876,13 @@ struct ModelRowHeader: View {
                 } label: {
                     Label(showsChildren ? "Hide Nodes" : "Show Nodes",
                           systemImage: showsChildren ? "eye.slash" : "eye")
+                }
+            }
+            if isNodeRow, let fire = onFindSourceEffects {
+                Divider()
+                Button { fire() } label: {
+                    Label("Find Possible Source Effects",
+                          systemImage: "scope")
                 }
             }
         }
@@ -307,6 +896,34 @@ struct ModelRowHeader: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Delete layer \(row.layerIndex + 1) of \(row.displayName)? All effects on this layer will be lost.")
+        }
+        .alert("Delete All Effects",
+               isPresented: $showDeleteAllEffectsConfirm) {
+            Button("Delete All", role: .destructive) {
+                onDeleteAllEffectsOnRow?()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Delete all \(effectCountOnRow) effects on \(row.displayName)? Undo with ⌘Z.")
+        }
+        .alert("Delete Model Effects",
+               isPresented: $showDeleteModelEffectsConfirm) {
+            Button("Delete All", role: .destructive) {
+                onDeleteModelEffects?()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Delete every effect on \(row.displayName) — all layers, submodels, strands and nodes? Undo with ⌘Z.")
+        }
+        .alert("Rename Layer",
+               isPresented: $showRenameLayer) {
+            TextField("Name", text: $renameLayerText)
+            Button("OK") {
+                onRenameLayer?(renameLayerText)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Enter a layer name (used as the header label).")
         }
     }
 
@@ -339,5 +956,62 @@ private struct ExpandableRowTapModifier: ViewModifier {
         } else {
             content.onTapGesture { onSelect() }
         }
+    }
+}
+
+/// #6507 parity — top-level row drag-reorder. Attaches an `.onDrag`
+/// source (long-press-drag, the iPad-native reorder idiom) and an
+/// `.onDrop` destination to a model / group / timing-track header.
+/// Non-top-level rows (sub-layers, strands, nodes, submodels) are
+/// left untouched so only whole elements reorder, matching desktop's
+/// `RowHeading` block-drag. The drop lands the dragged element
+/// immediately *before* this row's element; the parent draws the
+/// indicator from `dropTargetId`.
+struct TopLevelRowReorderModifier: ViewModifier {
+    let isTopLevel: Bool
+    let rowId: Int
+    @Binding var sourceId: Int?
+    @Binding var dropTargetId: Int?
+    let onCommit: (_ src: Int, _ destBefore: Int) -> Void
+
+    func body(content: Content) -> some View {
+        if isTopLevel {
+            content
+                .onDrag {
+                    sourceId = rowId
+                    return NSItemProvider(object: String(rowId) as NSString)
+                }
+                .onDrop(of: [UTType.plainText],
+                        delegate: RowReorderDropDelegate(
+                            rowId: rowId,
+                            sourceId: $sourceId,
+                            dropTargetId: $dropTargetId,
+                            onCommit: onCommit))
+        } else {
+            content
+        }
+    }
+}
+
+private struct RowReorderDropDelegate: DropDelegate {
+    let rowId: Int
+    @Binding var sourceId: Int?
+    @Binding var dropTargetId: Int?
+    let onCommit: (_ src: Int, _ destBefore: Int) -> Void
+
+    func dropEntered(info: DropInfo) {
+        if let src = sourceId, src != rowId { dropTargetId = rowId }
+    }
+    func dropExited(info: DropInfo) {
+        if dropTargetId == rowId { dropTargetId = nil }
+    }
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+    func performDrop(info: DropInfo) -> Bool {
+        defer { sourceId = nil; dropTargetId = nil }
+        guard let src = sourceId, src != rowId else { return false }
+        onCommit(src, rowId)
+        return true
     }
 }

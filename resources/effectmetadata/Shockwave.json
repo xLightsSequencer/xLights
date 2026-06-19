@@ -93,7 +93,7 @@
             "min": 1,
             "max": 100,
             "lockable": true,
-            "description": "Number of times the shockwave ring expands from Radius1 to Radius2 over the effect duration."
+            "description": "Number of times the shockwave ring expands from Radius1 to Radius2 over the effect duration. In timing track mode, this many rings fire per timing mark."
         },
         {
             "id": "Shockwave_Blend_Edges",
@@ -110,6 +110,45 @@
             "controlType": "checkbox",
             "default": true,
             "description": "When enabled, radius and width values are treated as percentages of the buffer size. When disabled, values are in absolute pixels."
+        },
+        {
+            "id": "Shockwave_TimingTrack",
+            "label": "Timing Track",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "timingTracks",
+            "lockable": true,
+            "description": "When set, each timing mark triggers a new shockwave ring expansion. Duration controls how long each expansion lasts.",
+            "expandToFill": true
+        },
+        {
+            "id": "Shockwave_FilterLabel",
+            "label": "Filter",
+            "type": "string",
+            "controlType": "text",
+            "default": "",
+            "description": "Text filter applied to timing track labels. Only timing marks whose labels match this filter text will trigger a shockwave."
+        },
+        {
+            "id": "Shockwave_FilterRegex",
+            "label": "Regex",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, the filter text is treated as a regular expression pattern instead of a plain text match."
+        },
+        {
+            "id": "Shockwave_Duration",
+            "label": "Duration (ms)",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1000,
+            "min": 50,
+            "max": 5000,
+            "lockable": true,
+            "description": "How long each shockwave ring expansion lasts in milliseconds after a timing mark fires. Only active when a Timing Track is selected."
         }
     ],
     "groups": [
@@ -133,11 +172,25 @@
                         "Shockwave_Accel",
                         "Shockwave_Cycles",
                         "Shockwave_Blend_Edges",
-                        "Shockwave_Scale"
+                        "Shockwave_Scale",
+                        "Shockwave_TimingTrack",
+                        "Shockwave_FilterLabel",
+                        "Shockwave_FilterRegex",
+                        "Shockwave_Duration"
                     ]
                 }
             ],
             "settingKey": "E_NOTEBOOK_Shockwave"
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Shockwave_TimingTrack", "notOneOf": [""] },
+            "enable": ["Shockwave_FilterLabel", "Shockwave_FilterRegex", "Shockwave_Duration"]
+        },
+        {
+            "when": { "property": "Shockwave_TimingTrack", "oneOf": [""] },
+            "disable": ["Shockwave_FilterLabel", "Shockwave_FilterRegex", "Shockwave_Duration"]
         }
     ]
 }

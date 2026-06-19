@@ -1277,6 +1277,7 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
     // we have a timing mark
     double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
     double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
+    if (lengthOfTimingFrames < 1) lengthOfTimingFrames = 1;
     double distanceToTravel = buffer.BufferWi;
     if (nType == RenderType::TIMING_EVENT_TIMED_SWEEP || nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP)
     {
@@ -1325,6 +1326,7 @@ void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int u
     // we have a timing mark
     double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
     double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
+    if (lengthOfTimingFrames < 1) lengthOfTimingFrames = 1;
     double distanceToTravel = (buffer.BufferWi + ( 2 * usebars)) / (nType == RenderType::TIMING_EVENT_CHASE_FROM_MIDDLE ? 2 : 1);
 
     double perFrameDistance = distanceToTravel / lengthOfTimingFrames;

@@ -93,6 +93,7 @@ parts:
       - libswscale-dev
       - libswresample-dev
       - libavutil-dev
+      - libavfilter-dev
       # Audio
       - libsdl2-dev
       - libpulse-dev
@@ -140,6 +141,7 @@ parts:
       - libswscale7
       - libswresample4
       - libavutil58
+      - libavfilter9
       # Audio
       - libsdl2-2.0-0
       - libpulse0

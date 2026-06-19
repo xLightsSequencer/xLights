@@ -90,9 +90,7 @@ void ControllerConnection::SetCtrlPort(int port)
     if (port == _port) return;
     if (port == -999) return;
 
-    if (port > 0) {
-        _port = port;
-    }
+    _port = port;
     _model->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                         OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |

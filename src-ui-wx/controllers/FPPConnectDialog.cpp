@@ -839,9 +839,13 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
     spdlog::info("Scanning folder for sequences for FPP upload: {}", ToUTF8(dir));
 
     wxDir directory;
-    directory.Open(dir);
+    if (!directory.Open(dir)) {
+        spdlog::warn("LoadSequencesFromFolder: could not open directory: {}", ToUTF8(dir));
+        return;
+    }
 
     wxArrayString files;
+    try {
     GetAllFilesInDir(dir, files, "*.x*");
 
     for (auto &filename : files) {
@@ -956,6 +960,9 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
             fcont = directory.GetNext(&file);
         }
     }
+    } catch (...) {
+        spdlog::warn("LoadSequencesFromFolder: exception scanning folder: {}", ToUTF8(dir));
+    }
 }
 
 void FPPConnectDialog::LoadSequences()
@@ -991,17 +998,22 @@ void FPPConnectDialog::LoadSequences()
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
             DisplayPixelCount(v, item);
-            FSEQFile *file = FSEQFile::openFSEQFile(ToUTF8(v));
-            if (file != nullptr) {
-                for (auto& header : file->getVariableHeaders()) {
-                    if (header.code[0] == 'm' && header.code[1] == 'f') {
-                        std::string mediaName = (const char*)(&header.data[0]);
-                        mediaName = FileUtils::FixFile(std::string(""), mediaName);
-                        if (FileExists(mediaName)) {
-                            CheckListBox_Sequences->SetItemText(item, 2, mediaName);
+            try {
+                FSEQFile *file = FSEQFile::openFSEQFile(ToUTF8(v));
+                if (file != nullptr) {
+                    for (auto& header : file->getVariableHeaders()) {
+                        if (header.code[0] == 'm' && header.code[1] == 'f' && !header.data.empty()) {
+                            std::string mediaName = (const char*)(&header.data[0]);
+                            mediaName = FileUtils::FixFile(std::string(""), mediaName);
+                            if (FileExists(mediaName)) {
+                                CheckListBox_Sequences->SetItemText(item, 2, mediaName);
+                            }
                         }
                     }
+                    delete file;
                 }
+            } catch (...) {
+                spdlog::warn("LoadSequences: exception reading FSEQ file: {}", ToUTF8(v));
             }
         }
     }
@@ -1121,6 +1133,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     std::map<std::string, std::string> virtualDisplayData;
     FPP::CreateVirtualDisplayMap(frame->AllModels, frame->AllObjects, pw, ph, virtualDisplayData);
     bool cancelled = false;
+
     int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
@@ -1155,15 +1168,24 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     inst->SetRestartFlag();
                 }
                 if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
-                    //auto vendor = FPP::GetVendor(inst->pixelControllerType);
-                    //auto model = FPP::GetModel(inst->pixelControllerType);
-                    //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
-                        cancelled |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
+                        bool controllerCancelled = false;
+                        controllerCancelled |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->SetInputUniversesBridge(c.front());
+                        cancelled |= controllerCancelled;
+
+                        if (!controllerCancelled) {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = c.front()->GetName();
+                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                        }
                     }
                 }
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
@@ -1184,8 +1206,15 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 //if restart flag is now set, restart and recheck range
                 inst->Restart(true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
-                BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
-                bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame);
+                BaseController* bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
+                if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
+                    auto ts = FormatTimestamp();
+                    auto* config = GetXLightsConfig();
+                    auto ctrlName = controller.front()->GetName();
+                    config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                    config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                    config->Flush();
+                }
                 delete bc;
             }
         }
@@ -1824,13 +1853,17 @@ void FPPConnectDialog::DisplayDateModified(const wxString& filePath, wxTreeListI
 void FPPConnectDialog::DisplayPixelCount(const wxString& filePath, wxTreeListItem &item) const
 {
     if (FileExists(filePath)) {
-        auto fsf = FSEQFile::openFSEQFile(filePath);
-        wxString channelInfo = "";
-        if (fsf != nullptr) {
-            auto ch = fsf->getChannelCount();
-            channelInfo = wxString::Format("%llu", ch);
-            delete fsf;
+        try {
+            auto fsf = FSEQFile::openFSEQFile(filePath);
+            wxString channelInfo = "";
+            if (fsf != nullptr) {
+                auto ch = fsf->getChannelCount();
+                channelInfo = wxString::Format("%llu", ch);
+                delete fsf;
+            }
+            CheckListBox_Sequences->SetItemText(item, 3, channelInfo);
+        } catch (...) {
+            spdlog::warn("DisplayPixelCount: exception reading FSEQ file: {}", ToUTF8(filePath));
         }
-        CheckListBox_Sequences->SetItemText(item, 3, channelInfo);
     }
 }

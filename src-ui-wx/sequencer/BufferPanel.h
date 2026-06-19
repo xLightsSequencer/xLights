@@ -35,9 +35,6 @@ public:
     void UpdateBufferStyles(const Model* model);
     void UpdateCamera(const Model* model);
 
-    // Used by import code to decide whether a camera tag is relevant.
-    static bool CanRenderBufferUseCamera(const std::string& rb);
-
     // Exposed so the SubModelsDialog / other code can still use the subBuffer
     // widget if needed. Populated in BuildSubBufferRow.
     SubBufferPanel* subBufferPanel = nullptr;

@@ -15,6 +15,7 @@
 #include "../utils/AppCallbacks.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -66,9 +67,11 @@ static FFmpegAudioDecoder __audioDecoder;
 
 #define PCMFUDGE 32768
 
+#if !TARGET_OS_IPHONE
 static void ProgressFunction(int p) {
     // placeholder for polyphonic transcription progress
 }
+#endif
 
 // Audio Manager Functions
 
@@ -97,8 +100,20 @@ void AudioManager::Seek(long pos) const {
         return;
     }
 
-    if (__audioManager.GetOutput(_device) != nullptr)
-        __audioManager.GetOutput(_device)->Seek(_sdlid, pos);
+    auto* out = __audioManager.GetOutput(_device);
+    if (out == nullptr) {
+        return;
+    }
+
+    // Lazy-add: OpenMediaFile() defers AddAudio until first Play() to avoid
+    // spinning up AVAudioEngine for AudioManagers that only decode. Seek()
+    // must do the same lazy-add, otherwise a Seek() before the first Play()
+    // silently no-ops on _sdlid == -1 and the play position is wrong.
+    if (!out->HasAudio(_sdlid)) {
+        _sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+    }
+
+    out->Seek(_sdlid, pos);
 }
 
 void AudioManager::Pause() {
@@ -505,7 +520,12 @@ void AudioManager::DoPrepareFrameData() {
     spdlog::info("DoPrepareFrameData: Data is loaded.");
 
     // we need to ensure at least the raw data is available
-    if (_filtered.size() == 0) {
+    bool needsRaw;
+    {
+        std::lock_guard<std::recursive_mutex> flock(_filteredMutex);
+        needsRaw = _filtered.empty();
+    }
+    if (needsRaw) {
         locker.unlock();
         SwitchTo(AUDIOSAMPLETYPE::RAW, 0, 0);
         locker.lock();
@@ -778,18 +798,21 @@ AudioManager::~AudioManager() {
         _pcmdata = nullptr;
     }
 
-    while (_filtered.size() > 0) {
-        if (_filtered.back()->data0) {
-            free(_filtered.back()->data0);
+    {
+        std::lock_guard<std::recursive_mutex> flock(_filteredMutex);
+        while (_filtered.size() > 0) {
+            if (_filtered.back()->data0) {
+                free(_filtered.back()->data0);
+            }
+            if (_filtered.back()->data1 && _filtered.back()->data1 != _filtered.back()->data0) {
+                free(_filtered.back()->data1);
+            }
+            if (_filtered.back()->pcmdata) {
+                free(_filtered.back()->pcmdata);
+            }
+            delete _filtered.back();
+            _filtered.pop_back();
         }
-        if (_filtered.back()->data1) {
-            free(_filtered.back()->data1);
-        }
-        if (_filtered.back()->pcmdata) {
-            free(_filtered.back()->pcmdata);
-        }
-        delete _filtered.back();
-        _filtered.pop_back();
     }
 
     // wait for prepare frame data to finish ... if i delete the data before it is done we will crash
@@ -863,14 +886,14 @@ int AudioManager::OpenMediaFile() {
     _metaData = info.metadata;
     SetLoadedData(_trackSize);
 
-    // Register with audio output for playback
-    if (_pcmdata != nullptr) {
-        auto* out = __audioManager.GetOutput(_device);
-        if (out != nullptr) {
-            _sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
-        }
-    }
-
+    // Defer registering with the audio output until Play() is actually called.
+    // Eager registration here forces AVAudioEngine setup (mixer node, IO unit,
+    // audio unit render resources) for every AudioManager — even ones that are
+    // only loaded for decoding (e.g. batch render), which never play. Each
+    // AVAudioEngine instance accumulates dispatch queues / audio-unit pool
+    // blocks that Apple's audio framework retains process-wide. Play(),
+    // Play(posms,lenms), and AudioDeviceChanged() already handle the
+    // HasAudio/AddAudio lazy-add path, so this is safe.
     return 0;
 }
 
@@ -984,7 +1007,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
     float* data1 = fad->data1;
     float fmax = -99.0;
     float fmin = 99.0;
-    for (int i = 0; i < _trackSize; i++) {
+    for (long i = 0; i < _trackSize; i++) {
         if (*data0 > fmax)
             fmax = *data0;
         if (*data0 < fmin)
@@ -1009,7 +1032,7 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
     // data is the played music
     data0 = fad->data0;
     data1 = fad->data1;
-    for (int i = 0; i < _trackSize; i++) {
+    for (long i = 0; i < _trackSize; i++) {
         *data0 = *data0 * fscale;
         if (data1 != nullptr) {
             *data1 = *data1 * fscale;
@@ -1019,21 +1042,9 @@ void AudioManager::NormaliseFilteredAudioData(FilteredAudioData* fad) {
     }
 }
 
-void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
-    while (!IsDataLoaded()) {
-        
-        spdlog::debug("SwitchTo waiting for data to be loaded.");
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-    std::unique_lock<std::shared_timed_mutex> locker(_mutex);
-
-    // Cant be playing when switching
-    bool wasPlaying = IsPlaying();
-    if (wasPlaying) {
-        Pause();
-    }
-
+FilteredAudioData* AudioManager::EnsureFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
     static const double pi2 = 6.283185307;
+
     if (type == AUDIOSAMPLETYPE::BASS) {
         lowNote = 48;
         highNote = 60;
@@ -1045,146 +1056,537 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
         highNote = 84;
     }
 
-    if (_data[0] == nullptr || _pcmdata == nullptr) {
-        return;
-    }
-    if (_filtered.empty()) {
-        // save original pcm
-        FilteredAudioData* fad = new FilteredAudioData();
-        long datasize = sizeof(float) * (_trackSize + _extra);
-        fad->data0 = (float*)malloc(datasize);
-        memcpy(fad->data0, _data[0], datasize);
-        if (_data[1] != nullptr) {
-            fad->data1 = (float*)malloc(datasize);
-            memcpy(fad->data1, _data[1], datasize);
+    std::lock_guard<std::recursive_mutex> flock(_filteredMutex);
+
+    // Fast path: already cached.
+    for (const auto& it : _filtered) {
+        if ((type == AUDIOSAMPLETYPE::ANY || it->type == type) &&
+            (lowNote == -1 || (it->lowNote == lowNote && it->highNote == highNote))) {
+            return it;
         }
-        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
-        memcpy(fad->pcmdata, _pcmdata, _pcmdatasize);
-        fad->lowNote = 0;
-        fad->highNote = 0;
-        fad->type = AUDIOSAMPLETYPE::RAW;
-        _filtered.push_back(fad);
     }
+
+    if (_data[0] == nullptr || _pcmdata == nullptr) {
+        return nullptr;
+    }
+
+    // Wait for the full track to finish loading before running any
+    // filter — the derived filters iterate `_trackSize` samples, and
+    // the tail is uninitialised (calloc'd zeros on iPad) until the
+    // async decoder thread catches up. Reading zeros from the tail
+    // makes L/R look identical there and drives NONVOCALS / VOCALS
+    // peak estimates wrongly toward zero.
+    if (type != AUDIOSAMPLETYPE::RAW && _trackSize > 0) {
+        int waits = 0;
+        while (!IsDataLoaded(_trackSize - 1) && waits < 100) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            waits++;
+        }
+    }
+
+    // Ensure the RAW cache entry exists — all downstream filters read
+    // from `_data[0]` which is a snapshot of the original signal.
+    if (_filtered.empty()) {
+        FilteredAudioData* raw = new FilteredAudioData();
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        raw->data0 = (float*)malloc(datasize);
+        memcpy(raw->data0, _data[0], datasize);
+        if (_data[1] != nullptr) {
+            raw->data1 = (float*)malloc(datasize);
+            memcpy(raw->data1, _data[1], datasize);
+        }
+        raw->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+        memcpy(raw->pcmdata, _pcmdata, _pcmdatasize);
+        raw->lowNote = 0;
+        raw->highNote = 0;
+        raw->type = AUDIOSAMPLETYPE::RAW;
+        _filtered.push_back(raw);
+        if (type == AUDIOSAMPLETYPE::RAW) return raw;
+    }
+
+    // All derived filters must read from the pristine RAW cache
+    // entry, not from `_data[0]`/`_data[1]` — SwitchTo overwrites
+    // those with the currently-selected filter's output for
+    // playback, so reading from them chains filters (e.g. the user
+    // picks BASS then NONVOCALS → NONVOCALS ends up subtracting
+    // bass-filtered L from bass-filtered R instead of raw L from
+    // raw R).
+    const FilteredAudioData* rawFad = nullptr;
+    for (const auto& it : _filtered) {
+        if (it->type == AUDIOSAMPLETYPE::RAW) {
+            rawFad = it;
+            break;
+        }
+    }
+    const float* srcL = rawFad ? rawFad->data0 : _data[0];
+    const float* srcR = (rawFad && rawFad->data1) ? rawFad->data1
+                                                  : (_data[1] ? _data[1] : nullptr);
 
     FilteredAudioData* fad = nullptr;
     switch (type) {
     case AUDIOSAMPLETYPE::NONVOCALS: {
-        // This assumes the vocals are in one track
-        // grab it from my cache if i have it
-        fad = GetFilteredAudioData(type, -1, -1);
-        if (fad == nullptr) {
-            fad = new FilteredAudioData();
-            long datasize = sizeof(float) * (_trackSize + _extra);
-            fad->data0 = (float*)malloc(datasize);
-            if (_data[1] != nullptr) {
-                fad->data1 = (float*)malloc(datasize);
-            }
-            fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
-
-            for (int i = 0; i < _trackSize; ++i) {
-                float v = _data[0][i];
-                if (_data[1]) {
-                    float v1 = _data[1][i];
-                    v = (v - v1);
-                }
-                fad->data0[i] = v;
-                if (fad->data1)
-                    fad->data1[i] = v;
-
-                v = v * 32768;
-                int v2 = (int)v;
-                fad->pcmdata[i * _channels] = v2;
-                if (_channels > 1) {
-                    fad->pcmdata[i * _channels + 1] = v2;
-                }
-            }
-            fad->lowNote = 0;
-            fad->highNote = 0;
-            fad->type = type;
-            NormaliseFilteredAudioData(fad);
-            _filtered.push_back(fad);
+        fad = new FilteredAudioData();
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        fad->data0 = (float*)malloc(datasize);
+        if (_data[1] != nullptr) {
+            fad->data1 = (float*)malloc(datasize);
         }
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+
+        // Detect a mono / channel-aliased load (decoder stored the
+        // left-channel pointer into both slots). For those files the
+        // classic M/S cancellation is mathematically zero everywhere —
+        // fall back to the raw signal so the user sees a usable
+        // waveform instead of a flat line.
+        const bool stereoDistinct = (srcR != nullptr && srcR != srcL);
+        const long ch = (long)_channels;
+        if (stereoDistinct) {
+            for (long i = 0; i < _trackSize; ++i) {
+                float v = srcL[i] - srcR[i];
+                fad->data0[i] = v;
+                if (fad->data1) fad->data1[i] = v;
+                int v2 = (int)(v * 32768);
+                if (v2 > 32767) v2 = 32767;
+                if (v2 < -32768) v2 = -32768;
+                fad->pcmdata[i * ch] = (int16_t)v2;
+                if (ch > 1) fad->pcmdata[i * ch + 1] = (int16_t)v2;
+            }
+        } else {
+            spdlog::info("NONVOCALS: mono / aliased channel; falling back to raw waveform");
+            for (long i = 0; i < _trackSize; ++i) {
+                float v = srcL[i];
+                fad->data0[i] = v;
+                if (fad->data1) fad->data1[i] = v;
+                int v2 = (int)(v * 32768);
+                if (v2 > 32767) v2 = 32767;
+                if (v2 < -32768) v2 = -32768;
+                fad->pcmdata[i * ch] = (int16_t)v2;
+                if (ch > 1) fad->pcmdata[i * ch + 1] = (int16_t)v2;
+            }
+        }
+        fad->lowNote = 0;
+        fad->highNote = 0;
+        fad->type = type;
+        NormaliseFilteredAudioData(fad);
+        _filtered.push_back(fad);
     } break;
     case AUDIOSAMPLETYPE::RAW:
-        // grab it from my cache if i have it
-        fad = GetFilteredAudioData(type, -1, -1);
+        // Handled by the RAW-ensure block above.
         break;
     case AUDIOSAMPLETYPE::ALTO:
     case AUDIOSAMPLETYPE::BASS:
     case AUDIOSAMPLETYPE::TREBLE:
     case AUDIOSAMPLETYPE::CUSTOM: {
-        // grab it from my cache if i have it
-        fad = GetFilteredAudioData(AUDIOSAMPLETYPE::ANY, lowNote, highNote);
+        double lowHz = MidiToFrequency(lowNote);
+        double highHz = MidiToFrequency(highNote);
 
-        // if we didnt find it ... create it
-        if (fad == nullptr) {
-            double lowHz = MidiToFrequency(lowNote);
-            double highHz = MidiToFrequency(highNote);
+        fad = new FilteredAudioData();
 
-            fad = new FilteredAudioData();
-
-            long datasize = sizeof(float) * (_trackSize + _extra);
-            fad->data0 = (float*)malloc(datasize);
-            if (_data[1] != nullptr) {
-                fad->data1 = (float*)malloc(datasize);
-            }
-            fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
-
-            // Normalize f_c and w_c so that pi is equal to the Nyquist angular frequency
-            float f1_c = lowHz / _rate;
-            float f2_c = highHz / _rate;
-            const int order = 513; // 1025 is awesome but slow
-            float a[order];
-            float w1_c = pi2 * f1_c;
-            float w2_c = pi2 * f2_c;
-            int middle = order / 2.0; /*Integer division, dropping remainder*/
-            for (int i = -1 * (order / 2); i <= order / 2; i++) {
-                if (i == 0) {
-                    a[middle] = (2.0 * f2_c) - (2.0 * f1_c);
-                } else {
-                    a[i + middle] = sin(w2_c * i) / (M_PI * i) - sin(w1_c * i) / (M_PI * i);
-                }
-            }
-            // Now apply a windowing function to taper the edges of the filter, e.g.
-            parallel_for(0, _trackSize, [fad, this, a, order](int i) {
-                float lvalue = 0;
-                float rvalue = 0;
-                for (int j = 0; j < order; j++) {
-                    int jj = i + j - order;
-                    if (jj >= 0 && jj < _trackSize) {
-                        lvalue += _data[0][jj] * a[order - j - 1];
-                        if (_data[1]) {
-                            rvalue += _data[1][jj] * a[order - j - 1];
-                        }
-                    }
-                }
-                fad->data0[i] = lvalue;
-
-                lvalue = lvalue * 32768;
-                int v2 = (int)lvalue;
-                fad->pcmdata[i * _channels] = v2;
-                if (_channels > 1) {
-                    if (_data[1]) {
-                        fad->data1[i] = rvalue;
-                        rvalue = rvalue * 32768;
-                        v2 = (int)rvalue;
-                        fad->pcmdata[i * _channels + 1] = v2;
-                    } else {
-                        fad->pcmdata[i * _channels + 1] = v2;
-                    }
-                }
-            });
-
-            fad->lowNote = lowNote;
-            fad->highNote = highNote;
-            fad->type = type;
-            NormaliseFilteredAudioData(fad);
-            _filtered.push_back(fad);
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        fad->data0 = (float*)malloc(datasize);
+        if (_data[1] != nullptr) {
+            fad->data1 = (float*)malloc(datasize);
         }
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+
+        // Normalize f_c and w_c so that pi is equal to the Nyquist angular frequency
+        float f1_c = lowHz / _rate;
+        float f2_c = highHz / _rate;
+        const int order = 513; // 1025 is awesome but slow
+        float a[order];
+        float w1_c = pi2 * f1_c;
+        float w2_c = pi2 * f2_c;
+        int middle = order / 2.0; /*Integer division, dropping remainder*/
+        for (int i = -1 * (order / 2); i <= order / 2; i++) {
+            if (i == 0) {
+                a[middle] = (2.0 * f2_c) - (2.0 * f1_c);
+            } else {
+                a[i + middle] = sin(w2_c * i) / (M_PI * i) - sin(w1_c * i) / (M_PI * i);
+            }
+        }
+        parallel_for(0, _trackSize, [fad, this, a, order, srcL, srcR](int i) {
+            float lvalue = 0;
+            float rvalue = 0;
+            for (int j = 0; j < order; j++) {
+                int jj = i + j - order;
+                if (jj >= 0 && jj < _trackSize) {
+                    lvalue += srcL[jj] * a[order - j - 1];
+                    if (srcR) {
+                        rvalue += srcR[jj] * a[order - j - 1];
+                    }
+                }
+            }
+            fad->data0[i] = lvalue;
+
+            lvalue = lvalue * 32768;
+            int v2 = (int)lvalue;
+            fad->pcmdata[i * _channels] = v2;
+            if (_channels > 1) {
+                if (srcR) {
+                    fad->data1[i] = rvalue;
+                    rvalue = rvalue * 32768;
+                    v2 = (int)rvalue;
+                    fad->pcmdata[i * _channels + 1] = v2;
+                } else {
+                    fad->pcmdata[i * _channels + 1] = v2;
+                }
+            }
+        });
+
+        fad->lowNote = lowNote;
+        fad->highNote = highNote;
+        fad->type = type;
+        NormaliseFilteredAudioData(fad);
+        _filtered.push_back(fad);
+    } break;
+    case AUDIOSAMPLETYPE::VOCALS: {
+        // A8 (partial): centre-channel extraction. Mid = (L+R)/2 is
+        // where centre-panned vocals live; Side = (L-R)/2 is where
+        // stereo-panned instruments live. The hard-gate form
+        //   v = sign(M) * max(0, |M| - α·|S|)
+        // zeros out samples where stereo content dominates,
+        // producing a visually distinct envelope from raw. Requires
+        // stereo audio — mono / channel-aliased tracks fall back to
+        // the raw signal since there's nothing to cancel.
+        fad = new FilteredAudioData();
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        fad->data0 = (float*)malloc(datasize);
+        if (_data[1] != nullptr) {
+            fad->data1 = (float*)malloc(datasize);
+        }
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+
+        const bool stereoDistinct = (srcR != nullptr && srcR != srcL);
+        const float alpha = 1.5f;
+        if (stereoDistinct) {
+            const long ch = (long)_channels;
+            for (long i = 0; i < _trackSize; ++i) {
+                float L = srcL[i];
+                float R = srcR[i];
+                float M = 0.5f * (L + R);
+                float S = 0.5f * (L - R);
+                float absM = std::fabs(M);
+                float absS = std::fabs(S);
+                float mag = absM - alpha * absS;
+                if (mag < 0) mag = 0;
+                float v = (M >= 0 ? 1.0f : -1.0f) * mag;
+                fad->data0[i] = v;
+                if (fad->data1) fad->data1[i] = v;
+                int v2 = int(v * 32768);
+                if (v2 > 32767) v2 = 32767;
+                if (v2 < -32768) v2 = -32768;
+                fad->pcmdata[i * ch] = int16_t(v2);
+                if (ch > 1) fad->pcmdata[i * ch + 1] = int16_t(v2);
+            }
+        } else {
+            spdlog::info("VOCALS: mono / aliased channel; falling back to raw waveform");
+            const long ch = (long)_channels;
+            for (long i = 0; i < _trackSize; ++i) {
+                float v = srcL[i];
+                fad->data0[i] = v;
+                if (fad->data1) fad->data1[i] = v;
+                int v2 = (int)(v * 32768);
+                if (v2 > 32767) v2 = 32767;
+                if (v2 < -32768) v2 = -32768;
+                fad->pcmdata[i * ch] = (int16_t)v2;
+                if (ch > 1) fad->pcmdata[i * ch + 1] = (int16_t)v2;
+            }
+        }
+        fad->lowNote = 0;
+        fad->highNote = 0;
+        fad->type = type;
+        NormaliseFilteredAudioData(fad);
+        _filtered.push_back(fad);
+    } break;
+    case AUDIOSAMPLETYPE::LUFS: {
+        // A3: BS.1770 K-weighting → 400 ms momentary loudness envelope.
+        // `data0` is filled with a sign-alternating signal whose
+        // absolute value is the normalized loudness (LUFS mapped into
+        // [0,1] over the range [-60, 0] dBFS). That way the waveform
+        // min/max bucket loop sees ±loudness per bucket and renders a
+        // symmetric envelope, the same visual idiom as the raw and
+        // band-filtered waveforms.
+        //
+        // LUFS is a pure visualization — `pcmdata` is copied unchanged
+        // from the RAW cache so that `SwitchTo(LUFS)` on desktop does
+        // not replace the audible signal with the ±alternating
+        // envelope (which would be a piercing buzz).
+        fad = new FilteredAudioData();
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        fad->data0 = (float*)calloc(1, datasize);
+        if (_data[1] != nullptr) {
+            fad->data1 = (float*)calloc(1, datasize);
+        }
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+        // Copy from the RAW cache entry (not `_pcmdata`, which may
+        // already carry a previous filter's signal after a prior
+        // SwitchTo) so playback is preserved regardless of ordering.
+        {
+            FilteredAudioData* rawEntry = nullptr;
+            for (const auto& it : _filtered) {
+                if (it->type == AUDIOSAMPLETYPE::RAW) { rawEntry = it; break; }
+            }
+            if (rawEntry && rawEntry->pcmdata) {
+                memcpy(fad->pcmdata, rawEntry->pcmdata, _pcmdatasize);
+            }
+        }
+
+        // RBJ cookbook coefficients at our sample rate for:
+        //   1) +4 dB high-shelf (fc 1681.97 Hz, Q ~0.7071)
+        //   2) high-pass (fc 38.14 Hz, Q ~0.5003)
+        // These approximate the BS.1770 K-weighting curve for any
+        // sample rate — ITU specifies 48 kHz coefficients; deriving
+        // them here via cookbook avoids quality drop at 44.1 kHz.
+        auto buildShelf = [this](double& b0, double& b1, double& b2,
+                                 double& a1, double& a2,
+                                 double fc, double Q, double gainDb) {
+            double A = std::pow(10.0, gainDb / 40.0);
+            double w0 = pi2 * fc / double(_rate);
+            double cw = std::cos(w0);
+            double sw = std::sin(w0);
+            double alpha = sw / (2.0 * Q);
+            double tsA = 2.0 * std::sqrt(A) * alpha;
+            double B0 =    A*((A+1) + (A-1)*cw + tsA);
+            double B1 = -2*A*((A-1) + (A+1)*cw);
+            double B2 =    A*((A+1) + (A-1)*cw - tsA);
+            double A0 =      (A+1) - (A-1)*cw + tsA;
+            double A1 =   2*((A-1) - (A+1)*cw);
+            double A2 =      (A+1) - (A-1)*cw - tsA;
+            b0 = B0/A0; b1 = B1/A0; b2 = B2/A0;
+            a1 = A1/A0; a2 = A2/A0;
+        };
+        auto buildHP = [this](double& b0, double& b1, double& b2,
+                              double& a1, double& a2,
+                              double fc, double Q) {
+            double w0 = pi2 * fc / double(_rate);
+            double cw = std::cos(w0);
+            double sw = std::sin(w0);
+            double alpha = sw / (2.0 * Q);
+            double B0 =  (1 + cw) / 2;
+            double B1 = -(1 + cw);
+            double B2 =  (1 + cw) / 2;
+            double A0 =   1 + alpha;
+            double A1 =  -2*cw;
+            double A2 =   1 - alpha;
+            b0 = B0/A0; b1 = B1/A0; b2 = B2/A0;
+            a1 = A1/A0; a2 = A2/A0;
+        };
+        double sb0, sb1, sb2, sa1, sa2;
+        double hb0, hb1, hb2, ha1, ha2;
+        buildShelf(sb0, sb1, sb2, sa1, sa2, 1681.974450955, 0.7071752369554, 4.0);
+        buildHP   (hb0, hb1, hb2, ha1, ha2, 38.13547087602444, 0.5003270373238773);
+
+        // Apply both biquads and square. Direct-form-II-transposed.
+        std::vector<float> kw(_trackSize, 0.0f);
+        double sz1 = 0, sz2 = 0;
+        double hz1 = 0, hz2 = 0;
+        for (long i = 0; i < _trackSize; i++) {
+            double x = srcL[i];
+            double y = sb0 * x + sz1;
+            sz1 = sb1 * x - sa1 * y + sz2;
+            sz2 = sb2 * x - sa2 * y;
+            double y2 = hb0 * y + hz1;
+            hz1 = hb1 * y - ha1 * y2 + hz2;
+            hz2 = hb2 * y - ha2 * y2;
+            kw[i] = float(y2 * y2);
+        }
+
+        // 400 ms moving mean via running sum. Window must be at least
+        // 1 sample long.
+        const long W = std::max<long>(1, (_rate * 4) / 10);
+        double sum = 0;
+        const long initEnd = std::min<long>(W, _trackSize);
+        for (long i = 0; i < initEnd; i++) sum += kw[i];
+        const long half = W / 2;
+        for (long i = 0; i < _trackSize; i++) {
+            const long windowSamples = std::min<long>(W, _trackSize);
+            double ms = sum / double(windowSamples);
+            double lufs = -0.691 + 10.0 * std::log10(std::max(ms, 1e-10));
+            // Map LUFS [-60, 0] → norm [0, 1].
+            double norm = (lufs + 60.0) / 60.0;
+            if (norm < 0) norm = 0; else if (norm > 1) norm = 1;
+            float signedVal = (i & 1) ? -float(norm) : float(norm);
+            // Place the output at i - half so the window is centred on
+            // sample i, not trailing. Edge samples get the edge value.
+            long outIdx = i - half;
+            if (outIdx >= 0 && outIdx < _trackSize) {
+                fad->data0[outIdx] = signedVal;
+            }
+            // Slide the window.
+            long nextIn = i + 1;
+            long nextOut = nextIn - W;
+            if (nextIn < _trackSize && nextOut >= 0) {
+                sum += kw[nextIn] - kw[nextOut];
+            } else if (nextIn < _trackSize) {
+                sum += kw[nextIn];
+            }
+        }
+        // Mirror to the right channel so the existing draw path (which
+        // may average both channels) stays consistent.
+        if (fad->data1 && _data[1]) {
+            memcpy(fad->data1, fad->data0, datasize);
+        }
+        fad->lowNote = 0;
+        fad->highNote = 0;
+        fad->type = type;
+        _filtered.push_back(fad);
+    } break;
+    case AUDIOSAMPLETYPE::CLASSIFIED: {
+        // A7: raw signal gated by the class-confidence curve set via
+        // `SetClassifyGate`. Each sample is multiplied by the
+        // linearly-interpolated confidence for its timestamp so
+        // moments where the selected class dominates stay at full
+        // amplitude and other moments fade toward silence — both in
+        // the display waveform AND in the playback PCM stream.
+        if (_classifyGateCurve.empty() || _classifyGateTimeStep <= 0) {
+            break;
+        }
+        fad = new FilteredAudioData();
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        fad->data0 = (float*)malloc(datasize);
+        if (srcR) {
+            fad->data1 = (float*)malloc(datasize);
+        }
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+
+        const double stepSamples = double(_classifyGateTimeStep) * double(_rate);
+        const int curveN = int(_classifyGateCurve.size());
+        for (long i = 0; i < _trackSize; ++i) {
+            double t = double(i) / stepSamples;
+            int i0 = int(std::floor(t));
+            if (i0 < 0) i0 = 0;
+            if (i0 >= curveN) i0 = curveN - 1;
+            int i1 = std::min(i0 + 1, curveN - 1);
+            double frac = t - std::floor(t);
+            if (frac < 0) frac = 0; else if (frac > 1) frac = 1;
+            float gate = float(_classifyGateCurve[i0] * (1.0 - frac) +
+                               _classifyGateCurve[i1] * frac);
+            float L = srcL[i] * gate;
+            fad->data0[i] = L;
+            int v2 = (int)(L * 32768);
+            if (v2 > 32767) v2 = 32767;
+            if (v2 < -32768) v2 = -32768;
+            fad->pcmdata[i * _channels] = int16_t(v2);
+            if (fad->data1) {
+                float R = srcR[i] * gate;
+                fad->data1[i] = R;
+                int v2r = (int)(R * 32768);
+                if (v2r > 32767) v2r = 32767;
+                if (v2r < -32768) v2r = -32768;
+                if (_channels > 1) fad->pcmdata[i * _channels + 1] = int16_t(v2r);
+            } else if (_channels > 1) {
+                fad->pcmdata[i * _channels + 1] = int16_t(v2);
+            }
+        }
+        fad->lowNote = 0;
+        fad->highNote = 0;
+        fad->type = type;
+        _filtered.push_back(fad);
+    } break;
+    case AUDIOSAMPLETYPE::STEM_DRUMS:
+    case AUDIOSAMPLETYPE::STEM_BASS:
+    case AUDIOSAMPLETYPE::STEM_OTHER:
+    case AUDIOSAMPLETYPE::STEM_VOCALS: {
+        // A8: build the FilteredAudioData from the cached stem
+        // buffers set by `SetStemData`. Picks the right vector pair
+        // per stem type; absent data → return nullptr so the bridge
+        // / draw path falls back to raw.
+        const std::vector<float>* L = nullptr;
+        const std::vector<float>* R = nullptr;
+        switch (type) {
+        case AUDIOSAMPLETYPE::STEM_DRUMS:  L = &_stemDrumsL;  R = &_stemDrumsR; break;
+        case AUDIOSAMPLETYPE::STEM_BASS:   L = &_stemBassL;   R = &_stemBassR; break;
+        case AUDIOSAMPLETYPE::STEM_OTHER:  L = &_stemOtherL;  R = &_stemOtherR; break;
+        case AUDIOSAMPLETYPE::STEM_VOCALS: L = &_stemVocalsL; R = &_stemVocalsR; break;
+        default: break;
+        }
+        if (L == nullptr || L->empty()) {
+            break; // no stems separated yet
+        }
+        fad = new FilteredAudioData();
+        long datasize = sizeof(float) * (_trackSize + _extra);
+        fad->data0 = (float*)calloc(1, datasize);
+        if (srcR) {
+            fad->data1 = (float*)calloc(1, datasize);
+        }
+        fad->pcmdata = (int16_t*)calloc(_pcmdatasize + PCMFUDGE, 1);
+        const long n = std::min<long>(_trackSize, long(L->size()));
+        const bool haveR = (R && !R->empty() && R->size() >= size_t(n));
+        for (long i = 0; i < n; i++) {
+            float l = (*L)[i];
+            float r = haveR ? (*R)[i] : l;
+            fad->data0[i] = l;
+            if (fad->data1) fad->data1[i] = r;
+            int vl = (int)(l * 32768);
+            if (vl > 32767) vl = 32767;
+            if (vl < -32768) vl = -32768;
+            fad->pcmdata[i * _channels] = int16_t(vl);
+            if (_channels > 1) {
+                int vr = (int)(r * 32768);
+                if (vr > 32767) vr = 32767;
+                if (vr < -32768) vr = -32768;
+                fad->pcmdata[i * _channels + 1] = int16_t(vr);
+            }
+        }
+        fad->lowNote = 0;
+        fad->highNote = 0;
+        fad->type = type;
+        _filtered.push_back(fad);
     } break;
     case AUDIOSAMPLETYPE::ANY:
         break;
     }
+
+    // `NormaliseFilteredAudioData` only scales `pcmdata`, but the
+    // waveform display reads `data0`. For the M/S-based filters the
+    // output is inherently small (NONVOCALS: L-R, VOCALS: M-α|S|)
+    // so the un-scaled `data0` reads as a near-flat line next to
+    // raw. Rescale data0/data1 to a visible peak here. LUFS stays
+    // in its already-normalised [-1, 1] range so we skip it; the
+    // bandpass filters (BASS/TREBLE/ALTO/CUSTOM) get the same
+    // rescale so their waveforms read at a comparable height to
+    // raw regardless of how much energy the band carries.
+    if (fad != nullptr &&
+        type != AUDIOSAMPLETYPE::RAW &&
+        type != AUDIOSAMPLETYPE::LUFS &&
+        type != AUDIOSAMPLETYPE::CLASSIFIED &&
+        type != AUDIOSAMPLETYPE::STEM_DRUMS &&
+        type != AUDIOSAMPLETYPE::STEM_BASS &&
+        type != AUDIOSAMPLETYPE::STEM_OTHER &&
+        type != AUDIOSAMPLETYPE::STEM_VOCALS) {
+        float peak = 0;
+        for (long i = 0; i < _trackSize; i++) {
+            float a = std::fabs(fad->data0[i]);
+            if (a > peak) peak = a;
+        }
+        if (peak > 1e-6f && peak < 0.9f) {
+            float scale = 0.9f / peak;
+            if (scale > 20.0f) scale = 20.0f;
+            for (long i = 0; i < _trackSize; i++) {
+                fad->data0[i] *= scale;
+                if (fad->data1 && fad->data1 != fad->data0) fad->data1[i] *= scale;
+            }
+        }
+    }
+
+    return fad;
+}
+
+void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
+    while (!IsDataLoaded()) {
+
+        spdlog::debug("SwitchTo waiting for data to be loaded.");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    std::unique_lock<std::shared_timed_mutex> locker(_mutex);
+
+    // Cant be playing when switching
+    bool wasPlaying = IsPlaying();
+    if (wasPlaying) {
+        Pause();
+    }
+
+    FilteredAudioData* fad = EnsureFilteredAudioData(type, lowNote, highNote);
 
     if (fad && _pcmdata && fad->pcmdata) {
         memcpy(_pcmdata, fad->pcmdata, _pcmdatasize);
@@ -1207,20 +1609,172 @@ void AudioManager::SwitchTo(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
 }
 
 FilteredAudioData* AudioManager::GetFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote) {
-    while (_filtered.size() == 0) {
+    for (;;) {
+        std::unique_lock<std::recursive_mutex> flock(_filteredMutex);
+        if (!_filtered.empty()) {
+            for (const auto& it : _filtered) {
+                if ((type == AUDIOSAMPLETYPE::ANY || it->type == type) && (lowNote == -1 || (it->lowNote == lowNote && it->highNote == highNote))) {
+                    return it;
+                }
+            }
+            return nullptr;
+        }
+        flock.unlock();
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
-    for (const auto& it : _filtered) {
-        if ((type == AUDIOSAMPLETYPE::ANY || it->type == type) && (lowNote == -1 || (it->lowNote == lowNote && it->highNote == highNote))) {
-            return it;
-        }
-    }
-    return nullptr;
 }
 
-void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote) {
-    
+void AudioManager::SetStemData(const std::vector<float>& drumsL, const std::vector<float>& drumsR,
+                                const std::vector<float>& bassL, const std::vector<float>& bassR,
+                                const std::vector<float>& otherL, const std::vector<float>& otherR,
+                                const std::vector<float>& vocalsL, const std::vector<float>& vocalsR) {
+    std::unique_lock<std::shared_timed_mutex> locker(_mutex);
+    _stemDrumsL = drumsL;   _stemDrumsR = drumsR;
+    _stemBassL = bassL;     _stemBassR = bassR;
+    _stemOtherL = otherL;   _stemOtherR = otherR;
+    _stemVocalsL = vocalsL; _stemVocalsR = vocalsR;
+    std::lock_guard<std::recursive_mutex> flock(_filteredMutex);
+    // Evict any cached STEM_* entries so the next
+    // `EnsureFilteredAudioData(STEM_X)` rebuilds from the new data.
+    for (auto it = _filtered.begin(); it != _filtered.end(); ) {
+        AUDIOSAMPLETYPE t = (*it)->type;
+        if (t == AUDIOSAMPLETYPE::STEM_DRUMS || t == AUDIOSAMPLETYPE::STEM_BASS ||
+            t == AUDIOSAMPLETYPE::STEM_OTHER || t == AUDIOSAMPLETYPE::STEM_VOCALS) {
+            if ((*it)->data0) free((*it)->data0);
+            if ((*it)->data1 && (*it)->data1 != (*it)->data0) free((*it)->data1);
+            if ((*it)->pcmdata) free((*it)->pcmdata);
+            delete *it;
+            it = _filtered.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+std::string AudioManager::WriteCurrentToTempWav() const {
+    // Snapshot the playback buffers under the audio lock so a
+    // concurrent SwitchTo() can't repoint them out from under us
+    // mid-write. SwitchTo takes a unique_lock on _mutex, so this
+    // shared_lock serializes against it.
+    std::shared_lock<std::shared_timed_mutex> locker(const_cast<std::shared_timed_mutex&>(_mutex));
+    if (_data[0] == nullptr || _trackSize <= 0) return {};
+
+    const float* L = _data[0];
+    // Mono sources leave _data[1] either null or aliased to _data[0];
+    // either way duplicate the left channel into the right so the
+    // output is always stereo float32 (what every recognizer accepts).
+    const float* R = (_data[1] != nullptr) ? _data[1] : _data[0];
+
+    const auto frames = (uint32_t)_trackSize;
+    const auto sr = (uint32_t)(_rate > 0 ? _rate : 44100);
+
+    // Build a unique temp path. Use the audio file's basename (when
+    // available) so multiple concurrent xLights instances can't race
+    // each other's exports for different sequences.
+    std::error_code ec;
+    auto tmpDir = std::filesystem::temp_directory_path(ec);
+    if (ec) tmpDir = std::filesystem::path("/tmp");
+    std::string stem = std::filesystem::path(_audio_file).stem().string();
+    if (stem.empty()) stem = "audio";
+    auto tsNS = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()).count();
+    std::string filename = "xlights_audio_" + stem + "_" + std::to_string(tsNS) + ".wav";
+    std::filesystem::path outPath = tmpDir / filename;
+
+    // Stereo float32 WAV, RIFF + fmt(IEEE float, 3) + data.
+    // Header layout (44 bytes):
+    //   "RIFF" <fileSize-8> "WAVE"
+    //   "fmt " 16 (3 PCM_FLOAT) (2 channels) <sr> <byteRate> <blockAlign> <bitsPerSample=32>
+    //   "data" <dataSize>
+    const uint16_t channels      = 2;
+    const uint16_t bitsPerSample = 32;
+    const uint16_t blockAlign    = channels * (bitsPerSample / 8);
+    const uint32_t byteRate      = sr * blockAlign;
+    const uint32_t dataSize      = frames * blockAlign;
+    const uint32_t fileSize      = 36 + dataSize;
+
+    std::ofstream f(outPath, std::ios::binary);
+    if (!f) return {};
+
+    auto write_u32 = [&](uint32_t v) { f.write(reinterpret_cast<const char*>(&v), 4); };
+    auto write_u16 = [&](uint16_t v) { f.write(reinterpret_cast<const char*>(&v), 2); };
+
+    f.write("RIFF", 4);   write_u32(fileSize);  f.write("WAVE", 4);
+    f.write("fmt ", 4);   write_u32(16);
+    write_u16(3);                  // WAVE_FORMAT_IEEE_FLOAT
+    write_u16(channels);
+    write_u32(sr);
+    write_u32(byteRate);
+    write_u16(blockAlign);
+    write_u16(bitsPerSample);
+    f.write("data", 4);   write_u32(dataSize);
+
+    // Interleave L/R samples. _data is full-track-length mono arrays
+    // per channel; iterate once writing a stereo sample per frame.
+    // Buffered std::ofstream handles the millions-of-writes pattern
+    // fine on modern OSes; switching to a contiguous std::vector
+    // staging buffer + one write() didn't measurably help in
+    // benchmarks here.
+    for (uint32_t i = 0; i < frames; ++i) {
+        float l = L[i];
+        float r = R[i];
+        f.write(reinterpret_cast<const char*>(&l), sizeof(float));
+        f.write(reinterpret_cast<const char*>(&r), sizeof(float));
+    }
+    if (!f.good()) {
+        f.close();
+        std::filesystem::remove(outPath, ec);
+        return {};
+    }
+    return outPath.string();
+}
+
+bool AudioManager::WriteCurrentAudioToFile(const std::string& path) const {
+    // Snapshot the playback buffers under the audio lock (same
+    // reasoning as WriteCurrentToTempWav) then hand the float PCM to
+    // the platform decoder's encoder. The output format is chosen by
+    // `path`'s extension (.wav / .m4a / .aac …).
+    std::vector<float> leftData;
+    std::vector<float> rightData;
+    size_t sr = 44100;
+    {
+        std::shared_lock<std::shared_timed_mutex> locker(const_cast<std::shared_timed_mutex&>(_mutex));
+        if (_data[0] == nullptr || _trackSize <= 0) return false;
+        const float* L = _data[0];
+        const float* R = (_data[1] != nullptr) ? _data[1] : _data[0];
+        leftData.assign(L, L + _trackSize);
+        rightData.assign(R, R + _trackSize);
+        sr = (size_t)(_rate > 0 ? _rate : 44100);
+    }
+    return GetDecoder().EncodeToFile(leftData, rightData, sr, path);
+}
+
+void AudioManager::SetClassifyGate(const std::string& className,
+                                    const std::vector<float>& confidencePerStep,
+                                    float timeStepSec) {
+    std::unique_lock<std::shared_timed_mutex> locker(_mutex);
+    _classifyGateClass = className;
+    _classifyGateCurve = confidencePerStep;
+    _classifyGateTimeStep = timeStepSec > 0 ? timeStepSec : 1.0f;
+    std::lock_guard<std::recursive_mutex> flock(_filteredMutex);
+    // Evict any cached CLASSIFIED entry so the next
+    // EnsureFilteredAudioData(CLASSIFIED) rebuilds against the new
+    // curve.
+    for (auto it = _filtered.begin(); it != _filtered.end(); ) {
+        if ((*it)->type == AUDIOSAMPLETYPE::CLASSIFIED) {
+            if ((*it)->data0) free((*it)->data0);
+            if ((*it)->data1 && (*it)->data1 != (*it)->data0) free((*it)->data1);
+            if ((*it)->pcmdata) free((*it)->pcmdata);
+            delete *it;
+            it = _filtered.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type, int lowNote, int highNote, float* rms) {
+
     while (!IsDataLoaded(end - 1)) {
         spdlog::debug("GetLeftDataMinMax waiting for data to be loaded.");
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -1228,15 +1782,27 @@ void AudioManager::GetLeftDataMinMax(long start, long end, float& minimum, float
 
     minimum = 0;
     maximum = 0;
+    if (rms) *rms = 0;
 
     FilteredAudioData* fad = GetFilteredAudioData(type, lowNote, highNote);
     if (!fad) {
         return;
     }
 
-    for (int j = start; j < std::min(end, _trackSize); j++) {
-        minimum = std::min(minimum, fad->data0[j]);
-        maximum = std::max(maximum, fad->data0[j]);
+    long last = std::min(end, _trackSize);
+    double sumSq = 0;
+    long count = 0;
+    for (long j = start; j < last; j++) {
+        float v = fad->data0[j];
+        minimum = std::min(minimum, v);
+        maximum = std::max(maximum, v);
+        if (rms) {
+            sumSq += double(v) * double(v);
+            count++;
+        }
+    }
+    if (rms && count > 0) {
+        *rms = (float)std::sqrt(sumSq / double(count));
     }
 }
 
@@ -1327,24 +1893,14 @@ float* AudioManager::GetFilteredRightDataPtr(long offset) {
     return &_data[1][offset];
 }
 
-#if !TARGET_OS_IPHONE
-// xLightsVamp Functions
-xLightsVamp::xLightsVamp() {
-    
-    spdlog::debug("Constructing xLightsVamp");
-    _loader = Vamp::HostExt::PluginLoader::getInstance();
-}
-
-xLightsVamp::~xLightsVamp() {
-    while (_loadedPlugins.size() > 0) {
-        delete _loadedPlugins.back();
-        _loadedPlugins.pop_back();
-    }
-}
-
+// AudioManager::Hash is a portable MD5 over the audio track's sample
+// data — used by iPad's spectrogram cache to invalidate when the
+// audio content changes. Kept outside the VAMP `#if` gate below so
+// iOS builds (which exclude VAMP plugin code) still get this
+// symbol. Desktop callers use it too.
 std::string AudioManager::Hash() {
     if (_hash == "") {
-        
+
         while (!IsDataLoaded(_trackSize)) {
             spdlog::debug("GetLeftDataPtr waiting for data to be loaded.");
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -1357,6 +1913,21 @@ std::string AudioManager::Hash() {
     }
 
     return _hash;
+}
+
+#if !TARGET_OS_IPHONE
+// xLightsVamp Functions
+xLightsVamp::xLightsVamp() {
+
+    spdlog::debug("Constructing xLightsVamp");
+    _loader = Vamp::HostExt::PluginLoader::getInstance();
+}
+
+xLightsVamp::~xLightsVamp() {
+    while (_loadedPlugins.size() > 0) {
+        delete _loadedPlugins.back();
+        _loadedPlugins.pop_back();
+    }
 }
 
 // extract the features data from a Vamp plugins output

@@ -29,7 +29,7 @@
 							</object>
 							<object class="sizeritem">
 								<object class="wxTextCtrl" name="ID_PROMPT" variable="PromptBox" member="yes">
-									<size>400,50</size>
+									<size>400,90</size>
 									<focused>1</focused>
 									<help>Enter a prompt</help>
 									<style>wxTE_MULTILINE|wxVSCROLL</style>

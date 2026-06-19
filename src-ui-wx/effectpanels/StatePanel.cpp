@@ -130,6 +130,12 @@ void StatePanel::SetPanelStatus(Model* cls) {
     // (including State_StateDefinition via dynamicOptions: "states").
     JsonEffectPanel::SetPanelStatus(cls);
 
+    auto* defChoice = dynamic_cast<wxChoice*>(
+        wxWindow::FindWindowByName("ID_CHOICE_State_StateDefinition", this));
+    if (defChoice && defChoice->GetCount() > 0) {
+        defChoice->SetSelection(0);
+    }
+
     _model = cls;
     PopulateTimingTracks();
     PopulateStates();

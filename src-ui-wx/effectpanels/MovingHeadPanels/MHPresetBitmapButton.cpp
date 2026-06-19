@@ -54,7 +54,10 @@ void MHPresetBitmapButton::SetPreset(const wxArrayString& _settings)
 }
 
 void MHPresetBitmapButton::RenderNewBitmap() {
-    SetBitmap(CreateImage(96, 48, GetContentScaleFactor()));
+    wxSize sz = GetSize();
+    int w = sz.GetWidth()  > 8 ? sz.GetWidth()  : 48;
+    int h = sz.GetHeight() > 8 ? sz.GetHeight() : 24;
+    SetBitmap(CreateImage(w, h, GetContentScaleFactor()));
 }
 
 wxBitmap MHPresetBitmapButton::CreateImage( int w, int h, double scaleFactor ) {

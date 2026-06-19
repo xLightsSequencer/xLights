@@ -7,6 +7,22 @@ struct EffectPropertyView: View {
     @Environment(SequencerViewModel.self) var viewModel
     let property: PropertyMetadata
     let metadataPrefix: String      // "E_", "B_", "C_", "T_"
+    /// True when the JSON visibility-rule engine resolved an
+    /// `enable`/`disable` clause against this property and the
+    /// gating condition is not satisfied. Greys out the control while
+    /// keeping it on screen — mirrors desktop's `setEnabled` path
+    /// in `JsonEffectPanel::ApplyVisibilityRules`. Defaults to false
+    /// for the (rare) call sites that don't yet plumb a state through.
+    var ruleDisabled: Bool = false
+
+    /// FX-4b: when non-nil, replaces the static `property.label` for this
+    /// row — used for action-dependent labels (computed by the parent,
+    /// which has the controlling sibling property's value).
+    var displayLabelOverride: String? = nil
+
+    /// The label to display: the dynamic override when present, else the
+    /// metadata's static label.
+    private var shownLabel: String { displayLabelOverride ?? property.label }
 
     private var settingKey: String { property.settingKey(prefix: metadataPrefix) }
     private var defaultValueString: String { property.defaultAsString() }
@@ -48,10 +64,19 @@ struct EffectPropertyView: View {
             return transitionReverseDisabled(isIn: true)
         case "Out_Transition_Reverse":
             return transitionReverseDisabled(isIn: false)
+        case "In_Transition_Blur":
+            return transitionBlurDisabled(isIn: true)
+        case "Out_Transition_Blur":
+            return transitionBlurDisabled(isIn: false)
         default:
             return false
         }
     }
+
+    /// Final disabled state — OR of the visibility-rule clause and
+    /// the hardcoded runtime checks. All controlType branches
+    /// (slider, choice, checkbox, …) read this single field.
+    private var effectiveDisabled: Bool { runtimeDisabled || ruleDisabled }
 
     private func transitionAdjustDisabled(isIn: Bool) -> Bool {
         if fadeIsZero(isIn: isIn) { return true }
@@ -63,6 +88,12 @@ struct EffectPropertyView: View {
         if fadeIsZero(isIn: isIn) { return true }
         let type = currentTransitionType(isIn: isIn)
         return kTransitionsNoReverse.contains(type)
+    }
+
+    private func transitionBlurDisabled(isIn: Bool) -> Bool {
+        if fadeIsZero(isIn: isIn) { return true }
+        let type = currentTransitionType(isIn: isIn)
+        return !kTransitionsWithBlur.contains(type)
     }
 
     private func fadeIsZero(isIn: Bool) -> Bool {
@@ -81,6 +112,17 @@ struct EffectPropertyView: View {
     }
 
     var body: some View {
+        // Surface the metadata `tooltip` (desktop SetToolTip parity)
+        // as a pointer-hover help string; no-op without one.
+        if let tip = property.tooltip, !tip.isEmpty {
+            propertyBody.help(tip)
+        } else {
+            propertyBody
+        }
+    }
+
+    @ViewBuilder
+    private var propertyBody: some View {
         switch property.controlType {
         case "slider":
             sliderView
@@ -97,10 +139,12 @@ struct EffectPropertyView: View {
                                     currentPath: rawValue,
                                     onChoose: { writeValue($0) },
                                     onClear: { writeValue("") })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "fontpicker":
             FontpickerPropertyView(property: property,
                                     currentDesc: rawValue,
                                     onChange: { writeValue($0) })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "point2d":
             Point2DPropertyView(property: property,
                                   metadataPrefix: metadataPrefix)
@@ -173,6 +217,8 @@ struct EffectPropertyView: View {
             FacesMouthMovementsRowView()
         case "Morph_QuickSet":
             MorphQuickSetRowView()
+        case "Morph_LineEditor":
+            MorphLineEditorRowView()
         case "Servo_StartEndRow":
             ServoStartEndRowView()
         case "Servo_ButtonRow":
@@ -199,6 +245,20 @@ struct EffectPropertyView: View {
             SketchInfoRowView()
         case "Sketch_DefRow":
             SketchDefRowView()
+        case "Sketch_PathEditor":
+            SketchPathEditorRowView()
+        case "MHFixtures":
+            MovingHeadFixtureRowView()
+        case "MHIpadInfo":
+            MovingHeadInfoRowView()
+        case "MHColorRow":
+            MovingHeadColorRowView()
+        case "MHColorWheelRow":
+            MovingHeadColorWheelRowView()
+        case "MHDimmerRow":
+            MovingHeadDimmerRowView()
+        case "MHPathRow":
+            MovingHeadPathEditorRowView()
         case "Sketch_BackgroundRow":
             SketchBackgroundRowView()
         case "Video_DurationRow":
@@ -248,17 +308,19 @@ struct EffectPropertyView: View {
             && viewModel.settingValue(forKey: vcKey, defaultValue: "")
                 .hasPrefix("Active=TRUE")
 
-        // `runtimeDisabled` flips on when a sibling property's value
-        // makes this one meaningless (e.g. fade==0 disables Adjust /
-        // Reverse on a Blending transition). The slider still renders
-        // so the user sees the setting exists + its current value —
-        // just dimmed + non-editable. Separate from vcActive because
-        // they have different triggers + different meanings.
-        let disabled = vcActive || runtimeDisabled
+        // `effectiveDisabled` flips on when a sibling property's
+        // value makes this one meaningless (e.g. fade==0 disables
+        // Adjust / Reverse on a Blending transition) OR when a JSON
+        // visibility-rule `enable`/`disable` clause gates this prop
+        // off. The slider still renders so the user sees the setting
+        // exists + its current value — just dimmed + non-editable.
+        // Separate from vcActive because they have different triggers
+        // + different meanings.
+        let disabled = vcActive || effectiveDisabled
 
         return VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
-                Text(property.label)
+                Text(shownLabel)
                     .font(.caption)
                 Spacer()
                 // Editable value field — users can tap to type a precise
@@ -275,7 +337,7 @@ struct EffectPropertyView: View {
                 .disabled(disabled)
                 if property.valueCurve == true {
                     ValueCurveButton(property: property, prefix: metadataPrefix)
-                        .disabled(runtimeDisabled)
+                        .disabled(effectiveDisabled)
                 }
             }
             Slider(value: sliderBinding, in: minVal...maxVal, step: 1)
@@ -299,11 +361,11 @@ struct EffectPropertyView: View {
         return Toggle(isOn: binding) {
             Text(label.isEmpty ? property.label : label)
                 .font(.caption)
-                .foregroundStyle(runtimeDisabled ? .tertiary : .primary)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
         }
         .toggleStyle(.switch)
-        .disabled(runtimeDisabled)
-        .opacity(runtimeDisabled ? 0.5 : 1.0)
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }
@@ -337,6 +399,7 @@ struct EffectPropertyView: View {
         return VStack(alignment: .leading, spacing: 2) {
             Text(property.label)
                 .font(.caption)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
             Picker(property.label, selection: binding) {
                 ForEach(options, id: \.self) { opt in
                     Text(opt).tag(opt)
@@ -345,6 +408,8 @@ struct EffectPropertyView: View {
             .pickerStyle(.menu)
             .labelsHidden()
         }
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }
@@ -366,6 +431,7 @@ struct EffectPropertyView: View {
         return HStack {
             Text(property.label)
                 .font(.caption)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
             Spacer()
             EditableNumberField(
                 storedInt: stored,
@@ -377,6 +443,8 @@ struct EffectPropertyView: View {
             Stepper("", value: binding, in: minVal...maxVal)
                 .labelsHidden()
         }
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }
@@ -391,10 +459,13 @@ struct EffectPropertyView: View {
         return VStack(alignment: .leading, spacing: 2) {
             Text(property.label)
                 .font(.caption)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
             TextField("", text: binding)
                 .textFieldStyle(.roundedBorder)
                 .font(.caption2)
         }
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }

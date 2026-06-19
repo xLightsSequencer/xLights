@@ -157,15 +157,27 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
         wxFileName fn(filePath);
 
         wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(fn.GetExt());
-
-        // if there is no LUA file handler treat them as text files
-        if (ft == nullptr) {
-            ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+        wxString command;
+        if (ft != nullptr) {
+            command = ft->GetOpenCommand(fn.GetFullPath());
         }
+        // if there is no LUA file handler or no command to open them, treat them as text files
+        if (ft == nullptr || command.empty()) {
+            ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            if (ft != nullptr) {
+                command = ft->GetOpenCommand(fn.GetFullPath());
+            }
+        }
+#ifdef __APPLE__
+        if (command.empty()) {
+            // just bail to the standard open in editor command
+            command = "open -e " + fn.GetFullPath().ToStdString();
+        }
+#endif
 
-        if (ft) {
-            wxString command = ft->GetOpenCommand(fn.GetFullPath());
+        if (!command.empty()) {
             wxUnsetEnv("LD_PRELOAD");
+            spdlog::info("Opening script '{}' via '{}'", (const char*)filePath.c_str(), command.ToStdString().c_str());
             wxExecute(command);
         } else {
             spdlog::warn("Unable to open script as no program can open the file {}.", (const char*)filePath.c_str());
@@ -269,9 +281,9 @@ void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
 
 
     auto LogMessage = [&](std::string const& message) {
-        TextCtrl_Log->AppendText(message);
+        TextCtrl_Log->AppendText(wxString::FromUTF8(message));
         TextCtrl_Log->AppendText("\n");
-        spdlog::info("{}", (const char*)message.c_str());
+        spdlog::info("{}", message);
     };
     _runner->Run_Script(filepath, LogMessage);
 }
@@ -284,9 +296,9 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 
 
     auto LogMessage = [&](std::string const& message) {
-        TextCtrl_Log->AppendText(message);
+        TextCtrl_Log->AppendText(wxString::FromUTF8(message));
         TextCtrl_Log->AppendText("\n");
-        spdlog::info("{}", (const char*)message.c_str());
+        spdlog::info("{}", message);
     };
     _pyrunner->Run_Script(filepath, LogMessage);
 #endif
@@ -294,8 +306,8 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 
 void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
 {
-    //https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts
-    std::string json_data = CurlManager::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts)");
+    //https://api.github.com/repos/xLightsSequencer/xLights/contents/resources/scripts
+    std::string json_data = CurlManager::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/resources/scripts)");
     std::vector<std::pair<wxString, wxString>> scripts = std::vector<std::pair<wxString, wxString>>();
 
     try {

@@ -162,14 +162,23 @@ CursorType GetResizeCursor(int cornerIndex, int PreviewRotation) {
 
 }
 
-glm::vec3 ModelScreenLocation::GetHandlePosition(int handle) const
+glm::vec3 ModelScreenLocation::GetHandlePositionById(const std::optional<handles::Id>& id) const
 {
-    if (handle < 0 || handle >= (int)mHandlePosition.size()) return glm::vec3(0, 0, 0);
-    return glm::vec3(mHandlePosition[handle].x, mHandlePosition[handle].y, mHandlePosition[handle].z);
+    if (!id) return glm::vec3(0, 0, 0);
+    // Mirror the int-keyed lookup but compare Id directly so we can
+    // strip the legacy round-trip from any caller that already has
+    // an Id in hand.
+    const handles::ViewMode mode = draw_3d ? handles::ViewMode::ThreeD
+                                            : handles::ViewMode::TwoD;
+    for (const auto& d : GetHandles(mode, handles::Tool::Translate)) {
+        if (d.id == *id) return d.worldPos;
+    }
+    spdlog::warn("GetHandlePositionById — descriptor not present in stream; returning origin");
+    return glm::vec3(0, 0, 0);
 }
 
-ModelScreenLocation::ModelScreenLocation(int sz) :
-    ModelMatrix(Identity), mHandlePosition(sz)
+ModelScreenLocation::ModelScreenLocation(int /*sz*/) :
+    ModelMatrix(Identity)
 {
 }
 
@@ -186,8 +195,6 @@ void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp
         RenderWi = NewWi;
         RenderDp = NewDp;
         scalex = scaley = scalez = 1.0f;
-        saved_scale = glm::vec3(scalex, scaley, scalez);
-        saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
     }
     else {
         RenderHt = NewHt;
@@ -213,7 +220,7 @@ ModelScreenLocation::MSLAXIS ModelScreenLocation::NextAxis(MSLAXIS axis)
 
 void ModelScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
-    if (axis_tool == MSLTOOL::TOOL_ROTATE && axis != MSLAXIS::NO_AXIS) {
+    if (axis_tool == handles::Tool::Rotate && axis != MSLAXIS::NO_AXIS) {
         active_axis = NextAxis(axis);
     }
     else {
@@ -221,14 +228,10 @@ void ModelScreenLocation::SetActiveAxis(MSLAXIS axis)
     }
 }
 
-void ModelScreenLocation::SetActiveHandle(int handle)
-{
-    active_handle = handle;
-    highlighted_handle = -1;
-}
 
-void ModelScreenLocation::MouseOverHandle(int handle)
+void ModelScreenLocation::MouseOverHandle(std::optional<handles::Id> handle)
 {
+    // Don't highlight the already-active sub-handle.
     if (handle != active_handle) {
         highlighted_handle = handle;
     }
@@ -335,18 +338,19 @@ void ModelScreenLocation::FindPlaneIntersection( int x, int y, IModelPreview* pr
         active_plane = GetBestIntersection( preferred_selection_plane, rotate, preview );
     }
 
+    glm::vec3 intersect(0.0f);
     if (active_plane == ModelScreenLocation::MSLPLANE::XY_PLANE) {
         active_axis = MSLAXIS::X_AXIS;
-        DragHandle(preview, x, y, true);
-        worldPos_x = saved_intersect.x;
-        worldPos_y = saved_intersect.y;
+        DragHandle(preview, x, y, intersect);
+        worldPos_x = intersect.x;
+        worldPos_y = intersect.y;
         worldPos_z = 0.0f;
     } else if (active_plane == ModelScreenLocation::MSLPLANE::XZ_PLANE) {
         active_axis = MSLAXIS::Z_AXIS;
-        DragHandle(preview, x, y, true);
-        worldPos_x = saved_intersect.x;
+        DragHandle(preview, x, y, intersect);
+        worldPos_x = intersect.x;
         worldPos_y = 0.0f;
-        worldPos_z = saved_intersect.z;
+        worldPos_z = intersect.z;
         if( rotate ) {
             active_axis = MSLAXIS::Z_AXIS;
         } else {
@@ -354,10 +358,10 @@ void ModelScreenLocation::FindPlaneIntersection( int x, int y, IModelPreview* pr
         }
     } else {
         active_axis = MSLAXIS::Z_AXIS;
-        DragHandle(preview, x, y, true);
+        DragHandle(preview, x, y, intersect);
         worldPos_x = 0.0f;
-        worldPos_y = saved_intersect.y;
-        worldPos_z = saved_intersect.z;
+        worldPos_y = intersect.y;
+        worldPos_z = intersect.z;
     }
 }
 
@@ -408,17 +412,17 @@ void DrawBoundingBoxLines(const xlColor &c, glm::vec3& min_pt, glm::vec3& max_pt
     va.AddVertex(c8.x, c8.y, c8.z, c);
 }
 
-void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *program, float zoom, int scale) const {
+void ModelScreenLocation::DrawAxisTool(const glm::vec3& pos, xlGraphicsProgram *program, float zoom, int scale) const {
     auto vac = program->getAccumulator();
     int startVertex = vac->getCount();
 
     int num_points = 18;
     float os = (float)GetRectHandleWidth(zoom, scale);
 
-    if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
-        xlColor ax1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlRED;
-        xlColor ax2c = (highlighted_handle == HANDLE_AXIS + 1) ? xlYELLOW : xlGREEN;
-        xlColor ax3c = (highlighted_handle == HANDLE_AXIS + 2) ? xlYELLOW : xlBLUE;
+    if (axis_tool == handles::Tool::Translate) {
+        xlColor ax1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlRED;
+        xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::Y) ? xlYELLOW : xlGREEN;
+        xlColor ax3c = IsAxisHandle(highlighted_handle, handles::Axis::Z) ? xlYELLOW : xlBLUE;
         float tip = pos.x + GetAxisArrowLength(zoom, scale);
         for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
@@ -447,10 +451,10 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         program->addStep([program, vac, startVertex, count](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count);
         });
-    } else if (axis_tool == MSLTOOL::TOOL_SCALE) {
-        xlColor ax1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlRED;
-        xlColor ax2c = (highlighted_handle == HANDLE_AXIS+1) ? xlYELLOW : xlGREEN;
-        xlColor ax3c = (highlighted_handle == HANDLE_AXIS+2) ? xlYELLOW : xlBLUE;
+    } else if (axis_tool == handles::Tool::Scale) {
+        xlColor ax1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlRED;
+        xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::Y) ? xlYELLOW : xlGREEN;
+        xlColor ax3c = IsAxisHandle(highlighted_handle, handles::Axis::Z) ? xlYELLOW : xlBLUE;
         
         vac->AddCubeAsTriangles(pos.x + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.y, pos.z, GetAxisRadius(zoom, scale) * 2, ax1c);
         vac->AddCubeAsTriangles(pos.x, pos.y + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.z, GetAxisRadius(zoom, scale) * 2, ax2c);
@@ -459,10 +463,10 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         program->addStep([program, vac, startVertex, count](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count - startVertex);
         });
-    } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
-        xlColor ax1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
-        xlColor ax2c = (highlighted_handle == HANDLE_AXIS+1) ? xlYELLOW : xlBLUE;
-        xlColor ax3c = (highlighted_handle == HANDLE_AXIS+2) ? xlYELLOW : xlRED;
+    } else if (axis_tool == handles::Tool::Rotate) {
+        xlColor ax1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlGREEN;
+        xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::Y) ? xlYELLOW : xlBLUE;
+        xlColor ax3c = IsAxisHandle(highlighted_handle, handles::Axis::Z) ? xlYELLOW : xlRED;
         float radius = GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale);
         for (size_t i = 30; i <= 150; i += 5) {
             float u1 = (float)i;
@@ -493,9 +497,9 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             ctx->drawLines(vac, startVertex, triangleStart - startVertex);
             ctx->drawTriangles(vac, triangleStart, count - triangleStart);
         });
-    } else if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
-        xlColor a1c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlRED;
-        xlColor a2c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
+    } else if (axis_tool == handles::Tool::XYTranslate) {
+        xlColor a1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlRED;
+        xlColor a2c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlGREEN;
         float arrow_length = GetAxisArrowLength(zoom, scale) / 2.0f;
         vac->AddVertex(pos.x, pos.y, pos.z, xlGREEN);
         vac->AddVertex(pos.x, pos.y + arrow_length, pos.z, xlGREEN);
@@ -546,8 +550,8 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             ctx->drawTriangles(vac, triangeVertex, count - triangeVertex);
         });
 
-    } else if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
-        xlColor ax2c = (highlighted_handle == HANDLE_AXIS) ? xlYELLOW : xlGREEN;
+    } else if (axis_tool == handles::Tool::Elevate) {
+        xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlGREEN;
         float tip = pos.y + GetAxisArrowLength(zoom, scale);
         for (int i = 0; i < num_points; i++) {
             float u1 = i / (float)num_points;
@@ -566,7 +570,7 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
         });
 
     }
-    if (axis_tool == MSLTOOL::TOOL_TRANSLATE || axis_tool == MSLTOOL::TOOL_SCALE) {
+    if (axis_tool == handles::Tool::Translate || axis_tool == handles::Tool::Scale) {
         startVertex = vac->getCount();
         vac->AddVertex(pos.x + os, pos.y, pos.z, xlRED);
         vac->AddVertex(pos.x + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.y, pos.z, xlRED);
@@ -579,6 +583,33 @@ void ModelScreenLocation::DrawAxisTool(glm::vec3& pos, xlGraphicsProgram *progra
             ctx->drawLines(vac, startVertex, count - startVertex);
         });
     }
+}
+
+void ModelScreenLocation::DrawActiveAxisIndicator(glm::vec3 const& pos, xlGraphicsProgram* program) const {
+    if (active_axis == MSLAXIS::NO_AXIS) return;
+    auto* va = program->getAccumulator();
+    int startVertex = va->getCount();
+    constexpr float kFar = 1000000.0f;
+    switch (active_axis) {
+    case MSLAXIS::X_AXIS:
+        va->AddVertex(-kFar, pos.y, pos.z, xlREDTRANSLUCENT);
+        va->AddVertex(+kFar, pos.y, pos.z, xlREDTRANSLUCENT);
+        break;
+    case MSLAXIS::Y_AXIS:
+        va->AddVertex(pos.x, -kFar, pos.z, xlGREENTRANSLUCENT);
+        va->AddVertex(pos.x, +kFar, pos.z, xlGREENTRANSLUCENT);
+        break;
+    case MSLAXIS::Z_AXIS:
+        va->AddVertex(pos.x, pos.y, -kFar, xlBLUETRANSLUCENT);
+        va->AddVertex(pos.x, pos.y, +kFar, xlBLUETRANSLUCENT);
+        break;
+    default:
+        return;
+    }
+    int count = va->getCount();
+    program->addStep([startVertex, count, va, program](xlGraphicsContext* ctx) {
+        ctx->drawLines(va, startVertex, count - startVertex);
+    });
 }
 
 void ModelScreenLocation::AddOffset(float deltax, float deltay, float deltaz) {
@@ -622,6 +653,9 @@ void ModelScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) 
 
 glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, IModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz) const
 {
+    if (preview == nullptr || camera == nullptr) {
+        return glm::vec2(sx, sy);
+    }
     glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
         screenheight,
         glm::vec3(sx, sy, sz),                                // X,Y,Z coords of the position when not transformed at all.
@@ -655,17 +689,12 @@ void ModelScreenLocation::SetDefaultMatrices() const
     ModelMatrix = TranslateMatrix;
 }
 
-bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mouseY, bool latch) {
+bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mouseY,
+                                      glm::vec3& outIntersect,
+                                      glm::vec3 planePoint) {
 
-    
     float zoom = preview->GetCameraZoomForHandles();
     int scale = preview->GetHandleScale();
-
-    if (latch) {
-        saved_scale = glm::vec3(scalex, scaley, scalez);
-        saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
-        saved_rotate = glm::vec3(rotatex, rotatey, rotatez);
-    }
 
     //Get a world position for the mouse
     glm::vec3 ray_origin;
@@ -683,19 +712,19 @@ bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mou
     glm::vec3 normal(0.0f);
     glm::vec3 intersect(0.0f);
 
-    if (axis_tool == MSLTOOL::TOOL_ROTATE) {
+    if (axis_tool == handles::Tool::Rotate) {
         switch (active_axis) {
         case MSLAXIS::X_AXIS:
-            normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
-            point = glm::vec3(saved_position.x, 0.0f, 0.0f);
+            normal = glm::vec3(planePoint.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
+            point = glm::vec3(planePoint.x, 0.0f, 0.0f);
             break;
         case MSLAXIS::Y_AXIS:
-            normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
-            point = glm::vec3(0.0f, saved_position.y, 0.0f);
+            normal = glm::vec3(0.0f, planePoint.y + GetAxisArrowLength(zoom, scale), 0.0f);
+            point = glm::vec3(0.0f, planePoint.y, 0.0f);
             break;
         case MSLAXIS::Z_AXIS:
-            normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
-            point = glm::vec3(0.0f, 0.0f, saved_position.z);
+            normal = glm::vec3(0.0f, 0.0f, planePoint.z + GetAxisArrowLength(zoom, scale));
+            point = glm::vec3(0.0f, 0.0f, planePoint.z);
             break;
         default:
             assert(false);
@@ -705,29 +734,29 @@ bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mou
         switch (active_axis) {
         case MSLAXIS::Z_AXIS:
                 if( active_plane == MSLPLANE::YZ_PLANE ) {
-                    normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
-                    point = glm::vec3(saved_position.x, 0.0f, 0.0f);
+                    normal = glm::vec3(planePoint.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
+                    point = glm::vec3(planePoint.x, 0.0f, 0.0f);
                 } else {
-                    normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
-                    point = glm::vec3(0.0f, saved_position.y, 0.0f);
+                    normal = glm::vec3(0.0f, planePoint.y + GetAxisArrowLength(zoom, scale), 0.0f);
+                    point = glm::vec3(0.0f, planePoint.y, 0.0f);
                 }
            break;
             case MSLAXIS::X_AXIS:
                     if( active_plane == MSLPLANE::XZ_PLANE ) {
-                        normal = glm::vec3(0.0f, saved_position.y + GetAxisArrowLength(zoom, scale), 0.0f);
-                        point = glm::vec3(0.0f, saved_position.y, 0.0f);
+                        normal = glm::vec3(0.0f, planePoint.y + GetAxisArrowLength(zoom, scale), 0.0f);
+                        point = glm::vec3(0.0f, planePoint.y, 0.0f);
                     } else {
-                        normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
-                        point = glm::vec3(0.0f, 0.0f, saved_position.z);
+                        normal = glm::vec3(0.0f, 0.0f, planePoint.z + GetAxisArrowLength(zoom, scale));
+                        point = glm::vec3(0.0f, 0.0f, planePoint.z);
                     }
                 break;
             case MSLAXIS::Y_AXIS:
                     if( active_plane == MSLPLANE::YZ_PLANE ) {
-                        normal = glm::vec3(saved_position.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
-                        point = glm::vec3(saved_position.x, 0.0f, 0.0f);
+                        normal = glm::vec3(planePoint.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);
+                        point = glm::vec3(planePoint.x, 0.0f, 0.0f);
                     } else {
-                        normal = glm::vec3(0.0f, 0.0f, saved_position.z + GetAxisArrowLength(zoom, scale));
-                        point = glm::vec3(0.0f, 0.0f, saved_position.z);
+                        normal = glm::vec3(0.0f, 0.0f, planePoint.z + GetAxisArrowLength(zoom, scale));
+                        point = glm::vec3(0.0f, 0.0f, planePoint.z);
                     }
                 break;
         default:
@@ -743,140 +772,12 @@ bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mou
         normal,             // Normal to the plane
         intersect);         // Output: intersect point
 
-    drag_delta = glm::vec3(0.0f);
-
     if (found) {
-        if (latch) {
-            saved_intersect = intersect;
-        } else {
-            drag_delta = intersect - saved_intersect;
-        }
+        outIntersect = intersect;
     } else {
         spdlog::warn("ModelScreenLocation::DragHandle: Intersect not found!");
     }
     return found;
-}
-
-CursorType ModelScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int &handle, float zoom, int scale) const
-{
-    handle = NO_HANDLE;
-
-    if (_locked) {
-        return CursorType::Default;
-    }
-
-    CursorType return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
-
-    if (handle == NO_HANDLE) {
-        float distance = 1000000000.0f;
-
-        // Test each each Oriented Bounding Box (OBB).
-        int handles_found = 0;
-        for (int i = 0; i < mSelectableHandles; i++) {
-            float intersection_distance; // Output of TestRayOBBIntersection()
-
-            if (VectorMath::TestRayOBBIntersection(
-                ray_origin,
-                ray_direction,
-                handle_aabb_min[i],
-                handle_aabb_max[i],
-                ModelMatrix,
-                intersection_distance)
-                ) {
-                // this is designed to go for the 3rd handle if several handles overlap to
-                // prevent not being able to enlarge a model where someone just clicked
-                // without a drag during creation and have a tiny model
-                if (intersection_distance - distance < 0.001f) {
-                    handles_found++;
-                    if (intersection_distance - distance >= 0.0f) {
-                        if (handles_found < 4) {
-                            handle = i;
-                        }
-                    } else {
-                        handle = i;
-                    }
-                    distance = intersection_distance;
-                    return_value = CursorType::Hand;
-                }
-            }
-        }
-    }
-    return return_value;
-}
-
-CursorType ModelScreenLocation::CheckIfOverAxisHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
-{
-    CursorType return_value = CursorType::Default;
-
-    float distance = 1000000000.0f;
-    handle = NO_HANDLE;
-
-    // test for a selected axis first
-    int num_axis_handles = (axis_tool == MSLTOOL::TOOL_XY_TRANS || axis_tool == MSLTOOL::TOOL_ELEVATE) ? 1 : 3;
-    glm::vec3 axisbb_min[3];
-    glm::vec3 axisbb_max[3];
-    if (IsXYTransHandle()) {
-        float arrow_offset = GetAxisArrowLength(zoom, scale) / 2 - 3;
-        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] - arrow_offset;
-        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - arrow_offset;
-        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - arrow_offset;
-        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + arrow_offset;
-        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + arrow_offset;
-        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + arrow_offset;
-    } else if (IsElevationHandle()) {
-        float axis_radius = GetAxisRadius(zoom, scale);
-        float arrow_length = GetAxisArrowLength(zoom, scale);
-        float head_length = GetAxisHeadLength(zoom, scale);
-        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] - axis_radius;
-        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] + arrow_length - head_length - 3;
-        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - axis_radius;
-        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + axis_radius;
-        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + arrow_length + 3;
-        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + axis_radius;
-    } else {
-        float axis_radius = GetAxisRadius(zoom, scale);
-        float arrow_length = GetAxisArrowLength(zoom, scale);
-        float head_length = GetAxisHeadLength(zoom, scale);
-        axisbb_min[0].x = active_handle_pos.x - ModelMatrix[3][0] + arrow_length - head_length - 3;
-        axisbb_min[0].y = active_handle_pos.y - ModelMatrix[3][1] - axis_radius;
-        axisbb_min[0].z = active_handle_pos.z - ModelMatrix[3][2] - axis_radius;
-        axisbb_min[1].x = active_handle_pos.x - ModelMatrix[3][0] - axis_radius;
-        axisbb_min[1].y = active_handle_pos.y - ModelMatrix[3][1] + arrow_length - head_length - 3;
-        axisbb_min[1].z = active_handle_pos.z - ModelMatrix[3][2] - axis_radius;
-        axisbb_min[2].x = active_handle_pos.x - ModelMatrix[3][0] - axis_radius;
-        axisbb_min[2].y = active_handle_pos.y - ModelMatrix[3][1] - axis_radius;
-        axisbb_min[2].z = active_handle_pos.z - ModelMatrix[3][2] + arrow_length - head_length - 3;
-        axisbb_max[0].x = active_handle_pos.x - ModelMatrix[3][0] + arrow_length + 3;
-        axisbb_max[0].y = active_handle_pos.y - ModelMatrix[3][1] + axis_radius;
-        axisbb_max[0].z = active_handle_pos.z - ModelMatrix[3][2] + axis_radius;
-        axisbb_max[1].x = active_handle_pos.x - ModelMatrix[3][0] + axis_radius;
-        axisbb_max[1].y = active_handle_pos.y - ModelMatrix[3][1] + arrow_length + 3;
-        axisbb_max[1].z = active_handle_pos.z - ModelMatrix[3][2] + axis_radius;
-        axisbb_max[2].x = active_handle_pos.x - ModelMatrix[3][0] + axis_radius;
-        axisbb_max[2].y = active_handle_pos.y - ModelMatrix[3][1] + axis_radius;
-        axisbb_max[2].z = active_handle_pos.z - ModelMatrix[3][2] + arrow_length + 3;
-    }
-
-    // see if an axis handle is selected
-    for (int i = 0; i < num_axis_handles; i++) {
-        float intersection_distance; // Output of TestRayOBBIntersection()
-
-        if (VectorMath::TestRayOBBIntersection(
-                ray_origin,
-                ray_direction,
-                axisbb_min[i],
-                axisbb_max[i],
-                TranslateMatrix, // axis is not rotated
-                intersection_distance)) {
-            if (intersection_distance < distance) {
-                distance = intersection_distance;
-                handle = i | HANDLE_AXIS;
-                return_value = CursorType::Hand;
-            }
-        }
-    }
-
-    return return_value;
 }
 
 bool ModelScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const

@@ -130,31 +130,27 @@ void HinksPixOutput::SetConfig(const std::string& data) {
         spdlog::error("Invalid config data '{}'", data);
         return;
     }
-    try {
-        if (std::stoi(config[0]) != output) {
-            spdlog::error("Mismatched output ports data port:'{}' data:'{}'", output, data);
-            return;
-        }
-        if (config[1] != "undefined") {
-            protocol = std::stoi(config[1]);
-        } else {
-            protocol = 0;
-        }
-        controllerStartChannel = std::stoi(config[2]);
-        pixels = std::stoi(config[3]);
-        controllerEndChannel = std::stoi(config[4]);
-        direction = std::stoi(config[5]);
-        colorOrder = std::stoi(config[6]);
-        nullPixel = std::stoi(config[7]);
-        brightness = std::stoi(config[8]);
-        gamma = std::stoi(config[9]);
-    } catch (const std::exception& e) {
-        spdlog::error("Exception parsing config data '{}': {}", data, e.what());
+    if ((int)std::strtol(config[0].c_str(), nullptr, 10) != output) {
+        spdlog::error("Mismatched output ports data port:'{}' data:'{}'", output, data);
+        return;
     }
+    if (config[1] != "undefined") {
+        protocol = (int)std::strtol(config[1].c_str(), nullptr, 10);
+    } else {
+        protocol = 0;
+    }
+    controllerStartChannel = (int)std::strtol(config[2].c_str(), nullptr, 10);
+    pixels = (int)std::strtol(config[3].c_str(), nullptr, 10);
+    controllerEndChannel = (int)std::strtol(config[4].c_str(), nullptr, 10);
+    direction = (int)std::strtol(config[5].c_str(), nullptr, 10);
+    colorOrder = (int)std::strtol(config[6].c_str(), nullptr, 10);
+    nullPixel = (int)std::strtol(config[7].c_str(), nullptr, 10);
+    brightness = (int)std::strtol(config[8].c_str(), nullptr, 10);
+    gamma = (int)std::strtol(config[9].c_str(), nullptr, 10);
 }
 
-nlohmann::json HinksPixOutput::BuildCommand() const {
-    nlohmann::json cmd;
+nlohmann::ordered_json HinksPixOutput::BuildCommand() const {
+    nlohmann::ordered_json cmd;
     cmd["V"] = fmt::format("{},{},{},{},{},{},{},{},{},{}",
                         output, protocol, controllerStartChannel, pixels, controllerEndChannel,
                         direction, colorOrder, nullPixel, brightness, gamma);
@@ -201,9 +197,9 @@ void HinksPixSerial::SetConfig(nlohmann::json const& data) {
     ddpDMXNumOfChan = data.at("DDP_DMX_CHAN_CNT").get<int>();
 }
 
-nlohmann::json HinksPixSerial::BuildCommand() const {
-    nlohmann::json cmd;
-    cmd["DATA"] = {
+std::string HinksPixSerial::BuildCommand() const {
+    nlohmann::ordered_json cmd;
+    cmd= {
          { "CMD", "DATA_MODE" },
          {"DMX_ACTIVE", (int)e131Enabled},
          {"DMX_UNIV", e131Universe},
@@ -213,7 +209,7 @@ nlohmann::json HinksPixSerial::BuildCommand() const {
          {"DDP_DMX_START", ddpDMXStartChannel},
          {"DDP_DMX_CHAN_CNT", ddpDMXNumOfChan}
      };
-    return cmd;
+    return "DATA: " + cmd.dump();
 }
 
 std::string HinksPixSerial::BuildCommandEasyLights(int mode) const
@@ -241,22 +237,17 @@ void HinksSmartOutput::SetConfig(const std::string& data) {
         spdlog::error("Invalid config data '{}'", data);
         return;
     }
-    try {
-        id = std::stoi(config[0]);
-        type = std::stoi(config[1]);
-        portStartPixel[0] = std::stoi(config[2]);
-        portStartPixel[1] = std::stoi(config[3]);
-        portStartPixel[2] = std::stoi(config[4]);
-        portStartPixel[3] = std::stoi(config[5]);
-    }
-    catch (const std::exception& e) {
-        spdlog::error("Exception parsing config data '{}': {}", data, e.what());
-    }
+    id = (int)std::strtol(config[0].c_str(), nullptr, 10);
+    type = (int)std::strtol(config[1].c_str(), nullptr, 10);
+    portStartPixel[0] = (int)std::strtol(config[2].c_str(), nullptr, 10);
+    portStartPixel[1] = (int)std::strtol(config[3].c_str(), nullptr, 10);
+    portStartPixel[2] = (int)std::strtol(config[4].c_str(), nullptr, 10);
+    portStartPixel[3] = (int)std::strtol(config[5].c_str(), nullptr, 10);
 }
 
-nlohmann::json HinksSmartOutput::BuildCommand() const {
+nlohmann::ordered_json HinksSmartOutput::BuildCommand() const {
     //{"V":"1,0,51,51,51,51"}
-    nlohmann::json cmd;
+    nlohmann::ordered_json cmd;
     cmd["V"] = fmt::format("{},{},{},{},{},{}", id, type, portStartPixel[0], portStartPixel[1],
                             portStartPixel[2], portStartPixel[3]);
     return cmd;
@@ -272,8 +263,8 @@ void HinksPixInputUniverse::Dump() const {
                       hinksPixStartChannel);
 }
 
-nlohmann::json HinksPixInputUniverse::BuildCommand() const {
-    nlohmann::json cmd;
+nlohmann::ordered_json HinksPixInputUniverse::BuildCommand() const {
+    nlohmann::ordered_json cmd;
     cmd["V"] = fmt::format("{},{},{},1,{},{}", index,
                             universe, numOfChan, hinksPixStartChannel,
                             hinksPixStartChannel + numOfChan - 1);
@@ -375,7 +366,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
 
     auto out = outputs.front();
     nlohmann::json cmd;
-    cmd["DATA"] = {
+    cmd = {
         { "CMD", "DATA_MODE" },
         { "MODE", Upper(out->GetType()) }
     };
@@ -386,8 +377,8 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
         //cmd["MODE"] = Upper(OUTPUT_ARTNET);
     } else if (out->GetType() == OUTPUT_DDP) {
         //cmd["DATA"]["MODE"] = Upper(OUTPUT_DDP);
-        cmd["DATA"]["DDP_START"] = out->GetStartChannel();
-        cmd["DATA"]["DDP_CHAN_COUNT"] = out->GetChannels();
+        cmd["DDP_START"] = out->GetStartChannel();
+        cmd["DDP_CHAN_COUNT"] = out->GetChannels();
     }
 
     nlohmann::json data;
@@ -400,7 +391,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     //Set Controller Input mode
     //if (data.ItemAt("MODE").AsString() != type) //send mode every time
     {
-        auto const ret = GetJSONControllerData(GetJSONPostURL(), cmd.dump());
+        auto const ret = GetJSONControllerData(GetJSONPostURL(), "DATA: " + cmd.dump());
         if (ret.find("\"OK\"") == std::string::npos) {
             spdlog::error("Failed Return {}", ret);
             DisplayError("Changing HinksPix Input Mode FAILED.");
@@ -426,13 +417,13 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     int num_of_unv = 0;
 
     for (int j = 0; j < numberOfCalls; j++) {
-        nlohmann::json data;
-        data["DATA"] = {
+        nlohmann::ordered_json data;
+        data = {
             { "CMD", "E131" },
-            { "BLK", j },
+            { "BLK", fmt::format("{}",j) },
             { "LIST", nlohmann::json::array() }
         };
-        nlohmann::json request = nlohmann::json::array();
+        nlohmann::ordered_json request = nlohmann::json::array();
         for (int i = 0; i < UN_PER; i++) {
             auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
             if (inpUn != inputUniverses.end()) {
@@ -446,10 +437,10 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
                 request.push_back({{"V", "0,0,0,0,0,0"}});
             }
         }
-        data["DATA"]["LIST"] = request;
+        data["LIST"] = request;
 
         //post data
-        auto const ret = GetJSONControllerData(GetJSONPostURL(), data.dump());
+        auto const ret = GetJSONControllerData(GetJSONPostURL(), "DATA: " + data.dump());
         if (ret.find("\"OK\"") == std::string::npos) {
             spdlog::error("Failed Return {}", ret);
             return false;
@@ -458,13 +449,13 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
 
     //set the universe count
 
-    nlohmann::json unvdata;
-    unvdata["DATA"] = {
+    nlohmann::ordered_json unvdata;
+    unvdata = {
         { "CMD", "BD_INFO" },
-        { "NumU", num_of_unv }
+        { "NumU", fmt::format("{}", num_of_unv ) }
     };
 
-    auto const unvret = GetJSONControllerData(GetJSONPostURL(), unvdata.dump());
+    auto const unvret = GetJSONControllerData(GetJSONPostURL(), "DATA: " + unvdata.dump());
     if (unvret.find("\"OK\"") == std::string::npos) {
         spdlog::error("Failed Return {}", unvret);
         return false;
@@ -485,15 +476,15 @@ bool HinksPix::UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> c
 
     if(LL.empty() || !dirty)
     {
-        nlohmann::json data;
-        data["DATA"] = {
-            {"BLK", 0},
-            {"NUM", 0},
-            {"LEFT", 0},
+        nlohmann::ordered_json data;
+        data = {
+            {"BLK", fmt::format("{}", 0)},
+            { "NUM", fmt::format("{}", 0) },
+            { "LEFT", fmt::format("{}", 0) },
             {"LIST", nlohmann::json::array()}
         };
 
-        auto const ret = GetJSONControllerData(GetJSONUnPackURL(), data.dump());
+        auto const ret = GetJSONControllerData(GetJSONUnPackURL(), "DATA: {" + data.dump() + "}");
         if(ret.find("\"OK\"") == std::string::npos)
         {
             spdlog::error("Failed Return {}", ret);
@@ -514,18 +505,18 @@ bool HinksPix::UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> c
         int j { 0 };
         int i { 0 };
 
-        nlohmann::json data;
-        data["DATA"] = {
-            { "BLK", BlkNum },
-            { "NUM", Num2Send },
-            { "LEFT", (TotalEntries - Num2Send) },
+        nlohmann::ordered_json data;
+        data = {
+            { "BLK", fmt::format("{}",BlkNum) },
+            { "NUM", fmt::format("{}",Num2Send) },
+            { "LEFT", fmt::format("{}",(TotalEntries - Num2Send)) },
             { "LIST", nlohmann::json::array() }
         };
 
         for (auto it = LL.begin(); it != LL.end(); ++it) {
             if (i > LastIndex) {
                 auto LE = fmt::format("{{{},{},{}}}", (*it)->MyStart, (*it)->NewStart, (*it)->NumChans);
-                data["DATA"]["LIST"].push_back(LE);
+                data["LIST"].push_back(LE);
 
                 LastIndex = i;
                 j++;
@@ -535,7 +526,7 @@ bool HinksPix::UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> c
             }
             i++;
         }
-        auto const ret = GetJSONControllerData(GetJSONUnPackURL(), data.dump());
+        auto const ret = GetJSONControllerData(GetJSONUnPackURL(), "DATA: {" + data.dump() + "}");
         if (ret.find("\"OK\"") == std::string::npos) {
             spdlog::error("Failed Return {}", ret);
             worked = false;
@@ -564,7 +555,12 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
 
     const auto map = StringToMap(data);
 
-    int const maxUnv = std::stoi(map.at("C"));
+    auto maxUnvIt = map.find("C");
+    if (maxUnvIt == map.end()) {
+        DisplayError("HinksPix controller did not return supported universe count.");
+        return false;
+    }
+    int const maxUnv = (int)std::strtol(maxUnvIt->second.c_str(), nullptr, 10);
 
     if (controller->GetOutputCount() > maxUnv) {
         DisplayError(fmt::format("Attempt to upload {} universes to HinksPix controller but only {} are supported.", controller->GetOutputCount(), maxUnv));
@@ -682,20 +678,20 @@ void HinksPix::UploadPixelOutputs(bool& worked) const {
 void HinksPix::UploadExpansionBoardData(int expansion, int startport, int length, bool& worked) const {
     spdlog::debug("Building pixel upload Expansion {}:", expansion);
 
-    nlohmann::json data;
-    data["DATA"] = {
+    nlohmann::ordered_json data;
+    data = {
         { "CMD", "PCONFIG" },
-        { "BOARD", expansion - 1 },
+        { "BOARD", fmt::format("{}",expansion - 1) },
         { "LIST", nlohmann::json::array() }
     };
 
     //{"CMD":"PCONFIG","BOARD":"0","LIST":[
     for (int i = 0; i < length; i++) {
         _pixelOutputs[(startport - 1) + i].Dump();
-        data["DATA"]["LIST"].push_back(_pixelOutputs[(startport - 1) + i].BuildCommand());
+        data["LIST"].push_back(_pixelOutputs[(startport - 1) + i].BuildCommand());
     }
 
-    auto const ret = GetJSONControllerData(GetJSONPostURL(), data.dump());
+    auto const ret = GetJSONControllerData(GetJSONPostURL(), "DATA: " + data.dump());
     if (ret.find("\"OK\"") == std::string::npos) {
         spdlog::error("Failed Return {}", ret);
         worked = false;
@@ -841,20 +837,20 @@ void HinksPix::UploadSmartReceiverData(int expan, int bank, std::vector<HinksSma
         return;
     }
     //{"CMD":"SCONFIG","BOARD":"0","Port4":"0","LIST":[{"V":"0,1,1,1,1,1"},{"V":"1,0,51,51,51,51"},{"V":"2,0,101,101,101,101"},{"V":"3,0,151,151,151,151"},{"V":"6,2,0,1,0,0"},{"V":"8,0,201,1,1,1"}]}
-    nlohmann::json data;
-    data["DATA"] = {
+    nlohmann::ordered_json data;
+    data = {
         { "CMD", "SCONFIG" },
-        { "BOARD", expan },
-        { "Port4", bank },
+        { "BOARD", fmt::format("{}", expan) },
+        { "Port4", fmt::format("{}", bank) },
         { "LIST", nlohmann::json::array() }
     };
 
     for (auto const& rec: receivers) {
         rec.Dump();
-        data["DATA"]["LIST"].push_back(rec.BuildCommand());
+        data["LIST"].push_back(rec.BuildCommand());
     }
 
-    auto const ret = GetJSONControllerData(GetJSONPostURL(), data.dump());
+    auto const ret = GetJSONControllerData(GetJSONPostURL(), "DATA: " + data.dump());
     if (ret.find("\"OK\"") == std::string::npos) {
         spdlog::error("Failed Return {}", ret);
         worked = false;
@@ -974,6 +970,7 @@ std::string HinksPix::GetJSONControllerData(std::string const& url, std::string 
     } else {
         spdlog::error("Curl was null during HinksPix upload.");
     }
+    curl_slist_free_all(list);
     return res;
 }
 
@@ -1006,6 +1003,7 @@ void HinksPix::PostToControllerNoResponse(std::string const& url, std::string co
     } else {
         spdlog::error("Curl was null during HinksPix upload.");
     }
+    curl_slist_free_all(list);
 }
 
 bool HinksPix::GetControllerDataJSON(const std::string& url, nlohmann::json& val, std::string const& data) const {
@@ -1570,10 +1568,11 @@ std::string HinksPix::GetControllerRowData(int rowIndex, const std::string& url,
         /* always cleanup */
         //curl_easy_cleanup(curl);
     }
+    curl_slist_free_all(list);
     return res;
 }
 
-uint32_t GetDateTimeWord(int month, int day, int year, int hour, int min, int sec) 
+uint32_t GetDateTimeWord(int month, int day, int year, int hour, int min, int sec)
 {
     uint32_t const DT = (((year - 1980) * 512U) | month * 32U | day);
     uint32_t const TM = (hour * 2048U | min * 32U | sec / 2U);
@@ -1710,8 +1709,8 @@ bool HinksPix::UploadFileToController(const std::string& localpathname, const st
             PK.DataSize = 0;
             memset(&DC, 0, sizeof(struct Tag_File_Data_Close));
 
-            //strncpy(DC.FN, remotepathname, sizeof(DC.FN) - 1);
-            std::strcpy(DC.FN, remotepathname.c_str());
+            std::strncpy(DC.FN, remotepathname.c_str(), sizeof(DC.FN) - 1);
+            DC.FN[sizeof(DC.FN) - 1] = '\0';
             DC.DTTM = GetDateTimeWord(fileTime);
             memmove(PK.Data, &DC, sizeof(struct Tag_File_Data_Close));
 

@@ -20,6 +20,7 @@ class RemapModelProperties
     std::string _message;
     bool _ok = false;
     pugi::xml_document _xmodel;
+    pugi::xml_node _modelNode;
     std::vector<uint32_t> _data;
     uint32_t _faces = 0;
     uint32_t _states = 0;
@@ -30,6 +31,7 @@ class RemapModelProperties
 
     void RemapNodes(pugi::xml_node n, const std::string& attr, const std::map<uint32_t, uint32_t>& mapping);
 	void ParseData(const std::string& data);
+    void ParseCompressedData(const std::string& data);
     uint32_t GetWidth() const
     {
         return _w;
@@ -48,7 +50,7 @@ class RemapModelProperties
     }
     pugi::xml_node GetXml()
     {
-        return _xmodel.document_element();
+        return _modelNode;
     }
 
 public:

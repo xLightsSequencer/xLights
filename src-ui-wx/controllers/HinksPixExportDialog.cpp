@@ -1390,7 +1390,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             std::string reason;
             if (!schedule.isValid(reason)) {
                 error = true;
-                errorMsg = fmt::format("'{}' Schedule was invalid!\n%s", schedule.Day, reason);
+                errorMsg = fmt::format("'{}' Schedule was invalid!\n{}", schedule.Day, reason);
             }
             schedule.saveToDrive(drive);
         }

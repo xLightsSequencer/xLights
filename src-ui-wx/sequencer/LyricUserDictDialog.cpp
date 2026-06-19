@@ -15,7 +15,7 @@
 #include <wx/string.h>
 //*)
 
-#include "PhonemeDictionary.h"
+#include "lyrics/PhonemeDictionary.h"
 #include <wx/txtstrm.h>
 #include <wx/wfstream.h>
 #include <wx/filename.h>
@@ -25,6 +25,28 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
+
+namespace {
+wxArrayString ToWxArrayString(const std::vector<std::string>& v)
+{
+    wxArrayString out;
+    out.Alloc(v.size());
+    for (const auto& s : v) {
+        out.Add(wxString::FromUTF8(s));
+    }
+    return out;
+}
+
+std::vector<std::string> ToStdVector(const wxArrayString& a)
+{
+    std::vector<std::string> out;
+    out.reserve(a.size());
+    for (const auto& s : a) {
+        out.push_back(s.ToStdString());
+    }
+    return out;
+}
+}
 
 //(*IdInit(LyricUserDictDialog)
 const long LyricUserDictDialog::ID_TEXTCTRL_NEW_LYRIC = wxNewId();
@@ -143,7 +165,7 @@ LyricUserDictDialog::LyricUserDictDialog(PhonemeDictionary* dictionary, const wx
 
     SetEscapeId(ButtonLyricCancel->GetId());
 
-    TextCtrlOldLyric->AutoComplete(m_dictionary->GetPhonemeList());
+    TextCtrlOldLyric->AutoComplete(ToWxArrayString(m_dictionary->GetPhonemeList()));
     ReadUserDictionary();
     ValidateWindow();
 }
@@ -171,16 +193,16 @@ void LyricUserDictDialog::OnButtonAddLyricClick(wxCommandEvent& event)
         return;
     }
 
-    if (m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper()) && !found) {
+    if (m_dictionary->ContainsPhoneme(TextCtrlNewLyric->GetValue().Upper().ToStdString()) && !found) {
         if (wxMessageBox("Word '" + TextCtrlNewLyric->GetValue() + "' Already Exists In Phoneme Dictionary. Do you want to override it?", "Override", wxYES_NO, this) == wxNO) {
             return;
         }
     }
 
     const auto& str_list = wxSplit(TextCtrlOldLyric->GetValue().Upper(), ' ');
-    std::vector<wxArrayString> phonemeList; 
+    std::vector<std::vector<std::string>> phonemeList;
     for (const auto& str : str_list) {
-        phonemeList.push_back(m_dictionary->GetPhoneme(str));
+        phonemeList.push_back(m_dictionary->GetPhoneme(str.ToStdString()));
     }
 
     InsertRow(TextCtrlNewLyric->GetValue().Upper(), phonemeList);
@@ -229,7 +251,7 @@ void LyricUserDictDialog::OnButtonLyricOKClick(wxCommandEvent& event)
     }
     //Remove Old Phoneme
     for (const auto& str : m_removeList) {
-        m_dictionary->RemovePhoneme(str);
+        m_dictionary->RemovePhoneme(str.ToStdString());
     }
     //save and insert
     WriteUserDictionary();
@@ -271,7 +293,7 @@ void LyricUserDictDialog::ReadUserDictionary() const
         }
 
         wxArrayString strList = wxSplit(line, ' ');
-        InsertRow(strList[0], { strList });
+        InsertRow(strList[0], { ToStdVector(strList) });
     }
 }
 
@@ -291,7 +313,7 @@ void LyricUserDictDialog::WriteUserDictionary() const
             str_list.Insert(GridUserLyricDict->GetCellValue(i, 0).Upper(), 0);
             f.Write(wxJoin(str_list, ' '));
             f.Write('\n');
-            m_dictionary->InsertPhoneme(str_list);
+            m_dictionary->InsertPhoneme(ToStdVector(str_list));
         }
         f.Close();
     }
@@ -300,7 +322,7 @@ void LyricUserDictDialog::WriteUserDictionary() const
     }
 }
 
-void LyricUserDictDialog::InsertRow(const wxString & text, std::vector<wxArrayString> phonemeList) const
+void LyricUserDictDialog::InsertRow(const wxString & text, std::vector<std::vector<std::string>> phonemeList) const
 {
     const int row = GridUserLyricDict->GetNumberRows();
     GridUserLyricDict->InsertRows(row);
@@ -311,14 +333,17 @@ void LyricUserDictDialog::InsertRow(const wxString & text, std::vector<wxArraySt
 
     for (auto & phonem : phonemeList) {
         if (phonem.size() >= 2) {
-            if (phonem[1].Trim() == "") {
-                phonem.RemoveAt(0, 2); // phonemeList has a name and a space at the beginning
+            auto trimmedSecond = wxString(phonem[1]).Trim();
+            if (trimmedSecond == "") {
+                phonem.erase(phonem.begin(), phonem.begin() + 2); // phonemeList has a name and a space at the beginning
             }
             else {
-                phonem.RemoveAt(0, 1); // phonemeList has a name only at the beginning
+                phonem.erase(phonem.begin()); // phonemeList has a name only at the beginning
             }
-            if (phonem.size() > 0) {
-                all_phonemes.insert(all_phonemes.end(), phonem.begin(), phonem.end());
+            if (!phonem.empty()) {
+                for (const auto& p : phonem) {
+                    all_phonemes.Add(wxString::FromUTF8(p));
+                }
             }
         }
     }
@@ -340,7 +365,7 @@ bool LyricUserDictDialog::IsValidPhoneme(const wxString & text) const
     const auto& str_list = wxSplit(text, ' ');
 
     for (const auto& str : str_list) {
-        if (!m_dictionary->ContainsPhonemeMap(str)) {
+        if (!m_dictionary->ContainsPhonemeMap(str.ToStdString())) {
             return false;
         }
     }
@@ -353,11 +378,14 @@ void LyricUserDictDialog::OnTextCtrlOldLyricText(wxCommandEvent& event)
     wxArrayString phenoms;
     //loop through for multiple words
     for (const auto& word : words) {
-        if ((m_dictionary->ContainsPhoneme(word))) {
-            wxArrayString word_phenoms = m_dictionary->GetPhoneme(word);
+        std::string w = word.ToStdString();
+        if ((m_dictionary->ContainsPhoneme(w))) {
+            auto word_phenoms = m_dictionary->GetPhoneme(w);
             if (word_phenoms.size() > 2) {
-                word_phenoms.RemoveAt(0, 2);//phonemeList has a name and a space at the beginning
-                phenoms.insert(phenoms.end(),word_phenoms.begin(),word_phenoms.end());
+                word_phenoms.erase(word_phenoms.begin(), word_phenoms.begin() + 2);//phonemeList has a name and a space at the beginning
+                for (const auto& p : word_phenoms) {
+                    phenoms.Add(wxString::FromUTF8(p));
+                }
             }
         }
     }

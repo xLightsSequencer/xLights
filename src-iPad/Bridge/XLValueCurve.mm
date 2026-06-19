@@ -33,7 +33,7 @@
     // Mirror JsonEffectPanel's flow: seed with the property scale, then
     // deserialise any stored string (holdminmax=false so ConvertChangedScale
     // fires if the stored string's min/max differs).
-    if ((self = [self initWithSerialised:nil])) {
+    if ((self = [self initWithSerialised:@""])) {
         _vc = std::make_unique<ValueCurve>(std::string([identifier UTF8String]),
                                            (float)min, (float)max,
                                            "Flat", 0.0f, 0.0f, 0.0f, 0.0f,

@@ -165,25 +165,26 @@ namespace ip_utils
         if (IsIPValid(ip) || (ip == "MULTICAST") || ip == "" || StartsWith(ip, ".") || (ip[0] >= '0' && ip[0] <= '9')) {
             return ip;
         }
-        std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
-        const std::string& resolvedIp = __resolvedIPMap[ip];
-        if (resolvedIp == "") {
-            lock.unlock();
-            std::string r;
-            if (!ResolveHostnameToIP(ip, r)) {
-                r = ip;
+        {
+            std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
+            auto it = __resolvedIPMap.find(ip);
+            if (it != __resolvedIPMap.end() && !it->second.empty()) {
+                return it->second;
             }
-            if (r == "0.0.0.0") {
-                r = ip;
-            }
-            if (r == "255.255.255.255") {
-                r = ip;
-            }
-            lock.lock();
-            __resolvedIPMap[ip] = r;
-            return __resolvedIPMap[ip];
         }
-        return resolvedIp;
+        std::string r;
+        if (!ResolveHostnameToIP(ip, r)) {
+            r = ip;
+        }
+        if (r == "0.0.0.0") {
+            r = ip;
+        }
+        if (r == "255.255.255.255") {
+            r = ip;
+        }
+        std::unique_lock<std::mutex> lock(__resolvedIPMapLock);
+        __resolvedIPMap[ip] = r;
+        return r;
     }
 
     class ResolveJob : public Job {

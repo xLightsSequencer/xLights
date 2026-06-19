@@ -22,7 +22,9 @@ enum UNDO_ACTIONS
     UNDO_EFFECT_ADDED,
     UNDO_EFFECT_DELETED,
     UNDO_EFFECT_MODIFIED,
-    UNDO_EFFECT_MOVED
+    UNDO_EFFECT_MOVED,
+    UNDO_LAYER_ADDED,
+    UNDO_LAYER_REMOVED,
 };
 
 class DeletedEffectInfo
@@ -76,6 +78,15 @@ public:
     ModifiedEffectInfo( const std::string &element_name_, int layer_index_, Effect *ef);
 };
 
+class LayerInfo
+{
+public:
+    std::string element_name;
+    int exclusive_layer_index;
+    int layer_number;
+    LayerInfo(const std::string& en, int eli, int ln) : element_name(en), exclusive_layer_index(eli), layer_number(ln) {}
+};
+
 class UndoStep
 {
 public:
@@ -84,12 +95,19 @@ public:
     UndoStep( UNDO_ACTIONS action, AddedEffectInfo* effect_info );
     UndoStep( UNDO_ACTIONS action, MovedEffectInfo* effect_info );
     UndoStep( UNDO_ACTIONS action, ModifiedEffectInfo* effect_info );
+    UndoStep( UNDO_ACTIONS action, LayerInfo* layer_info );
+    ~UndoStep();
+    UndoStep(const UndoStep&) = delete;
+    UndoStep& operator=(const UndoStep&) = delete;
+    UndoStep(UndoStep&&) = delete;
+    UndoStep& operator=(UndoStep&&) = delete;
 
     UNDO_ACTIONS undo_action;
     std::vector<DeletedEffectInfo*> deleted_effect_info;
     std::vector<AddedEffectInfo*> added_effect_info;
     std::vector<MovedEffectInfo*> moved_effect_info;
     std::vector<ModifiedEffectInfo*> modified_effect_info;
+    std::vector<LayerInfo*> layer_info;
 };
 
 class UndoManager
@@ -121,13 +139,30 @@ class UndoManager
         void CaptureEffectToBeMoved( const std::string &element_name, int layer_index, int id, int startTimeMS, int endTimeMS );
         void CaptureModifiedEffect( const std::string &element_name, int layer_index, int id, const std::string &settings, const std::string &palette );
         void CaptureModifiedEffect( const std::string &element_name, int layer_index, Effect *ef);
+
+        void CaptureAddedLayer( const std::string &element_name, int exclusive_layer_index, int layer_number );
+        void CaptureRemovedLayer( const std::string &element_name, int layer_number );
+
+        // Memory-cap support (iPad memory-pressure mitigation).
+        // When `maxSteps > 0`, every push onto `mUndoSteps` triggers a
+        // trim that drops the oldest steps until the vector fits. 0
+        // disables the cap (the default). The redo list isn't capped
+        // separately — it's bounded by the undo history that
+        // feeds it.
+        void SetMaxSteps(size_t maxSteps) { mMaxSteps = maxSteps; EnforceMaxSteps(); }
+        size_t GetMaxSteps() const { return mMaxSteps; }
     protected:
         void ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<UndoStep*> &toList);
+        // Drop the oldest `mUndoSteps` entries while the vector
+        // exceeds `mMaxSteps`. Called from the end of every push-
+        // back path. No-op when `mMaxSteps == 0`.
+        void EnforceMaxSteps();
 
     private:
         std::vector<UndoStep*> mUndoSteps;
         std::vector<UndoStep*> mRedoSteps;
         SequenceElements* mParentSequence;
         bool mCaptureUndo;
+        size_t mMaxSteps = 0;
 
 };

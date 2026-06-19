@@ -14,9 +14,16 @@ struct ColorPaletteView: View {
     @Environment(SequencerViewModel.self) var viewModel
 
     @State private var editingSlot: Int? = nil
+    @State private var swatchPickerSlot: Int? = nil
     @State private var showingLoadSheet = false
     @State private var showingImportSheet = false
     @State private var showingSaveAsSheet = false
+    @State private var showingAISheet = false
+    @State private var showingUpdatePaletteConfirm = false
+    // Desktop Effects-Grid ▸ "Hide Color Update Warning"
+    // (`EffectsGridSettingsPanel.cpp:106`): when ON, apply the palette to
+    // the other selected effects without the confirmation prompt.
+    @AppStorage("hideColorUpdateWarning") private var hideColorUpdateWarning: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -71,12 +78,50 @@ struct ColorPaletteView: View {
                     currentPaletteString(), asName: name)
             }
         }
+        .sheet(isPresented: $showingAISheet) {
+            AIPaletteGenerationSheet()
+                .environment(viewModel)
+        }
+        .alert("Update Palette", isPresented: $showingUpdatePaletteConfirm) {
+            Button("Update", role: .destructive) {
+                viewModel.updatePaletteOnAllSelected()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            let count = viewModel.selectedEffects.count - 1
+            Text("Apply this palette to \(count) other selected \(count == 1 ? "effect" : "effects")?")
+        }
+        .sheet(item: Binding(
+            get: { swatchPickerSlot.map { SlotRef(id: $0) } },
+            set: { swatchPickerSlot = $0?.id }
+        )) { ref in
+            let buttonKey = "C_BUTTON_Palette\(ref.id)"
+            let defaultHex = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00",
+                               "#FFFFFF", "#000000", "#FFA500", "#800080"][ref.id - 1]
+            let current = viewModel.settingValue(forKey: buttonKey, defaultValue: defaultHex)
+            XLColorSwatchPicker(initialHex: current) { hex in
+                viewModel.setSettingValue(hex, forKey: buttonKey)
+                swatchPickerSlot = nil
+            }
+        }
     }
 
     // MARK: - Palette menu (save / load / import / export)
 
     @ViewBuilder
     private func paletteMenuContent() -> some View {
+        if viewModel.isMultiEffectSelection {
+            Button {
+                if hideColorUpdateWarning {
+                    viewModel.updatePaletteOnAllSelected()
+                } else {
+                    showingUpdatePaletteConfirm = true
+                }
+            } label: {
+                Label("Update Palette", systemImage: "square.stack.3d.up.fill")
+            }
+            Divider()
+        }
         Button {
             _ = viewModel.document.savePaletteString(
                 currentPaletteString(), asName: nil)
@@ -94,6 +139,13 @@ struct ColorPaletteView: View {
             Label("Load Saved Palette…", systemImage: "folder")
         }
         Divider()
+        if XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityColorPalettes) {
+            Button {
+                showingAISheet = true
+            } label: {
+                Label("AI Generate Palette…", systemImage: "wand.and.stars")
+            }
+        }
         Button {
             showingImportSheet = true
         } label: {
@@ -104,13 +156,23 @@ struct ColorPaletteView: View {
         } label: {
             Label("Copy Palette String", systemImage: "doc.on.doc")
         }
+        Divider()
+        Button { reversePalette() } label: {
+            Label("Reverse Colors", systemImage: "arrow.left.arrow.right")
+        }
+        Button { shiftPaletteLeft() } label: {
+            Label("Shift Left", systemImage: "arrow.left")
+        }
+        Button { shiftPaletteRight() } label: {
+            Label("Shift Right", systemImage: "arrow.right")
+        }
     }
 
     private func currentPaletteString() -> String {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.currentPaletteString(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) ?? ""
+            at: Int32(sel.effectIndex))
     }
 
     private func applyPalette(_ paletteString: String) {
@@ -123,6 +185,40 @@ struct ColorPaletteView: View {
         viewModel.refreshSelectedEffectSettings()
     }
 
+    // COL-3 — palette slot reorder (Reverse / Shift). Operates per-slot on the
+    // selected effect's C_BUTTON_/C_CHECKBOX_PaletteN settings, so it needs no
+    // palette-string parsing (which would be fragile with serialized
+    // ColorCurves). Each slot write is its own undo step.
+    private func paletteSlots() -> [(button: String, check: String)] {
+        (1...8).map { slot in
+            (viewModel.settingValue(forKey: "C_BUTTON_Palette\(slot)", defaultValue: ""),
+             viewModel.settingValue(forKey: "C_CHECKBOX_Palette\(slot)", defaultValue: ""))
+        }
+    }
+
+    private func writePaletteSlots(_ slots: [(button: String, check: String)]) {
+        for (i, s) in slots.enumerated() {
+            let slot = i + 1
+            viewModel.setSettingValue(s.button, forKey: "C_BUTTON_Palette\(slot)")
+            viewModel.setSettingValue(s.check, forKey: "C_CHECKBOX_Palette\(slot)")
+        }
+        viewModel.refreshSelectedEffectSettings()
+    }
+
+    private func reversePalette() { writePaletteSlots(Array(paletteSlots().reversed())) }
+
+    private func shiftPaletteLeft() {
+        var s = paletteSlots()
+        if s.count > 1 { s.append(s.removeFirst()) }
+        writePaletteSlots(s)
+    }
+
+    private func shiftPaletteRight() {
+        var s = paletteSlots()
+        if s.count > 1 { s.insert(s.removeLast(), at: 0) }
+        writePaletteSlots(s)
+    }
+
     private struct SlotRef: Identifiable { let id: Int }
 
     /// Probe the currently-selected effect's ColorCurve mode support.
@@ -133,7 +229,7 @@ struct ColorPaletteView: View {
         guard let sel = viewModel.selectedEffect else { return (true, true) }
         let dict = viewModel.document.colorCurveModeSupport(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) as? [String: NSNumber] ?? [:]
+            at: Int32(sel.effectIndex))
         let linear = dict["linear"]?.boolValue ?? true
         let radial = dict["radial"]?.boolValue ?? true
         return (linear, radial)
@@ -173,6 +269,7 @@ struct ColorPaletteView: View {
             set: { newColor in
                 if let hex = hexFromColor(newColor) {
                     viewModel.setSettingValue(hex, forKey: buttonKey)
+                    XLRecentColors.push(hex)
                 }
             }
         )
@@ -210,6 +307,13 @@ struct ColorPaletteView: View {
         // toggle opens in "Use gradient = off" state; flipping it on
         // seeds a black→white ramp).
         .contextMenu {
+            if !isColorCurve {
+                Button {
+                    swatchPickerSlot = slot
+                } label: {
+                    Label("Pick Color…", systemImage: "swatchpalette")
+                }
+            }
             Button {
                 editingSlot = slot
             } label: {
@@ -218,7 +322,6 @@ struct ColorPaletteView: View {
             }
             if isColorCurve {
                 Button(role: .destructive) {
-                    // Strip the curve back to a plain colour.
                     viewModel.setSettingValue(defaultHex, forKey: buttonKey)
                 } label: {
                     Label("Convert to Plain Colour", systemImage: "circle.fill")
@@ -231,17 +334,13 @@ struct ColorPaletteView: View {
         var s = hex.trimmingCharacters(in: .whitespaces)
         if s.hasPrefix("#") { s.removeFirst() }
         guard s.count == 6 || s.count == 8, let val = UInt64(s, radix: 16) else { return nil }
-        let r, g, b: Double
-        if s.count == 6 {
-            r = Double((val >> 16) & 0xFF) / 255.0
-            g = Double((val >> 8) & 0xFF) / 255.0
-            b = Double(val & 0xFF) / 255.0
-        } else {
-            r = Double((val >> 16) & 0xFF) / 255.0
-            g = Double((val >> 8) & 0xFF) / 255.0
-            b = Double(val & 0xFF) / 255.0
-        }
-        return Color(red: r, green: g, blue: b)
+        let r = Double((val >> 16) & 0xFF) / 255.0
+        let g = Double((val >> 8) & 0xFF) / 255.0
+        let b = Double(val & 0xFF) / 255.0
+        // sRGB-pinned so exact #RRGGBB hex the user types
+        // round-trips identically — see ColorPanelCustomRows.swift's
+        // top-level colorFromHex for the full rationale.
+        return Color(.sRGB, red: r, green: g, blue: b, opacity: 1)
     }
 
     // Inline gradient thumbnail for palette slots holding a

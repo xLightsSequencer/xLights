@@ -53,7 +53,7 @@ struct HinksPixOutput {
 
     void Dump() const;
     void SetConfig(const std::string& data);
-    [[nodiscard]] nlohmann::json BuildCommand() const;
+    [[nodiscard]] nlohmann::ordered_json BuildCommand() const;
     [[nodiscard]] std::string BuildCommandEasyLights() const;
 
 private:
@@ -74,7 +74,7 @@ struct HinksPixSerial {
     void Dump() const;
     void SetConfig(nlohmann::json const& data);
 
-    [[nodiscard]] nlohmann::json BuildCommand() const;
+    [[nodiscard]] std::string BuildCommand() const;
     [[nodiscard]] std::string BuildCommandEasyLights(int mode) const;
 };
 
@@ -91,7 +91,7 @@ struct HinksSmartOutput {
 
     void Dump() const;
     void SetConfig(const std::string& data);
-    [[nodiscard]] nlohmann::json BuildCommand() const;
+    [[nodiscard]] nlohmann::ordered_json BuildCommand() const;
 };
 
 struct HinksPixInputUniverse {
@@ -107,7 +107,7 @@ struct HinksPixInputUniverse {
         return universe == rhs.universe;
     }
     void Dump() const;
-    [[nodiscard]] nlohmann::json BuildCommand() const;
+    [[nodiscard]] nlohmann::ordered_json BuildCommand() const;
     [[nodiscard]] std::string BuildCommandEasyLights() const;
 };
 

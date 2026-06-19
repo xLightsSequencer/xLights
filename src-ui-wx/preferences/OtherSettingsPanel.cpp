@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "OtherSettingsPanel.h"
+#include "color/xlColourData.h"
 
 //(*InternalHeaders(OtherSettingsPanel)
 #include <wx/checkbox.h>
@@ -56,6 +57,9 @@ const wxWindowID OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX9 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_STATICTEXT7 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CTRLPINGINTERVAL = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX10 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX11 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX_CustomColorPicker = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -70,6 +74,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer4;
     wxFlexGridSizer* FlexGridSizer5;
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
@@ -79,6 +84,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer2;
     wxStaticBoxSizer* StaticBoxSizer3;
+    wxStaticBoxSizer* StaticBoxSizer4;
     wxStaticText* StaticText1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -120,9 +126,9 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GridBagSizer1->Add(StaticBoxSizer2, wxGBPosition(1, 1), wxGBSpan(4, 1), wxALL|wxEXPAND, 0);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Packaging Sequences"));
     GridBagSizer2 = new wxGridBagSizer(0, 0);
-    ExcludePresetsCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Exclude Presets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-    ExcludePresetsCheckBox->SetValue(false);
-    GridBagSizer2->Add(ExcludePresetsCheckBox, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    ExcludeVideosCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Exclude Videos"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+    ExcludeVideosCheckBox->SetValue(false);
+    GridBagSizer2->Add(ExcludeVideosCheckBox, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ExcludeAudioCheckBox = new wxCheckBox(this, ID_CHECKBOX3, _("Exclude Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
     ExcludeAudioCheckBox->SetValue(false);
     GridBagSizer2->Add(ExcludeAudioCheckBox, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -189,6 +195,19 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     CtrlPingInterval->SetValue(_T("0"));
     FlexGridSizer8->Add(CtrlPingInterval, 1, wxALL|wxEXPAND, 5);
     GridBagSizer1->Add(FlexGridSizer8, wxGBPosition(10, 0), wxDefaultSpan, wxALL, 0);
+    StaticBoxSizer4 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Moving Head Adv - Position Zones"));
+    FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
+    CheckBox_EnablePositionZones = new wxCheckBox(this, ID_CHECKBOX10, _("Enable Position Zones"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX10"));
+    CheckBox_EnablePositionZones->SetValue(true);
+    FlexGridSizer4->Add(CheckBox_EnablePositionZones, 1, wxALL, 5);
+    CheckBox_ShowZoneIndicator = new wxCheckBox(this, ID_CHECKBOX11, _("Show Zone Indicator in Preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
+    CheckBox_ShowZoneIndicator->SetValue(false);
+    FlexGridSizer4->Add(CheckBox_ShowZoneIndicator, 1, wxALL, 5);
+    StaticBoxSizer4->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(StaticBoxSizer4, wxGBPosition(11, 0), wxGBSpan(2, 1), wxALL|wxEXPAND, 0);
+    CheckBox_UseCustomColorPicker = new wxCheckBox(this, ID_CHECKBOX_CustomColorPicker, _("Use custom color picker (experimental)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CustomColorPicker"));
+    CheckBox_UseCustomColorPicker->SetValue(false);
+    GridBagSizer1->Add(CheckBox_UseCustomColorPicker, wxGBPosition(13, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
 
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -209,6 +228,9 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CTRLPINGINTERVAL, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
+    Connect(ID_CHECKBOX10, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX11, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX_CustomColorPicker, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
@@ -229,6 +251,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GPURenderCheckbox->Hide();
     MSWDisableComposited();
 #endif
+
+    TransferDataToWindow();
 }
 
 OtherSettingsPanel::~OtherSettingsPanel()
@@ -239,7 +263,7 @@ OtherSettingsPanel::~OtherSettingsPanel()
 
 bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetExcludeAudioFromPackagedSequences(ExcludeAudioCheckBox->IsChecked());
-    frame->SetExcludePresetsFromPackagedSequences(ExcludePresetsCheckBox->IsChecked());
+    frame->SetExcludeVideosFromPackagedSequences(ExcludeVideosCheckBox->IsChecked());
     frame->SetHardwareVideoAccelerated(HardwareVideoDecodingCheckBox->IsChecked());
 #ifdef __WXMSW__
     frame->SetHardwareVideoRenderer(HardwareVideoRenderChoice->GetSelection());
@@ -257,12 +281,15 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetVideoExportBitrate(SpinCtrlDoubleBitrate->GetValue());
     frame->SetMinTipLevel(Choice_MinTipLevel->GetStringSelection());
     frame->SetRecycleTips(!CheckBox_RecycleTips->GetValue());
+    frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
+    frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
+    xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
     return true;
 }
 
 bool OtherSettingsPanel::TransferDataToWindow() {
     ExcludeAudioCheckBox->SetValue(frame->ExcludeAudioFromPackagedSequences());
-    ExcludePresetsCheckBox->SetValue(frame->ExcludePresetsFromPackagedSequences());
+    ExcludeVideosCheckBox->SetValue(frame->ExcludeVideosFromPackagedSequences());
     HardwareVideoDecodingCheckBox->SetValue(frame->HardwareVideoAccelerated());
 #ifdef __WXMSW__
     HardwareVideoRenderChoice->SetSelection(frame->HardwareVideoRenderer());
@@ -281,6 +308,9 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     SpinCtrlDoubleBitrate->SetValue(frame->GetVideoExportBitrate());
     Choice_MinTipLevel->SetStringSelection(frame->GetMinTipLevel());
     CheckBox_RecycleTips->SetValue(!frame->GetRecycleTips());
+    CheckBox_EnablePositionZones->SetValue(frame->GetEnablePositionZones());
+    CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
+    CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__

@@ -17,16 +17,13 @@
 
 #include "xLightsMain.h"
 #include "settings/XLightsConfigAdapter.h"
-#include <wx/dir.h>
+#include <wx/filedlg.h>
 #include <wx/filename.h>
-#include <wx/filepicker.h>
+#include <wx/msgdlg.h>
 
 //(*IdInit(SeqExportDialog)
 const long SeqExportDialog::ID_STATICTEXT1 = wxNewId();
-const long SeqExportDialog::ID_CHOICE1 = wxNewId();
-const long SeqExportDialog::ID_STATICTEXT3 = wxNewId();
-const long SeqExportDialog::ID_TEXTCTRL2 = wxNewId();
-const long SeqExportDialog::ID_BUTTON1 = wxNewId();
+const long SeqExportDialog::ID_LISTBOX1 = wxNewId();
 const long SeqExportDialog::ID_BUTTON2 = wxNewId();
 const long SeqExportDialog::ID_BUTTON3 = wxNewId();
 //*)
@@ -43,65 +40,55 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
 
     //(*Initialize(SeqExportDialog)
     wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizer3;
     wxFlexGridSizer* FlexGridSizer4;
 
     Create(parent, wxID_ANY, _("Export Sequence"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER, _T("wxID_ANY"));
-    SetClientSize(wxSize(385, 124));
+    SetClientSize(wxSize(360, 440));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer2->AddGrowableCol(1);
-    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Format"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer2->Add(StaticText1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    ChoiceFormat = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-    FlexGridSizer2->Add(ChoiceFormat, 1, wxALL | wxEXPAND, 5);
-    StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("File name"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer2->Add(StaticText3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer3->AddGrowableCol(0);
-    TextCtrlFilename = new wxTextCtrl(this, ID_TEXTCTRL2, wxEmptyString, wxDefaultPosition, wxSize(400, -1), 0, wxDefaultValidator, _T("ID_TEXTCTRL2"));
-    FlexGridSizer3->Add(TextCtrlFilename, 1, wxALL | wxEXPAND, 2);
-    ButtonFilePick = new wxButton(this, ID_BUTTON1, _("..."), wxDefaultPosition, wxSize(34, -1), 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer3->Add(ButtonFilePick, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
-    FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer4 = new wxFlexGridSizer(0, 3, 0, 0);
-    ButtonOk = new wxButton(this, ID_BUTTON2, _("Ok"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer1->AddGrowableRow(1);
+    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Select export format:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+    FlexGridSizer1->Add(StaticText1, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+    ListBoxFormat = new wxListBox(this, ID_LISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_SINGLE, wxDefaultValidator, _T("ID_LISTBOX1"));
+    FlexGridSizer1->Add(ListBoxFormat, 1, wxALL | wxEXPAND, 5);
+    FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
+    ButtonOk = new wxButton(this, ID_BUTTON2, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    ButtonOk->SetDefault();
     FlexGridSizer4->Add(ButtonOk, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
     ButtonCancel = new wxButton(this, ID_BUTTON3, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer4->Add(ButtonCancel, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(FlexGridSizer1);
-    SetSizer(FlexGridSizer1);
     Layout();
 
-    Connect(ID_CHOICE1, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&SeqExportDialog::OnChoiceFormatSelect);
-    Connect(ID_TEXTCTRL2, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SeqExportDialog::OnTextCtrlFilenameText);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqExportDialog::OnButtonFilePickClick);
+    Connect(ID_LISTBOX1, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&SeqExportDialog::OnListBoxFormatSelect);
+    Connect(ID_LISTBOX1, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, (wxObjectEventFunction)&SeqExportDialog::OnListBoxFormatDClick);
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqExportDialog::OnButtonOkClick);
     Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqExportDialog::OnButtonCancelClick);
     //*)
 
-    ChoiceFormat->SetSelection(ChoiceFormat->Append(_("LOR. *.lms or *.las")));
-    ChoiceFormat->Append(_("Lcb, LOR Clipboard *.lcb"));
-    ChoiceFormat->Append(_("Lcb, LOR S5 Clipboard *.lcb"));
-    ChoiceFormat->Append(_("Vixen, Vixen sequence file *.vix"));
-    ChoiceFormat->Append(_("Vir, Vixen Routine file. *.vir"));
-    ChoiceFormat->Append(_("LSP, Light Show Pro "));
-    ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
-    ChoiceFormat->Append(_("xLights/FPP, *.fseq"));
-    ChoiceFormat->Append(_("Compressed Video, *.mp4"));
-    ChoiceFormat->Append(_("Uncompressed Video, *.mp4"));
-    ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
-    ChoiceFormat->Append(_("Lossless RGB Video, *.mov"));
-    ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
-    ChoiceFormat->Append(_("GIF Image, *.gif"));
+    ListBoxFormat->Append(_("LOR. *.lms or *.las"));
+    ListBoxFormat->Append(_("Lcb, LOR Clipboard *.lcb"));
+    ListBoxFormat->Append(_("Lcb, LOR S5 Clipboard *.lcb"));
+    ListBoxFormat->Append(_("Vixen, Vixen sequence file *.vix"));
+    ListBoxFormat->Append(_("Vir, Vixen Routine file. *.vir"));
+    ListBoxFormat->Append(_("LSP, Light Show Pro "));
+    ListBoxFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
+    ListBoxFormat->Append(_("xLights/FPP, *.fseq"));
+    ListBoxFormat->Append(_("Compressed Video, *.mp4"));
+    ListBoxFormat->Append(_("High Quality Compressed Video, *.mp4"));
+    ListBoxFormat->Append(_("HD ProRes Video, *.mov"));
+#ifndef __APPLE__
+    ListBoxFormat->Append(_("Uncompressed Video, *.avi"));
+#endif
+    ListBoxFormat->Append(_("ProRes 4444 Video, *.mov"));
+    ListBoxFormat->Append(_("Lossless RGB Video, *.mov"));
+    ListBoxFormat->Append(_("Minleon Network Effects Controller, *.bin"));
+    ListBoxFormat->Append(_("GIF Image, *.gif"));
+    ListBoxFormat->SetSelection(0);
 
     Fit();
 
-    ButtonOk->SetDefault();
     SetEscapeId(ButtonCancel->GetId());
     ValidateWindow();
 }
@@ -115,37 +102,48 @@ SeqExportDialog::~SeqExportDialog()
 void SeqExportDialog::ModelExportTypes(bool isgroup)
 {
     if (isgroup) {
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.mp4")));
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.mp4")));
-        int idx = ChoiceFormat->FindString(_("Uncompressed Video, *.avi"));
+        ListBoxFormat->Delete(ListBoxFormat->FindString(_("Compressed Video, *.mp4")));
+        ListBoxFormat->Delete(ListBoxFormat->FindString(_("High Quality Compressed Video, *.mp4")));
+        ListBoxFormat->Delete(ListBoxFormat->FindString(_("HD ProRes Video, *.mov")));
+        int idx = ListBoxFormat->FindString(_("Uncompressed Video, *.avi"));
         if (idx != -1) {
-            ChoiceFormat->Delete(idx);
+            ListBoxFormat->Delete(idx);
         }
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Lossless RGB Video, *.mov")));
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Minleon Network Effects Controller, *.bin")));
+        ListBoxFormat->Delete(ListBoxFormat->FindString(_("Lossless RGB Video, *.mov")));
+        ListBoxFormat->Delete(ListBoxFormat->FindString(_("ProRes 4444 Video, *.mov")));
+        ListBoxFormat->Delete(ListBoxFormat->FindString(_("Minleon Network Effects Controller, *.bin")));
     }
-    ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
-    ChoiceFormat->Delete(ChoiceFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
-    ChoiceFormat->Delete(ChoiceFormat->FindString(_("xLights/FPP, *.fseq")));
-    ChoiceFormat->Append(_("FPP Sub sequence. *.eseq"));
-    ChoiceFormat->Append(_("FPP Compressed Sub sequence. *.eseq"));
+    ListBoxFormat->Delete(ListBoxFormat->FindString(_("LOR. *.lms or *.las")));
+    ListBoxFormat->Delete(ListBoxFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
+    ListBoxFormat->Delete(ListBoxFormat->FindString(_("xLights/FPP, *.fseq")));
+    ListBoxFormat->Append(_("FPP Sub sequence. *.eseq"));
+    ListBoxFormat->Append(_("FPP Compressed Sub sequence. *.eseq"));
 
     wxString let;
     auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Read("xLightsLastExportType", &let, "");
         if (let == "") {
-            ChoiceFormat->SetSelection(0);
+            ListBoxFormat->SetSelection(0);
         } else {
-            if (!ChoiceFormat->SetStringSelection(let)) {
-                ChoiceFormat->SetSelection(0);
+            if (!ListBoxFormat->SetStringSelection(let)) {
+                ListBoxFormat->SetSelection(0);
             }
         }
     } else {
-        ChoiceFormat->SetSelection(0);
+        ListBoxFormat->SetSelection(0);
     }
 
-    SetDefaultName();
+    // Grow the listbox so every format is visible without scrolling. The item
+    // count isn't known until here (ModelExportTypes adds/removes entries based
+    // on the export context), so size it now and re-fit the dialog.
+    int rowHeight = ListBoxFormat->GetCharHeight() + 6;
+    ListBoxFormat->SetMinSize(wxSize(-1, (int)ListBoxFormat->GetCount() * rowHeight + 8));
+    GetSizer()->Fit(this);
+    Layout();
+    CenterOnParent();
+
+    ValidateWindow();
 }
 
 void SeqExportDialog::SetExportType(bool selectedEffects, bool render)
@@ -165,9 +163,16 @@ void SeqExportDialog::SetExportType(bool selectedEffects, bool render)
     SetTitle(title);
 }
 
-void SeqExportDialog::SetDefaultName()
+wxString SeqExportDialog::GetExportFormat() const
 {
-    wxString fmt = ChoiceFormat->GetStringSelection();
+    return ListBoxFormat->GetStringSelection();
+}
+
+// Build the default output path (show/fseq dir + model name + format extension)
+// used to seed the native Save As dialog.
+wxString SeqExportDialog::GetDefaultName() const
+{
+    wxString fmt = ListBoxFormat->GetStringSelection();
     wxString cwd = xLightsFrame::CurrentDir;
     wxString fsd = ((xLightsFrame*)GetParent())->GetFseqDirectory();
     if (fsd == "") {
@@ -197,75 +202,92 @@ void SeqExportDialog::SetDefaultName()
         name.SetExt("fseq");
     } else if (fmt == "Compressed Video, *.mp4") {
         name.SetExt("mp4");
-    } else if (fmt == "Uncompressed Video, *.mp4") {
+    } else if (fmt == "High Quality Compressed Video, *.mp4") {
         name.SetExt("mp4");
+    } else if (fmt == "HD ProRes Video, *.mov") {
+        name.SetExt("mov");
     } else if (fmt == "Uncompressed Video, *.avi") {
         name.SetExt("avi");
     } else if (fmt == "Lossless RGB Video, *.mov") {
+        name.SetExt("mov");
+    } else if (fmt == "ProRes 4444 Video, *.mov") {
         name.SetExt("mov");
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         name.SetExt("bin");
     } else if (fmt == "GIF Image, *.gif") {
         name.SetExt("gif");
     }
-    TextCtrlFilename->SetValue(name.GetFullPath());
+    return name.GetFullPath();
 }
 
-void SeqExportDialog::OnChoiceFormatSelect(wxCommandEvent& event)
+wxString SeqExportDialog::GetWildcardForFormat() const
 {
-    SetDefaultName();
+    wxString fmt = ListBoxFormat->GetStringSelection();
 
-    TextCtrlFilename->SetFocus();
-    ValidateWindow();
-}
-
-void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
-{
-    wxString fmt = ChoiceFormat->GetStringSelection();
-    wxFileName fn(TextCtrlFilename->GetValue());
-    
     if (fmt == "LOR. *.lms or *.las") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "LOR (*.lms;*.las)|*.lms;*.las", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "LOR (*.lms;*.las)|*.lms;*.las";
     } else if (fmt == "Lcb, LOR Clipboard *.lcb" || fmt == "Lcb, LOR S5 Clipboard *.lcb") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "LOR Clipboard (*.lcb)|*.lcb", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "LOR Clipboard (*.lcb)|*.lcb";
     } else if (fmt == "Vixen, Vixen sequence file *.vix") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Vixen Sequence File (*.vix)|*.vix", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Vixen Sequence File (*.vix)|*.vix";
     } else if (fmt == "Vir, Vixen Routine file. *.vir") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Vixen Routine File (*.vir)|*.vir", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Vixen Routine File (*.vir)|*.vir";
     } else if (fmt == "LSP, Light Show Pro ") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Light Show Pro (*.*)|*.*", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Light Show Pro (*.*)|*.*";
     } else if (fmt == "HLS, Hinkle Lighte Sequencer *.hlsnc") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Hinkle Light Sequencer (*.hlsnc)|*.hlsnc";
     } else if (fmt == "FPP Sub sequence. *.eseq") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "FPP Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "FPP Sub Sequence (*.eseq)|*.eseq";
     } else if (fmt == "FPP Compressed Sub sequence. *.eseq") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "FPP Compresses Sub Sequence (*.eseq)|*.eseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "FPP Compresses Sub Sequence (*.eseq)|*.eseq";
     } else if (fmt == "xLights/FPP, *.fseq") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "xLights/FPP (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "xLights/FPP (*.fseq)|*.fseq";
     } else if (fmt == "Compressed Video, *.mp4") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Video (*.mp4)|*.mp4";
+    } else if (fmt == "HD ProRes Video, *.mov") {
+        return "HD ProRes Video (*.mov)|*.mov";
     } else if (fmt == "Uncompressed Video, *.avi") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Uncompressed Video, *.mp4") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Video (*.avi)|*.avi";
+    } else if (fmt == "High Quality Compressed Video, *.mp4") {
+        return "Video (*.mp4)|*.mp4";
     } else if (fmt == "Lossless RGB Video, *.mov") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Lossless RGB Video (*.mov)|*.mov", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Lossless RGB Video (*.mov)|*.mov";
+    } else if (fmt == "ProRes 4444 Video, *.mov") {
+        return "ProRes 4444 Video (*.mov)|*.mov";
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Minleon Networks Effects Controller (*.bin)|*.bin", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "Minleon Networks Effects Controller (*.bin)|*.bin";
     } else if (fmt == "GIF Image, *.gif") {
-        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "GIF Image (*.gif)|*.gif", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+        return "GIF Image (*.gif)|*.gif";
     }
+    return wxEmptyString;
+}
 
-    ValidateWindow();
+// Open the native Save As dialog seeded with the default name. On macOS this is
+// the only way to obtain a writable security scope for a user-chosen location;
+// a path the user merely typed has no powerbox grant and ObtainAccessToURL()
+// can't create a bookmark for a not-yet-existing file.
+bool SeqExportDialog::PromptForFilename()
+{
+    wxFileName fn(GetDefaultName());
+    wxString result = wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, GetWildcardForFormat(), wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
+    if (result.IsEmpty()) {
+        return false;
+    }
+    _filename = result.ToStdString();
+    return true;
 }
 
 void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
 {
+    if (ListBoxFormat->GetSelection() == wxNOT_FOUND) {
+        return;
+    }
+
     // Warn if the user picked the deprecated uncompressed AVI format. Modern
     // macOS AVFoundation has dropped its AVI decoder, so the resulting file
     // can't be read back on a Mac. The new "Lossless RGB Video, *.mov" option
     // gives the same bit-exact RGB output and decodes natively on all platforms.
-    if (ChoiceFormat->GetStringSelection() == "Uncompressed Video, *.avi") {
+    if (ListBoxFormat->GetStringSelection() == "Uncompressed Video, *.avi") {
         wxString msg =
             "You're about to export to uncompressed AVI. This format is being "
             "deprecated and will not render on upcoming versions of xLights.\n\n"
@@ -280,12 +302,23 @@ void SeqExportDialog::OnButtonOkClick(wxCommandEvent& event)
         }
     }
 
+    if (!PromptForFilename()) {
+        // User cancelled the Save As dialog; keep the export dialog open.
+        return;
+    }
+
     auto* config = GetXLightsConfig();
     if (config != nullptr) {
-        config->Write("xLightsLastExportType", ChoiceFormat->GetStringSelection());
+        config->Write("xLightsLastExportType", ListBoxFormat->GetStringSelection());
         config->Flush();
     }
     EndDialog(wxID_OK);
+}
+
+void SeqExportDialog::OnListBoxFormatDClick(wxCommandEvent& event)
+{
+    // Double-clicking a format is the same as picking it and clicking Next.
+    OnButtonOkClick(event);
 }
 
 void SeqExportDialog::OnButtonCancelClick(wxCommandEvent& event)
@@ -293,20 +326,15 @@ void SeqExportDialog::OnButtonCancelClick(wxCommandEvent& event)
     EndDialog(wxID_CANCEL);
 }
 
-void SeqExportDialog::OnTextCtrlFilenameText(wxCommandEvent& event)
+void SeqExportDialog::OnListBoxFormatSelect(wxCommandEvent& event)
 {
     ValidateWindow();
 }
 
 void SeqExportDialog::ValidateWindow()
 {
-    if (TextCtrlFilename->GetValue() != "") {
-        wxFileName fn(TextCtrlFilename->GetValue());
-        if (fn.GetPathWithSep() == "" || wxDir::Exists(fn.GetPathWithSep())) {
-            ButtonOk->Enable();
-        } else {
-            ButtonOk->Disable();
-        }
+    if (ListBoxFormat->GetSelection() != wxNOT_FOUND) {
+        ButtonOk->Enable();
     } else {
         ButtonOk->Disable();
     }

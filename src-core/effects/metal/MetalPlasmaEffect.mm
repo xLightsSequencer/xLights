@@ -21,13 +21,6 @@ public:
         functions[4] = MetalComputeUtilities::INSTANCE.FindComputeFunction("PlasmaEffectStyle4");
         //functions[5] = MetalComputeUtilities::INSTANCE.FindComputeFunction("PlasmaEffectStyle5");
     }
-    ~MetalPlasmaEffectData() {
-        for (auto &f : functions) {
-            if (f != nil) {
-                [f release];
-            }
-        }
-    }
     bool canRenderStyle(int style) {
         return style < functions.size() && functions[style] != nil;
     }
@@ -88,7 +81,8 @@ void MetalPlasmaEffect::Render(Effect *effect, const SettingsMap &SettingsMap, R
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
 
     const int ColorScheme = GetPlasmaColorScheme(SettingsMap["CHOICE_Plasma_Color"]);    
-    if (rbcd == nullptr || !data->canRenderStyle(ColorScheme) || ((buffer.BufferWi * buffer.BufferHt) < 2048)) {
+    if (rbcd == nullptr || !data->canRenderStyle(ColorScheme)
+        || ((buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold)) {
         PlasmaEffect::Render(effect, SettingsMap, buffer);
         return;
     }

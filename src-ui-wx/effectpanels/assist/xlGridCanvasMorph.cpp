@@ -176,24 +176,30 @@ void xlGridCanvasMorph::mouseMoved(wxMouseEvent& event)
 {
     if (mEffect == nullptr) return;
 
+    static const wxCursor s_sizeNS(wxCURSOR_SIZENS);
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_sizing(wxCURSOR_SIZING);
+    static const wxCursor s_default(wxCURSOR_DEFAULT);
+    static const wxCursor s_hand(wxCURSOR_HAND);
+
     float mCellSize = getCellSize();
     if (!mDragging && !mRightDragging) {
         if (CheckForCornerHit(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY())) == CORNER_NOT_SELECTED) {
             if (CheckForInsideHit(mapLogicalToAbsolute(event.GetX()), mapLogicalToAbsolute(event.GetY()))) {
                 if (event.ControlDown() || event.CmdDown()) {
                     if (event.ShiftDown()) {
-                        SetCursor(wxCURSOR_SIZENS);
+                        SetCursor(s_sizeNS);
                     } else {
-                        SetCursor(wxCURSOR_SIZEWE);
+                        SetCursor(s_sizeWE);
                     }
                 } else {
-                    SetCursor(wxCURSOR_SIZING);
+                    SetCursor(s_sizing);
                 }
             } else {
-                SetCursor(wxCURSOR_DEFAULT);
+                SetCursor(s_default);
             }
         } else {
-            SetCursor(wxCURSOR_HAND);
+            SetCursor(s_hand);
         }
     } else {
         if (mSelectedCorner == CORNER_ALL_SELECTED) {

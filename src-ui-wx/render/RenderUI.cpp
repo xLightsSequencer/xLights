@@ -98,7 +98,6 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
     int loops = 0;
     while (!_renderEngine->IsRenderDone() && loops < maxLoops) {
         loops++;
-        _renderEngine->RenderMainThreadEffects();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         UpdateRenderStatus();
         if (!_renderEngine->IsRenderDone() && loops > 25) {
@@ -119,10 +118,6 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
 // ---------------------------------------------------------------------------
 // RenderContext overrides — delegate to RenderEngine
 // ---------------------------------------------------------------------------
-
-void xLightsFrame::RenderMainThreadEffects() {
-    _renderEngine->RenderMainThreadEffects();
-}
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
     _renderEngine->RenderEffectForModel(model, startms, endms,
@@ -189,8 +184,6 @@ void xLightsFrame::UpdateRenderStatus()
         RenderStatusTimer.Stop();
         return;
     }
-
-    RenderMainThreadEffects();
 
     for (auto it = _renderEngine->GetRenderProgressInfo().begin(); it != _renderEngine->GetRenderProgressInfo().end();) {
         int countModels = 0;
@@ -497,6 +490,12 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         oName.replace_extension(".mp4");
         fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
+    } else if (Out3 == "Hig") {
+        // High Quality Compressed Video, *.mp4 — HEVC at a high bitrate (AVFoundation).
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.replace_extension(".mp4");
+        fullpath = oName.string();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true, /*highQuality*/ true);
     } else if (Out3 == "Unc") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
         fullpath = oName.string();
@@ -506,6 +505,23 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         oName.replace_extension(".mov");
         fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
+    } else if (Out3 == "Pro") {
+        // ProRes 4444 Video, *.mov — 4:4:4 near-lossless, smaller than rawvideo
+        // (AVFoundation ProRes 4444 on macOS, prores_ks on FFmpeg elsewhere).
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.replace_extension(".mov");
+        fullpath = oName.string();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false, /*highQuality*/ false, /*forceProRes*/ true);
+    } else if (Out3 == "HD ") {
+        // HD ProRes Video, *.mov — ProRes 4444 near-lossless at 1920x1080.
+        // The model's native channel count is unchanged; the render is scaled
+        // up at export time using nearest-neighbour interpolation.
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.replace_extension(".mov");
+        fullpath = oName.string();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model),
+                            /*compressed*/ false, /*highQuality*/ false, /*forceProRes*/ true,
+                            /*exportWidth*/ 1920, /*exportHeight*/ 1080);
     } else if (Out3 == "Min") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
         oName.replace_extension(".bin");
@@ -559,10 +575,10 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
     dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {
-        std::string filename = dialog.TextCtrlFilename->GetValue().ToStdString();
-        ObtainAccessToURL(filename);
+        std::string filename = dialog.GetExportFilename();
+        ObtainAccessToURL(filename, true);
         EnableSequenceControls(false);
-        std::string format = dialog.ChoiceFormat->GetStringSelection().ToStdString();
+        std::string format = dialog.GetExportFormat().ToStdString();
 
         DoExportModel(startFrame, endFrame, model, filename, format, command.GetInt() == 1);
     }

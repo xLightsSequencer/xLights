@@ -60,5 +60,11 @@
             "max": 100,
             "description": "Number of simulation frames to run before the effect starts rendering. This pre-fills the buffer so falling snowflakes appear mid-flight from the first visible frame."
         }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Falling", "equals": "Driving" },
+            "disable": [ "Snowflakes_WarmupFrames" ]
+        }
     ]
 }

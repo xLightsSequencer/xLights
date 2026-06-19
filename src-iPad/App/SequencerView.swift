@@ -1,7 +1,93 @@
 import SwiftUI
+import UniformTypeIdentifiers
+
+/// Dynamic UTType lookup for `.xsq`. Resolves to the
+/// `org.xlights.sequence` UTType exported by the iPad app's
+/// Info.plist; `.xml` is a defensive fallback so the file
+/// exporter never no-ops if the lookup ever fails.
+let kXSQFileType: UTType =
+    UTType(filenameExtension: "xsq") ?? .xml
+
+/// EFX-1 — UTType for CSV files (Effects report export).
+let kCSVFileType: UTType = UTType(filenameExtension: "csv") ?? .commaSeparatedText
+
+/// EFX-1 — FileDocument wrapper for the Effects report (.csv).
+/// Bridge writes the CSV to a temp path; this hands the bytes to
+/// SwiftUI's `.fileExporter` (same pattern as `ModelsReportExportDoc`).
+struct EffectsExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kCSVFileType] }
+    static var writableContentTypes: [UTType] { [kCSVFileType] }
+    let sourcePath: String
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
+/// `FileDocument` for the Save-As flow. Wraps the on-disk bytes
+/// of an already-saved sequence so iOS's `.fileExporter` can
+/// copy them to the user-picked destination. The sequence must
+/// have been written to `sourcePath` before the exporter
+/// presents; for new-but-unsaved sequences the caller saves to
+/// the current path first (or falls back to empty XML so the
+/// exporter still produces a file).
+struct XLSequenceExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kXSQFileType] }
+    static var writableContentTypes: [UTType] { [kXSQFileType] }
+
+    let sourcePath: String
+
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
+/// F-2 / F-3 — responsive layout classification for the sequencer
+/// shell. Derived from `horizontalSizeClass` + measured width so we
+/// can distinguish "11" fullscreen or narrow Stage Manager" from
+/// "12.9" fullscreen" even though both report `.regular`.
+enum PreviewLayoutMode {
+    /// Slide Over / very narrow Stage Manager split. Inspector
+    /// collapses to a sheet; a single preview is docked at a time
+    /// with a swap picker to change it. Detach controls hidden —
+    /// Stage Manager is the escape hatch for moving panels out.
+    case compact
+    /// 11" iPad fullscreen or medium Stage Manager (roughly
+    /// 1024-1200 pt wide). Inspector stays as sidebar; one preview
+    /// docked with a swap picker; the other can detach via the
+    /// View menu.
+    case regularNarrow
+    /// 12.9"+ fullscreen or wide Stage Manager (≥1200 pt).
+    /// Side-by-side House + Model previews above the grid,
+    /// matching the desktop layout intent.
+    case regularWide
+}
+
+/// F-3 — which preview sits in the single-preview slot on the
+/// narrow / compact layouts. Persisted as a user preference so the
+/// last selection is remembered across launches.
+enum DockedPreviewKind: String, CaseIterable {
+    case house
+    case model
+}
 
 struct SequencerView: View {
     @Environment(SequencerViewModel.self) var viewModel
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     // Shared with SequencerGridV2View so toolbar zoom and in-grid
     // pinch-to-zoom drive the same state.
     @State private var timeline = TimelineState()
@@ -13,6 +99,34 @@ struct SequencerView: View {
     @AppStorage("previewPaneHeight") private var previewPaneHeight: Double = 280
     private static let previewMinHeight: Double = 160
     private static let previewMaxHeight: Double = 800
+
+    // Persisted inspector-pane width. 340 fits all four segmented
+    // tabs ("Effect | Colors | Blending | Buffer") on first launch;
+    // users can drag wider for cramped controls or narrower to give
+    // the grid more room. Like the preview height we also clamp
+    // against the live viewport so the grid never gets squeezed.
+    @AppStorage("inspectorPaneWidth") private var inspectorPaneWidth: Double = 340
+    private static let inspectorMinWidth: Double = 280
+    private static let inspectorMaxWidth: Double = 720
+
+    // F-3 narrow-mode docked-preview selection. @AppStorage until
+    // F-5 lifts this to @SceneStorage.
+    @AppStorage("dockedPreview") private var dockedPreviewRaw: String = DockedPreviewKind.house.rawValue
+    private var dockedPreview: Binding<DockedPreviewKind> {
+        Binding(
+            get: { DockedPreviewKind(rawValue: dockedPreviewRaw) ?? .house },
+            set: { dockedPreviewRaw = $0.rawValue }
+        )
+    }
+
+    // F-2 / F-3 layout breakpoints. sizeClass `.compact` covers
+    // Slide Over and the narrowest Stage Manager splits; inside
+    // `.regular`, 1200 pt separates "11" narrow" from "12.9" wide".
+    private func layoutMode(for width: CGFloat) -> PreviewLayoutMode {
+        if horizontalSizeClass == .compact { return .compact }
+        if width < 1200 { return .regularNarrow }
+        return .regularWide
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -26,33 +140,72 @@ struct SequencerView: View {
                               geo.size.height * 0.65))
             let effectiveH = min(max(previewPaneHeight,
                                      Self.previewMinHeight), cap)
+            let mode = layoutMode(for: geo.size.width)
+            // Inspector width: clamp against viewport so the grid
+            // always retains at least ~40% of the window even after
+            // an over-eager drag.
+            let inspectorCap = max(Self.inspectorMinWidth,
+                                   min(Self.inspectorMaxWidth,
+                                       geo.size.width * 0.6))
+            let effectiveInspectorW = min(max(inspectorPaneWidth,
+                                              Self.inspectorMinWidth),
+                                          inspectorCap)
+            // In landscape on a regular-width iPad with the inspector
+            // visible, give the settings panel the full vertical span
+            // by tucking the preview band above just the grid column.
+            // Portrait and compact keep the previews stretching the
+            // full window width above the grid+sidebar row.
+            let inspectorFullHeight = mode != .compact
+                && viewModel.showInspector
+                && geo.size.width > geo.size.height
             VStack(spacing: 0) {
                 toolbar
                 Divider()
 
-                if viewModel.showPreview {
+                if inspectorFullHeight {
                     HStack(spacing: 0) {
-                        ModelPreviewView()
-                            .frame(maxWidth: .infinity)
-                        Divider()
-                        HousePreviewView()
-                            .frame(maxWidth: .infinity)
-                    }
-                    .frame(height: effectiveH)
-                    previewResizeHandle(cap: cap)
-                }
-
-                HStack(spacing: 0) {
-                    SequencerGridV2View(timeline: timeline)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    if viewModel.showInspector {
-                        Divider()
+                        VStack(spacing: 0) {
+                            if viewModel.showPreview {
+                                previewBand(mode: mode, effectiveH: effectiveH)
+                                previewResizeHandle(cap: cap)
+                            }
+                            SequencerGridV2View(timeline: timeline)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                        inspectorResizeHandle(cap: inspectorCap)
                         EffectSettingsView()
-                            .frame(width: 280)
+                            .frame(width: effectiveInspectorW)
+                    }
+                } else {
+                    if viewModel.showPreview {
+                        previewBand(mode: mode, effectiveH: effectiveH)
+                        previewResizeHandle(cap: cap)
+                    }
+
+                    HStack(spacing: 0) {
+                        SequencerGridV2View(timeline: timeline)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        // F-2: inspector stays as a resizable sidebar
+                        // on regular widths. In compact mode the
+                        // sidebar is dropped and the inspector is
+                        // presented as a sheet instead (see the
+                        // `.sheet(...)` modifier further down).
+                        if mode != .compact, viewModel.showInspector {
+                            inspectorResizeHandle(cap: inspectorCap)
+                            EffectSettingsView()
+                                .frame(width: effectiveInspectorW)
+                        }
                     }
                 }
 
                 EffectPaletteView()
+            }
+            // F-2 compact inspector — same toggle (viewModel.showInspector),
+            // but presented as a sheet instead of inline so the grid keeps
+            // its full width.
+            .sheet(isPresented: compactInspectorBinding(mode: mode)) {
+                EffectSettingsView()
+                    .environment(viewModel)
             }
         }
         .confirmationDialog("Unsaved Changes",
@@ -70,6 +223,191 @@ struct SequencerView: View {
         } message: {
             Text("This sequence has unsaved changes.")
         }
+        .confirmationDialog("Revert to Last Saved?",
+                            isPresented: $showingRevertPrompt,
+                            titleVisibility: .visible) {
+            Button("Revert", role: .destructive) {
+                viewModel.revertToLastSaved()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("All unsaved changes will be lost.")
+        }
+        .fileExporter(
+            isPresented: $showingSaveAsExporter,
+            document: saveAsDoc,
+            contentType: kXSQFileType,
+            defaultFilename: saveAsDefaultName
+        ) { result in
+            if case .success(let url) = result {
+                if viewModel.saveSequenceAs(path: url.path) {
+                    // LIFE-1 — the file is already written by the exporter, so
+                    // this is an informational guard: warn (non-blocking) when
+                    // the new location is outside the show / media folders, so
+                    // the user knows it won't be auto-managed with the show.
+                    if !viewModel.document.pathIs(inShowOrMediaFolder: url.path) {
+                        saveAsOutsideWarning = url.path
+                    }
+                }
+            }
+            saveAsDoc = nil
+        }
+        .alert("Save-As Failed",
+               isPresented: Binding(
+                get: { saveAsError != nil },
+                set: { if !$0 { saveAsError = nil } }
+               )) {
+            Button("OK", role: .cancel) { saveAsError = nil }
+        } message: {
+            Text(saveAsError ?? "")
+        }
+        .alert("Saved Outside Show Folder",
+               isPresented: Binding(
+                get: { saveAsOutsideWarning != nil },
+                set: { if !$0 { saveAsOutsideWarning = nil } }
+               )) {
+            Button("OK", role: .cancel) { saveAsOutsideWarning = nil }
+        } message: {
+            Text("The sequence was saved outside the show folder and configured media folders. It won't be automatically found or packaged with the show. Consider saving it inside the show folder.")
+        }
+        .alert("Output to Lights",
+               isPresented: Binding(
+                get: { outputAlertMessage != nil },
+                set: { if !$0 { outputAlertMessage = nil } }
+               )) {
+            Button("OK", role: .cancel) { outputAlertMessage = nil }
+        } message: {
+            Text(outputAlertMessage ?? "")
+        }
+        .sheet(isPresented: Bindable(viewModel).showingSequenceSettings) {
+            SequenceSettingsSheet()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: Bindable(viewModel).showingImportEffects) {
+            ImportEffectsView(viewModel: viewModel) {
+                viewModel.showingImportEffects = false
+            }
+        }
+        // F-4 menu routing — one-shot tokens bumped by the
+        // WindowGroup's `.commands` block. Save As and Close involve
+        // file-exporter / dirty-prompt flows that live here on the
+        // view; observing a monotonic counter makes the command
+        // invocation idempotent w.r.t. SwiftUI state resets.
+        .onChange(of: viewModel.saveAsRequestToken) { _, _ in
+            startSaveAs()
+        }
+        .onChange(of: viewModel.closeRequestToken) { _, _ in
+            if viewModel.checkDirtyNow() {
+                showingUnsavedPrompt = true
+            } else {
+                viewModel.closeSequence()
+            }
+        }
+        // EFX-1 — Export Effects token: build the CSV then hand to fileExporter.
+        .onChange(of: viewModel.exportEffectsRequestToken) { _, _ in
+            startExportEffects()
+        }
+        .fileExporter(
+            isPresented: $showingEffectsExporter,
+            document: effectsExportDoc,
+            contentType: kCSVFileType,
+            defaultFilename: effectsExportDefaultName
+        ) { _ in
+            effectsExportDoc = nil
+        }
+        .alert("Export Effects Failed",
+               isPresented: Binding(
+                get: { effectsExportError != nil },
+                set: { if !$0 { effectsExportError = nil } }
+               )) {
+            Button("OK", role: .cancel) { effectsExportError = nil }
+        } message: {
+            Text(effectsExportError ?? "")
+        }
+        // AI-2 — standalone AI Image sheet. Same AIImageGenerationSheet,
+        // but the commit closure is a no-op (file is already in the show
+        // folder; the sheet's commitImage() already staged it there).
+        .sheet(isPresented: Bindable(viewModel).showingStandaloneAIImage) {
+            AIImageGenerationSheet { _ in }
+                .environment(viewModel)
+        }
+        .onChange(of: viewModel.revertRequestToken) { _, _ in
+            showingRevertPrompt = true
+        }
+        // #6258 — command palette (⌘⇧K). Presented as a sheet; the
+        // view-owned timeline is passed in so zoom commands can run.
+        .sheet(isPresented: Bindable(viewModel).commandPalettePresented) {
+            CommandPaletteSheet(timeline: timeline)
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
+        // F-4: expose the live timeline to menu-bar commands (zoom).
+        // `SequencerScene`-level Commands use `@FocusedValue(\.timeline)`.
+        .focusedValue(\.timeline, timeline)
+    }
+
+    // MARK: - Export Effects (EFX-1)
+
+    @State private var showingEffectsExporter = false
+    @State private var effectsExportDoc: EffectsExportDoc? = nil
+    @State private var effectsExportDefaultName: String = "Effects.csv"
+    @State private var effectsExportError: String? = nil
+
+    private func startExportEffects() {
+        guard viewModel.isSequenceLoaded else { return }
+        let tempPath = FileManager.default.temporaryDirectory
+            .appendingPathComponent("Effects-\(UUID().uuidString).csv").path
+        guard viewModel.document.exportEffectsReport(toPath: tempPath) else {
+            effectsExportError = "Couldn't build the effects report."
+            return
+        }
+        effectsExportDoc = EffectsExportDoc(sourcePath: tempPath)
+        effectsExportDefaultName = "Effects.csv"
+        showingEffectsExporter = true
+    }
+
+    // MARK: - Save As (E-1)
+
+    @State private var showingSaveAsExporter = false
+    @State private var saveAsDoc: XLSequenceExportDoc? = nil
+    @State private var saveAsDefaultName: String = "Sequence.xsq"
+    @State private var saveAsError: String? = nil
+    // LIFE-1 — non-nil holds the path of a Save-As that landed outside the
+    // show / media folders, driving an informational warning alert.
+    @State private var saveAsOutsideWarning: String? = nil
+    @State private var outputAlertMessage: String? = nil
+
+    // MARK: - Sequence Settings (E-3)
+    //
+    // State moved to `SequencerViewModel.showingSequenceSettings` so
+    // the F-4 menu command can flip it alongside the gear toolbar
+    // button. No local @State here.
+
+    /// Persist the current in-memory state to the existing path
+    /// (so the bytes are up-to-date), then present the system
+    /// file exporter. The exporter copies those bytes to the
+    /// user-picked URL, and the completion handler updates the
+    /// internal sequence path via `saveSequenceAs` so subsequent
+    /// saves write to the new location.
+    private func startSaveAs() {
+        guard viewModel.isSequenceLoaded else {
+            saveAsError = "No sequence is open."
+            return
+        }
+        if viewModel.isDirty {
+            _ = viewModel.saveSequence()
+        }
+        let path = viewModel.document.currentSequencePath()
+        if path.isEmpty {
+            saveAsError = "Cannot Save As — the sequence hasn't been saved yet. Use the New wizard to establish a first location."
+            return
+        }
+        saveAsDoc = XLSequenceExportDoc(sourcePath: path)
+        // Seed the exporter's default filename from the current
+        // basename so the system picker opens on a sensible name.
+        let base = (path as NSString).lastPathComponent
+        saveAsDefaultName = base.isEmpty ? "Sequence.xsq" : base
+        showingSaveAsExporter = true
     }
 
     /// Draggable divider below the preview pane. Vertical drag
@@ -85,9 +423,31 @@ struct SequencerView: View {
         )
     }
 
+    /// Draggable divider on the leading edge of the inspector.
+    /// Horizontal drag updates the persisted `inspectorPaneWidth`,
+    /// clamped against the viewport-derived `cap`.
+    private func inspectorResizeHandle(cap: Double) -> some View {
+        InspectorResizeHandle(
+            width: Binding(
+                get: { inspectorPaneWidth },
+                set: { inspectorPaneWidth = min(max($0, Self.inspectorMinWidth), cap) }
+            )
+        )
+    }
+
     // MARK: - Toolbar
 
     @State private var showingUnsavedPrompt = false
+    /// Position-slider drag state. While dragging we hold the scrub
+    /// value locally so live playback `playPositionMS` updates don't
+    /// fight the user's thumb; on release we commit a final seek.
+    @State private var isDraggingPosition = false
+    @State private var positionDragMS: Double = 0
+    @State private var showingRevertPrompt = false
+    /// Tracks whether the scene fills the device screen. When true,
+    /// no Stage Manager / Slide Over close-pill is overlaying the
+    /// top-left corner so the toolbar can hug the leading edge.
+    @State private var sceneIsFullScreen: Bool = true
 
     private var toolbar: some View {
         HStack(spacing: 12) {
@@ -104,20 +464,48 @@ struct SequencerView: View {
             }
 
             // Save button — enabled when the sequence is dirty.
-            // Users who want Save-As can long-press (below).
-            Button(action: { _ = viewModel.saveSequence() }) {
+            // Long-press or the sibling arrow exposes Save As.
+            Menu {
+                Button {
+                    _ = viewModel.saveSequence()
+                } label: {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                }
+                .disabled(!viewModel.isDirty || viewModel.isReadOnly)
+
+                Button {
+                    startSaveAs()
+                } label: {
+                    Label("Save As…", systemImage: "square.and.arrow.down.on.square")
+                }
+                .disabled(!viewModel.isSequenceLoaded)
+            } label: {
                 ZStack(alignment: .topTrailing) {
-                    Image(systemName: "square.and.arrow.down")
-                    if viewModel.isDirty {
+                    Image(systemName: viewModel.isReadOnly
+                          ? "lock" : "square.and.arrow.down")
+                    if viewModel.isDirty && !viewModel.isReadOnly {
                         Circle()
                             .fill(Color.orange)
                             .frame(width: 6, height: 6)
                             .offset(x: 3, y: -2)
                     }
                 }
+            } primaryAction: {
+                // Read-only opens the menu (Save As) rather than a
+                // no-op Save.
+                if !viewModel.isReadOnly {
+                    _ = viewModel.saveSequence()
+                }
             }
-            .keyboardShortcut("s", modifiers: [.command])
-            .disabled(!viewModel.isDirty)
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // Sequence Settings (E-3) — gear icon.
+            Button {
+                viewModel.showingSequenceSettings = true
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .disabled(!viewModel.isSequenceLoaded)
 
             Divider().frame(height: 24)
 
@@ -136,7 +524,6 @@ struct SequencerView: View {
             Button(action: { viewModel.togglePlayPause() }) {
                 Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
             }
-            .keyboardShortcut(.space, modifiers: [])
             Button(action: {
                 viewModel.seekTo(ms: min(viewModel.sequenceDurationMS,
                                          viewModel.playPositionMS + 10_000))
@@ -144,120 +531,139 @@ struct SequencerView: View {
                 Image(systemName: "goforward.10")
             }
 
-            Text(formatTime(viewModel.playPositionMS))
-                .monospacedDigit()
-                .frame(width: 80)
-            Text("/").foregroundStyle(.secondary)
-            Text(formatTime(viewModel.sequenceDurationMS))
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .frame(width: 80)
-
-            if viewModel.isRendering {
-                ProgressView()
-                    .controlSize(.small)
+            // Replay Section (desktop ID_AUITOOLBAR_REPLAY_SECTION):
+            // loops the selected time range via the existing loop-region
+            // plumbing. Enabled only when a selection exists.
+            Button(action: { viewModel.replaySection() }) {
+                Image(systemName: "repeat")
             }
+            .disabled(!viewModel.hasReplaySectionSelection)
+            .help("Replay selected section (loop)")
+
+            // Position / seek slider (desktop HousePreview SliderPosition):
+            // coarse one-gesture scrub across the whole sequence. While
+            // dragging we hold the value locally so live playback updates
+            // don't fight the thumb, scrub-seek for audible feedback, and
+            // commit a final seek on release. Shown only when a sequence
+            // is open.
+            if viewModel.isSequenceLoaded, viewModel.sequenceDurationMS > 0 {
+                Slider(
+                    value: Binding(
+                        get: {
+                            isDraggingPosition
+                                ? positionDragMS
+                                : Double(viewModel.playPositionMS)
+                        },
+                        set: { positionDragMS = $0 }
+                    ),
+                    in: 0...Double(viewModel.sequenceDurationMS),
+                    onEditingChanged: { editing in
+                        if editing {
+                            isDraggingPosition = true
+                            positionDragMS = Double(viewModel.playPositionMS)
+                        } else {
+                            viewModel.seekTo(ms: Int(positionDragMS))
+                            isDraggingPosition = false
+                        }
+                    }
+                )
+                .frame(width: 120)
+                .onChange(of: positionDragMS) { _, newValue in
+                    if isDraggingPosition {
+                        viewModel.scrubSeekTo(ms: Int(newValue))
+                    }
+                }
+                .help("Seek position")
+            }
+
+            Divider().frame(height: 24)
+
+            // Output to lights toggle — desktop's lightbulb. Yellow tint
+            // when on so the active output state is hard to miss; a tap
+            // while off that returns an error (no controllers, network
+            // unreachable) routes through `outputAlertMessage` because
+            // a silently-failing icon would just confuse testers.
+            Button(action: {
+                if let err = viewModel.toggleOutput() {
+                    outputAlertMessage = err
+                }
+            }) {
+                if viewModel.isOutputting {
+                    Image(systemName: "lightbulb.fill")
+                        .foregroundStyle(Color.yellow)
+                } else {
+                    Image(systemName: "lightbulb")
+                }
+            }
+            .help(viewModel.isOutputting
+                  ? "Stop output to lights"
+                  : "Output to lights")
+
+            // Play position + duration already appear under the
+            // view picker (SequencerGridV2View.topLeftCorner). The
+            // redundant toolbar copy ate ~170pt of horizontal room
+            // and forced the "Show Preview" label into a second line
+            // in narrow / portrait layouts, so it's gone now.
+
+            // Render-all button. Tier 1 memory-pressure handling
+            // aborts in-flight renders, so users need a manual
+            // restart path. Shows a spinner while rendering, the
+            // `paintpalette` icon when idle (mirrors desktop).
+            // Tapping during a render aborts the current pass and
+            // starts a fresh one — `startBackgroundRender` handles
+            // the abort-then-restart chaining safely.
+            Button(action: {
+                viewModel.startBackgroundRender()
+            }) {
+                if viewModel.isRendering {
+                    // Determinate overall-progress gauge with percent.
+                    // The bridge's renderProgressFraction can read 0
+                    // right at kickoff (before any job reports a frame),
+                    // so fall back to an indeterminate spinner until
+                    // progress actually moves.
+                    if viewModel.renderProgress > 0 {
+                        Gauge(value: viewModel.renderProgress) {
+                            EmptyView()
+                        } currentValueLabel: {
+                            Text("\(Int(viewModel.renderProgress * 100))")
+                                .font(.system(size: 8))
+                        }
+                        .gaugeStyle(.accessoryCircularCapacity)
+                        .scaleEffect(0.55)
+                        .frame(width: 24, height: 24)
+                    } else {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                } else {
+                    Image(systemName: "paintpalette")
+                }
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+            .help("Render all effects")
 
             Spacer()
 
             Text(viewModel.sequenceName ?? "")
                 .font(.headline)
+                .lineLimit(1)
+                .truncationMode(.middle)
 
             Spacer()
 
-            // Undo / Redo
+            // Undo / Redo — shortcuts live in the F-4 `.commands`
+            // block (XLightsCommands.swift); these toolbar buttons
+            // are now tap-only.
             Button(action: { viewModel.undo() }) {
                 Image(systemName: "arrow.uturn.backward")
             }
-            .keyboardShortcut("z", modifiers: [.command])
             .disabled(!viewModel.undoManager.canUndo)
 
             Button(action: { viewModel.redo() }) {
                 Image(systemName: "arrow.uturn.forward")
             }
-            .keyboardShortcut("z", modifiers: [.command, .shift])
             .disabled(!viewModel.undoManager.canRedo)
 
-            // Hidden buttons that exist purely to publish keyboard
-            // shortcuts. SwiftUI requires the shortcut to live on a
-            // visible control, but .frame(0) + .opacity(0) keeps them
-            // invisible while still reachable by the key event.
-            Group {
-                Button("Delete") {
-                    viewModel.deleteSelectedEffect()
-                }
-                .keyboardShortcut(.delete, modifiers: [])
-                .disabled(viewModel.selectedEffect == nil)
-
-                Button("Delete Forward") {
-                    viewModel.deleteSelectedEffect()
-                }
-                .keyboardShortcut(.deleteForward, modifiers: [])
-                .disabled(viewModel.selectedEffect == nil)
-
-                Button("Copy") { viewModel.copySelectedEffect() }
-                    .keyboardShortcut("c", modifiers: [.command])
-                    .disabled(viewModel.selectedEffect == nil)
-
-                Button("Paste") {
-                    // Paste onto the selected effect's row at the
-                    // current play position; if nothing is selected,
-                    // fall back to the first model row. Silently
-                    // skipped by the view model if no clipboard.
-                    let rowIdx = viewModel.selectedEffect?.rowIndex
-                        ?? viewModel.rows.firstIndex(where: { $0.timing == nil })
-                        ?? 0
-                    viewModel.pasteEffect(rowIndex: rowIdx,
-                                           startMS: viewModel.playPositionMS)
-                }
-                .keyboardShortcut("v", modifiers: [.command])
-                .disabled(!viewModel.hasClipboard)
-
-                Button("Duplicate") { viewModel.duplicateSelectedEffect() }
-                    .keyboardShortcut("d", modifiers: [.command])
-                    .disabled(viewModel.selectedEffect == nil)
-
-                // Arrow-key navigation: Left/Right cycles within the
-                // current row, Up/Down steps between model rows and
-                // picks the effect whose time range best overlaps.
-                Button("Previous Effect") { viewModel.selectPreviousEffect() }
-                    .keyboardShortcut(.leftArrow, modifiers: [])
-                    .disabled(viewModel.selectedEffect == nil)
-                Button("Next Effect") { viewModel.selectNextEffect() }
-                    .keyboardShortcut(.rightArrow, modifiers: [])
-                    .disabled(viewModel.selectedEffect == nil)
-                Button("Effect Above") { viewModel.selectEffectAbove() }
-                    .keyboardShortcut(.upArrow, modifiers: [])
-                    .disabled(viewModel.selectedEffect == nil)
-                Button("Effect Below") { viewModel.selectEffectBelow() }
-                    .keyboardShortcut(.downArrow, modifiers: [])
-                    .disabled(viewModel.selectedEffect == nil)
-
-                // Escape cancels the current selection / context, so
-                // arrow-key drill-down doesn't strand the user inside
-                // a row they can't get out of with the keyboard.
-                Button("Clear Selection") { viewModel.clearSelection() }
-                    .keyboardShortcut(.escape, modifiers: [])
-
-                // Home / End seek to sequence start / end. Frame-step
-                // with ',' and '.' nudges `playPositionMS` by exactly
-                // one frame interval — useful for precise scrub
-                // without touching the ruler.
-                Button("Seek Start") { viewModel.seekTo(ms: 0) }
-                    .keyboardShortcut(.home, modifiers: [])
-                Button("Seek End") { viewModel.seekTo(ms: viewModel.sequenceDurationMS) }
-                    .keyboardShortcut(.end, modifiers: [])
-                Button("Frame Back") {
-                    viewModel.seekTo(ms: viewModel.playPositionMS - viewModel.frameIntervalMS)
-                }
-                .keyboardShortcut(",", modifiers: [])
-                Button("Frame Forward") {
-                    viewModel.seekTo(ms: viewModel.playPositionMS + viewModel.frameIntervalMS)
-                }
-                .keyboardShortcut(".", modifiers: [])
-            }
-            .frame(width: 0, height: 0)
-            .opacity(0)
 
             Divider().frame(height: 24)
 
@@ -268,30 +674,29 @@ struct SequencerView: View {
 
             Divider().frame(height: 24)
 
-            // Preview toggle
+            // Preview toggle — house icon stands in for the preview
+            // panes; filled = panes shown, outline = hidden.
             Button(action: { viewModel.togglePreview() }) {
-                Label(
-                    viewModel.showPreview ? "Hide Preview" : "Show Preview",
-                    systemImage: viewModel.showPreview ? "eye.fill" : "eye"
-                )
+                Image(systemName: viewModel.showPreview ? "house.fill" : "house")
             }
+            .help(viewModel.showPreview ? "Hide Preview" : "Show Preview")
 
             Divider().frame(height: 24)
 
             // Zoom — shares state with pinch-to-zoom on the grid.
+            // Keyboard shortcuts for zoom live in the F-4 `.commands`
+            // block, reading the timeline via `@FocusedValue`.
             HStack(spacing: 4) {
                 Button(action: {
                     timeline.pixelsPerMS = max(0.005, timeline.pixelsPerMS / 1.5)
                 }) {
                     Image(systemName: "minus.magnifyingglass")
                 }
-                .keyboardShortcut("-", modifiers: [.command])
                 Button(action: {
                     timeline.pixelsPerMS = min(2.0, timeline.pixelsPerMS * 1.5)
                 }) {
                     Image(systemName: "plus.magnifyingglass")
                 }
-                .keyboardShortcut("=", modifiers: [.command])
             }
 
             if viewModel.hasAudio {
@@ -306,17 +711,111 @@ struct SequencerView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
+        // F-1: iPadOS 26 Stage Manager / Slide Over renders a
+        // close/-/fullscreen pill (~75pt wide) at the window's
+        // top-left as an overlay — it's NOT reported via safe-area
+        // insets. `safeAreaPadding` is a no-op here, so hard-code
+        // the clearance only when the pill is actually present.
+        // `WindowingModeProbe` reports whether the scene fills the
+        // device screen; in fullscreen the toolbar hugs the leading
+        // edge, in windowed modes it clears the pill.
+        .padding(.leading, sceneIsFullScreen ? 0 : 80)
         .background(.bar)
+        .background(
+            WindowingModeProbe(isFullScreen: $sceneIsFullScreen)
+                .frame(width: 0, height: 0)
+        )
     }
 
-    // MARK: - Helpers
+    // MARK: - Preview band (F-2 / F-3)
 
-    private func formatTime(_ ms: Int) -> String {
-        let totalSeconds = ms / 1000
-        let minutes = totalSeconds / 60
-        let seconds = totalSeconds % 60
-        let frac = (ms % 1000) / 10
-        return String(format: "%d:%02d.%02d", minutes, seconds, frac)
+    /// Builds the preview region. In `regularWide` we stack House
+    /// and Model side-by-side (the existing layout). In
+    /// `compact` (Slide Over / very narrow Stage Manager) shows one
+    /// preview at a time with a segmented picker to swap between
+    /// them — there just isn't horizontal room for two. Every
+    /// `.regular` width (narrow or wide) keeps the previews
+    /// side-by-side since users prefer seeing both at once; the
+    /// hidden preview in compact can still be opened in its own
+    /// window via the View menu (F-4) or by swapping to it first
+    /// and tapping Detach.
+    @ViewBuilder
+    private func previewBand(mode: PreviewLayoutMode,
+                             effectiveH: Double) -> some View {
+        switch mode {
+        case .regularWide, .regularNarrow:
+            HStack(spacing: 0) {
+                embeddedModelPreview
+                    .frame(maxWidth: .infinity)
+                Divider()
+                embeddedHousePreview
+                    .frame(maxWidth: .infinity)
+            }
+            .frame(height: effectiveH)
+
+        case .compact:
+            VStack(spacing: 0) {
+                HStack {
+                    Picker("Preview", selection: dockedPreview) {
+                        Text("House").tag(DockedPreviewKind.house)
+                        Text("Model").tag(DockedPreviewKind.model)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 220)
+                    Spacer()
+                }
+                .padding(.horizontal, 8)
+                .padding(.top, 4)
+
+                Group {
+                    switch dockedPreview.wrappedValue {
+                    case .house: embeddedHousePreview
+                    case .model: embeddedModelPreview
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(height: effectiveH)
+        }
+    }
+
+    /// F-1 embedded House Preview with detach-on-tap placeholder
+    /// swap. Factored so both layout branches reuse it.
+    @ViewBuilder
+    private var embeddedHousePreview: some View {
+        if viewModel.housePreviewDetached {
+            HousePreviewDockedPlaceholder()
+        } else {
+            HousePreviewView(onDetach: {
+                viewModel.pendingDetachTokens.insert("house-preview")
+                openWindow(id: "house-preview")
+            })
+        }
+    }
+
+    @ViewBuilder
+    private var embeddedModelPreview: some View {
+        if viewModel.modelPreviewDetached {
+            ModelPreviewDockedPlaceholder()
+        } else {
+            ModelPreviewView(onDetach: {
+                viewModel.pendingDetachTokens.insert("model-preview")
+                openWindow(id: "model-preview")
+            })
+        }
+    }
+
+    /// F-2 compact inspector binding. Only presents as a sheet when
+    /// the sizeClass is compact AND the user has asked for the
+    /// inspector (same flag the sidebar branches check). Setting
+    /// false dismisses and flips the view-model flag back.
+    private func compactInspectorBinding(mode: PreviewLayoutMode) -> Binding<Bool> {
+        Binding(
+            get: { mode == .compact && viewModel.showInspector },
+            set: { newValue in
+                if !newValue { viewModel.showInspector = false }
+            }
+        )
     }
 }
 
@@ -362,6 +861,46 @@ private struct PreviewResizeHandle: View {
                         }
                     }
                     .onEnded { _ in dragStartH = nil }
+            )
+    }
+}
+
+/// Thin draggable divider on the leading edge of the inspector
+/// sidebar. Horizontal drag resizes the panel — leftward widens it
+/// (handle is on the panel's leading edge), rightward narrows it.
+/// Mirrors `PreviewResizeHandle`'s overlay-on-Color.clear pattern
+/// to keep the strip a fixed 14pt wide regardless of siblings.
+private struct InspectorResizeHandle: View {
+    @Binding var width: Double
+    @State private var dragStartW: Double? = nil
+
+    var body: some View {
+        Color.clear
+            .frame(width: 14)
+            .overlay(alignment: .leading) {
+                Rectangle()
+                    .fill(Color(white: 0.25))
+                    .frame(width: 0.5)
+            }
+            .overlay {
+                VStack(spacing: 3) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        Circle()
+                            .fill(Color.secondary.opacity(0.6))
+                            .frame(width: 3, height: 3)
+                    }
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if dragStartW == nil { dragStartW = width }
+                        if let start = dragStartW {
+                            width = start - value.translation.width
+                        }
+                    }
+                    .onEnded { _ in dragStartW = nil }
             )
     }
 }

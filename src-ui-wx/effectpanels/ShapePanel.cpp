@@ -235,9 +235,10 @@ wxWindow* ShapePanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, c
         wxFont ef(20, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, NATIVE_EMOJI_FONT);
         _emojiDisplay->SetFont(ef);
         rowSizer->Add(_emojiDisplay, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+        rowSizer->Add(6, -1);
 
-        auto* browseBtn = new wxButton(parentWin, wxNewId(), "Browse...", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-        browseBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        _charBrowseBtn = new wxButton(parentWin, wxNewId(), "Browse...", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+        _charBrowseBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
             if (_fontPicker && _charSpin) {
                 CharMapDialog dlg(this, _fontPicker->GetSelectedFont(), _charSpin->GetValue());
                 dlg.ShowModal();
@@ -247,7 +248,7 @@ wxWindow* ShapePanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, c
                 ValidateWindow();
             }
         });
-        rowSizer->Add(browseBtn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+        rowSizer->Add(_charBrowseBtn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
 
         sizer->Add(rowSizer, 1, wxALL | wxEXPAND, 0);
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
@@ -270,7 +271,7 @@ wxWindow* ShapePanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer, c
         _skinToneChoice->Append("Medium Dark");
         _skinToneChoice->Append("Dark");
         _skinToneChoice->SetSelection(0);
-        sizer->Add(_skinToneChoice, 1, wxALL | wxEXPAND, 2);
+        sizer->Add(_skinToneChoice, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
         if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
         return _skinToneChoice;
@@ -311,6 +312,7 @@ void ShapePanel::ValidateWindow() {
     bool isEmoji = (object == "Emoji");
     if (_fontPicker) _fontPicker->Enable(isEmoji);
     if (_charSpin) _charSpin->Enable(isEmoji);
+    if (_charBrowseBtn) _charBrowseBtn->Enable(isEmoji);
     if (_skinToneChoice) {
         _skinToneChoice->Enable(isEmoji);
         if (!isEmoji) _skinToneChoice->SetSelection(0);

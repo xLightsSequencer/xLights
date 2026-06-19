@@ -62,6 +62,7 @@
 #include "../utils/string_utils.h"
 #include "../utils/FileUtils.h"
 #include <cstring>
+#include <set>
 #include <string_view>
 
 using namespace XmlSerialize;
@@ -129,7 +130,10 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManag
         model = DeserializeDmxGeneral(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxServoType || node_name == "dmxservo") {
         model = DeserializeDmxServo(node, modelManager, importing);
-    } else if (type == XmlNodeKeys::DmxServo3dType || node_name == "dmxservo3d") {
+    } else if (type == XmlNodeKeys::DmxServo3dType || type == "DmxServo3Axis" || node_name == "dmxservo3d") {
+        // "DmxServo3Axis" is a legacy alias for DmxServo3d (see DisplayAsTypeFromString
+        // and ModelManager::CreateModel, which both accept it); the servo configuration
+        // comes from the model's XML attributes on import.
         model = DeserializeDmxServo3d(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxSkullType) {
         model = DeserializeDmxSkull(node, modelManager, importing);
@@ -322,6 +326,35 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
     bool merge = false;
     bool showPopup = true;
 
+    // Pre-pass: collect all modelGroup names so user can choose which to import
+    std::set<std::string> selectedGroups;
+    if (importing) {
+        std::vector<std::string> allGroupNames;
+        for (pugi::xml_node c = node.first_child(); c; c = c.next_sibling()) {
+            if (std::string_view(c.name()) == "modelGroup") {
+                std::string gname = c.attribute("name").as_string();
+                if (!gname.empty()) {
+                    allGroupNames.push_back(gname);
+                }
+            }
+        }
+        if (!allGroupNames.empty()) {
+            UICallbacks* uiCb = modelManager.GetUICallbacks();
+            if (uiCb) {
+                std::vector<std::string> chosen = uiCb->ChooseFromList(
+                    "Select Groups to Import (Cancel to import no groups)",
+                    allGroupNames, allGroupNames);
+                for (const auto& s : chosen) {
+                    selectedGroups.insert(s);
+                }
+            } else {
+                for (const auto& s : allGroupNames) {
+                    selectedGroups.insert(s);
+                }
+            }
+        }
+    }
+
     pugi::xml_node f = node.first_child();
     while (f) {
         std::string_view fname = f.name();
@@ -340,7 +373,10 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
         } else if ("subModel" == fname) {
             DeserializeSubModel(model, f);
         } else if ("modelGroup" == fname && importing) {
-            model->AddModelGroups(f, model->GetName(), merge, showPopup);
+            std::string gname = f.attribute("name").as_string();
+            if (selectedGroups.count(gname)) {
+                model->AddModelGroups(f, model->GetName(), merge, showPopup);
+            }
         } else if (strcasecmp(f.name(), "shadowmodels") == 0 && importing) {
             model->ImportExtraModels(f, modelManager, "Unassigned");
         } else if (strcasecmp(f.name(), "associatedmodels") == 0 && importing) {
@@ -557,6 +593,9 @@ Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, ModelM
     model->SetCubeStyle(node.attribute(XmlNodeKeys::StyleAttribute).as_string(""));
     model->SetStrandStyle(node.attribute(XmlNodeKeys::StrandPerLineAttribute).as_string(""));
     model->SetStrandPerLayer(std::string_view(node.attribute(XmlNodeKeys::StrandPerLayerAttribute).as_string("FALSE")) == "TRUE");
+    model->SetCubeShape(node.attribute(XmlNodeKeys::CubeShapeAttribute).as_int(0));
+    model->SetHollowPct(node.attribute(XmlNodeKeys::CubeHollowAttribute).as_int(0));
+    model->SetRowOffset(node.attribute(XmlNodeKeys::CubeRowOffsetAttribute).as_int(0));
     model->Setup();
     return model;
 }

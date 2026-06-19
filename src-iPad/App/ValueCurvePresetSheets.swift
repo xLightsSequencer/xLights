@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 // Value-curve preset load / save sheets + clipboard helper
 // (G36 / G37 — C6). Works over the `.xvc` file-I/O bridge on
@@ -84,7 +85,7 @@ struct ValueCurveLoadPresetSheet: View {
     }
 
     private func reload() {
-        let raw = (viewModel.document.savedValueCurves() as? [[String: String]]) ?? []
+        let raw = viewModel.document.savedValueCurves()
         entries = raw.compactMap { d in
             guard let f = d["filename"], let s = d["serialised"] else { return nil }
             return Entry(filename: f, serialised: s)
@@ -107,7 +108,7 @@ struct VCPresetThumbnail: View {
     let serialised: String
 
     var body: some View {
-        let core = XLValueCurve(serialised: serialised)!
+        let core = XLValueCurve(serialised: serialised)
         Canvas { ctx, size in
             let w = Int(size.width)
             let h = Int(size.height)
@@ -198,5 +199,25 @@ enum ValueCurveClipboard {
 
     static func isValid(_ raw: String?) -> Bool {
         unwrap(raw) != nil
+    }
+}
+
+// MARK: - Export document
+
+/// `.xvc` document carrying the full XML built by the bridge, handed
+/// to SwiftUI's `.fileExporter` so a value curve can be saved to an
+/// arbitrary location (desktop's `ButtonExport` parity).
+struct ValueCurveExportDocument: FileDocument {
+    static let xvcType: UTType = UTType(filenameExtension: "xvc") ?? .xml
+    static var readableContentTypes: [UTType] { [xvcType] }
+    static var writableContentTypes: [UTType] { [xvcType] }
+
+    let text: String
+
+    init(text: String) { self.text = text }
+    init(configuration: ReadConfiguration) throws { self.text = "" }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(text.utf8))
     }
 }

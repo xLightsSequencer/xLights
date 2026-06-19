@@ -11,9 +11,6 @@ public:
     MetalColorWashEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("ColorWashEffect");
     }
-    ~MetalColorWashEffectData() {
-        if (fn) { [fn release]; }
-    }
 
     bool canRender() { return fn != nil; }
 
@@ -70,7 +67,7 @@ MetalColorWashEffect::~MetalColorWashEffect() {
 
 void MetalColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < 2048) {
+    if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         ColorWashEffect::Render(effect, SettingsMap, buffer);
         return;
     }

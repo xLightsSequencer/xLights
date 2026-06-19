@@ -24,9 +24,6 @@ public:
     TextEffect(int id);
     virtual ~TextEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-#ifdef LINUX
-    virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override { return false; };
-#endif
     virtual bool CanBeRandom() override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override;
 
@@ -65,6 +62,6 @@ private:
         bool isPixelBased, bool perWord) const;
     void RenderXLText(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer);
     void AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer& buffer,
-        int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90) const;
+        int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90, int numLines = 1, int caps_height = -1) const;
     FontManager& font_mgr;
 };

@@ -92,6 +92,17 @@
             "description": "Reverses the direction / polarity of the in-transition. Ignored by transitions that are inherently non-directional."
         },
         {
+            "id": "In_Transition_Blur",
+            "label": "Blur",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 25,
+            "default": 0,
+            "suppressIfDefault": true,
+            "description": "Softens the transition edge. Only active for Wipe, Clock, From Middle, Square Explode, Circle Explode, Blinds, Blend, Slide Checks, Slide Bars and Blobs transitions."
+        },
+        {
             "id": "Out_Transition_Header",
             "label": "",
             "type": "string",
@@ -120,6 +131,17 @@
             "default": false,
             "suppressIfDefault": true,
             "description": "Reverses the direction / polarity of the out-transition."
+        },
+        {
+            "id": "Out_Transition_Blur",
+            "label": "Blur",
+            "type": "int",
+            "controlType": "slider",
+            "min": 0,
+            "max": 25,
+            "default": 0,
+            "suppressIfDefault": true,
+            "description": "Softens the transition edge. Only active for Wipe, Clock, From Middle, Square Explode, Circle Explode, Blinds, Blend, Slide Checks, Slide Bars and Blobs transitions."
         }
     ],
     "groups": [
@@ -132,7 +154,8 @@
                     "properties": [
                         "In_Transition_Header",
                         "In_Transition_Adjust",
-                        "In_Transition_Reverse"
+                        "In_Transition_Reverse",
+                        "In_Transition_Blur"
                     ]
                 },
                 {
@@ -140,7 +163,8 @@
                     "properties": [
                         "Out_Transition_Header",
                         "Out_Transition_Adjust",
-                        "Out_Transition_Reverse"
+                        "Out_Transition_Reverse",
+                        "Out_Transition_Blur"
                     ]
                 }
             ]

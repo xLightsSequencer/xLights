@@ -5,6 +5,7 @@
 #include <wx/string.h>
 //*)
 #include <wx/msgdlg.h>
+#include <wx/stattext.h>
 
 //(*IdInit(PositionZoneDialog)
 const wxWindowID PositionZoneDialog::ID_GRID_Zones = wxNewId();
@@ -58,14 +59,33 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
     Connect(ID_BUTTON_DeleteZone, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&PositionZoneDialog::OnButton_DeleteZoneClick);
     //*)
 
-    // restrict all columns to integer input
-    Grid_Zones->SetDefaultEditor(new wxGridCellNumberEditor());
-    Grid_Zones->SetColFormatNumber(0);
-    Grid_Zones->SetColFormatNumber(1);
-    Grid_Zones->SetColFormatNumber(2);
-    Grid_Zones->SetColFormatNumber(3);
-    Grid_Zones->SetColFormatNumber(4);
-    Grid_Zones->SetColFormatNumber(5);
+    // instruction text above the grid
+    const wxString bullet(wxUniChar(0x2022));
+    const wxString helpTextLabel = wxString::Format(
+        _("Define zones that trigger a DMX channel output when the moving head enters that pan/tilt range.\n"
+          "  %s  Pan Min/Max: pan channel value range (0-255) that defines this zone\n"
+          "  %s  Tilt Min/Max: tilt channel value range (0-255) that defines this zone\n"
+          "  %s  Channel: DMX channel number to set when the head is inside this zone\n"
+          "  %s  Value: DMX value (0-255) to send on that channel"),
+        bullet, bullet, bullet, bullet);
+    wxStaticText* helpText = new wxStaticText(this, wxID_ANY, helpTextLabel);
+    FlexGridSizer1->Prepend(helpText, 0, wxALL | wxEXPAND, 8);
+    FlexGridSizer1->RemoveGrowableRow(0);
+    FlexGridSizer1->AddGrowableRow(1);
+
+    // per-column spin editors with min/max ranges
+    auto makeAttr = [](int min, int max) {
+        wxGridCellAttr* attr = new wxGridCellAttr();
+        attr->SetEditor(new wxGridCellNumberEditor(min, max));
+        attr->SetRenderer(new wxGridCellNumberRenderer());
+        return attr;
+    };
+    Grid_Zones->SetColAttr(0, makeAttr(0, 255));   // Pan Min
+    Grid_Zones->SetColAttr(1, makeAttr(0, 255));   // Pan Max
+    Grid_Zones->SetColAttr(2, makeAttr(0, 255));   // Tilt Min
+    Grid_Zones->SetColAttr(3, makeAttr(0, 255));   // Tilt Max
+    Grid_Zones->SetColAttr(4, makeAttr(1, 512));   // Channel
+    Grid_Zones->SetColAttr(5, makeAttr(0, 255));   // Value
 
     for (const auto& zone : _zones) {
         int row = Grid_Zones->GetNumberRows();

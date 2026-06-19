@@ -896,6 +896,10 @@ void NodeSelectGrid::ImportModel(const std::string& filename)
 
     if (result) {
         pugi::xml_node root = doc.document_element();
+        // Unwrap new-format <models> container to get the inner <model> element
+        if (std::string_view(root.name()) == "models") {
+            root = root.first_child();
+        }
         ImportModelXML(root);
     } else {
         DisplayError("Failure loading xModel file.");
@@ -905,7 +909,13 @@ void NodeSelectGrid::ImportModel(const std::string& filename)
 //Load Custom Model As Selection
 void NodeSelectGrid::ImportModelXML(pugi::xml_node xmlData)
 {
-    if (std::string_view(xmlData.name()) != "custommodel") {
+    std::string_view nodeName = xmlData.name();
+    if (nodeName == "model") {
+        if (std::string_view(xmlData.attribute("DisplayAs").as_string()) != "Custom") {
+            DisplayError("xModel file not a Custom Model.");
+            return;
+        }
+    } else if (nodeName != "custommodel") {
         DisplayError("xModel file not a Custom Model.");
         return;
     }

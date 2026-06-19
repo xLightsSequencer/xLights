@@ -33,6 +33,7 @@
 #include <map>
 #include <list>
 #include <string>
+#include <unordered_map>
 
 class Model;
 class ModelPreview;
@@ -155,6 +156,9 @@ private:
     void OnButtonMoreClick(wxCommandEvent& event);
     //*)
 
+    void OnClose(wxCloseEvent& event);
+    void OnCancelButton(wxCommandEvent& event);
+    void ConfirmClose();
     void OnAddBtnPopup(wxCommandEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);
@@ -178,6 +182,7 @@ private:
     ModelPreview* modelPreview = nullptr;
     Model* model = nullptr;
     std::map<std::string, std::map<std::string, std::string>> faceData;
+    std::unordered_map<std::string, std::vector<size_t>> _nodeNameToIndex;
 
     void SelectFaceModel(const std::string& s);
     void UpdatePreview(const std::string& channels, wxColor c);

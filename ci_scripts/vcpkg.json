@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "xlights-ci",
+  "description": "CI-safe vcpkg manifest — omits CUDA/OpenCL/QSV which require external SDKs.",
+  "dependencies": [
+    {
+      "name": "ffmpeg",
+      "default-features": false,
+      "features": [
+        "avcodec",
+        "avdevice",
+        "avfilter",
+        "avformat",
+        "swresample",
+        "swscale",
+        "gpl",
+        "x264",
+        "x265",
+        "vulkan"
+      ]
+    },
+    "sdl2",
+    "zstd",
+    "curl",
+    "zlib",
+    "hidapi",
+    "libxlsxwriter",
+    "libwebp"
+  ]
+}

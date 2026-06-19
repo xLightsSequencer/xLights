@@ -1521,6 +1521,16 @@ public:
         DrawTextLimited(dc, _displayName, pt, sz - wxSize(4, 4));
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         if (m != nullptr) {
+            if (m->IsFromBase()) {
+                wxString linkChar = wxString::FromUTF8("\xF0\x9F\x94\x97"); // 🔗 U+1F517
+                wxSize charSz = dc.GetTextExtent(linkChar);
+                wxPoint linkPt(location.x + offset.x + sz.x - charSz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3),
+                               location.y + offset.y + ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3));
+                dc.SetClippingRegion(location + offset, sz);
+                dc.DrawText(linkChar, linkPt);
+                dc.DestroyClippingRegion();
+            }
+
             auto iconType = "xlART_" + DisplayAsTypeToString(m->GetDisplayAs()) + "_ICON";
             int iconSize = MODEL_ICON_SIZE;
             if (iconSize > 24) {
@@ -2687,6 +2697,10 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent& event)
                 }
                 m->GetModel()->SetControllerPort(0);
             }
+        }
+        while (!_xLights->DoAllWork()) {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
         }
         ReloadModels();
     } else if (_popup != nullptr) {

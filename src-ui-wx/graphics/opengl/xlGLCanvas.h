@@ -24,9 +24,7 @@
 
 class wxImage;
 
-extern "C" {
-   struct AVFrame;
-}
+struct VideoWriterFrame;
 
 class xlGLCanvas
     : public wxGLCanvas
@@ -61,7 +59,7 @@ class xlGLCanvas
 		// caller's responsibility to delete the image when done with it
 		wxImage *GrabImage( wxSize size = wxSize(0,0) );
         void captureNextFrame(int w, int h) {}
-        bool getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize);
+        bool getFrameForExport(VideoWriterFrame& frame);
 
         virtual void render() {};
     
@@ -101,6 +99,9 @@ class xlGLCanvas
     private:
         std::string _name;
         wxGLContext* m_context = nullptr;
+        // ANGLE (USE_GLES) build only: opaque xlAngleEGL window context/surface
+        // bound to this canvas's native window.  nullptr on native-GL builds.
+        void* m_eglContext = nullptr;
         int  m_zDepth = 0;
         bool isCoreProfile = false;
         std::map<GLuint, GLuint> vertexArrayIds;

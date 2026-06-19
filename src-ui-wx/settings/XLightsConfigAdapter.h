@@ -12,6 +12,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #if __has_include(<wx/string.h>)
 #include <wx/string.h>
@@ -49,6 +50,7 @@ public:
 
     // --- Write helpers --------------------------------------------------
     void Write(const std::string& key, const std::string& val);
+    void Write(const std::string& key, const char* val) { Write(key, std::string(val ? val : "")); }
 #if __has_include(<wx/string.h>)
     void Write(const std::string& key, const wxString&    val);
 #endif
@@ -94,6 +96,11 @@ XLightsConfigAdapter* GetXLightsBookmarksConfig();
 /// Call once early in xLightsApp::OnInit (before xLightsFrame is created).
 /// Determines AppData path, loads JSON, and imports legacy wxConfig on first run.
 void InitializeXLightsConfig();
+
+/// Returns the path to the xLights log file.
+std::filesystem::path GetLogFilePath();
+std::filesystem::path GetLogFileFolder();
+std::string GetLogFileName();
 
 /// Wipe all settings to factory defaults (called from the -w command-line flag).
 void WipeXLightsConfig();

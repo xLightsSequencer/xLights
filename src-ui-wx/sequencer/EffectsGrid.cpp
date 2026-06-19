@@ -10,10 +10,13 @@
 
 #include "wx/glcanvas.h"
 #include "wx/wx.h"
+#include <wx/clipbrd.h>
 #include <wx/numdlg.h>
 #include <wx/progdlg.h>
 #include <wx/textdlg.h>
-#ifdef __WXMAC__
+#if defined(USE_GLES) && !defined(__WXMAC__)
+#include <GLES3/gl3.h>
+#elif defined(__WXMAC__)
 #include "OpenGL/gl.h"
 #else
 #include <GL/gl.h>
@@ -25,11 +28,14 @@
 #include "render/EffectLayer.h"
 #include "sequencer/EffectTimingDialog.h"
 #include "EffectsGrid.h"
-#include "LyricBreakdown.h"
+#include "EffectWheelDialog.h"
+#include "BufferPanel.h"
+#include "lyrics/LyricBreakdown.h"
 #include "MainSequencer.h"
 #include "render/PixelBuffer.h"
 #include "RowHeading.h"
 #include "render/SequenceElements.h"
+#include "render/SongStructureManager.h"
 #include "TimeLine.h"
 #include "sequencer/AutoLabelDialog.h"
 #include "shared/utils/BitmapCache.h"
@@ -38,6 +44,7 @@
 #include "sequencer/RenderCommandEvent.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 #include "media/VideoReader.h"
 #include "effects/RenderableEffect.h"
 #include "effectpanels/EffectIconCache.h"
@@ -50,6 +57,7 @@
 #include "effects/VideoEffect.h"
 #include "models/Model.h"
 #include "utils/string_utils.h"
+#include "xLightsVersion.h"
 
 #include <cmath>
 #include <limits>
@@ -62,8 +70,13 @@
 #define EFFECT_RESIZE_MOVE 3
 #define EFFECT_RESIZE_LEFT_EDGE 4
 #define EFFECT_RESIZE_RIGHT_EDGE 5
+#define EFFECT_RESIZE_FADE_IN 6
+#define EFFECT_RESIZE_FADE_OUT 7
 #define TIMING_ALPHA (0x60)
 #define DRAG_THRESHOLD 3
+#define FADE_HANDLE_CENTER_Y_OFFSET 4
+#define FADE_HANDLE_SIZE 4
+#define FADE_HANDLE_HIT_SLOP 6
 
 BEGIN_EVENT_TABLE(EffectsGrid, GRAPHICS_BASE_CLASS)
 EVT_MOTION(EffectsGrid::mouseMoved)
@@ -121,6 +134,7 @@ const long EffectsGrid::ID_GRID_MNU_CLOSE_GAP = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DUPLICATE_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_FILL_REGION = wxNewId();
 
 int findDataEffect::GetStrand() const {
     if (nl != nullptr) {
@@ -221,6 +235,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint& po
     mSearchRow = -1;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    mScrollTimer.Bind(wxEVT_TIMER, &EffectsGrid::OnScrollTimer, this);
 
     SetDropTarget(new EffectDropTarget(this));
     playArgs = new EventPlayEffectArgs();
@@ -332,8 +347,68 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
     } else {
-        if (update_time > -1) {
-            UpdateTimePosition(update_time);
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+        if (ri != nullptr && ri->element != nullptr && ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            if (update_time > -1) {
+                UpdateTimePosition(update_time);
+            }
+            return;
+        }
+
+        // Double-clicked on empty cell -> show the circular effect wheel!
+        int startTime = selectedTimeMS;
+        int endTime = selectedTimeMS + 1000; // default 1 second
+
+        // A. If a cell range is selected, and double-click was within it, use that range
+        if (mCellRangeSelected && row >= GetStartRow() && row <= GetEndRow() &&
+            selectedTimeMS >= GetMSFromColumn(GetStartColumn()) && selectedTimeMS <= GetMSFromColumn(GetEndColumn())) {
+            startTime = GetMSFromColumn(GetStartColumn());
+            endTime = GetMSFromColumn(GetEndColumn());
+        }
+        // B. Snapping to timing marks
+        else if (mSequenceElements->GetSelectedTimingRow() >= 0) {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel != nullptr) {
+                Effect* te = tel->GetEffectAtTime(selectedTimeMS);
+                if (te != nullptr) {
+                    startTime = te->GetStartTimeMS();
+                    endTime = te->GetEndTimeMS();
+                }
+            }
+        }
+
+        // C. Fetch sequencer-scoped EFFECT keybindings, limit to 18
+        std::vector<const KeyBinding*> effectBindings;
+        MainSequencer* ms = dynamic_cast<MainSequencer*>(mParent);
+        if (ms != nullptr) {
+            for (const auto& kb : ms->keyBindings.GetBindings()) {
+                if (!kb.IsDisabled() && kb.GetType() == "EFFECT" && kb.InScope(KBSCOPE::Sequence)) {
+                    effectBindings.push_back(&kb);
+                    if (effectBindings.size() >= 18) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        bool effectDropped = false;
+        if (!effectBindings.empty()) {
+            EffectWheelDialog dlg(this, effectBindings);
+            dlg.PositionAtMouse(ClientToScreen(event.GetPosition()));
+            if (dlg.ShowModal() == wxID_OK) {
+                const KeyBinding* selectedKb = dlg.GetSelectedKeyBinding();
+                if (selectedKb != nullptr) {
+                    DropEffectAt(row, selectedKb->GetEffectName(), selectedKb->GetEffectString(), selectedKb->GetEffectDataVersion(), startTime, endTime);
+                    effectDropped = true;
+                }
+            }
+        }
+
+        if (!effectDropped) {
+            // Fallback to updating the playhead if no effect was dropped or no keybindings are configured
+            if (update_time > -1) {
+                UpdateTimePosition(update_time);
+            }
         }
     }
 }
@@ -389,6 +464,15 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         wxMenuItem* menu_duplicate = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_EFFECT, "Duplicate");
         if (mSelectedEffect == nullptr) {
             menu_duplicate->Enable(false);
+        }
+
+        wxMenuItem* menu_fillRegion = mnuLayer.Append(ID_GRID_MNU_FILL_REGION, "Fill Region from Timing Marks");
+        {
+            bool canFillRegion = mSelectedEffect != nullptr
+                && GetActiveTimingElement() != nullptr
+                && mSequenceElements != nullptr
+                && mSequenceElements->GetSongStructureManager().HasRegions();
+            menu_fillRegion->Enable(canFillRegion);
         }
 
         // Undo
@@ -558,6 +642,12 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
 void EffectsGrid::keyReleased(wxKeyEvent& event) {
 }
 void EffectsGrid::keyPressed(wxKeyEvent& event) {
+    if (event.GetKeyCode() == WXK_ESCAPE && mEffectMoveDragging) {
+        CancelMouseOperations();
+        mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+        mSequenceElements->get_undo_mgr().RemoveUnusedMarkers();
+        Draw();
+    }
 }
 
 void EffectsGrid::sendRenderDirtyEvent() {
@@ -1095,6 +1185,9 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
     } else if (id == ID_GRID_MNU_DUPLICATE_EFFECT) {
         spdlog::debug("OnGridPopup - DUPLICATE_EFFECT");
         DuplicateSelectedEffects();
+    } else if (id == ID_GRID_MNU_FILL_REGION) {
+        spdlog::debug("OnGridPopup - FILL_REGION");
+        FillRegionFromTimingMarks();
     } else if (id == ID_GRID_MNU_PRESETS) {
         spdlog::debug("OnGridPopup - PRESETS");
 
@@ -1280,7 +1373,9 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             phoneme_layer->UnSelectAllEffects();
             phoneme_layer->SelectEffectsInTimeRange(word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS());
             phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
-            BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), xLightsApp::GetFrame(), mSequenceElements->get_undo_mgr());
+            xLightsFrame* xframe = xLightsApp::GetFrame();
+            xframe->LoadPhonemeDictionaries();
+            BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), xframe->dictionary, mSequenceElements->get_undo_mgr());
             element->SetCollapsed(false);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);
@@ -1322,10 +1417,12 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             phoneme_layer->UnSelectAllEffects();
         } else {
             phoneme_layer->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+            xLightsFrame* xframe = xLightsApp::GetFrame();
+            xframe->LoadPhonemeDictionaries();
             for (int x = 0; x < layer->GetEffectCount(); x++) {
                 word_effect = layer->GetEffect(x);
                 if (word_effect->GetSelected() != EFFECT_NOT_SELECTED) {
-                    BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), xLightsApp::GetFrame(), mSequenceElements->get_undo_mgr());
+                    BreakdownWord(phoneme_layer, word_effect->GetStartTimeMS(), word_effect->GetEndTimeMS(), word_effect->GetEffectName(), mSequenceElements->GetFrequency(), xframe->dictionary, mSequenceElements->get_undo_mgr());
                 }
             }
             element->SetCollapsed(false);
@@ -1661,7 +1758,7 @@ bool EffectsGrid::IsMouseOverTiming(int y) {
 }
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event) {
-    if (!mIsInitialized || mSequenceElements == nullptr) {
+    if (!mIsInitialized || mSequenceElements == nullptr || mTimeline == nullptr) {
         return;
     }
 
@@ -1669,10 +1766,28 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
     bool out_of_bounds = rowIndex < 0 || (rowIndex >= (int)mSequenceElements->GetVisibleRowInformationSize());
 
     if (mResizing) {
+        mDragEndX = event.GetX();
+        mDragEndY = event.GetY();
         // Resize() will check threshold for MOVE operations internally
         // For edge resizing, Resize() allows immediate response
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
         Draw();
+    } else if (mEffectMoveDragging) {
+        if (!mEffectMoveDragThresholdExceeded) {
+            int dx = abs(event.GetX() - mEffectMoveDragStartX);
+            int dy = abs(event.GetY() - mEffectMoveDragStartY);
+            if (dx >= DRAG_THRESHOLD || dy >= DRAG_THRESHOLD) {
+                mEffectMoveDragThresholdExceeded = true;
+            }
+        }
+        if (mEffectMoveDragThresholdExceeded) {
+            mLastDragX = event.GetX();
+            mLastDragY = event.GetY();
+            mLastDragSnap = event.ControlDown();
+            mLastDragAlt = event.AltDown();
+            UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap, mLastDragAlt);
+            Draw();
+        }
     } else if (mDragging) {
         // Check if mouse has moved beyond threshold before updating drag selection
         if (!mDragThresholdExceeded) {
@@ -1722,13 +1837,14 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
     } else {
         if (!xlights->IsACActive() || rowIndex < mSequenceElements->GetNumberOfTimingRows()) {
             if (!out_of_bounds) {
-                Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
-                if (element != nullptr) {
+                Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(rowIndex);
+                if (rowInfo != nullptr && rowInfo->element != nullptr) {
                     RunMouseOverHitTests(rowIndex, event.GetX(), event.GetY());
                 }
             }
         } else {
-            SetCursor(wxCURSOR_DEFAULT);
+            static const wxCursor s_default(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
         }
     }
@@ -1795,6 +1911,57 @@ void EffectsGrid::CreateEffectForFile(int x, int y, const std::string& effectNam
     wxPostEvent(GetParent(), eventDropped);
 }
 
+void EffectsGrid::DropEffectAt(int row, const std::string& effectName, const std::string& effectSettings, const std::string& effectVersion, int startTime, int endTime) {
+    if (row < 0 || row >= (int)mSequenceElements->GetVisibleRowInformationSize()) return;
+
+    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+    if (el == nullptr || el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) return;
+
+    xlights->UnselectEffect();
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    el->SelectEffectsInTimeRange(startTime, endTime);
+    el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+
+    Effect* effect = el->AddEffect(0, effectName, effectSettings, "", startTime, endTime, EFFECT_SELECTED, false);
+
+    if (effect != nullptr) {
+        if (xlights->GetEffectManager().GetEffect(effectName) != nullptr &&
+            xlights->GetEffectManager().GetEffect(effectName)->needToAdjustSettings(effectVersion)) {
+            xlights->GetEffectManager().GetEffect(effectName)->adjustSettings(effectVersion, effect, false);
+        }
+
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
+        
+        mDropRow = row;
+        ProcessDroppedEffect(effect);
+
+        if (xlights->GetBufferPanel() != nullptr) {
+            Model* modelFull = xlights->AllModels[el->GetParentElement()->GetFullName()];
+            Model* modelName = xlights->AllModels[el->GetParentElement()->GetModelName()];
+            if (modelFull != nullptr) {
+                xlights->GetBufferPanel()->UpdateBufferStyles(modelFull);
+            }
+            if (modelName != nullptr) {
+                xlights->GetBufferPanel()->UpdateCamera(modelName);
+            }
+        }
+
+        if (!xlights->IsRenderSuspended()) {
+            xlights->RenderEffectForModel(el->GetParentElement()->GetModelName(), startTime, endTime);
+        }
+
+        xlights->SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                  effect->GetEffectName(), effect->GetSettings(),
+                                  effect->GetPaletteMap(), effect->GetStartTimeMS(),
+                                  effect->GetEndTimeMS(), false);
+    }
+
+    xlights->GetMainSequencer()->PanelRowHeadings->Refresh(false);
+    xlights->GetMainSequencer()->PanelEffectGrid->Refresh(false);
+}
+
 int MapHitLocationToEffectSelection(HitLocation location) {
     switch (location) {
     case HitLocation::NONE:
@@ -1802,10 +1969,12 @@ int MapHitLocationToEffectSelection(HitLocation location) {
     case HitLocation::LEFT:
     case HitLocation::LEFT_EDGE:
     case HitLocation::LEFT_EDGE_DISCONNECT:
+    case HitLocation::FADE_IN_HANDLE:
         return EFFECT_LT_SELECTED;
     case HitLocation::RIGHT:
     case HitLocation::RIGHT_EDGE:
     case HitLocation::RIGHT_EDGE_DISCONNECT:
+    case HitLocation::FADE_OUT_HANDLE:
         return EFFECT_RT_SELECTED;
     case HitLocation::CENTER:
         return EFFECT_SELECTED;
@@ -1813,7 +1982,7 @@ int MapHitLocationToEffectSelection(HitLocation location) {
     return EFFECT_NOT_SELECTED;
 }
 
-Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocation& selectionType) {
+Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocation& selectionType, int y) {
     
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
@@ -1832,7 +2001,31 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
 
         if (effectLayer->IsFixedTimingLayer()) {
             selectionType = HitLocation::NONE;
-        } else if (!eff->IsLocked()) {
+        } else {
+            double fadeInTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+            double fadeOutTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+            int durationMS = eff->GetEndTimeMS() - eff->GetStartTimeMS();
+
+            bool checkFadeIn = (fadeInTime > 0.0 && durationMS > 0);
+            bool checkFadeOut = (fadeOutTime > 0.0 && durationMS > 0);
+
+            int inTransitionEnd = startPos;
+            if (checkFadeIn) {
+                inTransitionEnd = startPos + (int)(std::min(fadeInTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            }
+            int outTransitionStart = endPos;
+            if (checkFadeOut) {
+                outTransitionStart = endPos - (int)(std::min(fadeOutTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            }
+
+            int yRowTop = row * DEFAULT_ROW_HEADING_HEIGHT;
+            bool yNearTop = (y != -1 && abs(y - (yRowTop + FADE_HANDLE_CENTER_Y_OFFSET)) <= FADE_HANDLE_HIT_SLOP);
+
+            if (!eff->IsLocked() && yNearTop && checkFadeIn && abs(position - inTransitionEnd) <= FADE_HANDLE_HIT_SLOP) {
+                selectionType = HitLocation::FADE_IN_HANDLE;
+            } else if (!eff->IsLocked() && yNearTop && checkFadeOut && abs(position - outTransitionStart) <= FADE_HANDLE_HIT_SLOP) {
+                selectionType = HitLocation::FADE_OUT_HANDLE;
+            } else if (!eff->IsLocked()) {
             if ((endPos - startPos) < 8) {
                 // too small to really differentiate, just
                 // provide ability to make the effect larger
@@ -1860,6 +2053,7 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
             selectionType = HitLocation::CENTER;
         }
     }
+}
     return eff;
 }
 
@@ -1875,6 +2069,7 @@ void EffectsGrid::ClearSelection() {
     mDragStartRow = 0;
     mDragStartX = -1;
     mDragStartY = -1;
+    ResetEffectMoveDragState();
     UnselectEffect();
     mSelectedEffect = nullptr;
     mRangeCursorRow = mRangeStartRow;
@@ -1918,7 +2113,13 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
     int effectIndex;
     HitLocation selectionType;
     int time = mTimeline->GetRawTimeMSfromPosition(event.GetX());
-    Effect* selectedEffect = GetEffectAtRowAndTime(row, time, effectIndex, selectionType);
+    Effect* selectedEffect = GetEffectAtRowAndTime(row, time, effectIndex, selectionType, event.GetY());
+    bool wasSelectedForGroupDrag = (selectedEffect != nullptr &&
+                                    selectedEffect->GetSelected() != EFFECT_NOT_SELECTED &&
+                                    selectionType == HitLocation::CENTER &&
+                                    mResizingMode == EFFECT_RESIZE_MOVE &&
+                                    MultipleEffectsSelected() &&
+                                    !(event.ShiftDown() || event.ControlDown()));
     if (selectedEffect != nullptr) {
         spdlog::debug("EffectsGrid::mouseDown effect selected {}.", (const char*)selectedEffect->GetEffectName().c_str());
         switch (selectionType) {
@@ -1926,6 +2127,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             break;
         case HitLocation::LEFT_EDGE:
         case HitLocation::LEFT_EDGE_DISCONNECT:
+        case HitLocation::FADE_IN_HANDLE:
             selectedTimeMS = selectedEffect->GetStartTimeMS();
             break;
         case HitLocation::LEFT:
@@ -1940,14 +2142,17 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             break;
         case HitLocation::RIGHT_EDGE:
         case HitLocation::RIGHT_EDGE_DISCONNECT:
+        case HitLocation::FADE_OUT_HANDLE:
             selectedTimeMS = selectedEffect->GetEndTimeMS();
             break;
         }
 
         if (!(event.ShiftDown() || event.ControlDown() || event.AltDown())) {
-            mSequenceElements->UnSelectAllEffects();
-            if ((selectionType != HitLocation::CENTER) || ((selectionType == HitLocation::CENTER) && (mResizingMode == EFFECT_RESIZE_MOVE))) {
-                selectedEffect->SetSelected(MapHitLocationToEffectSelection(selectionType));
+            if (!wasSelectedForGroupDrag) {
+                mSequenceElements->UnSelectAllEffects();
+                if ((selectionType != HitLocation::CENTER) || ((selectionType == HitLocation::CENTER) && (mResizingMode == EFFECT_RESIZE_MOVE))) {
+                    selectedEffect->SetSelected(MapHitLocationToEffectSelection(selectionType));
+                }
             }
         }
         if (event.ControlDown()) {
@@ -2000,11 +2205,45 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
     }
 
     if (!mMouseOperationsCancelled) {
-        if (mResizingMode != EFFECT_RESIZE_NO) {
+        if (mResizingMode == EFFECT_RESIZE_MOVE && selectedEffect != nullptr) {
+            // Ghost drag-to-move/copy: non-destructive drag with dim originals and ghost at target
+            if (selectedEffect->GetSelected() == EFFECT_NOT_SELECTED)
+                selectedEffect->SetSelected(EFFECT_SELECTED);
+            mEffectMoveDragging = true;
+            mEffectMoveDragThresholdExceeded = false;
+            mEffectMoveDragGroup = wasSelectedForGroupDrag;
+            mEffectMoveDragStartX = event.GetX();
+            mEffectMoveDragStartY = event.GetY();
+            mEffectMoveAnchorRow = row;
+            mEffectMoveClickOffsetMS = selectedTimeMS - selectedEffect->GetStartTimeMS();
+            mEffectMoveAnchorEffect = selectedEffect;
+            mEffectMoveTargetRow = row;
+            mEffectMoveTargetDeltaMS = 0;
+            mEffectMoveHasCollision = false;
+            mEffectMoveSnapshots.clear();
+            for (int vrow = 0; vrow < (int)mSequenceElements->GetVisibleRowInformationSize(); vrow++) {
+                Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(vrow);
+                if (ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+                EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(vrow);
+                if (el == nullptr) continue;
+                for (int i = 0; i < el->GetEffectCount(); i++) {
+                    Effect* e = el->GetEffect(i);
+                    if (e->GetSelected() != EFFECT_NOT_SELECTED) {
+                        mEffectMoveSnapshots.push_back({e, el, e->GetStartTimeMS(), e->GetEndTimeMS(), vrow});
+                    }
+                }
+            }
+            mEffectLayer = mSequenceElements->GetVisibleEffectLayer(row);
+            mResizeEffectIndex = effectIndex;
+            CaptureMouse();
+            Draw();
+        } else if (mResizingMode != EFFECT_RESIZE_NO) {
             if (selectedEffect != nullptr) {
                 mResizing = true;
                 mDragThresholdExceeded = false;
                 mResizeEffectIndex = effectIndex;
+                mDragEndX = event.GetX();
+                mDragEndY = event.GetY();
                 CaptureMouse();
                 Draw();
             }
@@ -2025,8 +2264,25 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
                 mDragEndX = event.GetX();
                 mDragEndY = event.GetY();
                 if (event.ShiftDown()) {
+                    mDragAddToSelection = false;
+                    mAdditiveDragBaseSelection.clear();
                     UpdateSelectionRectangle();
+                } else if (event.ControlDown()) {
+                    mDragAddToSelection = true;
+                    mAdditiveDragBaseSelection.clear();
+                    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
+                        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+                        if (el == nullptr) continue;
+                        for (int i = 0; i < el->GetEffectCount(); i++) {
+                            Effect* e = el->GetEffect(i);
+                            if (e->GetSelected() != EFFECT_NOT_SELECTED)
+                                mAdditiveDragBaseSelection.push_back(e);
+                        }
+                    }
+                    EstablishSelectionRectangle();
                 } else {
+                    mDragAddToSelection = false;
+                    mAdditiveDragBaseSelection.clear();
                     EstablishSelectionRectangle();
                 }
                 CaptureMouse();
@@ -3651,7 +3907,19 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
         if (HasCapture()) {
             ReleaseMouse();
         }
-        if (mResizing) {
+        if (mEffectMoveDragging) {
+            static const wxCursor s_default(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
+            mEffectMoveDragging = false;
+            if (mEffectMoveDragThresholdExceeded && !mEffectMoveHasCollision && !mEffectMoveSnapshots.empty()) {
+                ApplyEffectMoveDrag();
+            } else if (!mEffectMoveDragThresholdExceeded && mEffectMoveDragGroup && mEffectMoveAnchorEffect != nullptr) {
+                // Keep the group selected; just update the settings panel to the clicked effect
+                mSelectedEffect = mEffectMoveAnchorEffect;
+                RaiseSelectedEffectChanged(mSelectedEffect, false);
+            }
+            ResetEffectMoveDragState();
+        } else if (mResizing) {
             if (mEffectLayer->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (MultipleEffectsSelected()) {
                     std::string lastModel;
@@ -3719,6 +3987,9 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                             sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
                         }
                         RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
+                        if (event.ShiftDown() || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+                            RaiseSelectedEffectChanged(effect, false);
+                        }
                     }
                 }
             }
@@ -3736,6 +4007,8 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             UnsetToolTip();
             mDragging = false;
             mDragThresholdExceeded = false;
+            mDragAddToSelection = false;
+            mAdditiveDragBaseSelection.clear();
             if ((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0)) {
                 checkForEmptyCell = true;
             }
@@ -3904,6 +4177,18 @@ void EffectsGrid::Resize(int position, bool offset, bool control) {
                 }
             }
         }
+    }
+
+    if ((wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) && mResizingMode != EFFECT_RESIZE_MOVE && mResizingMode != EFFECT_RESIZE_NO && !MultipleEffectsSelected()) {
+        if (new_time != -1) {
+            ResizeSingleEffectMS(new_time);
+        } else {
+            ResizeSingleEffect(position);
+        }
+        if (mSequenceElements->get_undo_mgr().ChangeCaptured()) {
+            mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+        }
+        return;
     }
 
     if (new_time != -1) {
@@ -5442,7 +5727,7 @@ int EffectsGrid::GetMSFromColumn(int col) const {
     return 0;
 }
 
-Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersion, bool row_paste) {
+Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersion, bool row_paste, bool layerMode) {
     
 
     Effect* res = nullptr;
@@ -5450,7 +5735,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
     if (mSequenceElements == nullptr)
         return res;
 
-    spdlog::info("Pasting data: {}", (const char*)data.c_str());
+    spdlog::debug("Pasting data: {}", (const char*)data.c_str());
 
     wxArrayString all_efdata = wxSplit(data, '\n', wxT('\0'));
     if (all_efdata.size() == 0)
@@ -5509,7 +5794,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
 
-    spdlog::info("mPartialCellSelected {},   OneCellSelected: {}    paste_by_cell:  {}", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
+    spdlog::debug("mPartialCellSelected {},   OneCellSelected: {}    paste_by_cell:  {}", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
     if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive() || row_paste) {
         if (((number_of_timings + number_of_effects) > 1) || xlights->IsACActive() || paste_by_cell) // multi-effect paste or row_paste or paste_by_cell one effect
@@ -5542,10 +5827,32 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
             }
             int drop_row = mDropRow;
             int start_row = wxAtoi(eff1data[5]);
+            bool anchorRowUsed = false;
             if (xlights->IsACActive()) {
                 start_row = wxAtoi(banner_data[7]);
+            } else {
+                // Store anchor row so empty rows above the first effect are correctly preserved when pasting.
+                for (size_t fi = 6; fi < banner_data.size(); ++fi) {
+                    if (banner_data[fi].StartsWith("ANCHOR_ROW:")) {
+                        int ar = wxAtoi(banner_data[fi].Mid(11));
+                        if (ar >= 0) {
+                            start_row = ar;
+                            anchorRowUsed = true;
+                        }
+                        break;
+                    }
+                }
             }
             int drop_row_offset = drop_row - start_row;
+
+            if (anchorRowUsed && !layerMode && wxAtoi(eff1data[5]) > start_row) {
+                int anchorAbsRow = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(anchorAbsRow);
+                if (ri != nullptr && ri->element != nullptr && ri->element->GetCollapsed()) {
+                    ri->element->SetCollapsed(false);
+                    mSequenceElements->PopulateRowInformation();
+                }
+            }
             if (number_of_timings > 0 && number_of_effects > 0) // only allow timing and model effects to be pasted on same rows
             {
                 drop_row = 0;
@@ -5598,6 +5905,227 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
             mSequenceElements->get_undo_mgr().CreateUndoStep();
 
+            struct LayerTarget {
+                Element* element = nullptr;
+                int layerIdx = 0;
+            };
+            std::map<int, LayerTarget> layerTargetMap; // keyed by eff_row value
+            bool hasLayerTokens = false;
+
+            if (layerMode && number_of_effects > 0 && !xlights->IsACActive()) {
+                bool singleElementPaste = true; // stays true for old-format; computed below for new-format
+                for (size_t si = 1; si < all_efdata.size() - 1 && !hasLayerTokens; si++) {
+                    wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                    if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                        continue;
+                    for (int fi = (int)ef.size() - 1; fi >= 8; --fi) {
+                        if (ef[fi].StartsWith("LAYER:")) {
+                            hasLayerTokens = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasLayerTokens) {
+                    std::vector<std::pair<int, int>> erLayerVec;
+                    for (size_t si = 1; si < all_efdata.size() - 1; si++) {
+                        wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                        if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                            continue;
+                        int er = wxAtoi(ef[5]);
+                        int layerIdx = 0;
+                        for (int fi = (int)ef.size() - 1; fi >= 8; --fi) {
+                            if (ef[fi].StartsWith("LAYER:")) {
+                                layerIdx = wxAtoi(ef[fi].Mid(6));
+                                break;
+                            }
+                        }
+                        erLayerVec.push_back({ er, layerIdx });
+                    }
+                    std::stable_sort(erLayerVec.begin(), erLayerVec.end(),
+                                     [](const auto& a, const auto& b) { return a.first < b.first; });
+
+                    struct ElemGroup {
+                        int numRows = 0;
+                        int targetRank = 0;
+                    };
+                    std::vector<ElemGroup> groups;
+                    std::map<int, int> erToRank;
+                    int prevLayer2 = INT_MAX;
+                    int startRow0 = -1;
+                    int sumExtraRows = 0;
+
+                    for (auto& [er, layerIdx] : erLayerVec) {
+                        if (erToRank.count(er))
+                            continue;
+                        if (layerIdx <= prevLayer2) {
+                            // New element group
+                            if (!groups.empty())
+                                sumExtraRows += groups.back().numRows - 1;
+                            int targetRank = groups.empty() ? 0 : (er - startRow0 - sumExtraRows);
+                            groups.push_back({ 1, targetRank });
+                            if (startRow0 < 0)
+                                startRow0 = er;
+                        } else {
+                            groups.back().numRows++;
+                        }
+                        prevLayer2 = layerIdx;
+                        erToRank[er] = groups.back().targetRank;
+                    }
+
+                    {
+                        int maxRank = 0;
+                        for (auto& [er2, rank2] : erToRank)
+                            maxRank = std::max(maxRank, rank2);
+                        singleElementPaste = (maxRank == 0);
+                    }
+
+                    int anchorOffset = 0;
+                    if (startRow0 >= 0) {
+                        for (size_t fi = 6; fi < banner_data.size(); ++fi) {
+                            if (banner_data[fi].StartsWith("ANCHOR_ROW:")) {
+                                int ar = wxAtoi(banner_data[fi].Mid(11));
+                                if (ar >= 0 && startRow0 > ar)
+                                    anchorOffset = startRow0 - ar;
+                                break;
+                            }
+                        }
+                    }
+                    // Before expanding and mapping ranks, delete unused layers on the model
+                    {
+                        int absModelRow = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(absModelRow);
+                        ModelElement* me = (ri != nullptr) ? dynamic_cast<ModelElement*>(ri->element) : nullptr;
+                        if (me != nullptr) {
+                            auto& undo_mgr = mSequenceElements->get_undo_mgr();
+                            auto deleteUnused = [&](Element* elem) {
+                                for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
+                                    if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
+                                        undo_mgr.CaptureRemovedLayer(elem->GetFullName(), i);
+                                        elem->RemoveEffectLayer(i);
+                                        --i;
+                                    }
+                                }
+                            };
+                            xLightsApp::GetFrame()->AbortRender();
+                            deleteUnused(me);
+                            for (int si = 0; si < me->GetSubModelCount(); ++si)
+                                deleteUnused(me->GetSubModel(si));
+                            undo_mgr.CreateUndoStep(); // needed for redo
+                            if (!singleElementPaste) {
+                                me->ShowStrands(true);
+                                mSequenceElements->PopulateRowInformation();
+                            }
+                        }
+                    }
+
+                    // Map target rank → element by walking rows from the anchor.
+                    std::map<int, Element*> rankToElem;
+                    if (singleElementPaste) {
+                        int row = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                        Row_Information_Struct* ri2 = mSequenceElements->GetRowInformationFromRow(row);
+                        if (ri2 != nullptr && ri2->element != nullptr)
+                            rankToElem[0] = ri2->element;
+                    } else {
+                        std::set<int> ranksNeeded;
+                        int maxRank = -1;
+                        for (auto& [er, rank] : erToRank) {
+                            ranksNeeded.insert(rank);
+                            maxRank = std::max(maxRank, rank);
+                        }
+
+                        int row = mDropRow + anchorOffset + mSequenceElements->GetFirstVisibleModelRow();
+                        Element* prevElem = nullptr;
+                        int elemIdx = -1;
+                        while (elemIdx < maxRank && !ranksNeeded.empty()) {
+                            Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+                            if (ri == nullptr || ri->element == nullptr)
+                                break;
+                            if (ri->element != prevElem) {
+                                ++elemIdx;
+                                if (ranksNeeded.count(elemIdx)) {
+                                    rankToElem[elemIdx] = ri->element;
+                                    ranksNeeded.erase(elemIdx);
+                                }
+                                prevElem = ri->element;
+                            }
+                            ++row;
+                        }
+                    }
+
+                    for (auto& [er, rank] : erToRank) {
+                        LayerTarget lt;
+                        lt.element = rankToElem.count(rank) ? rankToElem[rank] : nullptr;
+                        lt.layerIdx = 0;
+                        layerTargetMap[er] = lt;
+                    }
+
+                } else {
+                    int trow = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                    Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(trow);
+                    if (ri != nullptr && ri->element != nullptr) {
+                        Element* targetElem = ri->element;
+                        std::set<int> uniqueRows;
+                        for (size_t si = 1; si < all_efdata.size() - 1; si++) {
+                            wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                            if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                                continue;
+                            uniqueRows.insert(wxAtoi(ef[5]));
+                        }
+                        int layerIdx = 0;
+                        for (int er : uniqueRows) {
+                            LayerTarget lt;
+                            lt.element = targetElem;
+                            lt.layerIdx = layerIdx++;
+                            layerTargetMap[er] = lt;
+                        }
+                    }
+                }
+
+                // Pre-create layers for both new-format and old-format layer-mode paste.
+                if (!layerTargetMap.empty()) {
+                    std::map<Element*, int> elemMaxLayer;
+                    for (auto& [row, lt] : layerTargetMap)
+                        if (lt.element)
+                            elemMaxLayer[lt.element] = std::max(elemMaxLayer[lt.element], lt.layerIdx);
+                    for (size_t si = 1; si < all_efdata.size() - 1; si++) {
+                        wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                        if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                            continue;
+                        int er = wxAtoi(ef[5]);
+                        auto it = layerTargetMap.find(er);
+                        if (it == layerTargetMap.end() || it->second.element == nullptr)
+                            continue;
+                        for (int fi = (int)ef.size() - 1; fi >= 8; --fi) {
+                            if (ef[fi].StartsWith("LAYER:")) {
+                                int li2 = wxAtoi(ef[fi].Mid(6));
+                                elemMaxLayer[it->second.element] = std::max(elemMaxLayer[it->second.element], li2);
+                                break;
+                            }
+                        }
+                    }
+                    bool precreateNeedsPopulate = false;
+                    for (auto& [elem, maxLayer] : elemMaxLayer) {
+                        while ((int)elem->GetEffectLayerCount() <= maxLayer) {
+                            EffectLayer* nl = elem->AddEffectLayer();
+                            int pos = (int)elem->GetEffectLayerCount() - 1;
+                            mSequenceElements->get_undo_mgr().CaptureAddedLayer(elem->GetFullName(), nl->GetIndex(), pos);
+                            precreateNeedsPopulate = true;
+                        }
+                    }
+                    if (precreateNeedsPopulate) {
+                        if (!singleElementPaste) {
+                            for (auto& [elem, maxLayer] : elemMaxLayer) {
+                                ModelElement* me2 = dynamic_cast<ModelElement*>(elem);
+                                if (me2 != nullptr)
+                                    me2->ShowStrands(true);
+                            }
+                        }
+                        mSequenceElements->PopulateRowInformation();
+                    }
+                }
+            }
+
             for (int rpts = 0; rpts < timestopaste; ++rpts) {
                 for (size_t i = 1; i < all_efdata.size() - 1; i++) {
                     wxArrayString efdata = wxSplit(all_efdata[i], '\t', wxT('\0'));
@@ -5633,14 +6161,35 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                         drop_row += mSequenceElements->GetFirstVisibleModelRow();
                     }
                     Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
-                    if (row_info == nullptr)
-                        break;
-                    Element* elem = row_info->element;
-                    if (elem == nullptr)
-                        break;
-                    EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
-                    if (el == nullptr)
-                        break;
+                    EffectLayer* el = nullptr;
+                    if (layerMode && !is_timing_effect && !layerTargetMap.empty()) {
+                        int er = wxAtoi(efdata[5]);
+                        auto it = layerTargetMap.find(er);
+                        if (it != layerTargetMap.end() && it->second.element != nullptr) {
+                            int layerIdx = it->second.layerIdx;
+                            if (hasLayerTokens) {
+                                for (int fi = (int)efdata.size() - 1; fi >= 8; --fi) {
+                                    if (efdata[fi].StartsWith("LAYER:")) {
+                                        layerIdx = wxAtoi(efdata[fi].Mid(6));
+                                        break;
+                                    }
+                                }
+                            }
+                            if (layerIdx >= 0 && layerIdx < (int)it->second.element->GetEffectLayerCount())
+                                el = it->second.element->GetEffectLayer(layerIdx);
+                        }
+                        if (el == nullptr)
+                            continue;
+                    } else {
+                        if (row_info == nullptr)
+                            break;
+                        Element* elem = row_info->element;
+                        if (elem == nullptr)
+                            break;
+                        el = mSequenceElements->GetEffectLayer(row_info);
+                        if (el == nullptr)
+                            break;
+                    }
                     if (el->GetRangeIsClearMS(new_start_time, new_end_time)) {
                         int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                         if (effectIndex >= 0 || is_timing_effect) {
@@ -5658,7 +6207,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
                             if (ef != nullptr) {
                                 ef->SetLocked(false);
-                                spdlog::info("(1) Created effect {}  {}  {}  {} {} -->  {}",
+                                spdlog::debug("(1) Created effect {}  {}  {}  {} {} -->  {}",
                                                  (const char*)efdata[0].c_str(),
                                                  (const char*)efdata[1].Left(128).c_str(),
                                                  (const char*)efdata[2].c_str(),
@@ -5674,6 +6223,11 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                 }
             }
             sendRenderDirtyEvent();
+            if (layerMode && !layerTargetMap.empty()) {
+                xlights->DoForceSequencerRefresh();
+                wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+                wxPostEvent(GetParent(), eventRowHeaderChanged);
+            }
             mPartialCellSelected = false;
         } else {
             // we refer to all_efdata[1] below so make sure it is there
@@ -5693,7 +6247,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                     return res;
                 }
                 bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
-                spdlog::info("mCellRangeSelected: {}   mPartialCellSelected: {}", mCellRangeSelected, mPartialCellSelected);
+                spdlog::debug("mCellRangeSelected: {}   mPartialCellSelected: {}", mCellRangeSelected, mPartialCellSelected);
 
                 if (mCellRangeSelected && !mPartialCellSelected) {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -5707,7 +6261,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                     return res;
                 }
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                spdlog::info("mDropRow: {}   effectIndex: {}", mDropRow, effectIndex);
+                spdlog::debug("mDropRow: {}   effectIndex: {}", mDropRow, effectIndex);
                 if (effectIndex >= 0 || is_timing_effect) {
                     int end_time = mDropEndTimeMS;
                     if (((efdata.size() >= 7) && GetActiveTimingElement() == nullptr) || !paste_by_cell) // use original effect length if no timing track is active
@@ -5733,7 +6287,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
                         if (ef != nullptr) {
                             ef->SetLocked(false);
-                            spdlog::info("(2) Created effect {}  {}  {}  {} {} -->  {}",
+                            spdlog::debug("(2) Created effect {}  {}  {}  {} {} -->  {}",
                                              (const char*)efdata[0].c_str(),
                                              (const char*)efdata[1].Left(128).c_str(),
                                              (const char*)efdata[2].c_str(),
@@ -5781,17 +6335,17 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                 if (col1 > col2) {
                     std::swap(col1, col2);
                 }
-                spdlog::info("row1: {}   row2: {}   col1: {}   col2: {}", row1, row2, col1, col2);
+                spdlog::debug("row1: {}   row2: {}   col1: {}   col2: {}", row1, row2, col1, col2);
 
                 for (int row = row1; row <= row2; row++) {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
                     if (tel->GetEffect(col1) == nullptr) {
-                        spdlog::info("No start time");
+                        spdlog::debug("No start time");
                         break;
                     }
                     int start_time = tel->GetEffect(col1)->GetStartTimeMS();
                     if (tel->GetEffect(col2) == nullptr) {
-                        spdlog::info("No end time");
+                        spdlog::debug("No end time");
                         break;
                     }
                     int end_time = tel->GetEffect(col2)->GetEndTimeMS();
@@ -5821,7 +6375,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
                             if (ef != nullptr) {
                                 ef->SetLocked(false);
-                                spdlog::info("(3) Created effect {}  {}  {}  {} {} -->  {}",
+                                spdlog::debug("(3) Created effect {}  {}  {}  {} {} -->  {}",
                                                  (const char*)efdata[0].c_str(),
                                                  (const char*)efdata[1].Left(128).c_str(),
                                                  (const char*)efdata[2].c_str(),
@@ -5876,13 +6430,18 @@ void EffectsGrid::ResizeMoveMultipleEffectsMS(int time, bool offset) {
     int toLeft, toRight;
     GetRangeOfMovementForSelectedEffects(toLeft, toRight);
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
-        deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS();
+        Effect* eff = mEffectLayer ? mEffectLayer->GetEffect(mResizeEffectIndex) : nullptr;
+        if (eff == nullptr) return;
+        deltaTime = time - eff->GetStartTimeMS();
     } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE) {
-        deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS();
+        Effect* eff = mEffectLayer ? mEffectLayer->GetEffect(mResizeEffectIndex) : nullptr;
+        if (eff == nullptr) return;
+        deltaTime = time - eff->GetEndTimeMS();
     } else if (mResizingMode == EFFECT_RESIZE_MOVE) {
         EFFECT_SCREEN_MODE mode;
         int x1, x2, x3, x4;
-        Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
+        Effect* eff = mEffectLayer ? mEffectLayer->GetEffect(mResizeEffectIndex) : nullptr;
+        if (eff == nullptr) return;
         mTimeline->GetPositionsFromTimeRange(eff->GetStartTimeMS(),
                                              eff->GetEndTimeMS(), mode, x1, x2, x3, x4);
         int midpoint = mTimeline->GetTimeMSfromPosition((x1 + x2) / 2) + mTimeline->GetStartTimeMS();
@@ -6013,6 +6572,28 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
         return;
 
     int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
+
+    if (wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+        if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
+            mSequenceElements->get_undo_mgr().CaptureModifiedEffect(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), effect);
+            mStartFadeInSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+            mStartFadeOutSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+        }
+        int durationMS = effect->GetEndTimeMS() - effect->GetStartTimeMS();
+        if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_IN) {
+            double deltaSec = (double)(time - mStartResizeTimeMS) / 1000.0;
+            double newFadeInSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeInSec + deltaSec));
+            effect->SetSetting("T_TEXTCTRL_Fadein", wxString::Format("%.2f", newFadeInSec).ToStdString());
+        } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+            double deltaSec = (double)(mStartResizeTimeMS - time) / 1000.0;
+            double newFadeOutSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeOutSec + deltaSec));
+            effect->SetSetting("T_TEXTCTRL_Fadeout", wxString::Format("%.2f", newFadeOutSec).ToStdString());
+        }
+        SetEffectStatusText(effect);
+        Draw();
+        return;
+    }
+
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
         int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT, mSequenceElements->GetMinPeriod());
         // User has dragged left side to the right side exit
@@ -6090,41 +6671,57 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
 }
 
 void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
+    // Cached stock cursors — constructing wxCursor(wxCURSOR_*) per
+    // mouse-move event allocates a 16 KiB CGImage on macOS.
+    static const wxCursor s_default(wxCURSOR_DEFAULT);
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_pointLeft(wxCURSOR_POINT_LEFT);
+    static const wxCursor s_pointRight(wxCURSOR_POINT_RIGHT);
+    static const wxCursor s_hand(wxCURSOR_HAND);
+
     int effectIndex;
 
     int time = mTimeline->GetRawTimeMSfromPosition(x);
     HitLocation selectionType = HitLocation::NONE;
-    Effect* eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType);
+    Effect* eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType, y);
     if (eff != nullptr) {
         mResizeEffectIndex = effectIndex;
         switch (selectionType) {
         case HitLocation::NONE:
-            SetCursor(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
             break;
+        case HitLocation::FADE_IN_HANDLE:
+            SetCursor(s_sizeWE);
+            mResizingMode = EFFECT_RESIZE_FADE_IN;
+            break;
+        case HitLocation::FADE_OUT_HANDLE:
+            SetCursor(s_sizeWE);
+            mResizingMode = EFFECT_RESIZE_FADE_OUT;
+            break;
         case HitLocation::LEFT_EDGE_DISCONNECT:
-            SetCursor(wxCURSOR_POINT_LEFT);
+            SetCursor(s_pointLeft);
             mResizingMode = EFFECT_RESIZE_LEFT_EDGE;
             break;
         case HitLocation::LEFT_EDGE:
-            SetCursor(wxCURSOR_SIZEWE);
+            SetCursor(s_sizeWE);
             mResizingMode = EFFECT_RESIZE_LEFT;
             break;
         case HitLocation::RIGHT_EDGE_DISCONNECT:
-            SetCursor(wxCURSOR_POINT_RIGHT);
+            SetCursor(s_pointRight);
             mResizingMode = EFFECT_RESIZE_RIGHT_EDGE;
             break;
         case HitLocation::RIGHT_EDGE:
-            SetCursor(wxCURSOR_SIZEWE);
+            SetCursor(s_sizeWE);
             mResizingMode = EFFECT_RESIZE_RIGHT;
             break;
         case HitLocation::LEFT:
         case HitLocation::RIGHT:
-            SetCursor(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
             break;
         case HitLocation::CENTER:
-            SetCursor(wxCURSOR_HAND);
+            SetCursor(s_hand);
             mResizingMode = EFFECT_RESIZE_MOVE;
             break;
             // update effect details
@@ -6136,7 +6733,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
         } else {
             xlights->SetStatusText(xlights->CurrentDir, true);
         }
-        SetCursor(wxCURSOR_DEFAULT);
+        SetCursor(s_default);
         mResizingMode = EFFECT_RESIZE_NO;
     }
 }
@@ -6189,11 +6786,22 @@ void EffectsGrid::SetEffectStatusText(Effect* eff) const {
 
         wxString disabledStr = eff->IsEffectRenderDisabled() ? "DISABLED" : "";
 
-        wxString e = wxString::Format("start: %s end: %s duration: %s%s %s %s %s",
+        wxString fadeInfo = "";
+        double fadeInTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+        double fadeOutTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+        if (fadeInTime > 0) {
+            fadeInfo += wxString::Format(" fadein: %.2fs", fadeInTime);
+        }
+        if (fadeOutTime > 0) {
+            fadeInfo += wxString::Format(" fadeout: %.2fs", fadeOutTime);
+        }
+
+        wxString e = wxString::Format("start: %s end: %s duration: %s%s%s %s %s %s",
                                       FORMATTIME(eff->GetStartTimeMS()),
                                       FORMATTIME(eff->GetEndTimeMS()),
                                       FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()),
                                       columnInfo,
+                                      fadeInfo,
                                       eff->GetEffectName(),
                                       eff->GetDescription(),
                                       disabledStr);
@@ -6291,6 +6899,9 @@ void EffectsGrid::CancelMouseOperations() {
     mResizingMode = EFFECT_RESIZE_NO;
     mDragThresholdExceeded = false;
     mResizeEffectIndex = -1;
+    ResetEffectMoveDragState();
+    static const wxCursor s_default(wxCURSOR_DEFAULT);
+    SetCursor(s_default);
     mMouseOperationsCancelled = true;
 }
 bool EffectsGrid::CanDropEffect() const {
@@ -6302,7 +6913,12 @@ void EffectsGrid::UpdateZoomPosition(int time) const {
 }
 
 void EffectsGrid::EstablishSelectionRectangle() {
-    mSequenceElements->UnSelectAllEffects();
+    if (mDragAddToSelection) {
+        for (Effect* e : mAdditiveDragBaseSelection)
+            e->SetSelected(EFFECT_SELECTED);
+    } else {
+        mSequenceElements->UnSelectAllEffects();
+    }
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
     int row1 = GetRow(mDragStartY);
     if (row1 >= mSequenceElements->GetNumberOfTimingRows()) {
@@ -6356,9 +6972,15 @@ void EffectsGrid::EstablishSelectionRectangle() {
 }
 
 void EffectsGrid::UpdateSelectionRectangle() {
-    // Unselect all effects and clear mSelectedEffect
+    if (mSequenceElements == nullptr || mTimeline == nullptr) {
+        return;
+    }
     UnselectEffect();
     mSequenceElements->UnSelectAllEffects();
+    if (mDragAddToSelection) {
+        for (Effect* e : mAdditiveDragBaseSelection)
+            e->SetSelected(EFFECT_SELECTED);
+    }
 
     if (GetRow(mDragEndY) < mSequenceElements->GetNumberOfTimingRows()) {
         mRangeEndRow = GetRow(mDragEndY);
@@ -6403,7 +7025,9 @@ void EffectsGrid::UpdateSelectionRectangle() {
 }
 
 void EffectsGrid::SetRCToolTip() {
-    if (mSequenceElements == nullptr || !IsShownOnScreen()) {
+    // Bail while the app is exiting: the parent window hierarchy / native peer may be
+    // mid-teardown, making IsShownOnScreen() (parent walk) and SetToolTip() unsafe.
+    if (mSequenceElements == nullptr || (xlights != nullptr && xlights->IsExiting()) || !IsShownOnScreen()) {
         return;
     }
 
@@ -6930,6 +7554,31 @@ void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVer
         backgrounds->AddRectAsTriangles(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
         backgrounds->AddRectAsTriangles(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
     }
+
+    int centerY = y1 - 2 + FADE_HANDLE_CENTER_Y_OFFSET;
+    auto drawDiamond = [&](int cx, int cy, int size, const xlColor& color) {
+        int szBorder = size + 1;
+        backgrounds->AddVertex(cx, cy - szBorder, xlBLACK);
+        backgrounds->AddVertex(cx + szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx - szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx, cy + szBorder, xlBLACK);
+        backgrounds->AddVertex(cx + szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx - szBorder, cy, xlBLACK);
+
+        backgrounds->AddVertex(cx, cy - size, color);
+        backgrounds->AddVertex(cx + size, cy, color);
+        backgrounds->AddVertex(cx - size, cy, color);
+        backgrounds->AddVertex(cx, cy + size, color);
+        backgrounds->AddVertex(cx + size, cy, color);
+        backgrounds->AddVertex(cx - size, cy, color);
+    };
+
+    if (inTransitionEnd > 0) {
+        drawDiamond(inTransitionEnd, centerY, FADE_HANDLE_SIZE, xlGREEN);
+    }
+    if (outTransitionStart > 0) {
+        drawDiamond(outTransitionStart, centerY, FADE_HANDLE_SIZE, xlRED);
+    }
 }
 
 void EffectsGrid::DrawTimingEffects(int row) {
@@ -7078,6 +7727,7 @@ void EffectsGrid::Draw() {
         }
         ctx = PrepareContextForDrawing();
         if (ctx == nullptr) {
+            mIsInitialized = false;
             return;
         }
         CreateEffectIconTextures(ctx);
@@ -7145,6 +7795,8 @@ void EffectsGrid::Draw() {
 
         DrawLines(ctx);
         DrawEffects(ctx);
+        DrawSongStructureOverlays(ctx);
+        DrawEffectMoveDragOverlay(ctx);
         DrawPlayMarker(ctx);
 
         bool has_timing_effects = (mSequenceElements->GetNumberOfActiveTimingEffects() > 0);
@@ -7413,8 +8065,335 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const {
     }
 }
 
+void EffectsGrid::ResetEffectMoveDragState() {
+    mScrollTimer.Stop();
+    mScrollDir = 0;
+    mHScrollDir = 0;
+    mEffectMoveDragging = false;
+    mEffectMoveDragThresholdExceeded = false;
+    mEffectMoveDragGroup = false;
+    mEffectMoveHasCollision = false;
+    mEffectMoveCopyMode = false;
+    mEffectMoveSnapshots.clear();
+    mEffectMoveAnchorEffect = nullptr;
+}
+
+void EffectsGrid::OnScrollTimer(wxTimerEvent&)
+{
+    MainSequencer* ms = static_cast<MainSequencer*>(mParent);
+    bool scrolled = false;
+
+    if (mScrollDir != 0) {
+        int cur = mSequenceElements->GetFirstVisibleModelRow();
+        int maxRow = mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed();
+        int next = std::clamp(cur + mScrollDir, 0, std::max(0, maxRow));
+        if (next != cur) {
+            int scroll = mSequenceElements->SetFirstVisibleModelRow(next);
+            ScrollBy(scroll);
+            ms->UpdateEffectGridVerticalScrollBar();
+            scrolled = true;
+        }
+    }
+
+    if (mHScrollDir != 0) {
+        wxScrollBar* hsb = ms->ScrollBarEffectsHorizontal;
+        int thumbSize = hsb->GetThumbSize();
+        int maxPos = std::max(0, hsb->GetRange() - thumbSize);
+        if (maxPos > 0) {
+            int position = hsb->GetThumbPosition();
+            int step = std::max(1, thumbSize / 10);
+            int next = std::clamp(position + mHScrollDir * step, 0, maxPos);
+            if (next != position) {
+                hsb->SetThumbPosition(next);
+                wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+                ms->HorizontalScrollChanged(eventScroll);
+                scrolled = true;
+            }
+        }
+    }
+
+    UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap, mLastDragAlt);
+    if (scrolled) Draw();
+}
+
+int EffectsGrid::SnapCursorToTimingMark(int timeMS, int x) const {
+    if (mSequenceElements->GetSelectedTimingRow() < 0) return timeMS;
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if (tel == nullptr || tel->GetEffectCount() == 0) return timeMS;
+    int rawTime = mTimeline->GetRawTimeMSfromPosition(x);
+    int rawTimePlus = mTimeline->GetRawTimeMSfromPosition(x + 1);
+    int steps = 2;
+    while (rawTimePlus == rawTime && steps < 11) {
+        rawTimePlus = mTimeline->GetAbsoluteTimeMSfromPosition(x + steps);
+        ++steps;
+    }
+    int snapRange = (rawTimePlus - rawTime) * (10 / (steps - 1));
+    if (snapRange == 0) snapRange = 25;
+    int t1 = -1000, t2 = 100000000;
+    Effect* te = tel->GetEffectAtTime(timeMS);
+    if (te) { t1 = te->GetStartTimeMS(); t2 = te->GetEndTimeMS(); }
+    else {
+        te = tel->GetEffectBeforeTime(timeMS); if (te) t1 = te->GetEndTimeMS();
+        te = tel->GetEffectAfterTime(timeMS);  if (te) t2 = te->GetStartTimeMS();
+    }
+    if ((timeMS - t1) <= snapRange) return t1;
+    if ((t2 - timeMS) <= snapRange) return t2;
+    return timeMS;
+}
+
+void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, bool altDown) {
+    static const wxCursor s_noEntry(wxCURSOR_NO_ENTRY);
+    static const wxCursor s_sizing(wxCURSOR_SIZING);
+
+    mEffectMoveCopyMode = altDown;
+
+    if (mEffectMoveSnapshots.empty()) return;
+
+    int numVisibleRows = (int)mSequenceElements->GetVisibleRowInformationSize();
+    int numTimingRows = mSequenceElements->GetNumberOfTimingRows();
+
+    // Compute time delta: the anchor effect's new start = cursorTime - clickOffset
+    int cursorTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(x);
+
+    // Snap cursor to nearest timing mark (Ctrl inverts the global snap setting, same as Resize())
+    if ((xlights->GetSnapToTimingMarks() && !snapToTiming) || (!xlights->GetSnapToTimingMarks() && snapToTiming))
+        cursorTimeMS = SnapCursorToTimingMark(cursorTimeMS, x);
+
+    int anchorOrigStart = 0;
+    for (auto& snap : mEffectMoveSnapshots) {
+        if (snap.effect == mEffectMoveAnchorEffect) {
+            anchorOrigStart = snap.origStartTimeMS;
+            break;
+        }
+    }
+    int rawDelta = mTimeline->RoundToMultipleOfPeriod(
+        cursorTimeMS - mEffectMoveClickOffsetMS - anchorOrigStart,
+        mSequenceElements->GetFrequency());
+
+    // Clamp so no effect goes before t=0 or past the timeline end
+    int minOrigStart = INT_MAX;
+    int maxOrigEnd = 0;
+    for (auto& snap : mEffectMoveSnapshots) {
+        if (snap.origStartTimeMS < minOrigStart) minOrigStart = snap.origStartTimeMS;
+        if (snap.origEndTimeMS > maxOrigEnd) maxOrigEnd = snap.origEndTimeMS;
+    }
+    int timelineLength = mTimeline->GetTimeLength();
+    rawDelta = std::max(rawDelta, -minOrigStart);
+    rawDelta = std::min(rawDelta, timelineLength - maxOrigEnd);
+    mEffectMoveTargetDeltaMS = rawDelta;
+
+    // Compute target row, clamped to model rows
+    int cursorRow = GetRow(y);
+    cursorRow = std::max(cursorRow, numTimingRows);
+    cursorRow = std::min(cursorRow, numVisibleRows - 1);
+    int rowDelta = cursorRow - mEffectMoveAnchorRow;
+    // Clamp rowDelta so every snapshot stays within model rows
+    for (auto& snap : mEffectMoveSnapshots) {
+        int snapTarget = snap.origVisibleRow + rowDelta;
+        if (snapTarget < numTimingRows)
+            rowDelta = numTimingRows - snap.origVisibleRow;
+        if (snapTarget >= numVisibleRows)
+            rowDelta = numVisibleRows - 1 - snap.origVisibleRow;
+    }
+    mEffectMoveTargetRow = mEffectMoveAnchorRow + rowDelta;
+
+    // Collision detection — track per-effect so only colliding ghosts turn red
+    bool anyCollision = false;
+    for (auto& snap : mEffectMoveSnapshots) {
+        int snapTargetRow = snap.origVisibleRow + rowDelta;
+        if (snapTargetRow < numTimingRows || snapTargetRow >= numVisibleRows) {
+            snap.hasCollision = true;
+            anyCollision = true;
+            continue;
+        }
+        EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snapTargetRow);
+        if (tl == nullptr) {
+            snap.hasCollision = true;
+            anyCollision = true;
+            continue;
+        }
+        int ts = snap.origStartTimeMS + rawDelta;
+        int te = snap.origEndTimeMS + rawDelta;
+        snap.hasCollision = !tl->GetRangeIsClearMS(ts, te, !mEffectMoveCopyMode);
+        if (snap.hasCollision) anyCollision = true;
+    }
+
+    // When dragging horizontally within the same rows in move mode, clamp the
+    // delta so effects butt up against the nearest blocking neighbor instead of
+    // bouncing back to their original position on collision.
+    if (anyCollision && rowDelta == 0 && !mEffectMoveCopyMode && rawDelta != 0) {
+        int clampedDelta = rawDelta;
+        for (auto& snap : mEffectMoveSnapshots) {
+            if (!snap.hasCollision) continue;
+            EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snap.origVisibleRow);
+            if (tl == nullptr) continue;
+            int ts = snap.origStartTimeMS + rawDelta;
+            int te = snap.origEndTimeMS + rawDelta;
+            for (Effect* e : tl->GetEffects()) {
+                if (e->GetSelected() != EFFECT_NOT_SELECTED) continue;
+                if (e->GetStartTimeMS() >= te || e->GetEndTimeMS() <= ts) continue;
+                if (rawDelta > 0) {
+                    // Moving right: clamp so our end meets the blocker's start
+                    clampedDelta = std::min(clampedDelta, e->GetStartTimeMS() - snap.origEndTimeMS);
+                } else {
+                    // Moving left: clamp so our start meets the blocker's end
+                    clampedDelta = std::max(clampedDelta, e->GetEndTimeMS() - snap.origStartTimeMS);
+                }
+            }
+        }
+        if (clampedDelta != rawDelta && clampedDelta != 0) {
+            bool clampedOk = true;
+            for (auto& snap : mEffectMoveSnapshots) {
+                EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snap.origVisibleRow);
+                if (tl == nullptr) { clampedOk = false; break; }
+                int ts = snap.origStartTimeMS + clampedDelta;
+                int te = snap.origEndTimeMS + clampedDelta;
+                if (!tl->GetRangeIsClearMS(ts, te, true)) { clampedOk = false; break; }
+            }
+            if (clampedOk) {
+                mEffectMoveTargetDeltaMS = clampedDelta;
+                anyCollision = false;
+                for (auto& snap : mEffectMoveSnapshots) snap.hasCollision = false;
+            }
+        }
+    }
+
+    mEffectMoveHasCollision = anyCollision;
+    SetCursor(anyCollision ? s_noEntry : s_sizing);
+
+    wxSize sz = GetSize();
+    int zone = FromDIP(40);
+
+    mScrollDir = (y < zone) ? -1 : (y > sz.GetHeight() - zone) ? 1 : 0;
+    mHScrollDir = (x < zone) ? -1 : (x > sz.GetWidth() - zone) ? 1 : 0;
+
+    if (mScrollDir != 0 || mHScrollDir != 0) {
+        if (!mScrollTimer.IsRunning()) mScrollTimer.Start(150);
+    } else {
+        mScrollTimer.Stop();
+    }
+}
+
+void EffectsGrid::ApplyEffectMoveDrag() {
+    if (!xlights->AbortRender()) return;
+
+    int rowDelta = mEffectMoveTargetRow - mEffectMoveAnchorRow;
+    int deltaMS = mEffectMoveTargetDeltaMS;
+
+    if (rowDelta == 0 && !mEffectMoveCopyMode) {
+        MoveAllSelectedEffects(deltaMS, false);
+        sendRenderDirtyEvent();
+        return;
+    }
+
+    // For cross-row move, same-row copy, and cross-row copy:
+    // Add new effects at target positions (unselected so delete pass only removes originals).
+    Effect* newAnchorEff = nullptr;
+    std::vector<Effect*> newEffects;
+    for (auto& snap : mEffectMoveSnapshots) {
+        int targetVisibleRow = snap.origVisibleRow + rowDelta;
+        if (targetVisibleRow < 0 || targetVisibleRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) continue;
+        Row_Information_Struct* targetRI = mSequenceElements->GetVisibleRowInformation(targetVisibleRow);
+        if (targetRI == nullptr || targetRI->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+        EffectLayer* targetLayer = mSequenceElements->GetVisibleEffectLayer(targetVisibleRow);
+        if (targetLayer == nullptr) continue;
+
+        int newStart = snap.origStartTimeMS + deltaMS;
+        int newEnd = snap.origEndTimeMS + deltaMS;
+
+        Effect* newEff = targetLayer->AddEffect(0,
+            snap.effect->GetEffectName(),
+            snap.effect->GetSettingsAsString(),
+            snap.effect->GetPaletteAsString(),
+            newStart, newEnd,
+            EFFECT_NOT_SELECTED, false);
+        if (newEff) {
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(
+                targetLayer->GetParentElement()->GetModelName(),
+                targetLayer->GetIndex(), newEff->GetID());
+            if (snap.effect == mEffectMoveAnchorEffect)
+                newAnchorEff = newEff;
+            newEffects.push_back(newEff);
+        }
+    }
+
+    if (!mEffectMoveCopyMode) {
+        // Move: delete originals from their source layers
+        ((MainSequencer*)mParent)->TagAllSelectedEffects();
+        for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
+            EffectLayer* el = mSequenceElements->GetEffectLayer(row);
+            if (el) el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+        }
+    } else {
+        // Copy: deselect originals
+        for (auto& snap : mEffectMoveSnapshots)
+            snap.effect->SetSelected(EFFECT_NOT_SELECTED);
+    }
+
+    // Select all newly placed effects so the group stays selected after the drop
+    for (Effect* e : newEffects)
+        e->SetSelected(EFFECT_SELECTED);
+
+    // Update selected effect pointer so it doesn't dangle
+    if (newAnchorEff) {
+        mSelectedEffect = newAnchorEff;
+        mSelectedRow = mEffectMoveTargetRow + mSequenceElements->GetFirstVisibleModelRow();
+    } else {
+        mSelectedEffect = nullptr;
+        mSelectedRow = -1;
+    }
+    sendRenderDirtyEvent();
+}
+
+void EffectsGrid::DrawEffectMoveDragOverlay(xlGraphicsContext* ctx) {
+    if (!mEffectMoveDragging || !mEffectMoveDragThresholdExceeded || mEffectMoveSnapshots.empty()) return;
+
+    int numVisibleRows = (int)mSequenceElements->GetVisibleRowInformationSize();
+    int rowDelta = mEffectMoveTargetRow - mEffectMoveAnchorRow;
+
+    xlColor dimColor(0, 0, 0, 80);
+    xlColor fillCollide(200, 40,  40,  100), borderCollide(220, 0,   0,   230);
+    xlColor fillCopy   (40,  180, 40,  100), borderCopy   (0,   200, 0,   230);
+    xlColor fillNormal (220, 220, 220, 80),  borderNormal (160, 160, 255, 230);
+
+    xlVertexColorAccumulator* fills = ctx->createVertexColorAccumulator();
+    xlVertexColorAccumulator* borders = ctx->createVertexColorAccumulator();
+
+    for (auto& snap : mEffectMoveSnapshots) {
+        // Dim originals during move; leave them bright during copy (they stay)
+        if (!mEffectMoveCopyMode) {
+            int ox1 = mTimeline->GetPositionFromTimeMS(snap.origStartTimeMS);
+            int ox2 = mTimeline->GetPositionFromTimeMS(snap.origEndTimeMS);
+            float oy1 = snap.origVisibleRow * DEFAULT_ROW_HEADING_HEIGHT + 2;
+            float oy2 = (snap.origVisibleRow + 1) * DEFAULT_ROW_HEADING_HEIGHT - 2;
+            fills->AddRectAsTriangles(ox1, oy1, ox2, oy2, dimColor);
+        }
+
+        // Ghost at target position — color per effect based on its own collision state
+        int snapTargetRow = snap.origVisibleRow + rowDelta;
+        if (snapTargetRow >= 0 && snapTargetRow < numVisibleRows) {
+            xlColor& gFill   = snap.hasCollision ? fillCollide   : (mEffectMoveCopyMode ? fillCopy   : fillNormal);
+            xlColor& gBorder = snap.hasCollision ? borderCollide : (mEffectMoveCopyMode ? borderCopy : borderNormal);
+            int gx1 = mTimeline->GetPositionFromTimeMS(snap.origStartTimeMS + mEffectMoveTargetDeltaMS);
+            int gx2 = mTimeline->GetPositionFromTimeMS(snap.origEndTimeMS + mEffectMoveTargetDeltaMS);
+            float gy1 = snapTargetRow * DEFAULT_ROW_HEADING_HEIGHT + 2;
+            float gy2 = (snapTargetRow + 1) * DEFAULT_ROW_HEADING_HEIGHT - 2;
+            fills->AddRectAsTriangles(gx1, gy1, gx2, gy2, gFill);
+            borders->AddRectAsLines(gx1, gy1, gx2, gy2, gBorder);
+        }
+    }
+
+    ctx->enableBlending();
+    ctx->drawTriangles(fills->Flush());
+    ctx->drawLines(borders->Flush());
+    ctx->disableBlending();
+
+    delete fills;
+    delete borders;
+}
+
 void EffectsGrid::StretchAllSelectedEffects(int deltaMS, bool offset) const {
-    
+
 
     spdlog::debug("EffectsGrid::StretchAllSelectedEffects.");
 
@@ -7495,29 +8474,93 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
     } else {
         Element* e = mSequenceElements->GetVisibleRowInformation(row_number)->element;
         mSequenceElements->UnSelectAllEffects();
-        for (int i = 0; i < (int)e->GetEffectLayerCount(); i++) {
-            e->GetEffectLayer(i)->SelectAllEffects();
-        }
         if (incSubModels) {
+            // Walk the element tree directly to build clipboard data.
             ModelElement* me = dynamic_cast<ModelElement*>(e);
             if (me == nullptr) {
-                SubModelElement* se = dynamic_cast<SubModelElement*>(e);
-                me = se->GetModelElement();
+                if (auto* se = dynamic_cast<SubModelElement*>(e)) me = se->GetModelElement();
             }
             if (me != nullptr) {
-                for (int s = 0; s < (int)me->GetSubModelCount(); ++s) {
-                    auto se = me->GetSubModel(s);
-                    if (se != nullptr) {
-                        for (int i = 0; i < (int)se->GetEffectLayerCount(); ++i) {
-                            if (se->GetEffectLayer(i)->GetEffectCount() > 0) {
-                                se->GetEffectLayer(i)->SelectAllEffects();
-                            }
+                int row = 0;
+                int numEffects = 0;
+                std::string effect_data;
+                effect_data.reserve(64 * 1024);
+
+                // Main model layers
+                for (size_t j = 0; j < me->GetEffectLayerCount(); j++) {
+                    EffectLayer* el = me->GetEffectLayer(j);
+                    for (int x = 0; x < el->GetEffectCount(); x++) {
+                        Effect* ef = el->GetEffect(x);
+                        if (ef == nullptr) continue;
+                        effect_data += ef->GetEffectName();
+                        effect_data += '\t';
+                        effect_data += ef->GetSettingsAsString();
+                        effect_data += '\t';
+                        effect_data += ef->GetPaletteAsString();
+                        effect_data += '\t';
+                        effect_data += std::to_string(ef->GetStartTimeMS());
+                        effect_data += '\t';
+                        effect_data += std::to_string(ef->GetEndTimeMS());
+                        effect_data += '\t';
+                        effect_data += std::to_string(row);
+                        effect_data += "\t-1000\tNO_PASTE_BY_CELL\tLAYER:";
+                        effect_data += std::to_string((int)j);
+                        effect_data += '\n';
+                        numEffects++;
+                    }
+                    row++;
+                }
+
+                // Submodel layers
+                for (int s = 0; s < me->GetSubModelCount(); s++) {
+                    SubModelElement* se = me->GetSubModel(s);
+                    if (se == nullptr) continue;
+                    std::string smTag = "\tSUBMODEL:" + se->GetName();
+                    for (size_t j = 0; j < se->GetEffectLayerCount(); j++) {
+                        EffectLayer* el = se->GetEffectLayer(j);
+                        for (int x = 0; x < el->GetEffectCount(); x++) {
+                            Effect* ef = el->GetEffect(x);
+                            if (ef == nullptr) continue;
+                            effect_data += ef->GetEffectName();
+                            effect_data += '\t';
+                            effect_data += ef->GetSettingsAsString();
+                            effect_data += '\t';
+                            effect_data += ef->GetPaletteAsString();
+                            effect_data += '\t';
+                            effect_data += std::to_string(ef->GetStartTimeMS());
+                            effect_data += '\t';
+                            effect_data += std::to_string(ef->GetEndTimeMS());
+                            effect_data += '\t';
+                            effect_data += std::to_string(row);
+                            effect_data += "\t-1000\tNO_PASTE_BY_CELL";
+                            effect_data += smTag;
+                            effect_data += "\tLAYER:";
+                            effect_data += std::to_string((int)j);
+                            effect_data += '\n';
+                            numEffects++;
                         }
+                        row++;
+                    }
+                }
+
+                if (numEffects > 0) {
+                    std::string copy_data = "CopyFormat1\t0\t";
+                    copy_data += std::to_string(numEffects);
+                    copy_data += "\t0\t0\t-1000\tNO_PASTE_BY_CELL\tANCHOR_ROW:0\n";
+                    copy_data += effect_data;
+                    copy_data += "END\n";
+                    if (wxTheClipboard != nullptr && wxTheClipboard->Open()) {
+                        wxTheClipboard->SetData(new wxTextDataObject(wxString(copy_data)));
+                        wxTheClipboard->Close();
                     }
                 }
             }
+        } else {
+            for (int i = 0; i < (int)e->GetEffectLayerCount(); i++) {
+                e->GetEffectLayer(i)->SelectAllEffects();
+            }
+            ((MainSequencer*)mParent)->CopySelectedEffects();
         }
-        ((MainSequencer*)mParent)->CopySelectedEffects();
         mSequenceElements->UnSelectAllEffects();
         mPartialCellSelected = true;
         mCellRangeSelected = false;
@@ -7531,6 +8574,77 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
     }
 }
 
+void EffectsGrid::CopyModelEffectsToModels(int row_number) {
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row_number);
+    if (ri == nullptr || ri->element == nullptr)
+        return;
+    std::string source_name = ri->element->GetModelName();
+
+    int base_source_row = row_number;
+    for (size_t r = 0; r < mSequenceElements->GetVisibleRowInformationSize(); ++r) {
+        Row_Information_Struct* tr = mSequenceElements->GetVisibleRowInformation(r);
+        if (tr && tr->element &&
+            tr->element->GetModelName() == source_name &&
+            tr->layerIndex == 0 &&
+            !tr->submodel &&
+            tr->strandIndex < 0) {
+            base_source_row = (int)r;
+            break;
+        }
+    }
+
+    CopyModelEffects(base_source_row, true, true);
+
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+    wxArrayString choices;
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
+        Model* m = it->second;
+        if (m->Name() == source_name)
+            continue;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
+            continue;
+        if (mSequenceElements->GetElement(m->Name()) == nullptr)
+            continue;
+        choices.Add(m->Name());
+    }
+
+    if (choices.IsEmpty()) {
+        wxMessageBox("No other models found in this sequence.", "Copy Layers/SubModels to Models",
+                     wxOK | wxICON_INFORMATION, (wxWindow*)mParent);
+        return;
+    }
+
+    CheckboxSelectDialog dlg((wxWindow*)mParent, "Choose Model(s)", choices);
+    dlg.SetMinSize(wxSize(400, -1));
+    dlg.SetSize(wxSize(400, dlg.GetSize().GetHeight()));
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+
+    wxArrayString selections = dlg.GetSelectedItems();
+    if (selections.IsEmpty())
+        return;
+
+    for (const auto& sel : selections) {
+        std::string target_name = sel.ToStdString();
+
+        ModelElement* target_me = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(target_name));
+        if (target_me == nullptr)
+            continue;
+
+        PasteModelEffectsWithSubModelLayers(target_me);
+    }
+
+    // Collapse submodels on all target models now that all pastes are done.
+    for (const auto& sel : selections) {
+        ModelElement* target_me = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(sel.ToStdString()));
+        if (target_me != nullptr)
+            target_me->ShowStrands(false);
+    }
+    mSequenceElements->PopulateRowInformation();
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
+}
+
 void EffectsGrid::PasteModelEffects(int row_number, bool allLayers) {
     if (allLayers) {
         mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
@@ -7538,6 +8652,248 @@ void EffectsGrid::PasteModelEffects(int row_number, bool allLayers) {
         mDropRow = row_number;
     }
     ((MainSequencer*)mParent)->Paste(true);
+    mPartialCellSelected = true;
+    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
+}
+
+static bool ReadClipboardEffectData(wxArrayString& all_efdata, wxString* raw_text = nullptr) {
+    wxTextDataObject data;
+    wxClipboard* cbd = wxClipboard::Get();
+    if (!cbd || !cbd->Open())
+        return false;
+    bool got = (cbd->IsSupported(wxDF_TEXT) || cbd->IsSupported(wxDF_UNICODETEXT)) && cbd->GetData(data);
+    cbd->Close();
+    if (!got)
+        return false;
+    wxString text = data.GetText();
+    if (raw_text)
+        *raw_text = text;
+    all_efdata = wxSplit(text, '\n', wxT('\0'));
+    if (all_efdata.size() < 2)
+        return false;
+    wxArrayString banner = wxSplit(all_efdata[0], '\t');
+    if (banner.size() < 3 || banner[0] != "CopyFormat1" || wxAtoi(banner[2]) == 0)
+        return false;
+    return true;
+}
+
+void EffectsGrid::PasteModelEffectsWithLayers(int row_number) {
+    wxArrayString all_efdata;
+    if (!ReadClipboardEffectData(all_efdata)) {
+        PasteModelEffects(row_number, true);
+        return;
+    }
+
+    int start_row = -1;
+    int max_row = -1;
+    for (size_t i = 1; i < all_efdata.size() - 1; i++) {
+        wxArrayString efdata = wxSplit(all_efdata[i], '\t', wxT('\0'));
+        if (efdata.size() < 8)
+            break;
+        if (efdata[7] != "TIMING_EFFECT") {
+            int eff_row = wxAtoi(efdata[5]);
+            if (start_row == -1)
+                start_row = eff_row;
+            if (eff_row > max_row)
+                max_row = eff_row;
+        }
+    }
+
+    if (start_row == -1) {
+        PasteModelEffects(row_number, true);
+        return;
+    }
+
+    int layers_needed = max_row - start_row + 1;
+
+    Row_Information_Struct* row_info = mSequenceElements->GetVisibleRowInformation(row_number);
+    if (row_info == nullptr)
+        return;
+    int base_row = row_number - row_info->layerIndex;
+
+    Row_Information_Struct* base_row_info = mSequenceElements->GetVisibleRowInformation(base_row);
+    if (base_row_info == nullptr)
+        return;
+    Element* element = base_row_info->element;
+    if (element == nullptr)
+        return;
+
+    if (element->GetCollapsed())
+        element->SetCollapsed(false);
+
+    int current_layers = (int)element->GetEffectLayerCount();
+    int layers_to_add = layers_needed - current_layers;
+    if (layers_to_add > 0) {
+        xLightsApp::GetFrame()->AbortRender();
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+    }
+
+    for (int i = 0; i < layers_to_add; i++) {
+        EffectLayer* new_layer = element->AddEffectLayer();
+        int pos = (int)element->GetEffectLayerCount() - 1;
+        mSequenceElements->get_undo_mgr().CaptureAddedLayer(element->GetModelName(), new_layer->GetIndex(), pos);
+    }
+
+    mSequenceElements->PopulateRowInformation();
+
+    mDropRow = base_row;
+    ((MainSequencer*)mParent)->Paste(true);
+    mPartialCellSelected = true;
+    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
+
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
+}
+
+void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row_number);
+    if (ri == nullptr || ri->element == nullptr)
+        return;
+    ModelElement* me = dynamic_cast<ModelElement*>(ri->element);
+    if (me == nullptr) {
+        auto* se = dynamic_cast<SubModelElement*>(ri->element);
+        if (se != nullptr) me = se->GetModelElement();
+    }
+    PasteModelEffectsWithSubModelLayers(me);
+}
+
+void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
+    if (me == nullptr)
+        return;
+
+    wxString raw_clipboard_text;
+    wxArrayString all_efdata;
+    if (!ReadClipboardEffectData(all_efdata, &raw_clipboard_text))
+        return;
+
+    struct RowRange {
+        int min_row = std::numeric_limits<int>::max();
+        int max_row = std::numeric_limits<int>::min();
+    };
+    std::map<std::string, RowRange> element_ranges;
+
+    for (size_t i = 1; i < all_efdata.size() - 1; i++) {
+        wxArrayString efdata = wxSplit(all_efdata[i], '\t', wxT('\0'));
+        if (efdata.size() < 8)
+            break;
+        if (efdata[7] == "TIMING_EFFECT")
+            continue;
+
+        int eff_row = wxAtoi(efdata[5]);
+        std::string element_name;
+        for (size_t f = 7; f < efdata.size(); f++) {
+            if (efdata[f].StartsWith("SUBMODEL:")) {
+                element_name = efdata[f].Mid(9).ToStdString();
+                break;
+            }
+        }
+
+        auto it = element_ranges.find(element_name);
+        if (it == element_ranges.end()) {
+            element_ranges[element_name] = {eff_row, eff_row};
+        } else {
+            it->second.min_row = std::min(it->second.min_row, eff_row);
+            it->second.max_row = std::max(it->second.max_row, eff_row);
+        }
+    }
+
+    if (element_ranges.empty())
+        return;
+
+    me->SetCollapsed(false);
+    me->ShowStrands(true);
+
+    xLightsApp::GetFrame()->AbortRender();
+
+    auto& undo_mgr = mSequenceElements->get_undo_mgr();
+    undo_mgr.CreateUndoStep();
+
+    auto deleteUnusedLayers = [&undo_mgr](Element* elem) {
+        for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
+            if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
+                undo_mgr.CaptureRemovedLayer(elem->GetFullName(), i);
+                elem->RemoveEffectLayer(i);
+                --i;
+            }
+        }
+    };
+    deleteUnusedLayers(me);
+    for (int s = 0; s < me->GetSubModelCount(); ++s) {
+        deleteUnusedLayers(me->GetSubModel(s));
+    }
+
+    auto elementHasEffects = [](Element* elem) {
+        for (size_t i = 0; i < elem->GetEffectLayerCount(); ++i) {
+            if (elem->GetEffectLayer(i)->GetEffectCount() > 0)
+                return true;
+        }
+        return false;
+    };
+    bool hasRemainingEffects = elementHasEffects(me);
+    for (int s = 0; s < me->GetSubModelCount() && !hasRemainingEffects; ++s) {
+        hasRemainingEffects = elementHasEffects(me->GetSubModel(s));
+    }
+    if (hasRemainingEffects) {
+        int answer = wxMessageBox(wxString::Format("'%s' already has effects.\nErase existing effects before pasting?", me->GetModelName().c_str()),
+                                  "Erase Existing Effects", wxYES_NO | wxICON_QUESTION, (wxWindow*)mParent);
+        if (answer == wxYES) {
+            auto eraseAllEffects = [&undo_mgr](Element* elem) {
+                for (size_t i = 0; i < elem->GetEffectLayerCount(); ++i) {
+                    elem->GetEffectLayer(i)->RemoveAllEffects(&undo_mgr);
+                }
+            };
+            eraseAllEffects(me);
+            for (int s = 0; s < me->GetSubModelCount(); ++s) {
+                eraseAllEffects(me->GetSubModel(s));
+            }
+            deleteUnusedLayers(me);
+            for (int s = 0; s < me->GetSubModelCount(); ++s) {
+                deleteUnusedLayers(me->GetSubModel(s));
+            }
+        }
+    }
+
+    for (const auto& [ename, range] : element_ranges) {
+        if (range.min_row > range.max_row)
+            continue;
+        int layers_needed = range.max_row - range.min_row + 1;
+        Element* target_elem = ename.empty() ? static_cast<Element*>(me) : static_cast<Element*>(me->GetSubModel(ename, false));
+        if (target_elem == nullptr)
+            continue;
+
+        int current_layers = (int)target_elem->GetEffectLayerCount();
+        for (int i = current_layers; i < layers_needed; i++) {
+            EffectLayer* new_layer = target_elem->AddEffectLayer();
+            int pos = (int)target_elem->GetEffectLayerCount() - 1;
+            mSequenceElements->get_undo_mgr().CaptureAddedLayer(target_elem->GetFullName(), new_layer->GetIndex(), pos);
+        }
+    }
+
+    mSequenceElements->PopulateRowInformation();
+
+    // Find the model's absolute row
+    int base_abs_index = -1;
+    for (size_t r = 0; r < (size_t)mSequenceElements->GetRowInformationSize(); ++r) {
+        Row_Information_Struct* tr = mSequenceElements->GetRowInformation(r);
+        if (tr && tr->element == static_cast<Element*>(me) &&
+            tr->layerIndex == 0 && !tr->submodel && tr->strandIndex < 0) {
+            base_abs_index = tr->Index;
+            break;
+        }
+    }
+    if (base_abs_index < 0)
+        return;
+
+    mDropRow = base_abs_index - mSequenceElements->GetFirstVisibleModelRow();
+
+    // The single-effect Paste path uses mDropStartTimeMS, so seed it here so effects land at their original times.
+    if (all_efdata.size() > 1) {
+        wxArrayString firstEff = wxSplit(all_efdata[1], '\t', wxT('\0'));
+        if (firstEff.size() >= 4)
+            mDropStartTimeMS = wxAtoi(firstEff[3]);
+    }
+
+    Paste(raw_clipboard_text, xlights_version_string, true, true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
 }
@@ -7603,4 +8959,165 @@ void EffectsGrid::DuplicateSelectedEffects() {
             }
         }
     }
+}
+
+void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {
+    if (mSequenceElements == nullptr || mTimeline == nullptr) return;
+    const SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+    if (!ssm.HasRegions()) return;
+
+    int width = getWidth();
+
+    ctx->enableBlending();
+
+    for (size_t i = 0; i < ssm.GetRegionCount(); i++) {
+        const SongStructureRegion& region = ssm.GetRegion(i);
+
+        int x1 = mTimeline->GetPositionFromTimeMS(region.startTimeMS);
+        int x2 = mTimeline->GetPositionFromTimeMS(region.endTimeMS);
+
+        if (x2 < 0 || x1 > width) continue;
+        x1 = std::max(0, x1);
+        x2 = std::min(width, x2);
+        if (x2 <= x1) continue;
+
+        uint8_t r = (region.colorARGB >> 16) & 0xFF;
+        uint8_t g = (region.colorARGB >> 8) & 0xFF;
+        uint8_t b = region.colorARGB & 0xFF;
+
+        xlColor overlayColor(r, g, b, 18);
+
+        xlVertexAccumulator* va = ctx->createVertexAccumulator();
+        va->AddRectAsTriangles(x1, 0, x2, mWindowHeight);
+        ctx->drawTriangles(va, overlayColor);
+        delete va;
+    }
+
+    if (ssm.GetRegionCount() >= 2) {
+        // White boundary lines vanish against the light-mode grid background.
+        xlColor lineColor = IsDarkMode() ? xlColor(255, 255, 255, 40) : xlColor(0, 0, 0, 60);
+        for (size_t i = 1; i < ssm.GetRegionCount(); i++) {
+            int boundaryTimeMS = ssm.GetRegion(i).startTimeMS;
+            int xPos = mTimeline->GetPositionFromTimeMS(boundaryTimeMS);
+            if (xPos >= 0 && xPos <= width) {
+                xlVertexAccumulator* va = ctx->createVertexAccumulator();
+                va->AddVertex(xPos, 0);
+                va->AddVertex(xPos, mWindowHeight);
+                ctx->drawLines(va, lineColor);
+                delete va;
+            }
+        }
+    }
+
+    ctx->disableBlending();
+}
+
+void EffectsGrid::FillRegionFromTimingMarks() {
+    Effect* sourceEffect = mSelectedEffect;
+    if (sourceEffect == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No source effect");
+        return;
+    }
+
+    EffectLayer* el = sourceEffect->GetParentEffectLayer();
+    if (el == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No parent effect layer");
+        return;
+    }
+
+    SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+    const SongStructureRegion* region = ssm.GetRegionAtTime(sourceEffect->GetStartTimeMS());
+    if (region == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No song structure region at time {}", sourceEffect->GetStartTimeMS());
+        return;
+    }
+
+    spdlog::debug("FillRegionFromTimingMarks: Region '{}' [{}-{} ms]",
+        region->name, region->startTimeMS, region->endTimeMS);
+
+    Element* timingElement = GetActiveTimingElement();
+    if (timingElement == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No active timing element");
+        return;
+    }
+
+    TimingElement* te = dynamic_cast<TimingElement*>(timingElement);
+    if (te == nullptr) {
+        return;
+    }
+
+    EffectLayer* timingLayer = nullptr;
+    for (int i = te->GetEffectLayerCount() - 1; i >= 0; i--) {
+        EffectLayer* tl = te->GetEffectLayer(i);
+        if (tl != nullptr && tl->GetEffectCount() > 0) {
+            timingLayer = tl;
+            break;
+        }
+    }
+
+    if (timingLayer == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No timing layer with marks found");
+        return;
+    }
+
+    std::string effectName = xlights->GetEffectManager().GetEffectName(sourceEffect->GetEffectIndex());
+    std::string settings = sourceEffect->GetSettingsAsString();
+    std::string palette = sourceEffect->GetPaletteAsString();
+    long sourceStart = sourceEffect->GetStartTimeMS();
+    long sourceEnd = sourceEffect->GetEndTimeMS();
+    long sourceDuration = sourceEnd - sourceStart;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    int effectsCreated = 0;
+
+    for (int i = 0; i < timingLayer->GetEffectCount(); i++) {
+        Effect* timingMark = timingLayer->GetEffect(i);
+        long markStart = timingMark->GetStartTimeMS();
+        long markEnd = timingMark->GetEndTimeMS();
+
+        if (markEnd <= region->startTimeMS || markStart >= region->endTimeMS) {
+            continue;
+        }
+
+        if (markStart < region->startTimeMS) {
+            markStart = region->startTimeMS;
+        }
+
+        // Skip the timing mark that overlaps with the source effect
+        if (markStart < sourceEnd && markEnd > sourceStart) {
+            continue;
+        }
+
+        long newStart = mTimeline->RoundToMultipleOfPeriod(markStart, mSequenceElements->GetFrequency());
+        long newEnd = mTimeline->RoundToMultipleOfPeriod(newStart + sourceDuration, mSequenceElements->GetFrequency());
+
+        if (newEnd > region->endTimeMS) {
+            newEnd = mTimeline->RoundToMultipleOfPeriod(region->endTimeMS, mSequenceElements->GetFrequency());
+        }
+
+        if (newEnd <= newStart) continue;
+
+        if (el->HasEffectsInTimeRange(newStart, newEnd)) {
+            continue;
+        }
+
+        Effect* newEffect = el->AddEffect(0, effectName, settings, palette,
+            newStart, newEnd, EFFECT_NOT_SELECTED, false);
+        if (newEffect != nullptr) {
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(
+                el->GetParentElement()->GetName(), el->GetIndex(), newEffect->GetID());
+            effectsCreated++;
+        }
+    }
+
+    if (effectsCreated == 0) {
+        mSequenceElements->get_undo_mgr().CancelLastStep();
+    }
+
+    spdlog::debug("FillRegionFromTimingMarks: Created {} effects in region '{}'",
+        effectsCreated, region->name);
+
+    sendRenderDirtyEvent();
+    ForceRefresh();
 }

@@ -19,7 +19,9 @@
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
+#include <wx/wrapsizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -107,22 +109,22 @@ public:
     wxFlexGridSizer* FlexGridSizerColor;
     wxFlexGridSizer* FlexGridSizerColorWheel;
     wxFlexGridSizer* FlexGridSizerDimmerCanvas;
-    wxFlexGridSizer* FlexGridSizerDimmerPresets;
+    wxWrapSizer* FlexGridSizerDimmerPresets;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
-    wxFlexGridSizer* FlexGridSizerPathPresets;
+    wxWrapSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
     wxFlexGridSizer* FlexGridSizerPosition;
     wxFlexGridSizer* FlexGridSizerPositionCanvas;
-    wxFlexGridSizer* FlexGridSizerPresets;
+    wxWrapSizer* FlexGridSizerPresets;
     wxFlexGridSizer* FlexGridSizer_Main;
     wxNotebook* Notebook1;
     wxNotebook* Notebook2;
-    wxPanel* PanelColor;
-    wxPanel* PanelColorWheel;
+    wxScrolledWindow* PanelColor;
+    wxScrolledWindow* PanelColorWheel;
     wxPanel* PanelControl;
-    wxPanel* PanelDimmer;
-    wxPanel* PanelPathing;
-    wxPanel* PanelPosition;
+    wxScrolledWindow* PanelDimmer;
+    wxScrolledWindow* PanelPathing;
+    wxScrolledWindow* PanelPosition;
     wxPanel* PanelStatus;
     wxStaticText* Label_Pan;
     wxStaticText* Label_PanOffset;
@@ -342,6 +344,7 @@ private:
     wxImage m_bgImage;
     unsigned char m_bitmapAlpha = 0x30;
     int m_pathIndexToDelete = -1;
+    bool m_minSizeSet = false;
 };
 
 #endif

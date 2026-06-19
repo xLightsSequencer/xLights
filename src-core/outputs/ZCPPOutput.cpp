@@ -435,10 +435,16 @@ void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
     packet.Discovery.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
 
     discovery.AddBroadcast(ZCPP_PORT, [&discovery] (uint8_t *buffer, int len, const std::string &fromIP) {
+        if (len <= 0 || (size_t)len > sizeof(ZCPP_packet_t)) {
+            spdlog::debug(" Discarding malformed ZCPP discovery response (len={}).", len);
+            return;
+        }
         ZCPP_packet_t response;
-        memcpy(&response, buffer, len);
+        memset(&response, 0, sizeof(response));
+        memcpy(&response, buffer, (size_t)len);
 
-        if (memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE) {
+        if ((size_t)len >= sizeof(response.DiscoveryResponse.Header) + sizeof(ZCPP_token) &&
+            memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE) {
             spdlog::debug(" Valid response.");
 
             ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);

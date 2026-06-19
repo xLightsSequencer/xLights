@@ -476,7 +476,11 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
                                 spdlog::error("LoadSequence: audio file not readable.");
                             }
                         } else {
-                            spdlog::error("LoadSequence: audio file does not exist.");
+                            if (seq_type == "Animation") {
+                                spdlog::debug("LoadSequence: audio file does not exist (ignored for Animation).");
+                            } else {
+                                spdlog::error("LoadSequence: audio file does not exist.");
+                            }
                         }
                     }
                 } else if (name == "altAudioTracks") {
@@ -1368,6 +1372,11 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
 
     // SequenceMedia
     seq_elements.GetSequenceMedia().SaveToXml(root);
+
+    // SongStructure regions (only if any view has regions)
+    if (seq_elements.GetSongStructureManager().AnyViewHasRegions()) {
+        seq_elements.GetSongStructureManager().SaveToXml(root);
+    }
 
     // DataLayers
     auto data_layer = root.append_child("DataLayers");

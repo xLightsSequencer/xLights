@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <list>
+#include <mutex>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -30,17 +31,15 @@ extern "C" {
 #include <log.h>
 
 #ifdef __APPLE__
-extern void InitVideoToolboxAcceleration();
-extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
-extern void CleanupVideoToolbox(AVCodecContext *s, void * cache);
-extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm);
-extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
+#include "media/VideoToolboxBridge.h"
 #else
-extern void InitVideoToolboxAcceleration() {}
-static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
-static inline void CleanupVideoToolbox(AVCodecContext *s, void * cache) {}
-static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm) { return false; }
-static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
+namespace AppleVideoToolboxBridge {
+inline void InitVideoToolboxAcceleration() {}
+inline bool SetupVideoToolboxAcceleration(AVCodecContext*, bool) { return false; }
+inline void CleanupVideoToolbox(AVCodecContext*, void*) {}
+inline bool VideoToolboxScaleImage(AVCodecContext*, AVFrame*, AVFrame*, void*&, int) { return false; }
+inline bool IsVideoToolboxAcceleratedFrame(AVFrame*) { return false; }
+} // namespace AppleVideoToolboxBridge
 #endif
 
 #ifdef _WIN32
@@ -48,7 +47,7 @@ static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false
 #include <VersionHelpers.h>
 #endif
 
-static enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
+static thread_local enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
     const enum AVPixelFormat* p;
@@ -59,11 +58,14 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
         }
     }
 
-    spdlog::error("Failed to get HW surface format. This is bad - we will have to abandon video read. Suggest you turn off hardware video decoding or force change the device.");
-    spdlog::error("   Looking for {} but only found:", av_get_pix_fmt_name(__hw_pix_fmt));
+    spdlog::debug("HW format negotiation: requested {} not offered by codec; codec open will fail.",
+                  av_get_pix_fmt_name(__hw_pix_fmt));
+#ifdef VIDEO_EXTRALOGGING
+    spdlog::debug("   Looking for {} but only found:", av_get_pix_fmt_name(__hw_pix_fmt));
     for (p = pix_fmts; *p != -1; p++) {
-        spdlog::error("       {}", av_get_pix_fmt_name(*p));
+        spdlog::debug("       {}", av_get_pix_fmt_name(*p));
     }
+#endif
 
     return AV_PIX_FMT_NONE;
 }
@@ -86,7 +88,7 @@ void FFmpegVideoReader::SetHardwareRenderType(int type)
 }
 
 void FFmpegVideoReader::InitHWAcceleration() {
-    InitVideoToolboxAcceleration();
+    AppleVideoToolboxBridge::InitVideoToolboxAcceleration();
 }
 
 void FFmpegVideoReader::SetScaleAlgorithm(VideoScaleAlgorithm algorithm) {
@@ -169,14 +171,14 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
             _valid = true;
 
             spdlog::info("Video loaded: " + filename);
-            spdlog::info("      Length MS: {}", _lengthMS);
-            spdlog::info("      _frames: {}", _frames);
-            spdlog::info("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
-            spdlog::info("      Source size: {}x{}", _windowsHardwareVideoReader->GetNativeWidth(), _windowsHardwareVideoReader->GetNativeHeight());
-            spdlog::info("      Output size: {}x{}", _width, _height);
+            spdlog::debug("      Length MS: {}", _lengthMS);
+            spdlog::debug("      _frames: {}", _frames);
+            spdlog::debug("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
+            spdlog::debug("      Source size: {}x{}", _windowsHardwareVideoReader->GetNativeWidth(), _windowsHardwareVideoReader->GetNativeHeight());
+            spdlog::debug("      Output size: {}x{}", _width, _height);
             if (_wantAlpha)
-                spdlog::info("      Alpha: TRUE");
-            spdlog::info("      Frame ms {}", _frameMS);
+                spdlog::debug("      Alpha: TRUE");
+            spdlog::debug("      Frame ms {}", _frameMS);
             return;
         } else {
             delete _windowsHardwareVideoReader;
@@ -302,27 +304,27 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     _valid = true;
 
     spdlog::info("Video loaded: " + filename);
-    spdlog::info("      Length MS: {}", _lengthMS);
-    spdlog::info("      _videoStream->time_base.num: {}", _videoStream->time_base.num);
-    spdlog::info("      _videoStream->time_base.den: {}", _videoStream->time_base.den);
-    spdlog::info("      _videoStream->r_frame_rate.num: {}", _videoStream->r_frame_rate.num);
-    spdlog::info("      _videoStream->r_frame_rate.den: {}", _videoStream->r_frame_rate.den);
-    spdlog::info("      _videoStream->avg_frame_rate.num: {}", _videoStream->avg_frame_rate.num);
-    spdlog::info("      _videoStream->avg_frame_rate.den: {}", _videoStream->avg_frame_rate.den);
-    spdlog::info("      DTS per sec: {}", _dtspersec);
-    spdlog::info("      _videoStream->nb_frames: {}", _videoStream->nb_frames);
-    spdlog::info("      _frames: {}", _frames);
-    spdlog::info("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
-    spdlog::info("      Source size: {}x{}", _codecContext->width, _codecContext->height);
-    spdlog::info("      Source coded size: {}x{}", _codecContext->coded_width, _codecContext->coded_height);
-    spdlog::info("      Output size: {}x{}", _width, _height);
-    spdlog::info("      Guessed key frame frequency: {}", _keyFrameCount);
+    spdlog::debug("      Length MS: {}", _lengthMS);
+    spdlog::debug("      _videoStream->time_base.num: {}", _videoStream->time_base.num);
+    spdlog::debug("      _videoStream->time_base.den: {}", _videoStream->time_base.den);
+    spdlog::debug("      _videoStream->r_frame_rate.num: {}", _videoStream->r_frame_rate.num);
+    spdlog::debug("      _videoStream->r_frame_rate.den: {}", _videoStream->r_frame_rate.den);
+    spdlog::debug("      _videoStream->avg_frame_rate.num: {}", _videoStream->avg_frame_rate.num);
+    spdlog::debug("      _videoStream->avg_frame_rate.den: {}", _videoStream->avg_frame_rate.den);
+    spdlog::debug("      DTS per sec: {}", _dtspersec);
+    spdlog::debug("      _videoStream->nb_frames: {}", _videoStream->nb_frames);
+    spdlog::debug("      _frames: {}", _frames);
+    spdlog::debug("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
+    spdlog::debug("      Source size: {}x{}", _codecContext->width, _codecContext->height);
+    spdlog::debug("      Source coded size: {}x{}", _codecContext->coded_width, _codecContext->coded_height);
+    spdlog::debug("      Output size: {}x{}", _width, _height);
+    spdlog::debug("      Guessed key frame frequency: {}", _keyFrameCount);
     if (_wantAlpha)
-        spdlog::info("      Alpha: TRUE");
+        spdlog::debug("      Alpha: TRUE");
     if (_frames != 0) {
-        spdlog::info("      Frame ms {}", _lengthMS / (double)_frames);
+        spdlog::debug("      Frame ms {}", _lengthMS / (double)_frames);
         _frameMS = _lengthMS / _frames;
-        spdlog::info("      Used frame ms {}", _frameMS);
+        spdlog::debug("      Used frame ms {}", _frameMS);
     } else {
         spdlog::warn("      Frame ms <unknown as _frames is 0>");
         _frameMS = 0;
@@ -332,12 +334,17 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
 }
 
 void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
+    spdlog::debug("VideoReader: reopenContext({}) for {}", allowHWDecoder, _filename);
 
     if (_codecContext != nullptr) {
-        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        AppleVideoToolboxBridge::CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
+    }
+    if (_hw_device_ctx != nullptr) {
+        av_buffer_unref(&_hw_device_ctx);
+        _hw_device_ctx = nullptr;
     }
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
@@ -392,7 +399,24 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         }
     }
 
-    _codecContext = avcodec_alloc_context3(_decoder);
+    const AVCodec* decoderToUse = _decoder;
+    bool usingCuvid = false;
+#if defined(_WIN32)
+    if (allowHWDecoder && type == AV_HWDEVICE_TYPE_CUDA) {
+        std::string cuvidName = std::string(_decoder->name) + "_cuvid";
+        const AVCodec* cuvidDecoder = avcodec_find_decoder_by_name(cuvidName.c_str());
+        if (cuvidDecoder) {
+            decoderToUse = cuvidDecoder;
+            usingCuvid = true;
+            __hw_pix_fmt = AV_PIX_FMT_CUDA;
+            spdlog::debug("VideoReader: NVDEC decoder '{}' found", cuvidName.c_str());
+        } else {
+            spdlog::debug("VideoReader: NVDEC decoder '{}_cuvid' not in this FFmpeg build", _decoder->name);
+        }
+    }
+#endif
+
+    _codecContext = avcodec_alloc_context3(decoderToUse);
     if (!_codecContext) {
         spdlog::error("VideoReader: Failed to allocate codec context for {}", _filename.c_str());
         return;
@@ -412,30 +436,52 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     _codecContext->hwaccel_context = nullptr;
     {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE) {
+            // Serialize HW device creation: concurrent CUDA/NVDEC init from many
+            // render threads exhausts driver session limits and corrupts shared state.
+            static std::mutex s_hwDeviceCreateMutex;
+            std::lock_guard<std::mutex> hwLock(s_hwDeviceCreateMutex);
             const char* opt = nullptr;
             if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0) {
-                spdlog::debug("Failed to create specified HW device.");
+                spdlog::warn("VideoReader: Failed to create HW device '{}' for {} - falling back to software decode.", av_hwdevice_get_type_name(type), _filename.c_str());
                 type = AV_HWDEVICE_TYPE_NONE;
             } else {
                 _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
-                _codecContext->get_format = get_hw_format;
+                if (!usingCuvid) {
+                    _codecContext->get_format = get_hw_format;
+                }
                 const char *devName = "";
 #if __has_include(<libavdevice/avdevice.h>)
                 devName = av_hwdevice_get_type_name(type);
 #endif
-                spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", devName, _codecContext->codec->long_name);
+                spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", devName, decoderToUse->long_name);
             }
         } else {
-            spdlog::debug("Software decoding enabled for codec '{}'", _codecContext->codec->long_name);
+            spdlog::debug("Software decoding enabled for codec '{}'", decoderToUse->long_name);
         }
     }
-    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
+    _videoToolboxAccelerated = AppleVideoToolboxBridge::SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
     AVDictionary *opts = nullptr;
-    if (avcodec_open2(_codecContext, _decoder, &opts) < 0) {
-        spdlog::error("VideoReader: Couldn't open the context with the decoder in {}", _filename.c_str());
+    if (usingCuvid) {
+        // Limit NVDEC surface pool: default is max(DPB,20) per decoder instance.
+        // With many models each holding their own VideoReader this multiplies to
+        // several GB.  8 covers H.264 Level 4.1 max DPB (8 ref frames) while
+        // keeping per-instance VRAM well below the 20-surface default.
+        av_dict_set_int(&opts, "surfaces", 8, 0);
+    }
+    if (avcodec_open2(_codecContext, decoderToUse, &opts) < 0) {
+        av_dict_free(&opts);
+        avcodec_free_context(&_codecContext);
+        _codecContext = nullptr;
+        if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
+            spdlog::warn("VideoReader: HW decoder '{}' failed to open for {}; falling back to software decode", decoderToUse->name, _filename.c_str());
+            reopenContext(false);
+        } else {
+            spdlog::error("VideoReader: Couldn't open the context with the decoder in {}", _filename.c_str());
+        }
         return;
     }
+    av_dict_free(&opts);
 }
 
 static int64_t MStoDTS(int ms, double dtspersec)
@@ -518,12 +564,10 @@ FFmpegVideoReader::~FFmpegVideoReader()
         _swsCtx = nullptr;
     }
     if (_srcFrame != nullptr) {
-        av_free(_srcFrame);
-        _srcFrame = nullptr;
+        av_frame_free(&_srcFrame);
     }
     if (_srcFrame2 != nullptr) {
-        av_free(_srcFrame2);
-        _srcFrame2 = nullptr;
+        av_frame_free(&_srcFrame2);
     }
     if (_dstFrame != nullptr) {
         if (_dstFrame->data[0] != nullptr) {
@@ -543,7 +587,7 @@ FFmpegVideoReader::~FFmpegVideoReader()
         if (_keyFrameCount != _codecContext->keyint_min) {
             spdlog::debug("Key frame count was adjusted from {} to {}.", _codecContext->keyint_min, _keyFrameCount);
         }
-        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        AppleVideoToolboxBridge::CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
@@ -577,9 +621,11 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
 #ifdef VIDEO_EXTRALOGGING
         spdlog::info("VideoReader: Seeking to {} ms.", timestampMS);
 #endif
-        if (_atEnd && (_videoToolboxAccelerated || _hw_device_ctx)) {
+        if (_atEnd && !_abandonHardwareDecode && (_videoToolboxAccelerated || _hw_device_ctx)) {
             reopenContext();
         }
+
+        if (_codecContext == nullptr) return;
 
         if (timestampMS < _lengthMS) {
             _atEnd = false;
@@ -612,6 +658,7 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
 }
 
 bool FFmpegVideoReader::readFrame(int timestampMS) {
+    if (_codecContext == nullptr) return false;
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
         if (_srcFrame->pts == (int64_t)0x8000000000000000LL) {
@@ -632,45 +679,54 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
             #endif
             bool hardwareScaled = false;
             int scaleAlgorithm = VideoScaleAlgorithmToSWS(_scaleAlgorithm);
-            if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
+            if (AppleVideoToolboxBridge::IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 if (_wantsHWType) {
                     hardwareScaled = true;
                     std::swap(_dstFrame2, _srcFrame);
                 } else {
-                    hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache, scaleAlgorithm);
+                    hardwareScaled = AppleVideoToolboxBridge::VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache, scaleAlgorithm);
                 }
             }
 
             if (!hardwareScaled) {
                 AVFrame* f = nullptr;
-                if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
+                // Detect hw-backed frames via hw_frames_ctx OR a matching hw pixel format.
+                // h264_cuvid can report format=NV12 while data is in CUDA device memory,
+                // so hw_frames_ctx is the reliable indicator.
+                bool srcIsHwBacked = IsHardwareAcceleratedVideo() &&
+                                     _codecContext->hw_device_ctx != nullptr &&
+                                     !_abandonHardwareDecode &&
+                                     (_srcFrame->hw_frames_ctx != nullptr ||
+                                      (_srcFrame->format == __hw_pix_fmt && __hw_pix_fmt != AV_PIX_FMT_NONE));
+                if (srcIsHwBacked) {
                     bool hwscale = false;
                     if (!hwscale) {
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
-                            f = _srcFrame;
+                            spdlog::warn("VideoReader: av_hwframe_transfer_data failed for {} — abandoning hardware decode.", _filename);
+                            spdlog::default_logger()->flush();
+                            _abandonHardwareDecode = true;
+                            if (_swsCtx != nullptr) {
+                                sws_freeContext(_swsCtx);
+                                _swsCtx = nullptr;
+                            }
                         } else {
                             unrefSrcFrame2 = true;
                             f = _srcFrame2;
                         }
-                    }
-
-                    if (_abandonHardwareDecode && _swsCtx != nullptr) {
-                        spdlog::warn("VideoReader: This could get ugly ... we have abandoned hardware decode but we already had a sws Context.");
                     }
                 } else {
                     f = _srcFrame;
                 }
 
                 if (f == nullptr) {
-                    spdlog::warn("VideoReader: Strange f was not valid so setting it to the source frame.");
-                    f = _srcFrame;
+                    spdlog::warn("VideoReader: No valid CPU frame available — skipping sws_scale for this frame.");
                 }
 
-                if (_swsCtx == nullptr) {
+                if (f != nullptr && _swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
-                        spdlog::warn("VideoReader: Hardware decoding abandoned due to directx error.");
+                        spdlog::debug("VideoReader: Using software decode (hardware decoding unavailable for this file).");
                     }
-                    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
+                    if (srcIsHwBacked) {
                         spdlog::debug("Hardware format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
@@ -693,7 +749,26 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     }
                 }
 
-                if (_swsCtx != nullptr) {
+                if (f != nullptr) {
+                    // Guard: reject any frame that is still hardware-backed — either
+                    // because hw_frames_ctx is set, or because the pixel format is a
+                    // hardware-accelerated format (AV_PIX_FMT_FLAG_HWACCEL). Passing
+                    // such a frame to sws_scale causes an access violation reading
+                    // GPU/device memory as if it were CPU data.
+                    bool isHwFrame = (f->hw_frames_ctx != nullptr);
+                    if (!isHwFrame) {
+                        const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get((AVPixelFormat)f->format);
+                        isHwFrame = (desc != nullptr && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL));
+                    }
+                    if (isHwFrame) {
+                        const char* fmtName = av_get_pix_fmt_name((AVPixelFormat)f->format);
+                        spdlog::warn("VideoReader: frame is still hardware-backed (fmt={}, hw_frames_ctx={}) — skipping sws_scale.",
+                            fmtName ? fmtName : "unknown", (void*)f->hw_frames_ctx);
+                        spdlog::default_logger()->flush();
+                        f = nullptr;
+                    }
+                }
+                if (f != nullptr && _swsCtx != nullptr) {
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
                         _dstFrame2->linesize);
@@ -785,9 +860,17 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                 int decodeCount = 0;
                 int ret = avcodec_send_packet(_codecContext, _packet);
                 while (!_abort && ret != 0) {
-                    if (ret != AVERROR(EAGAIN) && (_videoToolboxAccelerated || _hw_device_ctx )) {
-                        spdlog::debug("    Hardware video decoding failed for {}. Reverting to software decoding.", (const char*)_filename.c_str());
+                    if (ret != AVERROR(EAGAIN) && !_abandonHardwareDecode && (_videoToolboxAccelerated || _hw_device_ctx )) {
+                        char errbuf[AV_ERROR_MAX_STRING_SIZE];
+                        av_strerror(ret, errbuf, sizeof(errbuf));
+                        spdlog::warn("VideoReader: Hardware video decoding failed for {} (error: {}). Reverting to software decoding.", (const char*)_filename.c_str(), errbuf);
                         reopenContext(false);
+                        if (_codecContext == nullptr) {
+                            spdlog::error("VideoReader: Failed to reopen context for {} after HW decode error; aborting render.", (const char*)_filename.c_str());
+                            _valid = false;
+                            av_packet_unref(_packet);
+                            return nullptr;
+                        }
                         Seek(timestampMS, false);
                         currenttime = GetPos();
                         ret = 0;

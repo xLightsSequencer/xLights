@@ -218,3 +218,14 @@ Last Pulled:
 Version:     [latest version available as at April 2024]
 License:     zlib License
 Strategy:    Use WXs version to match their dependency, Header added to repository. Header only library
+
+Library:     libwebp
+Usage:       WebP image format support (required by wxWidgets)
+Link:        https://developers.google.com/speed/webp
+Source:      https://chromium.googlesource.com/webm/libwebp
+Last Pulled: 
+Version:     [Pre-compiled libraries in lib/windows64]
+License:     BSD-style License
+Strategy:    Windows: Precompiled libraries (libwebp.lib, libwebpdemux.lib) are included in the xLights repository.
+             CMake will prefer vcpkg if available (cmake -DXLIGHTS_USE_VCPKG=ON), otherwise uses vendored libs.
+             vcpkg install: vcpkg install libwebp

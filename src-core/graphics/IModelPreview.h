@@ -77,4 +77,5 @@ public:
     // --- State queries ---
     virtual bool Is3D() const = 0;
     virtual bool IsNoCurrentModel() = 0;
+    virtual bool GetShowZoneIndicator() const { return false; }
 };

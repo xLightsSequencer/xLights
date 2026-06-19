@@ -19,7 +19,9 @@
 #include <condition_variable>
 #include <map>
 #include <memory>
+#include <unordered_map>
 
+#include "utils/AutoReleasePool.h"
 #include "RenderEngine.h"
 #include "RenderContext.h"
 #include "Effect.h"
@@ -82,23 +84,6 @@ public:
     std::vector<SettingsMap> settingsMaps;
     std::vector<bool> effectStates;
     std::vector<bool> validLayers;
-};
-
-class RenderEvent {
-public:
-    RenderEvent() : mutex(), signal() {}
-    std::mutex mutex;
-    std::condition_variable signal;
-
-    int layer;
-    int period;
-    Effect *effect;
-    SequenceElements *seqElements{ nullptr }; // non-owning; must outlive the RenderEvent (guaranteed by RenderEngine::Render() caller)
-    SettingsMap *settingsMap;
-    PixelBufferClass *buffer;
-    bool *ResetEffectState;
-    int returnVal{ -1 };
-    bool suppress{ false };
 };
 
 class NextRenderer {
@@ -190,6 +175,10 @@ public:
         if (idx == END_OF_RENDER_FRAME) {
             idx = finalFrame;
         }
+        if (idx < 0 || idx >= (int)data.size()) {
+            // Out-of-range frame index — clamp to the sentinel slot to avoid OOB.
+            idx = finalFrame;
+        }
         int i = data[idx].fetch_add(1);
         if (i == (max - 1)) {
             previousFrameDone = frame;
@@ -260,6 +249,7 @@ public:
                 mainBuffer->InitBuffer(*mdl, numLayers, seqData->FrameTime());
                 const Model *model = mainBuffer->GetModel();
                 if (DisplayAsType::ModelGroup == model->GetDisplayAs()) {
+                    const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
                     //for (int l = 0; l < numLayers; ++l) {
                     for (int l = numLayers - 1; l >= 0; --l) {
                         EffectLayer *layer = row->GetEffectLayer(l);
@@ -277,9 +267,12 @@ public:
                                 } else {
                                     perModelEffects = true;
                                 }
+                            } else if (bt == DEFAULT) {
+                                if (grp != nullptr && grp->GetDefaultBufferStyle().compare(0, 9, PER_MODEL) == 0) {
+                                    perModelEffects = true;
+                                }
                             }
                         }
-                        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
                         if (perModelEffectsDeep) {
                             mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
                         }
@@ -288,8 +281,40 @@ public:
                         }
                     }
                 }
+                std::string duplicateIncludeSourceModel;
+                for (int lyr = 0; lyr < (int)rowToRender->GetEffectLayerCount() && duplicateIncludeSourceModel.empty(); ++lyr) {
+                    EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
+                    std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
+                    for (int e = 0; e < elyr->GetEffectCount(); ++e) {
+                        Effect* eff = elyr->GetEffect(e);
+                        if (eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
+                            eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
+                            duplicateIncludeSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
+                            break;
+                        }
+                    }
+                }
+
+                std::unordered_map<std::string, Element*> srcSubmodelsWithEffects;
+                if (!duplicateIncludeSourceModel.empty()) {
+                    ModelElement* srcModelEl = dynamic_cast<ModelElement*>(
+                        rowToRender->GetSequenceElements()->GetElement(duplicateIncludeSourceModel));
+                    if (srcModelEl != nullptr) {
+                        for (int x = 0; x < srcModelEl->GetSubModelAndStrandCount(); ++x) {
+                            SubModelElement* srcSe = srcModelEl->GetSubModel(x);
+                            if (srcSe != nullptr &&
+                                srcSe->GetType() != ElementType::ELEMENT_TYPE_STRAND &&
+                                srcSe->HasEffects()) {
+                                srcSubmodelsWithEffects[srcSe->GetName()] = srcSe;
+                            }
+                        }
+                    }
+                }
+
                 for (int x = 0; x < row->GetSubModelAndStrandCount(); ++x) {
                     SubModelElement *se = row->GetSubModel(x);
+                    const bool addForInheritedDuplicate = !srcSubmodelsWithEffects.empty() &&
+                                                          se->GetType() != ElementType::ELEMENT_TYPE_STRAND;
                     if (se->HasEffects()) {
                         if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                             StrandElement *ste = (StrandElement*)se;
@@ -304,11 +329,31 @@ public:
                         } else {
                             Model *subModel = model->GetSubModel(se->GetName());
                             if (subModel != nullptr) {
-                                subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
+                                int layerCount = (int)se->GetEffectLayerCount();
+                                if (addForInheritedDuplicate) {
+                                    auto srcIt = srcSubmodelsWithEffects.find(se->GetName());
+                                    if (srcIt != srcSubmodelsWithEffects.end())
+                                        layerCount = std::max(layerCount, (int)srcIt->second->GetEffectLayerCount());
+                                }
+                                subModelInfos.push_back(new EffectLayerInfo(layerCount + 1));
                                 subModelInfos.back()->element = se;
                                 subModelInfos.back()->submodel = subModelInfos.size() -1;
                                 subModelInfos.back()->buffer.reset(new PixelBufferClass(_ctx));
-                                subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime());
+                                subModelInfos.back()->buffer->InitBuffer(*subModel, layerCount + 1, data.FrameTime());
+                            }
+                        }
+                    } else if (addForInheritedDuplicate) {
+                        auto srcIt = srcSubmodelsWithEffects.find(se->GetName());
+                        if (srcIt != srcSubmodelsWithEffects.end()) {
+                            Model *subModel = model->GetSubModel(se->GetName());
+                            if (subModel != nullptr) {
+                                int layerCount = std::max(1, std::max((int)se->GetEffectLayerCount(),
+                                                                      (int)srcIt->second->GetEffectLayerCount()));
+                                subModelInfos.push_back(new EffectLayerInfo(layerCount + 1));
+                                subModelInfos.back()->element = se;
+                                subModelInfos.back()->submodel = subModelInfos.size() - 1;
+                                subModelInfos.back()->buffer.reset(new PixelBufferClass(_ctx));
+                                subModelInfos.back()->buffer->InitBuffer(*subModel, layerCount + 1, data.FrameTime());
                             }
                         }
                     }
@@ -335,8 +380,6 @@ public:
             mainBuffer = nullptr;
         }
         startFrame = 0;
-        renderEvent.buffer = mainBuffer;
-        renderEvent.seqElements = _seqElements;
     }
 
     virtual ~RenderJob() {
@@ -553,10 +596,11 @@ public:
         return frame - (ef->GetStartTimeMS() / frameTime);
     }
 
-    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
+    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false, const std::string& inheritedDuplicateSourceModel = std::string()) {
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
         int numLayers = el->GetEffectLayerCount();
+        const int effectiveNumLayers = !inheritedDuplicateSourceModel.empty() ? info.numLayers - 1 : numLayers;
 
         std::vector<bool> partOfCanvas;
         partOfCanvas.resize(info.validLayers.size());
@@ -566,11 +610,17 @@ public:
         }
 
         // To support canvas mix type we must render them bottom to top
-        for (int layer = numLayers - 1; layer >= 0; --layer) {
-            EffectLayer* elayer = el->GetEffectLayer(layer);
+        for (int layer = effectiveNumLayers - 1; layer >= 0; --layer) {
+            EffectLayer* elayer = (layer < numLayers) ? el->GetEffectLayer(layer) : nullptr;
             //must lock the layer so the Effect* stays valid
-            std::unique_lock<std::recursive_mutex> elayerLock(elayer->GetLock());
-            Effect* ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
+            std::unique_lock<std::recursive_mutex> elayerLock;
+            if (elayer != nullptr) {
+                elayerLock = std::unique_lock<std::recursive_mutex>(elayer->GetLock());
+            }
+            Effect* ef = nullptr;
+            if (elayer != nullptr) {
+                ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
+            }
             Effect* copy = nullptr;
 
             if (ef != nullptr && ef->GetEffectIndex() == EffectManager::eff_DUPLICATE) {
@@ -624,7 +674,18 @@ public:
                         }
                     }
                 }
-            } 
+            } else if (!inheritedDuplicateSourceModel.empty()) {
+                if (auto* sme = dynamic_cast<SubModelElement*>(el)) {
+                    const std::string srcSubmodel = inheritedDuplicateSourceModel + "/" + sme->GetName();
+                    Effect* srcEf = findEffectForFrame(srcSubmodel, layer + 1, frame);
+                    if (srcEf != nullptr && srcEf->GetEffectIndex() != EffectManager::eff_DUPLICATE) {
+                        copy = srcEf;
+                        tempEffect = new Effect(*srcEf);
+                        ef = tempEffect;
+                        ef->EnableBackgroundDisplayLists(false);
+                    }
+                }
+            }
 
             Effect* compare = copy != nullptr ? copy : ef;
 
@@ -734,7 +795,7 @@ public:
                     buffer->UnMergeBuffersForLayer(layer);
                 }
 
-                info.validLayers[layer] = _engine->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b, true, &renderEvent);
+                info.validLayers[layer] = _engine->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b);
                 effectsToUpdate |= info.validLayers[layer];
                 info.effectStates[layer] = b;
 
@@ -762,18 +823,20 @@ public:
                 }
             }
             if (blend) {
-                buffer->SetColors(numLayers, &((*seqData)[frame][0]), seqData->NumChannels());
-                info.validLayers[numLayers] = true;
+                buffer->SetColors(effectiveNumLayers, &((*seqData)[frame][0]), seqData->NumChannels());
+                info.validLayers[effectiveNumLayers] = true;
             }
             buffer->CalcOutput(frame, info.validLayers);
-            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
+            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
 
             // Position Zone processing (DMX)
-            const Model* model = buffer->GetModel();
-            if (model != nullptr && model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv) {
-                const DmxMovingHeadAdv* mh = dynamic_cast<const DmxMovingHeadAdv*>(model);
-                if (mh != nullptr) {
-                    mh->ApplyPositionZones(&((*seqData)[frame][0]), mh->GetFirstChannel());
+            if (_ctx->GetEnablePositionZones()) {
+                const Model* model = buffer->GetModel();
+                if (model != nullptr && model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv) {
+                    const DmxMovingHeadAdv* mh = dynamic_cast<const DmxMovingHeadAdv*>(model);
+                    if (mh != nullptr) {
+                        mh->ApplyPositionZones(&((*seqData)[frame][0]), mh->GetFirstChannel());
+                    }
                 }
             }
         }
@@ -861,6 +924,7 @@ public:
             }
 
             for (int frame = startFrame; frame <= endFrame; ++frame) {
+                AutoReleasePool pool;
                 currentFrame = frame;
                 SetGenericStatus("{}: Starting frame {} ", frame, true, true);
 
@@ -884,13 +948,26 @@ public:
                 bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
                     maybeWaitForFrame(frame);
+
+                    std::string inheritedDuplicateSourceModel;
+                    for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicateSourceModel.empty(); ++lyr) {
+                        EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
+                        std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
+                        int discard = 0;
+                        Effect* eff = findEffectForFrame(elyr, frame, discard);
+                        if (eff != nullptr && eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
+                            eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
+                            inheritedDuplicateSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
+                        }
+                    }
+
                     for (const auto& a : subModelInfos) {
                         if (abort) {
                             rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
                             break;
                         }
                         EffectLayerInfo *info = a;
-                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
+                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared, inheritedDuplicateSourceModel);
                     }
                 }
 
@@ -934,7 +1011,7 @@ public:
                         }
 
                         SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
-                        if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node], true, &renderEvent)) {
+                        if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node])) {
                             SetCalOutputStatus(frame, -1, strand, inode);
                             buffer->HandleLayerBlurZoom(frame, 0);
                             buffer->HandleLayerTransitions(frame, 0);
@@ -942,7 +1019,7 @@ public:
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels());
                             buffer->CalcOutput(frame, valid);
-                            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
+                            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
                         }
                     }
                 }
@@ -1081,7 +1158,6 @@ private:
     SequenceElements *_seqElements;
     std::vector<bool> rangeRestriction;
     bool supportsModelBlending;
-    RenderEvent renderEvent;
 
     //stuff for handling the status;
     std::string statusMsg;
@@ -1116,35 +1192,6 @@ RenderEngine::~RenderEngine() {
         delete rpi;
     }
     _renderProgressInfo.clear();
-}
-
-void RenderEngine::RenderMainThreadEffects() {
-    std::unique_lock<std::mutex> lock(_renderEventLock);
-    while (!_mainThreadRenderEvents.empty()) {
-        RenderEvent *evt = _mainThreadRenderEvents.front();
-        _mainThreadRenderEvents.pop();
-        lock.unlock();
-        RenderEffectOnMainThread(evt);
-        lock.lock();
-    }
-}
-
-void RenderEngine::RenderEffectOnMainThread(RenderEvent *ev) {
-    std::unique_lock<std::mutex> lock(ev->mutex);
-
-    // validate that the effect still exists as this could be being processed after the effect was deleted
-    SequenceElements& seqElements = ev->seqElements ? *ev->seqElements : _ctx.GetSequenceElements();
-    if (seqElements.IsValidEffect(ev->effect)) {
-        ev->returnVal = RenderEffectFromMap(ev->suppress, ev->effect,
-            ev->layer,
-            ev->period,
-            *ev->settingsMap,
-            *ev->buffer, *ev->ResetEffectState, false, ev) ? 1 : 0;
-    } else {
-        // Effect was deleted before the main-thread render event was processed — skip it.
-        ev->returnVal = 0;
-    }
-    ev->signal.notify_all();
 }
 
 // RenderProgressInfo is defined in RenderProgressInfo.h (included above).
@@ -1298,7 +1345,11 @@ std::list<Model*> RenderEngine::RenderTree::GetModels() const {
 }
 
 void RenderEngine::BuildRenderTree(SequenceElements& elements, unsigned int modelsChangeCount) {
-    unsigned int curChangeCount = elements.GetMasterViewChangeCount() + modelsChangeCount;
+    // Include the model-manager generation so any model add/replace/delete/
+    // clear forces the tree to rebuild — otherwise a cached raw Model* can
+    // outlive the freed model and crash in PixelBufferClass::reset / GetColors
+    // (crash sigs 7d28659359, 998b51b4b4, 62b47aa9b8).
+    unsigned int curChangeCount = elements.GetMasterViewChangeCount() + modelsChangeCount + _ctx.GetModelGeneration();
     if (_renderTree.renderTreeChangeCount != curChangeCount) {
         _renderTree.Clear();
         const int numEls = elements.GetElementCount(MASTER_VIEW);
@@ -1720,8 +1771,7 @@ RenderEngine::ExportedModelData RenderEngine::ExportModelData(const std::string&
 }
 
 bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int layer, int period, SettingsMap& SettingsMap,
-    PixelBufferClass& buffer, bool& resetEffectState,
-    bool bgThread, RenderEvent* event)
+    PixelBufferClass& buffer, bool& resetEffectState)
 {
     auto logger_render = spdlog::get("render");
 
@@ -1784,45 +1834,7 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                 logger_render->warn("render on model {} layer {} effect {} from {}ms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
             }
             else {
-                if (bgThread && !reff->CanRenderOnBackgroundThread(effectObj, SettingsMap, *b)) {
-                    event->effect = effectObj;
-                    event->layer = layer;
-                    event->period = period;
-                    event->settingsMap = &SettingsMap;
-                    event->ResetEffectState = &resetEffectState;
-                    event->buffer = &buffer;
-                    event->suppress = suppress;
-
-                    std::unique_lock<std::mutex> lock(event->mutex);
-
-                    std::unique_lock<std::mutex> qlock(_renderEventLock);
-                    _mainThreadRenderEvents.push(event);
-                    qlock.unlock();
-
-                    if (_onCallAfterRenderMainThread) _onCallAfterRenderMainThread();
-                    if (event->signal.wait_for(lock, std::chrono::seconds(10)) == std::cv_status::no_timeout) {
-                        retval = event->returnVal == 1;
-                    }
-                    else {
-                        logger_render->warn("HELP!!!!   Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) timed out 10 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-
-                        if (event->signal.wait_for(lock, std::chrono::seconds(60)) == std::cv_status::no_timeout) {
-                            retval = event->returnVal == 1;
-                        }
-                        else {
-                            logger_render->warn("DOUBLE HELP!!!!   Frame #{} render on model {} ({}x{}) layer {} effect {} from {}ms (#{}) to {}ms (#{}) timed out 70 secs.", b->curPeriod, (const char*)buffer.GetModelName().c_str(), b->BufferWi, b->BufferHt, layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS(), b->curEffStartPer, effectObj->GetEndTimeMS(), b->curEffEndPer);
-                        }
-                    }
-                    if (period % 10 == 0) {
-                        std::this_thread::yield();
-
-                        SequenceElements& seqElements = event->seqElements ? *event->seqElements : _ctx.GetSequenceElements();
-                        if (!seqElements.IsValidEffect(event->effect)) {
-                            logger_render->error("In RenderEffectFromMap after Yield() call: effect is no longer valid (expected during abort/delete).");
-                        }
-                    }
-                }
-                else {
+                {
                     int bufCnt = buffer.BufferCountForLayer(layer);
                     std::function<void(int)> f([this, &buffer, layer, suppress, effectObj, reff, &SettingsMap, logger_render](int bufn) {
                         RenderBuffer* rb = &buffer.BufferForLayer(layer, bufn);
@@ -1868,15 +1880,8 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                         }
                         });
                     if (bufCnt > 1) {
-                        if (bgThread) {
-                            static ParallelJobPool PER_MODEL_POOL("per_model_pool");
-                            parallel_for(0, bufCnt, [&f](int x) {f(x); }, 1, &PER_MODEL_POOL);
-                        }
-                        else {
-                            for (int x = 0; x < bufCnt; x++) {
-                                f(x);
-                            }
-                        }
+                        static ParallelJobPool PER_MODEL_POOL("per_model_pool");
+                        parallel_for(0, bufCnt, [&f](int x) {f(x); }, 1, &PER_MODEL_POOL);
                     }
                     else {
                         f(0);

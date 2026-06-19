@@ -459,8 +459,9 @@ void E131Output::SetManyChannels(int32_t channel, unsigned char* data, size_t si
 
     if (_fppProxyOutput) {
         _fppProxyOutput->SetManyChannels(channel, data, size);
-    } 
+    }
     else {
+        if (channel < 0 || channel >= GetMaxChannels()) return;
         size_t chs = (std::min)(size, (size_t)(GetMaxChannels() - channel));
 
         if (memcmp(&_data[channel + E131_PACKET_HEADERLEN], data, chs) == 0) {

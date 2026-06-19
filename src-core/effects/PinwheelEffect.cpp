@@ -130,6 +130,10 @@ void PinwheelEffect::RenderNewMethod(Effect* effect, const SettingsMap& Settings
     float oset = buffer.GetEffectTimeIntervalPosition();
 
     int pinwheel_arms = SettingsMap.GetInt("SLIDER_Pinwheel_Arms", sArmsDefault);
+    if (pinwheel_arms == 0) {
+        //shouldn't happen, but just in case
+        return;
+    }
     PinwheelData data(pinwheel_arms);
 
     data.pinwheel_twist = GetValueCurveInt("Pinwheel_Twist", sTwistDefault, SettingsMap, oset, sTwistMin, sTwistMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

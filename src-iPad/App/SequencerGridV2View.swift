@@ -1,4 +1,402 @@
 import SwiftUI
+import UniformTypeIdentifiers
+
+/// Dynamic UTType for `.xtiming` timing-track files. Declared here
+/// (not in Info.plist) because the import / export UI needs a
+/// content type but the iPad doesn't yet own the file type. Falls
+/// back to `.xml` so the system picker never no-ops.
+let kXTimingFileType: UTType = UTType(filenameExtension: "xtiming") ?? .xml
+
+/// B49 — Falcon Player sub-sequence (`.eseq`). We ship v2
+/// zstd-compressed files. Falls back to a generic binary UTI so
+/// the exporter still presents a picker on devices that don't
+/// know the file type.
+let kESEQFileType: UTType = UTType(filenameExtension: "eseq") ?? .data
+
+
+/// File document wrapper for the Save / Export timing-track flow.
+/// Holds the bytes already-written to a temp path so SwiftUI's
+/// `.fileExporter` can copy them to the user's destination.
+struct XTimingExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kXTimingFileType] }
+    static var writableContentTypes: [UTType] { [kXTimingFileType] }
+    let sourcePath: String
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
+/// B100 paste-replace confirmation wrapper. Same extraction
+/// pattern as the other alert modifiers — keeps the main body
+/// expression under SwiftUI's type-check budget. Anchors on the
+/// existing effect's (row, idx); the paste drops at that
+/// effect's `startMS` after the user confirms the overwrite.
+private struct PasteReplaceAlert: ViewModifier {
+    @Binding var target: EditDescriptionTarget?
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.alert("Replace Effect?",
+                      isPresented: Binding(
+                        get: { target != nil },
+                        set: { if !$0 { target = nil } }
+                      ),
+                      presenting: target) { tgt in
+            Button("Replace", role: .destructive) {
+                guard tgt.rowIndex >= 0, tgt.rowIndex < viewModel.rows.count,
+                      tgt.effectIndex >= 0,
+                      tgt.effectIndex < viewModel.rows[tgt.rowIndex].effects.count else {
+                    target = nil
+                    return
+                }
+                let startMS = viewModel.rows[tgt.rowIndex]
+                    .effects[tgt.effectIndex].startTimeMS
+                viewModel.pasteEffectReplacingOverlaps(
+                    rowIndex: tgt.rowIndex, startMS: startMS)
+                target = nil
+            }
+            Button("Cancel", role: .cancel) { target = nil }
+        } message: { _ in
+            Text("Pasting here would overwrite at least one existing effect. Replace it?")
+        }
+    }
+}
+
+/// Long-press on a transition diamond opens a picker for the
+/// transition type. `isIn` selects which `T_CHOICE_*_Transition_Type`
+/// key the chosen value writes to.
+struct TransitionMenuTarget: Identifiable {
+    let rowIndex: Int
+    let effectIndex: Int
+    let isIn: Bool
+    var id: String { "\(rowIndex)-\(effectIndex)-\(isIn ? "in" : "out")" }
+}
+
+/// Transition-type picker confirmation dialog. Pulled out as its own
+/// `ViewModifier` (same reason as the other alert wrappers in this
+/// file) so the main body's modifier chain stays under SwiftUI's
+/// type-check budget.
+private struct TransitionPickerDialog: ViewModifier {
+    @Binding var target: TransitionMenuTarget?
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.confirmationDialog(
+            "Transition",
+            isPresented: Binding(
+                get: { target != nil },
+                set: { if !$0 { target = nil } }
+            ),
+            presenting: target
+        ) { tgt in
+            let typeKey = tgt.isIn ? "T_CHOICE_In_Transition_Type"
+                                   : "T_CHOICE_Out_Transition_Type"
+            ForEach(kTransitionTypes, id: \.self) { (t: String) in
+                Button(t) {
+                    viewModel.selectEffect(rowIndex: tgt.rowIndex,
+                                            effectIndex: tgt.effectIndex)
+                    viewModel.setSettingValue(t, forKey: typeKey,
+                                               suppressIfDefault: "Fade")
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { tgt in
+            let typeKey = tgt.isIn ? "T_CHOICE_In_Transition_Type"
+                                   : "T_CHOICE_Out_Transition_Type"
+            let current = viewModel.document.effectSettingValue(
+                forKey: typeKey,
+                inRow: Int32(tgt.rowIndex),
+                at: Int32(tgt.effectIndex))
+            let display = current.isEmpty ? "Fade" : current
+            Text(tgt.isIn
+                 ? "In transition (current: \(display))"
+                 : "Out transition (current: \(display))")
+        }
+    }
+}
+
+/// B20 edit-description alert wrapper. Same extraction pattern
+/// as `InsertLayersAlert` — keeps the main body expression under
+/// SwiftUI's type-check budget. Target is encoded as a simple
+/// `(row, idx)` pair so the modifier doesn't reach into the
+/// private `ContextMenuTarget` declared inside `SequencerGridV2View`.
+struct EditDescriptionTarget: Equatable {
+    let rowIndex: Int
+    let effectIndex: Int
+}
+
+private struct EditDescriptionAlert: ViewModifier {
+    @Binding var target: EditDescriptionTarget?
+    @Binding var text: String
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.alert("Effect Description",
+                      isPresented: Binding(
+                        get: { target != nil },
+                        set: { if !$0 { target = nil } }
+                      ),
+                      presenting: target) { tgt in
+            TextField("Description", text: $text, axis: .vertical)
+                .lineLimit(3...6)
+            Button("Save") {
+                viewModel.setEffectDescription(rowIndex: tgt.rowIndex,
+                                                 effectIndex: tgt.effectIndex,
+                                                 text)
+                target = nil
+            }
+            Button("Cancel", role: .cancel) { target = nil }
+        } message: { _ in
+            Text("Free-text note on this effect. Shown in the selection readout.")
+        }
+    }
+}
+
+/// B47 insert-multiple-layers alert wrapper. Extracted as its
+/// own ViewModifier because tacking it onto the body's long
+/// modifier chain pushed SwiftUI's type-checker over budget.
+/// B-CL: model-picker sheet for "Copy Layers/SubModels to Models…".
+/// Lists all sequencer model names, lets the user pick one or more
+/// destinations (excluding the source), then fires `onCopy`. Mirrors
+/// desktop's checkbox dialog (`RowHeading.cpp:594`, `CopyModelEffectsToModels`).
+private struct CopyLayersToModelsSheet: View {
+    let sourceModelName: String
+    let allModelNames: [String]
+    @Binding var pickedModels: Set<String>
+    let onCopy: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            List(allModelNames.filter { $0 != sourceModelName }, id: \.self) { name in
+                Button {
+                    if pickedModels.contains(name) {
+                        pickedModels.remove(name)
+                    } else {
+                        pickedModels.insert(name)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: pickedModels.contains(name)
+                              ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(pickedModels.contains(name)
+                                             ? Color.accentColor : Color.secondary)
+                        Text(name)
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .navigationTitle("Copy to Models")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Copy") { onCopy() }
+                        .disabled(pickedModels.isEmpty)
+                }
+            }
+        }
+    }
+}
+
+private struct InsertLayersAlert: ViewModifier {
+    @Binding var targetRow: Int?
+    @Binding var countText: String
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.alert("Insert Multiple Layers Below",
+                      isPresented: Binding(
+                        get: { targetRow != nil },
+                        set: { if !$0 { targetRow = nil } }
+                      ),
+                      presenting: targetRow) { row in
+            TextField("Count", text: $countText)
+                .keyboardType(.numberPad)
+            Button("Insert") {
+                let count = Int(countText) ?? 0
+                _ = viewModel.insertLayersBelow(rowIndex: row, count: count)
+                targetRow = nil
+            }
+            Button("Cancel", role: .cancel) { targetRow = nil }
+        } message: { _ in
+            Text("How many empty layers to add below the current one?")
+        }
+    }
+}
+
+/// Delete-multiple-layers alert wrapper (desktop
+/// ID_ROW_MNU_DELETE_LAYERS). Same extracted-ViewModifier shape as
+/// `InsertLayersAlert` for the same type-check-budget reason.
+private struct DeleteLayersAlert: ViewModifier {
+    @Binding var targetRow: Int?
+    @Binding var countText: String
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.alert("Delete Multiple Layers",
+                      isPresented: Binding(
+                        get: { targetRow != nil },
+                        set: { if !$0 { targetRow = nil } }
+                      ),
+                      presenting: targetRow) { row in
+            TextField("Count", text: $countText)
+                .keyboardType(.numberPad)
+            Button("Delete", role: .destructive) {
+                let count = Int(countText) ?? 0
+                _ = viewModel.deleteLayersBelow(rowIndex: row, count: count)
+                targetRow = nil
+            }
+            Button("Cancel", role: .cancel) { targetRow = nil }
+        } message: { _ in
+            Text("How many layers to delete, starting at this one and moving down? Effects on them will be lost.")
+        }
+    }
+}
+
+/// #6268 — pick the target region for Copy-Effects-to-Region.
+/// Extracted as a ViewModifier (same type-check-budget reason as
+/// InsertLayersAlert / DeleteLayersAlert).
+private struct SongRegionCopyDialog: ViewModifier {
+    @Binding var sourceIdx: Int?
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.confirmationDialog(
+            "Copy Effects to…",
+            isPresented: Binding(
+                get: { sourceIdx != nil },
+                set: { if !$0 { sourceIdx = nil } })
+        ) {
+            if let src = sourceIdx {
+                ForEach(Array(viewModel.songRegions.enumerated()), id: \.offset) { i, r in
+                    if i != src {
+                        Button(r.name.isEmpty ? "Region \(i + 1)" : r.name) {
+                            viewModel.copySongRegionEffects(from: src, to: i)
+                        }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+}
+
+/// Per-region .xsq export — folds the destination-folder importer +
+/// result alert out of the main body to keep it under the Swift
+/// type-checker's complexity limit (same reason as the other
+/// extracted export modifiers).
+private struct SongRegionExportModifier: ViewModifier {
+    @Binding var pickerPresented: Bool
+    @Binding var exportIdx: Int?
+    @Binding var message: String?
+    @Binding var exportAllPresented: Bool
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content
+            .fileImporter(isPresented: $pickerPresented,
+                          allowedContentTypes: [.folder],
+                          allowsMultipleSelection: false) { result in
+                guard let idx = exportIdx,
+                      idx < viewModel.songRegions.count else { return }
+                exportIdx = nil
+                if case .success(let urls) = result, let dir = urls.first {
+                    let needsStop = dir.startAccessingSecurityScopedResource()
+                    defer { if needsStop { dir.stopAccessingSecurityScopedResource() } }
+                    message = viewModel.exportSongRegion(
+                        viewModel.songRegions[idx], toFolder: dir.path)
+                }
+            }
+            .fileImporter(isPresented: $exportAllPresented,
+                          allowedContentTypes: [.folder],
+                          allowsMultipleSelection: false) { result in
+                if case .success(let urls) = result, let dir = urls.first {
+                    let needsStop = dir.startAccessingSecurityScopedResource()
+                    defer { if needsStop { dir.stopAccessingSecurityScopedResource() } }
+                    message = viewModel.exportAllSongRegions(toFolder: dir.path)
+                }
+            }
+            .alert("Export Region", isPresented: Binding(
+                get: { message != nil },
+                set: { if !$0 { message = nil } }
+            )) {
+                Button("OK", role: .cancel) { message = nil }
+            } message: {
+                Text(message ?? "")
+            }
+    }
+}
+
+/// B49 — Falcon Player sub-sequence export document. Same
+/// temp-path → `.fileExporter` pattern as `XTimingExportDoc`.
+struct FSEQExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kESEQFileType] }
+    static var writableContentTypes: [UTType] { [kESEQFileType] }
+    let sourcePath: String
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
+/// Bundles the `.xtiming` / `.eseq` `.fileExporter` modifiers + the video
+/// export progress overlay into a single `ViewModifier`. Folding them out of
+/// the main `body` keeps that already-large modifier chain under the Swift
+/// type-checker's complexity limit. (Video export itself hands off via the
+/// system share sheet, not a `.fileExporter` — stacking a third exporter on
+/// one view didn't reliably present.)
+private struct ExportFileExportersModifier: ViewModifier {
+    @Binding var showingXTimingExporter: Bool
+    @Binding var xtimingExportDoc: XTimingExportDoc?
+    let xtimingDefaultName: String
+    @Binding var showingFSEQExporter: Bool
+    @Binding var fseqExportDoc: FSEQExportDoc?
+    let fseqDefaultName: String
+    /// Non-nil while a model media export (video or GIF) is encoding; the
+    /// string is shown under the spinner.
+    let exportInProgressMessage: String?
+
+    func body(content: Content) -> some View {
+        content
+            .fileExporter(
+                isPresented: $showingXTimingExporter,
+                document: xtimingExportDoc,
+                contentType: kXTimingFileType,
+                defaultFilename: xtimingDefaultName
+            ) { _ in xtimingExportDoc = nil }
+            .fileExporter(
+                isPresented: $showingFSEQExporter,
+                document: fseqExportDoc,
+                contentType: kESEQFileType,
+                defaultFilename: fseqDefaultName
+            ) { _ in fseqExportDoc = nil }
+            .overlay {
+                if let msg = exportInProgressMessage {
+                    ZStack {
+                        Color.black.opacity(0.35).ignoresSafeArea()
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .controlSize(.large)
+                                .tint(.white)
+                            Text(msg)
+                                .foregroundStyle(.white)
+                                .font(.headline)
+                        }
+                        .padding(28)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                    .transition(.opacity)
+                }
+            }
+    }
+}
 
 /// Six-region effects grid shell with synchronized scrolling. Placeholder
 /// content in each cell — the drawing (effects, timing marks, icons,
@@ -20,7 +418,60 @@ struct SequencerGridV2View: View {
     // Timeline state is owned by the parent (SequencerView) so toolbar
     // zoom controls and pinch-to-zoom here share the same state.
     let timeline: TimelineState
-    @State private var metrics = GridMetrics.standard
+    // B61 — row-heading column width is user-resizable via a drag
+    // handle between the header column and the grid canvas. Persisted
+    // so the setting survives app restarts. Clamped to a sensible
+    // range (80..400 pt) both here and in the drag handler so a
+    // corrupted UserDefaults value can't strand the column.
+    @AppStorage("gridRowHeaderWidth") private var rowHeaderWidthStorage: Double = 180
+    private static let rowHeaderMinWidth: Double = 80
+    private static let rowHeaderMaxWidth: Double = 400
+    /// B42 — toggle between the default 48 pt waveform strip and a
+    /// 96 pt "double-height" mode. Persisted so the user's choice
+    /// survives app restarts.
+    @AppStorage("waveformDoubleHeight") private var waveformDoubleHeight: Bool = false
+
+    // Desktop prefs xLightsSnapToTimingMarks / mTimingPlayOnDClick (both
+    // default ON). Read directly by the grid drag handlers / double-tap
+    // handler via UserDefaults; surfaced as toggles in the options menu.
+    @AppStorage("snapToTimingMarks") private var snapToTimingMarks: Bool = true
+    @AppStorage("timingPlayOnDoubleTap") private var timingPlayOnDoubleTap: Bool = true
+    @AppStorage("pasteByCell") private var pasteByCell: Bool = true
+    // Desktop Effects-Grid display prefs (all default ON except the
+    // alternate timing format). The grid-render toggles are gated in the
+    // Metal grid views; grid spacing scales the row height in `metrics`.
+    @AppStorage("grid.showEffectBackgrounds") private var showEffectBackgrounds: Bool = true
+    @AppStorage("grid.showTransitionMarks") private var showTransitionMarks: Bool = true
+    @AppStorage("grid.alternateTimingFormat") private var alternateTimingFormat: Bool = false
+    // XS/S/M/L/XL → multiplier on the default 24 pt row height.
+    @AppStorage("grid.spacing") private var gridSpacing: String = "M"
+    // Effects-Grid ▸ "Hide Color Update Warning" — consumed by
+    // ColorPaletteView's Update-Palette action (skips the confirm alert).
+    @AppStorage("hideColorUpdateWarning") private var hideColorUpdateWarning: Bool = false
+    private static func rowHeightMultiplier(_ spacing: String) -> CGFloat {
+        switch spacing {
+        case "XS": return 0.66
+        case "S": return 0.83
+        case "L": return 1.25
+        case "XL": return 1.5
+        default: return 1.0
+        }
+    }
+    private var metrics: GridMetrics {
+        var m = GridMetrics.standard
+        m.rowHeaderWidth = CGFloat(
+            min(Self.rowHeaderMaxWidth,
+                max(Self.rowHeaderMinWidth, rowHeaderWidthStorage)))
+        if waveformDoubleHeight {
+            m.waveformHeight = 96
+        }
+        let mult = Self.rowHeightMultiplier(gridSpacing)
+        if mult != 1.0 {
+            m.rowHeight = (m.rowHeight * mult).rounded()
+            m.timingRowHeight = (m.timingRowHeight * mult).rounded()
+        }
+        return m
+    }
     @State private var rowsScroll = RowsScrollState()
     @State private var timingScroll = RowsScrollState()
     @State private var contextMenuTarget: ContextMenuTarget?
@@ -33,6 +484,151 @@ struct SequencerGridV2View: View {
         let effectIndex: Int
         var id: String { "\(rowIndex)-\(effectIndex)" }
     }
+
+    @State private var transitionMenuTarget: TransitionMenuTarget?
+
+    /// B67 / B69 timing-mark long-press target. `markIndex == nil`
+    /// means "empty space at `ms`" (→ Add Mark Here menu); non-nil
+    /// points to an existing mark (→ Delete Mark menu).
+    private struct TimingMarkMenuTarget: Identifiable {
+        let rowIndex: Int
+        let markIndex: Int?
+        let ms: Int
+        var id: String { "\(rowIndex)-\(markIndex ?? -1)-\(ms)" }
+    }
+    @State private var timingMarkMenuTarget: TimingMarkMenuTarget?
+
+    /// Empty-area long-press menu (model-band filler space below
+    /// the last row). Drives a confirmationDialog with "Add Timing
+    /// Track…" / "Edit Display Elements…" entries.
+    @State private var emptyAreaMenuPresented: Bool = false
+
+    /// B70 rename-timing-mark alert state.
+    @State private var renameMarkTarget: TimingMarkMenuTarget?
+    @State private var renameMarkText: String = ""
+
+    /// B19 save-as-preset alert state.
+    @State private var savePresetRequested: Bool = false
+    @State private var savePresetName: String = ""
+
+
+    /// B47 insert-N-layers prompt state.
+    @State private var insertLayersTargetRow: Int? = nil
+    @State private var insertLayersCountText: String = "3"
+    @State private var deleteLayersTargetRow: Int? = nil
+    @State private var deleteLayersCountText: String = "2"
+
+    /// #6507 top-level row drag-reorder. `rowDragSourceId` is the
+    /// visible row id of the row being dragged; `rowDropTargetId` is
+    /// the row the drop indicator currently sits above (nil = drop at
+    /// the end). Both reset on drop / cancel.
+    @State private var rowDragSourceId: Int? = nil
+    @State private var rowDropTargetId: Int? = nil
+
+    /// B20 edit-description prompt state.
+    @State private var editDescriptionTarget: EditDescriptionTarget? = nil
+    @State private var editDescriptionText: String = ""
+
+    /// B100 paste-replace confirmation state.
+    @State private var pasteReplaceTarget: EditDescriptionTarget? = nil
+
+    /// B32 loop-region context-menu trigger. Set non-nil when the
+    /// user long-presses inside the existing loop band; cleared
+    /// when the confirmation dialog dismisses.
+    @State private var loopMenuPresented: Bool = false
+    /// B41 waveform filter-picker trigger.
+    @State private var waveformMenuPresented: Bool = false
+    /// #6268 song-structure region menu / edit-sheet state. `regionMenuMS`
+    /// is the long-press time used by Add/Delete-boundary; `regionEditID`
+    /// is the region being edited in the name+color sheet.
+    @State private var songRegionMenuMS: Int? = nil
+    @State private var songRegionCopySourceIdx: Int? = nil
+    @State private var songRegionEditID: Int? = nil
+    @State private var songRegionEditName: String = ""
+    /// Per-region .xsq export — the region pending a destination-folder
+    /// pick, plus the folder importer toggle + result message.
+    @State private var songRegionExportIdx: Int? = nil
+    @State private var songRegionExportPickerPresented: Bool = false
+    @State private var songRegionExportMessage: String? = nil
+    @State private var songRegionExportAllPickerPresented: Bool = false
+    @State private var songViewRenamePresented: Bool = false
+    @State private var songViewRenameText: String = ""
+    @State private var songViewAddPresented: Bool = false
+    @State private var songViewAddText: String = ""
+    /// A9.1 custom-band picker sheet trigger.
+    @State private var customBandSheetPresented: Bool = false
+    /// A7 sound-class picker sheet trigger.
+    @State private var classifyPickerPresented: Bool = false
+    /// B97 Find / Replace replace-text buffer (sheet trigger lives
+    /// on the view model so the Edit menu can flip it via ⌘F).
+    @State private var findReplaceText: String = ""
+
+    /// A8 stem-model install-location picker sheet trigger.
+    private var iOS15Available: Bool {
+        if #available(iOS 15.0, *) { return true }
+        return false
+    }
+
+    /// Binding used by the A8 install-picker sheet's
+    /// `.sheet(isPresented:)`. Setting false routes through the view
+    /// model's cancel path.
+    private var stemsInstallPickerBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.stemsPhase == .pickingRoot },
+            set: { new in if !new { viewModel.cancelStemsInstall() } })
+    }
+
+    /// Binding for the A8 progress sheet — modal, non-cancellable.
+    private var stemsProgressBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.stemsPhase == .downloading ||
+                   viewModel.stemsPhase == .separating },
+            set: { _ in })
+    }
+
+    /// B74 import-xtiming file-picker trigger.
+    @State private var showingXTimingImporter: Bool = false
+    /// B78 import-lyrics sheet state.
+    @State private var importLyricsTargetRow: Int? = nil
+    @State private var importLyricsText: String = ""
+    @State private var importLyricsStart: String = "0.000"
+    @State private var importLyricsEnd: String = ""
+    /// B89 auto-label sheet state.
+    @State private var autoLabelTargetRow: Int? = nil
+    @State private var autoLabelStart: String = "1"
+    @State private var autoLabelEnd: String = "100"
+    @State private var autoLabelOverwrite: Bool = false
+    /// B75 export-xtiming state. Target row is captured when the
+    /// menu fires; the bridge writes to a temp path which the
+    /// fileExporter then copies to the user's chosen destination.
+    @State private var xtimingExportDoc: XTimingExportDoc? = nil
+    @State private var showingXTimingExporter: Bool = false
+    @State private var xtimingDefaultName: String = "Timing.xtiming"
+
+    /// B49 export-model state. Target row captured when the menu
+    /// fires; the bridge writes to a temp path, then `.fileExporter`
+    /// copies to the user's chosen destination.
+    @State private var fseqExportDoc: FSEQExportDoc? = nil
+    @State private var showingFSEQExporter: Bool = false
+    @State private var fseqDefaultName: String = "Model.eseq"
+
+    /// Export-model-as-video state. The submenu fires with the codec
+    /// flags + extension; the bridge encodes to a temp file, then
+    /// `.fileExporter` copies it to the user's chosen destination.
+    @State private var videoExportInProgress: Bool = false
+    @State private var gifExportInProgress: Bool = false
+
+    /// B-CL: "Copy Layers/SubModels to Models…" sheet state. Non-nil
+    /// while the model-picker sheet is presented; holds the source row.
+    @State private var copyLayersSourceRow: Int? = nil
+    @State private var copyLayersPickedModels: Set<String> = []
+
+    /// B21 edit-timing dialog state. Fields are bound to seconds
+    /// strings so users enter `5.25` and see `0.75` for duration;
+    /// commit parses with `strtod`.
+    @State private var editTimingTarget: ContextMenuTarget?
+    @State private var editTimingStartText: String = ""
+    @State private var editTimingEndText: String = ""
 
     var body: some View {
         GeometryReader { geo in
@@ -58,24 +654,12 @@ struct SequencerGridV2View: View {
                 VStack(spacing: 0) {
                     // Row 1: view-picker corner + ruler/waveform strip.
                     HStack(alignment: .top, spacing: 0) {
-                        topLeftCorner
+                        topLeftCorner(availableWidth: geo.size.width)
                             .frame(width: metrics.rowHeaderWidth,
                                    height: metrics.topChromeHeight)
-                        Divider()
-                        TopChromeMetalGridView(
-                            durationMS: durationMS,
-                            pixelsPerMS: timeline.pixelsPerMS,
-                            rulerHeight: metrics.rulerHeight,
-                            waveformHeight: metrics.waveformHeight,
-                            hasAudio: viewModel.hasAudio,
-                            peaks: viewModel.hasAudio ? viewModel.waveformPeaks : [],
-                            scrollOffsetX: Binding(
-                                get: { timeline.hScrollOffsetPx },
-                                set: { timeline.hScrollOffsetPx = $0 }),
-                            onSeek: { ms in viewModel.seekTo(ms: ms) },
-                            onPinchZoom: pinchZoomAction
-                        )
-                        .frame(height: metrics.topChromeHeight)
+                        rowHeaderResizeHandle(height: metrics.topChromeHeight)
+                        topChromeStrip(durationMS: durationMS)
+                            .frame(height: metrics.topChromeHeight)
                     }
                     .frame(height: metrics.topChromeHeight)
                     Divider()
@@ -101,7 +685,7 @@ struct SequencerGridV2View: View {
                             }
                             .frame(width: metrics.rowHeaderWidth,
                                    height: timingBandH)
-                            Divider()
+                            rowHeaderResizeHandle(height: timingBandH)
                             TimingEffectsMetalGridView(
                                 rows: timingRows,
                                 rowHeight: metrics.timingRowHeight,
@@ -113,7 +697,21 @@ struct SequencerGridV2View: View {
                                     get: { timingScroll.vScrollOffsetPx },
                                     set: { timingScroll.vScrollOffsetPx = $0 }),
                                 onSeek: { ms in viewModel.seekTo(ms: ms) },
-                                onPinchZoom: pinchZoomAction
+                                onPinchZoom: pinchZoomAction,
+                                onUserInteraction: { timeline.noteUserInteraction() },
+                                onLongPressMark: { rowId, markIdx, ms in
+                                    timingMarkMenuTarget = TimingMarkMenuTarget(
+                                        rowIndex: rowId, markIndex: markIdx, ms: ms)
+                                },
+                                onMarkDragEnd: { rowId, markIdx, newStart, newEnd in
+                                    _ = viewModel.moveTimingMark(
+                                        rowIndex: rowId, markIndex: markIdx,
+                                        newStartMS: newStart, newEndMS: newEnd)
+                                },
+                                onDoubleTapMark: { rowId, markIdx in
+                                    viewModel.playLoopForTimingMark(rowIndex: rowId,
+                                                                      markIndex: markIdx)
+                                }
                             )
                             .frame(height: timingBandH)
                         }
@@ -123,21 +721,35 @@ struct SequencerGridV2View: View {
 
                     // Row 3 — fills remaining space
                     HStack(alignment: .top, spacing: 0) {
-                        SyncedScrollView(
-                            targetHOffset: nil,
-                            targetVOffset: rowsScroll.vScrollOffsetPx,
-                            contentWidth: metrics.rowHeaderWidth,
-                            contentHeight: modelAreaH,
-                            showsIndicators: false,
-                            onScroll: { newOffset in
-                                rowsScroll.vScrollOffsetPx = newOffset.y
-                            }
-                        ) {
-                            modelHeaders(modelRows)
-                        }
-                        .frame(width: metrics.rowHeaderWidth)
-                        Divider()
+                        modelRowHeaderColumn(modelRows: modelRows,
+                                              modelAreaH: modelAreaH,
+                                              availableModelBandH: availableGridH - timingBandH)
+                        rowHeaderResizeHandle(height: nil)
                         modelEffectsMetalView(modelRows: modelRows)
+                            .overlay(alignment: .trailing) {
+                                ScrollbarOverlay(
+                                    orientation: .vertical,
+                                    viewportSize: availableGridH - timingBandH,
+                                    contentSize: modelAreaH,
+                                    offset: Binding(
+                                        get: { rowsScroll.vScrollOffsetPx },
+                                        set: { rowsScroll.vScrollOffsetPx = $0 }),
+                                    onUserInteraction: { timeline.noteUserInteraction() }
+                                )
+                                .padding(.trailing, 2)
+                            }
+                            .overlay(alignment: .bottom) {
+                                ScrollbarOverlay(
+                                    orientation: .horizontal,
+                                    viewportSize: geo.size.width - metrics.rowHeaderWidth,
+                                    contentSize: timeline.contentWidth(forDurationMS: durationMS),
+                                    offset: Binding(
+                                        get: { timeline.hScrollOffsetPx },
+                                        set: { timeline.hScrollOffsetPx = $0 }),
+                                    onUserInteraction: { timeline.noteUserInteraction() }
+                                )
+                                .padding(.bottom, 2)
+                            }
                     }
                 }
 
@@ -152,6 +764,15 @@ struct SequencerGridV2View: View {
                     gridHeight: geo.size.height
                 )
                 .allowsHitTesting(false)
+
+                // B93: jump-scroll to keep the play marker visible during
+                // playback. Isolated in its own view so the onChange that
+                // fires on every playback tick only invalidates this
+                // zero-sized placeholder, not the main grid body.
+                AutoFollowPlayhead(
+                    timeline: timeline,
+                    availableContentWidth: max(0, geo.size.width - metrics.rowHeaderWidth)
+                )
             }
             .onAppear {
                 fitIfNeeded(durationMS: durationMS, availableWidth: geo.size.width)
@@ -187,36 +808,964 @@ struct SequencerGridV2View: View {
             ),
             presenting: contextMenuTarget
         ) { target in
-            Button("Copy") { viewModel.copySelectedEffect() }
-            if viewModel.hasClipboard {
-                Button("Paste Here") {
-                    let startMS = (viewModel.rows[target.rowIndex].effects[target.effectIndex]).startTimeMS
-                    viewModel.pasteEffect(rowIndex: target.rowIndex, startMS: startMS)
+            if viewModel.selectedEffects.count > 1 {
+                // Multi-select bulk menu.
+                let n = viewModel.selectedEffects.count
+                Button("Align Start Times") {
+                    viewModel.alignSelectedEffects(.startTimes)
+                }
+                Button("Align End Times") {
+                    viewModel.alignSelectedEffects(.endTimes)
+                }
+                Button("Align Both Times") {
+                    viewModel.alignSelectedEffects(.bothTimes)
+                }
+                Button("Align Centers") {
+                    viewModel.alignSelectedEffects(.centerPoints)
+                }
+                Button("Match Duration") {
+                    viewModel.alignSelectedEffects(.matchDuration)
+                }
+                Button("Shift-Align Start") {
+                    viewModel.alignSelectedEffects(.startTimesShift)
+                }
+                Button("Shift-Align End") {
+                    viewModel.alignSelectedEffects(.endTimesShift)
+                }
+                Button("Align to Closest Timing Mark") {
+                    viewModel.alignSelectedEffectsToTimingMarks()
+                }
+                if viewModel.canCloseGapInSelection {
+                    Button("Close Gap") {
+                        viewModel.closeGapInSelectedEffects()
+                    }
+                }
+                Button("Delete \(n) Effects", role: .destructive) {
+                    viewModel.deleteSelectedEffects()
+                }
+                Button("Lock / Unlock \(n) Effects") {
+                    viewModel.toggleLockSelectedEffects()
+                }
+                Button("Disable / Enable \(n) Effects") {
+                    viewModel.toggleDisableSelectedEffects()
+                }
+                Button("Randomise \(n) Effects") {
+                    viewModel.randomizeSelectedEffects()
+                }
+                Button("Reset \(n) Effects", role: .destructive) {
+                    viewModel.resetSelectedEffectsToDefaults()
+                }
+                Button("Save \(n) as Preset…") {
+                    savePresetName = ""
+                    savePresetRequested = true
+                }
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
+                    Button("Apply Preset: \(preset.name) to \(n)") {
+                        _ = viewModel.applyPreset(atPath: preset.path)
+                    }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
+                }
+                Button("Deselect All") {
+                    viewModel.clearSelection()
+                }
+                Button("Cancel", role: .cancel) {}
+            } else {
+                Button("Play Effect") { viewModel.playSelectedEffect() }
+                if !viewModel.songRegions.isEmpty {
+                    Button("Fill Region from Timing Marks") {
+                        viewModel.fillSongRegionFromTimingMarks()
+                    }
+                }
+                Button("Copy") { viewModel.copySelectedEffect() }
+                Button("Cut") { viewModel.cutSelectedEffects() }
+                if viewModel.hasClipboard {
+                    Button("Paste Here") {
+                        let startMS = (viewModel.rows[target.rowIndex].effects[target.effectIndex]).startTimeMS
+                        // B100: pasting on top of an existing
+                        // effect asks for confirmation before
+                        // overwriting. When there's no overlap
+                        // (which "Paste Here" on an occupied cell
+                        // always has), just do the normal paste.
+                        if viewModel.pasteWouldOverlap(rowIndex: target.rowIndex,
+                                                        startMS: startMS) {
+                            pasteReplaceTarget = EditDescriptionTarget(
+                                rowIndex: target.rowIndex,
+                                effectIndex: target.effectIndex)
+                        } else {
+                            viewModel.pasteEffect(rowIndex: target.rowIndex,
+                                                   startMS: startMS)
+                        }
+                    }
+                    if viewModel.clipboardHasOriginalTime {
+                        Button("Paste at Original Time") {
+                            viewModel.pasteAtOriginalTime()
+                        }
+                    }
+                }
+                if viewModel.canSplitSelectedAtPlayMarker {
+                    Button("Split at Play Marker") {
+                        viewModel.splitSelectedEffectAtPlayMarker()
+                    }
+                }
+                Button("Edit Timing…") {
+                    let e = viewModel.rows[target.rowIndex].effects[target.effectIndex]
+                    editTimingStartText = Self.formatMS(e.startTimeMS)
+                    editTimingEndText = Self.formatMS(e.endTimeMS)
+                    editTimingTarget = target
+                }
+                Button("Select All in Row") {
+                    viewModel.selectAllEffectsInRow(rowIndex: target.rowIndex)
+                }
+                Button("Select All in Model") {
+                    viewModel.selectAllEffectsInModel(rowIndex: target.rowIndex)
+                }
+                Button("Select All in Column") {
+                    let e = viewModel.rows[target.rowIndex].effects[target.effectIndex]
+                    viewModel.selectAllEffectsInColumn(spanStartMS: e.startTimeMS,
+                                                       spanEndMS: e.endTimeMS)
+                }
+                // Desktop EffectsGrid.cpp:386 "Create Timing" — also
+                // surfaced here on the effect menu (not just top-chrome).
+                Button("Create Timing From Effect(s)") {
+                    let base = (viewModel.document.rowModelName(at: Int32(target.rowIndex)) as String?) ?? "Model"
+                    _ = viewModel.createTimingTrackFromEffects(
+                        modelRowIndex: target.rowIndex,
+                        trackName: "\(base) Timing")
+                }
+                Button(viewModel.isEffectLocked(rowIndex: target.rowIndex,
+                                                 effectIndex: target.effectIndex)
+                       ? "Unlock" : "Lock") {
+                    viewModel.toggleLock(rowIndex: target.rowIndex,
+                                         effectIndex: target.effectIndex)
+                }
+                Button(viewModel.isEffectRenderDisabled(rowIndex: target.rowIndex,
+                                                        effectIndex: target.effectIndex)
+                       ? "Enable" : "Disable") {
+                    viewModel.toggleDisable(rowIndex: target.rowIndex,
+                                            effectIndex: target.effectIndex)
+                }
+                Button("Randomise Settings") {
+                    viewModel.randomizeSelectedEffects()
+                }
+                Button("Reset to Defaults", role: .destructive) {
+                    viewModel.resetSelectedEffectsToDefaults()
+                }
+                // PRE-1 — persistent effect presets. Save captures the
+                // current selection into the on-disk library; apply
+                // drops the chosen preset onto every selected effect.
+                Button("Edit Description…") {
+                    editDescriptionText = viewModel.effectDescription(
+                        rowIndex: target.rowIndex,
+                        effectIndex: target.effectIndex)
+                    editDescriptionTarget = EditDescriptionTarget(
+                        rowIndex: target.rowIndex,
+                        effectIndex: target.effectIndex)
+                }
+                Button("Save as Preset…") {
+                    savePresetName = ""
+                    savePresetRequested = true
+                }
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
+                    Button("Apply Preset: \(preset.name)") {
+                        _ = viewModel.applyPreset(atPath: preset.path)
+                    }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
+                }
+                Button("Delete", role: .destructive) {
+                    viewModel.deleteEffect(rowIndex: target.rowIndex,
+                                           effectIndex: target.effectIndex)
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+        }
+        // B67 / B69 timing-mark long-press menu. Distinct dialog from
+        // the effect context menu so both can coexist without menu
+        // content cross-contamination.
+        .confirmationDialog(
+            "Timing",
+            isPresented: Binding(
+                get: { timingMarkMenuTarget != nil },
+                set: { if !$0 { timingMarkMenuTarget = nil } }
+            ),
+            presenting: timingMarkMenuTarget
+        ) { target in
+            if let markIdx = target.markIndex {
+                Button("Rename Mark") {
+                    let current = viewModel.rows[target.rowIndex].effects[markIdx].name
+                    renameMarkText = current
+                    renameMarkTarget = target
+                }
+                // B90: quickly flip the "-shimmer" suffix. The
+                // Papagayo lipsync pipeline uses it as a convention
+                // to request a shimmer modifier on the resolved
+                // face. Label flips between "Add" / "Remove" based
+                // on current state.
+                let hasShimmer = viewModel.rows[target.rowIndex].effects[markIdx]
+                    .name.hasSuffix("-shimmer")
+                Button(hasShimmer ? "Remove -shimmer Suffix"
+                                  : "Add -shimmer Suffix") {
+                    _ = viewModel.toggleShimmerSuffixOnMark(
+                        rowIndex: target.rowIndex, markIndex: markIdx)
+                }
+                if viewModel.canSplitMarkAtPlayMarker(rowIndex: target.rowIndex,
+                                                      markIndex: markIdx) {
+                    Button("Split at Play Marker") {
+                        _ = viewModel.splitTimingMark(rowIndex: target.rowIndex,
+                                                       markIndex: markIdx,
+                                                       atMS: viewModel.playPositionMS)
+                    }
+                }
+                if viewModel.canMergeMarkWithNext(rowIndex: target.rowIndex,
+                                                   markIndex: markIdx) {
+                    Button("Merge with Next") {
+                        _ = viewModel.mergeTimingMarkWithNext(rowIndex: target.rowIndex,
+                                                               markIndex: markIdx)
+                    }
+                }
+                // B84 per-mark: only the phrase layer with a labelled
+                // mark can be broken down into words.
+                if viewModel.canBreakdownPhrase(rowIndex: target.rowIndex,
+                                                 markIndex: markIdx) {
+                    Button("Breakdown This Phrase") {
+                        _ = viewModel.breakdownPhrase(rowIndex: target.rowIndex,
+                                                        markIndex: markIdx)
+                    }
+                }
+                Button("Delete Mark", role: .destructive) {
+                    _ = viewModel.deleteTimingMark(rowIndex: target.rowIndex,
+                                                    markIndex: markIdx)
+                }
+                Button("Cancel", role: .cancel) {}
+            } else {
+                Button("Add Mark Here") {
+                    addTimingMarkFromTap(rowIndex: target.rowIndex, atMS: target.ms)
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+        }
+        // B21 edit-timing alert. Two fields (start, end) in seconds
+        // with 3 decimal places; parses with `strtod` per repo rule
+        // (no throwing std::stod). Calls `moveEffect` on commit.
+        .alert("Edit Timing",
+               isPresented: Binding(
+                get: { editTimingTarget != nil },
+                set: { if !$0 { editTimingTarget = nil } }
+               ),
+               presenting: editTimingTarget) { target in
+            TextField("Start (seconds)", text: $editTimingStartText)
+                .keyboardType(.decimalPad)
+            TextField("End (seconds)", text: $editTimingEndText)
+                .keyboardType(.decimalPad)
+            Button("OK") {
+                if let startMS = Self.parseSeconds(editTimingStartText),
+                   let endMS = Self.parseSeconds(editTimingEndText),
+                   endMS > startMS {
+                    viewModel.moveEffect(rowIndex: target.rowIndex,
+                                          effectIndex: target.effectIndex,
+                                          newStartMS: startMS, newEndMS: endMS)
+                }
+                editTimingTarget = nil
+            }
+            Button("Cancel", role: .cancel) {
+                editTimingTarget = nil
+            }
+        } message: { _ in
+            // SEQ-18 — live duration readout as start/end are edited. (An
+            // editable Duration field + frame-stepped Steppers need an
+            // alert→sheet conversion — SwiftUI alerts can't host Steppers.)
+            let durMS = (Self.parseSeconds(editTimingEndText) ?? 0) - (Self.parseSeconds(editTimingStartText) ?? 0)
+            if durMS > 0 {
+                Text(String(format: "Enter start and end times in seconds. Duration: %.3f s", Double(durMS) / 1000.0))
+            } else {
+                Text("Enter start and end times in seconds.")
+            }
+        }
+        // B89 auto-label-marks alert.
+        .alert("Auto-Label Marks",
+               isPresented: Binding(
+                get: { autoLabelTargetRow != nil },
+                set: { if !$0 { autoLabelTargetRow = nil } }
+               ),
+               presenting: autoLabelTargetRow) { rowIdx in
+            TextField("Start number", text: $autoLabelStart)
+                .keyboardType(.numberPad)
+            TextField("End number (wraps)", text: $autoLabelEnd)
+                .keyboardType(.numberPad)
+            Toggle("Overwrite existing labels", isOn: $autoLabelOverwrite)
+            Button("Label") {
+                let start = Int(autoLabelStart) ?? 1
+                let end = Int(autoLabelEnd) ?? start
+                _ = viewModel.autoLabelTimingMarks(
+                    rowIndex: rowIdx, startNum: start, endNum: end,
+                    overwrite: autoLabelOverwrite)
+                autoLabelTargetRow = nil
+            }
+            Button("Cancel", role: .cancel) {
+                autoLabelTargetRow = nil
+            }
+        } message: { _ in
+            Text("Number the marks starting at Start; the count wraps back when it passes End. With Overwrite off, only unlabeled marks get numbers.")
+        }
+        // B78 import-lyrics sheet.
+        .sheet(isPresented: Binding(
+            get: { importLyricsTargetRow != nil },
+            set: { if !$0 { importLyricsTargetRow = nil } }
+        )) {
+            if let rowIdx = importLyricsTargetRow {
+                ImportLyricsSheet(
+                    rowIndex: rowIdx,
+                    text: $importLyricsText,
+                    startText: $importLyricsStart,
+                    endText: $importLyricsEnd,
+                    onCommit: { start, end in
+                        let startMS = Int((Double(start) ?? 0.0) * 1000)
+                        let endMS = Int((Double(end) ?? 0.0) * 1000)
+                        _ = viewModel.importLyrics(
+                            rowIndex: rowIdx,
+                            lyrics: importLyricsText,
+                            startMS: startMS, endMS: endMS)
+                        importLyricsTargetRow = nil
+                    },
+                    onCancel: { importLyricsTargetRow = nil }
+                )
+            }
+        }
+        // B74 .xtiming import.
+        .fileImporter(
+            isPresented: $showingXTimingImporter,
+            allowedContentTypes: [kXTimingFileType],
+            allowsMultipleSelection: false
+        ) { result in
+            guard case .success(let urls) = result, let url = urls.first else { return }
+            let path = url.path
+            _ = XLSequenceDocument.obtainAccess(toPath: path,
+                                                  enforceWritable: false)
+            _ = viewModel.importXTiming(path: path)
+        }
+        // B75/B49/video file exporters — bundled into one modifier so the
+        // main body's modifier chain stays within the Swift type-checker's
+        // complexity budget.
+        .modifier(ExportFileExportersModifier(
+            showingXTimingExporter: $showingXTimingExporter,
+            xtimingExportDoc: $xtimingExportDoc,
+            xtimingDefaultName: xtimingDefaultName,
+            showingFSEQExporter: $showingFSEQExporter,
+            fseqExportDoc: $fseqExportDoc,
+            fseqDefaultName: fseqDefaultName,
+            exportInProgressMessage: videoExportInProgress ? "Exporting video…"
+                                   : (gifExportInProgress ? "Exporting GIF…" : nil)))
+        // B41 waveform filter picker.
+        .confirmationDialog(
+            "Waveform",
+            isPresented: $waveformMenuPresented
+        ) {
+            ForEach(SequencerViewModel.WaveformFilter.allCases, id: \.rawValue) { filter in
+                // HTDemucs stems require macOS 12 / iOS 15 for the
+                // Float16 MLMultiArray I/O the model uses. Hide the
+                // stem entries on older iOS.
+                if !filter.requiresStems || iOS15Available {
+                    Button {
+                        if filter == .custom {
+                            // Opening the custom-band sheet implicitly
+                            // activates the filter so the user can see
+                            // live preview as they drag the sliders.
+                            viewModel.waveformFilter = .custom
+                            customBandSheetPresented = true
+                        } else if filter.requiresStems {
+                            // First tap kicks off the install / separator
+                            // flow; the view model flips through its
+                            // phases and flips `waveformFilter` when
+                            // stems are ready.
+                            viewModel.prepareStems(for: filter)
+                        } else {
+                            viewModel.waveformFilter = filter
+                        }
+                    } label: {
+                        if viewModel.waveformFilter == filter {
+                            Label(filter.displayName, systemImage: "checkmark")
+                        } else {
+                            Text(filter.displayName)
+                        }
+                    }
                 }
             }
-            Button(viewModel.isEffectLocked(rowIndex: target.rowIndex,
-                                             effectIndex: target.effectIndex)
-                   ? "Unlock" : "Lock") {
-                viewModel.toggleLock(rowIndex: target.rowIndex,
-                                     effectIndex: target.effectIndex)
+            // A2 onset overlay — independent of the filter radio
+            // group so it stacks on top of any chosen filter band.
+            Button {
+                viewModel.toggleShowOnsets()
+            } label: {
+                if viewModel.showOnsets {
+                    Label("Hide Onsets", systemImage: "checkmark")
+                } else {
+                    Text("Show Onsets")
+                }
             }
-            Button(viewModel.isEffectRenderDisabled(rowIndex: target.rowIndex,
-                                                    effectIndex: target.effectIndex)
-                   ? "Enable" : "Disable") {
-                viewModel.toggleDisable(rowIndex: target.rowIndex,
-                                        effectIndex: target.effectIndex)
+            // A5 pitch contour overlay. Same "overlay on top of any
+            // filter choice" idiom as onsets.
+            Button {
+                viewModel.toggleShowPitchContour()
+            } label: {
+                if viewModel.showPitchContour {
+                    Label("Hide Pitch Contour", systemImage: "checkmark")
+                } else {
+                    Text("Show Pitch Contour")
+                }
             }
-            Button("Delete", role: .destructive) {
-                viewModel.deleteEffect(rowIndex: target.rowIndex,
-                                       effectIndex: target.effectIndex)
+            // A6 spectrogram view — replaces the peak polygons with
+            // an STFT magnitude image. Not an overlay: mutually
+            // exclusive with the waveform view, though other overlays
+            // (onsets, pitch) still render on top.
+            Button {
+                viewModel.toggleShowSpectrogram()
+            } label: {
+                if viewModel.showSpectrogram {
+                    Label("Switch to Waveform", systemImage: "checkmark")
+                } else {
+                    Text("View as Spectrogram")
+                }
+            }
+            // B43 alt-track switch — only surfaced when the sequence
+            // declares at least one alternate audio track. Selection
+            // is purely cosmetic (waveform-only); playback stays on
+            // the main track.
+            if viewModel.altAudioTrackNames.count > 0 {
+                Button {
+                    viewModel.setActiveWaveformTrack(-1)
+                } label: {
+                    if viewModel.activeWaveformTrack == -1 {
+                        Label("Main Audio", systemImage: "checkmark")
+                    } else {
+                        Text("Main Audio")
+                    }
+                }
+                ForEach(Array(viewModel.altAudioTrackNames.enumerated()),
+                         id: \.offset) { idx, name in
+                    Button {
+                        viewModel.setActiveWaveformTrack(idx)
+                    } label: {
+                        if viewModel.activeWaveformTrack == idx {
+                            Label(name, systemImage: "checkmark")
+                        } else {
+                            Text(name)
+                        }
+                    }
+                }
+            }
+            // A7 sound classification — stacks on top of the filter
+            // pick too. First tap kicks off classification (or re-
+            // presents the picker if already done); tapping again
+            // with a class selected clears it.
+            if viewModel.selectedSoundClass == nil {
+                Button {
+                    classifyPickerPresented = true
+                } label: {
+                    Text("Classify Audio…")
+                }
+            } else {
+                Button {
+                    viewModel.selectedSoundClass = nil
+                } label: {
+                    Label("Clear \(viewModel.selectedSoundClass ?? "")",
+                           systemImage: "checkmark")
+                }
+                Button {
+                    classifyPickerPresented = true
+                } label: {
+                    Text("Change Class…")
+                }
             }
             Button("Cancel", role: .cancel) {}
         }
+        // A9 chord-detection preview sheet.
+        // A8 stem install-location picker (first run).
+        .sheet(isPresented: stemsInstallPickerBinding) {
+            StemInstallSheet(
+                roots: (viewModel.document.stemModelCandidateRoots() as [String]),
+                onCommit: { root in viewModel.commitStemsInstall(toRoot: root) },
+                onCancel: { viewModel.cancelStemsInstall() })
+        }
+        // A8 stem download + separation progress sheet.
+        .sheet(isPresented: stemsProgressBinding) {
+            StemProgressSheet(
+                phase: viewModel.stemsPhase,
+                pct: viewModel.stemsProgressPct)
+        }
+        // A7 class picker sheet.
+        .sheet(isPresented: $classifyPickerPresented) {
+            SoundClassifyPickerSheet(
+                classes: viewModel.soundClasses,
+                isBusy: viewModel.isClassifyingSound,
+                onClassify: {
+                    viewModel.classifySound()
+                },
+                onPick: { name in
+                    viewModel.selectedSoundClass = name
+                    classifyPickerPresented = false
+                },
+                onCancel: { classifyPickerPresented = false })
+        }
+        // A9.1 custom parametric band editor.
+        .sheet(isPresented: $customBandSheetPresented) {
+            CustomBandSheet(
+                lowNote: Binding(
+                    get: { viewModel.customBandLowNote },
+                    set: { viewModel.customBandLowNote = $0 }),
+                highNote: Binding(
+                    get: { viewModel.customBandHighNote },
+                    set: { viewModel.customBandHighNote = $0 }),
+                onDone: { customBandSheetPresented = false })
+        }
+        // B32 loop-region context menu (long-press inside the loop
+        // band). Actions: toggle Play Loop (B33), Render Loop Region
+        // (B44), Clear Loop.
+        .confirmationDialog(
+            "Loop Region",
+            isPresented: $loopMenuPresented
+        ) {
+            Button(viewModel.loopPlayEnabled ? "Stop Play Loop" : "Play Loop Region") {
+                if !viewModel.isPlaying {
+                    viewModel.loopPlayEnabled = true
+                    viewModel.seekTo(ms: viewModel.loopStartMS)
+                    viewModel.play()
+                } else {
+                    viewModel.toggleLoopPlay()
+                }
+            }
+            Button("Render Loop Region") {
+                viewModel.renderLoopRegion()
+            }
+            Button("Clear Loop", role: .destructive) {
+                viewModel.clearLoopRegion()
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        // #6268 Song Structure region context menu (long-press over a
+        // band in the waveform strip). Edit name/color, add or delete
+        // a boundary at the press point, and switch / manage views.
+        .confirmationDialog(
+            "Song Region",
+            isPresented: Binding(
+                get: { songRegionMenuMS != nil },
+                set: { if !$0 { songRegionMenuMS = nil } })
+        ) {
+            if let ms = songRegionMenuMS,
+               let idx = viewModel.songRegionIndexAtMS(ms) {
+                Button("Edit Region…") {
+                    let r = viewModel.songRegions[idx]
+                    songRegionEditName = r.name
+                    songRegionEditID = r.id
+                }
+                if viewModel.songRegions.count > 1 {
+                    Button("Copy Effects to Region…") {
+                        songRegionCopySourceIdx = idx
+                    }
+                }
+                if viewModel.selectedEffect != nil {
+                    Button("Apply Selected Effect's Palette") {
+                        viewModel.applySelectedPaletteToSongRegion(at: idx)
+                    }
+                }
+                Button("Export Region as Sequence…") {
+                    songRegionExportIdx = idx
+                    songRegionExportPickerPresented = true
+                }
+                if viewModel.songRegions.count > 1 {
+                    Button("Export All Regions…") {
+                        songRegionExportAllPickerPresented = true
+                    }
+                }
+            }
+            if let ms = songRegionMenuMS {
+                Button("Add Boundary Here") {
+                    viewModel.addSongBoundary(atMS: ms)
+                }
+                Button("Delete Boundary", role: .destructive) {
+                    viewModel.deleteSongBoundary(nearMS: ms)
+                }
+            }
+            ForEach(Array(viewModel.songViewNames.enumerated()), id: \.offset) { i, name in
+                Button(i == viewModel.songActiveViewIndex ? "✓ \(name)" : name) {
+                    viewModel.setActiveSongView(index: i)
+                }
+            }
+            Button("New View…") {
+                songViewAddText = ""
+                songViewAddPresented = true
+            }
+            if viewModel.songActiveViewIndex >= 0 {
+                Button("Duplicate View") {
+                    let cur = viewModel.songActiveViewIndex
+                    let nm = (cur < viewModel.songViewNames.count
+                              ? viewModel.songViewNames[cur] : "View") + " Copy"
+                    viewModel.duplicateSongView(at: cur, name: nm)
+                }
+                Button("Rename View…") {
+                    let cur = viewModel.songActiveViewIndex
+                    songViewRenameText = cur < viewModel.songViewNames.count
+                        ? viewModel.songViewNames[cur] : ""
+                    songViewRenamePresented = true
+                }
+                Button("Delete View", role: .destructive) {
+                    viewModel.deleteSongView(at: viewModel.songActiveViewIndex)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .sheet(isPresented: Binding(
+            get: { songRegionEditID != nil },
+            set: { if !$0 { songRegionEditID = nil } })) {
+            SongRegionEditSheet(
+                regionID: songRegionEditID ?? 0,
+                name: $songRegionEditName,
+                viewModel: viewModel,
+                onDone: { songRegionEditID = nil })
+                .presentationDetents([.height(280)])
+        }
+        .modifier(SongRegionCopyDialog(
+            sourceIdx: $songRegionCopySourceIdx,
+            viewModel: viewModel))
+        .modifier(SongRegionExportModifier(
+            pickerPresented: $songRegionExportPickerPresented,
+            exportIdx: $songRegionExportIdx,
+            message: $songRegionExportMessage,
+            exportAllPresented: $songRegionExportAllPickerPresented,
+            viewModel: viewModel))
+        .alert("New Song Structure View", isPresented: $songViewAddPresented) {
+            TextField("Name", text: $songViewAddText)
+            Button("Add") {
+                let t = songViewAddText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty { viewModel.addSongView(name: t) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("Rename View", isPresented: $songViewRenamePresented) {
+            TextField("Name", text: $songViewRenameText)
+            Button("OK") {
+                let t = songViewRenameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty, viewModel.songActiveViewIndex >= 0 {
+                    viewModel.renameSongView(at: viewModel.songActiveViewIndex, name: t)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        // F-6 — Display Elements editor modal. State lives on the
+        // view model so F-4 menu-bar "Edit Display Elements…" can
+        // flip the same flag.
+        .sheet(isPresented: Bindable(viewModel).showingDisplayElements) {
+            DisplayElementsSheet()
+                .environment(viewModel)
+        }
+        // B97 Find / Replace inspector sheet. ⌘F shortcut wires up
+        // through the Edit menu in `XLightsCommands` too.
+        .sheet(isPresented: Bindable(viewModel).findReplacePresented) {
+            FindReplaceSheet(replaceText: $findReplaceText,
+                              onDone: { viewModel.findReplacePresented = false })
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: Bindable(viewModel).sourceEffectsPresented) {
+            SourceEffectsSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
+        // SEQ-2 whole-sequence Color Replace sheet (Edit ▸ Color Replace).
+        .sheet(isPresented: Bindable(viewModel).colorReplacePresented) {
+            ColorReplaceSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
+        // Shift Effects sheet (Edit ▸ Shift Effects…).
+        .sheet(isPresented: Bindable(viewModel).shiftEffectsPresented) {
+            ShiftEffectsSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium])
+        }
+        // B70 rename-timing-mark alert.
+        .alert("Rename Mark",
+               isPresented: Binding(
+                get: { renameMarkTarget != nil },
+                set: { if !$0 { renameMarkTarget = nil } }
+               ),
+               presenting: renameMarkTarget) { target in
+            TextField("Label", text: $renameMarkText)
+            Button("OK") {
+                if let markIdx = target.markIndex {
+                    _ = viewModel.renameTimingMark(rowIndex: target.rowIndex,
+                                                    markIndex: markIdx,
+                                                    label: renameMarkText)
+                }
+                renameMarkText = ""
+                renameMarkTarget = nil
+            }
+            Button("Cancel", role: .cancel) {
+                renameMarkText = ""
+                renameMarkTarget = nil
+            }
+        } message: { _ in
+            Text("Timing-mark label (leave blank to clear).")
+        }
+        // B19 save-as-preset alert.
+        .alert("Save Preset", isPresented: $savePresetRequested) {
+            TextField("Preset name", text: $savePresetName)
+            Button("Save") {
+                _ = viewModel.saveSelectedEffectAsPreset(name: savePresetName)
+                savePresetName = ""
+            }
+            Button("Cancel", role: .cancel) { savePresetName = "" }
+        } message: {
+            Text("Saves the current selection to the show's preset library (xlights_effectpresets.json) so you can re-apply it later and on desktop.")
+        }
+        // PRE-1 preset library browser.
+        .sheet(isPresented: Bindable(viewModel).presetBrowserPresented) {
+            PresetBrowserSheet(viewModel: viewModel)
+        }
+        .modifier(InsertLayersAlert(
+            targetRow: $insertLayersTargetRow,
+            countText: $insertLayersCountText,
+            viewModel: viewModel))
+        .modifier(DeleteLayersAlert(
+            targetRow: $deleteLayersTargetRow,
+            countText: $deleteLayersCountText,
+            viewModel: viewModel))
+
+        .sheet(isPresented: Binding(
+            get: { copyLayersSourceRow != nil },
+            set: { if !$0 { copyLayersSourceRow = nil; copyLayersPickedModels = [] } }
+        )) {
+            if let srcRow = copyLayersSourceRow {
+                CopyLayersToModelsSheet(
+                    sourceModelName: (viewModel.document.rowModelName(at: Int32(srcRow)) as String?) ?? "",
+                    allModelNames: viewModel.sequencerModelNames(),
+                    pickedModels: $copyLayersPickedModels,
+                    onCopy: {
+                        viewModel.copyLayersSubmodelsToModels(
+                            sourceRowIndex: srcRow,
+                            targetModelNames: Array(copyLayersPickedModels))
+                        copyLayersSourceRow = nil
+                        copyLayersPickedModels = []
+                    },
+                    onCancel: {
+                        copyLayersSourceRow = nil
+                        copyLayersPickedModels = []
+                    })
+            }
+        }
+        .modifier(EditDescriptionAlert(
+            target: $editDescriptionTarget,
+            text: $editDescriptionText,
+            viewModel: viewModel))
+        .modifier(PasteReplaceAlert(
+            target: $pasteReplaceTarget,
+            viewModel: viewModel))
+        .modifier(TransitionPickerDialog(
+            target: $transitionMenuTarget,
+            viewModel: viewModel))
+    }
+
+    /// B21 time formatting / parsing helpers. `formatMS` emits
+    /// `5.250` for 5250 ms (3 decimal places, trimmed trailing
+    /// zero-run if none are needed — actually keep them for
+    /// consistent alignment). `parseSeconds` goes the other way
+    /// using strtod (the repo avoids std::stod / std::stoi because
+    /// they throw on bad input).
+    static func formatMS(_ ms: Int) -> String {
+        return String(format: "%.3f", Double(ms) / 1000.0)
+    }
+
+    static func parseSeconds(_ s: String) -> Int? {
+        let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        var endPtr: UnsafeMutablePointer<CChar>? = nil
+        let val = trimmed.withCString { cStr -> Double in
+            strtod(cStr, &endPtr)
+        }
+        // Reject if strtod didn't consume anything meaningful.
+        if endPtr == nil { return nil }
+        if val < 0 || !val.isFinite { return nil }
+        return Int((val * 1000.0).rounded())
+    }
+
+    /// B61 drag handle between the row-header column and the grid
+    /// canvas. Visually looks like the `Divider()` it replaced (thin
+    /// hairline) but owns a wider invisible hit strip so the grab
+    /// affordance is a comfortable touch target. Drag horizontally
+    /// updates `rowHeaderWidthStorage`; the `metrics` computed
+    /// property re-clamps so the column never escapes its bounds.
+    /// `.hoverEffect` gives Magic Keyboard pointer users a proper
+    /// resize visual.
+    private func rowHeaderResizeHandle(height: CGFloat?) -> some View {
+        ColumnResizeHandle(
+            height: height,
+            minWidth: Self.rowHeaderMinWidth,
+            maxWidth: Self.rowHeaderMaxWidth,
+            width: Binding(
+                get: { rowHeaderWidthStorage },
+                set: { rowHeaderWidthStorage = $0 }
+            )
+        )
+    }
+
+    /// B49: write the rendered channel data for the row's model to a
+    /// temp `.eseq` file and hand that path off to SwiftUI's
+    /// `.fileExporter`. When `useLoopRegion` is true and a loop is
+    /// active, only the loop range is exported; otherwise the full
+    /// sequence is written.
+    private func startFSEQExport(rowIndex: Int, useLoopRegion: Bool) {
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).eseq").path
+        let startMS: Int?
+        let endMS: Int?
+        if useLoopRegion, viewModel.hasLoopRegion {
+            startMS = viewModel.loopStartMS
+            endMS = viewModel.loopEndMS
+        } else {
+            startMS = nil
+            endMS = nil
+        }
+        guard viewModel.exportModelAsFSEQ(rowIndex: rowIndex, path: tempPath,
+                                           startMS: startMS, endMS: endMS) else {
+            return
+        }
+        fseqExportDoc = FSEQExportDoc(sourcePath: tempPath)
+        fseqDefaultName = "\(safeName).eseq"
+        showingFSEQExporter = true
+    }
+
+    /// Export only the selected effects' time span on the row's model
+    /// (desktop "Export Selected Model Effects"). Falls back silently
+    /// when no selected effect belongs to this model.
+    private func startSelectedFSEQExport(rowIndex: Int) {
+        guard let span = viewModel.selectedEffectsSpanForModel(rowIndex: rowIndex) else { return }
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).eseq").path
+        guard viewModel.exportModelAsFSEQ(rowIndex: rowIndex, path: tempPath,
+                                           startMS: span.start, endMS: span.end) else {
+            return
+        }
+        fseqExportDoc = FSEQExportDoc(sourcePath: tempPath)
+        fseqDefaultName = "\(safeName).eseq"
+        showingFSEQExporter = true
+    }
+
+    /// Encode the row's model to a temp video file (codec from the flags +
+    /// `ext`), then hand the path to `.fileExporter` for the user to place.
+    /// Synchronous — a single model's buffer is small, so encoding the whole
+    /// sequence is quick. (The slow, full-resolution house-preview export
+    /// runs off the main thread with progress; see ExportHousePreview.)
+    private func startVideoExport(rowIndex: Int, compressed: Bool, highQuality: Bool,
+                                  forceProRes: Bool, ext: String, label: String,
+                                  exportWidth: Int = 0, exportHeight: Int = 0) {
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).\(ext)").path
+        videoExportInProgress = true
+        viewModel.exportModelAsVideo(
+            rowIndex: rowIndex, path: tempPath,
+            compressed: compressed, highQuality: highQuality, forceProRes: forceProRes,
+            exportWidth: exportWidth, exportHeight: exportHeight,
+            completion: { success in
+                videoExportInProgress = false
+                guard success else { return }
+                // Hand the encoded file to the system share sheet ("Save to
+                // Files", AirDrop, …). Imperative presentation (not a stacked
+                // SwiftUI `.fileExporter`, which doesn't reliably present when
+                // several are chained on the same view).
+                XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+            })
+    }
+
+    /// Encode the row's model to a temp animated GIF (wx-free core encoder),
+    /// then hand the path to the system share sheet. The encode runs off the
+    /// main thread; the overlay spinner shows "Exporting GIF…" meanwhile.
+    private func startGifExport(rowIndex: Int) {
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).gif").path
+        gifExportInProgress = true
+        viewModel.exportModelAsGif(
+            rowIndex: rowIndex, path: tempPath,
+            completion: { success in
+                gifExportInProgress = false
+                guard success else { return }
+                XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+            })
+    }
+
+    /// B75: write the timing track to a temp `.xtiming` file and
+    /// hand that path off to SwiftUI's `.fileExporter` so the user
+    /// picks a destination. The exporter then copies the bytes.
+    private func startXTimingExport(rowIndex: Int, trackName: String) {
+        let safeName = trackName.isEmpty ? "Timing" : trackName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent("\(safeName)-\(UUID().uuidString).xtiming").path
+        guard viewModel.exportTimingTrack(rowIndex: rowIndex, path: tempPath) else {
+            return
+        }
+        xtimingExportDoc = XTimingExportDoc(sourcePath: tempPath)
+        xtimingDefaultName = "\(safeName).xtiming"
+        showingXTimingExporter = true
+    }
+
+    /// Write the timing track to a temp `.pgo` (Papagayo) file and hand
+    /// it to the system share sheet. Imperative presentation (not a
+    /// stacked `.fileExporter`) so it doesn't conflict with the other
+    /// exporters chained on this view.
+    private func startPapagayoExport(rowIndex: Int, trackName: String) {
+        let safeName = trackName.isEmpty ? "Timing" : trackName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent("\(safeName)-\(UUID().uuidString).pgo").path
+        guard viewModel.exportTimingTrackAsPapagayo(rowIndex: rowIndex, path: tempPath) else {
+            return
+        }
+        XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+    }
+
+    /// B67: default add-mark duration is 500 ms, clamped against the
+    /// next existing mark on that row (min 100 ms) and the sequence
+    /// end. Start = tap time (clamped >= previous mark's end).
+    private func addTimingMarkFromTap(rowIndex: Int, atMS: Int) {
+        guard rowIndex >= 0, rowIndex < viewModel.rows.count else { return }
+        let row = viewModel.rows[rowIndex]
+        var startMS = atMS
+        var endMS = atMS + 500
+        var prevEnd = 0
+        var nextStart = viewModel.sequenceDurationMS
+        for e in row.effects {
+            if e.endTimeMS <= startMS { prevEnd = max(prevEnd, e.endTimeMS) }
+            if e.startTimeMS >= startMS && e.startTimeMS < nextStart {
+                nextStart = e.startTimeMS
+            }
+        }
+        startMS = max(prevEnd, startMS)
+        endMS = min(endMS, nextStart)
+        if endMS <= startMS + 50 {
+            // Collapsed window — fall back to 100 ms minimum or skip.
+            endMS = startMS + 100
+            if endMS > nextStart || endMS > viewModel.sequenceDurationMS {
+                return
+            }
+        }
+        _ = viewModel.addTimingMark(rowIndex: rowIndex,
+                                     startMS: startMS, endMS: endMS)
     }
 
     // MARK: - Row 1: view/time corner + top chrome
 
-    private var topLeftCorner: some View {
+    private func topLeftCorner(availableWidth: CGFloat) -> some View {
         let views = (viewModel.document.availableViews() as [String])
         let currentIdx = Int(viewModel.document.currentViewIndex())
         let currentName = (currentIdx >= 0 && currentIdx < views.count)
@@ -238,11 +1787,172 @@ struct SequencerGridV2View: View {
                             }
                         }
                     }
+                    // Add Timing Track + Audio Onsets / Tempo / Chords
+                    // / AI Lyrics now all live in the unified
+                    // AddTimingTrackSheet (presented at app level).
+                    // Just one entry point here that flips the flag.
+                    Divider()
+                    Button {
+                        viewModel.showingAddTimingTrack = true
+                    } label: {
+                        Label("Add Timing Track…", systemImage: "plus.rectangle")
+                    }
+                    Button {
+                        showingXTimingImporter = true
+                    } label: {
+                        Label("Import Timing Track…",
+                               systemImage: "square.and.arrow.down")
+                    }
+                    // B83: derive a timing track from the selected
+                    // effect's owning model. One mark per
+                    // distinct effect range across the model's rows.
+                    // Gated on a selection since we need a model to
+                    // source from. Stays here (rather than moving to
+                    // the unified sheet) because it's bound to the
+                    // current effect selection — surfacing it from a
+                    // sheet that doesn't know which effect is
+                    // selected would be more confusing than useful.
+                    Button {
+                        if let sel = viewModel.selectedEffect {
+                            _ = viewModel.createTimingTrackFromEffects(
+                                modelRowIndex: sel.rowIndex, trackName: "")
+                        }
+                    } label: {
+                        Label("Create Timing from Selected Effect's Model",
+                               systemImage: "waveform.path.badge.plus")
+                    }
+                    .disabled(viewModel.selectedEffect == nil)
+                    // B37: re-fit the whole sequence into the viewport.
+                    Divider()
+                    Button {
+                        zoomToFitSequence(availableWidth: availableWidth)
+                    } label: {
+                        Label("Zoom to Fit", systemImage: "arrow.up.left.and.arrow.down.right")
+                    }
+                    // B36: fit the current selection (single or multi).
+                    if viewModel.selectedEffect != nil
+                        || !viewModel.selectedEffects.isEmpty {
+                        Button {
+                            zoomToSelection(availableWidth: availableWidth)
+                        } label: {
+                            Label("Zoom to Selection", systemImage: "arrow.up.backward.and.arrow.down.forward")
+                        }
+                    }
+                    // B57: global collapse / expand. Desktop splits
+                    // "Collapse All Models" (hide strands/submodels) from
+                    // "Collapse All Layers" (SetCollapsed on every element).
+                    Divider()
+                    Button {
+                        viewModel.collapseAllModelSubrows()
+                    } label: {
+                        Label("Collapse All Models", systemImage: "rectangle.compress.vertical")
+                    }
+                    Button {
+                        viewModel.collapseAllModels()
+                    } label: {
+                        Label("Collapse All Layers", systemImage: "chevron.up.chevron.down")
+                    }
+                    Button {
+                        viewModel.expandAllElements()
+                    } label: {
+                        Label("Expand All", systemImage: "arrow.up.and.down")
+                    }
+                    Button {
+                        viewModel.expandElementsWithEffects()
+                    } label: {
+                        Label("Show All Effects", systemImage: "rectangle.expand.vertical")
+                    }
+                    // B81: hide / show every timing row at once.
+                    let allHidden = viewModel.allTimingTracksHidden
+                    Button {
+                        viewModel.setAllTimingTracksHidden(!allHidden)
+                    } label: {
+                        Label(allHidden ? "Show All Timing Tracks"
+                                        : "Hide All Timing Tracks",
+                              systemImage: allHidden ? "eye" : "eye.slash")
+                    }
+                    // B82: copy every visible timing track into
+                    // every non-master view.
+                    Button {
+                        _ = viewModel.addAllTimingTracksToAllViews()
+                    } label: {
+                        Label("Add Timing Tracks to All Views",
+                              systemImage: "rectangle.stack.badge.plus")
+                    }
+                    // B42: double the waveform strip height when the
+                    // user wants finer detail on the peaks.
+                    Button {
+                        waveformDoubleHeight.toggle()
+                    } label: {
+                        Label(waveformDoubleHeight ? "Standard Waveform Height"
+                                                   : "Double Waveform Height",
+                              systemImage: waveformDoubleHeight
+                                ? "rectangle.compress.vertical"
+                                : "rectangle.expand.vertical")
+                    }
+                    // Sequencer behaviour toggles — desktop parity with
+                    // the Effects-Grid / Timing prefs.
+                    Divider()
+                    Toggle(isOn: $snapToTimingMarks) {
+                        Label("Snap to Timing Marks", systemImage: "ruler")
+                    }
+                    Toggle(isOn: $timingPlayOnDoubleTap) {
+                        Label("Timing Play on Double-Tap", systemImage: "play.circle")
+                    }
+                    // Desktop EditToolBar Paste-By-Cell / Paste-By-Time
+                    // toggle. By Cell stretches a single-effect paste to
+                    // fill the active timing cell (the long-standing iPad
+                    // auto behavior, kept as the default); By Time always
+                    // preserves the copied duration.
+                    Picker(selection: $pasteByCell) {
+                        Text("By Time").tag(false)
+                        Text("By Cell").tag(true)
+                    } label: {
+                        Label("Paste Mode", systemImage: "doc.on.clipboard")
+                    }
+                    // Desktop Effects-Grid display prefs.
+                    Divider()
+                    Toggle(isOn: $showEffectBackgrounds) {
+                        Label("Effect Backgrounds", systemImage: "paintpalette")
+                    }
+                    Toggle(isOn: $showTransitionMarks) {
+                        Label("Transition Marks", systemImage: "triangle")
+                    }
+                    Toggle(isOn: $alternateTimingFormat) {
+                        Label("Alternate Timing Format", systemImage: "clock")
+                    }
+                    Toggle(isOn: $hideColorUpdateWarning) {
+                        Label("Hide Color Update Warning", systemImage: "paintbrush")
+                    }
+                    Picker(selection: $gridSpacing) {
+                        Text("Extra Small").tag("XS")
+                        Text("Small").tag("S")
+                        Text("Medium").tag("M")
+                        Text("Large").tag("L")
+                        Text("Extra Large").tag("XL")
+                    } label: {
+                        Label("Grid Spacing", systemImage: "arrow.up.and.down.text.horizontal")
+                    }
+                    // B34 / B35 numbered-tag markers. Set / go-to /
+                    // clear at the current play head. Desktop parity
+                    // with the 0..9 bookmarks on the sequencer ruler.
+                    Divider()
+                    tagsMenuSection()
+                    // F-6: Display Elements editor. Launches a modal
+                    // sheet that lets the user create / edit views
+                    // and manage per-view model + timing membership.
+                    Divider()
+                    Button {
+                        viewModel.showingDisplayElements = true
+                    } label: {
+                        Label("Edit Display Elements…",
+                              systemImage: "rectangle.stack.badge.plus")
+                    }
                 } label: {
                     HStack(spacing: 2) {
                         Text(currentName)
                             .font(.caption).fontWeight(.medium)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.primary)
                             .lineLimit(1)
                         Image(systemName: "chevron.down")
                             .font(.caption2)
@@ -253,11 +1963,98 @@ struct SequencerGridV2View: View {
             }
             TimeDisplayLabel()
                 .font(.system(.caption, design: .monospaced))
+            SelectionReadout()
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
             Spacer()
         }
         .padding(6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color(white: 0.12))
+        .background(Color(.secondarySystemBackground))
+    }
+
+    /// Row-1 ruler + waveform strip. Extracted from `body` so the
+    /// main GeometryReader expression stays within Swift's type-
+    /// check budget — the Metal view takes ~20 parameters and was
+    /// pushing the enclosing body over the limit after B34 tags were
+    /// added.
+    @ViewBuilder
+    private func topChromeStrip(durationMS: Int) -> some View {
+        TopChromeMetalGridView(
+            durationMS: durationMS,
+            pixelsPerMS: timeline.pixelsPerMS,
+            rulerHeight: metrics.rulerHeight,
+            waveformHeight: metrics.waveformHeight,
+            hasAudio: viewModel.hasAudio,
+            peaks: viewModel.hasAudio ? viewModel.waveformPeaks : [],
+            scrollOffsetX: Binding(
+                get: { timeline.hScrollOffsetPx },
+                set: { timeline.hScrollOffsetPx = $0 }),
+            onSeek: { ms in viewModel.seekTo(ms: ms) },
+            onScrubSeek: { ms in viewModel.scrubSeekTo(ms: ms) },
+            onPinchZoom: pinchZoomAction,
+            onUserInteraction: { timeline.noteUserInteraction() },
+            loopStartMS: viewModel.loopStartMS,
+            loopEndMS: viewModel.loopEndMS,
+            hasLoop: viewModel.hasLoopRegion,
+            onSetLoop: { start, end in
+                viewModel.setLoopRegion(startMS: start, endMS: end)
+            },
+            onLoopMenu: { _ in loopMenuPresented = true },
+            onWaveformMenu: { waveformMenuPresented = true },
+            tagPositions: viewModel.tagPositions,
+            showOnsets: viewModel.showOnsets,
+            onsetMS: viewModel.showOnsets ? viewModel.onsetTimesMS : [],
+            showPitchContour: viewModel.showPitchContour,
+            pitchContour: viewModel.showPitchContour ? viewModel.pitchContour : [],
+            showSpectrogram: viewModel.showSpectrogram,
+            spectrogramFetcher: { s, e, w, h in
+                viewModel.spectrogramBGRA(fromMS: s, toMS: e,
+                                           width: w, height: h)
+            },
+            songRegionBounds: viewModel.songRegions.map {
+                ($0.startMS, $0.endMS, $0.colorARGB)
+            },
+            songRegionNames: viewModel.songRegions.map { $0.name },
+            songRegionRevision: viewModel.songStructureRevision,
+            onRegionMenu: { ms in songRegionMenuMS = ms },
+            alternateTimingFormat: alternateTimingFormat
+        )
+        .id(viewModel.songStructureRevision)
+    }
+
+    /// B34 / B35 — tag menu entries for the View-picker. Extracted
+    /// from `topLeftCorner` so the enclosing body stays small enough
+    /// for Swift's type-checker.
+    @ViewBuilder
+    private func tagsMenuSection() -> some View {
+        Menu("Set Tag") {
+            ForEach(0..<10, id: \.self) { i in
+                Button("Set Tag \(i) at Play Head") {
+                    viewModel.setTag(i, atMS: viewModel.playPositionMS)
+                }
+            }
+        }
+        Menu("Go To Tag") {
+            Button("Next Tag") { viewModel.goToNextTag() }
+            Button("Prior Tag") { viewModel.goToPriorTag() }
+            Divider()
+            ForEach(0..<10, id: \.self) { i in
+                Button("Tag \(i)") { viewModel.goToTag(i) }
+                    .disabled(viewModel.tagPositions[i] < 0)
+            }
+        }
+        Menu("Delete Tag") {
+            ForEach(0..<10, id: \.self) { i in
+                Button("Tag \(i)", role: .destructive) { viewModel.clearTag(i) }
+                    .disabled(viewModel.tagPositions[i] < 0)
+            }
+        }
+        Button("Clear All Tags", role: .destructive) {
+            viewModel.clearAllTags()
+        }
+        .disabled(!viewModel.tagPositions.contains(where: { $0 >= 0 }))
     }
 
     /// Shared pinch-to-zoom handler used by all three canvases so zoom
@@ -332,6 +2129,50 @@ struct SequencerGridV2View: View {
         fitDurationMS = durationMS
     }
 
+    /// B37: unconditional zoom-to-fit (ignores the load-once guard on
+    /// `fitDurationMS`). Wired to the View-picker menu entry.
+    private func zoomToFitSequence(availableWidth: CGFloat) {
+        let durationMS = viewModel.sequenceDurationMS
+        guard durationMS > 0 else { return }
+        let contentAvail = availableWidth - metrics.rowHeaderWidth
+        guard contentAvail > 1 else { return }
+        let ppms = contentAvail / CGFloat(durationMS)
+        timeline.pixelsPerMS = min(max(ppms, 0.005), 2.0)
+        timeline.hScrollOffsetPx = 0
+    }
+
+    /// B36: zoom so the selected effect's range (or the union of all
+    /// selected effects' ranges) fills the horizontal viewport with
+    /// small margins on each side. No-op when nothing is selected or
+    /// when the resulting range would clamp against the zoom limits.
+    private func zoomToSelection(availableWidth: CGFloat) {
+        var minStart = Int.max
+        var maxEnd = Int.min
+        if let single = viewModel.selectedEffect {
+            minStart = single.startTimeMS
+            maxEnd = single.endTimeMS
+        } else {
+            for sel in viewModel.selectedEffects {
+                minStart = min(minStart, sel.startTimeMS)
+                maxEnd = max(maxEnd, sel.endTimeMS)
+            }
+        }
+        guard minStart < maxEnd else { return }
+        let contentAvail = availableWidth - metrics.rowHeaderWidth
+        guard contentAvail > 1 else { return }
+        let rangeMS = maxEnd - minStart
+        // Reserve ~15% margin total (7.5% each side) so selection
+        // doesn't kiss the edges.
+        let margin: CGFloat = 0.15
+        let targetPx = contentAvail * (1 - margin)
+        let ppms = targetPx / CGFloat(rangeMS)
+        timeline.pixelsPerMS = min(max(ppms, 0.005), 2.0)
+        let selCenterMS = CGFloat(minStart + rangeMS / 2)
+        let viewCenterPx = contentAvail / 2
+        timeline.hScrollOffsetPx = max(0,
+            selCenterMS * timeline.pixelsPerMS - viewCenterPx)
+    }
+
     // MARK: - Row 2: timing band
 
     private func timingHeaders(_ rows: [SequencerViewModel.RowInfo]) -> some View {
@@ -341,13 +2182,140 @@ struct SequencerGridV2View: View {
                     row: row,
                     height: metrics.timingRowHeight,
                     document: viewModel.document,
-                    onRowsChanged: { viewModel.reloadRows() }
+                    onRowsChanged: { viewModel.reloadRows() },
+                    canBreakdownPhrases: viewModel.canBreakdownPhrases(rowIndex: row.id),
+                    onBreakdownPhrases: {
+                        _ = viewModel.breakdownPhrases(rowIndex: row.id)
+                    },
+                    canBreakdownWords: viewModel.canBreakdownWords(rowIndex: row.id),
+                    onBreakdownWords: {
+                        _ = viewModel.breakdownWords(rowIndex: row.id)
+                    },
+                    canRemoveWordsAndPhonemes: viewModel.canRemoveWordsAndPhonemes(rowIndex: row.id),
+                    onRemoveWordsAndPhonemes: {
+                        _ = viewModel.removeWordsAndPhonemes(rowIndex: row.id)
+                    },
+                    canRemovePhonemes: viewModel.canRemovePhonemes(rowIndex: row.id),
+                    onRemovePhonemes: {
+                        _ = viewModel.removePhonemes(rowIndex: row.id)
+                    },
+                    canMakeVariable: viewModel.timingTrackIsFixed(rowIndex: row.id),
+                    onMakeVariable: {
+                        _ = viewModel.makeTimingTrackVariable(rowIndex: row.id)
+                    },
+                    onSubdivide: { raw in
+                        if let mode = SequencerViewModel.SubdivisionMode(rawValue: raw) {
+                            _ = viewModel.generateSubdividedTimingTrack(
+                                sourceRowIndex: row.id, mode: mode)
+                        }
+                    },
+                    canSubdivide: row.layerIndex == 0 && !row.effects.isEmpty,
+                    onExportTimingTrack: {
+                        startXTimingExport(rowIndex: row.id,
+                                             trackName: row.timing?.elementName ?? row.displayName)
+                    },
+                    canExportPapagayo: viewModel.canExportPapagayo(rowIndex: row.id),
+                    onExportPapagayo: {
+                        startPapagayoExport(rowIndex: row.id,
+                                             trackName: row.timing?.elementName ?? row.displayName)
+                    },
+                    canSpeechToLyrics: viewModel.canSpeechToLyrics(rowIndex: row.id),
+                    onSpeechToLyrics: {
+                        // Reuse the unified Add-Timing flow's AI-Lyrics path
+                        // (mirrors desktop, which also creates a new track).
+                        viewModel.pendingSpeechToLyricsRowIndex = row.id
+                        viewModel.showingAddTimingTrack = true
+                    },
+                    onImportLyrics: {
+                        importLyricsTargetRow = row.id
+                        importLyricsText = ""
+                        importLyricsStart = "0.000"
+                        let endSec = Double(viewModel.sequenceDurationMS) / 1000.0
+                        importLyricsEnd = String(format: "%.3f", endSec)
+                    },
+                    onAutoLabelMarks: {
+                        autoLabelTargetRow = row.id
+                        autoLabelStart = "1"
+                        autoLabelEnd = "\(max(1, row.effects.count))"
+                        autoLabelOverwrite = false
+                    },
+                    onHalveTimingMarks: {
+                        _ = viewModel.halveTimingMarks(rowIndex: row.id)
+                    },
+                    onDivideTimingMarks: { divisor in
+                        _ = viewModel.divideTimingMarks(byN: divisor, rowIndex: row.id)
+                    },
+                    canSelectMarks: !row.effects.isEmpty,
+                    onSelectMarks: {
+                        viewModel.selectAllEffectsInRow(rowIndex: row.id)
+                    },
+                    onCreateSongRegions: row.layerIndex == 0 && !row.effects.isEmpty ? {
+                        viewModel.createSongRegionsFromTimingRow(row.id)
+                    } : nil
                 )
             }
         }
     }
 
     // MARK: - Row 3: model area
+
+    /// Row-headers column for the model band. The scroll view is
+    /// constrained to the natural row-content height (or the full
+    /// model band's height if rows overflow); any leftover vertical
+    /// space below is occupied by an invisible Color.clear that
+    /// hosts the empty-area long-press menu. Doing it as a sibling
+    /// of the scroll view (instead of inside its content) sidesteps
+    /// the pan recogniser eating the long-press, and gives the
+    /// empty area visible pixels to register the gesture in (a
+    /// Color.clear inside the scroll view would be sized to zero by
+    /// the bounded contentHeight).
+    @ViewBuilder
+    private func modelRowHeaderColumn(modelRows: [SequencerViewModel.RowInfo],
+                                        modelAreaH: CGFloat,
+                                        availableModelBandH: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            SyncedScrollView(
+                targetHOffset: nil,
+                targetVOffset: rowsScroll.vScrollOffsetPx,
+                contentWidth: metrics.rowHeaderWidth,
+                contentHeight: modelAreaH,
+                showsIndicators: false,
+                onScroll: { newOffset in
+                    rowsScroll.vScrollOffsetPx = newOffset.y
+                }
+            ) {
+                modelHeaders(modelRows)
+            }
+            .frame(width: metrics.rowHeaderWidth,
+                   height: min(modelAreaH, max(0, availableModelBandH)))
+            if modelAreaH < availableModelBandH {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .frame(width: metrics.rowHeaderWidth)
+                    .frame(maxHeight: .infinity)
+                    .onLongPressGesture(minimumDuration: 0.5) {
+                        emptyAreaMenuPresented = true
+                    }
+            }
+        }
+        .frame(width: metrics.rowHeaderWidth)
+        .confirmationDialog("",
+                             isPresented: $emptyAreaMenuPresented,
+                             titleVisibility: .hidden) {
+            Button {
+                viewModel.showingAddTimingTrack = true
+            } label: {
+                Label("Add Timing Track…", systemImage: "plus.rectangle")
+            }
+            Button {
+                viewModel.showingDisplayElements = true
+            } label: {
+                Label("Edit Display Elements…",
+                       systemImage: "rectangle.stack.badge.plus")
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
 
     private func modelHeaders(_ rows: [SequencerViewModel.RowInfo]) -> some View {
         let selectedRowId = viewModel.selectedEffect?.rowIndex
@@ -360,12 +2328,117 @@ struct SequencerGridV2View: View {
                     height: h,
                     document: viewModel.document,
                     onSelect: { viewModel.selectPreviewModel(rowIndex: row.id) },
-                    onRowsChanged: { viewModel.reloadRows() }
+                    onRowsChanged: { viewModel.reloadRows() },
+                    onSelectAllEffects: {
+                        viewModel.selectAllEffectsInRow(rowIndex: row.id)
+                    },
+                    onSelectAllEffectsInModel: {
+                        viewModel.selectAllEffectsInModel(rowIndex: row.id)
+                    },
+                    onRenameLayer: { newName in
+                        _ = viewModel.renameLayer(rowIndex: row.id, name: newName)
+                    },
+                    effectCountOnRow: row.effects.count,
+                    onDeleteAllEffectsOnRow: {
+                        _ = viewModel.deleteAllEffectsOnRow(rowIndex: row.id)
+                    },
+                    onDeleteModelEffects: {
+                        viewModel.deleteModelEffects(rowIndex: row.id)
+                    },
+                    elementRenderDisabled: viewModel.isElementRenderDisabled(rowIndex: row.id),
+                    onToggleRenderDisabled: {
+                        viewModel.toggleElementRenderDisabled(rowIndex: row.id)
+                    },
+                    onEnableRenderAll: {
+                        viewModel.enableRenderOnAllModels()
+                    },
+                    onPlayModel: {
+                        viewModel.playModel(rowIndex: row.id)
+                    },
+                    onCopyRow: { viewModel.copyRow(rowIndex: row.id) },
+                    onCutRow: { viewModel.cutRow(rowIndex: row.id) },
+                    onCopyModel: { viewModel.copyModel(rowIndex: row.id) },
+                    onCopyModelInclSubmodels: { viewModel.copyModelInclSubmodels(rowIndex: row.id) },
+                    onCutModel: { viewModel.cutModel(rowIndex: row.id) },
+                    onCopyLayersToModels: {
+                        copyLayersPickedModels = []
+                        copyLayersSourceRow = row.id
+                    },
+                    onPaste: { viewModel.pasteAtRow(rowIndex: row.id) },
+                    hasClipboard: viewModel.hasClipboard,
+                    onFindSourceEffects: { viewModel.findSourceEffects(rowIndex: row.id) },
+                    hasLoopRegion: viewModel.hasLoopRegion,
+                    onExportModelFSEQ: { useLoop in
+                        startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
+                    },
+                    onExportModelVideo: { compressed, highQuality, forceProRes, ext, label, expW, expH in
+                        startVideoExport(rowIndex: row.id, compressed: compressed,
+                                         highQuality: highQuality, forceProRes: forceProRes,
+                                         ext: ext, label: label,
+                                         exportWidth: expW, exportHeight: expH)
+                    },
+                    onExportModelGif: {
+                        startGifExport(rowIndex: row.id)
+                    },
+                    onConvertToPerModel: { allLayers in
+                        viewModel.convertEffectsToPerModel(rowIndex: row.id,
+                                                            allLayers: allLayers)
+                    },
+                    onPromoteNodeEffects: {
+                        viewModel.promoteNodeEffects(rowIndex: row.id)
+                    },
+                    onConvertDataToEffects: {
+                        viewModel.convertDataToEffects(rowIndex: row.id)
+                    },
+                    onDeleteScopedEffects: { scope in
+                        let name = scope == 0 ? "Delete SubModel Effects"
+                                 : scope == 1 ? "Delete Strand Effects"
+                                              : "Delete Node Effects"
+                        viewModel.deleteScopedEffects(rowIndex: row.id, scope: scope, actionName: name)
+                    },
+                    hasSelectedEffectsOnModel: viewModel.selectedEffectsSpanForModel(rowIndex: row.id) != nil,
+                    onExportSelectedModelFSEQ: {
+                        startSelectedFSEQExport(rowIndex: row.id)
+                    },
+                    unusedLayerCount: Int(viewModel.document.unusedLayerCount(atRow: Int32(row.id))),
+                    onDeleteUnusedLayers: {
+                        _ = viewModel.deleteUnusedLayers(rowIndex: row.id)
+                    },
+                    onInsertMultipleLayersBelow: {
+                        insertLayersCountText = "3"
+                        insertLayersTargetRow = row.id
+                    },
+                    onDeleteMultipleLayers: {
+                        deleteLayersCountText = "2"
+                        deleteLayersTargetRow = row.id
+                    },
+                    isSelected: row.id == selectedRowId
                 )
+                .overlay(alignment: .top) {
+                    if isTopLevelRow(row), rowDropTargetId == row.id,
+                       rowDragSourceId != nil, rowDragSourceId != row.id {
+                        Rectangle()
+                            .fill(Color.accentColor)
+                            .frame(height: 2)
+                    }
+                }
+                .modifier(TopLevelRowReorderModifier(
+                    isTopLevel: isTopLevelRow(row),
+                    rowId: row.id,
+                    sourceId: $rowDragSourceId,
+                    dropTargetId: $rowDropTargetId,
+                    onCommit: { src, dest in
+                        viewModel.moveTopLevelRow(from: src, toBefore: dest)
+                    }
+                ))
             }
-            Spacer(minLength: 0)
         }
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func isTopLevelRow(_ row: SequencerViewModel.RowInfo) -> Bool {
+        row.layerIndex == 0 && row.strandIndex < 0
+            && row.nodeIndex < 0 && !row.isSubmodel
     }
 
     /// Interactive Metal grid for the model-effect column. Builds
@@ -399,6 +2472,13 @@ struct SequencerGridV2View: View {
             viewModel.resizeEffectEdge(rowIndex: rowIdx, effectIndex: effIdx,
                                        edge: edge, newMS: newMS)
         }
+        actions.onResizeSharedEdge = { rowIdx, lIdx, lStart, lEnd, rIdx, rStart, rEnd in
+            viewModel.resizeSharedEdge(rowIndex: rowIdx,
+                                        leftIndex: lIdx,
+                                        leftStartMS: lStart, leftEndMS: lEnd,
+                                        rightIndex: rIdx,
+                                        rightStartMS: rStart, rightEndMS: rEnd)
+        }
         actions.onAdjustFade = { rowIdx, effIdx, edge, seconds in
             viewModel.adjustFade(rowIndex: rowIdx, effectIndex: effIdx,
                                  fadeInSec:  edge == 0 ? seconds : -1,
@@ -410,6 +2490,24 @@ struct SequencerGridV2View: View {
         actions.onPinchZoom = pinchZoomAction
         actions.onRequestContextMenu = { rowIdx, effIdx, _ in
             contextMenuTarget = ContextMenuTarget(rowIndex: rowIdx, effectIndex: effIdx)
+        }
+        actions.onRequestTransitionMenu = { rowIdx, effIdx, isIn, _ in
+            transitionMenuTarget = TransitionMenuTarget(
+                rowIndex: rowIdx, effectIndex: effIdx, isIn: isIn)
+        }
+        actions.onDoubleTapEmpty = { rowIdx, ms in
+            viewModel.doubleTapCreateInCell(rowIndex: rowIdx, atMS: ms)
+        }
+        actions.isPaletteArmed = { viewModel.selectedPaletteEffect != nil }
+        actions.onCreateEffectDrag = { rowIdx, startMS, endMS in
+            viewModel.createEffectFromPaletteDrag(rowIndex: rowIdx,
+                                                  startMS: startMS, endMS: endMS)
+        }
+        actions.onToggleSelectEffect = { rowIdx, effIdx in
+            viewModel.toggleSelectEffect(rowIndex: rowIdx, effectIndex: effIdx)
+        }
+        actions.onExtendSelectEffect = { rowIdx, effIdx in
+            viewModel.extendSelectEffect(rowIndex: rowIdx, effectIndex: effIdx)
         }
         var stateLookup = EffectStateLookup()
         stateLookup.isLocked = { [document = viewModel.document] rowIdx, effIdx in
@@ -423,10 +2521,13 @@ struct SequencerGridV2View: View {
             metrics: metrics,
             pixelsPerMS: timeline.pixelsPerMS,
             selection: viewModel.selectedEffect,
+            selectedEffects: viewModel.selectedEffects,
             activeDrag: viewModel.activeDrag,
             timingMarkTimesMS: collectActiveTimingMarkTimes(),
             renderedBackgroundsRevision: viewModel.renderedBackgroundsRevision,
             inspectorRevision: viewModel.inspectorRevision,
+            showEffectBackgrounds: showEffectBackgrounds,
+            showTransitionMarks: showTransitionMarks,
             scrollOffsetX: Binding(
                 get: { timeline.hScrollOffsetPx },
                 set: { timeline.hScrollOffsetPx = $0 }),
@@ -450,7 +2551,10 @@ struct SequencerGridV2View: View {
                 else { return nil }
                 return data
             },
-            document: viewModel.document
+            document: viewModel.document,
+            onUserInteraction: { timeline.noteUserInteraction() },
+            onMarqueeSelect: { hits in viewModel.setMultiSelection(hits) },
+            onPencilTapAction: { viewModel.undo() }
         )
     }
 
@@ -475,6 +2579,47 @@ struct SequencerGridV2View: View {
 
 // MARK: - Subviews whose bodies read high-churn view-model state
 
+/// B31: compact readout for the currently-selected effect. Shows
+/// name, time range, duration, and row name when one effect is
+/// selected; shows "N effects selected" when multi-selected; blank
+/// when idle. Isolated as a subview so its re-renders on selection
+/// change stay scoped to this small label.
+private struct SelectionReadout: View {
+    @Environment(SequencerViewModel.self) var viewModel
+    var body: some View {
+        if let sel = viewModel.selectedEffect {
+            let dur = sel.endTimeMS - sel.startTimeMS
+            let rowName = (sel.rowIndex >= 0 && sel.rowIndex < viewModel.rows.count)
+                ? viewModel.rows[sel.rowIndex].displayName
+                : ""
+            let description = viewModel.effectDescription(
+                rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
+            let base = "\(sel.name) · \(Self.ms(sel.startTimeMS))–\(Self.ms(sel.endTimeMS)) · \(Self.dur(dur)) · \(rowName)"
+            if description.isEmpty {
+                Text(base)
+            } else {
+                // B20: appended in italics-ish so the eye groups it
+                // as a note, not part of the timing data.
+                Text("\(base) · “\(description)”")
+            }
+        } else if viewModel.selectedEffects.count > 1 {
+            Text("\(viewModel.selectedEffects.count) effects selected")
+        } else {
+            // Reserve the line so layout doesn't shift on select/deselect.
+            Text(" ").hidden()
+        }
+    }
+    private static func ms(_ m: Int) -> String {
+        return String(format: "%d:%02d.%03d",
+                      m / 60000, (m / 1000) % 60, m % 1000)
+    }
+    private static func dur(_ m: Int) -> String {
+        let s = Double(m) / 1000.0
+        return s >= 10 ? String(format: "%.1fs", s)
+                        : String(format: "%.2fs", s)
+    }
+}
+
 /// Isolated time-display subview so the main grid body doesn't re-evaluate
 /// every playback tick. SwiftUI's @Observable tracks reads per-body, so
 /// moving `viewModel.playPositionMS` into its own view confines the
@@ -490,6 +2635,53 @@ private struct TimeDisplayLabel: View {
         let seconds = totalSeconds % 60
         let frac = (ms % 1000) / 10
         return String(format: "%d:%02d.%02d", minutes, seconds, frac)
+    }
+}
+
+/// Invisible observer that keeps the play marker on-screen during
+/// playback (B93). Watches `viewModel.playPositionMS`; when the marker
+/// nears the right edge of the viewport, jump-scrolls so the marker
+/// sits ~10% from the left (one-viewport desktop parity). Also handles
+/// the marker having wandered off the left edge (seek-backwards during
+/// playback, or a sequence that wrapped).
+///
+/// Suppressed for 1.2 s after the user last touched any of the grid
+/// canvases so a scroll-during-playback has time to be inspected
+/// before the playhead yanks the viewport back. Suppressed outright
+/// during effect-scrub (`isScrubbing`) so the scrub loop doesn't
+/// reel the viewport around its narrow range.
+private struct AutoFollowPlayhead: View {
+    @Environment(SequencerViewModel.self) var viewModel
+    let timeline: TimelineState
+    let availableContentWidth: CGFloat
+
+    private static let suppressionWindow: CFTimeInterval = 1.2
+    private static let leftMarginFrac: CGFloat = 0.10
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .onChange(of: viewModel.playPositionMS) { _, newMS in
+                guard viewModel.isPlaying else { return }
+                if viewModel.isScrubbing { return }
+                if availableContentWidth <= 1 { return }
+                let since = CACurrentMediaTime() - timeline.lastUserInteractionAt
+                if since < Self.suppressionWindow { return }
+
+                let worldX = CGFloat(newMS) * timeline.pixelsPerMS
+                let cur = timeline.hScrollOffsetPx
+                let leftMargin = availableContentWidth * Self.leftMarginFrac
+                let rightEdge = cur + availableContentWidth
+                // Marker fell off the right: jump so marker is at leftMargin.
+                if worldX > rightEdge {
+                    timeline.hScrollOffsetPx = max(0, worldX - leftMargin)
+                }
+                // Marker fell off the left: same — reseat at leftMargin.
+                else if worldX < cur {
+                    timeline.hScrollOffsetPx = max(0, worldX - leftMargin)
+                }
+            }
     }
 }
 
@@ -548,6 +2740,519 @@ private struct PlayheadShape: Shape {
         // Full-height line.
         p.addRect(CGRect(x: cx - 1, y: 0, width: 2, height: rect.height))
         return p
+    }
+}
+
+/// B61 column-resize handle. 1-px visible hairline + 12-pt
+/// transparent hit strip with a `.hoverEffect(.highlight)` for
+/// Magic Keyboard pointer users. Horizontal drag updates the
+/// bound width directly; the receiving view re-clamps.
+private struct ColumnResizeHandle: View {
+    /// Optional explicit height. `nil` makes the handle stretch to
+    /// its parent (used in the model-rows HStack where the row
+    /// area has no fixed height).
+    let height: CGFloat?
+    let minWidth: Double
+    let maxWidth: Double
+    @Binding var width: Double
+    @State private var dragStartWidth: Double? = nil
+
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(Color(white: 0.25))
+                .frame(width: 0.5)
+            // Wider transparent hit target — a touch on a 0.5-pt
+            // line is essentially impossible.
+            Color.clear
+                .frame(width: 12)
+                .contentShape(Rectangle())
+                .hoverEffect(.highlight)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            if dragStartWidth == nil { dragStartWidth = width }
+                            if let start = dragStartWidth {
+                                let proposed = start + Double(value.translation.width)
+                                width = min(maxWidth, max(minWidth, proposed))
+                            }
+                        }
+                        .onEnded { _ in dragStartWidth = nil }
+                )
+        }
+        .frame(width: 12, height: height)
+    }
+}
+
+/// B78 lyrics-import sheet. Multi-line text field + start/end
+/// seconds. On commit, the parent view dispatches to
+/// `SequencerViewModel.importLyrics(rowIndex:lyrics:startMS:endMS:)`.
+private struct ImportLyricsSheet: View {
+    let rowIndex: Int
+    @Binding var text: String
+    @Binding var startText: String
+    @Binding var endText: String
+    let onCommit: (_ startSec: String, _ endSec: String) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Paste lyrics below — one phrase per line. The full time range is divided evenly into phrases. Blank lines are skipped.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                TextEditor(text: $text)
+                    .font(.system(.body, design: .monospaced))
+                    .frame(minHeight: 240)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.4)))
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Start (seconds)").font(.caption).foregroundStyle(.secondary)
+                        TextField("0.000", text: $startText)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                    VStack(alignment: .leading) {
+                        Text("End (seconds)").font(.caption).foregroundStyle(.secondary)
+                        TextField("0.000", text: $endText)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(.roundedBorder)
+                    }
+                }
+            }
+            .padding()
+            .navigationTitle("Import Lyrics")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Import") { onCommit(startText, endText) }
+                        .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - A9.1 Custom Band sheet
+
+/// Parametric waveform band editor. Sliders are MIDI note numbers
+/// (0–127) to match `AudioManager::SwitchTo(CUSTOM, lowNote,
+/// highNote)`. Shows the resolved Hz range so users who think in
+/// frequencies can sanity-check. Presets pick common percussion /
+/// vocal ranges.
+struct CustomBandSheet: View {
+    @Binding var lowNote: Int
+    @Binding var highNote: Int
+    let onDone: () -> Void
+
+    private func midiToHz(_ n: Int) -> Double {
+        440.0 * pow(2.0, (Double(n) - 69.0) / 12.0)
+    }
+    private func hzLabel(_ n: Int) -> String {
+        let hz = midiToHz(n)
+        if hz >= 1000 { return String(format: "%.1f kHz", hz / 1000.0) }
+        return String(format: "%.0f Hz", hz)
+    }
+
+    /// Name, lowNote, highNote. Note numbers are MIDI (C4 = 60).
+    private static let presets: [(String, Int, Int)] = [
+        ("Kick",   24, 40),   // ~32 Hz – ~105 Hz
+        ("Bass",   36, 55),   // ~65 Hz – ~247 Hz
+        ("Snare",  50, 74),   // ~147 Hz – ~587 Hz
+        ("Vocal",  48, 84),   // ~131 Hz – ~1047 Hz
+        ("Lead",   60, 96),   // ~262 Hz – ~2093 Hz
+        ("Hat",    90, 120),  // ~1.5 kHz – ~8.4 kHz
+    ]
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Range") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Low").font(.caption).foregroundStyle(.secondary)
+                            Spacer()
+                            Text("\(lowNote)  (\(hzLabel(lowNote)))")
+                                .font(.caption.monospacedDigit())
+                        }
+                        Slider(value: Binding(
+                            get: { Double(lowNote) },
+                            set: { v in
+                                lowNote = min(Int(v), highNote - 1)
+                            }), in: 0...126, step: 1)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("High").font(.caption).foregroundStyle(.secondary)
+                            Spacer()
+                            Text("\(highNote)  (\(hzLabel(highNote)))")
+                                .font(.caption.monospacedDigit())
+                        }
+                        Slider(value: Binding(
+                            get: { Double(highNote) },
+                            set: { v in
+                                highNote = max(Int(v), lowNote + 1)
+                            }), in: 1...127, step: 1)
+                    }
+                }
+                Section("Presets") {
+                    ForEach(Self.presets, id: \.0) { preset in
+                        Button {
+                            lowNote = preset.1
+                            highNote = preset.2
+                        } label: {
+                            HStack {
+                                Text(preset.0)
+                                Spacer()
+                                Text("\(hzLabel(preset.1)) – \(hzLabel(preset.2))")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Custom Band")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { onDone() }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - A9 Chord preview sheet
+
+/// Shows detected key + a sample of the chord progression so the
+/// user can sanity-check before a timing track is created.
+struct ChordPreviewSheet: View {
+    let key: String
+    let chords: [(Int, Int, String)]
+    let onCommit: () -> Void
+    let onCancel: () -> Void
+
+    private var uniqueChordCount: Int {
+        Set(chords.map { $0.2 }).count
+    }
+
+    /// First dozen segments in progression order — enough to see
+    /// the flavour (verse → chorus) without dumping the whole song.
+    private var previewRow: String {
+        chords.prefix(12).map { $0.2 }.joined(separator: " → ")
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack {
+                        Text("Key")
+                        Spacer()
+                        Text(key.isEmpty ? "—" : key)
+                            .font(.title3.bold())
+                    }
+                    HStack {
+                        Text("Segments")
+                        Spacer()
+                        Text("\(chords.count)")
+                            .font(.callout.monospacedDigit())
+                    }
+                    HStack {
+                        Text("Unique chords")
+                        Spacer()
+                        Text("\(uniqueChordCount)")
+                            .font(.callout.monospacedDigit())
+                    }
+                }
+                if !previewRow.isEmpty {
+                    Section("Opening progression") {
+                        Text(previewRow)
+                            .font(.callout.monospaced())
+                            .lineLimit(2)
+                    }
+                }
+                Section {
+                    Text("Chord detection is a rough guide. Works best on tonal music with clean harmonic content — jazz voicings, ambiguous modal passages, and dense mixes will produce false positives. Treat it as a starting point for manual review.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Detected Chords")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create Timing Track") { onCommit() }
+                        .disabled(chords.isEmpty)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - A8 Stem install sheet
+
+/// Prompts the user to pick an install root (show folder or a
+/// media folder) for the HTDemucs stem-separation model.
+struct StemInstallSheet: View {
+    let roots: [String]
+    let onCommit: (String) -> Void
+    let onCancel: () -> Void
+
+    @State private var selected: Int = 0
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Stem separation uses an on-device ML model (HTDemucs) to split your audio into drums, bass, vocals, and other. The model is about 65 MB to download (expands to ~180 MB on disk) and runs entirely offline once installed.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Section("Install location") {
+                    ForEach(Array(roots.enumerated()), id: \.offset) { idx, root in
+                        Button {
+                            selected = idx
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(idx == 0 ? "Show folder" : "Media folder")
+                                        .font(.body)
+                                    Text(root)
+                                        .font(.caption.monospaced())
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                        .truncationMode(.middle)
+                                }
+                                Spacer()
+                                if idx == selected {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.tint)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                Section {
+                    Text("Download runs over Wi-Fi only. You'll need enough free space on the chosen root.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Install Stem Model")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Download") {
+                        if selected >= 0 && selected < roots.count {
+                            onCommit(roots[selected])
+                        }
+                    }
+                    .disabled(roots.isEmpty)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - A8 Stem progress sheet
+
+/// Non-cancellable modal progress bar shown while the model is
+/// downloading or the separator is running.
+struct StemProgressSheet: View {
+    let phase: SequencerViewModel.StemPhase
+    let pct: Int
+
+    private var title: String {
+        switch phase {
+        case .downloading: return "Downloading Model"
+        case .separating:  return "Separating Stems"
+        default:           return "Preparing Stems"
+        }
+    }
+    private var message: String {
+        switch phase {
+        case .downloading: return "Fetching HTDemucs — stay on Wi-Fi."
+        case .separating:  return "Running HTDemucs — drums, bass, vocals, other…"
+        default:           return ""
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ProgressView(value: Double(pct) / 100.0)
+                .progressViewStyle(.linear)
+            Text(title).font(.headline)
+            Text(message)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Text("\(pct)%")
+                .font(.title3.monospacedDigit())
+        }
+        .padding(24)
+        .presentationDetents([.medium])
+        .interactiveDismissDisabled(true)
+    }
+}
+
+// MARK: - A4 Tempo preview sheet
+
+/// Shows the detected BPM + confidence + beat count and gives the
+/// user a last chance to bail before a timing track is added.
+struct TempoPreviewSheet: View {
+    let bpm: Float
+    let confidence: Float
+    let beatCount: Int
+    let onCommit: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack {
+                        Text("BPM")
+                        Spacer()
+                        Text(String(format: "%.1f", bpm))
+                            .font(.title2.monospacedDigit().bold())
+                    }
+                    HStack {
+                        Text("Confidence")
+                        Spacer()
+                        Text(String(format: "%.0f%%", confidence * 100))
+                            .font(.callout.monospacedDigit())
+                            .foregroundStyle(confidence > 0.4 ? .primary : .secondary)
+                    }
+                    HStack {
+                        Text("Beats")
+                        Spacer()
+                        Text("\(beatCount)")
+                            .font(.callout.monospacedDigit())
+                    }
+                } footer: {
+                    if confidence < 0.3 {
+                        Text("Low confidence — the audio may be too loose / free-form for a fixed BPM, or mostly ambient. Consider A2 onset detection instead.")
+                            .font(.caption)
+                    }
+                }
+            }
+            .navigationTitle("Detected Tempo")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create Timing Track") { onCommit() }
+                        .disabled(beatCount == 0)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - A7 Sound Classify picker sheet
+
+/// Surface the top detected sound classes with average-confidence
+/// readouts. If classification hasn't been run yet, show a "Classify"
+/// button that triggers it (blocking — the view model manages its own
+/// busy state). Picking a class invokes `onPick` and dismisses.
+struct SoundClassifyPickerSheet: View {
+    let classes: [String: [Float]]
+    let isBusy: Bool
+    let onClassify: () -> Void
+    let onPick: (String) -> Void
+    let onCancel: () -> Void
+
+    /// Friendlier label than the raw identifier (`"music.drums"` →
+    /// `"Music / Drums"`). Dots and underscores become separators;
+    /// leading component is title-cased.
+    private func prettyName(_ id: String) -> String {
+        let parts = id.replacingOccurrences(of: "_", with: " ")
+            .split(separator: ".", omittingEmptySubsequences: true)
+            .map { $0.capitalized }
+        return parts.joined(separator: " / ")
+    }
+
+    private var sorted: [(String, Float, [Float])] {
+        classes.map { (key, conf) -> (String, Float, [Float]) in
+            let avg = conf.isEmpty ? 0 : conf.reduce(0, +) / Float(conf.count)
+            return (key, avg, conf)
+        }
+        .sorted { $0.1 > $1.1 }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if isBusy {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                        Text("Classifying audio…")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if classes.isEmpty {
+                    VStack(spacing: 12) {
+                        Text("Apple's built-in classifier identifies percussion, vocals, instruments, and ambient sounds in your audio. The waveform is then scaled to show only moments where the chosen class is present.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                        Button {
+                            onClassify()
+                        } label: {
+                            Label("Classify", systemImage: "waveform.and.magnifyingglass")
+                                .padding(.horizontal, 20).padding(.vertical, 8)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    Form {
+                        Section("Detected classes") {
+                            ForEach(sorted, id: \.0) { triple in
+                                Button {
+                                    onPick(triple.0)
+                                } label: {
+                                    HStack {
+                                        Text(prettyName(triple.0))
+                                        Spacer()
+                                        Text(String(format: "%.0f%%", triple.1 * 100))
+                                            .font(.caption.monospacedDigit())
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Classify Audio")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel() }
+                }
+                if !classes.isEmpty && !isBusy {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Reclassify") { onClassify() }
+                    }
+                }
+            }
+        }
     }
 }
 
