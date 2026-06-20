@@ -536,6 +536,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     }
 
+    _outputManager.SomethingChanged();
+    AllModels.RecalcStartChannels();
+    _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SetDir-post-rework");
+
     ValidateWindow();
 
     return true;
