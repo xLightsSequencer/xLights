@@ -12255,7 +12255,7 @@ int LayoutPanel::calculateNodeCountOfSelected()
 
 void LayoutPanel::OnModelFilterCancelBtn(wxCommandEvent& event) {
     _filterDebounceTimer.Stop();
-    ModelFilterCtrl->SetValue("");
+    ModelFilterCtrl->ChangeValue("");
     _filterString = "";
     _filterRegexValid = false;
     UpdateModelList(true);

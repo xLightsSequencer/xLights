@@ -314,7 +314,7 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     CheckBox_SuspendRender->SetFont(fnt);
 #endif
 
-    // Sequencer prop filter - hidden by default
+    // Sequencer prop filter
     _seqFilterCtrl = new wxSearchCtrl(this, ID_TEXTCTRL_SEQ_FILTER,
         wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     _seqFilterCtrl->SetDescriptiveText("Filter props...");
