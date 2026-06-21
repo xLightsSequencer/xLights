@@ -7783,16 +7783,25 @@ void LayoutPanel::ExportFacesStatesSubModels() {
 
         for (auto const& idx : dlg.GetSelections()) {
             Model* targetModel = xlights->GetModel(choices.at(idx));
-            targetModel->SetFaceInfo(sourceFaces);
-            targetModel->SetStateInfo(sourceStates);
 
-            // Copy submodels using copy constructor
+            auto targetFaces = targetModel->GetFaceInfo();
+            for (const auto& [name, data] : sourceFaces) {
+                targetFaces[name] = data;
+            }
+            targetModel->SetFaceInfo(targetFaces);
+
+            auto targetStates = targetModel->GetStateInfo();
+            for (const auto& [name, data] : sourceStates) {
+                targetStates[name] = data;
+            }
+            targetModel->SetStateInfo(targetStates);
+
             for (int i = 0; i < selectedModel->GetNumSubModels(); ++i) {
                 const SubModel* sourceSubModel = dynamic_cast<const SubModel*>(selectedModel->GetSubModel(i));
                 if (sourceSubModel != nullptr) {
-                    // Create SubModel using copy constructor
+                    targetModel->RemoveSubModel(sourceSubModel->GetName());
                     SubModel* sm = new SubModel(targetModel, sourceSubModel);
-                    targetModel->AddSubmodel(sm);                    
+                    targetModel->AddSubmodel(sm);
                 }
             }
             targetModel->IncrementChangeCount();
