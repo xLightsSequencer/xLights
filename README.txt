@@ -31,7 +31,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dan)                   Fix crash importing/downloading a DmxServo3Axis model (factory didn't recognize the legacy type alias);
                                  unrecognized/malformed model files now cancel the import with an error instead of crashing
     -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
-    -bug (derwin12)              Linux: fix Controllers/Layout property panes repeating (#6215, #4175)
+    -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
+                                 dropdown-style property, caused by GTK event-pumping while the property grid was frozen (#6215, #4175)
+    -bug (cybercop23)            Fix Sort By Name/Location in the model group panel incorrectly adding a blank entry at the top (#6588)
     -bug (agfazio)               Fix Double click to expand on group
 
 2026.11  June 14, 2026
