@@ -996,6 +996,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
 
     RenameModelInViews(OldName, NewName);
     _sequenceElements.RenameModelInViews(OldName, NewName);
+    displayElementsPanel->UpdateModelsForSelectedView();
 
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
