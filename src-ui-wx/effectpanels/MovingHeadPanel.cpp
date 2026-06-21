@@ -601,7 +601,9 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
             }
         }
     }
-    Layout();
+    if ( IsShownOnScreen() ) {
+        Layout();
+    }
     event.Skip();
 }
 
