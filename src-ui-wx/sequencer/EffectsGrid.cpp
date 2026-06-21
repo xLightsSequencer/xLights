@@ -4179,7 +4179,7 @@ void EffectsGrid::Resize(int position, bool offset, bool control) {
         }
     }
 
-    if ((wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) && mResizingMode != EFFECT_RESIZE_MOVE && mResizingMode != EFFECT_RESIZE_NO) {
+    if ((wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) && mResizingMode != EFFECT_RESIZE_MOVE && mResizingMode != EFFECT_RESIZE_NO && !MultipleEffectsSelected()) {
         if (new_time != -1) {
             ResizeSingleEffectMS(new_time);
         } else {

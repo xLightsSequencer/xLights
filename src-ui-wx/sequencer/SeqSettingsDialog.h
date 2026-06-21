@@ -29,6 +29,7 @@
 #include <wx/treectrl.h>
 //*)
 #include <wx/listctrl.h>
+#include <wx/timer.h>
 
 #define NEEDS_RENDER 9998
 
@@ -54,6 +55,8 @@ class SeqSettingsDialog: public wxDialog
 		wxButton* Button_Cancel;
 		wxButton* Button_Close;
 		wxButton* Button_Download;
+		wxButton* Button_SetDefaultDuration;
+		wxButton* Button_SetDefaultTiming;
 		wxButton* Button_EmailSend;
 		wxButton* Button_Layer_Delete;
 		wxButton* Button_Layer_Import;
@@ -212,6 +215,8 @@ class SeqSettingsDialog: public wxDialog
 		static const wxWindowID ID_STATICTEXT_Warn_No_Media;
 		static const wxWindowID ID_BUTTON_CANCEL;
 		static const wxWindowID ID_BUTTON_Close;
+		static const wxWindowID ID_BUTTON_SetDefaultDuration;
+		static const wxWindowID ID_BUTTON_SetDefaultTiming;
 		//*)
 
 		static const long ID_GRID_TIMING;
@@ -286,6 +291,8 @@ class SeqSettingsDialog: public wxDialog
 		void OnButton_WebsiteOpenClick(wxCommandEvent& event);
 		void OnButton_MusicOpenClick(wxCommandEvent& event);
         void OnButton_AddMillisecondsClick(wxCommandEvent& event);
+        void OnButton_SetDefaultDurationClick(wxCommandEvent& event);
+        void OnButton_SetDefaultTimingClick(wxCommandEvent& event);
 		//*)
 
 		void OnButton_Xml_Rename_TimingClick(wxCommandEvent& event);
@@ -345,6 +352,9 @@ class SeqSettingsDialog: public wxDialog
 
         std::vector<wxGridCellButtonRenderer*> mCellRenderers;
 
+        wxTimer m_defaultSavedTimer;
+        wxButton* m_activeDefaultBtn = nullptr;
+
         void ProcessSequenceType();
         void PopulateTimingGrid();
 		std::vector<std::string> ParseTags(const wxString& tagString);
@@ -357,6 +367,8 @@ class SeqSettingsDialog: public wxDialog
         void OnButton_AudioChangeFileClick(wxCommandEvent& event);
         void OnButton_AudioEditShortnameClick(wxCommandEvent& event);
         void OnListCtrl_AudioTracksActivated(wxListEvent& event);
+        void SetTimingDisplay(const wxString& timing);
+        void OnDefaultSavedTimer(wxTimerEvent& event);
         void RemoveWizard();
         void WizardPage1();
         void WizardPage2();

@@ -12,10 +12,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.12  June ??, 2026
     -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top
+    -enh (derwin12)              Remove noop Keep Channels Numbers option from FPP devices (#5459)
     -enh (scott)                 First run with no show folder set: offer to create and use a default show folder at Documents/xLights (or pick one)
     -enh (scott)                 Update dialog can download the new release installer from GitHub and run it (instead of opening a browser)
     -enh (scott)                 Show the active OpenGL backend (ANGLE vs native) in the About dialog and startup log
+    -enh (cybercop23)            Add set default option for sequence duration and fps (#5233)
     -enh (cybercop23)            Sequencer timeline fits the full sequence to the viewport width on load, keep same width for 20/40 fps.
+    -enh (jessica12ryan)         Show last input/output dates in the controller properties (#5728)
+    -enh (cybercop23)            Add cylinder shape and offset to cube model (#4369)
+    -enh (neil)                  Add ability to link props into "sets" so they move as one (#3703)
+    -bug (agfazio)               Auto scroll during the drag + copy on drag operations
+    -bug (derwin12)              Spinner model with large hollow was not dimensionally correct (#6558)
+    -bug (agfazio)               Fix shader dynamic parameters not persisting (#6567)
+    -bug (cybercop23)            Restore the ability to slide multiple effects with shift key (#6576)
     -bug (dan)                   Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
                                  reset fired live update handlers that dereferenced a stale model)
     -bug (dan)                   Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable
@@ -25,6 +34,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
                                  dropdown-style property, caused by GTK event-pumping while the property grid was frozen (#6215, #4175)
     -bug (cybercop23)            Fix Sort By Name/Location in the model group panel incorrectly adding a blank entry at the top (#6588)
+    -bug (derwin12)              Linux: fix Controllers/Layout property panes repeating (#6215, #4175)
+    -bug (agfazio)               Fix Double click to expand on group
 
 2026.11  June 14, 2026
     NOTE:   Support for macOS versions 10.15 and 11 will likely be dropped fairly soon as the tools we use to build xLights are dropping support.

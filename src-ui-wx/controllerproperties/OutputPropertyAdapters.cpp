@@ -433,9 +433,11 @@ void DDPOutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, wxPGP
     p->SetEditor("SpinCtrl");
     p->SetHelpString("It would be very rare that you would ever want to change this from the default.");
 
-    p = propertyGrid->Insert(before, new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", _ddp.IsKeepChannelNumbers()));
-    p->SetEditor("CheckBox");
-    p->SetHelpString("When not selected DDP data arrives at each controller looking like it starts at channel 1. When selected it arrives with the xLights channel number.");
+    if (c == nullptr || c->GetVendor() != "FPP") {
+        p = propertyGrid->Insert(before, new wxBoolProperty("Keep Channel Numbers", "KeepChannelNumbers", _ddp.IsKeepChannelNumbers()));
+        p->SetEditor("CheckBox");
+        p->SetHelpString("When not selected DDP data arrives at each controller looking like it starts at channel 1. When selected it arrives with the xLights channel number.");
+    }
 
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels", "Channels", _ddp.GetChannels()));
     p->SetAttribute("Min", 1);
