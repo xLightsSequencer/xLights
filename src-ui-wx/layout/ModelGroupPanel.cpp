@@ -1408,7 +1408,7 @@ void ModelGroupPanel::SortModelsByName()
     ModelGroup* g = (ModelGroup*)mModels[mGroup];
     if (g == nullptr) return;
     wxArrayString models;
-    for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+    for (int i = ListBoxModelsInGroup->GetItemCount() - 1; i >= 0; --i) {
         wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);
         models.push_back(modelName);
         ListBoxModelsInGroup->SetItemState(i, 0, wxLIST_STATE_SELECTED);
@@ -1429,7 +1429,7 @@ void ModelGroupPanel::SortModelsByLocation()
         return;
     std::vector<std::pair<wxString, float>> modelPos;
 
-    for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+    for (int i = ListBoxModelsInGroup->GetItemCount() - 1; i >= 0; --i) {
         wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);
         Model* model = mModels[modelName];
         float pos;
