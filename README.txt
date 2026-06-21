@@ -33,6 +33,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
     -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
                                  dropdown-style property, caused by GTK event-pumping while the property grid was frozen (#6215, #4175)
+    -bug (cybercop23)            Fix model rename in Layout not preserving position in non-master Display Element views (#6574)
     -bug (cybercop23)            Fix Export Faces/States/SubModels from Layout right-click menu creating ghost duplicate submodels
                                  instead of replacing same-name entries; extra faces/states/submodels unique to the target model now survive (#6587)
     -bug (cybercop23)            Fix Sort By Name/Location in the model group panel incorrectly adding a blank entry at the top (#6588)
