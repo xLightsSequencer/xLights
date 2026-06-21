@@ -34,7 +34,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
                                  dropdown-style property, caused by GTK event-pumping while the property grid was frozen (#6215, #4175)
     -bug (cybercop23)            Fix Sort By Name/Location in the model group panel incorrectly adding a blank entry at the top (#6588)
-    -bug (derwin12)              Linux: fix Controllers/Layout property panes repeating (#6215, #4175)
     -bug (agfazio)               Fix Double click to expand on group
 
 2026.11  June 14, 2026
