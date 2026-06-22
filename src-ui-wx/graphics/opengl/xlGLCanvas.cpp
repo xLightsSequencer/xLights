@@ -828,6 +828,9 @@ void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx, bool display) {
 
 bool xlGLCanvas::getFrameForExport(VideoWriterFrame& frame) {
     // OpenGL has no zero-copy native surface; always fill the CPU RGB buffer.
+    // The caller's buffer is sized exactly to w*h*3 (unpadded) -- any
+    // even-dimension padding the encoder needs is handled downstream by
+    // sws_scale, so this must not pad the buffer itself.
     const int w = frame.width;
     const int h = frame.height;
     uint8_t *buffer = frame.rgbBuffer;
@@ -835,12 +838,9 @@ bool xlGLCanvas::getFrameForExport(VideoWriterFrame& frame) {
     if (buffer == nullptr) {
         return false;
     }
-    bool padWidth = (w % 2);
-    bool padHeight = (h % 2);
-    int widthWithPadding = padWidth ? (w + 1) : w;
-    int heightWithPadding = padHeight ? (h + 1) : h;
-    int reqSize = widthWithPadding * 3 * heightWithPadding;
-    if (bufferSize < reqSize) {
+    size_t rowBytes = (size_t)w * 3;
+    size_t reqSize = rowBytes * (size_t)h;
+    if ((size_t)bufferSize < reqSize) {
         return false;
     }
 
@@ -848,12 +848,10 @@ bool xlGLCanvas::getFrameForExport(VideoWriterFrame& frame) {
     // persistent readback buffer (no per-frame allocation). The frame comes
     // back with origin at bottom-left, so we flip row-by-row via memcpy when
     // copying into the caller's destination buffer.
-    size_t rowBytes = (size_t)w * 3;
-    size_t needed = rowBytes * (size_t)h;
-    if (needed > m_exportReadbackBufferSize) {
+    if (reqSize > m_exportReadbackBufferSize) {
         delete[] m_exportReadbackBuffer;
-        m_exportReadbackBuffer = new uint8_t[needed];
-        m_exportReadbackBufferSize = needed;
+        m_exportReadbackBuffer = new uint8_t[reqSize];
+        m_exportReadbackBufferSize = reqSize;
     }
     // Force tight row packing for the readback, then restore the previous
     // setting so later GL operations that assume the default alignment aren't
@@ -864,19 +862,11 @@ bool xlGLCanvas::getFrameForExport(VideoWriterFrame& frame) {
     glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_exportReadbackBuffer);
     glPixelStorei(GL_PACK_ALIGNMENT, previousPackAlignment);
 
-    size_t dstRowBytes = (size_t)widthWithPadding * 3;
     unsigned char *dst = buffer;
-    if (padHeight) {
-        memset(dst, 0, dstRowBytes);
-        dst += dstRowBytes;
-    }
     for (int y = h - 1; y >= 0; --y) {
         const unsigned char *src = m_exportReadbackBuffer + rowBytes * (size_t)y;
         memcpy(dst, src, rowBytes);
-        if (padWidth) {
-            dst[rowBytes] = dst[rowBytes + 1] = dst[rowBytes + 2] = 0x00;
-        }
-        dst += dstRowBytes;
+        dst += rowBytes;
     }
 
     return true;
