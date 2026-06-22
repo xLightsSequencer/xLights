@@ -37,6 +37,10 @@ public:
             // property instead, matching the behavior of every other property
             // editor (Excel, Visual Studio properties pane, etc.).
             Bind(wxEVT_CHAR_HOOK, &xlPropertyGrid::OnCharHook, this);
+            // Spin/combo editors capture the mouse wheel and change their value,
+            // which fires a rebuild that loses the selection. Redirect the wheel
+            // from the active editor to the grid so scrolling only scrolls.
+            Bind(wxEVT_PG_SELECTED, &xlPropertyGrid::OnPropertySelected, this);
     }
     virtual ~xlPropertyGrid() {
     }
@@ -83,34 +87,56 @@ public:
     }
 
 private:
+    void OnPropertySelected(wxPropertyGridEvent& event) {
+        event.Skip();
+        if (wxWindow* ed = GetEditorControl()) {
+            ed->Bind(wxEVT_MOUSEWHEEL, &xlPropertyGrid::OnEditorMouseWheel, this);
+        }
+    }
+    void OnEditorMouseWheel(wxMouseEvent& event) {
+        // Forward to the grid so it scrolls; don't Skip, so the editor never
+        // consumes the wheel to change its value.
+        wxMouseEvent fwd(event);
+        fwd.SetEventObject(this);
+        ProcessWindowEvent(fwd);
+    }
     void OnCharHook(wxKeyEvent& event) {
         // Only interested in plain Tab / Shift+Tab; Ctrl/Alt+Tab passes through.
         if (event.GetKeyCode() != WXK_TAB || event.ControlDown() || event.AltDown()) {
             event.Skip();
             return;
         }
-        // If no editor is open, let wx do its default traversal so Tab can
-        // exit the grid normally when the user is just navigating.
-        if (!IsEditorFocused()) {
-            event.Skip();
-            return;
-        }
+        // Nothing selected -> no active editor; let Tab traverse out of the grid.
         wxPGProperty* sel = GetSelection();
         if (sel == nullptr) {
             event.Skip();
             return;
         }
+        // Gate on selection rather than editor focus so combo/choice editors
+        // advance too (IsEditorFocused() is false for them, which used to drop
+        // focus out of the grid). Skip category headers since they have no editor.
+        auto step = [&event](wxPropertyGridIterator& i) {
+            if (event.ShiftDown()) {
+                --i;
+            } else {
+                ++i;
+            }
+        };
         wxPropertyGridIterator it = GetIterator(wxPG_ITERATE_VISIBLE, sel);
-        if (event.ShiftDown()) {
-            --it;
-        } else {
-            ++it;
-        }
+        do {
+            step(it);
+        } while (!it.AtEnd() && (*it)->IsCategory());
         if (it.AtEnd()) {
-            // Boundary: at the first/last property — fall through to default
-            // traversal so the user can Tab out of the grid entirely.
-            event.Skip();
-            return;
+            // Past the last/first editable property: wrap to the other end so
+            // Tab cycles through the grid instead of leaving it.
+            it = GetIterator(wxPG_ITERATE_VISIBLE, event.ShiftDown() ? wxBOTTOM : wxTOP);
+            while (!it.AtEnd() && (*it)->IsCategory()) {
+                step(it);
+            }
+            if (it.AtEnd()) {
+                event.Skip();
+                return;
+            }
         }
         // Commit the current editor's value, then jump to the next property.
         // The commit fires wxEVT_PG_CHANGED, which queues a model reload that
