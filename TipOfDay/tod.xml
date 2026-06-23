@@ -58,4 +58,14 @@
    <tip url="moc002.html" title="Wiring View Surprise" category="Layout" level="Intermediate" exclude=""/>
    <tip url="moc003.html" title="Put Only Face Outlines In House/Yard/All Group" category="Layout" level="Beginner" exclude=""/>
    <tip url="moc004.html" title="Don't Let Effect Import Mapping Be A Drag" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00055.html" title="Command Palette" category="General" level="Intermediate" exclude=""/>
+   <tip url="00056.html" title="Song Structure Regions" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00057.html" title="Radial Effect Wheel" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00058.html" title="Shift-Drag Effect Edges For Fades" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00059.html" title="Drag Rows To Reorder Models And Timing Tracks" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00060.html" title="Paste Puts Effects Back Where They Came From" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00061.html" title="Lua Scripting For Sequence Import" category="Tools" level="Expert" exclude=""/>
+   <tip url="00062.html" title="WLED Controllers Are Now Auto-Discovered" category="Controller" level="Beginner" exclude=""/>
+   <tip url="00063.html" title="Repeating A Custom Value Curve With Cycles" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00064.html" title="Transition Blur" category="Sequencing" level="Intermediate" exclude=""/>
 </tipofday>
