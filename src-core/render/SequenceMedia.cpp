@@ -1350,9 +1350,14 @@ void VideoMediaCacheEntry::Load() {
 }
 
 bool VideoMediaCacheEntry::IsOk() const {
-    if (!_loadingDone) return false;
-    std::scoped_lock lock(_cacheMutex);
-    return !_resolvedPath.empty() && FileExists(_resolvedPath);
+    if (!_loadingDone.load()) return false;
+
+    std::string path;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        path = _resolvedPath;
+    }
+    return !path.empty() && FileExists(path);
 }
 
 std::shared_ptr<xlImage> VideoMediaCacheEntry::GetThumbnail(int maxWidth, int maxHeight) {
