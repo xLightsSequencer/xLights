@@ -114,7 +114,9 @@ private:
         }
         // Gate on selection rather than editor focus so combo/choice editors
         // advance too (IsEditorFocused() is false for them, which used to drop
-        // focus out of the grid). Skip category headers since they have no editor.
+        // focus out of the grid). Skip expanded category headers (descend to
+        // their first child) but stop on collapsed ones so the user can expand
+        // them (Right arrow) and Tab again to enter the section.
         auto step = [&event](wxPropertyGridIterator& i) {
             if (event.ShiftDown()) {
                 --i;
@@ -122,15 +124,18 @@ private:
                 ++i;
             }
         };
+        auto skippable = [](wxPropertyGridIterator& i) {
+            return (*i)->IsCategory() && (*i)->IsExpanded();
+        };
         wxPropertyGridIterator it = GetIterator(wxPG_ITERATE_VISIBLE, sel);
         do {
             step(it);
-        } while (!it.AtEnd() && (*it)->IsCategory());
+        } while (!it.AtEnd() && skippable(it));
         if (it.AtEnd()) {
-            // Past the last/first editable property: wrap to the other end so
-            // Tab cycles through the grid instead of leaving it.
+            // Past the last/first stop: wrap to the other end so Tab cycles
+            // through the grid instead of leaving it.
             it = GetIterator(wxPG_ITERATE_VISIBLE, event.ShiftDown() ? wxBOTTOM : wxTOP);
-            while (!it.AtEnd() && (*it)->IsCategory()) {
+            while (!it.AtEnd() && skippable(it)) {
                 step(it);
             }
             if (it.AtEnd()) {
