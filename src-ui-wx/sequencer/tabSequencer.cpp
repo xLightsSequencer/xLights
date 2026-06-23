@@ -933,7 +933,7 @@ void xLightsFrame::LoadAudioData(SequenceFile& xml_file)
         }
     }
 
-    mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
+    mainSequencer->PanelTimeLine->SetTimeLength(std::max(mMediaLengthMS, _sequenceElements.GetMaxEffectEndTimeMS()));
     mainSequencer->PanelTimeLine->Initialize();
     int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
     mainSequencer->PanelTimeLine->SetFitZoom();  // default: sequence fills the full viewport
