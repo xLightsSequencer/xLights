@@ -143,6 +143,7 @@ public:
 
     void SetSequenceEnd(int ms);
     int GetSequenceEnd() const;
+    int GetMaxEffectEndTimeMS() const;
     // Selected Ranges
     size_t GetSelectedRangeCount();
     EffectRange* GetSelectedRange(int index);
