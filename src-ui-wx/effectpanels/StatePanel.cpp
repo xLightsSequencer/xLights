@@ -130,13 +130,12 @@ void StatePanel::SetPanelStatus(Model* cls) {
     // (including State_StateDefinition via dynamicOptions: "states").
     JsonEffectPanel::SetPanelStatus(cls);
 
-    auto* defChoice = dynamic_cast<wxChoice*>(
-        wxWindow::FindWindowByName("ID_CHOICE_State_StateDefinition", this));
-    if (defChoice && defChoice->GetCount() > 0) {
-        defChoice->SetSelection(0);
+    // Only update _model when a real model is provided; a null cls (e.g. from
+    // an icon-click refresh) must not clobber the previously-set model or
+    // PopulateStates will lose the states list.
+    if (cls != nullptr) {
+        _model = cls;
     }
-
-    _model = cls;
     PopulateTimingTracks();
     PopulateStates();
     UpdateStateSourceEnable();
