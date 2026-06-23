@@ -1345,21 +1345,19 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         _model.SetSmartRemoteType(newType);
         if (caps != nullptr && caps->AllSmartRemoteTypesPerPortMustBeSame()) {
             int port = _model.GetControllerPort();
-            int smartRemote = _model.GetSmartRemote();
-            int block = (port - 1) / 4;
-            for (const auto& it : _model.GetModelManager()) {
-                Model* other = it.second;
-                if (other == &_model || other->GetControllerName() != _model.GetControllerName()) {
-                    continue;
+            if (port > 0) {
+                int block = (port - 1) / 4;
+                for (const auto& it : _model.GetModelManager()) {
+                    Model* other = it.second;
+                    if (other == &_model || other->GetControllerName() != _model.GetControllerName()) {
+                        continue;
+                    }
+                    int otherPort = other->GetControllerPort();
+                    if (otherPort <= 0 || (otherPort - 1) / 4 != block || other->GetSmartRemote() == 0) {
+                        continue;
+                    }
+                    other->SetSmartRemoteType(newType);
                 }
-                int otherPort = other->GetControllerPort();
-                if (otherPort <= 0 || (otherPort - 1) / 4 != block) {
-                    continue;
-                }
-                if (other->GetSmartRemote() != smartRemote) {
-                    continue;
-                }
-                other->SetSmartRemoteType(newType);
             }
         }
         return 0;
