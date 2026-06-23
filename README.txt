@@ -21,6 +21,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (jessica12ryan)         Show last input/output dates in the controller properties (#5728)
     -enh (cybercop23)            Add cylinder shape and offset to cube model (#4369)
     -enh (neil)                  Add ability to link props into "sets" so they move as one (#3703)
+    -bug (derwin12)              Missing video files now show in red in the Select Videos panel with Re-select/Bulk Find options
     -bug (agfazio)               Auto scroll during the drag + copy on drag operations
     -bug (derwin12)              Spinner model with large hollow was not dimensionally correct (#6558)
     -bug (agfazio)               Fix shader dynamic parameters not persisting (#6567)
@@ -32,7 +33,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  unrecognized/malformed model files now cancel the import with an error instead of crashing
     -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
     -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
-                                 dropdown-style property, caused by GTK event-pumping while the property grid was frozen (#6215, #4175)
+                                 dropdown-style property (#6215, #4175)
     -bug (cybercop23)            Fix model rename in Layout not preserving position in non-master Display Element views (#6574)
     -bug (cybercop23)            Fix Export Faces/States/SubModels from Layout right-click menu creating ghost duplicate submodels
                                  instead of replacing same-name entries; extra faces/states/submodels unique to the target model now survive (#6587)

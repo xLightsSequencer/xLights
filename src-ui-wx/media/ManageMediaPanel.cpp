@@ -381,10 +381,12 @@ void MediaViewModel::Rebuild(SequenceMedia* media, const std::string& showDirect
                 auto entry = media->GetVideo(path);
                 if (!entry) continue;
                 resolvedPath = entry->GetFilePath();
-                node->canLoad = true;
+                node->canLoad = entry->IsOk();
                 node->sizeStr = "-";
                 node->framesStr = "-";
                 node->statusStr = "External";
+                if (!node->canLoad)
+                    node->statusStr += " (not found)";
             } else if (type == MediaType::Audio) {
                 auto entry = media->GetAudio(path);
                 if (!entry) continue;
