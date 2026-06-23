@@ -317,6 +317,7 @@ public:
     VideoMediaCacheEntry(const std::string& filePath);
 
     bool IsEmbeddable() const override { return false; }
+    bool IsOk() const override;
 
     // Returns the resolved absolute path for VideoReader to open
     const std::string& GetResolvedPath() const { return _resolvedPath; }
