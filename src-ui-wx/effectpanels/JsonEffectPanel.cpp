@@ -2085,13 +2085,16 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
             }
         }
     } else {
-        // Model is null (brand-new effect with no associated model) — clear any
-        // model-driven choices so stale entries from a previous model aren't shown.
+        // Model is null. Only clear model-driven choices that are already
+        // empty — if they have content from a prior valid model, preserve it
+        // so icon-click / other transient null calls don't wipe user selections.
         for (auto& [id, info] : properties_) {
             if ((info.dynamicOptions == "states" ||
                  info.dynamicOptions == "faces" ||
                  info.dynamicOptions == "modelNodeNames") && info.choice) {
-                info.choice->Clear();
+                if (info.choice->GetCount() == 0) {
+                    info.choice->Clear();
+                }
             }
         }
     }
