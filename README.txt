@@ -11,7 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.12  June ??, 2026
+    -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
     -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top
+    -enh (derwin12)              Add Timing Track option to Single Strand chase (cycles per timing mark) (#4771)
+    -enh (derwin12)              Allow timeline to zoom out to see any effects outside the duration (#6528)
+    -enh (derwin12)              Sync smart remote type across port block for controllers requiring it (#3468)
     -enh (derwin12)              Remove noop Keep Channels Numbers option from FPP devices (#5459)
     -enh (scott)                 First run with no show folder set: offer to create and use a default show folder at Documents/xLights (or pick one)
     -enh (scott)                 Update dialog can download the new release installer from GitHub and run it (instead of opening a browser)
@@ -21,6 +25,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (jessica12ryan)         Show last input/output dates in the controller properties (#5728)
     -enh (cybercop23)            Add cylinder shape and offset to cube model (#4369)
     -enh (neil)                  Add ability to link props into "sets" so they move as one (#3703)
+    -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
+    -bug (derwin12)              Fixed missing video files not showing red in the Select Videos panel
+    -bug (derwin12)              Fix State/Face effect dropdowns resetting on icon click (#6595)
+    -bug (cybercop23)            Ensure channels are recalculated when merging base models to show models
+    -bug (derwin12)              Fix corrupted Export House Preview on Windows with odd dimensions 
+    -bug (derwin12)              Crash in Check Sequence with Models that had extra Layers
     -bug (derwin12)              Missing video files now show in red in the Select Videos panel with Re-select/Bulk Find options
     -bug (agfazio)               Auto scroll during the drag + copy on drag operations
     -bug (derwin12)              Spinner model with large hollow was not dimensionally correct (#6558)
