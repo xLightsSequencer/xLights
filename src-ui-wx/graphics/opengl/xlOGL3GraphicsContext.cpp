@@ -1842,7 +1842,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     xlOGL3VertexTextureAccumulator *va = dynamic_cast<xlOGL3VertexTextureAccumulator*>(vac);
     xlGLTexture *t = (xlGLTexture*)texture;
 
-    if (va->count == 0) {
+    if (va == nullptr || t == nullptr || va->count == 0) {
         return this;
     }
     int c = count;
@@ -1897,7 +1897,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     xlOGL3VertexTextureAccumulator *va = dynamic_cast<xlOGL3VertexTextureAccumulator*>(vac);
     xlGLTexture *t = (xlGLTexture*)texture;
 
-    if (va->count == 0) {
+    if (va == nullptr || t == nullptr || va->count == 0) {
         return this;
     }
     int c = count;
