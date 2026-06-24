@@ -150,21 +150,13 @@ void SingleStrandEffect::RenameTimingTrack(std::string oldname, std::string newn
 
 Effect* SingleStrandEffect::GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms)
 {
-    if (timingTrack == "")
+    if (timingTrack.empty())
         return nullptr;
 
     SequenceElements* seqEl = GetSequenceElements(buffer);
     if (seqEl == nullptr) return nullptr;
 
-    Element* t = nullptr;
-    for (size_t i = 0; i < seqEl->GetElementCount(); i++) {
-        Element* e = seqEl->GetElement(i);
-        if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingTrack) {
-            t = e;
-            break;
-        }
-    }
-
+    TimingElement* t = seqEl->GetTimingElement(timingTrack);
     if (t == nullptr)
         return nullptr;
 
