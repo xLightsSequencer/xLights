@@ -35,6 +35,7 @@
 #include <wx/config.h>
 #include <wx/progdlg.h>
 #include <filesystem>
+#include <limits>
 #include <map>
 #include <algorithm>
 
@@ -1593,7 +1594,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
         }
     }
 
-    UpdateEffectPaths(oldPath, finalPath);
+    auto dirty = UpdateEffectPaths(oldPath, finalPath);
 
     // For external (non-embedded) paths, use ForceRefreshEntry to bypass both the
     // duplicate-path check and FixFile's stale caches.
@@ -1602,6 +1603,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
         _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, MediaType::Image);
     }
 
+    RenderDirtyModels(dirty);
     Populate(finalPath);
 }
 
@@ -1767,7 +1769,7 @@ void ManageMediaPanel::OnBulkFindImages()
             }
         }
 
-        UpdateEffectPaths(oldPath, finalPath);
+        auto dirty = UpdateEffectPaths(oldPath, finalPath);
 
         // For external (non-embedded) paths, use ForceRefreshEntry to bypass both the
         // duplicate-path check and FixFile's stale caches.
@@ -1776,6 +1778,7 @@ void ManageMediaPanel::OnBulkFindImages()
             _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, MediaType::Image);
         }
 
+        RenderDirtyModels(dirty);
         lastFixedPath = finalPath;
         ++found;
     }
@@ -1788,11 +1791,15 @@ void ManageMediaPanel::OnBulkFindImages()
     Populate(lastFixedPath);
 }
 
-void ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::string& newPath)
+std::map<std::string, std::pair<int,int>> ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::string& newPath)
 {
-    if (_sequenceElements == nullptr || oldPath == newPath) return;
+    std::map<std::string, std::pair<int,int>> dirtyModels;
+    if (_sequenceElements == nullptr || oldPath == newPath) return dirtyModels;
 
-    auto scanLayer = [&](EffectLayer* layer) {
+    // model name -> [startMS, endMS] union of all affected effects
+    const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
+
+    auto scanLayer = [&](EffectLayer* layer, const std::string& modelName) {
         for (int k = 0; k < layer->GetEffectCount(); ++k) {
             Effect* eff = layer->GetEffect(k);
             const SettingsMap& settings = eff->GetSettings();
@@ -1801,8 +1808,12 @@ void ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::
                 if (it->second == oldPath)
                     keysToUpdate.push_back(it->first);
             }
+            if (keysToUpdate.empty()) continue;
             for (const auto& key : keysToUpdate)
                 eff->SetSetting(key, newPath);
+            auto& range = dirtyModels.emplace(modelName, initRange).first->second;
+            range.first  = std::min(range.first,  eff->GetStartTimeMS());
+            range.second = std::max(range.second, eff->GetEndTimeMS());
         }
     };
 
@@ -1812,22 +1823,32 @@ void ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::
         ModelElement* model = dynamic_cast<ModelElement*>(e);
         if (!model) continue;
 
+        const std::string& modelName = model->GetModelName();
         for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
-            scanLayer(model->GetEffectLayer(j));
+            scanLayer(model->GetEffectLayer(j), modelName);
 
         for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
             SubModelElement* sub = model->GetSubModel(j);
             for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
-                scanLayer(sub->GetEffectLayer(l));
+                scanLayer(sub->GetEffectLayer(l), modelName);
             if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                 StrandElement* strand = dynamic_cast<StrandElement*>(sub);
                 if (strand) {
                     for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
-                        scanLayer(strand->GetNodeLayer(k));
+                        scanLayer(strand->GetNodeLayer(k), modelName);
                 }
             }
         }
     }
+
+    return dirtyModels;
+}
+
+void ManageMediaPanel::RenderDirtyModels(const std::map<std::string, std::pair<int,int>>& dirtyModels)
+{
+    if (!_xlFrame) return;
+    for (const auto& [name, range] : dirtyModels)
+        _xlFrame->RenderEffectForModel(name, range.first, range.second);
 }
 
 void ManageMediaPanel::OnReSelectShader(const std::string& oldPath)
@@ -1907,11 +1928,12 @@ void ManageMediaPanel::ReSelectMediaByType(const std::string& oldPath, MediaType
             _sequenceMedia->RemoveMedia(oldPath);
     }
 
-    UpdateEffectPaths(oldPath, finalPath);
+    auto dirty = UpdateEffectPaths(oldPath, finalPath);
     // Use ForceRefreshEntry instead of RemoveMedia+GetXxx: it bypasses both the
     // duplicate-path check (which can suppress re-insertion of the key) and
     // FixFile's stale positive/negative caches (which can resolve to old paths).
     _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, type);
+    RenderDirtyModels(dirty);
     Populate(finalPath);
 }
 
@@ -1987,8 +2009,9 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
                 _sequenceMedia->RemoveMedia(oldPath);
         }
 
-        UpdateEffectPaths(oldPath, finalPath);
+        auto dirty = UpdateEffectPaths(oldPath, finalPath);
         _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, type);
+        RenderDirtyModels(dirty);
 
         lastFixedPath = finalPath;
         ++found;
