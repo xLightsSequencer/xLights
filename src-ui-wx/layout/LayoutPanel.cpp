@@ -6233,11 +6233,14 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         m_3d_lasso_shift_continuous = false;
     }
 
-    wxString navPreset = wxT("Classic");
-    if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-        navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
+    bool isPanAction = true;
+    if (m_shift_right_pan_down) {
+        wxString navPreset = wxT("Classic");
+        if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
+            navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
+        }
+        isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
     }
-    bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
 
     if (m_creating_bound_rect)
     {
