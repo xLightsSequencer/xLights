@@ -48,6 +48,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
     -bug (dan)                   Fix crash drawing a texture on the OpenGL backend (Windows/Linux) when the vertex accumulator
                                  or texture was null; skip the draw instead, matching the existing drawPrimitive guards
+    -bug (dan)                   Fix crash logging an OpenGL shader compile/link failure when the "opengl" logger was never
+                                 registered (e.g. on the iPad/Metal-only path); fall back to the default logger
     -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
                                  dropdown-style property (#6215, #4175)
     -bug (cybercop23)            Fix model rename in Layout not preserving position in non-master Display Element views (#6574)
