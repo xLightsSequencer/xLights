@@ -5900,12 +5900,6 @@ void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewRightUp(wxMouseEvent& event)
 {
-    wxString navPreset = wxT("Classic");
-    if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-        navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-    }
-    bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
-    (void)isPanAction;
     m_shift_right_pan_down = false;
     event.Skip();
 }

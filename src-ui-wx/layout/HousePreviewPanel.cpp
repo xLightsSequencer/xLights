@@ -302,13 +302,6 @@ void HousePreviewPanel::OnPreviewRightDown(wxMouseEvent& event)
 
 void HousePreviewPanel::OnPreviewRightUp(wxMouseEvent& event)
 {
-    wxString navPreset = wxT("Classic");
-    if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-        navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-    }
-    bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
-    (void)isPanAction;
-
     _shiftRightPanDown = false;
     event.ResumePropagation(1);
     event.Skip();
@@ -322,15 +315,15 @@ void HousePreviewPanel::OnPreviewMouseMove(wxMouseEvent& event)
         return;
     }
 
-    wxString navPreset = wxT("Classic");
-    if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-        navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-    }
-    bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
-
-    if (_shiftRightPanDown && (!event.RightIsDown() || !isPanAction)) {
-        _shiftRightPanDown = false;
-    } else if (_shiftRightPanDown) {
+    if (_shiftRightPanDown) {
+        wxString navPreset = wxT("Classic");
+        if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
+            navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
+        }
+        bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+        if (!event.RightIsDown() || !isPanAction) {
+            _shiftRightPanDown = false;
+        } else {
         float new_x = event.GetX() - _previousMouseX;
         float new_y = event.GetY() - _previousMouseY;
 
@@ -368,6 +361,7 @@ void HousePreviewPanel::OnPreviewMouseMove(wxMouseEvent& event)
         _modelPreview->Refresh();
         _modelPreview->Update();
         return;
+        }
     }
 
     event.ResumePropagation(1);
