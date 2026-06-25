@@ -105,6 +105,7 @@
 #include <wx/wfstream.h>
 #include <wx/mstream.h>
 #include <wx/uri.h>
+#include <wx/config.h>
 
 #include <log.h>
 
@@ -712,6 +713,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDown, nullptr,this);
     modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftUp, nullptr,this);
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown, nullptr,this);
+    modelPreview->Connect(wxEVT_RIGHT_UP,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightUp, nullptr,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
     modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDClick, nullptr, this);
@@ -5881,6 +5883,7 @@ void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 {
     m_dragging = false;
     m_wheel_down = false;
+    m_shift_right_pan_down = false;
 }
 
 void LayoutPanel::OnPreviewMouseWheelDown(wxMouseEvent& event)
@@ -5894,6 +5897,19 @@ void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
 {
     m_wheel_down = false;
 }
+
+void LayoutPanel::OnPreviewRightUp(wxMouseEvent& event)
+{
+    wxString navPreset = wxT("Classic");
+    if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
+        navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
+    }
+    bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+    (void)isPanAction;
+    m_shift_right_pan_down = false;
+    event.Skip();
+}
+
 void LayoutPanel::OnPreviewMotion3DButtonEvent(wxCommandEvent &event) {
     
     if (event.GetString() == "BUTTON_MENU") {
@@ -6223,6 +6239,12 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         m_3d_lasso_shift_continuous = false;
     }
 
+    wxString navPreset = wxT("Classic");
+    if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
+        navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
+    }
+    bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+
     if (m_creating_bound_rect)
     {
         xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Creating bounding rectangle");
@@ -6232,9 +6254,13 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         return;
     }
-    else if (m_wheel_down)
+    else if (m_shift_right_pan_down && (!event.RightIsDown() || !isPanAction))
     {
-        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Wheel down");
+        m_shift_right_pan_down = false;
+    }
+    else if (m_wheel_down || m_shift_right_pan_down)
+    {
+        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Pan drag");
         float new_x = event.GetX() - m_previous_mouse_x;
         float new_y = event.GetY() - m_previous_mouse_y;
         // account for grid rotation
@@ -7077,6 +7103,22 @@ void LayoutPanel::AddResizeOptionsToMenu(wxMenu* mnuResize) {
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
+
+    if (is_3d) {
+        wxString navPreset = wxT("Classic");
+        if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
+            navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
+        }
+        bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+        const bool isRealRightDown = event.RightDown() || event.RightIsDown();
+        if (isRealRightDown && isPanAction) {
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+            m_shift_right_pan_down = true;
+            return;
+        }
+    }
+
     wxMenu mnu;
 
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
