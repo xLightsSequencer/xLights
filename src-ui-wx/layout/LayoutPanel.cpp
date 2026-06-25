@@ -6235,11 +6235,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 
     bool isPanAction = true;
     if (m_right_pan_drag_active) {
-        wxString navPreset = wxT("Classic");
-        if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-            navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-        }
-        isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+        auto* config = GetXLightsConfig();
+        const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+        isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
     }
 
     if (m_creating_bound_rect)
@@ -7102,11 +7100,9 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
     modelPreview->SetFocus();
 
     if (is_3d) {
-        wxString navPreset = wxT("Classic");
-        if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-            navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-        }
-        bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+        auto* config = GetXLightsConfig();
+        const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+        bool isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
         const bool isRealRightDown = event.RightDown() || event.RightIsDown();
         if (isRealRightDown && isPanAction) {
             m_previous_mouse_x = event.GetX();

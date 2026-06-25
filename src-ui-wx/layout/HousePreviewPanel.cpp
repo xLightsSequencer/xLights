@@ -14,11 +14,11 @@
 //*)
 
 #include <wx/artprov.h>
-#include <wx/config.h>
 
 #include <cmath>
 
 #include "layout/HousePreviewPanel.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "xLightsMain.h"
 #include "layout/ModelPreview.h"
 #include "render/SequenceFile.h"
@@ -283,11 +283,9 @@ void HousePreviewPanel::OnPreviewRightDown(wxMouseEvent& event)
         return;
     }
 
-    wxString navPreset = wxT("Classic");
-    if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-        navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-    }
-    bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+    auto* config = GetXLightsConfig();
+    const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+    bool isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
     const bool isRealRightDown = event.RightDown() || event.RightIsDown();
     if (isRealRightDown && isPanAction) {
         _previousMouseX = event.GetX();
@@ -316,11 +314,9 @@ void HousePreviewPanel::OnPreviewMouseMove(wxMouseEvent& event)
     }
 
     if (_rightPanDragActive) {
-        wxString navPreset = wxT("Classic");
-        if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
-            navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-        }
-        bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
+        auto* config = GetXLightsConfig();
+        const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+        bool isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
         if (!event.RightIsDown() || !isPanAction) {
             _rightPanDragActive = false;
         } else {

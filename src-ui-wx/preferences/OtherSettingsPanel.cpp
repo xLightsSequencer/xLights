@@ -24,7 +24,7 @@
 //*)
 
 #include <wx/preferences.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include "xLightsMain.h"
 
 
@@ -307,12 +307,10 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
     frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
     xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
-    auto* config = wxConfig::Get();
-    if (config != nullptr) {
-        const wxString navPresetValue =
-            Choice_3DNavigationPreset->GetSelection() == kNavPresetSlicerIndex ? wxT("Slicer") : wxT("Classic");
-        config->Write(wxT("/Options/3DNavigationPreset"), navPresetValue);
-    }
+    auto* config = GetXLightsConfig();
+    const std::string navPresetValue =
+        Choice_3DNavigationPreset->GetSelection() == kNavPresetSlicerIndex ? "Slicer" : "Classic";
+    config->Write("/Options/3DNavigationPreset", navPresetValue);
     return true;
 }
 
@@ -341,11 +339,9 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
     CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
     int navPreset = kNavPresetClassicIndex;
-    auto* config = wxConfig::Get();
-    if (config != nullptr) {
-        const wxString navPresetValue = config->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
-        navPreset = navPresetValue == wxT("Slicer") ? kNavPresetSlicerIndex : kNavPresetClassicIndex;
-    }
+    auto* config = GetXLightsConfig();
+    const std::string navPresetValue = config->Read("/Options/3DNavigationPreset", "Classic");
+    navPreset = navPresetValue == "Slicer" ? kNavPresetSlicerIndex : kNavPresetClassicIndex;
     Choice_3DNavigationPreset->SetSelection(navPreset);
 
 // Remove attempt to sneak functionality into the windows build
