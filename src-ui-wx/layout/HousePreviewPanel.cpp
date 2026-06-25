@@ -292,7 +292,7 @@ void HousePreviewPanel::OnPreviewRightDown(wxMouseEvent& event)
     if (isRealRightDown && isPanAction) {
         _previousMouseX = event.GetX();
         _previousMouseY = event.GetY();
-        _shiftRightPanDown = true;
+        _rightPanDragActive = true;
         return;
     }
 
@@ -302,7 +302,7 @@ void HousePreviewPanel::OnPreviewRightDown(wxMouseEvent& event)
 
 void HousePreviewPanel::OnPreviewRightUp(wxMouseEvent& event)
 {
-    _shiftRightPanDown = false;
+    _rightPanDragActive = false;
     event.ResumePropagation(1);
     event.Skip();
 }
@@ -315,14 +315,14 @@ void HousePreviewPanel::OnPreviewMouseMove(wxMouseEvent& event)
         return;
     }
 
-    if (_shiftRightPanDown) {
+    if (_rightPanDragActive) {
         wxString navPreset = wxT("Classic");
         if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
             navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
         }
         bool isPanAction = navPreset == wxT("Slicer") ? !event.ShiftDown() : event.ShiftDown();
         if (!event.RightIsDown() || !isPanAction) {
-            _shiftRightPanDown = false;
+            _rightPanDragActive = false;
         } else {
         float new_x = event.GetX() - _previousMouseX;
         float new_y = event.GetY() - _previousMouseY;

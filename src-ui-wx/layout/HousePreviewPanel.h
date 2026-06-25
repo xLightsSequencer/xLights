@@ -95,7 +95,7 @@ class HousePreviewPanel: public wxPanel
         xLightsFrame* _xLights;
         bool _showToolbar;
         ModelPreview* _modelPreview;
-		bool _shiftRightPanDown = false;
+		bool _rightPanDragActive = false;
 		int _previousMouseX = 0;
 		int _previousMouseY = 0;
 

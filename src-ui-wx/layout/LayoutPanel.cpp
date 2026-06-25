@@ -5883,7 +5883,7 @@ void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 {
     m_dragging = false;
     m_wheel_down = false;
-    m_shift_right_pan_down = false;
+    m_right_pan_drag_active = false;
 }
 
 void LayoutPanel::OnPreviewMouseWheelDown(wxMouseEvent& event)
@@ -5900,7 +5900,7 @@ void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewRightUp(wxMouseEvent& event)
 {
-    m_shift_right_pan_down = false;
+    m_right_pan_drag_active = false;
     event.Skip();
 }
 
@@ -6234,7 +6234,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     }
 
     bool isPanAction = true;
-    if (m_shift_right_pan_down) {
+    if (m_right_pan_drag_active) {
         wxString navPreset = wxT("Classic");
         if (auto* cfg = wxConfig::Get(); cfg != nullptr) {
             navPreset = cfg->Read(wxT("/Options/3DNavigationPreset"), wxT("Classic"));
@@ -6251,11 +6251,11 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         return;
     }
-    else if (m_shift_right_pan_down && (!event.RightIsDown() || !isPanAction))
+    else if (m_right_pan_drag_active && (!event.RightIsDown() || !isPanAction))
     {
-        m_shift_right_pan_down = false;
+        m_right_pan_drag_active = false;
     }
-    else if (m_wheel_down || m_shift_right_pan_down)
+    else if (m_wheel_down || m_right_pan_drag_active)
     {
         xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Pan drag");
         float new_x = event.GetX() - m_previous_mouse_x;
@@ -7111,7 +7111,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         if (isRealRightDown && isPanAction) {
             m_previous_mouse_x = event.GetX();
             m_previous_mouse_y = event.GetY();
-            m_shift_right_pan_down = true;
+            m_right_pan_drag_active = true;
             return;
         }
     }
@@ -9502,7 +9502,6 @@ namespace {
 // replacement clone, taking a single consistent snapshot from the target's
 // screen location.
 //
-// Applied directly through the screen location rather than via
 // Model::SetHcenterPos / SetWidth / etc. The clone is cloned from the source's
 // XML and may inherit the source's locked flag; the Model::Set* setters no-op
 // when IsLocked(), so going straight to the screen location keeps the copy
@@ -9798,10 +9797,10 @@ void LayoutPanel::DoCut(wxCommandEvent& event) {
         event.Skip();
     } else if (selectedBaseObject != nullptr) {
         DoCopy(event);
-		if (editing_models)
-			DeleteSelectedModels();
-		else
-			DeleteSelectedObject();
+        if (editing_models)
+            DeleteSelectedModels();
+        else
+            DeleteSelectedObject();
     }
 }
 
