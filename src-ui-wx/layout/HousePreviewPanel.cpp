@@ -339,8 +339,8 @@ void HousePreviewPanel::OnPreviewMouseMove(wxMouseEvent& event)
             delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
             delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
         } else if (bottom_view) {
-            delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
-            delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+            delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+            delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
         } else {
             delta_x = new_x * std::cos(angleY);
             delta_y = new_y;
