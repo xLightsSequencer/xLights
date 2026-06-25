@@ -85,6 +85,9 @@ class HousePreviewPanel: public wxPanel
 		void OnEndButtonClick(wxCommandEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnSliderPositionCmdSliderUpdated(wxScrollEvent& event);
+		void OnPreviewRightDown(wxMouseEvent& event);
+		void OnPreviewRightUp(wxMouseEvent& event);
+		void OnPreviewMouseMove(wxMouseEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()
@@ -92,6 +95,9 @@ class HousePreviewPanel: public wxPanel
         xLightsFrame* _xLights;
         bool _showToolbar;
         ModelPreview* _modelPreview;
+		bool _shiftRightPanDown = false;
+		int _previousMouseX = 0;
+		int _previousMouseY = 0;
 
         void ValidateWindow(const wxSize& size);
 };
