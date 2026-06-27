@@ -10,6 +10,7 @@
 
 #import "XLAIImageSession.h"
 #import "XLAIServices.h"
+#import "XLAIServiceProperty+Internal.h"
 
 #include "ai/ServiceManager.h"
 #include "ai/aiBase.h"
@@ -78,7 +79,9 @@
         // _generator is captured by raw pointer — the session must
         // outlive the callback. SwiftUI keeps the session in @State
         // while the sheet is open, which covers the full lifecycle.
-        _generator->generateImage(p, [completion](aiBase::AIImageResult res) {
+        // Explicit self-> so ARC's implicit-retain-self warning is satisfied;
+        // retaining self in the block is intentional.
+        self->_generator->generateImage(p, [completion](aiBase::AIImageResult res) {
             NSData* png = nil;
             NSString* err = nil;
             if (!res.error.empty()) {
@@ -98,6 +101,21 @@
             });
         });
     });
+}
+
+- (NSArray<XLAIServiceProperty*>*)imageProperties {
+    NSMutableArray<XLAIServiceProperty*>* result = [NSMutableArray array];
+    if (!_generator) return result;
+    for (auto const& p : _generator->GetProperties()) {
+        [result addObject:[[XLAIServiceProperty alloc] initFromCore:p]];
+    }
+    return result;
+}
+
+- (void)setStringProperty:(NSString*)propertyId value:(NSString*)value {
+    if (!_generator || propertyId.length == 0) return;
+    _generator->SetProperty(std::string([propertyId UTF8String] ?: ""),
+                            std::string([value UTF8String] ?: ""));
 }
 
 @end

@@ -1,4 +1,4 @@
-﻿/***************************************************************
+/***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
@@ -22,7 +22,7 @@
 #include <pugixml.hpp>
 
 #include "../import_export/LMSImportChannelMapDialog.h"
-#include "LOREdit.h"
+#include "import_export/LOREdit.h"
 #include "../import_export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
@@ -40,7 +40,7 @@
 #include "render/SequenceMedia.h"
 #include "utils/ExternalHooks.h"
 #include "render/SequencePackage.h"
-#include "Vixen3.h"
+#include "import_export/Vixen3.h"
 #include "effects/BarsEffect.h"
 #include "effects/ButterflyEffect.h"
 #include "effects/CurtainEffect.h"
@@ -158,7 +158,7 @@ void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
     }
 }
 
-void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile)
+void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& mapFile, bool autoMap, bool importMedia)
 {
     SequencePackage xsqPkg(std::filesystem::path(ToStdString(filename.GetFullPath())),
                            GetShowDirectory(), ToStdString(GetSeqXmlFileName()), &AllModels);
@@ -197,7 +197,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         Element* el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile);
+    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile, xlf.GetSequenceDurationMS(), autoMap, importMedia);
 
     SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
@@ -222,8 +222,31 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
 }
 
+static std::vector<std::pair<int,int>> BuildMergedIntervals(Element* el)
+{
+    std::vector<std::pair<int,int>> v;
+    for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
+        EffectLayer* layer = el->GetEffectLayer(l);
+        for (int e = 0; e < layer->GetEffectCount(); ++e) {
+            Effect* eff = layer->GetEffect(e);
+            v.emplace_back(eff->GetStartTimeMS(), eff->GetEndTimeMS());
+        }
+    }
+    if (v.empty()) return {};
+    std::sort(v.begin(), v.end());
+    std::vector<std::pair<int,int>> out;
+    out.push_back(v[0]);
+    for (size_t i = 1; i < v.size(); ++i) {
+        if (v[i].first <= out.back().second)
+            out.back().second = std::max(out.back().second, v[i].second);
+        else
+            out.push_back(v[i]);
+    }
+    return out;
+}
+
 void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
-                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile)
+                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile, int sequenceDurationMS, bool autoMap, bool importMedia)
 {
     std::map<std::string, EffectLayer*> layerMap;
     std::map<std::string, Element*> elementMap;
@@ -235,6 +258,9 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     }
 
     dlg.SetXsqPkg(&xsqPkg);
+    if (sequenceDurationMS > 0) {
+        dlg.SetSequenceDuration(sequenceDurationMS);
+    }
 
     std::vector<EffectLayer*> mapped;
     std::vector<std::string> timingTrackNames;
@@ -251,7 +277,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
             if (hasEffects) {
-                dlg.AddChannel(el->GetName(), el->GetModelEffectCount());
+                dlg.AddChannel(el->GetName(), el->GetModelEffectCount(), false,
+                               sequenceDurationMS > 0 ? BuildMergedIntervals(el) : std::vector<std::pair<int,int>>{});
             }
             elementMap[el->GetName()] = el;
             int s = 0;
@@ -259,7 +286,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 SubModelElement* sme = el->GetSubModel(sm);
 
                 StrandElement* ste = dynamic_cast<StrandElement*>(sme);
-                std::string smName = sme->GetName();                
+                std::string smName = sme->GetName();
                 if (ste != nullptr) {
                     ++s;
                     if (smName == "") {
@@ -268,7 +295,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 if (sme->HasEffects()) {
                     elementMap[el->GetName() + "/" + smName] = sme;
-                    dlg.AddChannel(el->GetName() + "/" + smName, sme->GetEffectCount());
+                    dlg.AddChannel(el->GetName() + "/" + smName, sme->GetEffectCount(), false,
+                                   sequenceDurationMS > 0 ? BuildMergedIntervals(sme) : std::vector<std::pair<int,int>>{});
                 }
                 if (ste != nullptr) {
                     for (int n = 0; n < ste->GetNodeLayerCount(); ++n) {
@@ -278,7 +306,15 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
-                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount(), true);
+                            std::vector<std::pair<int,int>> nodeIntervals;
+                            if (sequenceDurationMS > 0) {
+                                for (int e = 0; e < nl->GetEffectCount(); ++e) {
+                                    Effect* eff = nl->GetEffect(e);
+                                    nodeIntervals.emplace_back(eff->GetStartTimeMS(), eff->GetEndTimeMS());
+                                }
+                            }
+                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount(), true,
+                                           std::move(nodeIntervals));
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
                         }
                     }
@@ -304,14 +340,20 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     dlg.SortChannels();
     dlg.timingTracks = timingTrackNames;
     dlg.timingTrackAlreadyExists = timingTrackAlreadyExists;
+    if (xsqPkg.IsPkg()) {
+        dlg.CheckBoxImportMedia->SetValue(importMedia);
+    }
     bool ok = dlg.InitImport();
 
-    if (mapFile.empty()) {
+    if (!mapFile.empty()) {
+        dlg.LoadMappingFile(mapFile, true);
+    }
+    if (autoMap) {
+        dlg.AutoMap();
+    } else if (mapFile.empty()) {
         if (!ok || dlg.ShowModal() != wxID_OK) {
             return;
         }
-    } else {
-        dlg.LoadMappingFile(mapFile, true);
     }
 
     if (showModelBlending && dlg.GetImportModelBlending()) {
@@ -385,14 +427,32 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             }
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
+            } else if (m->_isStackDuplicate) {
+                model->AddEffectLayer(); // empty separator before stacked mapping
+                EffectLayer* srcSingle = layerMap[m->_mapping];
+                Element* srcEl = elementMap[m->_mapping];
+                if (srcEl == nullptr)
+                    srcEl = se.GetElement(m->_mapping);
+                if (srcSingle != nullptr) {
+                    EffectLayer* newLayer = model->AddEffectLayer();
+                    MapXLightsEffects(newLayer, srcSingle, mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                } else if (srcEl != nullptr) {
+                    for (size_t x = 0; x < srcEl->GetEffectLayerCount(); ++x) {
+                        EffectLayer* newLayer = model->AddEffectLayer();
+                        newLayer->SetLayerName(srcEl->GetEffectLayer(x)->GetLayerName());
+                        MapXLightsEffects(newLayer, srcEl->GetEffectLayer(x), mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                    }
+                }
             } else {
                 MapXLightsEffects(model, m->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender, mappingModelType);
             }
         }
 
         int str = 0;
+        int prevStr = 0;
         for (size_t j = 0; j < m->GetChildCount(); j++) {
             xLightsImportModelNode* s = m->GetNthChild(j);
+            int effectiveStr = s->_isStackDuplicate ? prevStr : str;
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
@@ -401,9 +461,26 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 if (model == nullptr) {
                     spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
                 } else {
-                    SubModelElement* ste = model->GetSubModel(str);
+                    SubModelElement* ste = model->GetSubModel(effectiveStr);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender, mappingModelType);
+                        if (s->_isStackDuplicate) {
+                            ste->AddEffectLayer(); // empty separator before stacked mapping
+                            EffectLayer* srcSingle = layerMap[s->_mapping];
+                            Element* srcEl = elementMap[s->_mapping];
+                            if (srcEl == nullptr)
+                                srcEl = se.GetElement(s->_mapping);
+                            if (srcSingle != nullptr) {
+                                EffectLayer* newLayer = ste->AddEffectLayer();
+                                MapXLightsEffects(newLayer, srcSingle, mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                            } else if (srcEl != nullptr) {
+                                for (size_t x = 0; x < srcEl->GetEffectLayerCount(); ++x) {
+                                    EffectLayer* newLayer = ste->AddEffectLayer();
+                                    MapXLightsEffects(newLayer, srcEl->GetEffectLayer(x), mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                                }
+                            }
+                        } else {
+                            MapXLightsEffects(ste, s->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender, mappingModelType);
+                        }
                     }
                 }
             }
@@ -416,7 +493,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     if (model == nullptr) {
                         spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
+                        SubModelElement* ste = model->GetSubModel(effectiveStr);
                         StrandElement* stre = dynamic_cast<StrandElement*>(ste);
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
@@ -427,7 +504,10 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     }
                 }
             }
-            str++;
+            if (!s->_isStackDuplicate) {
+                prevStr = str;
+                str++;
+            }
         }
     }
 
@@ -849,7 +929,12 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during Vixen import failed.", modelName);
             } else {
-                MapVixChannelInformation(this, model->GetEffectLayer(0),
+                EffectLayer* targetLayer = model->GetEffectLayer(0);
+                if (m->_isStackDuplicate) {
+                    model->AddEffectLayer(); // empty separator before stacked mapping
+                    targetLayer = model->AddEffectLayer();
+                }
+                MapVixChannelInformation(this, targetLayer,
                                          VixSeqData, frameTime, numFrames,
                                          m->_mapping,
                                          unsortedChannels,
@@ -1781,8 +1866,13 @@ bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& fi
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end()) {
                     MapCCR(dlg.GetChannelNames(), model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                 } else {
+                    EffectLayer* targetLayer = model->GetEffectLayer(0);
+                    if (m->_isStackDuplicate) {
+                        model->AddEffectLayer(); // empty separator before stacked mapping
+                        targetLayer = model->AddEffectLayer();
+                    }
                     MapChannelInformation(effectManager,
-                                          model->GetEffectLayer(0), input_xml,
+                                          targetLayer, input_xml,
                                           m->_mapping,
                                           m->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
@@ -2761,12 +2851,12 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
     }
 }
 
-void MapLPEEffects(const EffectManager& effectManager, Element* model, const pugi::xml_document& input_xml, const wxString& mapping, int frequency, bool eraseExisting)
+void MapLPEEffects(const EffectManager& effectManager, Element* model, const pugi::xml_document& input_xml, const wxString& mapping, int frequency, bool eraseExisting, int startLayer = 0)
 {
-    static 
-
-    int layer = 0;
+    int layer = startLayer;
     if (LPEHasEffects(input_xml, mapping, 0, true)) {
+        if ((int)model->GetEffectLayerCount() < layer + 1)
+            model->AddEffectLayer();
         spdlog::debug("Creating effects on model {} layer {} from {} layer 0 left hand side",
                       model->GetFullName(), layer + 1, mapping.ToStdString());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
@@ -2797,289 +2887,6 @@ void MapLPEEffects(const EffectManager& effectManager, Element* model, const pug
         spdlog::debug("Creating effects on model {} layer {} from {} layer 1 right hand side",
                       model->GetFullName(), layer + 1, mapping.ToStdString());
         MapLPE(effectManager, 1, model->GetEffectLayer(layer), input_xml, mapping, false, frequency, eraseExisting);
-    }
-}
-
-void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const wxString& model, Model* m, int frequency, int offset, bool eraseExisting)
-{
-    if (el == nullptr)
-        return;
-
-    if (eraseExisting)
-        el->DeleteAllEffects();
-
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
-
-    auto st = lorEdit.GetSequencingType(model);
-
-    if (st == loreditType::CHANNELS) {
-        auto effects = lorEdit.GetChannelEffects(model, 0, m, offset);
-
-        for (const auto& it : effects) {
-            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                // for channel blocks we always use white as the colour comes from the channel block
-                if (channelBlock)
-                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
-            }
-        }
-    } else if (st == loreditType::TRACKS) {
-        // pixel effects on a node ... not useful but whatever
-        auto effects = lorEdit.GetTrackEffects(model, layer, offset);
-
-        for (const auto& it : effects) {
-            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
-            }
-        }
-    }
-}
-
-void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, Model* m, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
-{
-    if (nl == nullptr)
-        return;
-
-    if (eraseExisting)
-        nl->DeleteAllEffects();
-
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
-
-    auto st = lorEdit.GetSequencingType(mapping);
-
-    if (st == loreditType::CHANNELS) {
-        auto effects = lorEdit.GetChannelEffects(mapping, node, m, offset);
-
-        for (const auto& it : effects) {
-            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                // for channel blocks we always use white as the colour comes from the channel block
-                if (channelBlock)
-                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
-            }
-        }
-    } else if (st == loreditType::TRACKS) {
-        // pixel effects on a node ... not useful but whatever
-        auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
-
-        for (const auto& it : effects) {
-            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
-            }
-        }
-    }
-}
-
-void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
-{
-    if (eraseExisting)
-        layer->DeleteAllEffects();
-
-    Model* m = layer->GetParentElement()->GetSequenceElements()->GetRenderContext()->GetModel(layer->GetParentElement()->GetModelName());
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
-
-    static wxRegEx regex("\\[(\\d+),(\\d+),(\\d+)\\]\\[(.*)\\]", wxRE_ADVANCED | wxRE_NEWLINE);
-    if (regex.Matches(mapping)) {
-        int const row = wxAtoi(regex.GetMatch(mapping, 1).ToStdString());
-        int const col = wxAtoi(regex.GetMatch(mapping, 2).ToStdString());
-        int const color = wxAtoi(regex.GetMatch(mapping, 3).ToStdString());
-        std::string strColor = regex.GetMatch(mapping, 4).ToStdString();
-        wxString name = mapping;
-        wxString const end = regex.GetMatch(mapping, 0);
-        name.Replace(end, "");
-
-        auto effects = lorEdit.GetChannelEffects(name, row, col, color, offset);
-
-        for (auto& it : effects) {
-            if (!layer->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                LOREdit::setNodeColor(strColor, it);
-                std::string palette = it.GetPalette();
-                // for channel blocks we always use white as the colour comes from the channel block
-                if (channelBlock)
-                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    layer->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
-            }
-        }
-    }
-}
-
-void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
-{
-    if (nl == nullptr)
-        return;
-
-    if (eraseExisting)
-        nl->DeleteAllEffects();
-
-    Model* m = nl->GetParentElement()->GetSequenceElements()->GetRenderContext()->GetModel(nl->GetParentElement()->GetModelName());
-    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
-
-    auto st = lorEdit.GetSequencingType(mapping);
-
-    if (st == loreditType::CHANNELS) {
-        auto effects = lorEdit.GetChannelEffects(mapping, node, nodes, offset);
-
-        for (const auto& it : effects) {
-            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                // for channel blocks we always use white as the colour comes from the channel block
-                if (channelBlock)
-                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
-            }
-        }
-    } else if (st == loreditType::TRACKS) {
-        // pixel effects on a node ... not useful but whatever
-        auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
-
-        for (const auto& it : effects) {
-            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
-                std::string palette = it.GetPalette();
-                std::string ef = it.GetxLightsEffect();
-                if (ef != "") {
-                    std::string settings = it.GetSettings(palette);
-                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
-                }
-            }
-        }
-    }
-}
-
-void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
-{
-    // static 
-
-    auto st = lorEdit.GetSequencingType(mapping);
-    Model* m = model->GetSequenceElements()->GetRenderContext()->GetModel(model->GetModelName());
-
-    if (st == loreditType::CHANNELS) {
-        if (m->GetNodeCount() == 1) {
-            MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
-        } else {
-            int lr, lc;
-            lorEdit.GetModelChannels(mapping, lr, lc);
-
-            if (lr == 1 && lc == 1) {
-                MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
-            } else {
-                for (uint32_t i = 0; i < m->GetNodeCount(); i++) {
-                    NodeLayer* nl = model->GetNodeEffectLayer(i);
-                    if (nl != nullptr) {
-                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
-                    }
-                }
-            }
-        }
-    } else if (st == loreditType::TRACKS) {
-        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if ((int)model->GetEffectLayerCount() < i + 1) {
-                model->AddEffectLayer();
-            }
-            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
-        }
-    }
-}
-
-void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
-{
-    // static 
-
-    auto st = lorEdit.GetSequencingType(mapping);
-    Model* m = se->GetSequenceElements()->GetRenderContext()->GetModel(se->GetModelName());
-
-    if (st == loreditType::CHANNELS) {
-        if (se->GetNodeLayerCount() == 1) {
-            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
-        } else {
-            int lr, lc;
-            lorEdit.GetModelChannels(mapping, lr, lc);
-
-            if (lr == 1 && lc == 1) {
-                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
-            } else {
-                int nodes = se->GetNodeLayerCount();
-                for (int i = 0; i < nodes; i++) {
-                    NodeLayer* nl = se->GetNodeEffectLayer(i);
-                    if (nl != nullptr) {
-                        MapS5ChannelEffects(effectManager, i, nl, nodes, lorEdit, mapping, frequency, offset, eraseExisting);
-                    }
-                }
-            }
-        }
-    } else if (st == loreditType::TRACKS) {
-        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if ((int)se->GetEffectLayerCount() < i + 1) {
-                se->AddEffectLayer();
-            }
-            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
-        }
-    }
-}
-
-void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const wxString& mapping, int frequency, int offset, bool eraseExisting)
-{
-    if (dynamic_cast<StrandElement*>(se) != nullptr) {
-        return MapS5Effects(effectManager, dynamic_cast<StrandElement*>(se), lorEdit, mapping, frequency, offset, eraseExisting);
-    }
-
-    // static 
-
-    auto st = lorEdit.GetSequencingType(mapping);
-    Model* m = se->GetSequenceElements()->GetRenderContext()->GetModel(se->GetModelName());
-
-    if (st == loreditType::CHANNELS) {
-        if (m->GetNodeCount() == 1) {
-            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
-        } else {
-            int lr, lc;
-            lorEdit.GetModelChannels(mapping, lr, lc);
-
-            if (lr == 1 && lc == 1) {
-                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
-            } else {
-                for (uint32_t i = 0; i < m->GetNodeCount(); i++) {
-                    NodeLayer* nl = se->GetNodeEffectLayer(i);
-                    if (nl != nullptr) {
-                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
-                    }
-                }
-            }
-        }
-    } else if (st == loreditType::TRACKS) {
-        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
-            if ((int)se->GetEffectLayerCount() < i + 1) {
-                se->AddEffectLayer();
-            }
-            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
-        }
     }
 }
 
@@ -3160,10 +2967,16 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
                 if (model == nullptr) {
                     spdlog::error("Attempt to add model {} during S5 import failed.", modelName);
                 } else {
-                    if (!LOREdit::IsNodeStrandMapping(m->_mapping))
+                    if (!LOREdit::IsNodeStrandMapping(m->_mapping)) {
                         MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                    else
-                        MapS5ChannelEffects(effectManager, model->GetEffectLayer(0), lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    } else {
+                        EffectLayer* targetLayer = model->GetEffectLayer(0);
+                        if (m->_isStackDuplicate) {
+                            model->AddEffectLayer(); // empty separator before stacked mapping
+                            targetLayer = model->AddEffectLayer();
+                        }
+                        MapS5ChannelEffects(effectManager, targetLayer, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    }
                 }
             }
 
@@ -3298,6 +3111,10 @@ bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& fi
             }
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during LPE import failed.", modelName);
+            } else if (m->_isStackDuplicate) {
+                model->AddEffectLayer(); // empty separator before stacked mapping
+                int startLayer = (int)model->GetEffectLayerCount();
+                MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency(), false, startLayer);
             } else {
                 MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }
@@ -3349,53 +3166,11 @@ bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& fi
     return true;
 }
 
-void MapVixen3(Element* model, const Vixen3& vixen, const wxString& modelName, long offset, int frameMS, bool eraseExisting)
-{
-    if (eraseExisting) {
-        for (const auto& it : model->GetEffectLayers()) {
-            it->DeleteAllEffects();
-        }
-    }
-
-    auto effects = vixen.GetEffects(modelName.ToStdString());
-
-    for (const auto& it : effects) {
-        long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
-        long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
-
-        // Vixen can have multiple effects in one time slot so add layers as needed
-        EffectLayer* layer = nullptr;
-        for (const auto& it : model->GetEffectLayers()) {
-            if (!it->HasEffectsInTimeRange(s, e)) {
-                layer = it;
-                break;
-            }
-        }
-
-        if (layer == nullptr)
-            layer = model->AddEffectLayer();
-
-        // now we need to create the effect
-        std::string newpalette = it.GetPalette();
-        std::string newsettings = it.GetSettings();
-        std::string type = it.GetXLightsType();
-        if (type != "") {
-            if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0) {
-    spdlog::debug("Vixen 3 import {} -> {} is not a valid effect.", it.type, type);
-            } else {
-                layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
-            }
-        }
-    }
-}
-
-void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const wxString& mapping, long offset, int frameMS, bool eraseExisting)
-{
-
-    spdlog::debug("Creating effects on model {} from {}",
-                  model->GetFullName(), mapping.ToStdString());
-    MapVixen3(model, vixen, mapping, offset, frameMS, eraseExisting);
-}
+// MapVixen3 / MapVixen3Effects were moved to wx-free core
+// src-core/import_export/EffectMapper.{h,cpp} (beside MapXLightsEffects /
+// MapS5*) so the iPad app can reuse them. Declared in
+// import_export/EffectMapper.h (already included above). The call sites in
+// ImportVixen3 below pass std::string mappings, which bind directly.
 
 bool xLightsFrame::ImportVixen3(const wxFileName& filename)
 {
@@ -3489,6 +3264,10 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
             }
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during Vixen 3 import failed.", modelName);
+            } else if (m->_isStackDuplicate) {
+                model->AddEffectLayer(); // empty separator before stacked mapping
+                int startLayer = (int)model->GetEffectLayerCount();
+                MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), false, startLayer);
             } else {
                 MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }

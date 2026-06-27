@@ -58,6 +58,8 @@ private:
     void ProcessTooltip(wxMouseEvent& event);
     void rightClick(wxMouseEvent& event);
     void leftDoubleClick(wxMouseEvent &event);
+    void OnScrollTimer(wxTimerEvent& event);
+    void ComputeRowDragTarget(int cursorY);
     void OnLayerPopup(wxCommandEvent& event);
     std::vector<std::string> ParseTags(const wxString& tagString);
     void DrawHeading(wxPaintDC* dc, pugi::xml_node model, int width, int row);
@@ -81,6 +83,14 @@ private:
     bool mCanPaste = false;
     const int _minRowHeadingWidth = 158;
     bool _dragging = false;
+    bool _rowDragging = false;
+    int _rowDragSourceIdx = -1;
+    int _rowDragTargetBefore = -1;
+    int _rowDragIndicatorY = -1;
+    wxPoint _rowDragStart;
+    int _lastDragY = 0;
+    int _scrollDir = 0;
+    wxTimer _scrollTimer;
     bool groupEffectIndicator = true;
 
     
@@ -110,6 +120,7 @@ private:
     static const long ID_ROW_MNU_COPY_ROW;
     static const long ID_ROW_MNU_COPY_MODEL;
     static const long ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS;
+    static const long ID_ROW_MNU_COPY_MODEL_TO_MODELS;
     static const long ID_ROW_MNU_PASTE_ROW;
     static const long ID_ROW_MNU_PASTE_MODEL;
     static const long ID_ROW_MNU_RENDERENABLE_ALL;
@@ -148,6 +159,9 @@ private:
     static const long ID_ROW_MNU_GENERATE_FROM_ONSETS;
     static const long ID_ROW_MNU_GENERATE_FROM_TEMPO;
     static const long ID_ROW_MNU_GENERATE_FROM_CHORDS;
+    static const long ID_ROW_MNU_CREATE_SONG_REGIONS;
 
     static const long ID_ROW_MNU_SETLAYERNAME;
+    static const long ID_ROW_MNU_HIDE_UNUSED_SUBMODELS;
+    static const long ID_ROW_MNU_SHOW_ALL_SUBMODELS;
 };

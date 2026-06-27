@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Unified "Add Timing Track" sheet — replaces the per-call-site
 /// confirmationDialogs that lived in DisplayElementsSheet, the
@@ -24,18 +25,40 @@ struct AddTimingTrackSheet: View {
     private enum TimingType: String, CaseIterable, Identifiable {
         case empty
         case fixed25, fixed50, fixed100
+        case fixedCustom
         case metronome
         case fppCommands, fppEffects
         case audioOnsets, audioTempo, audioChords
         case aiLyrics
         case lrclib
+        case importNotes
         var id: String { rawValue }
+    }
+
+    private enum NoteSource: String, CaseIterable, Identifiable {
+        case midi, musicxml, audacity
+        var id: String { rawValue }
+        var format: String { rawValue }
+        var title: String {
+            switch self {
+            case .midi:     return "MIDI File"
+            case .musicxml: return "MusicXML File"
+            case .audacity: return "Audacity Timing File"
+            }
+        }
+        var hasTracks: Bool { self != .audacity }
     }
 
     // MARK: - State
 
     @State private var selectedType: TimingType = .empty
     @State private var trackName: String = "Timing"
+
+    // Fixed (custom interval) parameter — an arbitrary plain fixed
+    // timing track, the desktop NewTimingDialog "Fixed Timing" path
+    // beyond the 25/50/100 ms presets. Seeded to the sequence frame
+    // interval so the default is frame-aligned.
+    @State private var fixedCustomIntervalMS: Int = 50
 
     // Metronome-specific parameters.
     @State private var metronomeIntervalMS: Int = 500
@@ -56,6 +79,16 @@ struct AddTimingTrackSheet: View {
     @State private var lrclibStatus: String = "Enter a search query to find lyrics."
     @State private var lrclibSearching: Bool = false
     @State private var lrclibQuerySeeded: Bool = false
+
+    // Import-Notes state.
+    @State private var noteSource: NoteSource = .midi
+    @State private var notePickedPath: String = ""
+    @State private var notePickedName: String = ""
+    @State private var noteTracks: [String] = []
+    @State private var noteSelectedTrack: String = "All"
+    @State private var noteSpeedPct: Int = 100
+    @State private var noteStartAdjustMS: Int = 0
+    @State private var pickingNoteFile: Bool = false
 
     // Async-flow state.
     @State private var working: Bool = false
@@ -98,6 +131,12 @@ struct AddTimingTrackSheet: View {
             }
         }
         .onAppear {
+            // AUTO-3: when opened from a timing row's "Speech to Lyrics…"
+            // menu, start on the AI-Lyrics type and clear the one-shot flag.
+            if viewModel.pendingSpeechToLyricsRowIndex != nil {
+                selectedType = .aiLyrics
+                viewModel.pendingSpeechToLyricsRowIndex = nil
+            }
             // Pick a sensible default — Audio Onsets when audio is
             // loaded but the user just opened the sheet from a non-
             // audio context, otherwise Empty. Either way, the user
@@ -108,6 +147,46 @@ struct AddTimingTrackSheet: View {
         .onChange(of: selectedType) { _, newType in
             seedDefaultsForType(newType)
         }
+        .onChange(of: noteSource) { _, _ in
+            // Format changed — re-derive the track list (and clear any
+            // selection from a previously-picked file of a different kind).
+            refreshNoteTracks()
+        }
+        .fileImporter(isPresented: $pickingNoteFile,
+                       allowedContentTypes: noteImporterContentTypes,
+                       allowsMultipleSelection: false) { result in
+            handleNoteFilePick(result)
+        }
+    }
+
+    private var noteImporterContentTypes: [UTType] {
+        switch noteSource {
+        case .midi:
+            return [UTType(filenameExtension: "mid"), UTType(filenameExtension: "midi")].compactMap { $0 }
+        case .musicxml:
+            return [UTType(filenameExtension: "musicxml"), UTType(filenameExtension: "xml")].compactMap { $0 }
+        case .audacity:
+            return [UTType.plainText, UTType(filenameExtension: "txt")].compactMap { $0 }
+        }
+    }
+
+    private func handleNoteFilePick(_ result: Result<[URL], Error>) {
+        guard case .success(let urls) = result, let url = urls.first else { return }
+        let needsAccess = url.startAccessingSecurityScopedResource()
+        defer { if needsAccess { url.stopAccessingSecurityScopedResource() } }
+        _ = XLSequenceDocument.obtainAccess(toPath: url.path, enforceWritable: false)
+        notePickedPath = url.path
+        notePickedName = url.lastPathComponent
+        refreshNoteTracks()
+    }
+
+    private func refreshNoteTracks() {
+        noteSelectedTrack = "All"
+        guard noteSource.hasTracks, !notePickedPath.isEmpty else {
+            noteTracks = []
+            return
+        }
+        noteTracks = viewModel.noteImportTracks(fromPath: notePickedPath, format: noteSource.format)
     }
 
     // MARK: - Sections
@@ -120,6 +199,7 @@ struct AddTimingTrackSheet: View {
                 Text("Fixed 25 ms").tag(TimingType.fixed25)
                 Text("Fixed 50 ms").tag(TimingType.fixed50)
                 Text("Fixed 100 ms").tag(TimingType.fixed100)
+                Text("Fixed (custom interval)…").tag(TimingType.fixedCustom)
                 Text("Metronome…").tag(TimingType.metronome)
                 Text("FPP Commands").tag(TimingType.fppCommands)
                 Text("FPP Effects").tag(TimingType.fppEffects)
@@ -132,6 +212,7 @@ struct AddTimingTrackSheet: View {
                     Text("AI Lyrics from Audio").tag(TimingType.aiLyrics)
                 }
                 Text("Search Lyrics Online (LRCLIB)").tag(TimingType.lrclib)
+                Text("Import Notes (MIDI / MusicXML / Audacity)…").tag(TimingType.importNotes)
             }
             .pickerStyle(.menu)
 
@@ -158,14 +239,87 @@ struct AddTimingTrackSheet: View {
     @ViewBuilder
     private var typeParamsSection: some View {
         switch selectedType {
+        case .fixedCustom:
+            fixedCustomParamsSection
         case .metronome:
             metronomeParamsSection
         case .aiLyrics:
             aiLyricsParamsSection
         case .lrclib:
             lrclibParamsSection
+        case .importNotes:
+            importNotesParamsSection
         default:
             EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private var importNotesParamsSection: some View {
+        Section("Source") {
+            Picker("From", selection: $noteSource) {
+                ForEach(NoteSource.allCases) { src in
+                    Text(src.title).tag(src)
+                }
+            }
+            .pickerStyle(.menu)
+        }
+        Section("File") {
+            Button {
+                pickingNoteFile = true
+            } label: {
+                HStack {
+                    Text(notePickedName.isEmpty ? "Choose File…" : notePickedName)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer()
+                    Image(systemName: "folder")
+                }
+            }
+            if noteSource.hasTracks, !noteTracks.isEmpty {
+                Picker("Track", selection: $noteSelectedTrack) {
+                    Text("All").tag("All")
+                    ForEach(noteTracks, id: \.self) { t in
+                        Text(t).tag(t)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+        }
+        if noteSource.hasTracks {
+            Section("Timing Adjust") {
+                Stepper(value: $noteSpeedPct, in: 10...400, step: 5) {
+                    Text("Speed: \(noteSpeedPct)%")
+                }
+                Stepper(value: $noteStartAdjustMS, in: -5000...5000, step: 100) {
+                    Text("Start offset: \(noteStartAdjustMS) ms")
+                }
+            }
+        }
+        Section {
+            Text("Builds a timing track labelled with the musical notes from the file. The Polyphonic-Transcription source is desktop-only.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private var fixedCustomParamsSection: some View {
+        Section {
+            HStack {
+                Text("Interval")
+                Spacer()
+                TextField("ms", value: $fixedCustomIntervalMS, format: .number)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(minWidth: 80)
+                Text("ms").foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Interval")
+        } footer: {
+            Text("A timing mark every \(fixedCustomIntervalMS) ms from the start of the sequence to the end. The interval is rounded to the nearest frame.")
+                .font(.caption)
         }
     }
 
@@ -356,6 +510,8 @@ struct AddTimingTrackSheet: View {
             return false
         }
         switch selectedType {
+        case .fixedCustom:
+            return fixedCustomIntervalMS > 0
         case .metronome:
             if metronomeIntervalMS <= 0 { return false }
             if metronomeUseRandomRange,
@@ -371,6 +527,8 @@ struct AddTimingTrackSheet: View {
             // Need a selected result that actually has lyrics.
             guard let selected = currentLRCLIBResult else { return false }
             return selected.hasAnyLyrics
+        case .importNotes:
+            return !notePickedPath.isEmpty
         default:
             return true
         }
@@ -383,9 +541,9 @@ struct AddTimingTrackSheet: View {
         // default" — preserves user-typed names but updates the
         // placeholder cleanly.
         let knownDefaults: Set<String> = [
-            "Timing", "25ms", "50ms", "100ms", "Metronome",
+            "Timing", "25ms", "50ms", "100ms", "Fixed", "Metronome",
             "FPP Commands", "FPP Effects",
-            "Onsets", "Tempo", "Chords", "AutoGen", "Lyrics"
+            "Onsets", "Tempo", "Chords", "AutoGen", "Lyrics", "Notes"
         ]
         if knownDefaults.contains(trackName) {
             trackName = defaultNameForType(type)
@@ -413,6 +571,7 @@ struct AddTimingTrackSheet: View {
         case .fixed25:      return "25ms"
         case .fixed50:      return "50ms"
         case .fixed100:     return "100ms"
+        case .fixedCustom:  return "Fixed"
         case .metronome:    return "Metronome"
         case .fppCommands:  return "FPP Commands"
         case .fppEffects:   return "FPP Effects"
@@ -421,6 +580,7 @@ struct AddTimingTrackSheet: View {
         case .audioChords:  return "Chords"
         case .aiLyrics:     return "AutoGen"
         case .lrclib:       return "Lyrics"
+        case .importNotes:  return "Notes"
         }
     }
 
@@ -430,6 +590,7 @@ struct AddTimingTrackSheet: View {
         case .fixed25:      return "A timing mark every 25 ms from the start of the sequence to the end."
         case .fixed50:      return "A timing mark every 50 ms from the start of the sequence to the end."
         case .fixed100:     return "A timing mark every 100 ms from the start of the sequence to the end."
+        case .fixedCustom:  return "A plain timing track with marks at a custom fixed interval you specify, from the start of the sequence to the end."
         case .metronome:    return "Timing marks at a custom interval, optionally with cycling labels."
         case .fppCommands:  return "FPP Commands track — events the Falcon Player can run during playback."
         case .fppEffects:   return "FPP Effects track — events that trigger pixel effects on FPP-managed shows."
@@ -438,6 +599,7 @@ struct AddTimingTrackSheet: View {
         case .audioChords:  return "Detect chord changes in the audio and label each segment with its chord name."
         case .aiLyrics:     return "Transcribe vocals into a populated timing track using on-device speech recognition."
         case .lrclib:       return "Search lrclib.net for synced lyrics and import them as phrase-per-line timing marks."
+        case .importNotes:  return "Import a MIDI, MusicXML, or Audacity timing file as a timing track labelled with the musical notes."
         }
     }
 
@@ -456,6 +618,8 @@ struct AddTimingTrackSheet: View {
             commitFixed(intervalMS: 50, name: name, action: "Add Fixed Timing Track")
         case .fixed100:
             commitFixed(intervalMS: 100, name: name, action: "Add Fixed Timing Track")
+        case .fixedCustom:
+            commitFixed(intervalMS: fixedCustomIntervalMS, name: name, action: "Add Fixed Timing Track")
         case .metronome:
             commitMetronome(name: name)
         case .fppCommands:
@@ -472,7 +636,31 @@ struct AddTimingTrackSheet: View {
             commitAILyrics(name: name)
         case .lrclib:
             commitLRCLIB(name: name)
+        case .importNotes:
+            commitImportNotes(name: name)
         }
+    }
+
+    private func commitImportNotes(name: String) {
+        guard !notePickedPath.isEmpty else {
+            errorMessage = "Choose a file to import first."
+            return
+        }
+        let track = noteSource.hasTracks ? noteSelectedTrack : "All"
+        let speed = noteSource.hasTracks ? noteSpeedPct : 100
+        // The desktop start-adjust slider is in hundredths of a second;
+        // our stepper is in ms, so divide by 10 at the boundary.
+        let startAdjust = noteSource.hasTracks ? (noteStartAdjustMS / 10) : 0
+        guard viewModel.importNotes(fromPath: notePickedPath,
+                                    format: noteSource.format,
+                                    name: name,
+                                    track: track,
+                                    speedAdjustPct: speed,
+                                    startAdjustMS: startAdjust) != nil else {
+            errorMessage = "Couldn't import notes from the selected file. Check that it's a valid \(noteSource.title)."
+            return
+        }
+        dismiss()
     }
 
     private func commitFixed(intervalMS: Int, name: String, action: String) {

@@ -46,8 +46,26 @@ public:
     int GetVirtualCanvasHeight() const override;
     void GetVirtualCanvasSize(int& w, int& h) const override;
 
-    float GetCameraZoomForHandles() const override { return ActiveCamera().GetZoom(); }
-    int GetHandleScale() const override { return 1; }
+    // Mirrors desktop ModelPreview::GetCameraZoomForHandles
+    // (ModelPreview.cpp:1304): 1.0 in 2D so the handle width is a
+    // fixed world-unit size and the View matrix's scale handles
+    // visual sizing. Returning the actual 2D zoom here would scale
+    // the handle math AND the View matrix, making handles
+    // quadratically tiny / huge as the user zooms.
+    float GetCameraZoomForHandles() const override {
+        return _is3d ? _camera3d.GetZoom() : 1.0f;
+    }
+    // Mirrors desktop ModelPreview::GetHandleScale (a user preference,
+    // xLightsFrame::GetModelHandleSize). Touch targets benefit from larger
+    // handles, so the iPad lets the user bump this above 1.
+    int GetHandleScale() const override { return _handleScale; }
+    void SetHandleScale(int s) { _handleScale = (s < 1) ? 1 : (s > 10 ? 10 : s); }
+
+    // Mirrors desktop xLightsFrame::GetShowZoneIndicator (a view
+    // preference). DmxMovingHeadAdv draws its position zones in the
+    // preview only when this is on.
+    bool GetShowZoneIndicator() const override { return _showZoneIndicator; }
+    void SetShowZoneIndicator(bool v) { _showZoneIndicator = v; }
     float GetCameraRotationX() const override { return ActiveCamera().GetAngleX(); }
     float GetCameraRotationY() const override { return ActiveCamera().GetAngleY(); }
     glm::mat4& GetProjViewMatrix() override { return _projViewMatrix; }
@@ -73,7 +91,7 @@ public:
     /// prefixes ("XLMetalBridge[ModelPreview]: …").
     const std::string& GetName() const { return _name; }
 
-    double calcPixelSize(double i) override { return i * 2.0; }
+    double calcPixelSize(double i) override { return i; }
 
     // Camera access — callers drive zoom/pan/rotate via the active camera's
     // PreviewCamera setters (see ViewpointMgr.h).
@@ -103,6 +121,20 @@ public:
     // need this to be on, or they render off-screen.
     void SetCenter2D0(bool v) { _center2D0 = v; }
 
+    // Offscreen render mode (video export). When `tex` is non-null,
+    // StartDrawing renders into that MTLTexture instead of a CAMetalLayer
+    // drawable (so no layer / on-screen surface is required) and EndDrawing
+    // blits the result into `capture` (an MTLBuffer, BGRA8, width*4 bytes/row)
+    // via Commit(false, capture). Pass nullptr/nullptr to restore on-screen
+    // drawing. Pointers are held without ownership — the caller keeps the
+    // texture/buffer alive across the StartDrawing/EndDrawing pair. Typed as
+    // void* so the class layout is identical in ObjC and non-ObjC TUs; the
+    // .mm __bridge-casts them back to id<MTLTexture> / id<MTLBuffer>.
+    void SetOffscreenTarget(void* tex, void* capture) {
+        _offscreenTarget = tex;
+        _offscreenCapture = capture;
+    }
+
 private:
     std::string _name = "iPadPreview";
     xlStandaloneMetalCanvas* _canvas;
@@ -123,6 +155,10 @@ private:
     bool _isDrawing = false;
     bool _is3d = true;
     bool _center2D0 = false;
+    int _handleScale = 1;
+    bool _showZoneIndicator = false;
+    void* _offscreenTarget = nullptr;   // id<MTLTexture>, non-owning
+    void* _offscreenCapture = nullptr;  // id<MTLBuffer>, non-owning
     PreviewCamera _camera2d{false};
     PreviewCamera _camera3d{true};
     std::string _currentModel;  // empty = "render everything" (House Preview mode)

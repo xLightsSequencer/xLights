@@ -11,6 +11,11 @@
  **************************************************************/
 
 #include "ModelScreenLocation.h"
+#include "handles/Handles.h"
+#include "handles/DragSession.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 //Default location that uses a bounding box - 4 corners and a rotate handle
 class BoxedScreenLocation : public ModelScreenLocation {
@@ -26,17 +31,28 @@ public:
 
     virtual bool IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
-    virtual CursorType CheckIfOverHandles(IModelPreview* preview, int &handle, int x, int y) const override;
-    
+
     //new drawing code
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
 
-    virtual int MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
     virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
+
+    // Descriptor pipeline. See `plans/handle-system-refactor.md`.
+    [[nodiscard]] std::vector<handles::Descriptor> GetHandles(
+        handles::ViewMode mode, handles::Tool tool,
+        const handles::ViewParams& view = {}) const override;
+    std::unique_ptr<handles::DragSession> CreateDragSession(
+        const std::string& modelName,
+        const handles::Id& id,
+        const handles::WorldRay& startRay) override;
+    [[nodiscard]] std::unique_ptr<handles::DragSession> BeginCreate(
+        const std::string& modelName,
+        const handles::WorldRay& clickRay,
+        handles::ViewMode mode) override;
 
     virtual CursorType InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) override;
     virtual void UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Node) override;
@@ -94,7 +110,10 @@ public:
     }
 
     void SetRotation(int r) {
-        rotatez = r;
+        // Delegate to the base vec3 overload so rotate_quat is
+        // rebuilt by the single canonical path. Boxed's 2D rotate
+        // handle is the original caller.
+        ModelScreenLocation::SetRotation(glm::vec3(rotatex, rotatey, (float)r));
     }
     void SetPerspective2D(float p) {
         perspective = p;
@@ -132,8 +151,7 @@ public:
     bool GetSupportsZScaling() const { return supportsZScaling; }
     void SetSupportsZScaling(bool b) { supportsZScaling = b; }
 
-    virtual int GetDefaultHandle() const override { return CENTER_HANDLE; }
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_SCALE; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::Scale; }
     float GetCentreX() const { return centerx; }
     float GetCentreY() const { return centery; }
     float GetCentreZ() const { return centerz; }

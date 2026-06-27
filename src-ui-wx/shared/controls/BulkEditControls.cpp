@@ -64,17 +64,15 @@ BulkEditFontPicker::BulkEditFontPicker(wxWindow* parent, wxWindowID id, const wx
 }
 
 BulkEditColourPickerCtrl::BulkEditColourPickerCtrl(wxWindow* parent, wxWindowID id, const wxColour& initial, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name)
-    : wxColourPickerCtrl(parent, id, initial, pos, size, style, validator, name)
+    : xlColourPickerButton(parent, id, initial, pos, size, style, validator, name)
 {
     _supportsBulkEdit = true;
     ID_COLOURPICKER_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
-    wxControl *c = this->GetPickerCtrl();
-    wxBitmapButton *b = dynamic_cast<wxBitmapButton*>(c);
-    if (b) {
-        b->SetBitmapMargins(0, 0);
+    wxControl* c = this->GetPickerCtrl();
+    if (c != nullptr) {
+        c->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
     }
-    this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
 }
 
 BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxTextCtrl(parent, id, value, pos, size, style, validator, name)
@@ -632,7 +630,7 @@ std::string BulkEditFontPicker::GetValue() const
 
 wxColour BulkEditColourPickerCtrl::GetValue() const
 {
-    return GetColour();
+    return GetColour();  // xlColourPickerButton::GetColour()
 }
 
 void BulkEditFontPicker::OnFontPickerPopup(wxCommandEvent& event)

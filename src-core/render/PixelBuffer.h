@@ -98,6 +98,7 @@ private:
             fadeInSteps = fadeOutSteps = 0;
             inTransitionAdjust = outTransitionAdjust = 0;
             inTransitionReverse = outTransitionReverse = false;
+            inTransitionBlur = outTransitionBlur = 0;
             stagger = 0;
         }
         RenderBuffer buffer;
@@ -180,6 +181,8 @@ private:
         int outTransitionAdjust;
         bool inTransitionReverse;
         bool outTransitionReverse;
+        int inTransitionBlur;
+        int outTransitionBlur;
         float inMaskFactor = 1.0f;
         float outMaskFactor = 1.0f;
         int stagger;
@@ -216,6 +219,7 @@ private:
         void calculateNodeOutputParams(int effectPeriod);
 
     private:
+        void blurMaskToAlpha(int blurAmount);
         void createSquareExplodeMask(bool end);
         void createCircleExplodeMask(bool end);
         void createWipeMask(bool end);
@@ -316,7 +320,7 @@ public:
     void HandleLayerTransitions(int EffectPeriod, int layer);
     void CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer = 0, bool saveToPixels = false);
     void SetColors(int layer, const unsigned char* fdata, unsigned int numChannels);
-    void GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange);
+    void GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels);
 
     // place for GPU Renderers to attach extra data/objects it needs
     void* gpuRenderData = nullptr;

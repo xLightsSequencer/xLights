@@ -13,6 +13,7 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceMedia.h"
+#include "SongStructureManager.h"
 namespace pugi { class xml_node; class xml_document; }
 #include <array>
 #include <vector>
@@ -102,6 +103,8 @@ public:
     bool IsValidElement(Element* e) const;
     size_t GetHiddenTimingCount() const;
     void HideAllTimingTracks(bool hide);
+    bool GetHideUnusedSubmodels() const { return mHideUnusedSubmodels; }
+    void SetHideUnusedSubmodels(bool hide) { mHideUnusedSubmodels = hide; }
 
     int GetTotalNumberOfModelRows();
     void SetMaxRowsDisplayed(int maxRows);
@@ -140,6 +143,7 @@ public:
 
     void SetSequenceEnd(int ms);
     int GetSequenceEnd() const;
+    int GetMaxEffectEndTimeMS() const;
     // Selected Ranges
     size_t GetSelectedRangeCount();
     EffectRange* GetSelectedRange(int index);
@@ -159,6 +163,7 @@ public:
     std::string GetViewName(int view) const;
 
     void SetViewsManager(SequenceViewManager* viewsManager);
+    SequenceViewManager* GetViewsManager() const { return _viewsManager; }
     std::string GetViewModels(const std::string &viewName) const;
 
     void SortElements();
@@ -209,6 +214,10 @@ public:
     // Media cache management
     SequenceMedia& GetSequenceMedia() { return mSequenceMedia; }
     const SequenceMedia& GetSequenceMedia() const { return mSequenceMedia; }
+
+    // Song structure regions
+    SongStructureManager& GetSongStructureManager() { return mSongStructure; }
+    const SongStructureManager& GetSongStructureManager() const { return mSongStructure; }
 protected:
 private:
     int LoadEffects(EffectLayer *layer,
@@ -246,6 +255,7 @@ private:
     int mMaxRowsDisplayed = 0;
     int mCurrentView;
     bool hasPapagayoTiming;
+    bool mHideUnusedSubmodels = false;
     int mSequenceEndMS;
     bool supportsModelBlending;
 
@@ -261,5 +271,6 @@ private:
     
     std::vector<std::string> mColorPalettes;
     SequenceMedia mSequenceMedia;
+    SongStructureManager mSongStructure;
 };
 

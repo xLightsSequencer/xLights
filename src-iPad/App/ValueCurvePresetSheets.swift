@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 // Value-curve preset load / save sheets + clipboard helper
 // (G36 / G37 — C6). Works over the `.xvc` file-I/O bridge on
@@ -198,5 +199,25 @@ enum ValueCurveClipboard {
 
     static func isValid(_ raw: String?) -> Bool {
         unwrap(raw) != nil
+    }
+}
+
+// MARK: - Export document
+
+/// `.xvc` document carrying the full XML built by the bridge, handed
+/// to SwiftUI's `.fileExporter` so a value curve can be saved to an
+/// arbitrary location (desktop's `ButtonExport` parity).
+struct ValueCurveExportDocument: FileDocument {
+    static let xvcType: UTType = UTType(filenameExtension: "xvc") ?? .xml
+    static var readableContentTypes: [UTType] { [xvcType] }
+    static var writableContentTypes: [UTType] { [xvcType] }
+
+    let text: String
+
+    init(text: String) { self.text = text }
+    init(configuration: ReadConfiguration) throws { self.text = "" }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(text.utf8))
     }
 }

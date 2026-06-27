@@ -78,6 +78,10 @@
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include "model/GenerateCustomModelDialog.h"
+#ifdef __APPLE__
+#include "mac/CustomModelMethodPickerDialog.h"
+#include "mac/KLightMapperBridge.h"
+#endif
 #include "sequencer/GenerateLyricsDialog.h"
 #include "layout/HousePreviewPanel.h"
 #include "setup/IPEntryDialog.h"
@@ -423,7 +427,9 @@ wxDEFINE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CUT_MODEL_EFFECTS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_COPY_MODEL_EFFECTS_TO_MODELS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PAUSE_SEQUENCE, wxCommandEvent);
@@ -483,7 +489,9 @@ EVT_COMMAND(wxID_ANY, EVT_EXPORT_MODEL, xLightsFrame::ExportModel)
 EVT_COMMAND(wxID_ANY, EVT_PLAY_MODEL, xLightsFrame::PlayModel)
 EVT_COMMAND(wxID_ANY, EVT_CUT_MODEL_EFFECTS, xLightsFrame::CutModelEffects)
 EVT_COMMAND(wxID_ANY, EVT_COPY_MODEL_EFFECTS, xLightsFrame::CopyModelEffects)
+EVT_COMMAND(wxID_ANY, EVT_COPY_MODEL_EFFECTS_TO_MODELS, xLightsFrame::CopyModelEffectsToModels)
 EVT_COMMAND(wxID_ANY, EVT_PASTE_MODEL_EFFECTS, xLightsFrame::PasteModelEffects)
+EVT_COMMAND(wxID_ANY, EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS, xLightsFrame::PasteModelEffectsWithSubModelLayers)
 EVT_COMMAND(wxID_ANY, EVT_MODEL_SELECTED, xLightsFrame::ModelSelected)
 EVT_COMMAND(wxID_ANY, EVT_PLAY_SEQUENCE, xLightsFrame::PlaySequence)
 EVT_COMMAND(wxID_ANY, EVT_PAUSE_SEQUENCE, xLightsFrame::PauseSequence)
@@ -652,16 +660,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     });
 
     AppCallbacks::SetDisplayMessageCallback([](AppCallbacks::DisplayMessageLevel level, const std::string& msg) {
-        switch (level) {
-        case AppCallbacks::DisplayMessageLevel::Error:
-            wxMessageBox(msg, "Error", wxICON_ERROR | wxOK);
-            break;
-        case AppCallbacks::DisplayMessageLevel::Warning:
-            wxMessageBox(msg, "Warning", wxICON_WARNING | wxOK);
-            break;
-        case AppCallbacks::DisplayMessageLevel::Info:
-            wxMessageBox(msg, "Information", wxICON_INFORMATION | wxOK);
-            break;
+        auto showBox = [level, msg]() {
+            switch (level) {
+            case AppCallbacks::DisplayMessageLevel::Error:
+                wxMessageBox(msg, "Error", wxICON_ERROR | wxOK);
+                break;
+            case AppCallbacks::DisplayMessageLevel::Warning:
+                wxMessageBox(msg, "Warning", wxICON_WARNING | wxOK);
+                break;
+            case AppCallbacks::DisplayMessageLevel::Info:
+                wxMessageBox(msg, "Information", wxICON_INFORMATION | wxOK);
+                break;
+            }
+        };
+        if (wxThread::IsMain()) {
+            showBox();
+        } else {
+            AppCallbacks::PostToMainThread(showBox);
         }
     });
 
@@ -1283,6 +1298,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuBar->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar);
     OutputTimer.SetOwner(this, ID_TIMER_OutputTimer);
+    OutputTimer.SetName("OutputTimer");
     AutoSaveTimer.SetOwner(this, ID_TIMER_AutoSave);
     EffectSettingsTimer.SetOwner(this, ID_TIMER_EFFECT_SETTINGS);
     RenderStatusTimer.SetOwner(this, ID_TIMER_RENDERSTATUS);
@@ -1672,6 +1688,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsRenderBell", &_renderBellEnabled, false);
     spdlog::debug("Render Bell Enabled: {}.", toStr(_renderBellEnabled));
 
+    config->Read("xLightsPasteAsLayers", &_pasteAsLayers, false);
+    spdlog::debug("Paste As Layers: {}.", toStr(_pasteAsLayers));
+
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
     spdlog::debug("Model Blend Default Off: {}.", toStr(_modelBlendDefaultOff));
 
@@ -2033,7 +2052,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 #endif
         }
     } else {
-        if (!PromptForShowDirectory(true)) {
+        if (!OfferDefaultShowDirectory(true)) {
             CurrentDir = "";
             splash.Hide();
             wxMessageBox("Exiting as setting a show folder is not optional.");
@@ -2362,6 +2381,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsHidePresetPreview", _hidePresetPreview);
     config->Write("xLightsSmallWaveform", _smallWaveform);
     config->Write("xLightsRenderBell", _renderBellEnabled);
+    config->Write("xLightsPasteAsLayers", _pasteAsLayers);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
     config->Write("xLightsTimelineZooming", _timelineZooming);
@@ -2791,6 +2811,9 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     ver += wxString::Format("\nGCC %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #endif
 #endif
+#ifdef USE_GLES
+    ver += "\nGraphics: ANGLE (OpenGL ES / Direct3D)";
+#endif
     AboutDialog dlg(this);
 
     dlg.IconBitmap->SetIcon(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON).GetIcon(wxSize(128, 128)));
@@ -3032,6 +3055,10 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     } else if (pagenum == NEWSEQUENCER) {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
+        if (!_effectPresetsInitialized && EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+            EffectTreeDlg->InitItems(_effectPresetManager);
+            _effectPresetsInitialized = true;
+        }
         EffectSettingsTimer.Start(50, wxTIMER_ONE_SHOT);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
@@ -3227,10 +3254,16 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     spdlog::info("xLights Closing");
 
+    // Mark the frame as exiting up front so the teardown that CloseSequence drives
+    // (e.g. EffectsGrid::SetRCToolTip touching an already half-destroyed window/peer)
+    // can bail. Reset it if the close is vetoed below.
+    _exiting = true;
+
     StopNow();
 
     if (!CloseSequence()) {
         spdlog::info("Closing aborted.");
+        _exiting = false;
         event.Veto();
         inClose = false;
         return;
@@ -3240,7 +3273,12 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     CheckUnsavedChanges();
 
-    _exiting = true;
+    // Release GL resources from all models while contexts are still alive.
+    // Must happen before ShowHideAllSequencerWindows: hiding canvases causes
+    // IsShownOnScreen()==false which makes SetCurrentGLContext() a no-op, so
+    // any glDeleteBuffers calls after that point run with no current context
+    // and corrupt the heap on some drivers (AMD in particular).
+    AllModels.clearUIObjects();
 
     ShowHideAllSequencerWindows(false);
 
@@ -3406,13 +3444,21 @@ bool xLightsFrame::CopyFiles(const wxString& wildcard, wxDir& srcDir, wxString& 
                 continue;
             }
 
-            spdlog::debug("    to {}.", (const char*)(targetDirName + wxFileName::GetPathSeparator() + fname).c_str());
+            wxString dstFullPath = targetDirName + wxFileName::GetPathSeparator() + fname;
+            spdlog::debug("    to {}.", (const char*)dstFullPath.c_str());
             SetStatusText("Copying File \"" + srcFile.GetFullPath());
-            bool success = wxCopyFile(srcFile.GetFullPath(),
-                                      targetDirName + wxFileName::GetPathSeparator() + fname);
-            if (!success) {
-                spdlog::error("    Copy Failed.");
-                errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\"\n";
+            std::error_code ec;
+            std::filesystem::copy_file(std::filesystem::path(srcFile.GetFullPath().ToStdString()),
+                                       std::filesystem::path(dstFullPath.ToStdString()),
+                                       std::filesystem::copy_options::overwrite_existing,
+                                       ec);
+            if (ec) {
+                spdlog::error("    Copy Failed: '{}' -> '{}': {} (errno {})",
+                              srcFile.GetFullPath().ToStdString(),
+                              dstFullPath.ToStdString(),
+                              ec.message(),
+                              ec.value());
+                errors += "Unable to copy file \"" + srcDir.GetNameWithSep() + fname + "\": " + ec.message() + "\n";
                 if (srcDir.GetNameWithSep().length() + fname.length() > 225) {
                     errors += "Consider shortening the directory path or filename.\n";
                 }
@@ -3786,12 +3832,12 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         if (audioMgr != nullptr) {
             videoExporter.setGetAudioCallback(audioLambda);
         }
-        auto videoLambda = [=, this](AVFrame* f, uint8_t* buf, int bufSize, unsigned frameIndex) {
+        auto videoLambda = [=, this](VideoWriterFrame& frame, unsigned frameIndex) {
             const SequenceData::FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->captureNextFrame(width * contentScaleFactor, height * contentScaleFactor);
             housePreview->Render(frameIndex * this->_seqData.FrameTime(), data, false);
-            return housePreview->getFrameForExport(width * contentScaleFactor, height * contentScaleFactor, f, buf, bufSize);
+            return housePreview->getFrameForExport(frame);
         };
         videoExporter.setGetVideoCallback(videoLambda);
 
@@ -4111,14 +4157,20 @@ void xLightsFrame::UpdateSequenceLength()
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = wxAtoi(mss);
 
-        AbortRender();
-        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-        _sequenceElements.IncrementChangeCount(nullptr);
+        // Reallocating _seqData frees the channel buffer a live render job may
+        // still be writing into. Only proceed if the render actually drained —
+        // AbortRender() returns false if it timed out.
+        if (AbortRender()) {
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            _sequenceElements.IncrementChangeCount(nullptr);
+        } else {
+            spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
+        }
 
-        mainSequencer->PanelTimeLine->SetTimeLength(CurrentSeqXmlFile->GetSequenceDurationMS());
+        mainSequencer->PanelTimeLine->SetTimeLength(std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), _sequenceElements.GetMaxEffectEndTimeMS()));
         mainSequencer->PanelTimeLine->Initialize();
         int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-        mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+        mainSequencer->PanelTimeLine->SetFitZoom();
         mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
         mainSequencer->PanelTimeLine->RaiseChangeTimeline();
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
@@ -4248,6 +4300,105 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     // creating the dialog can take some time so display an hourglass
     SetCursor(wxCURSOR_WAIT);
 
+#ifdef __APPLE__
+    // KLightMapper camera-scan offer: on macOS, if a Continuity
+    // Camera is paired (i.e. an iPhone the user can point at the
+    // prop), let them pick the new flow before falling through to
+    // the classic dialog. Empty camera list → no choice, classic
+    // path runs as before.
+    const auto cams = klbridge::DiscoverContinuityCameras();
+    if (!cams.empty()) {
+        CustomModelMethodPickerDialog picker(this, cams);
+        picker.CenterOnParent();
+        SetCursor(wxCURSOR_DEFAULT);
+        const int picked = picker.ShowModal();
+        SetCursor(wxCURSOR_WAIT);
+        if (picked == wxID_OK &&
+            picker.GetChoice() == CustomModelMethodPickerDialog::Choice::CameraScan &&
+            !picker.GetSelectedCameraID().empty()) {
+            SetCursor(wxCURSOR_DEFAULT);
+            // The scan window is shown non-modally (NSWindow + SwiftUI),
+            // so PresentScanWindow returns immediately. Output / timer /
+            // media state stay paused for as long as the user is in the
+            // scan flow because the scan pushes its own DDP traffic to
+            // FPP; re-enabling outputs here would collide with that.
+            // The completion (fires on the main thread once the user
+            // closes the window) restores everything and hands the
+            // produced .xmodel — if any — to a Save As dialog.
+            // Scan-dump persistence: each scan writes raw video +
+            // per-pattern frames + state JSON into
+            // <showDir>/MapFromLightsDebug/scan_<timestamp>/ so a
+            // failed multi-view solve or underdetected scan can be
+            // reproduced and debugged off-device.
+            //
+            // Pass the show folder directly — KLightMapper's
+            // ScanFrameSaver.createScanDir appends "MapFromLightsDebug"
+            // to whatever parent it's given. Passing an already-
+            // suffixed path would produce
+            // <showDir>/MapFromLightsDebug/MapFromLightsDebug/...
+            const std::string& showDir = GetShowDirectory();
+            const std::string scanDumpParent = showDir;
+            klbridge::PresentScanWindow(
+                picker.GetSelectedCameraID(),
+                scanDumpParent,
+                [this, output, timerRunning, mps](std::optional<std::string> xmodelPath) {
+                    if (xmodelPath.has_value() && !xmodelPath->empty()) {
+                        wxLogNull logNo;
+                        const wxString src(xmodelPath->c_str(), wxConvUTF8);
+                        const wxString defaultName = wxFileName(src).GetName();
+                        const wxString destPath = wxFileSelector(
+                            _("Save mapped custom model"),
+                            wxEmptyString,
+                            defaultName,
+                            "xmodel",
+                            "Custom Model files (*.xmodel)|*.xmodel",
+                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT,
+                            this);
+                        if (!destPath.IsEmpty()) {
+                            if (wxCopyFile(src, destPath, true)) {
+                                wxMessageBox(_("Saved mapped custom model to:\n") + destPath,
+                                             _("Map from Lights"),
+                                             wxOK | wxICON_INFORMATION, this);
+                            } else {
+                                wxMessageBox(_("Could not write the mapped custom model to:\n") + destPath,
+                                             _("Map from Lights"),
+                                             wxOK | wxICON_ERROR, this);
+                            }
+                        }
+                        // Best-effort: remove the temp file regardless of
+                        // whether the user saved it; if save succeeded, the
+                        // destination holds the data, and if they cancelled
+                        // there's nothing to keep.
+                        wxRemoveFile(src);
+                    }
+                    if (output) { EnableOutputs(); }
+                    if (timerRunning) { OutputTimer.Start(); }
+                    if (mps == MEDIAPLAYINGSTATE::PLAYING &&
+                        CurrentSeqXmlFile != nullptr &&
+                        CurrentSeqXmlFile->GetMedia() != nullptr) {
+                        CurrentSeqXmlFile->GetMedia()->Play();
+                        SetAudioControls();
+                    }
+                });
+            return;
+        }
+        if (picked != wxID_OK) {
+            // User cancelled the picker entirely — same restore +
+            // bail as the camera-scan branch.
+            SetCursor(wxCURSOR_DEFAULT);
+            if (output) { EnableOutputs(); }
+            if (timerRunning) { OutputTimer.Start(); }
+            if (mps == MEDIAPLAYINGSTATE::PLAYING) {
+                CurrentSeqXmlFile->GetMedia()->Play();
+                SetAudioControls();
+            }
+            return;
+        }
+        // Fell through with Classic chosen — continue to the
+        // existing dialog below.
+    }
+#endif
+
     GenerateCustomModelDialog dialog(this, &_outputManager);
     dialog.CenterOnParent();
     dialog.ShowModal();
@@ -4279,9 +4430,13 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     UpdateViewMenu();
 }
 
+#ifdef __APPLE__
+static std::vector<std::filesystem::path> AddMetricKitPayloadsToReport(wxDebugReport& report);
+#endif
+
 void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 {
-    
+
     wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
 
     report->SetCompressedFileDirectory(CurrentDir);
@@ -4340,7 +4495,25 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
     report->AddText("threads.txt", threadStatus, "Threads Status");
     spdlog::critical("{}", (const char*)threadStatus.c_str());
 
+#ifdef __APPLE__
+    auto metricKitPaths = AddMetricKitPayloadsToReport(*report);
+#endif
+
     crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
+
+#ifdef __APPLE__
+    // ProcessCrashReport ran Process() on the wxDebugReport, so the
+    // JSONs are now durable inside the compressed zip on disk
+    // (uploaded too, unless the user canceled the preview). Delete the
+    // sources so they don't reship in every subsequent crash zip and
+    // inflate per-payload counts on the server.
+    {
+        std::error_code rmEc;
+        for (auto const& p : metricKitPaths) {
+            std::filesystem::remove(p, rmEc);
+        }
+    }
+#endif
 }
 
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
@@ -4441,7 +4614,7 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
 
 static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxDebugReport& report)
 {
-    wxString const filename = GetLogFilePath().string();
+    wxString const filename = wxString::FromUTF8((GetLogFileFolder() / fileName.ToStdString()).string());
 
     if (FileExists(filename)) {
         report.AddFile(filename, fileName);
@@ -4451,6 +4624,34 @@ static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxD
         report.AddFile(wxFileName(wxGetCwd(), fileName).GetFullPath(), fileName);
     }
 }
+
+#ifdef __APPLE__
+// MetricKit payloads (crash / hang / CPU / disk diagnostics + daily
+// metrics) accumulate in a Diagnostics/ folder next to the spdlog file.
+// Apple delivers payloads ~24h after the underlying event, so the
+// directory contains everything since the last upload — whichever zip
+// ships next sweeps them up. The crash-zip caller deletes the listed
+// paths after the report's Process() runs so the same JSON doesn't get
+// re-uploaded under every subsequent build's filename.
+static std::vector<std::filesystem::path> AddMetricKitPayloadsToReport(wxDebugReport& report) {
+    std::vector<std::filesystem::path> added;
+    std::filesystem::path diagnosticsDir = GetLogFilePath().parent_path() / "Diagnostics";
+    std::error_code ec;
+    if (!std::filesystem::exists(diagnosticsDir, ec) ||
+        !std::filesystem::is_directory(diagnosticsDir, ec)) {
+        return added;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(diagnosticsDir, ec)) {
+        if (!entry.is_regular_file(ec)) continue;
+        if (entry.path().extension().string() != ".json") continue;
+        std::string fullPath = entry.path().string();
+        std::string archiveName = std::string("MetricKit/") + entry.path().filename().string();
+        report.AddFile(wxString::FromUTF8(fullPath), wxString::FromUTF8(archiveName));
+        added.push_back(entry.path());
+    }
+    return added;
+}
+#endif
 
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 {
@@ -4469,26 +4670,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
     AddLogFile(CurrentDir, "xLights_spdlog.1.log", report);
 
 #ifdef __APPLE__
-    // MetricKit payloads (crash / hang / CPU / disk diagnostics + daily
-    // metrics) accumulate in a Diagnostics/ folder next to the spdlog
-    // file. Apple delivers payloads ~24h after the underlying event,
-    // so the directory contains everything since the last crash zip
-    // was processed; whichever zip ships next sweeps them up.
-    {
-        std::filesystem::path diagnosticsDir = GetLogFilePath().parent_path() / "Diagnostics";
-        std::error_code ec;
-        if (std::filesystem::exists(diagnosticsDir, ec) &&
-            std::filesystem::is_directory(diagnosticsDir, ec)) {
-            for (auto const& entry : std::filesystem::directory_iterator(diagnosticsDir, ec)) {
-                if (!entry.is_regular_file(ec)) continue;
-                std::string ext = entry.path().extension().string();
-                if (ext != ".json") continue;
-                std::string fullPath = entry.path().string();
-                std::string archiveName = std::string("MetricKit/") + entry.path().filename().string();
-                report.AddFile(wxString::FromUTF8(fullPath), wxString::FromUTF8(archiveName));
-            }
-        }
-    }
+    AddMetricKitPayloadsToReport(report);
 #endif
 
     if (GetSeqXmlFileName() != "") {
@@ -5384,6 +5566,9 @@ void xLightsFrame::ValidateEffectAssets()
     std::string missing;
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
         auto f = FileUtils::FixFile("", it);
+        if (_sequenceElements.GetSequenceMedia().GetMediaEmbedState(f).first) {
+            continue;
+        }
         ObtainAccessToURL(f);
         if (!FileExists(f, false)) {
             missing += it + "\n";
@@ -5391,8 +5576,18 @@ void xLightsFrame::ValidateEffectAssets()
     }
 
     std::string relocated;
-    for (const auto& [orig, resolved] : _sequenceElements.GetSequenceMedia().GetImageRelocations()) {
-        relocated += orig + " -> " + resolved + "\n";
+    {
+        constexpr int MAX_RELOC_DISPLAY = 15;
+        const auto& relocations = _sequenceElements.GetSequenceMedia().GetImageRelocations();
+        int shown = 0;
+        for (const auto& [orig, resolved] : relocations) {
+            if (shown >= MAX_RELOC_DISPLAY) {
+                relocated += "... and " + std::to_string((int)relocations.size() - MAX_RELOC_DISPLAY) + " more (not shown)\n";
+                break;
+            }
+            relocated += orig + " -> " + resolved + "\n";
+            ++shown;
+        }
     }
 
     if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
@@ -5423,7 +5618,11 @@ void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_NewXLightsInstance(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
-    system("open -n /Applications/xLights.app");
+    if (!SpawnNewXLightsInstance(wxEmptyString)) {
+        wxMessageBox(_("Could not locate the xLights application bundle. "
+                       "A new instance can only be launched when xLights is run from a .app bundle."),
+                     _("Open New xLights Instance"), wxOK | wxICON_WARNING, this);
+    }
 #endif
 }
 
@@ -6993,6 +7192,12 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
         _outputManager.SetAutoUpdateFromBaseShowDir(false);
         if (changed)
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetShowBaseShowFolder");
+
+        _effectPresetsInitialized = false;
+        if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+            EffectTreeDlg->InitItems(_effectPresetManager);
+            _effectPresetsInitialized = true;
+        }
     }
     ValidateWindow();
 }
@@ -7762,6 +7967,12 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         } else if (type == "FPP_CONNECT") {
             wxCommandEvent e;
             OnButtonFPPConnectClick(e);
+        } else if (type == "COMMAND_PALETTE") {
+            wxCommandEvent e;
+            OnCommandPalette(e);
+        } else if (type == "IMPORT_EFFECTS") {
+            wxCommandEvent e;
+            OnMenuItemImportEffects(e);
         } else {
             return false;
         }
@@ -7802,8 +8013,46 @@ void xLightsFrame::OnChar(wxKeyEvent& event)
     OnCharHook(event);
 }
 
+void xLightsFrame::OnCommandPalette(wxCommandEvent& event)
+{
+    CommandPaletteDialog dlg(this, GetMenuBar(), &GetEffectManager());
+    if (dlg.ShowModal() == wxID_OK) {
+        if (dlg.IsEffectSelected()) {
+            wxString effectName = dlg.GetSelectedEffectName();
+
+            if (effectName != GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection()) {
+                ResetPanelDefaultSettings(effectName.ToStdString(), nullptr, true);
+            }
+
+            std::string palette;
+            std::string effectSettings = GetEffectTextFromWindows(palette);
+
+            Effect* ef = mainSequencer->PanelEffectGrid->Paste(
+                effectName + "\t" + effectSettings + "\t\n",
+                xlights_version_string);
+            if (ef != nullptr) {
+                mainSequencer->SelectEffect(ef);
+            }
+        } else {
+            int cmdId = dlg.GetSelectedCommandId();
+            if (cmdId != wxID_NONE) {
+                wxCommandEvent menuEvent(wxEVT_MENU, cmdId);
+                menuEvent.SetEventObject(this);
+                GetEventHandler()->ProcessEvent(menuEvent);
+            }
+        }
+    }
+}
+
 void xLightsFrame::OnCharHook(wxKeyEvent& event)
 {
+    if (event.GetKeyCode() == 'K' && (event.ControlDown() || event.CmdDown()) && event.ShiftDown() && !event.AltDown()) {
+        wxCommandEvent e;
+        OnCommandPalette(e);
+        event.StopPropagation();
+        return;
+    }
+
     switch (Notebook1->GetSelection()) {
     case SETUPTAB:
         break;
@@ -8822,6 +9071,12 @@ void xLightsFrame::SetBaseShowDir(const wxString& baseShowDir)
         StaticText_BaseShowDir->SetLabel(baseShowDir);
     }
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "MoveSelectedControllerRows");
+
+    _effectPresetsInitialized = false;
+    if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
+    }
 }
 
 void xLightsFrame::OnButton_ChangeBaseShowDirClick(wxCommandEvent& event)

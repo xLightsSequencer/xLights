@@ -22,12 +22,39 @@ struct CheckSequenceSheet: View {
     @State private var hiddenSeverities: Set<Int> = []
     @State private var hiddenSections: Set<String> = []
 
+    /// Per-check disable flags — desktop parity with the CheckSequence
+    /// preferences panel (`CheckSequenceSettingsPanel.cpp:50`). When on,
+    /// the matching check is suppressed (recorded as an Info
+    /// "CHECK DISABLED" note). All default OFF = every check runs.
+    @AppStorage("csDisableDupUniv") private var disableDupUniv = false
+    @AppStorage("csDisableNonContigChOnPort") private var disableNonContig = false
+    @AppStorage("csDisablePreviewGroup") private var disablePreviewGroup = false
+    @AppStorage("csDisableDupNodeMG") private var disableDupNodeMG = false
+    @AppStorage("csDisableTransTime") private var disableTransTime = false
+    @AppStorage("csDisableCustomSizeCheck") private var disableCustomSize = false
+    @AppStorage("csDisableSketchImage") private var disableSketchImage = false
+
+    private var disabledCheckOptions: [String] {
+        var out: [String] = []
+        if disableDupUniv { out.append("DupUniv") }
+        if disableNonContig { out.append("NonContigChOnPort") }
+        if disablePreviewGroup { out.append("PreviewGroup") }
+        if disableDupNodeMG { out.append("DupNodeMG") }
+        if disableTransTime { out.append("TransTime") }
+        if disableCustomSize { out.append("CustomSizeCheck") }
+        if disableSketchImage { out.append("SketchImage") }
+        return out
+    }
+
     var body: some View {
         NavigationStack {
             content
                 .navigationTitle("Check Sequence")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        checksMenu
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") { dismiss() }
                     }
@@ -41,9 +68,33 @@ struct CheckSequenceSheet: View {
         }
     }
 
+    /// Gear menu mirroring desktop Preferences ▸ Check Sequence — each
+    /// toggle suppresses one check. Flipping any re-runs the check so
+    /// the report reflects the new flags.
+    private var checksMenu: some View {
+        Menu {
+            Section("Disable Checks") {
+                Toggle("Duplicate Universe/Channel", isOn: $disableDupUniv)
+                Toggle("Non-Contiguous Channels on Port", isOn: $disableNonContig)
+                Toggle("Model in Preview But Not Group", isOn: $disablePreviewGroup)
+                Toggle("Duplicate Nodes in Groups", isOn: $disableDupNodeMG)
+                Toggle("Transition Time", isOn: $disableTransTime)
+                Toggle("Custom Model Size", isOn: $disableCustomSize)
+                Toggle("Sketch Effect Image", isOn: $disableSketchImage)
+            }
+        } label: {
+            Image(systemName: "slider.horizontal.3")
+        }
+        .onChange(of: disabledCheckOptions) { _, _ in
+            Task { await runCheck() }
+        }
+    }
+
     private func runCheck() async {
+        issues = nil
         progressPercent = 0
         progressStep = "Starting…"
+        viewModel.setCheckSequenceDisabledOptions(disabledCheckOptions)
         let result = await viewModel.runSequenceCheckAsync { pct, step in
             progressPercent = pct
             progressStep = step

@@ -18,11 +18,6 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#if LIBAVFORMAT_VERSION_MAJOR > 57
-#include <libavfilter/avfilter.h>
-#include <libavfilter/buffersrc.h>
-#include <libavfilter/buffersink.h>
-#endif
 }
 
 #ifdef _WIN32
@@ -109,21 +104,6 @@ private:
     #ifdef _WIN32
     WindowsHardwareVideoReader* _windowsHardwareVideoReader = nullptr;
     #endif
-
-#if LIBAVFORMAT_VERSION_MAJOR > 57
-    // GPU-side scaling via scale_cuda filter graph (CUDA decode only).
-    // Scales the CUDA frame to the target size before the PCIe transfer so only
-    // the small output frame (~110 KB) crosses the bus instead of a full 4K
-    // NV12 frame (~8 MB).
-    bool initCudaScaleFilter();
-    AVFilterGraph*   _cudaFilterGraph       = nullptr;
-    AVFilterContext* _cudaBufferSrcCtx      = nullptr;
-    AVFilterContext* _cudaScaleCtx          = nullptr;
-    AVFilterContext* _cudaBufferSinkCtx     = nullptr;
-    AVFrame*         _cudaScaledFrame       = nullptr;
-    bool             _cudaScaleFilterActive = false;
-    bool             _cudaScaleFilterFailed = false;
-#endif
 
     // The VideoFrame returned to callers, populated from _dstFrame
     VideoFrame _videoFrame;

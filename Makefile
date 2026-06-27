@@ -25,7 +25,7 @@ SUDO		= `which sudo`
 
 SUBDIRS         = xLights
 
-WXWIDGETS_TAG=xlights_2026.07
+WXWIDGETS_TAG=xlights_2026.11
 ISPC_VERSION=1.30.0
 ISPC_ARCH=$(shell uname -m)
 

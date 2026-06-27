@@ -26,6 +26,10 @@
     "curl",
     "hidapi",
     "libxlsxwriter",
-    "libwebp"
+    "libwebp",
+    {
+      "name": "angle",
+      "platform": "windows | linux"
+    }
   ]
 }

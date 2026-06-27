@@ -18,17 +18,6 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 #include <wx/wfstream.h>
-#include <wx/imaggif.h>
-#include <wx/anidecod.h>
-#include <wx/quantize.h>
-extern "C"
-{
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libswscale/swscale.h>
-    #include <libavutil/opt.h>
-    #include <libavutil/imgutils.h>
-}
 
 #include "utils/xlImage.h"
 #include "models/ModelManager.h"
@@ -45,7 +34,14 @@ extern "C"
 #include "xLightsMain.h"
 #include "render/FSEQFile.h"
 #include "sequencer/CopyFormat1.h"
-#include "media/VideoExporter.h"
+#include "media/VideoWriter.h"
+#include "render/ModelVideoExporter.h"
+#include "render/ModelGifExporter.h"
+
+#include <wx/progdlg.h>
+
+#include <atomic>
+#include <thread>
 
 #include <log.h>
 
@@ -682,177 +678,6 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
     }
 }
 
-// Render a model into our image
-void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0, bool invert = false)
-{
-    int outheight = image.GetHeight();
-    int outwidth = image.GetWidth();
-
-    // 
-    // spdlog::debug("Writing model frame. Model={}, startAddr={}, x={}, y={}, w={}, h={}, ow={}, oh={}", (const char *)model->name.c_str(), startAddr, x, y, width, height, outwidth, outheight);
-
-    uint8_t* imagedata = image.GetData();
-
-    // model should be simpler as all channels should be together ... but are they
-    int chs = model->GetChanCountPerNode();
-    uint8_t* ps = framedata + startAddr; // pointer to the channel data in the frame
-
-    // Work out the colour order
-    char r = model->GetChannelColorLetter(0);
-    int rr = 0;
-    int gg = 1;
-    int bb = 2;
-    if (r == 'G') {
-        gg = 0;
-    } else if (r == 'B') {
-        bb = 0;
-    }
-    char g = model->GetChannelColorLetter(1);
-    if (g == 'R') {
-        rr = 1;
-    } else if (g == 'B') {
-        bb = 1;
-    }
-    char b = model->GetChannelColorLetter(2);
-    if (b == 'R') {
-        rr = 2;
-    } else if (b == 'G') {
-        gg = 2;
-    }
-
-    // Now process each node
-    for (size_t i = 0; i < model->GetNodeCount(); i++) {
-        xlColor c = model->GetNodeColor(i);
-
-        // Get all the bulbs attached to these nodes
-        std::vector<xlPoint> pts;
-        model->GetNodeCoords(i, pts);
-
-        // for each bulb
-        for (const auto& it : pts) {
-            // work out where we should display it in the output image
-            int xx = x + it.x;
-            int yy = y + it.y;
-
-            if (invert) {
-                yy = outheight - yy - 1;
-            }
-
-            // make sure it is within the image bounds
-            if (xx >= 0 && xx < outwidth && yy >= 0 && yy < outheight) {
-                // calculate a pointer to the pixal in the image
-                uint8_t* p = imagedata + (yy * outwidth + xx) * 3;
-
-                if (chs == 1) {
-                    // for single channels we use the node colour
-                    *p = c.Red();
-                    *(p + 1) = c.Green();
-                    *(p + 2) = c.Blue();
-                } else {
-                    // set the bulb colour to the pixel ... taking into account colour layout
-                    *(p) = *(ps + rr);
-                    *(p + 1) = *(ps + gg);
-                    *(p + 2) = *(ps + bb);
-                }
-            } else {
-                // this shouldnt happen
-                wxASSERT(false);
-            }
-        }
-
-        ps += chs;
-    }
-}
-
-void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, bool invert)
-{
-    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        ModelGroup* mg = static_cast<ModelGroup*>(model);
-
-        // Render each model
-        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m) {
-            // work out this models start channel relative to the buffer
-            int start = (*m)->GetFirstChannel() - startAddr;
-
-            // Work out where the zero point is for this model
-            // FIXME:  Models are no longer fixed percentages on the screen
-            //         We can use msl.GetScreenOffset(preview) but it needs a pointer to the ModelPreview that contains the model to be rendered.
-            int x = 0, y = 0;
-            // ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
-            // int width = image.GetWidth();
-            // int height = image.GetHeight();
-            // int x = ((float)width * msl.GetHcenterOffset());
-            // int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
-
-            RenderModelOnImage(image, *m, framedata, start, x, y, invert);
-        }
-    } else {
-        // Render the model
-        RenderModelOnImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1, 0, 0, invert);
-    }
-}
-
-static void RenderModelOnXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0, bool invert = false)
-{
-    int outheight = image.GetHeight();
-    int outwidth = image.GetWidth();
-    uint8_t* imagedata = image.GetData();
-
-    int chs = model->GetChanCountPerNode();
-    uint8_t* ps = framedata + startAddr;
-
-    char r = model->GetChannelColorLetter(0);
-    int rr = 0, gg = 1, bb = 2;
-    if (r == 'G') gg = 0;
-    else if (r == 'B') bb = 0;
-    char g = model->GetChannelColorLetter(1);
-    if (g == 'R') rr = 1;
-    else if (g == 'B') bb = 1;
-    char b = model->GetChannelColorLetter(2);
-    if (b == 'R') rr = 2;
-    else if (b == 'G') gg = 2;
-
-    for (size_t i = 0; i < model->GetNodeCount(); i++) {
-        xlColor c = model->GetNodeColor(i);
-        std::vector<xlPoint> pts;
-        model->GetNodeCoords(i, pts);
-
-        for (const auto& it : pts) {
-            int xx = x + it.x;
-            int yy = y + it.y;
-            if (invert) yy = outheight - yy - 1;
-
-            if (xx >= 0 && xx < outwidth && yy >= 0 && yy < outheight) {
-                uint8_t* p = imagedata + (yy * outwidth + xx) * 4; // RGBA
-                if (chs == 1) {
-                    p[0] = c.Red();
-                    p[1] = c.Green();
-                    p[2] = c.Blue();
-                } else {
-                    p[0] = *(ps + rr);
-                    p[1] = *(ps + gg);
-                    p[2] = *(ps + bb);
-                }
-                p[3] = 255; // fully opaque
-            }
-        }
-        ps += chs;
-    }
-}
-
-static void FillXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr, bool invert)
-{
-    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        ModelGroup* mg = static_cast<ModelGroup*>(model);
-        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m) {
-            int start = (*m)->GetFirstChannel() - startAddr;
-            RenderModelOnXlImage(image, *m, framedata, start, 0, 0, invert);
-        }
-    } else {
-        RenderModelOnXlImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1, 0, 0, invert);
-    }
-}
-
 std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     Model* matrixModel, SequenceData& seqData, SequenceElements& seqElements,
     size_t numFrames, int frameTimeMs)
@@ -888,347 +713,61 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
 
     for (size_t i = 0; i < numFrames; i++) {
         auto img = std::make_shared<xlImage>(width, height);
-        FillXlImage(*img, matrixModel, (uint8_t*)&seqData[i][0], 1, true);
+        ModelVideoExporter::FillXlImage(*img, matrixModel, (uint8_t*)&seqData[i][0], 1, true);
         result.push_back(img);
     }
 
     return result;
 }
 
-std::string DecodeAVError(int err)
-{
-    char buffer[AV_ERROR_MAX_STRING_SIZE];
-    return std::string(av_make_error_string(buffer, sizeof(buffer), err));
-}
 
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
-                                       SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
+                                       SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality, bool forceProRes,
+                                       int exportWidth, int exportHeight)
 {
-    
-    spdlog::debug("Writing model video.");
+    // The encode itself is wx-free core (src-core/render/ModelVideoExporter).
+    // Run it on a worker thread and drive a wxProgressDialog on the main thread
+    // so the UI stays responsive and cancelable — mirroring the house-preview
+    // export's VideoExporter progress flow. Keeping the encode off the main
+    // thread also avoids the priority inversion AVAssetWriter's blocking finish
+    // would otherwise cause.
+    const std::string fn = filenames.ToStdString();
+    std::atomic<int> pct{ 0 };
+    std::atomic<bool> cancel{ false };
+    std::atomic<bool> done{ false };
 
-    int origwidth;
-    int origheight;
-    model->GetBufferSize("Default", "2D", "None", origwidth, origheight, 0);
+    std::thread worker([&]() {
+        ModelVideoExporter::WriteModelVideo(fn, dataBuf, startFrame, endFrame, model, startAddr,
+                                            compressed, highQuality, forceProRes,
+                                            exportWidth, exportHeight,
+                                            [&pct](int p) { pct.store(p); },
+                                            [&cancel]() { return cancel.load(); });
+        done.store(true);
+    });
 
-    int width = origwidth;
-    int height = origheight;
-
-    const char* filename = filenames.c_str();
-    bool isAvi = EndsWith(filename, ".avi");
-    bool isMov = EndsWith(filename, ".mov");
-
-    // YUV420P (used by H.264/MP4) requires even dimensions because chroma is
-    // half-resolution. qtrle and rawvideo are RGB and have no such constraint,
-    // so for the lossless paths (MOV/qtrle and AVI/raw) we leave odd dimensions
-    // alone — otherwise sws_scale would bicubic-resample by a pixel and the
-    // output wouldn't be bit-exact for odd-sized models.
-    if (!isMov && !isAvi) {
-        if (width % 2 > 0)
-            width++;
-        if (height % 2 > 0)
-            height++;
-    }
-    if (!isAvi && !isMov) {
-        // minimin width/height is 16 otherwise the encoder failes ... so scale it if necessary
-        // (raw / qtrle have no such constraint)
-        if (width < 16 || height < 16) {
-            float scale = std::max(16.0 / width, 16.0 / height);
-            if (scale > 1.0) {
-                width *= scale;
-                height *= scale;
-            }
-        }
-    }
-
-    spdlog::debug("   Video dimensions {}x{} => {}x{}.", origwidth, origheight, width, height);
-    spdlog::debug("   Video frames {}.", endFrame - startFrame);
-
-    // we need a num/den where the den > 10,000 ... if we dont do this then the timing can get slightly distorted
-    uint32_t scale = (11000 * dataBuf->FrameTime()) / 1000u; // we need to multiple num and denom by this to generate the right scale
-    uint32_t num = scale;
-    uint32_t den = (1000 * scale) / dataBuf->FrameTime();
-    uint32_t fps = 1000u / dataBuf->FrameTime();
-
-#ifdef VIDEOWRITE_DEBUG
-    av_log_set_callback(my_av_log_callback);
-#endif
-
-    // AVCodecID vc = !EndsWith(filename, ".avi") ? (compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_HEVC) : AVCodecID::AV_CODEC_ID_RAWVIDEO;
-    // Lossless RGB MOV uses rawvideo+rgb24 in a mov container. Modern macOS
-    // AVFoundation has dropped its decoders for the legacy QuickTime codecs
-    // (qtrle, png, etc.) so they aren't viable replacements for raw AVI even
-    // though ffmpeg can still produce them — uncompressed RGB in a mov box is
-    // the only bit-exact format VideoToolbox still ships a decoder for.
-    AVCodecID vc = (isAvi || isMov) ? AVCodecID::AV_CODEC_ID_RAWVIDEO : AVCodecID::AV_CODEC_ID_H264;
-    const AVCodec* codec = ::avcodec_find_encoder(vc);
-    if (codec == nullptr) {
-        // h264/rawvideo not working, stick with original guess (likely mpeg4)
-        vc = av_guess_format(nullptr, filename, nullptr)->video_codec;
-        codec = ::avcodec_find_encoder(vc);
-    }
-    // Create the codec context that will configure the codec
-    AVFormatContext* oc = nullptr;
-    AVDictionary* av_opts = nullptr;
-    if (!isAvi && !isMov) {
-        av_dict_set(&av_opts, "brand", "mp42", 0);
-        av_dict_set(&av_opts, "movflags", "+disable_chpl+write_colr", 0);
-    }
-    const char* containerFormat = isAvi ? "avi" : (isMov ? "mov" : "mp4");
-    int ret = avformat_alloc_output_context2(&oc, nullptr, containerFormat, filename);
-    if (ret < 0 || oc == nullptr) {
-        spdlog::warn("   Could not create output context. {}", AVERROR(ret));
-        return;
-    }
-
-    // Create a video stream
-    AVStream* video_st = avformat_new_stream(oc, nullptr);
-    if (video_st == nullptr) {
-        spdlog::error("   Cannot allocate stream.");
-        return;
-    }
-    video_st->time_base.num = num;
-    video_st->time_base.den = den;
-    video_st->id = oc->nb_streams - 1;
-    video_st->duration = num * (endFrame - startFrame);
-
-    // Configure the codec
-    AVCodecContext* codecContext = avcodec_alloc_context3(codec);
-    codecContext->width = width;
-    codecContext->height = height;
-    codecContext->time_base.num = num;
-    codecContext->time_base.den = den;
-    codecContext->gop_size = 12; // key frame gap ... 1 is all key frames
-    codecContext->max_b_frames = 1;
-    codecContext->pix_fmt = AVPixelFormat::AV_PIX_FMT_YUV420P;
-    if (!compressed) {
-        if (vc == AVCodecID::AV_CODEC_ID_H264) {
-            codecContext->bit_rate = fps * width * height * 3 * 8;
-            codecContext->gop_size = 1;
-            codecContext->has_b_frames = 0;
-            codecContext->max_b_frames = 0;
-        }
-        if (vc == AVCodecID::AV_CODEC_ID_HEVC) {
-            codecContext->bit_rate = fps * width * height * 4 * 8;
-            codecContext->pix_fmt = AVPixelFormat::AV_PIX_FMT_BGRA;
-            codecContext->gop_size = 1;
-            codecContext->has_b_frames = 0;
-            codecContext->max_b_frames = 0;
-        }
-    }
-    if (codecContext->codec_id == AVCodecID::AV_CODEC_ID_H264 || codecContext->codec_id == AVCodecID::AV_CODEC_ID_HEVC) {
-        if (codec->pix_fmts[0] == AVPixelFormat::AV_PIX_FMT_VIDEOTOOLBOX) {
-            if (!compressed) {
-#if defined(__aarch64__)
-                codecContext->flags |= AV_CODEC_FLAG_QSCALE;
-                codecContext->global_quality = (FF_QP2LAMBDA * 100) - 1;
-#else
-                codecContext->rc_max_rate = codecContext->bit_rate;
-#endif
-            }
-            ::av_opt_set_int(codecContext, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
-        } else {
-            if (!compressed) {
-                ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
-                ::av_opt_set(codecContext, "crf_max", "0", AV_OPT_SEARCH_CHILDREN);
-                ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
-            } else {
-                ::av_opt_set(codecContext, "crf", "18", AV_OPT_SEARCH_CHILDREN);
-            }
-        }
-    } else if (codecContext->codec_id == AV_CODEC_ID_MPEG4) {
-        ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
-        ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
-    } else if (codecContext->codec_id == AV_CODEC_ID_RAWVIDEO) {
-        // For .mov we use RGB24 (matches the source, makes sws_scale a true
-        // pass-through, and pairs with the 'raw ' tag in the MOV sample
-        // description). For .avi we keep the legacy BGR24 layout.
-        codecContext->pix_fmt = isMov ? AV_PIX_FMT_RGB24 : AV_PIX_FMT_BGR24;
-        if (isMov) {
-            // AVFoundation/QuickTime require pasp + fiel atoms in the mov stsd;
-            // the mov muxer only emits them if these fields are populated on
-            // the codec context BEFORE avcodec_open2.
-            codecContext->sample_aspect_ratio = AVRational{ 1, 1 };
-            codecContext->field_order = AV_FIELD_PROGRESSIVE;
-        }
-        codecContext->gop_size = 1;
-        codecContext->has_b_frames = 0;
-        codecContext->max_b_frames = 0;
-        ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
-        ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
-    } else if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
-        /* Needed to avoid using macroblocks in which some coeffs overflow.
-         * This does not happen with normal video, it just happens here as
-         * the motion of the chroma plane does not match the luma plane. */
-        codecContext->mb_decision = 2;
-    }
-
-    if (oc->oformat->flags & AVFMT_GLOBALHEADER) {
-        codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-    }
-
-    ret = avcodec_open2(codecContext, nullptr, nullptr);
-    if (ret < 0) {
-        spdlog::error("   Cannot open codec context {}.", ret);
-        return;
-    }
-
-    ret = avcodec_parameters_from_context(video_st->codecpar, codecContext);
-    if (ret != 0) {
-        spdlog::error("   Cannot init video stream from codec context");
-        return;
-    }
-
-    video_st->disposition |= AV_DISPOSITION_DEFAULT;
-    if (AV_CODEC_ID_H264 == codec->id) {
-        video_st->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
-    } else if (AV_CODEC_ID_HEVC == codec->id) {
-        video_st->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
-    } else if (AV_CODEC_ID_MPEG4 == codec->id) {
-        // video_st->codecpar->codec_tag = MKTAG('r','a','w',' ');
-    } else if (AV_CODEC_ID_RAWVIDEO == codec->id) {
-        video_st->codecpar->codec_tag = MKTAG('r', 'a', 'w', ' ');
-    }
-    AVRational r = { (int)den, (int)num };
-    video_st->avg_frame_rate = r;
-    video_st->r_frame_rate = r;
-
-    // Create the frame object which will be placed in the packet
-    AVFrame* frame = av_frame_alloc();
-    if (!frame) {
-        spdlog::error("   Cannot not allocate frame.");
-        return;
-    }
-    frame->format = codecContext->pix_fmt;
-    frame->width = codecContext->width;
-    frame->height = codecContext->height;
-
-    // Initialise image converter
-    int sws_flags = SWS_BICUBIC;
-    AVPixelFormat informat = AV_PIX_FMT_RGB24;
-    struct SwsContext* sws_ctx = sws_getContext(origwidth, origheight, informat,
-                                                codecContext->width, codecContext->height, codecContext->pix_fmt,
-                                                sws_flags, nullptr, nullptr, nullptr);
-    if (!sws_ctx) {
-        spdlog::error("   Could not create image conversion context.");
-        return;
-    }
-
-    // Create source and final image frames
-    AVFrame src_picture = { 0 };
-    ret = av_image_alloc(src_picture.data, src_picture.linesize, origwidth, origheight, informat, 1);
-    if (ret < 0) {
-        spdlog::error("   Could not allocate picture buffer.");
-        return;
-    }
-
-    ret = av_image_alloc(frame->data, frame->linesize, codecContext->width, codecContext->height, codecContext->pix_fmt, 1);
-    if (ret < 0) {
-        spdlog::error("   Could not allocate picture buffer.");
-        return;
-    }
-
-    // Dump to the log the video format
-    av_dump_format(oc, 0, filename, 1);
-
-    /* open the output file, if needed */
-    if (avio_open(&oc->pb, filename, AVIO_FLAG_WRITE) < 0) {
-        spdlog::error("   Could open file {}.", static_cast<const char*>(filename));
-        return;
-    }
-
-    /* Write the stream header, if any. */
-    if (avformat_write_header(oc, &av_opts) < 0) {
-        spdlog::error("   Could not write video file header.");
-        return;
-    }
-
-    frame->pts = 0;
-    for (size_t i = startFrame; i < endFrame; i++) {
-        // Create a bitmap with the current frame
-        wxImage image(origwidth, origheight, true);
-        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr, false);
-
-        // place it in a frame
-        ret = av_image_fill_arrays(src_picture.data, src_picture.linesize, image.GetData(), informat, origwidth, origheight, 1);
-        if (ret < 0) {
-            spdlog::error("   Error filling source image data {}.", ret);
-            return;
-        }
-
-        // invert the image, scale image and convert colour space
-        uint8_t* data = src_picture.data[0] + (origwidth * 3 * (origheight - 1));
-        uint8_t* tmp[4] = { data, nullptr, nullptr, nullptr };
-        int stride[4] = { -1 * src_picture.linesize[0], 0, 0, 0 };
-        ret = sws_scale(sws_ctx, tmp, stride,
-                        0, origheight, frame->data, frame->linesize);
-        if (ret != codecContext->height) {
-            spdlog::error("   Error resizing frame {}.", ret);
-            return;
-        }
-
-        AVPacket* pkt = av_packet_alloc();
-        ret = ::avcodec_send_frame(codecContext, frame);
-        if (ret < 0) {
-            spdlog::error("   Error encoding frame : {} {}.", ret, (const char*)DecodeAVError(ret).c_str());
-            return;
-        }
-
-        while (1) {
-            ret = avcodec_receive_packet(codecContext, pkt);
-            if (ret == 0) {
-                pkt->duration = 1LL;
-                ret = av_interleaved_write_frame(oc, pkt);
-            } else if (ret == AVERROR(EAGAIN)) {
-                break;
-            }
-        }
-
-        frame->pts += av_rescale_q(1, codecContext->time_base, video_st->time_base);
-
-        av_packet_free(&pkt);
-    }
-
-    // render out any buffered data
     {
-        AVPacket* pkt = av_packet_alloc();
-        ret = avcodec_send_frame(codecContext, nullptr);
-        while (1) {
-            ret = avcodec_receive_packet(codecContext, pkt);
-            if (ret == 0) {
-                ret = av_interleaved_write_frame(oc, pkt);
-            } else if (ret == AVERROR_EOF) {
-                break;
+        wxProgressDialog dlg(_("Export Model Video"), _("Exporting model video..."), 100, this,
+                             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+        while (!done.load()) {
+            if (!dlg.Update(pct.load())) {
+                cancel.store(true);
             }
+            wxMilliSleep(20);
         }
-        av_packet_free(&pkt);
     }
-
-    // Write the video trailer
-    av_write_trailer(oc);
-
-    // Close the output file
-    avio_closep(&oc->pb);
-
-    // Free and close everything
-    sws_freeContext(sws_ctx);
-
-    avcodec_free_context(&codecContext);
-    avformat_free_context(oc);
-
-    // Remove the log function
-#ifdef VIDEOWRITE_DEBUG
-    av_log_set_callback(nullptr);
-#endif
-
-    spdlog::debug("Model video written successfully.");
+    worker.join();
 }
 
 std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const
 {
+    return GetPresetIconFilename(preset, showDirectory);
+}
+
+std::string xLightsFrame::GetPresetIconFilename(const std::string& preset, const std::string& dir) const
+{
     wxString filename = preset + ".gif";
     filename.Replace("/", "_");
-    return (showDirectory + GetPathSeparator() + "presets" + GetPathSeparator() + filename).ToStdString();
+    return (wxString(dir) + GetPathSeparator() + "presets" + GetPathSeparator() + filename).ToStdString();
 }
 
 void xLightsFrame::CreatePresetIcons()
@@ -1309,13 +848,18 @@ void xLightsFrame::LoadPresetEffects(const CopyFormat1& pd)
 
 void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 {
+    WriteGIFForPreset(preset, _effectPresetManager, showDirectory);
+}
+
+void xLightsFrame::WriteGIFForPreset(const std::string& preset, EffectPresetManager& manager, const std::string& presetDir)
+{
     spdlog::debug("Writing preset GIF for {}.", (const char*)preset.c_str());
 
-    wxMkDir(showDirectory + "/presets", wxS_DIR_DEFAULT);
+    wxMkDir(wxString(presetDir) + "/presets", wxS_DIR_DEFAULT);
 
-    auto filename = GetPresetIconFilename(preset);
+    auto filename = GetPresetIconFilename(preset, presetDir);
 
-    EffectPreset* presetObj = _effectPresetManager.FindPresetByPath(preset, '/');
+    EffectPreset* presetObj = manager.FindPresetByPath(preset, '/');
 
     if (presetObj != nullptr) {
         wxString cp = presetObj->GetSettings();
@@ -1356,9 +900,8 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                     UpdateRenderStatus();
                 }
                 _presetRendering = false;
-            }
-
-            WriteGIFModelFile(filename, channels, 0, gifFrames, &_presetSequenceData, 1, 0, _presetModel, 50);
+                WriteGIFModelFile(filename, channels, 0, gifFrames, &_presetSequenceData, 1, 0, _presetModel, 50);
+            }                
         }
     }
 }
@@ -1366,65 +909,10 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
                                      SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime) const
 {
-    
-    spdlog::debug("Writing model GIF.");
-
-    int width;
-    int height;
-    model->GetBufferSize("Default", "2D", "None", width, height, 0);
-
-    // must be a multiple of 2
-    spdlog::debug("   GIF dimensions {}x{}.", width, height);
-    spdlog::debug("   GIF frames {}.", endFrame - startFrame);
-
-    wxImageArray imgArray;
-
-    for (size_t i = startFrame; i < endFrame; i++) {
-        // Create a bitmap with the current frame
-        wxImage image(width, height, true);
-        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr, true);
-
-        wxImage image2;
-        wxQuantize::Quantize(image, image2);
-
-        // Black out the almost blacks
-        const unsigned char BLACK_THRESHOLD = 5;
-        auto& pal = image2.GetPalette();
-
-        unsigned char* red = (unsigned char*)malloc(pal.GetColoursCount());
-        unsigned char* green = (unsigned char*)malloc(pal.GetColoursCount());
-        unsigned char* blue = (unsigned char*)malloc(pal.GetColoursCount());
-        for (int i = 0; i < pal.GetColoursCount(); i++) {
-            pal.GetRGB(i, red + i, green + i, blue + i);
-            if (*(red + i) != 0 && (*(green + i) != 0) && *(blue + i) != 0) {
-                if (*(red + i) < BLACK_THRESHOLD && *(green + i) < BLACK_THRESHOLD && *(blue + i) < BLACK_THRESHOLD) {
-                    image2.Replace(*(red + i), *(green + i), *(blue + i), 0, 0, 0);
-                    *(red + i) = 0;
-                    *(green + i) = 0;
-                    *(blue + i) = 0;
-                }
-            }
-        }
-        wxPalette newpal = wxPalette(pal.GetColoursCount(), red, green, blue);
-        image2.SetPalette(newpal);
-
-        free(red);
-        free(green);
-        free(blue);
-
-        imgArray.Add(image2);
-    }
-
-    wxGIFHandler gif = wxGIFHandler();
-
-    wxFileOutputStream outStream(filename);
-
-    bool ret = gif.SaveAnimation(imgArray, &outStream, true, frameTime);
-    if (ret) {
-        spdlog::debug("Model GIF written successfully.");
-    } else {
-        spdlog::debug("Model GIF written successfully.");
-    }
+    // The actual encoding lives in the wx-free core (ModelGifExporter) so the
+    // iPad app shares it; it reuses ModelVideoExporter's frame builder and the
+    // vendored gif-h encoder instead of wxQuantize + wxGIFHandler.
+    ModelGifExporter::WriteModelGif(filename.ToStdString(), dataBuf, startFrame, endFrame, model, startAddr, frameTime);
 }
 
 void xLightsFrame::WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,

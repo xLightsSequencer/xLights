@@ -116,7 +116,7 @@ int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x
                 if (startMs > effectEndMs) return 2; //we are done
                 
                 double start = startMs - effectStartMs;
-                double end = mark->GetEndTimeMS() - effectStartMs;
+                double end = std::min((int)mark->GetEndTimeMS(), effectEndMs) - effectStartMs;
                 backgrounds.AddHBlendedRectangleAsTriangles(x1 + x_size * start, y1, x1 + end * x_size, y2, colorMask, 0, e->GetPalette());
                 found1 = true;
             }

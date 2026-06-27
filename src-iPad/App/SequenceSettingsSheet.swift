@@ -102,6 +102,8 @@ private struct InfoTab: View {
     @State private var currentMediaPath: String = ""
     @State private var pickingMediaFile = false
     @State private var pickedMediaURL: URL? = nil
+    @State private var durationText: String = ""
+    @AppStorage("overwriteTagsOnMediaChange") private var overwriteTags = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -110,12 +112,23 @@ private struct InfoTab: View {
                         value: viewModel.document.sequenceFileVersion())
             SettingsRow(label: "App Version",
                         value: viewModel.document.currentAppVersion())
-            SettingsRow(label: "Duration",
-                        value: formatDuration(viewModel.sequenceDurationMS))
+            HStack {
+                Text("Duration (sec)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                TextField("Seconds", text: $durationText)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 110)
+                    .multilineTextAlignment(.trailing)
+                    .onSubmit { commitDuration() }
+            }
             SettingsRow(label: "Frame Interval",
                         value: "\(viewModel.frameIntervalMS) ms")
             SettingsRow(label: "Models / Submodels",
                         value: "\(viewModel.document.sequenceModelCount())")
+            SettingsRow(label: "Media Hash",
+                        value: viewModel.document.mediaFileHash())
             Divider().padding(.vertical, 4)
             // Changing from Musical to Animation clears the audio
             // file (bridge's SetSequenceType handles that). Changing
@@ -168,13 +181,21 @@ private struct InfoTab: View {
                 Label("Choose Audio File…", systemImage: "music.note.list")
             }
             .buttonStyle(.bordered)
-            Text("Swapping the audio file does not re-run song / artist auto-tagging. Use the Metadata tab to update text fields if needed.")
+            // Desktop "Overwrite Tags" checkbox: when on, swapping the
+            // audio pulls song/artist/album from the new file's tags
+            // into the sequence metadata.
+            Toggle("Overwrite metadata tags on audio change", isOn: $overwriteTags)
+                .font(.caption)
+            Text(overwriteTags
+                 ? "Swapping the audio file replaces Song / Artist / Album from the new file's tags."
+                 : "Swapping the audio file preserves the existing Song / Artist / Album metadata.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
         .onAppear {
             seqType = viewModel.document.sequenceType()
             currentMediaPath = viewModel.document.currentMediaFilePath()
+            durationText = String(format: "%.3f", Double(viewModel.sequenceDurationMS) / 1000.0)
         }
         .fileImporter(isPresented: $pickingMediaFile,
                       allowedContentTypes: [.audio]) { result in
@@ -188,7 +209,24 @@ private struct InfoTab: View {
         ) { storedPath in
             _ = viewModel.document.setMediaFilePath(storedPath)
             currentMediaPath = storedPath
+            if overwriteTags {
+                let title = viewModel.document.audioTitle()
+                let artist = viewModel.document.audioArtist()
+                let album = viewModel.document.audioAlbum()
+                if !title.isEmpty { _ = viewModel.document.setHeaderInfo(title, forKey: "song") }
+                if !artist.isEmpty { _ = viewModel.document.setHeaderInfo(artist, forKey: "artist") }
+                if !album.isEmpty { _ = viewModel.document.setHeaderInfo(album, forKey: "album") }
+            }
         }
+    }
+
+    private func commitDuration() {
+        let secs = Double(durationText.trimmingCharacters(in: .whitespaces)) ?? 0
+        let ms = Int(secs * 1000.0)
+        if ms > 0, viewModel.document.setSequenceDurationMS(Int32(ms)) {
+            viewModel.reloadRows()
+        }
+        durationText = String(format: "%.3f", Double(viewModel.sequenceDurationMS) / 1000.0)
     }
 
     private var displayFilename: String {
@@ -280,9 +318,11 @@ private struct MetadataTab: View {
 
 /// Phase E follow-up — central management of timing tracks. Per-row
 /// rename/delete already exists on the row-header long-press menu;
-/// this tab adds bulk import (.xtiming, .lms, .pgo), per-track
-/// `.xtiming` export, and a single-place overview of every timing
-/// track in the sequence.
+/// this tab adds bulk import (.xtiming, LOR .lms, Papagayo .pgo,
+/// .srt, Audacity .txt, ElevenLabs .json, Vixen 3 .tim, LSP .msq,
+/// and timing tracks from an xLights .xsq), per-track `.xtiming`
+/// export, and a single-place overview of every timing track in the
+/// sequence.
 private struct TimingsTab: View {
     @Environment(SequencerViewModel.self) var viewModel
 
@@ -299,6 +339,19 @@ private struct TimingsTab: View {
     @State private var importFormat: ImportFormat = .xtiming
     @State private var exportTarget: TimingRow?
     @State private var exportDoc: XTimingFile?
+    // TIM-3 multi-track export.
+    @State private var showingMultiExportPicker = false
+    @State private var multiExportSelection: Set<Int> = []
+    @State private var multiExportDoc: MultiXTimingFile?
+
+    // Multi-select import for Vixen3 (.tim) / xLights (.xsq) sequences, which
+    // can hold several timing tracks. Discover the names, let the user choose
+    // which to import (matches the desktop wxMultiChoiceDialog).
+    @State private var showingMultiImportPicker = false
+    @State private var importTrackNames: [String] = []
+    @State private var importTrackSelection: Set<Int> = []
+    @State private var importPendingPath: String? = nil
+    @State private var importPendingIsVixen3 = false
 
     // Settings is itself presented as a sheet, so the app-level
     // `.sheet(isPresented: viewModel.showingAddTimingTrack)` can't
@@ -311,19 +364,32 @@ private struct TimingsTab: View {
 
     private enum ImportFormat: String, CaseIterable, Identifiable {
         case xtiming, lor, papagayo
+        case srt, audacity, elevenLabs, vixen3, lsp, xlightsSeq
         var id: String { rawValue }
         var label: String {
             switch self {
-            case .xtiming:  return "xLights (.xtiming)"
-            case .lor:      return "LOR (.lms)"
-            case .papagayo: return "Papagayo (.pgo)"
+            case .xtiming:    return "xLights (.xtiming)"
+            case .lor:        return "LOR (.lms / .las)"
+            case .papagayo:   return "Papagayo (.pgo)"
+            case .srt:        return "Subtitles (.srt)"
+            case .audacity:   return "Audacity Labels (.txt)"
+            case .elevenLabs: return "ElevenLabs (.json)"
+            case .vixen3:     return "Vixen 3 (.tim)"
+            case .lsp:        return "LSP (.msq)"
+            case .xlightsSeq: return "xLights sequence (.xsq)"
             }
         }
         var ext: String {
             switch self {
-            case .xtiming:  return "xtiming"
-            case .lor:      return "lms"
-            case .papagayo: return "pgo"
+            case .xtiming:    return "xtiming"
+            case .lor:        return "lms"
+            case .papagayo:   return "pgo"
+            case .srt:        return "srt"
+            case .audacity:   return "txt"
+            case .elevenLabs: return "json"
+            case .vixen3:     return "tim"
+            case .lsp:        return "msq"
+            case .xlightsSeq: return "xsq"
             }
         }
     }
@@ -345,7 +411,7 @@ private struct TimingsTab: View {
             .listStyle(.inset)
             .fileImporter(
                 isPresented: $importing,
-                allowedContentTypes: [importContentType],
+                allowedContentTypes: importContentTypes,
                 allowsMultipleSelection: false
             ) { result in
                 handleImport(result: result)
@@ -373,6 +439,121 @@ private struct TimingsTab: View {
                 AddTimingTrackSheet()
                     .environment(viewModel)
             }
+            // TIM-3 multi-track export: pick tracks, then export one .xtiming.
+            .sheet(isPresented: $showingMultiExportPicker) {
+                multiExportPicker
+            }
+            // Multi-select import: pick which Vixen3/xLights timing tracks to bring in.
+            .sheet(isPresented: $showingMultiImportPicker) {
+                multiImportPicker
+            }
+            .fileExporter(
+                isPresented: Binding(
+                    get: { multiExportDoc != nil },
+                    set: { if !$0 { multiExportDoc = nil } }
+                ),
+                document: multiExportDoc,
+                contentType: kXTimingFileType,
+                defaultFilename: "Timings"
+            ) { _ in
+                multiExportDoc = nil
+            }
+    }
+
+    // TIM-3 — multi-select sheet listing every timing track; Export
+    // writes the checked ones into a single `<timings>` .xtiming.
+    @ViewBuilder
+    private var multiExportPicker: some View {
+        NavigationStack {
+            List {
+                ForEach(timingRows) { tr in
+                    Button {
+                        if multiExportSelection.contains(tr.id) {
+                            multiExportSelection.remove(tr.id)
+                        } else {
+                            multiExportSelection.insert(tr.id)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: multiExportSelection.contains(tr.id)
+                                  ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(.tint)
+                            Text(tr.name)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .navigationTitle("Export Timing Tracks")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { showingMultiExportPicker = false }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Export") {
+                        let rows = timingRows.map(\.id).filter { multiExportSelection.contains($0) }
+                        multiExportDoc = MultiXTimingFile(rowIndices: rows, viewModel: viewModel)
+                        showingMultiExportPicker = false
+                    }
+                    .disabled(multiExportSelection.isEmpty)
+                }
+            }
+        }
+    }
+
+    // Multi-select sheet listing the timing tracks found in the chosen
+    // Vixen3/xLights file; Import brings in the checked ones (empty = none).
+    @ViewBuilder
+    private var multiImportPicker: some View {
+        NavigationStack {
+            List {
+                ForEach(Array(importTrackNames.enumerated()), id: \.offset) { idx, name in
+                    Button {
+                        if importTrackSelection.contains(idx) {
+                            importTrackSelection.remove(idx)
+                        } else {
+                            importTrackSelection.insert(idx)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: importTrackSelection.contains(idx)
+                                  ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(.tint)
+                            Text(name)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .navigationTitle("Import Timing Tracks")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        showingMultiImportPicker = false
+                        importPendingPath = nil
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Import") {
+                        if let path = importPendingPath {
+                            let indices = importTrackNames.indices.filter { importTrackSelection.contains($0) }
+                            if importPendingIsVixen3 {
+                                viewModel.importVixen3Timing(path: path, selectedIndices: indices)
+                            } else {
+                                viewModel.importXLightsSequenceTiming(path: path, selectedIndices: indices)
+                            }
+                        }
+                        showingMultiImportPicker = false
+                        importPendingPath = nil
+                    }
+                    .disabled(importTrackSelection.isEmpty)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -383,6 +564,14 @@ private struct TimingsTab: View {
                     showingAddTimingTrackLocal = true
                 } label: {
                     Label("Add Timing Track…", systemImage: "plus.circle.fill")
+                }
+                if !timingRows.isEmpty {
+                    Button {
+                        multiExportSelection = Set(timingRows.map(\.id))
+                        showingMultiExportPicker = true
+                    } label: {
+                        Label("Export Multiple Tracks…", systemImage: "square.and.arrow.up.on.square")
+                    }
                 }
                 if timingRows.isEmpty {
                     Text("No timing tracks. Add one above, or use the Import button below.")
@@ -449,10 +638,25 @@ private struct TimingsTab: View {
 
     private var importContentType: UTType {
         switch importFormat {
-        case .xtiming:  return kXTimingFileType
-        case .lor:      return UTType(filenameExtension: "lms") ?? .xml
-        case .papagayo: return UTType(filenameExtension: "pgo") ?? .text
+        case .xtiming:    return kXTimingFileType
+        case .lor:        return UTType(filenameExtension: "lms") ?? .xml
+        case .papagayo:   return UTType(filenameExtension: "pgo") ?? .text
+        case .srt:        return UTType(filenameExtension: "srt") ?? .text
+        case .audacity:   return UTType(filenameExtension: "txt") ?? .plainText
+        case .elevenLabs: return UTType(filenameExtension: "json") ?? .json
+        case .vixen3:     return UTType(filenameExtension: "tim") ?? .xml
+        case .lsp:        return UTType(filenameExtension: "msq") ?? .data
+        case .xlightsSeq: return UTType(filenameExtension: "xsq") ?? .xml
         }
+    }
+
+    // SEQ-7 — one extension per format, except LOR which accepts both .lms
+    // (musical) and .las (animation), matching desktop's ImportTimingElement.
+    private var importContentTypes: [UTType] {
+        if importFormat == .lor {
+            return [UTType(filenameExtension: "lms"), UTType(filenameExtension: "las")].compactMap { $0 }
+        }
+        return [importContentType]
     }
 
     private func handleImport(result: Result<[URL], Error>) {
@@ -461,11 +665,41 @@ private struct TimingsTab: View {
         defer { if needsAccess { url.stopAccessingSecurityScopedResource() } }
         _ = XLSequenceDocument.obtainAccess(toPath: url.path,
                                               enforceWritable: false)
+
+        // Vixen3 / xLights sequences can hold several timing tracks: offer a
+        // multi-select picker when there's more than one. obtainAccess above
+        // persists a security-scoped bookmark, so the file stays reachable for
+        // the deferred import performed from the picker.
+        if importFormat == .vixen3 || importFormat == .xlightsSeq {
+            let names = importFormat == .vixen3
+                ? viewModel.vixen3TimingTrackNames(path: url.path)
+                : viewModel.xLightsTimingTrackNames(path: url.path)
+            if names.count > 1 {
+                importTrackNames = names
+                importTrackSelection = Set(names.indices)
+                importPendingPath = url.path
+                importPendingIsVixen3 = (importFormat == .vixen3)
+                showingMultiImportPicker = true
+                return
+            }
+            // 0 or 1 track: import directly (empty selection imports all).
+            let added = importFormat == .vixen3
+                ? viewModel.importVixen3Timing(path: url.path, selectedIndices: [])
+                : viewModel.importXLightsSequenceTiming(path: url.path, selectedIndices: [])
+            if added > 0 { viewModel.reloadRows() }
+            return
+        }
+
         let added: Int
         switch importFormat {
-        case .xtiming:  added = viewModel.importXTiming(path: url.path)
-        case .lor:      added = viewModel.importLorTiming(path: url.path)
-        case .papagayo: added = viewModel.importPapagayoTiming(path: url.path)
+        case .xtiming:    added = viewModel.importXTiming(path: url.path)
+        case .lor:        added = viewModel.importLorTiming(path: url.path)
+        case .papagayo:   added = viewModel.importPapagayoTiming(path: url.path)
+        case .srt:        added = viewModel.importSRTTiming(path: url.path)
+        case .audacity:   added = viewModel.importAudacityTiming(path: url.path)
+        case .elevenLabs: added = viewModel.importElevenLabsTiming(path: url.path)
+        case .lsp:        added = viewModel.importLSPTiming(path: url.path)
+        case .vixen3, .xlightsSeq: added = 0 // handled above
         }
         if added > 0 { viewModel.reloadRows() }
     }
@@ -547,6 +781,36 @@ private struct XTimingFile: FileDocument {
             return nil
         }
         self.suggestedName = suggestedName
+        self.payload = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        throw CocoaError(.featureUnsupported)
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: payload)
+    }
+}
+
+/// TIM-3 — exports multiple timing tracks into one `<timings>` .xtiming.
+private struct MultiXTimingFile: FileDocument {
+    static var readableContentTypes: [UTType] { [kXTimingFileType] }
+    static var writableContentTypes: [UTType] { [kXTimingFileType] }
+
+    let payload: Data
+
+    @MainActor
+    init?(rowIndices: [Int], viewModel: SequencerViewModel) {
+        guard !rowIndices.isEmpty else { return nil }
+        let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("xtiming")
+        defer { try? FileManager.default.removeItem(at: tmp) }
+        guard viewModel.exportTimingTracks(rowIndices: rowIndices, path: tmp.path),
+              let data = try? Data(contentsOf: tmp) else {
+            return nil
+        }
         self.payload = data
     }
 
@@ -763,10 +1027,32 @@ private struct RenderTab: View {
 
     @State private var blendingEnabled: Bool = false
     @State private var frameMS: Int = 50
-    @State private var autosaveInterval: Int = 5
+    @AppStorage("autosaveIntervalMinutes") private var autosaveInterval: Int = 5
+    @State private var renderMode: String = "Erase"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Render Mode")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Picker("", selection: $renderMode) {
+                    Text("Erase").tag("Erase")
+                    Text("Canvas").tag("Canvas")
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: renderMode) { _, new in
+                    _ = viewModel.document.setRenderMode(new)
+                }
+                Text(renderMode == "Canvas"
+                     ? "Canvas mode preserves the previous frame so layered effects accumulate on top of each other."
+                     : "Erase mode clears the buffer each frame (the default).")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
             Toggle(isOn: $blendingEnabled) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Model Blending")
@@ -809,9 +1095,10 @@ private struct RenderTab: View {
                     .foregroundStyle(.secondary)
                 Picker("", selection: $autosaveInterval) {
                     Text("Off").tag(0)
-                    Text("2 min").tag(2)
+                    Text("3 min").tag(3)
                     Text("5 min").tag(5)
                     Text("10 min").tag(10)
+                    Text("15 min").tag(15)
                     Text("30 min").tag(30)
                 }
                 .pickerStyle(.segmented)
@@ -834,6 +1121,7 @@ private struct RenderTab: View {
             blendingEnabled = viewModel.document.sequenceSupportsModelBlending()
             frameMS = viewModel.frameIntervalMS
             autosaveInterval = viewModel.autosaveIntervalMinutes
+            renderMode = viewModel.document.renderMode()
         }
     }
 }

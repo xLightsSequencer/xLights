@@ -33,12 +33,17 @@ class wxStaticText;
 #include <glm/glm.hpp>
 #include <pugixml.hpp>
 
+#include "models/handles/Handles.h"
+#include "models/handles/DragSession.h"
+#include "models/handles/SpaceMouseSession.h"
+
 #include "setup/ControllerConnectionDialog.h"
 #include "shared/utils/xlPropertyGrid.h"
 #include <wx/aui/aui.h>
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <vector>
 #include <list>
@@ -186,6 +191,12 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM3D;
         static const long ID_PREVIEW_MODEL_CREATEGROUP;
+        static const long ID_PREVIEW_MODEL_LINKASSET;
+        static const long ID_PREVIEW_MODEL_ADDTOSET;
+        static const long ID_PREVIEW_MODEL_REMOVEFROMSET;
+        static const long ID_PREVIEW_MODEL_DELETESET;
+        static const long ID_PREVIEW_MODEL_RENAMESET;
+        static const long ID_PREVIEW_MODEL_MANAGESET;
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
@@ -213,6 +224,9 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE;
         static const long ID_PREVIEW_BULKEDIT_PREVIEW;
         static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEX;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEY;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEZ;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
         static const long ID_PREVIEW_ALIGN_GROUND;
@@ -270,6 +284,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS;
         static const long ID_PREVIEW_FLIP_HORIZONTAL;
         static const long ID_PREVIEW_FLIP_VERTICAL;
+        static const long ID_PREVIEW_SWAP_START_END;
         static const long ID_SET_CENTER_OFFSET;
 
 	public:
@@ -347,6 +362,7 @@ class LayoutPanel: public wxPanel
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
+        void FocusModelTree();
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
@@ -406,6 +422,10 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerPreview();
         void BulkEditGroupControllerPreview();
         void BulkEditDimmingCurves();
+        void BulkEditRotateX();
+        void BulkEditRotateY();
+        void BulkEditRotateZ();
+        void BulkEditRotateAxis(char axis);
         void ReplaceModel();
         void EditSubModelAlias();
         void ShowNodeLayout();
@@ -420,6 +440,15 @@ class LayoutPanel: public wxPanel
         bool IsAllSelectedModelsArePixelProtocol() const;
         void AddSingleModelOptionsToBaseMenu(wxMenu &menu);
         void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);
+        void AddModelSetOptionsToMenu(wxMenu& menu);
+        void DoLinkAsSet();
+        void DoAddSelectedToSet(const std::string& setName);
+        void DoRemoveSelectedFromSet();
+        void DoDeleteSet();
+        void DoRenameSet();
+        void DoManageSet();
+        // Returns models present in the current selection (canvas + tree).
+        std::vector<Model*> GetSelectedModelsForSetActions() const;
         void AddAlignOptionsToMenu(wxMenu* mnuAlign);
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
         void AddResizeOptionsToMenu(wxMenu* mnuResize);
@@ -450,7 +479,7 @@ class LayoutPanel: public wxPanel
         std::list<std::string> GetTreeItemPath(wxTreeListItem item);
         wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
         void ReselectTreeModels(std::vector<std::list<std::string>> modelPaths);
-        void SelectModelInTree(Model* modelToSelect);
+        void SelectModelInTree(Model* modelToSelect, bool preserveFilter = false);
         void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
         void UnSelectModelInTree(Model* modelToUnSelect);
         void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
@@ -483,7 +512,13 @@ class LayoutPanel: public wxPanel
         int m_bound_end_y = 0;
         bool m_3d_lasso_shift_continuous = false;  // shift was still held when last 3D lasso ended
         bool m_3d_lasso_fresh_start = false;       // current 3D lasso clears prior selection
-        int m_over_handle = -1;
+        // Hover state: the handle the cursor is currently over.
+        // Cleared (nullopt) when the cursor is not on any handle.
+        std::optional<handles::Id> m_over_handle;
+        // Trailing-vertex counter for polyline create. Distinct from
+        // `m_over_handle` because the two have disjoint lifetimes and
+        // need different representations. Init -1 (NO_HANDLE).
+        int m_polyline_create_handle = -1;
         bool m_moving_handle = false;
         bool m_wheel_down = false;
         bool m_polyline_active = false;
@@ -505,10 +540,25 @@ class LayoutPanel: public wxPanel
         BaseObject *highlightedBaseObject = nullptr;
         wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched = false;
-        int over_handle = -1;
+        // Previous hover state, used to detect transitions so
+        // MouseOverHandle is only called on change.
+        std::optional<handles::Id> over_handle;
         glm::vec3 last_centerpos = {0,0,0};
         glm::vec3 last_worldrotate = {0,0,0};
         glm::vec3 last_worldscale = {0,0,0};
+
+        // descriptor-based drag session. Non-null while a
+        // new-API drag is in progress; legacy `MoveHandle3D` path
+        // is bypassed in mouse-move/up when this is set.
+        std::unique_ptr<handles::DragSession> m_dragSession;
+
+        // SpaceMouse 6-DOF session. Held across consecutive
+        // EVT_MOTION3D frames so per-frame Apply() calls accumulate
+        // on the same handle. Reset whenever selection changes or
+        // SpaceMouse goes idle (we'll drop it when no events arrive
+        // for one frame — see OnPreviewMotion3D).
+        std::unique_ptr<handles::SpaceMouseSession> m_spaceMouseSession;
+        BaseObject* m_spaceMouseTarget = nullptr;
 
         void clearPropGrid();
         bool stringPropsVisible = false;
@@ -584,7 +634,6 @@ class LayoutPanel: public wxPanel
         BaseObject* last_highlight = nullptr;
         int m_last_mouse_x = 0;
         int m_last_mouse_y = 0;
-        bool creating_model =  false;
         bool mouse_state_set = false;
 
         void OnSelectionChanged(wxTreeListEvent& event);
@@ -627,7 +676,8 @@ class LayoutPanel: public wxPanel
         void DisplayAddDmxPopup();
         void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
-        void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit = 0.0f);
+        std::string ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit = 0.0f);
+        std::string FindNextModelNameAfterDelete(const wxArrayString& deletedNames) const;
         int GetColumnIndex(const std::string& name) const;
         wxSearchCtrl* ModelFilterCtrl = nullptr;
         wxString _filterString;

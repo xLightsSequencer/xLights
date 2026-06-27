@@ -345,6 +345,7 @@ void SubModel::CalcRangeXYBufferSize()
         if (idx < (int)parent->Nodes.size()) {
             NodeBaseClass* node = parent->Nodes[idx]->clone();
             _startChannel = (std::min)(_startChannel, node->ActChan);
+            _nodeIndexMap[idx] = static_cast<int>(Nodes.size());
             Nodes.push_back(NodeBaseClassPtr(node));
             for (auto& c : node->Coords) {
                 c.bufX -= minx;
@@ -434,7 +435,7 @@ void SubModel::initDefaultBuffer(const std::string &nodes) {
                     if (_nodeIndexMap.find(nn) == _nodeIndexMap.end()) {
                         node = parent->Nodes[nn]->clone();
                         _startChannel = (std::min)(_startChannel, node->ActChan);
-                        _nodeIndexMap[nn] = Nodes.size();
+                        _nodeIndexMap[nn] = static_cast<int>(Nodes.size());
                         Nodes.push_back(NodeBaseClassPtr(node));
                         if (node->Coords.size() > 1) {
                             node->Coords.resize(1);
@@ -553,6 +554,7 @@ void SubModel::initSubbufferRange(std::string const& range) {
         if (parent->IsNodeInBufferRange(m, x1, y1, x2, y2)) {
             NodeBaseClass* node = parent->Nodes[m]->clone();
             _startChannel = (std::min)(_startChannel, node->ActChan);
+            _nodeIndexMap[m] = static_cast<int>(Nodes.size());
             Nodes.push_back(NodeBaseClassPtr(node));
             for (auto& c : node->Coords) {
                 c.bufX -= minx;

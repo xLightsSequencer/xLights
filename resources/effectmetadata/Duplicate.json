@@ -51,6 +51,14 @@
             "type": "bool",
             "controlType": "checkbox",
             "default": false
+        },
+        {
+            "id": "Duplicate_Include_Submodels",
+            "label": "Include Submodels",
+            "description": "When enabled, also duplicates effects from matching submodels of the source model onto the corresponding submodels of the current model (matched by name).",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false
         }
     ]
 }

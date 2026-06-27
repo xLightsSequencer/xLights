@@ -15,7 +15,56 @@
 #include <wx/msgdlg.h>
 #include <log.h>
 
-#ifndef __WXMAC__
+#include "graphics/GLBackend.h"
+#include "graphics/AngleEGL.h"
+
+#if defined(USE_GLES) && !defined(__WXMAC__)
+// ANGLE / OpenGL ES 3.0 — direct prototypes from libGLESv2 (no fn-ptr loading).
+#ifdef _MSC_VER
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+#include <GLES3/gl3.h>
+static bool hasOpenGL3FramebufferObjects() { return true; }  // FBOs are core in ES3
+
+// TEMP ANGLE crash diagnosis: GL_KHR_debug synchronous callback.  ANGLE reports
+// the reason for a failing/invalid GL call (and often the internal state just
+// before an access-violation) through this callback ON the offending thread.
+// Bits below aren't in the ES3.0 core header.
+#ifndef GL_DEBUG_OUTPUT
+#define GL_DEBUG_OUTPUT 0x92E0
+#endif
+#ifndef GL_DEBUG_OUTPUT_SYNCHRONOUS
+#define GL_DEBUG_OUTPUT_SYNCHRONOUS 0x8242
+#endif
+#ifndef GL_DEBUG_SEVERITY_HIGH
+#define GL_DEBUG_SEVERITY_HIGH   0x9146
+#define GL_DEBUG_SEVERITY_MEDIUM 0x9147
+#endif
+typedef void (GL_APIENTRY *XL_GLDEBUGPROCKHR)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, const void*);
+typedef void (GL_APIENTRY *XL_PFNGLDBGCBKHR)(XL_GLDEBUGPROCKHR, const void*);
+typedef void (GL_APIENTRY *XL_PFNGLDBGCTLKHR)(GLenum, GLenum, GLenum, GLsizei, const GLuint*, GLboolean);
+static void GL_APIENTRY xlAngleDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei, const GLchar* message, const void*) {
+    if (severity != GL_DEBUG_SEVERITY_HIGH && severity != GL_DEBUG_SEVERITY_MEDIUM) return;
+    static FILE* f = fopen("D:\\software\\xLights2026\\angle_khr.txt", "w");
+    if (f) {
+        fprintf(f, "[KHR] sev=0x%X type=0x%X id=%u src=0x%X: %s\n", severity, type, id, source, message ? message : "");
+        fflush(f);
+    }
+}
+static void installAngleDebugCallback() {
+    static bool warned = false;
+    auto cb  = (XL_PFNGLDBGCBKHR)xlAngleEGL::GetProcAddress("glDebugMessageCallbackKHR");
+    auto ctl = (XL_PFNGLDBGCTLKHR)xlAngleEGL::GetProcAddress("glDebugMessageControlKHR");
+    if (!cb) { if (!warned) { warned = true; spdlog::warn("ANGLE: glDebugMessageCallbackKHR unavailable"); } return; }
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    cb(xlAngleDebugCallback, nullptr);
+    if (ctl) ctl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+}
+#elif !defined(__WXMAC__)
 #ifdef _MSC_VER
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -79,6 +128,7 @@ END_EVENT_TABLE()
 
 #include "graphics/xlMesh.h"
 #include "effects/OpenGLShaders.h"
+#include "media/VideoWriter.h"
 
 
 
@@ -274,6 +324,12 @@ xlGLCanvas::~xlGLCanvas()
         delete[] m_exportReadbackBuffer;
         m_exportReadbackBuffer = nullptr;
     }
+#ifdef USE_GLES
+    if (m_eglContext) {
+        xlAngleEGL::DestroyContext(m_eglContext);
+        m_eglContext = nullptr;
+    }
+#endif
     if (m_context && m_context != m_sharedContext) {
         // VAOs owned by m_context are freed automatically when the context is destroyed.
         // Do not call SetCurrent here: the window may already be hidden or destroyed
@@ -282,7 +338,7 @@ xlGLCanvas::~xlGLCanvas()
     }
 }
 
-#ifdef __WXMSW__
+#if defined(__WXMSW__) && !defined(USE_GLES)
 static const char * getStringForSource(GLenum source) {
 
     switch(source) {
@@ -387,6 +443,9 @@ void AddDebugLog(xlGLCanvas* c)
     }
     glEnable(GL_DEBUG_OUTPUT);
 }
+#elif defined(USE_GLES)
+// OpenGL ES 3.0 has no GL_DEBUG_OUTPUT / ARB debug callback — no-op.
+void AddDebugLog(xlGLCanvas *) {}
 #else
 void AddDebugLog(xlGLCanvas *c) {
     glEnable(GL_DEBUG_OUTPUT);
@@ -502,6 +561,15 @@ void xlGLCanvas::SetCurrentGLContext()
         return;
     }
 #endif
+#ifdef USE_GLES
+    if (m_eglContext == nullptr) {
+        LOG_GL_ERRORV(CreateGLContext());
+    }
+    if (m_eglContext != nullptr) {
+        xlAngleEGL::MakeCurrent(m_eglContext);
+    }
+    return;
+#endif
     static bool errorDisplayed = false;
     glGetError();
     if (m_context == nullptr) {
@@ -527,6 +595,48 @@ void xlGLCanvas::CreateGLContext() {
     if (!IsShownOnScreen()) {
         return;
     }
+#endif
+#ifdef USE_GLES
+    if (m_eglContext == nullptr) {
+        if (!xlAngleEGL::Initialize()) {
+            m_logger->error("ANGLE EGL init failed.");
+            return;
+        }
+        // wxGLCanvas owns the native window; ANGLE renders an EGL window
+        // surface onto it.  GetHandle() is the HWND on Windows.  (Linux/GTK
+        // needs the X11/Wayland surface handle — see plan; HWND-equivalent
+        // extraction TBD there.)
+        m_eglContext = xlAngleEGL::CreateWindowContext((void*)GetHandle(),
+                                                       GetSize().GetWidth(),
+                                                       GetSize().GetHeight());
+        if (m_eglContext == nullptr) {
+            m_logger->error("ANGLE EGL window surface creation failed.");
+            return;
+        }
+        xlAngleEGL::MakeCurrent(m_eglContext);
+        // ES3 is shader-only and REQUIRES a bound VAO for every draw — must be
+        // set on EVERY canvas (bindVertexArrayID() is a no-op otherwise, which
+        // crashes glDrawArrays on ANGLE).  Not just the first canvas.
+        isCoreProfile = true;
+        installAngleDebugCallback();  // TEMP ANGLE crash diagnosis (per-context)
+        // First canvas brings up the shared GL programs/buffers exactly once.
+        static bool s_sharedInit = false;
+        if (!s_sharedInit) {
+            s_sharedInit = true;
+            const GLubyte* str = glGetString(GL_VERSION);
+            const GLubyte* rend = glGetString(GL_RENDERER);
+            const GLubyte* vend = glGetString(GL_VENDOR);
+            m_logger->info("{} - glVer: {} ({})({})  [ANGLE]", GetName().ToStdString(),
+                           (const char*)(str ? str : (const GLubyte*)"?"),
+                           (const char*)(rend ? rend : (const GLubyte*)"?"),
+                           (const char*)(vend ? vend : (const GLubyte*)"?"));
+            if (!xlOGL3GraphicsContext::InitializeSharedContext()) {
+                m_logger->error("Failed to initialise shared ANGLE GL context.");
+            }
+        }
+        InitializeGLContext();
+    }
+    return;
 #endif
     if (m_context == nullptr) {
         wxGLContext *base = m_sharedContext;
@@ -624,6 +734,9 @@ void xlGLCanvas::CreateGLContext() {
             m_logger->info(configs);
             printf("%s\n", configs.c_str());
 
+            m_logger->info("GL backend (compiled): {}",
+                           xlGLBackend::ToString(xlGLBackend::CompiledBackend()));
+
             if (m_logger->level() == spdlog::level::level_enum::debug) {
                 AddDebugLog(this);
             }
@@ -658,6 +771,24 @@ xlGraphicsContext *xlGLCanvas::PrepareContextForDrawing() {
     return PrepareContextForDrawing(ClearBackgroundColor());
 }
 xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
+#ifdef USE_GLES
+    // Serialize this on-screen frame against the off-screen ShaderEffect pool so
+    // ANGLE's shared D3D11 device is never submitted from two threads at once.
+    // Released in FinishDrawing.
+    xlAngleEGL::RenderLock();
+    // The on-screen window context and the off-screen ShaderEffect pool share one
+    // ANGLE display, hence one D3D11 device with context virtualization.  ANGLE
+    // restores a context's D3D11 render-target/blend state on eglMakeCurrent, but
+    // SKIPS that work when the context is already current on the calling thread.
+    // The main thread keeps its window context current across frames, so after a
+    // worker shader-render activates the pool's pbuffer context on the shared
+    // device, the next on-screen eglMakeCurrent(window) is a no-op and ANGLE
+    // leaves the device pointing at the pool's (now stale/released) render target
+    // — the next draw faults in RenderStateCache::GetBlendStateKey.  Clearing
+    // current here forces the following MakeCurrent to fully re-activate the
+    // window context and restore its render targets.
+    xlAngleEGL::ClearCurrent();
+#endif
     InitializeGLContext();
     SetCurrentGLContext();
 
@@ -683,18 +814,33 @@ xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
 }
 void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx, bool display) {
     if (display) {
+#ifdef USE_GLES
+        xlAngleEGL::SwapBuffers(m_eglContext);
+#else
         SwapBuffers();
+#endif
     }
     delete ctx;
+#ifdef USE_GLES
+    xlAngleEGL::RenderUnlock();  // paired with RenderLock in PrepareContextForDrawing
+#endif
 }
 
-bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize) {
-    bool padWidth = (w % 2);
-    bool padHeight = (h % 2);
-    int widthWithPadding = padWidth ? (w + 1) : w;
-    int heightWithPadding = padHeight ? (h + 1) : h;
-    int reqSize = widthWithPadding * 3 * heightWithPadding;
-    if (bufferSize < reqSize) {
+bool xlGLCanvas::getFrameForExport(VideoWriterFrame& frame) {
+    // OpenGL has no zero-copy native surface; always fill the CPU RGB buffer.
+    // The caller's buffer is sized exactly to w*h*3 (unpadded) -- any
+    // even-dimension padding the encoder needs is handled downstream by
+    // sws_scale, so this must not pad the buffer itself.
+    const int w = frame.width;
+    const int h = frame.height;
+    uint8_t *buffer = frame.rgbBuffer;
+    const int bufferSize = frame.rgbBufferSize;
+    if (buffer == nullptr) {
+        return false;
+    }
+    size_t rowBytes = (size_t)w * 3;
+    size_t reqSize = rowBytes * (size_t)h;
+    if ((size_t)bufferSize < reqSize) {
         return false;
     }
 
@@ -702,12 +848,10 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
     // persistent readback buffer (no per-frame allocation). The frame comes
     // back with origin at bottom-left, so we flip row-by-row via memcpy when
     // copying into the caller's destination buffer.
-    size_t rowBytes = (size_t)w * 3;
-    size_t needed = rowBytes * (size_t)h;
-    if (needed > m_exportReadbackBufferSize) {
+    if (reqSize > m_exportReadbackBufferSize) {
         delete[] m_exportReadbackBuffer;
-        m_exportReadbackBuffer = new uint8_t[needed];
-        m_exportReadbackBufferSize = needed;
+        m_exportReadbackBuffer = new uint8_t[reqSize];
+        m_exportReadbackBufferSize = reqSize;
     }
     // Force tight row packing for the readback, then restore the previous
     // setting so later GL operations that assume the default alignment aren't
@@ -718,19 +862,11 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
     glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_exportReadbackBuffer);
     glPixelStorei(GL_PACK_ALIGNMENT, previousPackAlignment);
 
-    size_t dstRowBytes = (size_t)widthWithPadding * 3;
     unsigned char *dst = buffer;
-    if (padHeight) {
-        memset(dst, 0, dstRowBytes);
-        dst += dstRowBytes;
-    }
     for (int y = h - 1; y >= 0; --y) {
         const unsigned char *src = m_exportReadbackBuffer + rowBytes * (size_t)y;
         memcpy(dst, src, rowBytes);
-        if (padWidth) {
-            dst[rowBytes] = dst[rowBytes + 1] = dst[rowBytes + 2] = 0x00;
-        }
-        dst += dstRowBytes;
+        dst += rowBytes;
     }
 
     return true;

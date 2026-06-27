@@ -472,7 +472,10 @@ Earcut<N>::findHoleBridge(Node* hole, Node* outerNode) {
     Node* p = outerNode;
     double hx = hole->x;
     double hy = hole->y;
-    double qx = -std::numeric_limits<double>::infinity();
+    // xLights local patch: desktop Release uses -ffast-math which implies
+    // -ffinite-math-only; -inf gets folded to 0 under -O3 + LTO and `x > qx`
+    // stops accepting negative x coords. Use the most-negative finite value.
+    double qx = std::numeric_limits<double>::lowest();
     Node* m = nullptr;
 
     // find a segment intersected by a ray from the hole's leftmost Vertex to the left;
@@ -501,7 +504,9 @@ Earcut<N>::findHoleBridge(Node* hole, Node* outerNode) {
     // otherwise choose the Vertex of the minimum angle with the ray as connection Vertex
 
     const Node* stop = m;
-    double tanMin = std::numeric_limits<double>::infinity();
+    // xLights local patch: see -ffast-math note above. Use FLT_MAX-equivalent
+    // double sentinel so the first `tan < tanMin` comparison still updates.
+    double tanMin = std::numeric_limits<double>::max();
     double tanCur = 0;
 
     p = m;

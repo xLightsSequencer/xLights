@@ -358,7 +358,7 @@ std::optional<SubModelImportData> ParseSubModelNode(pugi::xml_node node) {
     }
 
     SubModelImportData sm;
-    sm.name = node.attribute(XmlNodeKeys::NameAttribute).as_string();
+    sm.name = Trim(node.attribute(XmlNodeKeys::NameAttribute).as_string());
     sm.isRanges = std::string_view(node.attribute(XmlNodeKeys::SMTypeAttribute).as_string("ranges")) == "ranges";
     sm.vertical = std::string_view(node.attribute(XmlNodeKeys::LayoutAttribute).as_string("vertical")) == "vertical";
     sm.subBuffer = node.attribute(XmlNodeKeys::SubBufferAttribute).as_string();
@@ -439,10 +439,15 @@ std::string GetModelAttributesAsJSON(pugi::xml_node modelNode) {
 void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
     if (model == nullptr) return;
 
-    // Find the "model" node within docNode
-    pugi::xml_node modelNode = docNode.child("model");
-
-    // If no model node found, return early
+    // Find this model's node within docNode by matching the name attribute,
+    // since docNode may contain multiple model children in a multi-model export.
+    pugi::xml_node modelNode;
+    for (pugi::xml_node child : docNode.children()) {
+        if (std::string_view(child.attribute("name").as_string("")) == model->GetName()) {
+            modelNode = child;
+            break;
+        }
+    }
     if (!modelNode) return;
 
     const ModelManager& mgr = model->GetModelManager();
@@ -469,7 +474,7 @@ void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
         return;
     }
     std::vector<std::string> selected = uiCallbacks->ChooseFromList(
-        "Select Groups to Export - cancel to include no groups", allGroups, onlyGroups);
+        "Select Groups to Export for '" + model->GetName() + "' - cancel to include no groups", allGroups, onlyGroups);
     if (selected.empty()) {
         return;
     }
@@ -509,10 +514,14 @@ void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
 void AddDimensions(pugi::xml_node node, const Model* m) {
     std::string rdu = m->GetRulerDim();
     if (!rdu.empty()) {
-        // Find the "model" node within the document
-        pugi::xml_node modelNode = node.child("model");
-
-        // If no model node found, return early
+        // Find this model's node by name — node may contain multiple model children.
+        pugi::xml_node modelNode;
+        for (pugi::xml_node child : node.children()) {
+            if (std::string_view(child.attribute("name").as_string("")) == m->GetName()) {
+                modelNode = child;
+                break;
+            }
+        }
         if (!modelNode) return;
 
         pugi::xml_node xmlNode = modelNode.append_child(XmlNodeKeys::DimNodeName);

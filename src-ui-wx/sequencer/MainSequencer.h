@@ -43,10 +43,11 @@ class MainSequencer: public wxPanel
         void UpdateEffectGridVerticalScrollBar();
         bool UpdateTimeDisplay(int time_ms, const std::vector<float> &fps, bool render = true);
         void UpdateSelectedDisplay(int selected);
-        bool GetSelectedEffectsData(wxString& copy_data);
+        bool GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo = false);
         bool GetACEffectsData(wxString& copy_data);
         void GetPresetData(wxString& copy_data);
         bool CopySelectedEffects();
+        bool CopySelectedEffectsWithElementInfo();
         bool PasteByCellActive() const { return mPasteByCell; }
         void SetPasteByCell(bool state) { mPasteByCell = state; }
         void HorizontalScrollChanged( wxCommandEvent& event);
@@ -78,7 +79,7 @@ class MainSequencer: public wxPanel
 
         void Cut();
         void Copy();
-        void Paste(bool row_paste = false);
+        void Paste(bool row_paste = false, bool invertPasteAsLayers = false);
 
         void DoCopy(wxCommandEvent& event);
         void DoCut(wxCommandEvent& event);

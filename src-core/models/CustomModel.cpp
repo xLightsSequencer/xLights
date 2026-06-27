@@ -658,17 +658,34 @@ void CustomModel::InitCustomMatrix() {
     uint32_t height = _locations[0].size();
     uint32_t width = _locations[0][0].size();
 
-    // find the maximum node
     int maxval = 0;
-    for (const auto& l : _locations) {
-		for (const auto& r : l) {
-			for (const auto& c : r) {
-				if (c >= 0) {
-					maxval = std::max(maxval, c);
-				}
-			}
-		}
-	}
+    int minRow = (int)height - 1, maxRow = 0;
+    int minCol = (int)width - 1, maxCol = 0;
+    int minLayer = (int)depth - 1, maxLayer = 0;
+    for (size_t l = 0; l < _locations.size(); ++l) {
+        for (size_t r = 0; r < _locations[l].size(); ++r) {
+            for (size_t c = 0; c < _locations[l][r].size(); ++c) {
+                int val = _locations[l][r][c];
+                if (val > 0) {
+                    maxval = std::max(maxval, val);
+                    if ((int)r < minRow) minRow = (int)r;
+                    if ((int)r > maxRow) maxRow = (int)r;
+                    if ((int)c < minCol) minCol = (int)c;
+                    if ((int)c > maxCol) maxCol = (int)c;
+                    if ((int)l < minLayer) minLayer = (int)l;
+                    if ((int)l > maxLayer) maxLayer = (int)l;
+                }
+            }
+        }
+    }
+    if (maxval == 0) {
+        minRow = 0; maxRow = (int)height - 1;
+        minCol = 0; maxCol = (int)width - 1;
+        minLayer = 0; maxLayer = (int)depth - 1;
+    }
+    float centerRow   = (minRow + maxRow) / 2.0f;
+    float centerCol   = (minCol + maxCol) / 2.0f;
+    float centerLayer = (minLayer + maxLayer) / 2.0f;
 
     std::vector<int> nodemap;
     nodemap.resize(maxval + 1, -1);
@@ -707,16 +724,16 @@ void CustomModel::InitCustomMatrix() {
 
                         Nodes.back()->AddBufCoord(layer * ((float)width) + col, ((float)height) - row - 1);
                         auto& cc = Nodes[nodemap[idx]]->Coords.back();
-                        cc.screenX = (float)col - ((float)width) / 2.0f;
-                        cc.screenY = ((float)height) - (float)row - 1.0f - ((float)height) / 2.0f;
-                        cc.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
+                        cc.screenX = (float)col - centerCol;
+                        cc.screenY = centerRow - (float)row;
+                        cc.screenZ = centerLayer - (float)layer;
                     } else {
                         // mapped - so add a coord to existing node
                         Nodes[nodemap[idx]]->AddBufCoord(layer * ((float)width) + col, ((float)height) - row - 1);
                         auto& c = Nodes[nodemap[idx]]->Coords.back();
-                        c.screenX = (float)col - ((float)width) / 2.0f;
-                        c.screenY = ((float)height) - (float)row - 1.0f - ((float)height) / 2.0f;
-                        c.screenZ = depth - (float)layer - 1.0f - depth / 2.0f;
+                        c.screenX = (float)col - centerCol;
+                        c.screenY = centerRow - (float)row;
+                        c.screenZ = centerLayer - (float)layer;
                     }
                 }
                 ++col;
@@ -985,6 +1002,16 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager, bool da
             _data.push_back(ll);
         }
 
+        while (_data.size() < (size_t)_depth) {
+            std::vector<std::vector<std::string>> ll;
+            while (ll.size() < (size_t)_customHeight) {
+                std::vector<std::string> rr;
+                while (rr.size() < (size_t)cols) rr.push_back("");
+                ll.push_back(rr);
+            }
+            _data.push_back(ll);
+        }
+	
         for (int r = 0; r < _customHeight; r++) {
             html += "<tr>";
             for (int l = 0; l < _depth; l++) {

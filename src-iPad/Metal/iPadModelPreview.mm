@@ -53,7 +53,8 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
         _lastStartDrawingFailure = "Draw already in progress (re-entrant call)";
         return false;
     }
-    if (_canvas->getMetalLayer() == nil) {
+    const bool offscreen = (_offscreenTarget != nullptr);
+    if (!offscreen && _canvas->getMetalLayer() == nil) {
         _lastStartDrawingFailure = "No CAMetalLayer attached to canvas";
         return false;
     }
@@ -65,11 +66,14 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
         return false;
     }
 
-    // Create the Metal graphics context — acquires a drawable. Failure
-    // here usually means `nextDrawable` returned nil (CAMetalLayer not
-    // ready) or the pipeline-state cache couldn't compile shaders for
-    // this device's MTLGPUFamily.
-    _ctx = new xlMetalGraphicsContext(_canvas, nil, false);
+    // Create the Metal graphics context. On-screen passes nil so the context
+    // acquires a CAMetalLayer drawable; offscreen export passes the export
+    // texture so it renders with no on-screen surface. Failure usually means
+    // `nextDrawable` returned nil (layer not ready) or the pipeline-state
+    // cache couldn't compile shaders for this device's MTLGPUFamily.
+    _ctx = new xlMetalGraphicsContext(_canvas,
+                                      offscreen ? (__bridge id<MTLTexture>)_offscreenTarget : nil,
+                                      false);
     if (!_ctx->isValid()) {
         delete _ctx;
         _ctx = nullptr;
@@ -188,7 +192,14 @@ void iPadModelPreview::EndDrawing(bool swapBuffers) {
     _solidViewObjectProgram = nullptr;
     _transparentViewObjectProgram = nullptr;
 
-    _ctx->Commit(swapBuffers, nil);
+    if (_offscreenTarget != nullptr) {
+        // Offscreen export: blit the rendered target into the capture buffer
+        // (Commit handles the texture->buffer copy + waitUntilCompleted when
+        // displayOnScreen is false).
+        _ctx->Commit(false, (__bridge id<MTLBuffer>)_offscreenCapture);
+    } else {
+        _ctx->Commit(swapBuffers, nil);
+    }
     delete _ctx;
     _ctx = nullptr;
     _isDrawing = false;

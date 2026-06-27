@@ -18,8 +18,10 @@
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <list>
+#include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 #include <memory>
 #include <wx/timer.h>
@@ -114,6 +116,12 @@ private:
     void OnReloadMedia(const std::string& path);
     void OnReSelectImage(const std::string& oldPath);
     void OnBulkFindImages();
+    void OnReSelectShader(const std::string& oldPath);
+    void OnBulkFindShaders();
+    void ReSelectMediaByType(const std::string& oldPath, MediaType type);
+    void BulkFindMediaByType(MediaType type);
+    std::map<std::string, std::pair<int,int>> UpdateEffectPaths(const std::string& oldPath, const std::string& newPath);
+    void RenderDirtyModels(const std::map<std::string, std::pair<int,int>>& dirtyModels);
     void OnAddButtonClick(wxCommandEvent& event);
     void OnAIGenerateButtonClick(wxCommandEvent& event);
     void OnRenameButtonClick(wxCommandEvent& event);

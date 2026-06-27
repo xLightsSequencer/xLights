@@ -1,0 +1,306 @@
+name: OpenVINO Nightly (CMake + Ninja)
+
+# Nightly Windows build of xLights with OpenVINO GenAI enabled
+# (XLIGHTS_USE_OPENVINO_GENAI=ON), compiled with CMake + Ninja + vcpkg,
+# packaged into an Inno Setup installer.
+#
+# Dependency resolution:
+#   - vcpkg manifest mode using ci_scripts/vcpkg-openvino/vcpkg.json
+#     (CI-safe FFmpeg features + openvino + openvino-genai).
+#   - The openvino / openvino-genai overlay ports in ./ports are picked up via
+#     the embedded "vcpkg-configuration.overlay-ports" in that manifest.
+#   - vcpkg is set up with lukka/run-vcpkg under the workspace (D: drive) and
+#     uses a files-based binary package cache persisted with actions/cache, so
+#     the first run compiles OpenVINO from source (~slow) and later runs reuse
+#     the cached packages. (The old "x-gha" vcpkg cache provider is deprecated.)
+#   - sccache caches xLights object files across runs.
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # 06:00 UTC nightly
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Only build when there were commits in the last 24h ────────────────────
+  check_for_commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for new commits today
+        id: check-new-commits
+        shell: bash
+        run: |
+          CUTOFF_TIME=$(date -d '24 hours ago' +%s)
+          LATEST_COMMIT=$(git log -1 --format=%ct)
+          if [ "$LATEST_COMMIT" -gt "$CUTOFF_TIME" ]; then
+            echo "has-new-commits=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-new-commits=false" >> "$GITHUB_OUTPUT"
+          fi
+    outputs:
+      should_run: ${{ steps.check-new-commits.outputs.has-new-commits }}
+
+  build:
+    needs: check_for_commits
+    # Always build on manual dispatch; on schedule only when there are new commits.
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.check_for_commits.outputs.should_run == 'true' }}
+    name: CMake / Ninja / OpenVINO GenAI / Windows x64
+    runs-on: windows-latest
+
+    env:
+      BUILD_DIR: cmake_ninja_openvino
+      # Built-in release-only triplet so vcpkg doesn't also build the huge
+      # OpenVINO debug tree, which overflows the runner disk. The nightly only
+      # ships a Release installer.
+      VCPKG_DEFAULT_TRIPLET: x64-windows-release
+      SCCACHE_GHA_ENABLED: "true"
+      # vcpkg binary cache: the old "x-gha" provider is deprecated (the GitHub
+      # cache service it used was retired), so it silently cached nothing and
+      # OpenVINO was rebuilt from source every run. Use vcpkg's default
+      # files-based cache in a fixed directory and persist that directory with
+      # actions/cache (see the "Cache vcpkg binary packages" step). Located on
+      # the workspace drive (D: on the runner) so it doesn't consume cramped C:.
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}\vcpkg_bincache
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      # ── Free disk space ───────────────────────────────────────────────────
+      # The Android SDK/NDK ships preinstalled on the runner (~several GB) and
+      # xLights never uses it. Delete it up front to make room for the OpenVINO
+      # vcpkg build. Its location varies per runner, so resolve it from the
+      # standard env vars rather than assuming a fixed drive/path.
+      - name: Remove Android SDK to free space
+        shell: powershell
+        run: |
+          if (Test-Path "C:\Android\android-sdk") {
+              Remove-Item -Recurse -Force -Path "C:\Android\android-sdk"
+          }
+
+      # ── MSVC environment (Ninja drives cl.exe directly) ───────────────────
+      - name: Setup MSVC (x64)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # ── ISPC ──────────────────────────────────────────────────────────────
+      - name: Install ISPC
+        uses: ispc/install-ispc-action@main
+        with:
+          version: 1.30.0
+
+      # ── sccache ───────────────────────────────────────────────────────────
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Configure sccache
+        shell: bash
+        run: |
+          if ! sccache --zero-stats; then
+            echo "::warning::sccache GHA backend unavailable; falling back to local disk"
+            echo "SCCACHE_GHA_ENABLED=" >> "$GITHUB_ENV"
+            sccache --stop-server 2>/dev/null || true
+          fi
+
+      # ── Python helper for nightly version stamping ────────────────────────
+      - name: Install python dependency
+        run: pip install in_place
+
+      - name: Generate nightly version number
+        working-directory: build_scripts\msw
+        run: python WriteNightlyVersionFiles.py
+
+      # ── vcpkg setup (lukka/run-vcpkg) ─────────────────────────────────────
+      # Checks out + bootstraps vcpkg under the workspace (D: on the runner,
+      # which has far more free space than C:) and exports VCPKG_ROOT. vcpkg's
+      # buildtrees/downloads/packages live under this directory, so keeping it
+      # on D: keeps the heavy OpenVINO build off the cramped C: drive. The
+      # actual `vcpkg install` is driven by the CMake toolchain during Configure
+      # (runVcpkgInstall stays false). The commit is pinned for reproducible
+      # nightlies; bump it to pull newer ports.
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: ${{ github.workspace }}\vcpkg
+          vcpkgGitCommitId: eae1680538b86f962455c27abca2aad0dc304a4d
+          runVcpkgInstall: false
+
+      # ── vcpkg binary cache ────────────────────────────────────────────────
+      # Persist the files-based binary package cache across runs so OpenVINO is
+      # built from source only once. Keyed on the manifest + overlay ports +
+      # triplet; restore-keys let a prior cache seed partial reuse when only
+      # some dependencies change (vcpkg rebuilds just those and repopulates).
+      - name: Cache vcpkg binary packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}\vcpkg_bincache
+          key: vcpkg-bincache-openvino-x64-windows-release-${{ hashFiles('ci_scripts/vcpkg-openvino/vcpkg.json', 'ports/**') }}
+          restore-keys: |
+            vcpkg-bincache-openvino-x64-windows-release-
+
+      - name: Ensure binary cache dir exists
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
+
+      # ── wxWidgets ─────────────────────────────────────────────────────────
+      - name: Get wxWidgets HEAD SHA
+        id: wx-sha
+        shell: bash
+        run: |
+          sha=$(git ls-remote https://github.com/xLightsSequencer/wxWidgets.git HEAD \
+                | cut -f1 | head -c 12)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Cache wxWidgets
+        id: cache-wx
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}\wxWidgets
+          key: wxwidgets-msvc2022-x64-ninja-${{ steps.wx-sha.outputs.sha }}
+
+      - name: Checkout wxWidgets
+        if: steps.cache-wx.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: xLightsSequencer/wxWidgets
+          path: wxWidgets
+          submodules: recursive
+
+      - name: Build wxWidgets (Release)
+        if: steps.cache-wx.outputs.cache-hit != 'true'
+        working-directory: ${{ github.workspace }}\wxWidgets
+        run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
+
+      # ── Configure ─────────────────────────────────────────────────────────
+      # VCPKG_MANIFEST_DIR points at the OpenVINO-enabled manifest; cmake runs
+      # `vcpkg install` into %BUILD_DIR%\vcpkg_installed during configure.
+      - name: Configure CMake
+        shell: cmd
+        run: |
+          cmake -S . -B %BUILD_DIR% ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+            -DVCPKG_TARGET_TRIPLET=x64-windows-release ^
+            -DVCPKG_MANIFEST_DIR=%CD%\ci_scripts\vcpkg-openvino ^
+            -DXLIGHTS_USE_VCPKG=ON ^
+            -DXLIGHTS_USE_OPENVINO_GENAI=ON ^
+            -DwxWidgets_ROOT_DIR=${{ github.workspace }}\wxWidgets
+
+      # ── Build ─────────────────────────────────────────────────────────────
+      - name: Build
+        shell: cmd
+        run: cmake --build %BUILD_DIR% --parallel 8
+
+      - name: sccache stats
+        run: sccache --show-stats
+
+      # ── xlDo (companion CLI) ──────────────────────────────────────────────
+      # Built by its own CMake project; RUNTIME_OUTPUT_DIRECTORY -> bin\ so the
+      # installer's wholesale bin\ glob picks up xlDo.exe.
+      - name: Build xlDo
+        shell: cmd
+        run: |
+          cmake -S xlDo -B xldo_build ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%CD%\bin ^
+            -DwxWidgets_ROOT_DIR=${{ github.workspace }}\wxWidgets
+          cmake --build xldo_build --parallel 8
+
+      # ── fseq_convert (companion CLI) ──────────────────────────────────────
+      # Standalone CMake project (FetchContent pulls spdlog + argparse); links
+      # the vendored zstd/zlib from lib\windows64. Output -> bin\.
+      - name: Build fseq_convert
+        shell: cmd
+        run: |
+          cmake -S fseq_convert -B fseq_convert_build ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%CD%\bin
+          cmake --build fseq_convert_build --parallel 8
+
+      # ── Bundle the full OpenVINO runtime ──────────────────────────────────
+      # VCPKG_APPLOCAL_DEPS copies link-time DLLs (openvino.dll, openvino_genai.dll,
+      # tbb...) next to xLights.exe, but the OpenVINO device plugins
+      # (openvino_intel_cpu_plugin.dll, openvino_auto_plugin.dll, ...) and
+      # plugins.xml are loaded at runtime and must be copied explicitly.
+      - name: Copy OpenVINO runtime into bin
+        shell: pwsh
+        run: |
+          $inst = Join-Path $env:BUILD_DIR "vcpkg_installed\x64-windows-release"
+          $dest = Join-Path $env:GITHUB_WORKSPACE "bin"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+
+          # All installed release runtime DLLs (deps + openvino core/genai).
+          $binDir = Join-Path $inst "bin"
+          if (Test-Path $binDir) {
+            Copy-Item -Path (Join-Path $binDir "*") -Destination $dest -Recurse -Force
+          }
+
+          # OpenVINO device plugins + plugins.xml live under runtime/bin/intel64/Release.
+          $ovRuntime = Join-Path $inst "runtime\bin\intel64\Release"
+          if (Test-Path $ovRuntime) {
+            Copy-Item -Path (Join-Path $ovRuntime "*") -Destination $dest -Recurse -Force
+          }
+
+          # TBB (and any other 3rd-party runtime DLLs OpenVINO depends on) ship
+          # under runtime/3rdparty — flatten every DLL found there into bin/.
+          $tp = Join-Path $inst "runtime\3rdparty"
+          if (Test-Path $tp) {
+            Get-ChildItem -Path $tp -Recurse -Filter *.dll |
+              ForEach-Object { Copy-Item $_.FullName -Destination $dest -Force }
+          }
+
+          Write-Host "bin/ now contains:"
+          Get-ChildItem $dest -Filter *.dll | Select-Object -ExpandProperty Name | Sort-Object
+
+      # ── Installer ─────────────────────────────────────────────────────────
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build Installer
+        working-directory: build_scripts\msw
+        # /DCMAKEBUILD selects the cmake/ninja bin\ layout branch in the shared
+        # installer script (the same xLights_4_64bit_VS.iss used by win_nightly).
+        run: ISCC.exe /DCMAKEBUILD xLights_4_64bit_VS.iss
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xLights_OpenVINO_x64_Installer
+          path: build_scripts\msw\output\**
+          retention-days: 14
+
+      # ── Publish nightly prerelease ────────────────────────────────────────
+      - name: Create prerelease
+        if: github.ref == 'refs/heads/master'
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: true
+          automatic_release_tag: "nightly-openvino"
+          title: "Nightly (OpenVINO GenAI)"
+          files: |
+            ./build_scripts/msw/output/*.exe

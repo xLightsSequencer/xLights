@@ -27,7 +27,19 @@
 #endif
 
 
-#ifndef __WXMAC__
+#if defined(USE_GLES)
+// OpenGL ES 3.0 via ANGLE — direct ES3 prototypes from libGLESv2; the
+// desktop-GL function-pointer loader below is unnecessary.
+#ifdef _MSC_VER
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+#define GL_GLES_PROTOTYPES 1
+#include <GLES3/gl3.h>
+static bool LoadGLFunctions() { return true; }
+#elif !defined(__WXMAC__)
 #ifdef _MSC_VER
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -101,66 +113,73 @@ __GLXextFuncPtr wglGetProcAddress(const char* a) {
 }
 #endif
 
+// Thin wrapper over the native entry-point resolver.  This loader only
+// compiles for the native desktop-GL build; the ANGLE build (USE_GLES) uses
+// ES3 prototypes directly from libGLESv2, so no run-time loading is needed.
+static void* xlGLProc(const char* name) {
+    return (void*)wglGetProcAddress(name);
+}
+
 
 static bool LoadGLFunctions() {
-    glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
-    glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
-    glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
-    glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
-    glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
-    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)wglGetProcAddress("glGetShaderInfoLog");
-    glCreateProgram = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
-    glAttachShader = (PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader");
-    glGetProgramiv = (PFNGLGETPROGRAMIVPROC)wglGetProcAddress("glGetProgramiv");
-    glGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC)wglGetProcAddress("glGetActiveUniform");
-    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)wglGetProcAddress("glGetProgramInfoLog");
-    glDetachShader = (PFNGLDETACHSHADERPROC)wglGetProcAddress("glDetachShader");
-    glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
-    glLinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
-    glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
-    glIsProgram = (PFNGLISPROGRAMPROC)wglGetProcAddress("glIsProgram");
-    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
-    glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
-    glUniform4f = (PFNGLUNIFORM4FPROC)wglGetProcAddress("glUniform4f");
-    glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f");
-    glUniform2f = (PFNGLUNIFORM2FPROC)wglGetProcAddress("glUniform2f");
-    glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv");
-    glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
-    glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
-    glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
-    glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
-    glBufferSubData = (PFNGLBUFFERSUBDATAPROC)wglGetProcAddress("glBufferSubData");
-    glFlushMappedBufferRange = (PFNGLFLUSHMAPPEDBUFFERRANGEPROC)wglGetProcAddress("glFlushMappedBufferRange");
-    glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC)wglGetProcAddress("glMapBufferRange");
-    glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBuffer");
+    glUseProgram = (PFNGLUSEPROGRAMPROC)xlGLProc("glUseProgram");
+    glCreateShader = (PFNGLCREATESHADERPROC)xlGLProc("glCreateShader");
+    glShaderSource = (PFNGLSHADERSOURCEPROC)xlGLProc("glShaderSource");
+    glCompileShader = (PFNGLCOMPILESHADERPROC)xlGLProc("glCompileShader");
+    glGetShaderiv = (PFNGLGETSHADERIVPROC)xlGLProc("glGetShaderiv");
+    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)xlGLProc("glGetShaderInfoLog");
+    glCreateProgram = (PFNGLCREATEPROGRAMPROC)xlGLProc("glCreateProgram");
+    glAttachShader = (PFNGLATTACHSHADERPROC)xlGLProc("glAttachShader");
+    glGetProgramiv = (PFNGLGETPROGRAMIVPROC)xlGLProc("glGetProgramiv");
+    glGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC)xlGLProc("glGetActiveUniform");
+    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)xlGLProc("glGetProgramInfoLog");
+    glDetachShader = (PFNGLDETACHSHADERPROC)xlGLProc("glDetachShader");
+    glDeleteShader = (PFNGLDELETESHADERPROC)xlGLProc("glDeleteShader");
+    glLinkProgram = (PFNGLLINKPROGRAMPROC)xlGLProc("glLinkProgram");
+    glDeleteProgram = (PFNGLDELETEPROGRAMPROC)xlGLProc("glDeleteProgram");
+    glIsProgram = (PFNGLISPROGRAMPROC)xlGLProc("glIsProgram");
+    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)xlGLProc("glGetUniformLocation");
+    glUniform1i = (PFNGLUNIFORM1IPROC)xlGLProc("glUniform1i");
+    glUniform4f = (PFNGLUNIFORM4FPROC)xlGLProc("glUniform4f");
+    glUniform1f = (PFNGLUNIFORM1FPROC)xlGLProc("glUniform1f");
+    glUniform2f = (PFNGLUNIFORM2FPROC)xlGLProc("glUniform2f");
+    glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)xlGLProc("glUniformMatrix4fv");
+    glBindBuffer = (PFNGLBINDBUFFERPROC)xlGLProc("glBindBuffer");
+    glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)xlGLProc("glDeleteBuffers");
+    glGenBuffers = (PFNGLGENBUFFERSPROC)xlGLProc("glGenBuffers");
+    glBufferData = (PFNGLBUFFERDATAPROC)xlGLProc("glBufferData");
+    glBufferSubData = (PFNGLBUFFERSUBDATAPROC)xlGLProc("glBufferSubData");
+    glFlushMappedBufferRange = (PFNGLFLUSHMAPPEDBUFFERRANGEPROC)xlGLProc("glFlushMappedBufferRange");
+    glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC)xlGLProc("glMapBufferRange");
+    glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)xlGLProc("glUnmapBuffer");
 #ifndef LINUX
-    glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+    glActiveTexture = (PFNGLACTIVETEXTUREPROC)xlGLProc("glActiveTexture");
 #endif
-    glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
-    glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
-    glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
-    glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
-    glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
-    glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
-    glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)wglGetProcAddress("glGetAttribLocation");
-    glPointParameterf = (PFNGLPOINTPARAMETERFPROC)wglGetProcAddress("glPointParameterf");
+    glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)xlGLProc("glGenVertexArrays");
+    glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)xlGLProc("glBindVertexArray");
+    glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)xlGLProc("glDeleteVertexArrays");
+    glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)xlGLProc("glEnableVertexAttribArray");
+    glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)xlGLProc("glVertexAttribPointer");
+    glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)xlGLProc("glDisableVertexAttribArray");
+    glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)xlGLProc("glGetAttribLocation");
+    glPointParameterf = (PFNGLPOINTPARAMETERFPROC)xlGLProc("glPointParameterf");
 
-    auto ptr = wglGetProcAddress("glGenFramebuffers");
+    auto ptr = xlGLProc("glGenFramebuffers");
     if ( ptr != nullptr )
       glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)ptr;
     else
-       glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress("glGenFramebuffersEXT");
-     glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress("glBindFramebuffer");
-     glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)wglGetProcAddress("glDeleteFramebuffers");
-     glIsFramebuffer = (PFNGLISFRAMEBUFFERPROC)wglGetProcAddress("glIsFramebuffer");
-     glFramebufferParameteri = (PFNGLFRAMEBUFFERPARAMETERIPROC)wglGetProcAddress("glFramebufferParameteri");
-     glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffers");
-     glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC)wglGetProcAddress("glDeleteRenderbuffers");
-     glIsRenderbuffer = (PFNGLISRENDERBUFFERPROC)wglGetProcAddress("glIsRenderbuffer");
-     glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress("glBindRenderbuffer");
-     glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress("glRenderbufferStorage");
-     glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)wglGetProcAddress("glRenderbufferStorageMultisample");
-     glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress("glFramebufferRenderbuffer");
+       glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)xlGLProc("glGenFramebuffersEXT");
+     glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)xlGLProc("glBindFramebuffer");
+     glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)xlGLProc("glDeleteFramebuffers");
+     glIsFramebuffer = (PFNGLISFRAMEBUFFERPROC)xlGLProc("glIsFramebuffer");
+     glFramebufferParameteri = (PFNGLFRAMEBUFFERPARAMETERIPROC)xlGLProc("glFramebufferParameteri");
+     glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)xlGLProc("glGenRenderbuffers");
+     glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC)xlGLProc("glDeleteRenderbuffers");
+     glIsRenderbuffer = (PFNGLISRENDERBUFFERPROC)xlGLProc("glIsRenderbuffer");
+     glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)xlGLProc("glBindRenderbuffer");
+     glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)xlGLProc("glRenderbufferStorage");
+     glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)xlGLProc("glRenderbufferStorageMultisample");
+     glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)xlGLProc("glFramebufferRenderbuffer");
 
 
     return (glUseProgram != nullptr);
@@ -174,6 +193,38 @@ static bool LoadGLFunctions() {
 static bool LoadGLFunctions() {
     return true;
 }
+#endif
+
+#ifdef USE_GLES
+// OpenGL ES compatibility shims.  ES has no fixed-function point size or
+// point/line smoothing: point size is driven by gl_PointSize in the vertex
+// shader (fed by the 'pointSize' uniform), and smoothing is done in the
+// fragment shader.  We track the requested point size here; ShaderProgram
+// pushes it to the bound program.  GL_BGRA comes from ANGLE's
+// EXT_texture_format_BGRA8888.  GL_LINE_SMOOTH / GL_POINT_SIZE are defined so
+// the shared draw code compiles (the glEnable/glDisable for them are no-ops on
+// ES at runtime).
+#ifndef GL_LINE_SMOOTH
+#define GL_LINE_SMOOTH 0x0B20
+#endif
+#ifndef GL_POINT_SIZE
+#define GL_POINT_SIZE 0x0B11
+#endif
+#ifndef GL_BGRA
+#ifdef GL_BGRA_EXT
+#define GL_BGRA GL_BGRA_EXT
+#else
+#define GL_BGRA 0x80E1
+#endif
+#endif
+// ES has no 3-channel BGR upload format; define it so the texture code
+// compiles.  (The bgr-without-alpha path is uncommon; ANGLE supports BGRA via
+// EXT_texture_format_BGRA8888 for the common bgr+alpha case.)
+#ifndef GL_BGR
+#define GL_BGR 0x80E0
+#endif
+static float g_glesPointSize = 1.0f;
+static inline void glPointSize(float s) { g_glesPointSize = s; }
 #endif
 
 
@@ -209,7 +260,18 @@ public:
 
     bool Init(const char * vs, const char * fs) {
 #ifndef __APPLE__
-        if (glCreateShader == nullptr) {
+        // Bail if any required GL entry point didn't resolve. Top of stack
+        // for the Windows null-deref bucket (5 reports / 4 reporters on
+        // 2026.07) — wglGetProcAddress can leave a subset of these null if
+        // it's called before the GL context is fully current, and the old
+        // single-pointer guard let partial-loads through. The functions
+        // listed are the ones Init+CompileShader+CreateProgram below call.
+        if (glCreateShader == nullptr || glCreateProgram == nullptr ||
+            glCompileShader == nullptr || glAttachShader == nullptr ||
+            glLinkProgram == nullptr || glShaderSource == nullptr ||
+            glUseProgram == nullptr || glGetUniformLocation == nullptr ||
+            glDeleteShader == nullptr) {
+            OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "ShaderProgram::Init: GL entry points not loaded; skipping shader init.");
             return false;
         }
 #endif
@@ -246,13 +308,24 @@ public:
             LOG_GL_ERRORV(PointSmoothMinID = glGetUniformLocation(ProgramID, "PointSmoothMin"));
             LOG_GL_ERRORV(PointSmoothMaxID = glGetUniformLocation(ProgramID, "PointSmoothMax"));
             LOG_GL_ERRORV(RenderTypeID = glGetUniformLocation(ProgramID, "RenderType"));
+            LOG_GL_ERRORV(PointSizeID = glGetUniformLocation(ProgramID, "pointSize"));
         }
 
         return valid;
     }
 
     void CalcSmoothPointParams(float ps) {
+#ifdef USE_GLES
+        // Drive gl_PointSize through the uniform.  Do NOT write g_glesPointSize
+        // here: the no-arg overload reads it as the base point size set by
+        // glPointSize(), so mutating it to ps+1 turns the read-modify cycle into
+        // unbounded growth (smooth points inflate to giant circles every frame).
+        if (PointSizeID >= 0) {
+            LOG_GL_ERRORV(glUniform1f(PointSizeID, ps + 1));
+        }
+#else
         LOG_GL_ERRORV(glPointSize(ps+1));
+#endif
         float delta = 1.0 / (ps+1);
         float mid = 0.35 + 0.15 * ((ps - 1.0f)/25.0f);
         if (mid > 0.5) {
@@ -266,7 +339,11 @@ public:
 
     float CalcSmoothPointParams() {
         float ps;
+#ifdef USE_GLES
+        ps = g_glesPointSize;
+#else
         LOG_GL_ERRORV(glGetFloatv(GL_POINT_SIZE, &ps));
+#endif
         CalcSmoothPointParams(ps);
         return ps;
     }
@@ -341,6 +418,7 @@ public:
     GLuint PointSmoothMinID = 0;
     GLuint PointSmoothMaxID = 0;
     GLuint RenderTypeID = 0;
+    GLint PointSizeID = -1;  // ES gl_PointSize uniform (USE_GLES); -1 if absent
 
     bool valid = true;
 };
@@ -357,11 +435,201 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
 
     bool valid = true;
 
-    LOG_GL_ERRORV(LoadGLFunctions());
-    
+    // Capture the return value (was being discarded by LOG_GL_ERRORV). On
+    // Windows, a partial wglGetProcAddress run can leave a subset of GL
+    // function pointers null; we don't want to attempt shader compilation
+    // in that state. The downstream ShaderProgram::Init re-checks specific
+    // pointers but this gives a single early-out + diagnostic.
+    if (!LoadGLFunctions()) {
+        OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "InitializeSharedContext: LoadGLFunctions failed; GL entry points missing.");
+        return false;
+    }
+
+#ifdef USE_GLES
+    // OpenGL ES 3.0 (ANGLE) shader variants: #version 300 es, explicit float
+    // precision, no uniform initializers (illegal in ES 3.00), no 'f' float
+    // suffix, and gl_PointSize driven by a 'pointSize' uniform for the
+    // point-rendering programs (ES has no fixed-function glPointSize).
+    valid = valid && singleColor3Program.Init(
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+                             "out vec4 fragmentColor;\n"
+                             "uniform mat4 MVP;\n"
+                             "uniform vec4 inColor;\n"
+                             "uniform float pointSize;\n"
+                             "void main(){\n"
+                             "    gl_Position = MVP * vec4(vertexPosition_modelspace,1.0);\n"
+                             "    gl_PointSize = pointSize;\n"
+                             "    fragmentColor = inColor;\n"
+                             "}\n",
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "in vec4 fragmentColor;\n"
+                             "out vec4 color;\n"
+                             "uniform int RenderType;\n"
+                             "uniform float PointSmoothMin;\n"
+                             "uniform float PointSmoothMax;\n"
+                             "void main(){\n"
+                             "    if (RenderType == 0) {\n"
+                             "        color = fragmentColor;\n"
+                             "    } else {\n"
+                             "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
+                             "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
+                             "        if (alpha == 0.0) discard;\n"
+                             "        alpha = alpha * fragmentColor.a;\n"
+                             "        color = vec4(fragmentColor.rgb, alpha);\n"
+                             "    }\n"
+                             "}\n");
+    valid = valid && texture3Program.Init(
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+                             "layout(location = 1) in vec2 vertexUV;\n"
+                             "out vec4 fragmentColor;\n"
+                             "out vec2 UV;\n"
+                             "uniform mat4 MVP;\n"
+                             "uniform vec4 inColor;\n"
+                             "void main(){\n"
+                             "    gl_Position = MVP * vec4(vertexPosition_modelspace,1.0);\n"
+                             "    fragmentColor = inColor;\n"
+                             "    UV = vertexUV;\n"
+                             "}\n",
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "in vec4 fragmentColor;\n"
+                             "in vec2 UV;\n"
+                             "out vec4 color;\n"
+                             "uniform sampler2D tex;\n"
+                             "uniform int RenderType;\n"
+                             "void main(){\n"
+                             "    vec4 c = texture(tex, UV);\n"
+                             "    if (RenderType == 0) {\n"
+                             "        color = vec4(c.r*fragmentColor.r, c.g*fragmentColor.g, c.b*fragmentColor.b, c.a*fragmentColor.a);\n"
+                             "    } else {\n"
+                             "        color = vec4(fragmentColor.rgb, c.a * fragmentColor.a);\n"
+                             "    }\n"
+                             "}\n");
+    valid = valid && normal3Program.Init(
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+                             "layout(location = 1) in vec4 vertexColor;\n"
+                             "out vec4 fragmentColor;\n"
+                             "uniform int RenderType;\n"
+                             "uniform mat4 MVP;\n"
+                             "uniform vec4 inColor;\n"
+                             "uniform float pointSize;\n"
+                             "void main(){\n"
+                             "    gl_Position = MVP * vec4(vertexPosition_modelspace,1.0);\n"
+                             "    gl_PointSize = pointSize;\n"
+                             "    if (RenderType == -2) {\n"
+                             "        fragmentColor = inColor;\n"
+                             "    } else if (RenderType == -1) {\n"
+                             "        fragmentColor = inColor;\n"
+                             "    } else {\n"
+                             "        fragmentColor = vertexColor;\n"
+                             "    }\n"
+                             "}\n",
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "in vec4 fragmentColor;\n"
+                             "out vec4 color;\n"
+                             "uniform int RenderType;\n"
+                             "uniform float PointSmoothMin;\n"
+                             "uniform float PointSmoothMax;\n"
+                             "void main(){\n"
+                             "    if (RenderType == 0 || RenderType == -2) {\n"
+                             "        color = fragmentColor;\n"
+                             "    } else {\n"
+                             "        float dist = distance(gl_PointCoord, vec2(0.5));\n"
+                             "        float alpha = 1.0 - smoothstep(PointSmoothMin, PointSmoothMax, dist);\n"
+                             "        if (alpha == 0.0) discard;\n"
+                             "        alpha = alpha * fragmentColor.a;\n"
+                             "        color = vec4(fragmentColor.rgb, alpha);\n"
+                             "    }\n"
+                             "}\n");
+    valid = valid && meshTextureProgram.Init(
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+                             "layout(location = 1) in vec3 vertexNormal_modelspace;\n"
+                             "layout(location = 2) in vec2 vertexUV;\n"
+                             "out vec4 fragmentColor;\n"
+                             "out vec2 UV;\n"
+                             "out float cosTheta;\n"
+                             "uniform vec4 inColor;\n"
+                             "uniform mat4 MVP;\n"
+                             "uniform mat4 NM;\n"
+                             "void main(){\n"
+                             "    gl_Position = MVP * vec4(vertexPosition_modelspace,1.0);\n"
+                             "    UV = vertexUV;\n"
+                             "    if (inColor.a == 1.0) {\n"
+                             "        vec4 normal_cameraspace = NM * vec4(vertexNormal_modelspace, 0.0);\n"
+                             "        vec3 n = normalize(normal_cameraspace.xyz);\n"
+                             "        vec3 l = normalize(vec3(0.1, 0.1, 1.0));\n"
+                             "        cosTheta = abs(clamp(dot( n, l), -1.0, 1.0));\n"
+                             "        vec4 col = vec4(cosTheta, cosTheta, cosTheta, 1.0);\n"
+                             "        fragmentColor = (inColor * col) * 0.75 + inColor * 0.75;\n"
+                             "    } else {\n"
+                             "        cosTheta = 1.0;\n"
+                             "        fragmentColor = inColor;\n"
+                             "    }\n"
+                             "}\n",
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "in vec4 fragmentColor;\n"
+                             "in vec2 UV;\n"
+                             "in float cosTheta;\n"
+                             "out vec4 color;\n"
+                             "uniform float brightness;\n"
+                             "uniform sampler2D tex;\n"
+                             "void main(){\n"
+                             "    vec4 c = texture(tex, UV);\n"
+                             "    if (cosTheta != 1.0) {\n"
+                             "        vec3 c3 = vec3(cosTheta * c.rgb)*0.75 + vec3(c.rgb * 0.25);\n"
+                             "        c = vec4(c3, c.a);\n"
+                             "    }\n"
+                             "    color = vec4(c.r*brightness, c.g*brightness, c.b*brightness, c.a);\n"
+                             "}\n");
+    valid = valid && meshSolidProgram.Init(
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "layout(location = 0) in vec3 vertexPosition_modelspace;\n"
+                             "layout(location = 1) in vec3 vertexNormal_modelspace;\n"
+                             "out vec4 fragmentColor;\n"
+                             "uniform vec4 inColor;\n"
+                             "uniform mat4 MVP;\n"
+                             "uniform mat4 NM;\n"
+                             "void main(){\n"
+                             "    gl_Position = MVP * vec4(vertexPosition_modelspace,1.0);\n"
+                             "    vec3 normal_cameraspace = (NM * vec4(vertexNormal_modelspace, 0.0)).xyz;\n"
+                             "    vec3 n = normalize(normal_cameraspace);\n"
+                             "    vec3 l = normalize(vec3(0.1, 0.1, 1.0));\n"
+                             "    float cosTheta = abs(clamp(dot( n, l), -1.0, 1.0));\n"
+                             "    fragmentColor = vec4(inColor.rgb * 0.75 * cosTheta + inColor.rgb * 0.25, inColor.a);\n"
+                             "}\n",
+                             "#version 300 es\n"
+                             "precision highp float;\n"
+                             "precision highp int;\n"
+                             "in vec4 fragmentColor;\n"
+                             "out vec4 color;\n"
+                             "void main(){\n"
+                             "    color = fragmentColor;\n"
+                             "}\n");
+#else
     const GLubyte* str = glGetString(GL_VERSION);
     bool cp = str[0] > '3' || (str[0] == '3' && str[2] >= '3');
-    
+
     if (cp) {
         valid = valid && singleColor3Program.Init(
                                  "#version 330 core\n"
@@ -681,6 +949,7 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
                               "}\n"
                               );
     }
+#endif
 
     return valid;
 }
@@ -1223,6 +1492,83 @@ xlGraphicsProgram *xlOGL3GraphicsContext::createGraphicsProgram() {
 
 //drawing methods
 
+#ifdef USE_GLES
+#include <cstdarg>
+#include "graphics/AngleEGL.h"
+extern "C" __declspec(dllimport) unsigned long __stdcall GetCurrentThreadId(void);
+// TEMP ANGLE crash diagnosis.  Two outputs:
+//  - angle_lastdraw.txt: overwritten PRE/OK per draw (last-draw snapshot).
+//  - angle_violations.txt: APPEND-ONLY record of any draw that runs while THIS
+//    thread does NOT hold the ANGLE render lock — i.e. unserialized GL, the
+//    suspected cause of the intermittent ANGLE crash.  Append-only so it
+//    survives both the crash and cross-thread races on the snapshot file.
+static FILE* g_angleDbgF = nullptr;
+static FILE* g_angleViolF = nullptr;
+static void angleViol(const char* fmt, ...) {
+    if (!g_angleViolF) g_angleViolF = fopen("D:\\software\\xLights2026\\angle_violations.txt", "w");
+    if (g_angleViolF) {
+        va_list ap; va_start(ap, fmt); vfprintf(g_angleViolF, fmt, ap); va_end(ap);
+        fflush(g_angleViolF);
+    }
+}
+// Query the live VAO/buffer state and flag any draw whose enabled attributes are
+// backed by a buffer too small for [start, start+c) (or by no buffer at all).
+// That is exactly the condition ANGLE/D3D11 access-violates on (desktop GL just
+// reads garbage).  Saves/restores GL_ARRAY_BUFFER_BINDING so the draw is unaffected.
+static void angleCheckBuffers(const char* tag, int type, int start, int c) {
+    GLint prevBuf = 0;
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &prevBuf);
+    for (int i = 0; i < 4; ++i) {
+        GLint enabled = 0;
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
+        if (!enabled) continue;
+        GLint binding = 0, size = 0, gtype = GL_FLOAT, stride = 0;
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &binding);
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_SIZE, &size);
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_TYPE, &gtype);
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &stride);
+        if (binding == 0) {
+            angleViol("NOBUF-ATTR tag=%s type=%d attr=%d start=%d c=%d (enabled attribute has no VBO)\n", tag, type, i, start, c);
+            continue;
+        }
+        int bpc = (gtype == GL_FLOAT) ? 4 : (gtype == GL_UNSIGNED_BYTE || gtype == GL_BYTE) ? 1 : (gtype == GL_UNSIGNED_SHORT || gtype == GL_SHORT) ? 2 : 4;
+        int elem = stride > 0 ? stride : size * bpc;
+        long need = (long)(start + c) * elem;
+        glBindBuffer(GL_ARRAY_BUFFER, binding);
+        GLint bufSize = 0;
+        glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufSize);
+        if (bufSize < need) {
+            angleViol("SMALLBUF tag=%s type=%d attr=%d buf=%d size=%d need=%ld start=%d c=%d elem=%d\n",
+                      tag, type, i, binding, bufSize, need, start, c, elem);
+        }
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, prevBuf);
+}
+static void angleLogDraw(const char* tag, int type, int start, int c, int cnt, unsigned vb, unsigned cb, int caps, int core) {
+    bool held = xlAngleEGL::RenderLockHeldByCurrentThread();
+    if (!held) {
+        angleViol("UNLOCKED-DRAW tid=%lu %s type=%d c=%d count=%d vbuf=%u cbuf=%u\n",
+                  GetCurrentThreadId(), tag, type, c, cnt, vb, cb);
+    }
+    angleCheckBuffers(tag, type, start, c);
+    if (!g_angleDbgF) g_angleDbgF = fopen("D:\\software\\xLights2026\\angle_lastdraw.txt", "w");
+    if (g_angleDbgF) {
+        unsigned preErr = glGetError();
+        rewind(g_angleDbgF);
+        fprintf(g_angleDbgF, "PRE  tid=%lu held=%d %-5s type=%d start=%d c=%d count=%d vbuf=%u cbuf=%u caps=%d core=%d preErr=0x%04x        \n",
+                GetCurrentThreadId(), (int)held, tag, type, start, c, cnt, vb, cb, caps, core, preErr);
+        fflush(g_angleDbgF);
+    }
+}
+static void angleLogDrawOK() {
+    if (g_angleDbgF) {
+        rewind(g_angleDbgF);
+        fprintf(g_angleDbgF, "OK                                                                                                          \n");
+        fflush(g_angleDbgF);
+    }
+}
+#endif
+
 xlGraphicsContext* xlOGL3GraphicsContext::drawLines(xlVertexAccumulator *vac, const xlColor &c, int start, int count) {
     return drawPrimitive(GL_LINES, vac, c, start, count);
 }
@@ -1243,7 +1589,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexAccumulator *vac, c
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexAccumulator *vac, const xlColor &color, int start, int count) {
     xlOGL3VertexAccumulator *v = dynamic_cast<xlOGL3VertexAccumulator*>(vac);
-    if (v->getCount() == 0) {
+    if (!v || v->getCount() == 0) {
         return this;
     }
     int caps = enableCapabilities;
@@ -1279,7 +1625,13 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexAccumu
     } else if (caps > 0) {
         LOG_GL_ERRORV(glEnable(caps));
     }
+#ifdef USE_GLES
+    angleLogDraw("solid", type, start, c, (int)v->getCount(), v->bufferIdx, 0, caps, (int)canvas->IsCoreProfile());
+#endif
     LOG_GL_ERRORV(glDrawArrays(type, start, c));
+#ifdef USE_GLES
+    angleLogDrawOK();
+#endif
     if (type == GL_POINTS && caps == GL_POINT_SMOOTH) {
         program->SetRenderType(0);
         LOG_GL_ERRORV(glPointSize(ps));
@@ -1324,8 +1676,11 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorA
     if (c <= 0) {
         return this;
     }
-    ShaderProgram *program = &normal3Program;
     xlOGL3VertexColorAccumulator *v = dynamic_cast<xlOGL3VertexColorAccumulator*>(vac);
+    if (!v) {
+        return this;
+    }
+    ShaderProgram *program = &normal3Program;
     program->UseProgram();
     program->SetMatrix(frameData.MVP);
     
@@ -1354,7 +1709,13 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorA
             program->SetRenderType(caps);
         }
     }
+#ifdef USE_GLES
+    angleLogDraw("color", type, start, c, (int)v->getCount(), v->vbuffer, v->cbuffer, caps, (int)canvas->IsCoreProfile());
+#endif
     LOG_GL_ERRORV(glDrawArrays(type, start, c));
+#ifdef USE_GLES
+    angleLogDrawOK();
+#endif
     if (type == GL_POINTS && caps == 0x0B10) {
         program->SetRenderType(0);
         LOG_GL_ERRORV(glPointSize(ps));
@@ -1481,7 +1842,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     xlOGL3VertexTextureAccumulator *va = dynamic_cast<xlOGL3VertexTextureAccumulator*>(vac);
     xlGLTexture *t = (xlGLTexture*)texture;
 
-    if (va->count == 0) {
+    if (va == nullptr || t == nullptr || va->count == 0) {
         return this;
     }
     int c = count;
@@ -1515,7 +1876,13 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     if (enableCapabilities > 0) {
         LOG_GL_ERRORV(glEnable(enableCapabilities));
     }
+#ifdef USE_GLES
+    angleLogDraw("tex1", GL_TRIANGLES, start, c, (int)va->count, va->vbuffer, 0, enableCapabilities, (int)canvas->IsCoreProfile());
+#endif
     LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, start, c));
+#ifdef USE_GLES
+    angleLogDrawOK();
+#endif
     if (enableCapabilities > 0) {
         LOG_GL_ERRORV(glDisable(enableCapabilities));
     }
@@ -1530,7 +1897,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     xlOGL3VertexTextureAccumulator *va = dynamic_cast<xlOGL3VertexTextureAccumulator*>(vac);
     xlGLTexture *t = (xlGLTexture*)texture;
 
-    if (va->count == 0) {
+    if (va == nullptr || t == nullptr || va->count == 0) {
         return this;
     }
     int c = count;
@@ -1569,7 +1936,13 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     if (enableCapabilities >  0) {
         LOG_GL_ERRORV(glEnable(enableCapabilities));
     }
+#ifdef USE_GLES
+    angleLogDraw("tex2", GL_TRIANGLES, start, c, (int)va->count, va->vbuffer, 0, enableCapabilities, (int)canvas->IsCoreProfile());
+#endif
     LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, start, c));
+#ifdef USE_GLES
+    angleLogDrawOK();
+#endif
     if (enableCapabilities > 0) {
         LOG_GL_ERRORV(glDisable(enableCapabilities));
     }
@@ -1690,12 +2063,18 @@ public:
         return ret;
     }
     void LoadBuffers() {
+        // Parse failed or produced no geometry — touching objects.GetAttrib()
+        // when the tinyobj reader is in a half-initialised state has been
+        // crashing the OpenGL render path on Windows. Bail before any deref.
+        if (!HasGeometry()) {
+            return;
+        }
         std::map<Index3, uint32_t, CompareIndex3> indexMap;
-        
+
         std::vector<MeshVertexInput> input;
         input.reserve(objects.GetAttrib().vertices.size());
         input.resize(1); // 0 position is ignored, indexMap[key] == 0 means not found yet
-        
+
         indexes.resize(0);
         lines.resize(0);
         wireFrame.resize(0);

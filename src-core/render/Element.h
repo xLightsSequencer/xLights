@@ -276,6 +276,8 @@ class ModelElement : public Element
 
         bool ShowStrands() const { return mStrandsVisible;}
         void ShowStrands(bool b) { mStrandsVisible = b;}
+        bool ShowSubModels() const { return mSubModelsVisible;}
+        void ShowSubModels(bool b) { mSubModelsVisible = b;}
         virtual NodeLayer* GetNodeEffectLayer(int index) const override;
 
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
@@ -292,6 +294,7 @@ class ModelElement : public Element
     protected:
     private:
         bool mStrandsVisible = false;
+        bool mSubModelsVisible = false;
         bool mSelected = false;
         std::vector<SubModelElement*> mSubModels;
         std::vector<StrandElement*> mStrands;

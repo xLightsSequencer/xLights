@@ -241,6 +241,26 @@ protected:
     int m_tp = 0;
 };
 
+namespace {
+wxString FormatStrandNodeNamesLabel(const Model& m) {
+    const auto nodes = m.GetNodeCount();
+    return wxString::Format("Strand/Node Names (%u %s)",
+                            nodes, nodes == 1 ? "node" : "nodes");
+}
+wxString FormatFacesLabel(const Model& m) {
+    return wxString::Format("Faces (%zu)", m.GetFaceInfo().size());
+}
+wxString FormatStatesLabel(const Model& m) {
+    return wxString::Format("States (%zu)", m.GetStateInfo().size());
+}
+wxString FormatSubModelsLabel(const Model& m) {
+    return wxString::Format("SubModels (%d)", m.GetNumSubModels());
+}
+wxString FormatAliasesLabel(const Model& m) {
+    return wxString::Format("Aliases (%zu)", m.GetAliases().size());
+}
+} // namespace
+
 class StartChannelProperty : public wxStringProperty {
 public:
     StartChannelProperty(Model* m, int strand, const wxString& label, const wxString& name,
@@ -389,17 +409,32 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     grid->Append(new wxStringProperty("Description", "Description", _model.GetDescription()));
     grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
 
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatStrandNodeNamesLabel(_model),
+        "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatFacesLabel(_model),
+        "ModelFaces", CLICK_TO_EDIT, 2));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "States", "ModelStates", CLICK_TO_EDIT, 4));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatStatesLabel(_model),
+        "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatSubModelsLabel(_model),
+        "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Aliases", "Aliases", CLICK_TO_EDIT, 6));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatAliasesLabel(_model),
+        "Aliases", CLICK_TO_EDIT, 6));
     grid->LimitPropertyEditing(p);
     p->SetHelpString("Aliases are used in mapping to provide alternate names for this model which might match a model in a sequence you are importing from. To use it use the Auto Map button.");
 
@@ -417,6 +452,16 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
         }
         p = grid->Append(new wxStringProperty("In Model Groups", "MGS", mgs));
         p->SetHelpString(mgscr);
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
+    }
+
+    // Model Set membership (read-only row). See plans/layout-group-move-lock.md.
+    if (auto* set = _model.GetModelManager().GetSetManager().GetSetContaining(_model.GetName())) {
+        p = grid->Append(new wxStringProperty(_("In Model Set"), "ModelSet", set->GetName()));
+        p->SetHelpString(_("This model belongs to a Model Set. Dragging any member of the Set moves them all together.\n"
+                           "Hold Alt/Option while dragging to move only this model and reposition it within the Set.\n"
+                           "Manage Sets via the right-click menu on the Layout tab."));
         p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         p->ChangeFlag(wxPGFlags::ReadOnly, true);
     }
@@ -505,6 +550,27 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
 
 void ModelPropertyAdapter::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     UpdateTypeProperties(grid);
+
+    if (auto* pp = grid->GetPropertyByName("ModelStrandNodeNames")) {
+        pp->SetLabel(FormatStrandNodeNamesLabel(_model));
+        grid->RefreshProperty(pp);
+    }
+    if (auto* pp = grid->GetPropertyByName("ModelFaces")) {
+        pp->SetLabel(FormatFacesLabel(_model));
+        grid->RefreshProperty(pp);
+    }
+    if (auto* pp = grid->GetPropertyByName("ModelStates")) {
+        pp->SetLabel(FormatStatesLabel(_model));
+        grid->RefreshProperty(pp);
+    }
+    if (auto* pp = grid->GetPropertyByName("SubModels")) {
+        pp->SetLabel(FormatSubModelsLabel(_model));
+        grid->RefreshProperty(pp);
+    }
+    if (auto* pp = grid->GetPropertyByName("Aliases")) {
+        pp->SetLabel(FormatAliasesLabel(_model));
+        grid->RefreshProperty(pp);
+    }
 
     if (grid->GetPropertyByName("Controller") != nullptr) {
         grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);
@@ -1275,7 +1341,25 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         _model.SetControllerSerialProtocolSpeed((int)std::strtol(cs[event.GetValue().GetLong()].c_str(), nullptr, 10));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
-        _model.SetSmartRemoteType(_model.GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
+        std::string newType = _model.GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString()));
+        _model.SetSmartRemoteType(newType);
+        if (caps != nullptr && caps->AllSmartRemoteTypesPerPortMustBeSame()) {
+            int port = _model.GetControllerPort();
+            if (port > 0) {
+                int block = (port - 1) / 4;
+                for (const auto& it : _model.GetModelManager()) {
+                    Model* other = it.second;
+                    if (other == &_model || other->GetControllerName() != _model.GetControllerName()) {
+                        continue;
+                    }
+                    int otherPort = other->GetControllerPort();
+                    if (otherPort <= 0 || (otherPort - 1) / 4 != block || other->GetSmartRemote() == 0) {
+                        continue;
+                    }
+                    other->SetSmartRemoteType(newType);
+                }
+            }
+        }
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         std::vector<std::string> cp;
@@ -1484,7 +1568,10 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         _model.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                     OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                     OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::SubModels");
-
+        if (auto* pp = grid->GetPropertyByName("SubModels")) {
+            pp->SetLabel(FormatSubModelsLabel(_model));
+            grid->RefreshProperty(pp);
+        }
         return 0;
     } else if (event.GetPropertyName() == "Description") {
         _model.description = event.GetValue().GetString();
@@ -1495,14 +1582,26 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
     } else if (event.GetPropertyName() == "ModelFaces") {
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelFaces");
+        if (auto* pp = grid->GetPropertyByName("ModelFaces")) {
+            pp->SetLabel(FormatFacesLabel(_model));
+            grid->RefreshProperty(pp);
+        }
         return 0;
     } else if (event.GetPropertyName() == "ModelStates") {
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ModelStates");
+        if (auto* pp = grid->GetPropertyByName("ModelStates")) {
+            pp->SetLabel(FormatStatesLabel(_model));
+            grid->RefreshProperty(pp);
+        }
         return 0;
     } else if (event.GetPropertyName() == "Aliases") {
         _model.IncrementChangeCount();
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::Aliases");
+        if (auto* pp = grid->GetPropertyByName("Aliases")) {
+            pp->SetLabel(FormatAliasesLabel(_model));
+            grid->RefreshProperty(pp);
+        }
         return 0;
     } else if (event.GetPropertyName().StartsWith("SuperStringColours")) {
         _model.IncrementChangeCount();

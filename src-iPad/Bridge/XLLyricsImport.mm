@@ -27,10 +27,6 @@
     }
     return self;
 }
-- (void)dealloc {
-    [_text release];
-    [super dealloc];
-}
 - (int)timeMS { return _timeMS; }
 - (NSString*)text { return _text; }
 @end
@@ -45,9 +41,8 @@
         NSString* t = [NSString stringWithUTF8String:p.second.c_str()];
         XLLrcLine* line = [[XLLrcLine alloc] initWithTimeMS:p.first text:t ?: @""];
         [out addObject:line];
-        [line release];
     }
-    return [[out copy] autorelease];
+    return [out copy];
 }
 
 + (NSString*)sanitizePhraseText:(NSString*)text {

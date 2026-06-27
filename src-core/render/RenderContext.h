@@ -58,6 +58,11 @@ public:
     // ---- model access ----
     virtual Model* GetModel(const std::string& name) const = 0;
 
+    // Generation counter that changes on any model add/replace/delete/clear.
+    // RenderEngine::BuildRenderTree folds this into its change-count gate so
+    // the cached render tree can never hold a freed Model*.
+    virtual unsigned int GetModelGeneration() const = 0;
+
     // ---- layout group names (for model layout group assignment) ----
     virtual std::vector<std::string> GetLayoutGroupNames() const { return {}; }
 

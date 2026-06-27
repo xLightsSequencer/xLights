@@ -115,5 +115,11 @@
             "valueCurve": true,
             "lockable": true
         }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Wave_Type", "equals": "Fractal/ivy" },
+            "disable": [ "Number_Waves" ]
+        }
     ]
 }

@@ -14,18 +14,85 @@ struct FolderConfigView: View {
     @State private var fseqFolderPath: String?
     @State private var pickerMode: PickerMode?
     @State private var recentFolders: [RecentShowFolders.Entry] = []
+    @State private var baseShowFolderPath: String?
+    @State private var autoUpdateFromBase: Bool = false
+    @State private var updateResult: BaseDirUpdateResult?
+    @State private var reselectPrompt: ReselectPrompt?
+    // App-wide render preference (default OFF = full-definition render). Not
+    // per-sequence — `iPadRenderContext::IsLowDefinitionRender()` reads this
+    // same `render.lowDefinition` key via CFPreferences.
+    @AppStorage("render.lowDefinition") private var lowDefinitionRender: Bool = false
+    // App-wide render-cache mode (default "Disabled"). Not per-sequence —
+    // `iPadRenderContext::ReadRenderCacheMode()` reads this same `render.cacheMode`
+    // key via CFPreferences and feeds it to `RenderCache::Enable`. Values must
+    // match exactly: "Disabled" | "Locked Only" | "Enabled".
+    @AppStorage("render.cacheMode") private var renderCacheMode: String = "Disabled"
+
+    // FSEQ-1 — `iPadRenderContext::ReadFseqCompression()` /
+    // `ReadFseqCompressionLevel()` read these same keys via CFPreferences and
+    // feed `FSEQFile::createFSEQFile`. Compression values must match exactly:
+    // "zstd" | "zlib" | "none"; level is the zstd level 1..22.
+    @AppStorage("fseq.compression") private var fseqCompression: String = "zstd"
+    @AppStorage("fseq.compressionLevel") private var fseqCompressionLevel: Int = 2
+
+    // Maximum render-cache size in MB (0 = Unlimited). Read by
+    // `iPadRenderContext::ReadRenderCacheMaxMB()`. Desktop choices are
+    // Unlimited / 1 / 5 / 10 / 50 / 100 / 200 GB; iPad keeps smaller MB
+    // caps too since disk + memory are scarce here. Default 50 MB.
+    @AppStorage("render.cacheMaxMB") private var renderCacheMaxMB: Int = 50
+
+    // Sequences prefs. Render on Save (default ON) gates the fseq write
+    // on each save; Default Model Blending seeds new sequences (read by
+    // the bridge `newSequenceAtPath:` via "sequence.defaultModelBlending").
+    @AppStorage("renderOnSave") private var renderOnSave: Bool = true
+    @AppStorage("sequence.defaultModelBlending") private var defaultModelBlending: String = "Enabled"
+
+    // Other prefs. Bell on full-render completion (default OFF);
+    // lightweight Backup-On-Save snapshot into <show>/Backup (default
+    // OFF); purge the download cache at app startup (default OFF);
+    // model-rename alias prompt default for the Missing-Model sheet.
+    @AppStorage("bellOnRenderComplete") private var bellOnRenderComplete: Bool = false
+    @AppStorage("backupOnSave") private var backupOnSave: Bool = false
+    @AppStorage("purgeDownloadCacheAtStartup") private var purgeDownloadCacheAtStartup: Bool = false
+    @AppStorage("hidePresetPreviews") private var hidePresetPreviews: Bool = false
+    @AppStorage("modelRenameAliasMode") private var modelRenameAliasMode: String = "Always Prompt"
+    // Optional contact email attached to uploaded diagnostic reports
+    // (read by `XLDiagnosticUploader.buildMultipartBody`), matching the
+    // desktop crash-report email field.
+    @AppStorage("xLightsEmail") private var xLightsEmail: String = ""
 
     enum PickerMode: Identifiable {
         case showFolder
+        // Picks a show folder, loads it temporarily, and dismisses — no
+        // persistence of default / MRU.
+        case showFolderTemporary
         case addMediaFolder
         case fseqFolder
+        case baseShowFolder
+        // Picks a base show folder then immediately retries the merge — used by the stale-bookmark reselect flow.
+        case baseShowFolderRetryUpdate
         var id: Int {
             switch self {
             case .showFolder: return 0
+            case .showFolderTemporary: return 5
             case .addMediaFolder: return 1
             case .fseqFolder: return 2
+            case .baseShowFolder: return 3
+            case .baseShowFolderRetryUpdate: return 4
             }
         }
+    }
+
+    struct BaseDirUpdateResult: Identifiable {
+        let id = UUID()
+        let success: Bool
+        let title: String
+        let message: String
+    }
+
+    struct ReselectPrompt: Identifiable {
+        let id = UUID()
+        let message: String
     }
 
     init() {
@@ -52,6 +119,16 @@ struct FolderConfigView: View {
                     }
                     Button(showFolderPath == nil ? "Choose Show Folder…" : "Change Show Folder…") {
                         pickerMode = .showFolder
+                    }
+                    if showFolderPath != nil {
+                        Button("Switch Temporarily…") {
+                            pickerMode = .showFolderTemporary
+                        }
+                        if viewModel.temporaryShowFolderActive {
+                            Text("Temporary show folder — the saved default is unchanged and will be restored on next launch.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
 
@@ -111,6 +188,108 @@ struct FolderConfigView: View {
                     Text("Media folders are searched for audio, shaders, and other assets referenced by sequences.")
                 }
 
+                if showFolderPath != nil {
+                    baseShowFolderSection
+                }
+
+                Section {
+                    Toggle(isOn: $lowDefinitionRender) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Low Definition Render")
+                            Text("When on, large matrix/sphere models render effects into reduced-resolution buffers (which look blocky on high-resolution props) to lower memory use. Leave OFF for full-resolution output — the default, matching the desktop. Turn it on only if very large shows run out of memory. Applies when a sequence is opened.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Picker("Render Cache", selection: $renderCacheMode) {
+                            Text("Disabled").tag("Disabled")
+                            Text("Locked Only").tag("Locked Only")
+                            Text("Enabled").tag("Enabled")
+                        }
+                        Text("Caches rendered effect frames to disk so re-renders are faster. This costs both memory and disk, which are limited on iPad, so it's OFF by default. \"Locked Only\" caches just the effects you've locked (the desktop default); \"Enabled\" caches every supported effect. Takes effect on the next render.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Picker("Maximum Cache Size", selection: $renderCacheMaxMB) {
+                            Text("Unlimited").tag(0)
+                            Text("50 MB").tag(50)
+                            Text("100 MB").tag(100)
+                            Text("250 MB").tag(250)
+                            Text("500 MB").tag(500)
+                            Text("1 GB").tag(1024)
+                            Text("5 GB").tag(5120)
+                        }
+                        Text("Caps the on-disk render cache; oldest entries are evicted past the limit. 50 MB is the iPad default — keep it modest to leave room for the show. Takes effect on the next render.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Rendering")
+                } footer: {
+                    Text("App-wide settings (not saved in the sequence).")
+                }
+
+                Section {
+                    Toggle(isOn: $renderOnSave) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Render on Save")
+                            Text("When on, saving also writes the FSEQ playback file from the rendered data (the current behavior). Turn off to skip the FSEQ write on save — faster saves when you don't need a fresh FSEQ each time.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Picker("Default Model Blending", selection: $defaultModelBlending) {
+                        Text("Enabled").tag("Enabled")
+                        Text("Disabled").tag("Disabled")
+                    }
+                } header: {
+                    Text("New Sequences")
+                } footer: {
+                    Text("Default Model Blending applies when a new sequence is created; existing sequences keep their own setting (changed in Sequence Settings).")
+                }
+
+                Section {
+                    Toggle(isOn: $bellOnRenderComplete) {
+                        Text("Bell on Render Completion")
+                    }
+                    Toggle(isOn: $backupOnSave) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Backup on Save")
+                            Text("Snapshots the sequence into a Backup folder in the show folder on each save, keeping the 20 most recent.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Toggle(isOn: $purgeDownloadCacheAtStartup) {
+                        Text("Purge Download Cache at Startup")
+                    }
+                    Toggle(isOn: $hidePresetPreviews) {
+                        Text("Hide Preset Previews")
+                    }
+                    Picker("Model Rename Alias", selection: $modelRenameAliasMode) {
+                        Text("Always Prompt").tag("Always Prompt")
+                        Text("Always Yes").tag("Always Yes")
+                        Text("Always No").tag("Always No")
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        TextField("Contact eMail (optional)", text: $xLightsEmail)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                        Text("Attached to diagnostic reports you upload so we can follow up.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Other")
+                } footer: {
+                    Text("Model Rename Alias sets the default for the \"Add alias\" choice when reconciling missing models on sequence open.")
+                }
+
                 Section {
                     Toggle("Save FSEQ on save", isOn: $fseqEnabled)
                     if fseqEnabled {
@@ -135,6 +314,23 @@ struct FolderConfigView: View {
                                 pickerMode = .fseqFolder
                             }
                         }
+
+                        // FSEQ-1 — compression format for written FSEQ files.
+                        VStack(alignment: .leading, spacing: 6) {
+                            Picker("Compression", selection: $fseqCompression) {
+                                Text("Zstd (default)").tag("zstd")
+                                Text("Zlib").tag("zlib")
+                                Text("None").tag("none")
+                            }
+                            if fseqCompression == "zstd" {
+                                Stepper(value: $fseqCompressionLevel, in: 1...22) {
+                                    Text("Zstd Level: \(fseqCompressionLevel)")
+                                }
+                            }
+                            Text("Compression shrinks the FSEQ at some render-time cost. Zstd is fastest and the desktop default (level 1 = fast/larger, 22 = slow/smaller); Zlib is slightly smaller but slower; None is uncompressed. Takes effect on the next save/render.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 } header: {
                     Text("FSEQ Files")
@@ -158,6 +354,12 @@ struct FolderConfigView: View {
             }
             .onAppear {
                 recentFolders = RecentShowFolders.load()
+                baseShowFolderPath = viewModel.document.baseShowDirectory()
+                autoUpdateFromBase = viewModel.document.autoUpdateFromBaseShowDirectory()
+                if let deferred = FolderConfig.pendingBaseDirReselectMessage {
+                    FolderConfig.pendingBaseDirReselectMessage = nil
+                    reselectPrompt = ReselectPrompt(message: deferred)
+                }
             }
             .sheet(item: $pickerMode) { mode in
                 ShowFolderPicker { url in
@@ -166,17 +368,128 @@ struct FolderConfigView: View {
                     switch mode {
                     case .showFolder:
                         showFolderPath = path
+                    case .showFolderTemporary:
+                        // Load now without touching FolderConfig.showFolder
+                        // or the Recent list, then close the sheet.
+                        viewModel.loadShowFolderTemporarily(path: path, mediaFolders: mediaFolderPaths)
+                        pickerMode = nil
+                        dismiss()
+                        return
                     case .addMediaFolder:
                         if !mediaFolderPaths.contains(path) {
                             mediaFolderPaths.append(path)
                         }
                     case .fseqFolder:
                         fseqFolderPath = path
+                    case .baseShowFolder:
+                        baseShowFolderPath = path
+                    case .baseShowFolderRetryUpdate:
+                        baseShowFolderPath = path
+                        commitBaseShowDirectoryEdits()
+                        performUpdateFromBase()
                     }
                     pickerMode = nil
                 }
             }
+            .alert(item: $updateResult) { result in
+                Alert(title: Text(result.title),
+                      message: Text(result.message),
+                      dismissButton: .default(Text("OK")))
+            }
+            .alert(item: $reselectPrompt) { prompt in
+                Alert(title: Text("Reselect Base Show Folder"),
+                      message: Text(prompt.message),
+                      primaryButton: .default(Text("Reselect…")) {
+                          pickerMode = .baseShowFolderRetryUpdate
+                      },
+                      secondaryButton: .cancel())
+            }
         }
+    }
+
+    @ViewBuilder
+    private var baseShowFolderSection: some View {
+        Section {
+            if let path = baseShowFolderPath {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(displayName(path))
+                    Text(path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                Button("Change Base Show Folder…") {
+                    pickerMode = .baseShowFolder
+                }
+                Button("Clear Base Show Folder", role: .destructive) {
+                    baseShowFolderPath = nil
+                    autoUpdateFromBase = false
+                }
+                Toggle("Auto Update On Open", isOn: $autoUpdateFromBase)
+                Button("Update From Base Now") {
+                    performUpdateFromBase()
+                }
+                .disabled(path == showFolderPath)
+            } else {
+                Text("No base show folder")
+                    .foregroundStyle(.secondary)
+                Button("Choose Base Show Folder…") {
+                    pickerMode = .baseShowFolder
+                }
+            }
+        } header: {
+            Text("Base Show Folder")
+        } footer: {
+            Text("A base show folder lets this show pull in controllers, models, and view objects from a master folder. Turn on Auto Update to merge changes every time the show opens; tap Update From Base Now to merge on demand.")
+        }
+    }
+
+    private func performUpdateFromBase() {
+        // Flush pending edits before the merge so Update Now operates against the current path, not the previously-saved one.
+        commitBaseShowDirectoryEdits()
+
+        let result = viewModel.document.updateFromBaseShowDirectory()
+
+        if let error = result["error"] as? String {
+            let needsReselect = result["needsReselect"] as? Bool ?? false
+            if needsReselect {
+                reselectPrompt = ReselectPrompt(message: error)
+            } else {
+                updateResult = BaseDirUpdateResult(
+                    success: false,
+                    title: "Update Failed",
+                    message: error)
+            }
+            return
+        }
+
+        let controllersChanged = result["controllersChanged"] as? Bool ?? false
+        let modelsChanged = result["modelsChanged"] as? Bool ?? false
+        let objectsChanged = result["objectsChanged"] as? Bool ?? false
+        _ = viewModel.document.saveLayoutChanges()
+
+        if !controllersChanged && !modelsChanged && !objectsChanged {
+            updateResult = BaseDirUpdateResult(
+                success: true,
+                title: "Already Up To Date",
+                message: "Nothing to merge — the base show folder hasn't changed anything since the last update.")
+            return
+        }
+
+        var parts: [String] = []
+        if controllersChanged { parts.append("controllers") }
+        if modelsChanged { parts.append("models") }
+        if objectsChanged { parts.append("view objects") }
+        updateResult = BaseDirUpdateResult(
+            success: true,
+            title: "Updated From Base",
+            message: "Merged " + parts.joined(separator: ", ") + " from the base show folder.")
+    }
+
+    private func commitBaseShowDirectoryEdits() {
+        viewModel.document.setBaseShowDirectory(baseShowFolderPath)
+        viewModel.document.setAutoUpdateFromBaseShowDirectory(autoUpdateFromBase)
+        viewModel.reloadBasePresets()
     }
 
     private func displayName(_ path: String) -> String {
@@ -192,10 +505,19 @@ struct FolderConfigView: View {
 
     private func apply() {
         guard let path = showFolderPath else { return }
+        let priorShowFolder = FolderConfig.showFolder
+
         FolderConfig.showFolder = path
         FolderConfig.mediaFolders = mediaFolderPaths
         FolderConfig.fseqEnabled = fseqEnabled
         FolderConfig.fseqFolder = fseqEnabled ? fseqFolderPath : nil
-        viewModel.loadShowFolder(path: path, mediaFolders: mediaFolderPaths)
+
+        if path == priorShowFolder {
+            // Same show: base-dir edits apply to the loaded OutputManager — flush them. Different show: edits target the about-to-be-unloaded OM; loadShowFolder brings up the new show's own base-dir state.
+            commitBaseShowDirectoryEdits()
+            _ = viewModel.document.saveLayoutChanges()
+        } else {
+            viewModel.loadShowFolder(path: path, mediaFolders: mediaFolderPaths)
+        }
     }
 }

@@ -15,6 +15,15 @@ struct EffectPropertyView: View {
     /// for the (rare) call sites that don't yet plumb a state through.
     var ruleDisabled: Bool = false
 
+    /// FX-4b: when non-nil, replaces the static `property.label` for this
+    /// row — used for action-dependent labels (computed by the parent,
+    /// which has the controlling sibling property's value).
+    var displayLabelOverride: String? = nil
+
+    /// The label to display: the dynamic override when present, else the
+    /// metadata's static label.
+    private var shownLabel: String { displayLabelOverride ?? property.label }
+
     private var settingKey: String { property.settingKey(prefix: metadataPrefix) }
     private var defaultValueString: String { property.defaultAsString() }
 
@@ -55,6 +64,10 @@ struct EffectPropertyView: View {
             return transitionReverseDisabled(isIn: true)
         case "Out_Transition_Reverse":
             return transitionReverseDisabled(isIn: false)
+        case "In_Transition_Blur":
+            return transitionBlurDisabled(isIn: true)
+        case "Out_Transition_Blur":
+            return transitionBlurDisabled(isIn: false)
         default:
             return false
         }
@@ -77,6 +90,12 @@ struct EffectPropertyView: View {
         return kTransitionsNoReverse.contains(type)
     }
 
+    private func transitionBlurDisabled(isIn: Bool) -> Bool {
+        if fadeIsZero(isIn: isIn) { return true }
+        let type = currentTransitionType(isIn: isIn)
+        return !kTransitionsWithBlur.contains(type)
+    }
+
     private func fadeIsZero(isIn: Bool) -> Bool {
         let key = isIn ? "T_TEXTCTRL_Fadein" : "T_TEXTCTRL_Fadeout"
         let v = viewModel.settingValue(forKey: key, defaultValue: "0.00")
@@ -93,6 +112,17 @@ struct EffectPropertyView: View {
     }
 
     var body: some View {
+        // Surface the metadata `tooltip` (desktop SetToolTip parity)
+        // as a pointer-hover help string; no-op without one.
+        if let tip = property.tooltip, !tip.isEmpty {
+            propertyBody.help(tip)
+        } else {
+            propertyBody
+        }
+    }
+
+    @ViewBuilder
+    private var propertyBody: some View {
         switch property.controlType {
         case "slider":
             sliderView
@@ -109,10 +139,12 @@ struct EffectPropertyView: View {
                                     currentPath: rawValue,
                                     onChoose: { writeValue($0) },
                                     onClear: { writeValue("") })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "fontpicker":
             FontpickerPropertyView(property: property,
                                     currentDesc: rawValue,
                                     onChange: { writeValue($0) })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "point2d":
             Point2DPropertyView(property: property,
                                   metadataPrefix: metadataPrefix)
@@ -221,10 +253,12 @@ struct EffectPropertyView: View {
             MovingHeadInfoRowView()
         case "MHColorRow":
             MovingHeadColorRowView()
+        case "MHColorWheelRow":
+            MovingHeadColorWheelRowView()
         case "MHDimmerRow":
             MovingHeadDimmerRowView()
         case "MHPathRow":
-            MovingHeadPathRowView()
+            MovingHeadPathEditorRowView()
         case "Sketch_BackgroundRow":
             SketchBackgroundRowView()
         case "Video_DurationRow":
@@ -286,7 +320,7 @@ struct EffectPropertyView: View {
 
         return VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
-                Text(property.label)
+                Text(shownLabel)
                     .font(.caption)
                 Spacer()
                 // Editable value field — users can tap to type a precise

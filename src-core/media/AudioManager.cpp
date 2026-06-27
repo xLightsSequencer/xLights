@@ -100,8 +100,20 @@ void AudioManager::Seek(long pos) const {
         return;
     }
 
-    if (__audioManager.GetOutput(_device) != nullptr)
-        __audioManager.GetOutput(_device)->Seek(_sdlid, pos);
+    auto* out = __audioManager.GetOutput(_device);
+    if (out == nullptr) {
+        return;
+    }
+
+    // Lazy-add: OpenMediaFile() defers AddAudio until first Play() to avoid
+    // spinning up AVAudioEngine for AudioManagers that only decode. Seek()
+    // must do the same lazy-add, otherwise a Seek() before the first Play()
+    // silently no-ops on _sdlid == -1 and the play position is wrong.
+    if (!out->HasAudio(_sdlid)) {
+        _sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+    }
+
+    out->Seek(_sdlid, pos);
 }
 
 void AudioManager::Pause() {
@@ -1639,19 +1651,26 @@ void AudioManager::SetStemData(const std::vector<float>& drumsL, const std::vect
     }
 }
 
-std::string AudioManager::WriteVocalsStemToTempWav() const {
-    // Snapshot the stem buffers under the audio lock so a concurrent
-    // SetStemData() can't yank them out from under us mid-write.
+std::string AudioManager::WriteCurrentToTempWav() const {
+    // Snapshot the playback buffers under the audio lock so a
+    // concurrent SwitchTo() can't repoint them out from under us
+    // mid-write. SwitchTo takes a unique_lock on _mutex, so this
+    // shared_lock serializes against it.
     std::shared_lock<std::shared_timed_mutex> locker(const_cast<std::shared_timed_mutex&>(_mutex));
-    if (_stemVocalsL.empty() || _stemVocalsR.empty()) return {};
-    if (_stemVocalsL.size() != _stemVocalsR.size()) return {};
+    if (_data[0] == nullptr || _trackSize <= 0) return {};
 
-    const auto frames = (uint32_t)_stemVocalsL.size();
+    const float* L = _data[0];
+    // Mono sources leave _data[1] either null or aliased to _data[0];
+    // either way duplicate the left channel into the right so the
+    // output is always stereo float32 (what every recognizer accepts).
+    const float* R = (_data[1] != nullptr) ? _data[1] : _data[0];
+
+    const auto frames = (uint32_t)_trackSize;
     const auto sr = (uint32_t)(_rate > 0 ? _rate : 44100);
 
     // Build a unique temp path. Use the audio file's basename (when
     // available) so multiple concurrent xLights instances can't race
-    // each other's vocal exports for different sequences.
+    // each other's exports for different sequences.
     std::error_code ec;
     auto tmpDir = std::filesystem::temp_directory_path(ec);
     if (ec) tmpDir = std::filesystem::path("/tmp");
@@ -1659,7 +1678,7 @@ std::string AudioManager::WriteVocalsStemToTempWav() const {
     if (stem.empty()) stem = "audio";
     auto tsNS = std::chrono::duration_cast<std::chrono::nanoseconds>(
                     std::chrono::steady_clock::now().time_since_epoch()).count();
-    std::string filename = "xlights_vocals_" + stem + "_" + std::to_string(tsNS) + ".wav";
+    std::string filename = "xlights_audio_" + stem + "_" + std::to_string(tsNS) + ".wav";
     std::filesystem::path outPath = tmpDir / filename;
 
     // Stereo float32 WAV, RIFF + fmt(IEEE float, 3) + data.
@@ -1690,15 +1709,15 @@ std::string AudioManager::WriteVocalsStemToTempWav() const {
     write_u16(bitsPerSample);
     f.write("data", 4);   write_u32(dataSize);
 
-    // Interleave L/R samples. The stem buffers are full-track-length
-    // mono arrays; iterate once writing a stereo sample per frame.
+    // Interleave L/R samples. _data is full-track-length mono arrays
+    // per channel; iterate once writing a stereo sample per frame.
     // Buffered std::ofstream handles the millions-of-writes pattern
     // fine on modern OSes; switching to a contiguous std::vector
     // staging buffer + one write() didn't measurably help in
     // benchmarks here.
     for (uint32_t i = 0; i < frames; ++i) {
-        float l = _stemVocalsL[i];
-        float r = _stemVocalsR[i];
+        float l = L[i];
+        float r = R[i];
         f.write(reinterpret_cast<const char*>(&l), sizeof(float));
         f.write(reinterpret_cast<const char*>(&r), sizeof(float));
     }
@@ -1708,6 +1727,26 @@ std::string AudioManager::WriteVocalsStemToTempWav() const {
         return {};
     }
     return outPath.string();
+}
+
+bool AudioManager::WriteCurrentAudioToFile(const std::string& path) const {
+    // Snapshot the playback buffers under the audio lock (same
+    // reasoning as WriteCurrentToTempWav) then hand the float PCM to
+    // the platform decoder's encoder. The output format is chosen by
+    // `path`'s extension (.wav / .m4a / .aac …).
+    std::vector<float> leftData;
+    std::vector<float> rightData;
+    size_t sr = 44100;
+    {
+        std::shared_lock<std::shared_timed_mutex> locker(const_cast<std::shared_timed_mutex&>(_mutex));
+        if (_data[0] == nullptr || _trackSize <= 0) return false;
+        const float* L = _data[0];
+        const float* R = (_data[1] != nullptr) ? _data[1] : _data[0];
+        leftData.assign(L, L + _trackSize);
+        rightData.assign(R, R + _trackSize);
+        sr = (size_t)(_rate > 0 ? _rate : 44100);
+    }
+    return GetDecoder().EncodeToFile(leftData, rightData, sr, path);
 }
 
 void AudioManager::SetClassifyGate(const std::string& className,

@@ -641,7 +641,11 @@ public:
             mnu.Append(ControllerModelDialog::CONTROLLER_PROTOCOL, "Set Protocol");
         }
         if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes() && (_caps->GetSmartRemoteTypes().size() > 1)) {
-            mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, "Set Smart Remote Type");
+            std::string label = "Set Smart Remote Type";
+            if (_caps->AllSmartRemoteTypesPerPortMustBeSame()) {
+                label += " (All Ports In Block)";
+            }
+            mnu.Append(ControllerModelDialog::CONTROLLER_SMARTREMOTETYPE, label);
         }
         if (_caps != nullptr && (_type == PORTTYPE::PIXEL) && _caps->SupportsSmartRemotes()) {
             mnu.Append(ControllerModelDialog::CONTROLLER_SETSMARTREMOTE, "Set Smart Remote ID and Increment");
@@ -786,9 +790,20 @@ public:
                     dlg.SetSelection(selection);
                 }
                 if (dlg.ShowModal() == wxID_OK) {
-                    int basePort = GetBasePort();
-                    for (uint8_t p = 0; p < 4; ++p) {
-                        for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
+                    if (_caps->AllSmartRemoteTypesPerPortMustBeSame()) {
+                        int basePort = GetBasePort();
+                        for (uint8_t p = 0; p < 4; ++p) {
+                            for (const auto& it : _cud->GetControllerPixelPort(basePort + p)->GetModels()) {
+                                auto* model = it->GetModel();
+                                if (model->GetSmartRemote() == 0) {
+                                    model->SetSmartRemote(1);
+                                }
+                                model->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
+                                model->SetSmartRemoteType(choices[dlg.GetSelection()]);
+                            }
+                        }
+                    } else {
+                        for (const auto& it : GetUDPort()->GetModels()) {
                             auto* model = it->GetModel();
                             if (model->GetSmartRemote() == 0) {
                                 model->SetSmartRemote(1);
@@ -1445,6 +1460,16 @@ public:
         DrawTextLimited(dc, _displayName, pt, sz - wxSize(4, 4));
         pt += wxSize(0, (VERTICAL_SIZE * scale) / 2);
         if (m != nullptr) {
+            if (m->IsFromBase()) {
+                wxString linkChar = wxString::FromUTF8("\xF0\x9F\x94\x97"); // 🔗 U+1F517
+                wxSize charSz = dc.GetTextExtent(linkChar);
+                wxPoint linkPt(location.x + offset.x + sz.x - charSz.x - ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3),
+                               location.y + offset.y + ScaleWithSystemDPI(GetSystemContentScaleFactor(), 3));
+                dc.SetClippingRegion(location + offset, sz);
+                dc.DrawText(linkChar, linkPt);
+                dc.DestroyClippingRegion();
+            }
+
             auto iconType = "xlART_" + DisplayAsTypeToString(m->GetDisplayAs()) + "_ICON";
             int iconSize = MODEL_ICON_SIZE;
             if (iconSize > 24) {

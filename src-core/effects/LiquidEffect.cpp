@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <spdlog/fmt/fmt.h>
+#include <spdlog/spdlog.h>
 #include <Box2D/Box2D.h>
 #include "../render/Effect.h"
 #include "../render/EffectLayer.h"
@@ -421,10 +422,13 @@ void LiquidEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
 class LiquidRenderCache : public EffectRenderCache {
 public:
-    LiquidRenderCache() { _world = nullptr; };
+    LiquidRenderCache() : _world(nullptr) {};
     virtual ~LiquidRenderCache() {
-        if (_world != nullptr) delete _world;
-	};
+        if (_world != nullptr) {
+            spdlog::debug("[Liquid] Destroying remaining b2World during effect cache teardown");
+            delete _world;
+        }
+    };
     b2World* _world;
     // Sub-particle flow accumulator per emitter. Slider values are
     // user-units that resolve to particles per 10 frames; fractional
@@ -432,6 +436,7 @@ public:
     // occasional emit instead of either nothing or a constant stream.
     float _flowAccumulator[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 };
+
 
 void LiquidEffect::CreateBarrier(b2World* world, float x, float y, float width, float height)
 {
@@ -570,7 +575,7 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     return xlColor(red / count, green / count, blue / count);
 }
 
-void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize, float& flowAccumulator, float dt)
+void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize, float& flowAccumulator, float dt, int maxParticles)
 {
     static const float pi2 = 6.283185307f;
     float posx = (float)x * (float)width / 100.0;
@@ -620,16 +625,21 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
     int count = (int)flowAccumulator;
     flowAccumulator -= (float)count;
     if (count < 0) count = 0;
+    count = std::min(count, maxParticles);
 
     // if we are going to exceed the maximum particles in 2 steps then we need to start flagging the older particles for deletion
     // DestroyOldestParticle does not delete them immediately
-    if (ps->GetParticleCount() > MAX_PARTICLES - (2 * count)) {
-        for (int i = 0; i < ps->GetParticleCount() - (MAX_PARTICLES - 2 * count); ++i) {
+    // Use std::max(0,...) so that when count >= maxParticles/2 the threshold doesn't go negative,
+    // which would cause the loop to destroy more particles than exist (ACCESS_VIOLATION).
+    const int evictThreshold = std::max(0, maxParticles - (2 * count));
+    if (ps->GetParticleCount() > evictThreshold) {
+        const int toEvict = ps->GetParticleCount() - evictThreshold;
+        for (int i = 0; i < toEvict; ++i) {
             ps->DestroyOldestParticle(i, true);
         }
     }
 
-    for (int i = 0; i < count && ps->GetParticleCount() < MAX_PARTICLES; ++i)
+    for (int i = 0; i < count && ps->GetParticleCount() < maxParticles; ++i)
     {
         b2ParticleDef pd;
         if (particleType == "Elastic")
@@ -712,12 +722,12 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
     }
 }
 
-void LiquidEffect::CreateParticleSystem(b2World* world, int lifetime, int size)
+void LiquidEffect::CreateParticleSystem(b2World* world, int lifetime, int size, int maxParticles)
 {
     b2ParticleSystemDef particleSystemDef;
     auto particleSystem = world->CreateParticleSystem(&particleSystemDef);
     particleSystem->SetRadius((float)size / 1000.0f);
-    particleSystem->SetMaxParticleCount(MAX_PARTICLES);
+    particleSystem->SetMaxParticleCount(maxParticles);
     if (lifetime > 0) {
         particleSystem->SetDestructionByAge(true);
     }
@@ -728,7 +738,7 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
     int x2, int y2, int direction2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
     int x3, int y3, int direction3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
     int x4, int y4, int direction4, int velocity4, int flow4, int sourceSize4, bool flowMusic4, float time,
-    float flowAccumulators[4]
+    float flowAccumulators[4], int maxParticles
 )
 {
     // dt is the simulation time advanced per Box2D Step call, in
@@ -770,16 +780,16 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
 
                 switch (i) {
                 case 0:
-                    CreateParticles(ps, x1, y1, direction1, velocity1, flow1, flowMusic1, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize1, flowAccumulators[0], timeStep);
+                    CreateParticles(ps, x1, y1, direction1, velocity1, flow1, flowMusic1, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize1, flowAccumulators[0], timeStep, maxParticles);
                     break;
                 case 1:
-                    CreateParticles(ps, x2, y2, direction2, velocity2, flow2, flowMusic2, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize2, flowAccumulators[1], timeStep);
+                    CreateParticles(ps, x2, y2, direction2, velocity2, flow2, flowMusic2, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize2, flowAccumulators[1], timeStep, maxParticles);
                     break;
                 case 2:
-                    CreateParticles(ps, x3, y3, direction3, velocity3, flow3, flowMusic3, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize3, flowAccumulators[2], timeStep);
+                    CreateParticles(ps, x3, y3, direction3, velocity3, flow3, flowMusic3, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize3, flowAccumulators[2], timeStep, maxParticles);
                     break;
                 case 3:
-                    CreateParticles(ps, x4, y4, direction4, velocity4, flow4, flowMusic4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize4, flowAccumulators[3], timeStep);
+                    CreateParticles(ps, x4, y4, direction4, velocity4, flow4, flowMusic4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize4, flowAccumulators[3], timeStep, maxParticles);
                     break;
                 }
                 ++j;
@@ -815,6 +825,8 @@ void LiquidEffect::Render(RenderBuffer &buffer,
 
     b2Vec2 grav(gravityX, gravityY);
 
+    const int effectiveMax = std::min(MAX_PARTICLES, std::max(100, buffer.BufferWi * buffer.BufferHt));
+
     if (buffer.needToInit) {
         buffer.needToInit = false;
 
@@ -823,7 +835,11 @@ void LiquidEffect::Render(RenderBuffer &buffer,
             _world = nullptr;
         }
 
+        spdlog::trace("[Liquid] INIT '{}' ({}x{}) maxParticles={}",
+                      buffer.GetModelName(), buffer.BufferWi, buffer.BufferHt, effectiveMax);
+
         _world = new b2World(grav);
+
         if (bottom) {
             CreateBarrier(_world, (float)buffer.BufferWi / 2.0, -1.0f, (float)buffer.BufferWi, 0.001f);
         }
@@ -837,7 +853,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
             CreateBarrier(_world, (float)buffer.BufferWi + 1.0f, (float)buffer.BufferHt / 2.0f, 0.001f, (float)buffer.BufferHt);
         }
 
-        CreateParticleSystem(_world, lifetime, size);
+        CreateParticleSystem(_world, lifetime, size, effectiveMax);
 
         // Convert warmUpTime (hundredths of seconds) to a frame count
         // at the current sequence frame rate. e.g. 200 (= 2 sec) at
@@ -851,7 +867,7 @@ void LiquidEffect::Render(RenderBuffer &buffer,
                 x2, y2, direction2, velocity2, flow2, sourceSize2, flowMusic2,
                 x3, y3, direction3, velocity3, flow3, sourceSize3, flowMusic3,
                 x4, y4, direction4, velocity4, flow4, sourceSize4, flowMusic4, 0.0,
-                cache->_flowAccumulator
+                cache->_flowAccumulator, effectiveMax
             );
         }
     }
@@ -866,10 +882,9 @@ void LiquidEffect::Render(RenderBuffer &buffer,
         x2, y2, direction2, velocity2, flow2, sourceSize2, flowMusic2,
         x3, y3, direction3, velocity3, flow3, sourceSize3, flowMusic3,
         x4, y4, direction4, velocity4, flow4, sourceSize4, flowMusic4, buffer.GetEffectTimeIntervalPosition(),
-        cache->_flowAccumulator
+        cache->_flowAccumulator, effectiveMax
     );
 
-    // create new particles
     b2ParticleSystem* ps = _world->GetParticleSystemList();
     if (ps != nullptr) {
         xlColor color;

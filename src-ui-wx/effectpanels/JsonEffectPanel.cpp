@@ -1407,7 +1407,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         wxColour colour;
         colour.Set(wxString(defaultColor));
         auto* picker = new BulkEditColourPickerCtrl(parentWin, ctrlId, colour, wxDefaultPosition, wxDefaultSize,
-                                                      wxCLRP_DEFAULT_STYLE, wxDefaultValidator,
+                                                      0, wxDefaultValidator,
                                                       wxString(ctrlName));
         info.colourPicker = picker;
         sizer->Add(picker, 1, wxALL | wxEXPAND, 2);
@@ -1616,53 +1616,64 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     }
 }
 
+void JsonEffectPanel::ParseWhenCondition(const nlohmann::json& when, VisibilityRule& vr) {
+    vr.conditionPropertyId = when.value("property", "");
+    if (when.contains("equals")) {
+        vr.conditionEquals = true;
+        if (when["equals"].is_boolean()) {
+            vr.conditionBoolValue = when["equals"].get<bool>();
+        } else if (when["equals"].is_string()) {
+            vr.conditionStringEquals = when["equals"].get<std::string>();
+        }
+    }
+    if (when.contains("notEquals")) {
+        vr.conditionEquals = false;
+        if (when["notEquals"].is_boolean()) {
+            vr.conditionBoolValue = when["notEquals"].get<bool>();
+        } else if (when["notEquals"].is_string()) {
+            vr.conditionStringEquals = when["notEquals"].get<std::string>();
+        }
+    }
+    if (when.contains("oneOf")) {
+        for (const auto& v : when["oneOf"]) {
+            vr.conditionOneOf.push_back(v.get<std::string>());
+        }
+    }
+    if (when.contains("notOneOf")) {
+        vr.conditionOneOfInverted = true;
+        for (const auto& v : when["notOneOf"]) {
+            vr.conditionOneOf.push_back(v.get<std::string>());
+        }
+    }
+    if (when.contains("greaterThan")) {
+        vr.conditionHasGreaterThan = true;
+        vr.conditionGreaterThan = when["greaterThan"].get<double>();
+    }
+    if (when.contains("startsWith")) {
+        vr.conditionStartsWith = when["startsWith"].get<std::string>();
+    }
+    if (when.contains("any")) {
+        for (const auto& v : when["any"]) {
+            vr.conditionAnyIds.push_back(v.get<std::string>());
+        }
+    }
+    // FX-14: compound AND — each entry is itself a `when` object.
+    if (when.contains("allOf")) {
+        for (const auto& sub : when["allOf"]) {
+            VisibilityRule subVr;
+            ParseWhenCondition(sub, subVr);
+            vr.allOf.push_back(subVr);
+        }
+    }
+}
+
 void JsonEffectPanel::ParseVisibilityRules(const nlohmann::json& metadata) {
     if (!metadata.contains("visibilityRules")) return;
 
     for (const auto& rule : metadata["visibilityRules"]) {
         VisibilityRule vr;
         if (rule.contains("when")) {
-            const auto& when = rule["when"];
-            vr.conditionPropertyId = when.value("property", "");
-            if (when.contains("equals")) {
-                vr.conditionEquals = true;
-                if (when["equals"].is_boolean()) {
-                    vr.conditionBoolValue = when["equals"].get<bool>();
-                } else if (when["equals"].is_string()) {
-                    vr.conditionStringEquals = when["equals"].get<std::string>();
-                }
-            }
-            if (when.contains("notEquals")) {
-                vr.conditionEquals = false;
-                if (when["notEquals"].is_boolean()) {
-                    vr.conditionBoolValue = when["notEquals"].get<bool>();
-                } else if (when["notEquals"].is_string()) {
-                    vr.conditionStringEquals = when["notEquals"].get<std::string>();
-                }
-            }
-            if (when.contains("oneOf")) {
-                for (const auto& v : when["oneOf"]) {
-                    vr.conditionOneOf.push_back(v.get<std::string>());
-                }
-            }
-            if (when.contains("notOneOf")) {
-                vr.conditionOneOfInverted = true;
-                for (const auto& v : when["notOneOf"]) {
-                    vr.conditionOneOf.push_back(v.get<std::string>());
-                }
-            }
-            if (when.contains("greaterThan")) {
-                vr.conditionHasGreaterThan = true;
-                vr.conditionGreaterThan = when["greaterThan"].get<double>();
-            }
-            if (when.contains("startsWith")) {
-                vr.conditionStartsWith = when["startsWith"].get<std::string>();
-            }
-            if (when.contains("any")) {
-                for (const auto& v : when["any"]) {
-                    vr.conditionAnyIds.push_back(v.get<std::string>());
-                }
-            }
+            ParseWhenCondition(rule["when"], vr);
         }
 
         auto readIds = [](const nlohmann::json& rule, const std::string& key, std::vector<std::string>& out) {
@@ -1698,62 +1709,76 @@ wxWindow* JsonEffectPanel::FindControlForProperty(const std::string& propId) {
     return nullptr;
 }
 
-void JsonEffectPanel::ApplyVisibilityRules() {
-    for (const auto& rule : visibilityRules_) {
-        bool conditionMet = false;
+bool JsonEffectPanel::EvaluateRuleCondition(const VisibilityRule& rule) {
+    // FX-14: compound AND — met iff every sub-condition is met. Recurses
+    // so each sub-condition uses its own property/operator.
+    if (!rule.allOf.empty()) {
+        for (const auto& sub : rule.allOf) {
+            if (!EvaluateRuleCondition(sub)) return false;
+        }
+        return true;
+    }
 
-        // "any" condition: OR of multiple checkbox properties
-        if (!rule.conditionAnyIds.empty()) {
-            for (const auto& anyId : rule.conditionAnyIds) {
-                auto it = properties_.find(anyId);
-                if (it != properties_.end() && it->second.checkBox) {
-                    if (it->second.checkBox->GetValue()) {
-                        conditionMet = true;
-                        break;
-                    }
-                }
-            }
-        } else {
-            // Single property condition
-            auto it = properties_.find(rule.conditionPropertyId);
-            if (it != properties_.end()) {
-                const auto& info = it->second;
-                if (info.checkBox) {
-                    bool val = info.checkBox->GetValue();
-                    conditionMet = rule.conditionEquals ? (val == rule.conditionBoolValue)
-                                                         : (val != rule.conditionBoolValue);
-                } else if (info.choice) {
-                    std::string sel = info.choice->GetStringSelection().ToStdString();
-                    if (!rule.conditionOneOf.empty()) {
-                        bool inList = false;
-                        for (const auto& v : rule.conditionOneOf) {
-                            if (sel == v) { inList = true; break; }
-                        }
-                        conditionMet = rule.conditionOneOfInverted ? !inList : inList;
-                    } else if (!rule.conditionStartsWith.empty()) {
-                        conditionMet = sel.find(rule.conditionStartsWith) == 0;
-                    } else if (!rule.conditionStringEquals.empty()) {
-                        conditionMet = rule.conditionEquals ? (sel == rule.conditionStringEquals)
-                                                             : (sel != rule.conditionStringEquals);
-                    }
-                } else if (info.textCtrl && rule.conditionHasGreaterThan) {
-                    // Numeric-text condition: compare the control's current
-                    // value against the threshold using strtod so bad input
-                    // doesn't throw (matching the codebase's no-exception rule).
-                    wxString text = info.textCtrl->GetValue();
-                    double value = std::strtod(text.ToStdString().c_str(), nullptr);
-                    conditionMet = value > rule.conditionGreaterThan;
-                } else if (info.comboBox && rule.conditionHasGreaterThan) {
-                    wxString text = info.comboBox->GetValue();
-                    double value = std::strtod(text.ToStdString().c_str(), nullptr);
-                    conditionMet = value > rule.conditionGreaterThan;
-                } else if (info.spinCtrl && rule.conditionHasGreaterThan) {
-                    conditionMet = static_cast<double>(info.spinCtrl->GetValue()) > rule.conditionGreaterThan;
-                } else if (info.slider && rule.conditionHasGreaterThan) {
-                    conditionMet = static_cast<double>(info.slider->GetValue()) > rule.conditionGreaterThan;
+    bool conditionMet = false;
+
+    // "any" condition: OR of multiple checkbox properties
+    if (!rule.conditionAnyIds.empty()) {
+        for (const auto& anyId : rule.conditionAnyIds) {
+            auto it = properties_.find(anyId);
+            if (it != properties_.end() && it->second.checkBox) {
+                if (it->second.checkBox->GetValue()) {
+                    conditionMet = true;
+                    break;
                 }
             }
         }
+    } else {
+        // Single property condition
+        auto it = properties_.find(rule.conditionPropertyId);
+        if (it != properties_.end()) {
+            const auto& info = it->second;
+            if (info.checkBox) {
+                bool val = info.checkBox->GetValue();
+                conditionMet = rule.conditionEquals ? (val == rule.conditionBoolValue)
+                                                     : (val != rule.conditionBoolValue);
+            } else if (info.choice) {
+                std::string sel = info.choice->GetStringSelection().ToStdString();
+                if (!rule.conditionOneOf.empty()) {
+                    bool inList = false;
+                    for (const auto& v : rule.conditionOneOf) {
+                        if (sel == v) { inList = true; break; }
+                    }
+                    conditionMet = rule.conditionOneOfInverted ? !inList : inList;
+                } else if (!rule.conditionStartsWith.empty()) {
+                    conditionMet = sel.find(rule.conditionStartsWith) == 0;
+                } else if (!rule.conditionStringEquals.empty()) {
+                    conditionMet = rule.conditionEquals ? (sel == rule.conditionStringEquals)
+                                                         : (sel != rule.conditionStringEquals);
+                }
+            } else if (info.textCtrl && rule.conditionHasGreaterThan) {
+                // Numeric-text condition: compare the control's current
+                // value against the threshold using strtod so bad input
+                // doesn't throw (matching the codebase's no-exception rule).
+                wxString text = info.textCtrl->GetValue();
+                double value = std::strtod(text.ToStdString().c_str(), nullptr);
+                conditionMet = value > rule.conditionGreaterThan;
+            } else if (info.comboBox && rule.conditionHasGreaterThan) {
+                wxString text = info.comboBox->GetValue();
+                double value = std::strtod(text.ToStdString().c_str(), nullptr);
+                conditionMet = value > rule.conditionGreaterThan;
+            } else if (info.spinCtrl && rule.conditionHasGreaterThan) {
+                conditionMet = static_cast<double>(info.spinCtrl->GetValue()) > rule.conditionGreaterThan;
+            } else if (info.slider && rule.conditionHasGreaterThan) {
+                conditionMet = static_cast<double>(info.slider->GetValue()) > rule.conditionGreaterThan;
+            }
+        }
+    }
+    return conditionMet;
+}
+
+void JsonEffectPanel::ApplyVisibilityRules() {
+    for (const auto& rule : visibilityRules_) {
+        bool conditionMet = EvaluateRuleCondition(rule);
 
         auto setEnabled = [this](const std::vector<std::string>& ids, bool enabled) {
             for (const auto& id : ids) {
@@ -2060,13 +2085,16 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
             }
         }
     } else {
-        // Model is null (brand-new effect with no associated model) — clear any
-        // model-driven choices so stale entries from a previous model aren't shown.
+        // Model is null. Only clear model-driven choices that are already
+        // empty — if they have content from a prior valid model, preserve it
+        // so icon-click / other transient null calls don't wipe user selections.
         for (auto& [id, info] : properties_) {
             if ((info.dynamicOptions == "states" ||
                  info.dynamicOptions == "faces" ||
                  info.dynamicOptions == "modelNodeNames") && info.choice) {
-                info.choice->Clear();
+                if (info.choice->GetCount() == 0) {
+                    info.choice->Clear();
+                }
             }
         }
     }

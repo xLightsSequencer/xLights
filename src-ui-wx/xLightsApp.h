@@ -46,3 +46,10 @@ public:
     virtual bool ProcessIdle() override;
     uint64_t _nextIdleTime = 0;
 };
+
+#ifdef __WXOSX__
+// Spawn a new xLights process via `/usr/bin/open -n -a <bundle> [--args <file>]`.
+// Pass an empty fileToOpen to launch a blank sibling instance. Returns false if
+// the running app's .app bundle cannot be resolved (unbundled / dev runs).
+bool SpawnNewXLightsInstance(const wxString& fileToOpen);
+#endif

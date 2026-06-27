@@ -100,11 +100,14 @@ public:
 
     [[nodiscard]] bool isClosed() const { return m_isClosed; }
     [[nodiscard]] SketchCanvasPathState GetClosedState() const { return m_closedState; }
+    [[nodiscard]] const std::string& GetDescription() const { return m_description; }
+    void SetDescription(const std::string& description) { m_description = description; }
 
 protected:
     std::vector<std::shared_ptr<SketchPathSegment>> m_segments;
     bool m_isClosed {false};
     SketchCanvasPathState  m_closedState {SketchCanvasPathState::Undefined};
+    std::string m_description;
 };
 
 // A sketch is a collection of paths... just a thin std::vector wrapper currently

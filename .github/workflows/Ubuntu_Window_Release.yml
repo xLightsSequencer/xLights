@@ -72,6 +72,15 @@ jobs:
       working-directory: build_scripts\msw
       run: ISCC.exe xLights_4_64bit_VS.iss
 
+    - name: Stage Windows symbol map
+      shell: pwsh
+      run: |
+        if (-not (Test-Path bin64\xLights.map)) {
+          throw "bin64\xLights.map not produced - PrepMap step likely failed"
+        }
+        Copy-Item bin64\xLights.map "build_scripts\msw\output\xLights-${{ github.ref_name }}-win64.map"
+        Write-Host "Staged symbol map: $((Get-Item bin64\xLights.map).Length) bytes"
+
     - uses: ncipollo/release-action@v1
       with:
            allowUpdates: true

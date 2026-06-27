@@ -8,7 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <numbers>
 #include <spdlog/fmt/fmt.h>
 
 #include "../XmlSerializer/FileSerializingVisitor.h"
@@ -813,26 +816,64 @@ void CubeModel::InitModel()
 
     SetStringStartChannels(_cubeStrings, stringStartChan[0]+1 , NodesPerString() * chanPerNode);
 
+    std::vector<float> cos_table, sin_table, ring_rad_table;
+    float outer_radius = 0.0f;
+    if (IsCylinder()) {
+        constexpr float two_pi = 2.0f * std::numbers::pi_v<float>;
+        outer_radius = width / two_pi;
+        float inner_fraction = _hollowPct / 100.0f;
+        cos_table.resize(width);
+        sin_table.resize(width);
+        for (int i = 0; i < width; ++i) {
+            float angle = two_pi * i / width;
+            cos_table[i] = std::cos(angle);
+            sin_table[i] = std::sin(angle);
+        }
+        ring_rad_table.resize(std::max(depth, 1));
+        if (depth <= 1) {
+            ring_rad_table[0] = outer_radius;
+        } else {
+            for (int i = 0; i < depth; ++i) {
+                ring_rad_table[i] = outer_radius * (1.0f - static_cast<float>(i) / (depth - 1) * (1.0f - inner_fraction));
+            }
+        }
+    }
+
+    auto calcScreen = [&](int lx, int ly, int lz) -> std::tuple<float, float, float> {
+        if (_cubeShape == CubeShape::Cylinder) {
+            return { ring_rad_table[lz] * cos_table[lx], static_cast<float>(ly - height / 2), ring_rad_table[lz] * sin_table[lx] };
+        } else {
+            float sx = static_cast<float>(lx - width / 2);
+            float sy = static_cast<float>(ly - height / 2);
+            float sz = static_cast<float>(depth - lz - 1 - depth / 2);
+            if (_rowOffset != RowOffset::None && lz % 2 == 1) {
+                sx += (_rowOffset == RowOffset::Positive) ? 0.5f : -0.5f;
+            }
+            return { sx, sy, sz };
+        }
+    };
+
     for (size_t n = 0; n < Nodes.size(); n++)
     {
         Nodes[n]->ActChan = stringStartChan[0] + n * chanPerNode;
         Nodes[n]->StringNum = 1;
+        int lx = std::get<0>(locations[n]);
+        int ly = std::get<1>(locations[n]);
+        int lz = std::get<2>(locations[n]);
+        auto [sx, sy, sz] = calcScreen(lx, ly, lz);
         if (SingleNode)
         {
             Nodes[n]->Coords[0].bufX = 0;
             Nodes[n]->Coords[0].bufY = 0;
-            Nodes[n]->Coords[0].screenX = std::get<0>(locations[n]) - width / 2;
-            Nodes[n]->Coords[0].screenY = std::get<1>(locations[n]) - height / 2;
-            Nodes[n]->Coords[0].screenZ = depth - std::get<2>(locations[n]) - 1 - depth / 2;
         }
         else
         {
-            Nodes[n]->Coords[0].bufX = std::get<0>(locations[n]) + std::get<2>(locations[n]) * width;
-            Nodes[n]->Coords[0].bufY = std::get<1>(locations[n]);
-            Nodes[n]->Coords[0].screenX = std::get<0>(locations[n]) - width / 2;
-            Nodes[n]->Coords[0].screenY = std::get<1>(locations[n]) - height / 2;
-            Nodes[n]->Coords[0].screenZ = depth - std::get<2>(locations[n]) - 1 - depth / 2;
+            Nodes[n]->Coords[0].bufX = lx + lz * width;
+            Nodes[n]->Coords[0].bufY = ly;
         }
+        Nodes[n]->Coords[0].screenX = sx;
+        Nodes[n]->Coords[0].screenY = sy;
+        Nodes[n]->Coords[0].screenZ = sz;
     }
 
     if (Nodes.size() == 1 && width * height * depth > 1)
@@ -842,9 +883,13 @@ void CubeModel::InitModel()
         {
             Nodes[0]->Coords[n].bufX = 0;
             Nodes[0]->Coords[n].bufY = 0;
-            Nodes[0]->Coords[n].screenX = std::get<0>(locations[n]) - width / 2;
-            Nodes[0]->Coords[n].screenY = std::get<1>(locations[n]) - height / 2;
-            Nodes[0]->Coords[n].screenZ = depth - std::get<2>(locations[n]) - 1 - depth / 2;
+            int lx = std::get<0>(locations[n]);
+            int ly = std::get<1>(locations[n]);
+            int lz = std::get<2>(locations[n]);
+            auto [sx, sy, sz] = calcScreen(lx, ly, lz);
+            Nodes[0]->Coords[n].screenX = sx;
+            Nodes[0]->Coords[n].screenY = sy;
+            Nodes[0]->Coords[n].screenZ = sz;
         }
     }
 
@@ -852,11 +897,16 @@ void CubeModel::InitModel()
         _strandLength = width * height;
         _strands = depth;
     }
-    else         {
+    else {
         _strandLength = depth * height;
         _strands = width;
     }
-    screenLocation.SetRenderSize(width, height, depth);
+
+    if (IsCylinder()) {
+        screenLocation.SetRenderSize(outer_radius * 2.0f, static_cast<float>(height), outer_radius * 2.0f);
+    } else {
+        screenLocation.SetRenderSize(width, height, depth);
+    }
 
     // save the default model size
     BufferWi = width * depth;

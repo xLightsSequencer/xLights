@@ -232,10 +232,9 @@ void FacesPanel::SetPanelStatus(Model* cls) {
         if (!hasDefault) faceChoice->Append("Default");
         if (addRender && !hasRendered) faceChoice->Append("Rendered");
 
-        if (!selection.empty()) {
-            faceChoice->SetStringSelection(selection);
-        }
-        if (faceChoice->GetSelection() == wxNOT_FOUND && faceChoice->GetCount() > 0) {
+        if (!selection.empty() && faceChoice->SetStringSelection(selection)) {
+            // kept
+        } else if (faceChoice->GetCount() > 0) {
             faceChoice->SetSelection(0);
         }
     }

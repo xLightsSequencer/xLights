@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -183,6 +184,38 @@ void PolyLineModel::DeleteHandle(int handle_) {
     InitModel();
 }
 
+void PolyLineModel::SwapStartEnd() {
+    if (GetModelScreenLocation().IsLocked() || IsFromBase()) return;
+    screenLocation.SwapStartEnd();
+
+    std::reverse(_polyLineSizes.begin(), _polyLineSizes.end());
+    std::reverse(_polyLineSegDropSizes.begin(), _polyLineSegDropSizes.end());
+
+    // After reversing, what was the trailing edge of segment i becomes the
+    // leading edge of the corresponding reversed segment, and vice versa.
+    int n = (int)_polyLineSizes.size();
+    std::vector<float> newLead(n), newTrail(n);
+    for (int i = 0; i < n; ++i) {
+        int j = n - 1 - i;
+        newLead[j] = _polyTrailOffset[i];
+        newTrail[j] = _polyLeadOffset[i];
+    }
+    _polyLeadOffset = newLead;
+    _polyTrailOffset = newTrail;
+
+    std::reverse(_polyCorner.begin(), _polyCorner.end());
+    for (auto& corner : _polyCorner) {
+        if (corner == "Leading Segment")
+            corner = "Trailing Segment";
+        else if (corner == "Trailing Segment")
+            corner = "Leading Segment";
+    }
+
+    Nodes.clear();
+    InitModel();
+    IncrementChangeCount();
+}
+
 void PolyLineModel::InitModel()
 {
     // establish light and segment counts
@@ -190,17 +223,26 @@ void PolyLineModel::InitModel()
 
     _numSegments = screenLocation.num_points - 1;
     _numDropPoints = 0;
-    
-    // Ensure per-segment vectors match the current segment count.
+
+    if (_numSegments < 1) {
+        Nodes.clear();
+        return;
+    }
+
+    // Ensure per-segment vectors match the current segment count exactly.
     // During polyline creation, screenLocation may have more points than
-    // the per-segment vectors which are grown via AddHandle().
-    if ((int)_polyLineSizes.size() < _numSegments) {
+    // the per-segment vectors which are grown via AddHandle(); deleting a
+    // handle during placement shrinks num_points without shrinking these
+    // vectors. A stale-large _polyLineSizes lets DistributeLightsEvenly
+    // advance 'segment' past pPos's bounds (sized num_points), dereferencing
+    // a wild per-segment matrix and crashing in glm::operator*.
+    if (_numSegments >= 0 && (int)_polyLineSizes.size() != _numSegments) {
         _polyLineSizes.resize(_numSegments, 50);
         _polyLineSegDropSizes.resize(_numSegments, 1);
         _polyLeadOffset.resize(_numSegments, 0.5);
         _polyTrailOffset.resize(_numSegments, 0.5);
     }
-    if ((int)_polyCorner.size() < _numSegments + 1) {
+    if (_numSegments >= 0 && (int)_polyCorner.size() != _numSegments + 1) {
         _polyCorner.resize(_numSegments + 1, "Neither");
     }
 
@@ -583,12 +625,13 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
             }
         }
         glm::vec3 v;
-        float pos = (current_pos - seg_start) / segment_length;
+        float pos = (segment_length > 0.0f) ? (current_pos - seg_start) / segment_length : 0.0f;
         if (pPos[segment].has_curve) {
-            v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(pos, 0, 0, 1));
+            auto* cm = pPos[segment].curve->GetMatrix(sub_segment);
+            v = cm ? glm::vec3(*cm * glm::vec4(pos, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         }
         else {
-            v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
+            v = pPos[segment].matrix ? glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         }
         bool up = dropSizes[drop_index] < 0;
         unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
@@ -702,7 +745,7 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
     } else {
         num_gaps = _polyLeadOffset[segment] + _polyTrailOffset[segment] + float(lights_to_distribute) - 1.0f;
     }
-    float offset = total_length / num_gaps;
+    float offset = (num_gaps > 0.0f) ? total_length / num_gaps : 0.0f;
     float current_pos = _polyLeadOffset[segment] * offset;
     size_t c = 0;
     int sub_segment = 0;
@@ -722,9 +765,12 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
         }
         glm::vec3 v;
         if (isCurve) {
-            v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4((current_pos - seg_start) / segment_length, 0, 0, 1));
+            float t = (segment_length > 0.0f) ? (current_pos - seg_start) / segment_length : 0.0f;
+            auto* cm = pPos[segment].curve->GetMatrix(sub_segment);
+            v = cm ? glm::vec3(*cm * glm::vec4(t, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         } else {
-            v = glm::vec3(*pPos[segment].matrix * glm::vec4(current_pos / _polyLineSizes[segment], 0, 0, 1));
+            float t = (_polyLineSizes[segment] > 0.0f) ? current_pos / _polyLineSizes[segment] : 0.0f;
+            v = pPos[segment].matrix ? glm::vec3(*pPos[segment].matrix * glm::vec4(t, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         }
         if (SingleNode) {
             for (size_t z = 0; z < drops_this_node; z++) {

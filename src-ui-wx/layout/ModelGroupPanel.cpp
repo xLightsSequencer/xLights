@@ -178,6 +178,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	ChoiceModelLayoutType->Append(_("Overlay - Scaled"));
 	ChoiceModelLayoutType->Append(_("Single Line Model As A Pixel"));
 	ChoiceModelLayoutType->Append(_("Default Model As A Pixel"));
+	ChoiceModelLayoutType->Append(_("Per Model Default"));
 	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxEXPAND, 2);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Default Camera:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer6->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -341,6 +342,16 @@ ModelGroupPanel::~ModelGroupPanel()
 void ModelGroupPanel::AddPreviewChoice(const std::string& name)
 {
     ChoicePreviews->Append(name);
+}
+
+void ModelGroupPanel::RenamePreviewChoice(const std::string& oldName, const std::string& newName)
+{
+    for (size_t i = 0; i < ChoicePreviews->GetCount(); i++) {
+        if (ChoicePreviews->GetString(i) == oldName) {
+            ChoicePreviews->SetString(i, newName);
+            break;
+        }
+    }
 }
 
 bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model, std::list<std::string> &modelGroupsInGroup, std::list<std::string>& visitedGroups) {
@@ -555,6 +566,9 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         }
         else if (v == "vertical") {
             ChoiceModelLayoutType->SetSelection(3);
+        }
+        else if (v == "perModelDefault") {
+            ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->FindString(_("Per Model Default")));
         }
         else {
             int idx = ChoiceModelLayoutType->FindString(v);
@@ -799,22 +813,27 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     g->SetDefaultCamera(Choice_DefaultCamera->GetStringSelection().ToStdString());
     
     std::string layoutStr;
-    switch (ChoiceModelLayoutType->GetSelection()) {
-    case 0:
-        layoutStr = "grid";
-        break;
-    case 1:
-        layoutStr = "minimalGrid";
-        break;
-    case 6:
-        layoutStr = "horizontal";
-        break;
-    case 7:
-        layoutStr = "vertical";
-        break;
-    default:
-        layoutStr = ChoiceModelLayoutType->GetStringSelection().ToStdString();
-        break;
+    wxString selStr = ChoiceModelLayoutType->GetStringSelection();
+    if (selStr == _("Per Model Default")) {
+        layoutStr = "perModelDefault";
+    } else {
+        switch (ChoiceModelLayoutType->GetSelection()) {
+        case 0:
+            layoutStr = "grid";
+            break;
+        case 1:
+            layoutStr = "minimalGrid";
+            break;
+        case 6:
+            layoutStr = "horizontal";
+            break;
+        case 7:
+            layoutStr = "vertical";
+            break;
+        default:
+            layoutStr = selStr.ToStdString();
+            break;
+        }
     }
     g->SetLayout(layoutStr);
     
@@ -1389,7 +1408,7 @@ void ModelGroupPanel::SortModelsByName()
     ModelGroup* g = (ModelGroup*)mModels[mGroup];
     if (g == nullptr) return;
     wxArrayString models;
-    for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+    for (int i = ListBoxModelsInGroup->GetItemCount() - 1; i >= 0; --i) {
         wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);
         models.push_back(modelName);
         ListBoxModelsInGroup->SetItemState(i, 0, wxLIST_STATE_SELECTED);
@@ -1410,7 +1429,7 @@ void ModelGroupPanel::SortModelsByLocation()
         return;
     std::vector<std::pair<wxString, float>> modelPos;
 
-    for (int i = ListBoxModelsInGroup->GetItemCount(); i >= 0; --i) {
+    for (int i = ListBoxModelsInGroup->GetItemCount() - 1; i >= 0; --i) {
         wxString const modelName = ListBoxModelsInGroup->GetItemText(i, 0);
         Model* model = mModels[modelName];
         float pos;

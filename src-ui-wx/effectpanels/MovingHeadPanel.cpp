@@ -162,6 +162,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
     FlexGridSizer_Main = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer_Main->AddGrowableCol(0);
+    FlexGridSizer_Main->AddGrowableRow(1);
     FlexGridSizerFixtures = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerFixtures->AddGrowableCol(0);
     FlexGridSizerFixturesLabel = new wxFlexGridSizer(0, 3, 0, 0);
@@ -208,7 +209,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     FlexGridSizerFixtures->Add(FlexGridSizerFixturesSelection, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer_Main->Add(FlexGridSizerFixtures, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
     Notebook1 = new wxNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK1"));
-    PanelPosition = new wxPanel(Notebook1, ID_PANEL_Position, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Position"));
+    PanelPosition = new wxScrolledWindow(Notebook1, ID_PANEL_Position, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxVSCROLL, _T("ID_PANEL_Position"));
+    PanelPosition->SetScrollRate(0, 10);
     FlexGridSizerPosition = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerPosition->AddGrowableCol(0);
     FlexGridSizerPositionCanvas = new wxFlexGridSizer(1, 1, 0, 0);
@@ -282,12 +284,12 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     FlexGridSizerPosition->Add(FlexGridSizerCycles, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     ButtonSavePreset = new wxButton(PanelPosition, ID_BUTTON_SavePreset, _("Save Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SavePreset"));
     FlexGridSizerPosition->Add(ButtonSavePreset, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 5);
-    FlexGridSizerPresets = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizerPresets = new wxWrapSizer(wxHORIZONTAL, 0);
     FlexGridSizerPosition->Add(FlexGridSizerPresets, 1, wxALL|wxEXPAND, 5);
     PanelPosition->SetSizer(FlexGridSizerPosition);
-    FlexGridSizerPosition->Fit(PanelPosition);
-    FlexGridSizerPosition->SetSizeHints(PanelPosition);
-    PanelDimmer = new wxPanel(Notebook1, ID_PANEL_Dimmer, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Dimmer"));
+    PanelPosition->FitInside();
+    PanelDimmer = new wxScrolledWindow(Notebook1, ID_PANEL_Dimmer, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxVSCROLL, _T("ID_PANEL_Dimmer"));
+    PanelDimmer->SetScrollRate(0, 10);
     FlexGridSizerDimmer = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerDimmer->AddGrowableCol(0);
     FlexGridSizerDimmerCanvas = new wxFlexGridSizer(1, 1, 0, 0);
@@ -302,12 +304,12 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     FlexGridSizerDimmer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonSaveDimmerPreset = new wxButton(PanelDimmer, ID_BUTTON_SaveDimmerPreset, _("Save Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SaveDimmerPreset"));
     FlexGridSizerDimmer->Add(ButtonSaveDimmerPreset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerDimmerPresets = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizerDimmerPresets = new wxWrapSizer(wxHORIZONTAL, 0);
     FlexGridSizerDimmer->Add(FlexGridSizerDimmerPresets, 1, wxALL|wxEXPAND, 5);
     PanelDimmer->SetSizer(FlexGridSizerDimmer);
-    FlexGridSizerDimmer->Fit(PanelDimmer);
-    FlexGridSizerDimmer->SetSizeHints(PanelDimmer);
-    PanelPathing = new wxPanel(Notebook1, ID_PANEL_Pathing, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Pathing"));
+    PanelDimmer->FitInside();
+    PanelPathing = new wxScrolledWindow(Notebook1, ID_PANEL_Pathing, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxVSCROLL, _T("ID_PANEL_Pathing"));
+    PanelPathing->SetScrollRate(0, 10);
     FlexGridSizerPathing = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizerPathing->AddGrowableCol(0);
     FlexGridSizerPathCanvas = new wxFlexGridSizer(1, 1, 0, 0);
@@ -357,17 +359,17 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     FlexGridSizerPathing->Add(FlexGridSizerIgnoreBoxes, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     ButtonSavePathPreset = new wxButton(PanelPathing, ID_BUTTON_SavePathPreset, _("Save Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SavePathPreset"));
     FlexGridSizerPathing->Add(ButtonSavePathPreset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerPathPresets = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizerPathPresets = new wxWrapSizer(wxHORIZONTAL, 0);
     FlexGridSizerPathing->Add(FlexGridSizerPathPresets, 1, wxALL|wxEXPAND, 5);
     PanelPathing->SetSizer(FlexGridSizerPathing);
-    FlexGridSizerPathing->Fit(PanelPathing);
-    FlexGridSizerPathing->SetSizeHints(PanelPathing);
+    PanelPathing->FitInside();
     PanelControl = new wxPanel(Notebook1, ID_PANEL_Control, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Control"));
     FlexGridSizerControl = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerControl->AddGrowableCol(0);
     FlexGridSizerControl->AddGrowableRow(0);
     Notebook2 = new wxNotebook(PanelControl, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));
-    PanelColor = new wxPanel(Notebook2, ID_PANEL_Color, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Color"));
+    PanelColor = new wxScrolledWindow(Notebook2, ID_PANEL_Color, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxVSCROLL, _T("ID_PANEL_Color"));
+    PanelColor->SetScrollRate(0, 10);
     FlexGridSizerColorMain = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizerColorMain->AddGrowableCol(0);
     FlexGridSizerColor = new wxFlexGridSizer(1, 1, 0, 0);
@@ -378,9 +380,9 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     FlexGridSizerColorSliders->AddGrowableCol(0);
     FlexGridSizerColorMain->Add(FlexGridSizerColorSliders, 1, wxALL|wxEXPAND, 0);
     PanelColor->SetSizer(FlexGridSizerColorMain);
-    FlexGridSizerColorMain->Fit(PanelColor);
-    FlexGridSizerColorMain->SetSizeHints(PanelColor);
-    PanelColorWheel = new wxPanel(Notebook2, ID_PANEL_ColorWheel, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_ColorWheel"));
+    PanelColor->FitInside();
+    PanelColorWheel = new wxScrolledWindow(Notebook2, ID_PANEL_ColorWheel, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxVSCROLL, _T("ID_PANEL_ColorWheel"));
+    PanelColorWheel->SetScrollRate(0, 10);
     PanelColorWheel->Hide();
     FlexGridSizerColorWheelMain = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizerColorWheelMain->AddGrowableCol(0);
@@ -395,8 +397,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     FlexGridSizerColorWheelSliders->Add(CheckBoxAutoShutter, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerColorWheelMain->Add(FlexGridSizerColorWheelSliders, 1, wxALL|wxEXPAND, 0);
     PanelColorWheel->SetSizer(FlexGridSizerColorWheelMain);
-    FlexGridSizerColorWheelMain->Fit(PanelColorWheel);
-    FlexGridSizerColorWheelMain->SetSizeHints(PanelColorWheel);
+    PanelColorWheel->FitInside();
     Notebook2->AddPage(PanelColor, _("Color"), false);
     Notebook2->AddPage(PanelColorWheel, _("ColorWheel"), false);
     FlexGridSizerControl->Add(Notebook2, 1, wxALL|wxEXPAND, 5);
@@ -492,7 +493,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     m_sketchCanvasPanel->DrawGrid(true);
 
     m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
-    FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
+    FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
     Notebook2->AddPage(PanelColor, _("Color"), true);
     PanelColor->Show();
     // Delete Colorwheel page
@@ -549,15 +550,39 @@ void MovingHeadPanel::SetEffectTimeRange(int startTimeMs, int endTimeMs)
 
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
-    if ( !IsShownOnScreen() )
-        return;
-
-    wxSize old_sz = m_sketchCanvasPanel->GetSize();
-    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
-        if( old_sz.GetWidth() > 270 ) {
-            wxSize new_size = old_sz;
-            new_size.SetHeight(new_size.GetWidth());
-            m_sketchCanvasPanel->SetMinSize(wxSize(wxDefaultCoord, new_size.GetHeight()));
+    if ( IsShownOnScreen() ) {
+        wxSize old_sz = m_sketchCanvasPanel->GetSize();
+        if( old_sz.GetWidth() != old_sz.GetHeight() ) {
+            if( old_sz.GetWidth() > 270 ) {
+                wxSize new_size = old_sz;
+                new_size.SetHeight(new_size.GetWidth());
+                m_sketchCanvasPanel->SetMinSize(wxSize(wxDefaultCoord, new_size.GetHeight()));
+            }
+        }
+        wxSize pos_sz = m_movingHeadCanvasPanel->GetSize();
+        if( pos_sz.GetWidth() != pos_sz.GetHeight() ) {
+            if( pos_sz.GetWidth() > 270 ) {
+                m_movingHeadCanvasPanel->SetMinSize(wxSize(wxDefaultCoord, pos_sz.GetWidth()));
+            }
+        }
+        const int MAX_COLOR_PANEL_SIZE = FromDIP(300);
+        if( m_rgbColorPanel != nullptr ) {
+            int avail = PanelColor->GetClientSize().GetWidth();
+            if( avail > 50 ) {
+                int sz = std::min(avail, MAX_COLOR_PANEL_SIZE);
+                m_rgbColorPanel->SetMinSize(wxSize(sz, sz));
+                m_rgbColorPanel->SetMaxSize(wxSize(sz, sz));
+                PanelColor->FitInside();
+            }
+        }
+        if( m_wheelColorPanel != nullptr ) {
+            int avail = PanelColorWheel->GetClientSize().GetWidth();
+            if( avail > 50 ) {
+                int sz = std::min(avail, MAX_COLOR_PANEL_SIZE);
+                m_wheelColorPanel->SetMinSize(wxSize(sz, sz));
+                m_wheelColorPanel->SetMaxSize(wxSize(sz, sz));
+                PanelColorWheel->FitInside();
+            }
         }
     }
     if (!m_minSizeSet) {
@@ -576,7 +601,9 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
             }
         }
     }
-    Layout();
+    if ( IsShownOnScreen() ) {
+        Layout();
+    }
     event.Skip();
 }
 
@@ -584,34 +611,30 @@ void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     spdlog::info("MovingHeadPanel Scanning directory for *.xmh files: {}.", directory.GetNameWithSep().ToStdString());
 
-    auto existing = FlexGridSizerPresets->GetChildren();
-    auto existing_path = FlexGridSizerPathPresets->GetChildren();
+    auto existing        = FlexGridSizerPresets->GetChildren();
+    auto existing_path   = FlexGridSizerPathPresets->GetChildren();
+    auto existing_dimmer = FlexGridSizerDimmerPresets->GetChildren();
+
+    auto nameMatches = [](const wxSizerItemList& list, const wxString& name) {
+        for (const auto& it : list) {
+            if (wxFileName(it->GetWindow()->GetLabel()).GetFullName() == name) {
+                return true;
+            }
+        }
+        return false;
+    };
 
     wxArrayString files;
     GetAllFilesInDir(directory.GetNameWithSep(), files, "*.xmh");
     int count = 0;
-    for (auto &filename : files) {
+    for (auto& filename : files) {
         wxFileName fn(filename);
         count++;
-        bool found = false;
-        for (const auto& it : existing) {
-            if (it->GetWindow()->GetLabel() == fn.GetFullPath()) {
-                // already there
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            for (const auto& it : existing_path) {
-                if (it->GetWindow()->GetLabel() == fn.GetFullPath()) {
-                    // already there
-                    found = true;
-                    break;
-                }
-            }
-            if(!found) {
-                LoadMHPreset(fn);
-            }
+        wxString baseName = fn.GetFullName();
+        if (!nameMatches(existing, baseName) &&
+            !nameMatches(existing_path, baseName) &&
+            !nameMatches(existing_dimmer, baseName)) {
+            LoadMHPreset(fn);
         }
     }
     spdlog::info("    Found {}.", count);
@@ -635,74 +658,75 @@ void MovingHeadPanel::LoadMHPreset(const wxFileName& fn)
 void MovingHeadPanel::LoadMHPreset(const std::string& fn)
 {
     if (!FileExists(fn)) {
-        DisplayError("Failure loading MH preset file " + fn + ".");
+        spdlog::warn("MH preset file not found, skipping: {}", fn);
         return;
     }
     pugi::xml_document doc;
-    doc.load_file(fn.c_str());
+    pugi::xml_parse_result result = doc.load_file(fn.c_str());
+    if (!result) {
+        spdlog::error("MH preset file {} is corrupt and will be skipped: {}", fn, result.description());
+        return;
+    }
 
-    if (doc.document_element())
+    pugi::xml_node root = doc.document_element();
+    if (!root) {
+        spdlog::error("MH preset file {} has no root element, skipping.", fn);
+        return;
+    }
+
+    if (std::string_view(root.name()) == "mhpreset")
     {
-        pugi::xml_node root = doc.document_element();
-
-        if (std::string_view(root.name()) == "mhpreset")
-        {
-            wxArrayString heads;
-            for( int i = 1; i <=8; ++i ) {
-                std::string label = "data" + std::to_string(i);
-                wxString data = root.attribute(label.c_str()).as_string();
-                heads.Add(data);
-            }
-            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPresets->GetItemCount());
-            long id = wxNewId();
-            MHPresetBitmapButton* presetBtn = new MHPresetBitmapButton(PanelPosition, id, wxNullBitmap, wxDefaultPosition, wxSize(96, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
-            presetBtn->SetLabel(fn);
-            presetBtn->SetToolTip(fn);
-            presets.push_back( presetBtn );
-            presetBtn->SetPreset(heads);
-            FlexGridSizerPresets->Add(presetBtn, 1, wxALL, 5);
-            Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPresetClick);
+        wxArrayString heads;
+        for( int i = 1; i <=8; ++i ) {
+            std::string label = "data" + std::to_string(i);
+            wxString data = root.attribute(label.c_str()).as_string();
+            heads.Add(data);
         }
-        else if (std::string_view(root.name()) == "mhpathpreset")
-        {
-            std::string data = root.attribute("data").as_string();
-            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPathPresets->GetItemCount());
-            long id = wxNewId();
-            MHPathPresetBitmapButton* presetBtn = new MHPathPresetBitmapButton(PanelPathing, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
-            presetBtn->SetLabel(fn);
-            presetBtn->SetToolTip(fn);
-            path_presets.push_back( presetBtn );
-            presetBtn->SetPreset(data);
-            FlexGridSizerPathPresets->Add(presetBtn, 1, wxALL, 5);
-            Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPathPresetClick);
-        }
-        else if (std::string_view(root.name()) == "mhdimmerpreset")
-        {
-            std::string data = root.attribute("data").as_string();
-            wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerDimmerPresets->GetItemCount());
-            long id = wxNewId();
-            MHDimmerPresetBitmapButton* presetBtn = new MHDimmerPresetBitmapButton(PanelDimmer, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
-            presetBtn->SetLabel(fn);
-            presetBtn->SetToolTip(fn);
-            dimmer_presets.push_back( presetBtn );
-            presetBtn->SetPreset(data);
-            FlexGridSizerDimmerPresets->Add(presetBtn, 1, wxALL, 5);
-            Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonDimmerPresetClick);
-        }
-       else
-        {
-            DisplayError("Failure loading MH preset file " + fn + ".");
-        }
+        wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPresets->GetItemCount());
+        long id = wxNewId();
+        MHPresetBitmapButton* presetBtn = new MHPresetBitmapButton(PanelPosition, id, wxNullBitmap, wxDefaultPosition, wxSize(60, 30), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+        presetBtn->SetLabel(fn);
+        presetBtn->SetToolTip(fn);
+        presets.push_back( presetBtn );
+        presetBtn->SetPreset(heads);
+        FlexGridSizerPresets->Add(presetBtn, 0, wxALL, 2);
+        Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPresetClick);
+    }
+    else if (std::string_view(root.name()) == "mhpathpreset")
+    {
+        std::string data = root.attribute("data").as_string();
+        wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPathPresets->GetItemCount());
+        long id = wxNewId();
+        MHPathPresetBitmapButton* presetBtn = new MHPathPresetBitmapButton(PanelPathing, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+        presetBtn->SetLabel(fn);
+        presetBtn->SetToolTip(fn);
+        path_presets.push_back( presetBtn );
+        presetBtn->SetPreset(data);
+        FlexGridSizerPathPresets->Add(presetBtn, 0, wxALL, 2);
+        Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPathPresetClick);
+    }
+    else if (std::string_view(root.name()) == "mhdimmerpreset")
+    {
+        std::string data = root.attribute("data").as_string();
+        wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerDimmerPresets->GetItemCount());
+        long id = wxNewId();
+        MHDimmerPresetBitmapButton* presetBtn = new MHDimmerPresetBitmapButton(PanelDimmer, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+        presetBtn->SetLabel(fn);
+        presetBtn->SetToolTip(fn);
+        dimmer_presets.push_back( presetBtn );
+        presetBtn->SetPreset(data);
+        FlexGridSizerDimmerPresets->Add(presetBtn, 0, wxALL, 2);
+        Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonDimmerPresetClick);
     }
     else
     {
-        DisplayError("Failure loading MH preset file " + fn + ".");
+        spdlog::error("MH preset file {} has unknown root element '{}', skipping.", fn, root.name());
     }
 }
 
 void MovingHeadPanel::PopulatePresets()
 {
-    
+    spdlog::info("MovingHeadPanel PopulatePresets: CurrentDir='{}'", xLightsFrame::CurrentDir.ToStdString());
 
     wxDir dir;
     if (wxDir::Exists(xLightsFrame::CurrentDir))
@@ -770,6 +794,7 @@ void MovingHeadPanel::OnButtonSavePresetClick(wxCommandEvent& event)
         }
     }
     SavePreset( heads );
+    PanelPosition->FitInside();
     Layout();
     Refresh();
 }
@@ -779,6 +804,7 @@ void MovingHeadPanel::OnButtonSavePathPresetClick(wxCommandEvent& event)
     wxArrayString path_def;
     path_def.Add(m_sketchDef);
     SavePreset( path_def, true );
+    PanelPathing->FitInside();
     Layout();
     Refresh();
 }
@@ -790,6 +816,7 @@ void MovingHeadPanel::OnButtonSaveDimmerPresetClick(wxCommandEvent& event)
         wxArrayString dimmer_def;
         dimmer_def.Add(dimmer_text);
         SavePreset( dimmer_def, false, true );
+        PanelDimmer->FitInside();
         Layout();
         Refresh();
     }
@@ -849,7 +876,14 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool
         if( is_path ) {
             for (auto preset_ : path_presets) {
                 if( fn.GetFullPath() == preset_->GetLabel() ) {
-                    preset_->SetPreset( preset[0] );
+                    preset_->SetPreset( preset[0].ToStdString() );
+                    break;
+                }
+            }
+        } else if( is_dimmer ) {
+            for (auto preset_ : dimmer_presets) {
+                if( fn.GetFullPath() == preset_->GetLabel() ) {
+                    preset_->SetPreset( preset[0].ToStdString() );
                     break;
                 }
             }
@@ -878,6 +912,40 @@ void MovingHeadPanel::OnButtonPresetClick(wxCommandEvent& event)
         mh_textbox->SetValue(settings[i-1]);
     }
     recall = false;
+
+    // Restore fixture checkboxes and sliders from the preset's stored Heads: list
+    UncheckAllFixtures();
+    std::string first_settings = xlEMPTY_STRING;
+    for( int i = 1; i <= 8; ++i ) {
+        if( settings[i-1].empty() || first_settings != xlEMPTY_STRING ) continue;
+        std::string mh_settings = settings[i-1].ToStdString();
+        wxArrayString cmds = wxSplit(mh_settings, ';');
+        for( size_t j = 0; j < cmds.size(); ++j ) {
+            std::string cmd = cmds[j].ToStdString();
+            int pos = cmd.find(":");
+            if( pos == (int)std::string::npos ) continue;
+            if( cmd.substr(0, pos) == "Heads" ) {
+                std::string heads_str = cmd.substr(pos + 2);
+                wxArrayString head_nums = wxSplit(heads_str, ',');
+                for( size_t k = 0; k < head_nums.size(); ++k ) {
+                    long num = 0;
+                    if( head_nums[k].Trim().ToLong(&num) ) {
+                        wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+                        wxCheckBox* checkbox = (wxCheckBox*)(FindWindowByName(checkbox_ctrl));
+                        if( checkbox != nullptr ) checkbox->SetValue(true);
+                    }
+                }
+                first_settings = mh_settings;
+                break;
+            }
+        }
+    }
+
+    if( first_settings != xlEMPTY_STRING ) {
+        RecallSettings(first_settings);
+    }
+    UpdateColorPanel();
+    UpdateStatusPanel();
     FireChangeEvent();
 }
 
@@ -913,8 +981,11 @@ void MovingHeadPanel::OnButtonDimmerPresetClick(wxCommandEvent& event)
 
 void MovingHeadPanel::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
-    if (Notebook1->GetPageText(Notebook1->GetSelection()) == "Status") {
+    wxString page = Notebook1->GetPageText(Notebook1->GetSelection());
+    if (page == "Status") {
         UpdateStatusPanel();
+    } else if (page == "Control") {
+        UpdateColorPanel();
     }
 }
 
@@ -1192,13 +1263,36 @@ void MovingHeadPanel::UpdateColorPanel()
         }
     }
 
+    // If no fixtures are actively selected but any model has a color wheel, still show the tab
+    if (!wheel_active && first_mhead == nullptr) {
+        for (const auto& it : models) {
+            if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+                DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+                if (mhead->HasColorAbility()) {
+                    DmxColorAbility* ptrColorAbility = mhead->GetColorAbility();
+                    if (ptrColorAbility->GetTypeName() == "ColorWheel") {
+                        wheel_active = true;
+                        first_mhead = mhead;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    spdlog::debug("MovingHeadPanel::UpdateColorPanel: wheel_active={} wheelPanel={} rgbPanel={} rgbSize={}x{}",
+        wheel_active,
+        m_wheelColorPanel != nullptr ? "ok" : "null",
+        m_rgbColorPanel != nullptr ? "ok" : "null",
+        m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetWidth() : -1,
+        m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetHeight() : -1);
     if( wheel_active ) {
         DmxColorAbility* ptrColorAbility = first_mhead->GetColorAbility();
         auto colors = ptrColorAbility->GetColors();
         if( m_wheelColorPanel == nullptr) {
             m_wheelColorPanel = new MHColorWheelPanel(this, PanelColorWheel, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
             m_wheelColorPanel->DefineColours(colors);
-            FlexGridSizerColorWheel->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);
+            FlexGridSizerColorWheel->Add(m_wheelColorPanel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
             PanelColorWheel->Show();
         } else {
             // check if number of colors is still the same
@@ -1207,10 +1301,12 @@ void MovingHeadPanel::UpdateColorPanel()
         if( Notebook2->GetPageCount() == 1 ) {
             Notebook2->AddPage(PanelColorWheel, _("ColorWheel"), false);
         }
+        Notebook2->SetSelection(1);
     } else {
         while(Notebook2->GetPageCount()>1) {
             Notebook2->RemovePage(1);
         }
+        Notebook2->SetSelection(0);
     }
 }
 
@@ -1226,11 +1322,14 @@ void MovingHeadPanel::UpdateMHSettings()
 
     if( !presets_loaded ) { // I'd like to do this during construction but apparently the current directory is not set yet
         PopulatePresets();
-        presets_loaded = true;
+        presets_loaded = !xLightsFrame::CurrentDir.empty(); // don't lock out if show folder wasn't set yet
         if (!IsShownOnScreen()) {
             return;
         }
         FlexGridSizer_Main->SetSizeHints(this);
+        PanelPosition->FitInside();
+        PanelPathing->FitInside();
+        PanelDimmer->FitInside();
         Layout();
         Refresh();
     }
@@ -1652,6 +1751,7 @@ void MovingHeadPanel::UncheckAllFixtures()
 }
 
 void MovingHeadPanel::CheckAllFixtures() {
+	if (recall) return;
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
@@ -1669,61 +1769,136 @@ void MovingHeadPanel::CheckAllFixtures() {
 
 void MovingHeadPanel::OnButton_AllClick(wxCommandEvent& event)
 {
-    CheckAllFixtures();
-    wxCommandEvent _event;
-    OnCheckBox_MHClick(_event);
+    auto models = GetActiveModels();
+    bool selection_changed = false;
+
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+            int num = mhead->GetFixtureVal();
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if (checkbox != nullptr) {
+                if (!checkbox->IsChecked()) selection_changed = true;
+                checkbox->SetValue(true);
+            }
+        }
+    }
+
+    if (selection_changed) {
+        wxCommandEvent _event;
+        OnCheckBox_MHClick(_event);
+    } else {
+        UpdateColorPanel();
+        UpdateStatusPanel();
+    }
 }
 
 void MovingHeadPanel::OnButton_NoneClick(wxCommandEvent& event)
 {
     UncheckAllFixtures();
+
+    SetSliderValue(Slider_MHPan, 0.0f);
+    SetSliderValue(Slider_MHTilt, 0.0f);
+    NotifyPositionUpdated();
+
+    m_movingHeadDimmerPanel->SetDimmerCommands("0.0,0.0,1.0,0.0");
+    UpdateDimmerSettings();
+
+    OnButton_MHPathClearClick(event);
+
+    if (m_rgbColorPanel != nullptr) {
+        m_rgbColorPanel->ResetColours();
+    }
+    if (m_wheelColorPanel != nullptr) {
+        m_wheelColorPanel->ResetColours();
+    }
+
     UpdateColorPanel();
+    UpdateStatusPanel();
+    FireChangeEvent();
 }
 
 void MovingHeadPanel::OnButton_EvensClick(wxCommandEvent& event)
 {
-    UncheckAllFixtures();
-
     auto models = GetActiveModels();
+    bool selection_changed = false;
 
     for (const auto& it : models) {
         if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
-            if( num % 2 == 0 ) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if (checkbox != nullptr && checkbox->IsChecked() != (num % 2 == 0)) {
+                selection_changed = true;
+                break;
+            }
+        }
+    }
+
+    UncheckAllFixtures();
+
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+            int num = mhead->GetFixtureVal();
+            if (num % 2 == 0) {
                 wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
                 wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-                if( checkbox != nullptr ) {
-                    checkbox->SetValue(true);
-                }
+                if (checkbox != nullptr) checkbox->SetValue(true);
             }
-       }
+        }
     }
-    wxCommandEvent _event;
-    OnCheckBox_MHClick(_event);
+
+    if (selection_changed) {
+        wxCommandEvent _event;
+        OnCheckBox_MHClick(_event);
+    } else {
+        UpdateColorPanel();
+        UpdateStatusPanel();
+    }
 }
 
 void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
 {
-    UncheckAllFixtures();
-
     auto models = GetActiveModels();
+    bool selection_changed = false;
 
     for (const auto& it : models) {
         if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
-            if( num % 2 > 0 ) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if (checkbox != nullptr && checkbox->IsChecked() != (num % 2 != 0)) {
+                selection_changed = true;
+                break;
+            }
+        }
+    }
+
+    UncheckAllFixtures();
+
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+            int num = mhead->GetFixtureVal();
+            if (num % 2 != 0) {
                 wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
                 wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
-                if( checkbox != nullptr ) {
-                    checkbox->SetValue(true);
-                }
+                if (checkbox != nullptr) checkbox->SetValue(true);
             }
-       }
+        }
     }
-    wxCommandEvent _event;
-    OnCheckBox_MHClick(_event);
+
+    if (selection_changed) {
+        wxCommandEvent _event;
+        OnCheckBox_MHClick(_event);
+    } else {
+        UpdateColorPanel();
+        UpdateStatusPanel();
+    }
 }
 
 std::list<Model*> MovingHeadPanel::GetActiveModels()
@@ -1731,6 +1906,7 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
     std::list<Model*> res;
 
     if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) return res;
+    if (!xLightsApp::GetFrame()->IsSequenceLoaded()) return res;
 
     auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
     if (effect != nullptr) {
@@ -1960,8 +2136,8 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
     // update color panels since selected heads changed
     UpdateColorPanel();
 
-    bool all_same {true};
     std::string last_mh {xlEMPTY_STRING};
+    bool all_same {true};
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
@@ -1969,20 +2145,22 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
             if( checkbox->IsChecked() ) {
                 wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
                 wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                std::string settings = mh_textbox->GetValue();
                 if( last_mh == xlEMPTY_STRING ) {
-                    last_mh = mh_textbox->GetValue();
-                } else {
-                    if( last_mh != mh_textbox->GetValue() ) {
-                        all_same = false;
-                        break;
-                    }
+                    last_mh = settings;
+                } else if( last_mh != settings ) {
+                    all_same = false;
+                    break;
                 }
             }
         }
     }
 
-    if( all_same && last_mh != xlEMPTY_STRING ) {
+    if( last_mh != xlEMPTY_STRING && all_same ) {
         RecallSettings(last_mh);
+    } else {
+        UpdateMHSettings();
+        FireChangeEvent();
     }
     UpdateStatusPanel();
 }
@@ -2001,6 +2179,14 @@ bool MovingHeadPanel::IsHeadActive(int num)
 
 void MovingHeadPanel::RecallSettings(const std::string mh_settings)
 {
+    spdlog::debug("MovingHeadPanel::RecallSettings: settings length={}", mh_settings.length());
+    spdlog::debug("MovingHeadPanel::RecallSettings: rgbPanel={} rgbSize={}x{} wheelPanel={} wheelSize={}x{}",
+        m_rgbColorPanel != nullptr ? "ok" : "null",
+        m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetWidth() : -1,
+        m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetHeight() : -1,
+        m_wheelColorPanel != nullptr ? "ok" : "null",
+        m_wheelColorPanel != nullptr ? m_wheelColorPanel->GetSize().GetWidth() : -1,
+        m_wheelColorPanel != nullptr ? m_wheelColorPanel->GetSize().GetHeight() : -1);
     recall = true;
     bool handled_path {false};
 
@@ -2066,10 +2252,18 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
         } else if( cmd_type == "PathScale VC" ) {
             UpdateValueCurve("PathScale", settings.c_str());
         } else if( cmd_type == "Color" ) {
+            spdlog::debug("MovingHeadPanel::RecallSettings: Color rgbPanel={} rgbSize={}x{}",
+                m_rgbColorPanel != nullptr ? "ok" : "null",
+                m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetWidth() : -1,
+                m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetHeight() : -1);
             if( m_rgbColorPanel != nullptr ) {
                 m_rgbColorPanel->SetColours(settings);
             }
         } else if( cmd_type == "Wheel" ) {
+            spdlog::debug("MovingHeadPanel::RecallSettings: Wheel wheelPanel={} wheelSize={}x{}",
+                m_wheelColorPanel != nullptr ? "ok" : "null",
+                m_wheelColorPanel != nullptr ? m_wheelColorPanel->GetSize().GetWidth() : -1,
+                m_wheelColorPanel != nullptr ? m_wheelColorPanel->GetSize().GetHeight() : -1);
             if( m_wheelColorPanel != nullptr ) {
                 m_wheelColorPanel->SetColours(settings);
             }
@@ -2182,7 +2376,9 @@ void MovingHeadPanel::OnCheckBoxAutoShutterClick(wxCommandEvent& event)
 }
 
 void MovingHeadPanel::GetFixturesGroups() {
-    if (mh_evens == "" && mh_odds == "") {
+    if (mh_all == "") {
+        mh_evens = "";
+        mh_odds = "";
         auto models = GetActiveModels();
         for (const auto& it : models) {
             if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
@@ -2232,6 +2428,13 @@ static std::list<const Model*> GetModelsForPanel(const Model* model)
 
 void MovingHeadPanel::SetDefaultParameters()
 {
+    // Suppress the live update handlers while we programmatically populate the
+    // controls. SetSliderValue synthesises wxEVT_SLIDER events that otherwise
+    // cascade into UpdateMHSettings->UpdateColorPanel->GetActiveModels, which
+    // dereferences the (now stale) selected effect/model during CloseSequence
+    // teardown.
+    recall = true;
+
     ValueCurve_MHPan->SetActive(false);
     ValueCurve_MHTilt->SetActive(false);
     ValueCurve_MHPanOffset->SetActive(false);
@@ -2265,6 +2468,15 @@ void MovingHeadPanel::SetDefaultParameters()
     SetTextValue(TextCtrl_MH8_Settings, "");
 
     UpdateStatusPanel();
+
+    if (presets_loaded) {
+        PanelPosition->FitInside();
+        PanelPathing->FitInside();
+        PanelDimmer->FitInside();
+        Layout();
+    }
+
+    recall = false;
 }
 
 void MovingHeadPanel::SetPanelStatus(Model* cls)

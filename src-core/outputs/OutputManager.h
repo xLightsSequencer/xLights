@@ -46,7 +46,11 @@ class OutputManager
     std::mutex _outputCriticalSection; // used to protect areas that must be single threaded
     std::string _baseShowDir = "";
     bool _autoUpdateFromBaseShowDir = false;
-    #pragma endregion 
+    // Loaded show dir. Used at save time to derive the relative
+    // form of `_baseShowDir` so the base-folder link survives
+    // moving the show between machines (e.g. desktop ↔ iPad).
+    std::string _showDir = "";
+    #pragma endregion
 
     #pragma region Static Variables
     static bool __isSync; // copied here so it can be accessed statically

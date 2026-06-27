@@ -166,10 +166,13 @@ void SequenceView::Save(BaseSerializingVisitor& visitor) const
 
 void SequenceView::RenameModel(const std::string& oldname, const std::string& newname)
 {
-	if (ContainsModel(oldname))
+	for (auto& name : _modelNames)
 	{
-		RemoveModel(oldname);
-		AddModel(newname);
+		if (name == oldname)
+		{
+			name = newname;
+			return;
+		}
 	}
 }
 

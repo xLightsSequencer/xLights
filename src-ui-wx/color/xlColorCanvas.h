@@ -26,7 +26,8 @@ public:
 
     enum class DisplayType {
         TYPE_PALETTE,
-        TYPE_SLIDER
+        TYPE_SLIDER,
+        TYPE_WHEEL
     };
 
     void SetType(xlColorCanvas::DisplayType type) {
@@ -49,8 +50,10 @@ private:
     void render();
     void DrawSlider(xlGraphicsContext* ctx);
     void DrawPalette(xlGraphicsContext* ctx);
+    void DrawWheel(xlGraphicsContext* ctx);
     void ProcessSliderClick(int row);
     void ProcessPaletteClick(int row, int column);
+    void ProcessWheelClick(int row, int column);
     int GetRGBColorFromRangeValue(int position, int range, int max_value, bool invert);
 
     DisplayType mDisplayType = xlColorCanvas::DisplayType::TYPE_PALETTE;

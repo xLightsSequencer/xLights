@@ -17,6 +17,7 @@
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
 #include "../render/RenderBuffer.h"
+#include "../render/SequenceElements.h"
 #include "UtilClasses.h"
 
 #define XLIGHTS_FX 
@@ -55,6 +56,7 @@ int SingleStrandEffect::sSkipsBandSizeDefault = 1;
 int SingleStrandEffect::sSkipsSkipSizeDefault = 1;
 int SingleStrandEffect::sSkipsStartPosDefault = 1;
 int SingleStrandEffect::sSkipsAdvanceDefault = 0;
+std::string SingleStrandEffect::sTimingTrackDefault = "";
 
 SingleStrandEffect::SingleStrandEffect(int id)
     : RenderableEffect(id, "SingleStrand", singleStrand_16, singleStrand_64, singleStrand_64, singleStrand_64, singleStrand_64)
@@ -93,6 +95,7 @@ void SingleStrandEffect::OnMetadataLoaded()
     sSkipsSkipSizeDefault = GetIntDefault("Skips_SkipSize", sSkipsSkipSizeDefault);
     sSkipsStartPosDefault = GetIntDefault("Skips_StartPos", sSkipsStartPosDefault);
     sSkipsAdvanceDefault = GetIntDefault("Skips_Advance", sSkipsAdvanceDefault);
+    sTimingTrackDefault = GetStringDefault("SingleStrand_TimingTrack", sTimingTrackDefault);
     // SingleStrand_FX / SingleStrand_FX_Palette defaults mismatch
     // (JSON="" vs C++="Blink"/"Default") — left as legacy literals.
 }
@@ -133,6 +136,41 @@ std::vector<std::string> SingleStrandEffect::GetSettingOptions(const std::string
 SingleStrandEffect::~SingleStrandEffect()
 {
     //dtor
+}
+
+void SingleStrandEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    std::string timing = effect->GetSettings().Get("E_CHOICE_SingleStrand_TimingTrack", "");
+
+    if (timing == oldname)
+    {
+        effect->GetSettings()["E_CHOICE_SingleStrand_TimingTrack"] = newname;
+    }
+}
+
+Effect* SingleStrandEffect::GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms)
+{
+    if (timingTrack.empty())
+        return nullptr;
+
+    SequenceElements* seqEl = GetSequenceElements(buffer);
+    if (seqEl == nullptr) return nullptr;
+
+    TimingElement* t = seqEl->GetTimingElement(timingTrack);
+    if (t == nullptr)
+        return nullptr;
+
+    EffectLayer* el = t->GetEffectLayer(0);
+    for (int j = 0; j < el->GetEffectCount(); j++) {
+        Effect* e = el->GetEffect(j);
+        if ((uint32_t)e->GetStartTimeMS() <= ms && (uint32_t)e->GetEndTimeMS() > ms) {
+            return e;
+        }
+        if ((uint32_t)e->GetStartTimeMS() > ms)
+            return nullptr;
+    }
+
+    return nullptr;
 }
 
 int mapX(int x, int max, int direction, int &second) {
@@ -261,7 +299,8 @@ void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
                                 SettingsMap.Get("CHOICE_Fade_Type", sFadeTypeDefault),
                                 SettingsMap.GetBool("CHECKBOX_Chase_Group_All", sGroupAllDefault),
                                 GetValueCurveDouble("Chase_Rotations", sRotationsDefault, SettingsMap, eff_pos, sRotationsMin, sRotationsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRotationsDivisor),
-                                GetValueCurveDouble("Chase_Offset", sOffsetDefault, SettingsMap, eff_pos, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sOffsetDivisor));
+                                GetValueCurveDouble("Chase_Offset", sOffsetDefault, SettingsMap, eff_pos, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sOffsetDivisor),
+                                SettingsMap.Get("CHOICE_SingleStrand_TimingTrack", sTimingTrackDefault));
     }
 }
 
@@ -462,8 +501,20 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
     const std::string &Chase_Type1,
     const std::string &Fade_Type,
     bool Chase_Group_All,
-    float chaseSpeed, float offset)
+    float chaseSpeed, float offset, const std::string& TimingTrack)
 {
+    // When a timing track is selected, the chase performs chaseSpeed (Cycles) traversals
+    // between each pair of timing marks instead of over the whole effect duration. Outside
+    // the marked region (before the first mark / after the last mark) nothing is drawn, the
+    // same convention VUMeterEffect::GetTimingEvent-based renders use.
+    Effect* timingEvent = nullptr;
+    if (!TimingTrack.empty()) {
+        timingEvent = GetTimingEvent(buffer, TimingTrack, (uint32_t)(buffer.curPeriod * buffer.frameTimeInMs));
+        if (timingEvent == nullptr) {
+            return;
+        }
+    }
+
     int ColorScheme = "Palette" == ColorSchemeName;
 
     int chaseType = mapChaseType(Chase_Type1);
@@ -570,7 +621,15 @@ void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* e
     }
 
     // This is a 0.0-1.0 value that determine how far along the current chase cycle we are
-    double rtval = Static ? 0 : buffer.GetEffectTimeIntervalPosition();
+    double basePos;
+    if (timingEvent != nullptr) {
+        double lengthOfTiming = timingEvent->GetEndTimeMS() - timingEvent->GetStartTimeMS();
+        if (lengthOfTiming < 1) lengthOfTiming = 1;
+        basePos = (buffer.curPeriod * buffer.frameTimeInMs - timingEvent->GetStartTimeMS()) / lengthOfTiming;
+    } else {
+        basePos = buffer.GetEffectTimeIntervalPosition();
+    }
+    double rtval = Static ? 0 : basePos;
     if (chaseType == 8) {
         // need to start in the middle for Bounce from Middle
         rtval += 0.25 / chaseSpeed;

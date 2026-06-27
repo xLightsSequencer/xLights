@@ -99,6 +99,7 @@ public:
     bool NeedsFullUniverseForDMX() const;
     bool AllSmartRemoteTypesPerPortMustBeSame() const;
     bool DMXAfterPixels() const;
+    bool OpenSourceFirmware() const;
 
     int GetSmartRemoteCount() const;
     int GetMaxInputE131Universes() const;
@@ -109,6 +110,7 @@ public:
     int GetMaxLEDPanelMatrixPort() const;
     int GetMaxPixelPortChannels() const;
     int GetMaxSerialPortChannels() const;
+    int GetMaxDDPChannels() const;
     int GetMaxInputUniverseChannels() const;
     int GetMinInputUniverseChannels() const;
     int GetNumberOfBanks() const;

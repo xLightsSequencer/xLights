@@ -10,28 +10,44 @@
 
 #include "iPadRenderContext.h"
 
+#include <CoreFoundation/CoreFoundation.h>
+
 #include "render/Element.h"
 #include "render/EffectLayer.h"
 #include "render/Effect.h"
 #include "render/FSEQFile.h"
 #include "render/IRenderJobStatus.h"
 #include "render/RenderProgressInfo.h"
+#include "render/SeqMediaMigration.h"
 #include "render/SequenceMedia.h"
+#include "media/MediaCompatibility.h"
 #include "xLightsVersion.h"
 #include <map>
 #include "effects/ShaderEffect.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/MeshObject.h"
+#include "models/ImageObject.h"
+#include "models/GridlinesObject.h"
+#include "models/TerrainObject.h"
+#include "models/RulerObject.h"
+#include "models/TwoPointScreenLocation.h"
+#include "models/BoxedScreenLocation.h"
+#include "models/TerrainScreenLocation.h"
 #include "models/MatrixModel.h"
 #include "models/ModelScreenLocation.h"
 #include "models/Node.h"
 #include "render/ValueCurve.h"
+#include "render/UICallbacks.h"
 #include "utils/Color.h"
 #include "utils/ExternalHooks.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
+#include "XmlSerializer/XmlSerializer.h"
 
 #include <pugixml.hpp>
 #include "utils/FileUtils.h"
+#include "utils/CachedFileDownloader.h"
+#include <globals.h>
 #include <log.h>
 
 #include <algorithm>
@@ -47,6 +63,41 @@
 #include <thread>
 #include <vector>
 
+namespace {
+// Adapts iPadRenderContext's Check-Sequence disable set to the
+// UICallbacks surface CustomModel / SketchEffect consult during a
+// sequence check. Every other UICallbacks method is a defensive
+// stub — the only check-time caller is IsCheckSequenceOptionDisabled.
+class iPadCheckUICallbacks final : public UICallbacks {
+public:
+    explicit iPadCheckUICallbacks(const iPadRenderContext* ctx) : _ctx(ctx) {}
+
+    bool IsCheckSequenceOptionDisabled(const std::string& option) const override {
+        return _ctx && _ctx->IsCheckOptionDisabled(option);
+    }
+
+    void ShowMessage(const std::string&, const std::string&) const override {}
+    bool PromptYesNo(const std::string&, const std::string&) const override { return false; }
+    std::string PromptForDirectory(const std::string&, const std::string&) const override { return ""; }
+    std::string PromptForFile(const std::string&, const std::string&, const std::string&) const override { return ""; }
+    long PromptForNumber(const std::string&, const std::string&, long defaultValue, long, long) const override { return defaultValue; }
+    std::string PromptForText(const std::string&, const std::string&, const std::string& defaultValue) const override { return defaultValue; }
+    ProgressToken BeginProgress(const std::string&, int) override { return INVALID_PROGRESS; }
+    void UpdateProgress(ProgressToken, int, const std::string&) override {}
+    void EndProgress(ProgressToken) override {}
+
+private:
+    const iPadRenderContext* _ctx;
+};
+} // namespace
+
+UICallbacks* iPadRenderContext::GetUICallbacks() {
+    if (!_checkUICallbacks) {
+        _checkUICallbacks = std::make_unique<iPadCheckUICallbacks>(this);
+    }
+    return _checkUICallbacks.get();
+}
+
 iPadRenderContext::iPadRenderContext()
     : _effectManager(FileUtils::GetResourcesDir() + "/effectmetadata"),
       _sequenceElements(this) {
@@ -58,8 +109,15 @@ iPadRenderContext::iPadRenderContext()
     //     ModifiedEffect snapshot can be several KB of settings
     //     strings, so 2000-edit sessions on a long show add up.
     //     iPad users don't need desktop-scale undo depth anyway.
-    _renderCache.SetMaximumSizeMB(50);
+    _renderCache.SetMaximumSizeMB(ReadRenderCacheMaxMB());
     _sequenceElements.get_undo_mgr().SetMaxSteps(50);
+
+    // Render cache defaults OFF on iPad (see ReadRenderCacheMode): it trades
+    // memory + disk for re-render speed, and both are scarce here. The user
+    // can opt into "Locked Only" / "Enabled" via the Folder Config picker;
+    // EnsureRenderEngine re-reads it before every render so changes take
+    // effect without a restart.
+    _renderCache.Enable(ReadRenderCacheMode());
 }
 
 iPadRenderContext::~iPadRenderContext() {
@@ -152,6 +210,13 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                         if (h > 0) _previewHeight = h;
                     } else if (name == "Display2DCenter0") {
                         _display2DCenter0 = (std::string(v) == "1");
+                    } else if (name == "Display2DGrid") {
+                        _display2DGrid = (std::string(v) == "1");
+                    } else if (name == "Display2DGridSpacing") {
+                        long sp = std::strtol(v, nullptr, 10);
+                        if (sp > 0) _display2DGridSpacing = sp;
+                    } else if (name == "Display2DBoundingBox") {
+                        _display2DBoundingBox = (std::string(v) == "1");
                     } else if (name == "LayoutMode3D") {
                         _layoutMode3D = (std::string(v) == "1");
                     } else if (name == "backgroundImage") {
@@ -288,6 +353,69 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         if (root) loadPaletteFrom(root);
     }
 
+    // PRE-1 — load the persistent effect preset library. Prefer the
+    // desktop JSON file so presets round-trip cross-platform; fall back
+    // to the legacy <effects> node embedded in xlights_rgbeffects.xml
+    // (migration path, matching xLightsFrame::LoadEffectsFile). The
+    // version stamp is needed so a later SaveEffectPresets writes a
+    // current-format file.
+    _effectPresetManager.Reset();
+    std::string presetsPath = showDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(presetsPath, false);
+    if (_effectPresetManager.LoadJsonFile(presetsPath)) {
+        spdlog::info("iPadRenderContext: Loaded effect presets from {}", presetsPath);
+    } else if (result) {
+        auto root = doc.child("xrgb");
+        if (!root) root = doc.child("xlights");
+        if (root) {
+            auto effectsNode = root.child("effects");
+            if (effectsNode) {
+                _effectPresetManager.Load(effectsNode);
+                spdlog::info("iPadRenderContext: Migrated effect presets from {} (<effects> node)", rgbPath);
+            }
+        }
+    }
+    if (_effectPresetManager.GetVersion().empty()) {
+        _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    }
+
+    LoadBasePresets();
+
+    return true;
+}
+
+bool iPadRenderContext::LoadBasePresets() {
+    _basePresetManager.Reset();
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty() || baseDir == _showDir)
+        return false;
+    std::string basePresetsPath = baseDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(basePresetsPath, false);
+    if (_basePresetManager.LoadJsonFile(basePresetsPath) &&
+        !_basePresetManager.GetRoot().GetChildren().empty()) {
+        spdlog::info("iPadRenderContext: Loaded base effect presets from {}", basePresetsPath);
+        return true;
+    }
+    _basePresetManager.Reset();
+    return false;
+}
+
+bool iPadRenderContext::SaveEffectPresets() {
+    if (_showDir.empty())
+        return false;
+    if (_effectPresetManager.GetVersion().empty()) {
+        _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    }
+    std::string backupPath = _showDir + "/" + XLIGHTS_PRESETS_FILE_BACKUP;
+    ObtainAccessToURL(backupPath, true);
+    _effectPresetManager.SaveJsonFile(backupPath); // best-effort
+
+    std::string presetsPath = _showDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(presetsPath, true);
+    if (!_effectPresetManager.SaveJsonFile(presetsPath)) {
+        spdlog::warn("iPadRenderContext: failed to save effect presets to {}", presetsPath);
+        return false;
+    }
     return true;
 }
 
@@ -427,9 +555,726 @@ bool iPadRenderContext::SaveModelStates() {
     return true;
 }
 
+bool iPadRenderContext::SaveLayoutChanges() {
+    const bool hasLayoutDirt =
+        !_dirtyLayoutModels.empty() ||
+        !_dirtyLayoutViewObjects.empty() ||
+        !_createdGroups.empty() ||
+        !_deletedGroups.empty() ||
+        !_createdViewObjects.empty() ||
+        !_deletedViewObjects.empty() ||
+        !_dirtyBackgroundGroups.empty() ||
+        !_renamedGroups.empty() ||
+        !_renamedViewObjects.empty() ||
+        !_renamedModels.empty();
+    if (!hasLayoutDirt && !_controllersDirty) {
+        return true;
+    }
+    if (_showDir.empty()) return false;
+
+    // J-31 — Controllers tab edits live in xlights_networks.xml.
+    // Save them first; if the layout side has no other changes,
+    // we're done.
+    if (_controllersDirty) {
+        if (!_outputManager.Save()) {
+            spdlog::warn("iPadRenderContext::SaveLayoutChanges: OutputManager::Save() failed");
+            // Continue to layout save — partial saves are still
+            // useful, and the dirty flag stays set until success.
+        } else {
+            _controllersDirty = false;
+        }
+        if (!hasLayoutDirt) return true;
+    }
+
+    std::string rgbPath = _showDir + "/xlights_rgbeffects.xml";
+    if (!ObtainAccessToURL(rgbPath, true)) {
+        spdlog::warn("iPadRenderContext::SaveLayoutChanges: ObtainAccessToURL failed for '{}' — write will likely fail", rgbPath);
+    }
+
+    // Always copy the current on-disk file to a single rolling
+    // backup before overwriting. The user can `cp` it back if a
+    // session of testing turns out badly. The backup intentionally
+    // overwrites itself each save so it doesn't accumulate; one
+    // step of recovery is the explicit goal.
+    if (FileExists(rgbPath)) {
+        std::string backupPath = rgbPath + ".iPad-bkp";
+        std::error_code ec;
+        std::filesystem::copy_file(rgbPath, backupPath,
+                                    std::filesystem::copy_options::overwrite_existing,
+                                    ec);
+        if (ec) {
+            spdlog::warn("iPadRenderContext::SaveLayoutChanges: backup copy {} failed: {}",
+                         backupPath, ec.message());
+        }
+    }
+
+    pugi::xml_document doc;
+    auto result = doc.load_file(rgbPath.c_str());
+    if (!result) {
+        spdlog::error("iPadRenderContext::SaveLayoutChanges: load failed: {}",
+                      result.description());
+        return false;
+    }
+    auto root = doc.child("xrgb");
+    if (!root) root = doc.child("xlights");
+    if (!root) {
+        spdlog::error("iPadRenderContext::SaveLayoutChanges: no root element");
+        return false;
+    }
+    auto modelsNode = root.child("models");
+    if (!modelsNode) {
+        spdlog::error("iPadRenderContext::SaveLayoutChanges: no <models> element");
+        return false;
+    }
+    auto modelGroupsNode = root.child("modelGroups");
+    // J-7 — if a brand-new group landed before the file ever had
+    // any groups, ensure the <modelGroups> container exists. The
+    // desktop happily reads xml without a <modelGroups> node, so
+    // any show that's never had groups won't have one.
+    if (!modelGroupsNode && !_createdGroups.empty()) {
+        modelGroupsNode = root.append_child("modelGroups");
+    }
+
+    // J-7 (group CRUD) — Pass 0a: drop deleted groups so the
+    // subsequent passes don't find stale elements.
+    if (modelGroupsNode && !_deletedGroups.empty()) {
+        for (const auto& deletedName : _deletedGroups) {
+            for (auto n = modelGroupsNode.first_child(); n; ) {
+                auto next = n.next_sibling();
+                if (std::string_view(n.name()) == "modelGroup" &&
+                    deletedName == n.attribute("name").as_string()) {
+                    modelGroupsNode.remove_child(n);
+                }
+                n = next;
+            }
+        }
+    }
+
+    // J-7 — Pass 0b: append a fresh <modelGroup> element for each
+    // newly-created group, populated from the live in-memory
+    // ModelGroup. Subsequent passes may patch additional attrs if
+    // the user edited the group after creating it.
+    if (modelGroupsNode && !_createdGroups.empty() && _modelManager) {
+        for (const auto& createdName : _createdGroups) {
+            Model* m = _modelManager->GetModel(createdName);
+            if (!m || m->GetDisplayAs() != DisplayAsType::ModelGroup) {
+                spdlog::warn("iPadRenderContext::SaveLayoutChanges: created group '{}' not in manager — skipping",
+                             createdName);
+                continue;
+            }
+            auto* g = static_cast<ModelGroup*>(m);
+            pugi::xml_node node = modelGroupsNode.append_child("modelGroup");
+            node.append_attribute("name")           = createdName.c_str();
+            node.append_attribute("LayoutGroup")    = g->GetLayoutGroup().c_str();
+            node.append_attribute("layout")         = g->GetLayout().c_str();
+            node.append_attribute("DefaultCamera")  = g->GetDefaultCamera().c_str();
+            node.append_attribute("GridSize")       = g->GetGridSize();
+            node.append_attribute("centreX")        = std::to_string(g->GetCentreX()).c_str();
+            node.append_attribute("centreY")        = std::to_string(g->GetCentreY()).c_str();
+            node.append_attribute("centreDefined")  = std::to_string(g->GetCentreDefined()).c_str();
+            node.append_attribute("selected")       = "0";
+            std::string members;
+            for (size_t i = 0; i < g->ModelNames().size(); ++i) {
+                if (i > 0) members += ",";
+                members += g->ModelNames()[i];
+            }
+            node.append_attribute("models") = members.c_str();
+            // Strip from dirty set — we've just written everything
+            // we know about this group, no need to patch it too.
+            _dirtyLayoutModels.erase(createdName);
+        }
+    }
+
+    // For each dirty model, serialize the in-memory Model into a fresh
+    // pugi::xml_document via the canonical XmlSerializer (same path
+    // desktop uses for export). Replace the matching <model> child of
+    // the on-disk <models> node with the serialized one. Preserves
+    // every attribute the Model owns — transforms, dimensions,
+    // rotation, locked, layoutGroup, controllerName, plus model-type-
+    // specific attributes the live edit may have side-effected.
+    for (const auto& modelName : _dirtyLayoutModels) {
+        Model* m = _modelManager ? _modelManager->GetModel(modelName) : nullptr;
+        if (!m) {
+            spdlog::warn("iPadRenderContext::SaveLayoutChanges: model '{}' not in manager — skipping",
+                         modelName);
+            continue;
+        }
+
+        // ModelGroups live in `<modelGroups>`, not `<models>`, and
+        // their on-disk form is a flat attribute list — no nested
+        // child elements. Patch attributes in place rather than
+        // serializing through XmlSerializer (which targets `<model>`).
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            if (!modelGroupsNode) {
+                spdlog::warn("iPadRenderContext::SaveLayoutChanges: dirty group '{}' but no <modelGroups> element",
+                             modelName);
+                continue;
+            }
+            // J-16 — rename support. If this group was renamed in
+            // memory, the on-disk `<modelGroup>` still has the OLD
+            // name. Look it up via the renames map, find by old
+            // name, then update the name attribute below.
+            std::string findName = modelName;
+            bool renamed = false;
+            if (auto it = _renamedGroups.find(modelName); it != _renamedGroups.end()) {
+                findName = it->second;
+                renamed = true;
+            }
+            pugi::xml_node existing;
+            for (auto n = modelGroupsNode.first_child(); n; n = n.next_sibling()) {
+                if (std::string_view(n.name()) != "modelGroup") continue;
+                if (findName == n.attribute("name").as_string()) {
+                    existing = n;
+                    break;
+                }
+            }
+            if (!existing) {
+                spdlog::warn("iPadRenderContext::SaveLayoutChanges: <modelGroup name='{}'> not found",
+                             findName);
+                continue;
+            }
+            if (renamed) {
+                if (existing.attribute("name")) existing.remove_attribute("name");
+                existing.append_attribute("name") = modelName.c_str();
+            }
+            ModelGroup* g = static_cast<ModelGroup*>(m);
+            auto setAttr = [&](const char* k, const std::string& v) {
+                if (existing.attribute(k)) existing.remove_attribute(k);
+                existing.append_attribute(k) = v.c_str();
+            };
+            auto setAttrInt = [&](const char* k, int v) {
+                if (existing.attribute(k)) existing.remove_attribute(k);
+                existing.append_attribute(k) = v;
+            };
+            setAttr("LayoutGroup",    g->GetLayoutGroup());
+            setAttr("layout",         g->GetLayout());
+            setAttr("DefaultCamera",  g->GetDefaultCamera());
+            setAttrInt("GridSize",    g->GetGridSize());
+            setAttr("centreX",        std::to_string(g->GetCentreX()));
+            setAttr("centreY",        std::to_string(g->GetCentreY()));
+            setAttr("centreDefined",  std::to_string(g->GetCentreDefined()));
+            // J-7 (group CRUD) — write the comma-delimited member
+            // list so add/remove member edits persist.
+            std::string members;
+            for (size_t i = 0; i < g->ModelNames().size(); ++i) {
+                if (i > 0) members += ",";
+                members += g->ModelNames()[i];
+            }
+            setAttr("models", members);
+            // Persist the FromBase flag: clear the attribute when
+            // unlinked (so a subsequent base-folder merge doesn't
+            // re-overwrite local edits), or ensure it's "1" when
+            // still linked. Matches how BaseSerializingVisitor
+            // handles FromBase for models.
+            if (g->IsFromBase()) {
+                if (!existing.attribute("FromBase") ||
+                    strcmp(existing.attribute("FromBase").value(), "1") != 0) {
+                    if (existing.attribute("FromBase"))
+                        existing.remove_attribute("FromBase");
+                    existing.append_attribute("FromBase") = "1";
+                }
+            } else {
+                if (existing.attribute("FromBase"))
+                    existing.remove_attribute("FromBase");
+            }
+            continue;
+        }
+
+        XmlSerializer serializer;
+        pugi::xml_document modelDoc = serializer.SerializeModel(m);
+        pugi::xml_node serRoot = modelDoc.document_element();
+        if (!serRoot) continue;
+        pugi::xml_node serModel = serRoot.first_child();
+        if (!serModel) continue;
+
+        // J-18 — rename support. If this model was renamed in
+        // memory, the on-disk `<model>` still has the OLD name.
+        // Find by old name (taken from the renames map keyed by
+        // new) and let `insert_copy_before` swap it for the
+        // serialized copy (which already carries the new name).
+        std::string findName = modelName;
+        if (auto it = _renamedModels.find(modelName); it != _renamedModels.end()) {
+            findName = it->second;
+        }
+        pugi::xml_node existing;
+        for (auto n = modelsNode.first_child(); n; n = n.next_sibling()) {
+            if (std::string_view(n.name()) != "model") continue;
+            if (findName == n.attribute("name").as_string()) {
+                existing = n;
+                break;
+            }
+        }
+        if (!existing) {
+            spdlog::warn("iPadRenderContext::SaveLayoutChanges: <model name='{}'> not found in xml — appending",
+                         findName);
+            modelsNode.append_copy(serModel);
+            continue;
+        }
+        // Replace by inserting the serialized copy before the old node
+        // and removing the old node — pugixml has no "replace_child".
+        modelsNode.insert_copy_before(serModel, existing);
+        modelsNode.remove_child(existing);
+    }
+
+    // J-6 — patch `<view_object>` attributes in place for each
+    // dirty view object. View-object on-disk form is a flat
+    // attribute list, so we patch the screen-location attribs the
+    // user can edit (WorldPos / Scale / Rotate / Locked /
+    // LayoutGroup). Per-type attributes (Mesh's ObjFile, Image's
+    // bitmap path) round-trip untouched.
+    // J-12 — view-object create/delete + per-object patch.
+    if (!_dirtyLayoutViewObjects.empty() ||
+        !_createdViewObjects.empty() ||
+        !_deletedViewObjects.empty()) {
+        auto viewObjectsNode = root.child("view_objects");
+        if (!viewObjectsNode && !_createdViewObjects.empty()) {
+            viewObjectsNode = root.append_child("view_objects");
+        }
+        if (!viewObjectsNode) {
+            spdlog::warn("iPadRenderContext::SaveLayoutChanges: dirty view objects but no <view_objects> element — skipping");
+        } else {
+            // Drop deleted view objects first.
+            for (const auto& deletedName : _deletedViewObjects) {
+                for (auto n = viewObjectsNode.first_child(); n; ) {
+                    auto next = n.next_sibling();
+                    if (std::string_view(n.name()) == "view_object" &&
+                        deletedName == n.attribute("name").as_string()) {
+                        viewObjectsNode.remove_child(n);
+                    }
+                    n = next;
+                }
+            }
+            // Append fresh elements for created view objects. The
+            // common patcher below then writes their per-type
+            // attrs (since we add the name to the dirty set
+            // before falling through).
+            if (_viewObjectManager) {
+                for (const auto& createdName : _createdViewObjects) {
+                    ViewObject* vo = _viewObjectManager->GetViewObject(createdName);
+                    if (!vo) {
+                        spdlog::warn("iPadRenderContext::SaveLayoutChanges: created VO '{}' not in manager",
+                                     createdName);
+                        continue;
+                    }
+                    pugi::xml_node node = viewObjectsNode.append_child("view_object");
+                    node.append_attribute("name") = createdName.c_str();
+                    node.append_attribute("DisplayAs") = vo->GetDisplayAsString().c_str();
+                    // Defer the rest to the dirty patcher.
+                    _dirtyLayoutViewObjects.insert(createdName);
+                }
+            }
+        }
+    }
+    if (!_dirtyLayoutViewObjects.empty()) {
+        auto viewObjectsNode = root.child("view_objects");
+        if (!viewObjectsNode) {
+            spdlog::warn("iPadRenderContext::SaveLayoutChanges: dirty view objects but no <view_objects> element — skipping");
+        } else {
+            ViewObjectManager& vm = *_viewObjectManager;
+            for (const auto& objName : _dirtyLayoutViewObjects) {
+                ViewObject* vo = vm.GetViewObject(objName);
+                if (!vo) {
+                    spdlog::warn("iPadRenderContext::SaveLayoutChanges: view object '{}' not in manager — skipping",
+                                 objName);
+                    continue;
+                }
+                // J-17 — rename support: if this VO was renamed
+                // in memory, the on-disk `<view_object>` still
+                // has the OLD name. Look up via the renames map
+                // and update the name attribute below.
+                std::string findName = objName;
+                bool renamed = false;
+                if (auto it = _renamedViewObjects.find(objName);
+                    it != _renamedViewObjects.end()) {
+                    findName = it->second;
+                    renamed = true;
+                }
+                pugi::xml_node existing;
+                for (auto n = viewObjectsNode.first_child(); n; n = n.next_sibling()) {
+                    if (std::string_view(n.name()) != "view_object") continue;
+                    if (findName == n.attribute("name").as_string()) {
+                        existing = n;
+                        break;
+                    }
+                }
+                if (!existing) {
+                    spdlog::warn("iPadRenderContext::SaveLayoutChanges: <view_object name='{}'> not found",
+                                 findName);
+                    continue;
+                }
+                if (renamed) {
+                    if (existing.attribute("name")) existing.remove_attribute("name");
+                    existing.append_attribute("name") = objName.c_str();
+                }
+                auto& loc = vo->GetObjectScreenLocation();
+                auto setAttr = [&](const char* k, const std::string& v) {
+                    if (existing.attribute(k)) existing.remove_attribute(k);
+                    existing.append_attribute(k) = v.c_str();
+                };
+                auto removeAttr = [&](const char* k) {
+                    if (existing.attribute(k)) existing.remove_attribute(k);
+                };
+                glm::vec3 pos    = loc.GetWorldPosition();
+                glm::vec3 scale  = loc.GetScaleMatrix();
+                glm::vec3 rotate = loc.GetRotation();
+                setAttr("WorldPosX", std::to_string(pos.x));
+                setAttr("WorldPosY", std::to_string(pos.y));
+                setAttr("WorldPosZ", std::to_string(pos.z));
+                setAttr("ScaleX",    std::to_string(scale.x));
+                setAttr("ScaleY",    std::to_string(scale.y));
+                setAttr("ScaleZ",    std::to_string(scale.z));
+                setAttr("RotateX",   std::to_string(rotate.x));
+                setAttr("RotateY",   std::to_string(rotate.y));
+                setAttr("RotateZ",   std::to_string(rotate.z));
+                setAttr("LayoutGroup", vo->GetLayoutGroup());
+                if (loc.IsLocked()) {
+                    setAttr("Locked", "1");
+                } else {
+                    removeAttr("Locked");
+                }
+                if (vo->IsActive()) {
+                    removeAttr("Active");
+                } else {
+                    setAttr("Active", "0");
+                }
+                auto setInt = [&](const char* k, int v) {
+                    if (existing.attribute(k)) existing.remove_attribute(k);
+                    existing.append_attribute(k) = v;
+                };
+                // J-12 — per-type attrs. Names match the
+                // XmlNodeKeys constants used by the deserialize
+                // factory so round-trip on next launch is clean.
+                switch (vo->GetDisplayAs()) {
+                    case DisplayAsType::Mesh: {
+                        auto* m = dynamic_cast<MeshObject*>(vo);
+                        if (m) {
+                            setAttr("ObjFile",    m->GetObjFile());
+                            setInt ("Brightness", m->GetBrightness());
+                            setAttr("MeshOnly",   m->IsMeshOnly() ? "1" : "0");
+                        }
+                        break;
+                    }
+                    case DisplayAsType::Image: {
+                        auto* i = dynamic_cast<ImageObject*>(vo);
+                        if (i) {
+                            setAttr("Image",        i->GetImageFile());
+                            setInt ("Brightness",   i->GetBrightness());
+                            setInt ("Transparency", i->GetTransparency());
+                        }
+                        break;
+                    }
+                    case DisplayAsType::Gridlines: {
+                        auto* g = dynamic_cast<GridlinesObject*>(vo);
+                        if (g) {
+                            setInt ("GridLineSpacing", g->GetGridLineSpacing());
+                            setInt ("GridWidth",       g->GetGridWidth());
+                            setInt ("GridHeight",      g->GetGridHeight());
+                            setAttr("GridColor",       g->GetGridColor());
+                            setAttr("GridAxis",        g->GetHasAxis() ? "1" : "0");
+                            setAttr("PointToFront",    g->GetPointToFront() ? "1" : "0");
+                        }
+                        break;
+                    }
+                    case DisplayAsType::Terrain: {
+                        auto* t = dynamic_cast<TerrainObject*>(vo);
+                        if (t) {
+                            setAttr("Image",              t->GetImageFile());
+                            setInt ("Brightness",         (int)t->GetBrightness());
+                            setInt ("Transparency",       t->GetTransparency());
+                            // Desktop typo: "Terrian" not "Terrain"
+                            // (deserializer reads both but writes
+                            // the legacy spelling).
+                            setInt ("TerrianLineSpacing", t->GetSpacing());
+                            setInt ("TerrianWidth",       t->GetWidth());
+                            setInt ("TerrianDepth",       t->GetDepth());
+                            setAttr("HideGrid",  t->IsHideGrid()  ? "1" : "0");
+                            setAttr("HideImage", t->IsHideImage() ? "1" : "0");
+                            setAttr("GridColor", t->GetGridColor());
+                        }
+                        break;
+                    }
+                    case DisplayAsType::Ruler: {
+                        auto* r = dynamic_cast<RulerObject*>(vo);
+                        if (r) {
+                            setInt ("Units",  RulerObject::GetUnits());
+                            setAttr("Length", std::to_string(r->GetLength()));
+                            // J-14 — TwoPointScreenLocation point-2
+                            // offset. WorldPos (X/Y/Z = point 1)
+                            // already written by the common patcher.
+                            if (auto* tpl = dynamic_cast<TwoPointScreenLocation*>(&loc)) {
+                                setAttr("X2", std::to_string(tpl->GetX2()));
+                                setAttr("Y2", std::to_string(tpl->GetY2()));
+                                setAttr("Z2", std::to_string(tpl->GetZ2()));
+                            }
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+    // J-8 (2D Background pseudo-object) — patch background attrs
+    // on the matching target. "Default" maps to top-level
+    // `<settings>`; everything else to `<layoutGroups><layoutGroup
+    // name="...">`. Path attrs are written using whatever the
+    // user picked; the load path FixFile-resolves them on next
+    // launch, so absolute / show-relative both round-trip.
+    for (const auto& grpName : _dirtyBackgroundGroups) {
+        std::string bgPath;
+        int bri, alpha;
+        bool scale;
+        if (grpName == "Default") {
+            bgPath = _backgroundImage;
+            bri    = _backgroundBrightness;
+            alpha  = _backgroundAlpha;
+            scale  = _scaleBackgroundImage;
+        } else {
+            const NamedLayoutGroup* src = nullptr;
+            for (const auto& g : _namedLayoutGroups) {
+                if (g.name == grpName) { src = &g; break; }
+            }
+            if (!src) {
+                spdlog::warn("iPadRenderContext::SaveLayoutChanges: dirty bg for unknown group '{}'",
+                             grpName);
+                continue;
+            }
+            bgPath = src->backgroundImage;
+            bri    = src->backgroundBrightness;
+            alpha  = src->backgroundAlpha;
+            scale  = src->scaleBackgroundImage;
+        }
+
+        pugi::xml_node target;
+        if (grpName == "Default") {
+            target = root.child("settings");
+            if (!target) target = root.append_child("settings");
+        } else {
+            auto layoutGroupsNode = root.child("layoutGroups");
+            if (!layoutGroupsNode) {
+                layoutGroupsNode = root.append_child("layoutGroups");
+            }
+            for (auto n = layoutGroupsNode.first_child(); n; n = n.next_sibling()) {
+                if (std::string_view(n.name()) != "layoutGroup") continue;
+                if (grpName == n.attribute("name").as_string()) {
+                    target = n;
+                    break;
+                }
+            }
+            if (!target) {
+                target = layoutGroupsNode.append_child("layoutGroup");
+                target.append_attribute("name") = grpName.c_str();
+            }
+        }
+        auto patch = [&](const char* k, const std::string& v) {
+            if (target.attribute(k)) target.remove_attribute(k);
+            if (!v.empty()) target.append_attribute(k) = v.c_str();
+        };
+        auto patchInt = [&](const char* k, int v) {
+            if (target.attribute(k)) target.remove_attribute(k);
+            target.append_attribute(k) = v;
+        };
+        patch("backgroundImage", bgPath);
+        patchInt("backgroundBrightness", bri);
+        patchInt("backgroundAlpha", alpha);
+        patchInt("scaleImage", scale ? 1 : 0);
+    }
+
+    if (!doc.save_file(rgbPath.c_str(), "  ")) {
+        spdlog::error("iPadRenderContext::SaveLayoutChanges: write failed for {}",
+                      rgbPath);
+        return false;
+    }
+    _dirtyLayoutModels.clear();
+    _dirtyLayoutViewObjects.clear();
+    _createdGroups.clear();
+    _deletedGroups.clear();
+    _dirtyBackgroundGroups.clear();
+    _createdViewObjects.clear();
+    _deletedViewObjects.clear();
+    _renamedGroups.clear();
+    _renamedViewObjects.clear();
+    _renamedModels.clear();
+    return true;
+}
+
+void iPadRenderContext::PushLayoutUndoSnapshotForModel(const std::string& modelName) {
+    if (modelName.empty() || !_modelManager) return;
+    Model* m = _modelManager->GetModel(modelName);
+    if (!m) return;
+    auto& loc = m->GetModelScreenLocation();
+    glm::vec3 rot = loc.GetRotation();
+    LayoutUndoEntry e;
+    e.target = UndoTarget::Model;
+    e.modelName = modelName;
+    e.hcenter = loc.GetHcenterPos();
+    e.vcenter = loc.GetVcenterPos();
+    e.dcenter = loc.GetDcenterPos();
+    e.width   = loc.GetMWidth();
+    e.height  = loc.GetMHeight();
+    e.depth   = loc.GetMDepth();
+    e.rotateX = rot.x;
+    e.rotateY = rot.y;
+    e.rotateZ = rot.z;
+    e.locked  = loc.IsLocked();
+    e.layoutGroup    = m->GetLayoutGroup();
+    e.controllerName = m->GetControllerName();
+
+    _layoutUndoStack.push_back(std::move(e));
+    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
+        _layoutUndoStack.pop_front();
+    }
+}
+
+// J-17 — VO common-transform snapshot. ScaleX/Y/Z come from the
+// BoxedScreenLocation; objects on other screen-loc types (Ruler
+// uses TwoPoint) get all-1 scale and the undo applies just the
+// world pos / rotation — close enough for those types.
+void iPadRenderContext::PushLayoutUndoSnapshotForViewObject(const std::string& objectName) {
+    if (objectName.empty() || !_viewObjectManager) return;
+    ViewObject* vo = _viewObjectManager->GetViewObject(objectName);
+    if (!vo) return;
+    auto& loc = vo->GetObjectScreenLocation();
+    glm::vec3 rot = loc.GetRotation();
+    LayoutUndoEntry e;
+    e.target = UndoTarget::ViewObject;
+    e.modelName = objectName;
+    e.hcenter = loc.GetHcenterPos();
+    e.vcenter = loc.GetVcenterPos();
+    e.dcenter = loc.GetDcenterPos();
+    if (auto* bsl = dynamic_cast<BoxedScreenLocation*>(&loc)) {
+        e.scaleX = bsl->GetScaleX();
+        e.scaleY = bsl->GetScaleY();
+        e.scaleZ = bsl->GetScaleZ();
+    } else {
+        glm::vec3 sm = loc.GetScaleMatrix();
+        e.scaleX = sm.x;
+        e.scaleY = sm.y;
+        e.scaleZ = sm.z;
+    }
+    e.rotateX = rot.x;
+    e.rotateY = rot.y;
+    e.rotateZ = rot.z;
+    e.locked  = loc.IsLocked();
+    e.layoutGroup = vo->GetLayoutGroup();
+    _layoutUndoStack.push_back(std::move(e));
+    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
+        _layoutUndoStack.pop_front();
+    }
+}
+
+void iPadRenderContext::PushTerrainHeightmapUndoSnapshot(const std::string& terrainName) {
+    if (terrainName.empty() || !_viewObjectManager) return;
+    ViewObject* vo = _viewObjectManager->GetViewObject(terrainName);
+    auto* terrain = dynamic_cast<TerrainObject*>(vo);
+    if (!terrain) return;
+    auto& sloc = dynamic_cast<TerrainScreenLocation&>(terrain->GetBaseObjectScreenLocation());
+    LayoutUndoEntry e;
+    e.target = UndoTarget::ViewObjectHeightmap;
+    e.modelName = terrainName;
+    e.pointData = sloc.GetDataAsString();
+    _layoutUndoStack.push_back(std::move(e));
+    while (_layoutUndoStack.size() > kLayoutUndoMaxDepth) {
+        _layoutUndoStack.pop_front();
+    }
+}
+
+bool iPadRenderContext::UndoLastLayoutChange() {
+    if (_layoutUndoStack.empty()) return false;
+    LayoutUndoEntry e = _layoutUndoStack.back();
+    _layoutUndoStack.pop_back();
+
+    switch (e.target) {
+    case UndoTarget::Model: {
+        if (!_modelManager) return false;
+        Model* m = _modelManager->GetModel(e.modelName);
+        if (!m) return false;
+        auto& loc = m->GetModelScreenLocation();
+        m->SetHcenterPos(e.hcenter);
+        m->SetVcenterPos(e.vcenter);
+        m->SetDcenterPos(e.dcenter);
+        m->SetWidth(e.width);
+        m->SetHeight(e.height);
+        m->SetDepth(e.depth);
+        loc.SetRotateX(e.rotateX);
+        loc.SetRotateY(e.rotateY);
+        loc.SetRotateZ(e.rotateZ);
+        loc.SetLocked(e.locked);
+        if (m->GetLayoutGroup() != e.layoutGroup) m->SetLayoutGroup(e.layoutGroup);
+        if (m->GetControllerName() != e.controllerName) m->SetControllerName(e.controllerName);
+        MarkLayoutModelDirty(e.modelName);
+        return true;
+    }
+    case UndoTarget::ViewObject: {
+        if (!_viewObjectManager) return false;
+        ViewObject* vo = _viewObjectManager->GetViewObject(e.modelName);
+        if (!vo) return false;
+        auto& loc = vo->GetObjectScreenLocation();
+        vo->SetHcenterPos(e.hcenter);
+        vo->SetVcenterPos(e.vcenter);
+        vo->SetDcenterPos(e.dcenter);
+        if (auto* bsl = dynamic_cast<BoxedScreenLocation*>(&loc)) {
+            bsl->SetScaleX(e.scaleX);
+            bsl->SetScaleY(e.scaleY);
+            bsl->SetScaleZ(e.scaleZ);
+        } else {
+            loc.SetScaleMatrix(glm::vec3(e.scaleX, e.scaleY, e.scaleZ));
+        }
+        loc.SetRotateX(e.rotateX);
+        loc.SetRotateY(e.rotateY);
+        loc.SetRotateZ(e.rotateZ);
+        loc.SetLocked(e.locked);
+        if (vo->GetLayoutGroup() != e.layoutGroup) vo->SetLayoutGroup(e.layoutGroup);
+        vo->IncrementChangeCount();
+        vo->ReloadModel();
+        MarkLayoutViewObjectDirty(e.modelName);
+        return true;
+    }
+    case UndoTarget::ViewObjectHeightmap: {
+        if (!_viewObjectManager) return false;
+        ViewObject* vo = _viewObjectManager->GetViewObject(e.modelName);
+        auto* terrain = dynamic_cast<TerrainObject*>(vo);
+        if (!terrain) return false;
+        auto& sloc = dynamic_cast<TerrainScreenLocation&>(terrain->GetBaseObjectScreenLocation());
+        sloc.SetDataFromString(e.pointData);
+        terrain->IncrementChangeCount();
+        terrain->ReloadModel();
+        MarkLayoutViewObjectDirty(e.modelName);
+        return true;
+    }
+    }
+    return false;
+}
+
+bool iPadRenderContext::AddNamedLayoutGroup(const std::string& name) {
+    if (name.empty()) return false;
+    // Reserved sentinels — desktop's create-preview dialog rejects
+    // these explicitly, mirror to avoid corrupting filter logic
+    // (`modelsInActiveLayoutGroup` only treats "Default" and
+    // "All Previews" specially today).
+    if (name == "Default" || name == "All Models" || name == "Unassigned" ||
+        name == "All Previews") {
+        return false;
+    }
+    for (const auto& g : _namedLayoutGroups) {
+        if (g.name == name) return false;
+    }
+    NamedLayoutGroup g;
+    g.name = name;
+    _namedLayoutGroups.push_back(std::move(g));
+    // The save patcher walks _dirtyBackgroundGroups and appends a
+    // `<layoutGroup name="…">` for any name not already in the
+    // file. We have no background image yet, so the saved entry
+    // is empty except for the name attribute.
+    _dirtyBackgroundGroups.insert(name);
+    return true;
+}
+
 void iPadRenderContext::SetActiveLayoutGroup(const std::string& name) {
-    if (name == "Default") {
-        _activeLayoutGroup = "Default";
+    if (name == "Default" || name == "All Models" || name == "Unassigned") {
+        _activeLayoutGroup = name;
         return;
     }
     for (const auto& g : _namedLayoutGroups) {
@@ -474,6 +1319,83 @@ bool iPadRenderContext::GetActiveScaleBackgroundImage() const {
     return _scaleBackgroundImage;
 }
 
+// J-8 (2D Background pseudo-object) — setters write through to
+// the correct storage (default <settings> vs a named layout
+// group) and record the group name in `_dirtyBackgroundGroups`
+// so SaveLayoutChanges patches the matching XML attributes.
+namespace {
+template <typename T>
+iPadRenderContext::NamedLayoutGroup* FindNamedGroup(
+        std::vector<iPadRenderContext::NamedLayoutGroup>& groups,
+        const std::string& name) {
+    for (auto& g : groups) {
+        if (g.name == name) return &g;
+    }
+    return nullptr;
+}
+} // namespace
+
+bool iPadRenderContext::SetActiveBackgroundImage(const std::string& path) {
+    if (_activeLayoutGroup == "Default") {
+        if (path == _backgroundImage) return false;
+        _backgroundImage = path;
+    } else {
+        auto* g = FindNamedGroup<int>(_namedLayoutGroups, _activeLayoutGroup);
+        if (!g) return false;
+        if (path == g->backgroundImage) return false;
+        g->backgroundImage = path;
+    }
+    if (!path.empty()) ObtainAccessToURL(path, false);
+    _dirtyBackgroundGroups.insert(_activeLayoutGroup);
+    return true;
+}
+
+bool iPadRenderContext::SetActiveBackgroundBrightness(int brightness) {
+    if (brightness < 0) brightness = 0;
+    if (brightness > 100) brightness = 100;
+    if (_activeLayoutGroup == "Default") {
+        if (brightness == _backgroundBrightness) return false;
+        _backgroundBrightness = brightness;
+    } else {
+        auto* g = FindNamedGroup<int>(_namedLayoutGroups, _activeLayoutGroup);
+        if (!g) return false;
+        if (brightness == g->backgroundBrightness) return false;
+        g->backgroundBrightness = brightness;
+    }
+    _dirtyBackgroundGroups.insert(_activeLayoutGroup);
+    return true;
+}
+
+bool iPadRenderContext::SetActiveBackgroundAlpha(int alpha) {
+    if (alpha < 0) alpha = 0;
+    if (alpha > 100) alpha = 100;
+    if (_activeLayoutGroup == "Default") {
+        if (alpha == _backgroundAlpha) return false;
+        _backgroundAlpha = alpha;
+    } else {
+        auto* g = FindNamedGroup<int>(_namedLayoutGroups, _activeLayoutGroup);
+        if (!g) return false;
+        if (alpha == g->backgroundAlpha) return false;
+        g->backgroundAlpha = alpha;
+    }
+    _dirtyBackgroundGroups.insert(_activeLayoutGroup);
+    return true;
+}
+
+bool iPadRenderContext::SetActiveScaleBackgroundImage(bool scale) {
+    if (_activeLayoutGroup == "Default") {
+        if (scale == _scaleBackgroundImage) return false;
+        _scaleBackgroundImage = scale;
+    } else {
+        auto* g = FindNamedGroup<int>(_namedLayoutGroups, _activeLayoutGroup);
+        if (!g) return false;
+        if (scale == g->scaleBackgroundImage) return false;
+        g->scaleBackgroundImage = scale;
+    }
+    _dirtyBackgroundGroups.insert(_activeLayoutGroup);
+    return true;
+}
+
 // Mirrors desktop xLightsFrame::UpdateModelsList (TabSequence.cpp:1209).
 // For the Default preview, include models tagged "Default" or
 // "All Previews". For a named group, include models tagged with that
@@ -484,8 +1406,17 @@ std::vector<Model*> iPadRenderContext::GetModelsForActivePreview() const {
     if (!_modelManager) return out;
 
     const std::string& active = _activeLayoutGroup;
+    // "All Models" / "Unassigned" are virtual previews matching
+    // desktop's `LayoutPanel`. "All Models" shows every model; the
+    // "Unassigned" virtual preview surfaces models whose
+    // layout_group is literally "Unassigned" (desktop sets this on
+    // models that get removed from a preview).
+    const bool allModels  = (active == "All Models");
+    const bool unassigned = (active == "Unassigned");
 
     auto matchesActive = [&](const std::string& g) {
+        if (allModels) return true;
+        if (unassigned) return g == "Unassigned";
         return g == active || g == "All Previews";
     };
 
@@ -506,23 +1437,26 @@ std::vector<Model*> iPadRenderContext::GetModelsForActivePreview() const {
     }
     // Pass 2: ModelGroups tagged for this preview — flatten their
     // children (recursively for nested groups). A model already added
-    // in pass 1 is not duplicated.
-    std::function<void(ModelGroup*)> expand = [&](ModelGroup* grp) {
-        if (!grp) return;
-        for (Model* m : grp->Models()) {
-            if (!m) continue;
-            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
-                expand(static_cast<ModelGroup*>(m));
-            } else {
-                addModelIfAbsent(m);
+    // in pass 1 is not duplicated. Skip when viewing "Unassigned"
+    // (desktop's filter explicitly excludes groups from that view).
+    if (!unassigned) {
+        std::function<void(ModelGroup*)> expand = [&](ModelGroup* grp) {
+            if (!grp) return;
+            for (Model* m : grp->Models()) {
+                if (!m) continue;
+                if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                    expand(static_cast<ModelGroup*>(m));
+                } else {
+                    addModelIfAbsent(m);
+                }
             }
-        }
-    };
-    for (const auto& [name, model] : _modelManager->GetModels()) {
-        if (!model) continue;
-        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
-        if (matchesActive(model->GetLayoutGroup())) {
-            expand(static_cast<ModelGroup*>(model));
+        };
+        for (const auto& [name, model] : _modelManager->GetModels()) {
+            if (!model) continue;
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
+            if (matchesActive(model->GetLayoutGroup())) {
+                expand(static_cast<ModelGroup*>(model));
+            }
         }
     }
     return out;
@@ -563,6 +1497,30 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
     _sequenceElements.PrepareViews(*_sequenceFile);
 
     _sequenceElements.PopulateRowInformation();
+
+    {
+        std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
+        std::vector<MediaCompatibilityIssue> gifIssues;
+        for (const auto& vf : videoFiles) {
+            std::string resolved = FileUtils::FixFile(_showDir, vf);
+            std::string reason = MediaCompatibility::CheckVideoFile(resolved);
+            if (reason.empty()) continue;
+            MediaCompatibilityIssue issue;
+            issue.filePath = resolved;
+            issue.reason = reason;
+            issue.isVideo = true;
+            if (issue.isAnimatedGif() && issue.canConvert()) {
+                gifIssues.push_back(std::move(issue));
+            }
+        }
+        if (!gifIssues.empty()) {
+            int rewritten = seqmedia::ConvertGifVideoEffectsToPictures(_sequenceElements, gifIssues);
+            if (rewritten > 0) {
+                spdlog::info("iPadRenderContext: converted {} animated GIF Video effect(s) to Pictures effects on load of {}",
+                             rewritten, path);
+            }
+        }
+    }
 
     // Mark the SequenceFile as loaded so subsequent timing-track
     // additions go through the live in-memory path (creating
@@ -710,7 +1668,11 @@ std::string CopyIntoRoot(const std::string& file,
 
     namespace fs = std::filesystem;
     fs::path src(file);
-    if (!fs::exists(src)) return "";
+    // Use the error_code fs::exists overloads throughout: the throwing overload
+    // can raise filesystem_error on iOS sandbox/permission edge cases, and the
+    // app has no handler, so it terminates (per CLAUDE.md filesystem guidance).
+    std::error_code existsEc;
+    if (!fs::exists(src, existsEc) || existsEc) return "";
 
     // Normalise subdir: strip leading separator. Desktop's callers
     // pass both "/Images" and "Images"; the trailing concat either way
@@ -739,12 +1701,13 @@ std::string CopyIntoRoot(const std::string& file,
         std::string stem = src.stem().string();
         std::string ext  = src.extension().string();
         int n = 1;
-        while (fs::exists(target) && !FilesMatchBytes(src, target)) {
+        std::error_code targetEc;
+        while (fs::exists(target, targetEc) && !FilesMatchBytes(src, target)) {
             target = dir / (stem + "_" + std::to_string(n++) + ext);
         }
     }
 
-    if (!fs::exists(target)) {
+    if (!fs::exists(target, ec)) {
         fs::copy_file(src, target, fs::copy_options::none, ec);
         if (ec) {
             spdlog::error("iPadRenderContext: Copy {} -> {} failed: {}",
@@ -885,11 +1848,125 @@ TimingElement* iPadRenderContext::AddTimingElement(const std::string& name,
     return e;
 }
 
-bool iPadRenderContext::AbortRender(int /*maxTimeMs*/) {
-    if (_renderEngine) {
-        _renderEngine->SignalAbort();
+bool iPadRenderContext::IsLowDefinitionRender() const {
+    // Opt-in app preference, default OFF = full-definition render — matches the
+    // desktop, whose "Low Definition Render" preference also defaults off, and
+    // keeps the final FSEQ output full-resolution. Reads the same UserDefaults
+    // store the SwiftUI toggle writes via @AppStorage("render.lowDefinition").
+    // When off, per-model Low-Def Factors are inert (exactly like desktop with
+    // the pref off); on is a deliberate memory-relief escape hatch for huge
+    // shows on 4 GB devices.
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.lowDefinition"),
+                                                    kCFPreferencesCurrentApplication);
+    bool on = (v != nullptr) && CFGetTypeID(v) == CFBooleanGetTypeID()
+              && CFBooleanGetValue((CFBooleanRef)v);
+    if (v) CFRelease(v);
+    return on;
+}
+
+std::string iPadRenderContext::ReadRenderCacheMode() const {
+    // App preference written by the Folder Config → Rendering picker via
+    // @AppStorage("render.cacheMode"). Default "Disabled": the render cache
+    // trades extra memory + disk to speed re-renders, and iPad is tight on
+    // both — desktop defaults to the milder "Locked Only", but iPad starts
+    // fully off. Valid values map straight to RenderCache::Enable.
+    std::string mode = "Disabled";
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.cacheMode"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFStringGetTypeID()) {
+            char buf[32] = { 0 };
+            if (CFStringGetCString((CFStringRef)v, buf, sizeof(buf), kCFStringEncodingUTF8)) {
+                std::string s(buf);
+                if (s == "Locked Only" || s == "Enabled" || s == "Disabled") {
+                    mode = s;
+                }
+            }
+        }
+        CFRelease(v);
     }
-    return true;
+    return mode;
+}
+
+size_t iPadRenderContext::ReadRenderCacheMaxMB() const {
+    // App preference written by the Folder Config → Rendering picker via
+    // @AppStorage("render.cacheMaxMB"). The desktop "Maximum Render Cache
+    // Size" choices are Unlimited / 1 / 5 / 10 / 50 / 100 / 200 GB; the
+    // SwiftUI picker stores the cap directly in MB (0 = Unlimited). Absent
+    // key → 50 MB, the long-standing iPad default that keeps a desktop-
+    // authored cache from ballooning the in-memory frame map at open.
+    long mb = 50;
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.cacheMaxMB"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFNumberGetTypeID()) {
+            CFNumberGetValue((CFNumberRef)v, kCFNumberLongType, &mb);
+        }
+        CFRelease(v);
+    }
+    if (mb < 0) mb = 0;
+    return (size_t)mb;
+}
+
+void iPadRenderContext::PurgeDownloadCache() {
+    CachedFileDownloader::GetDefaultCache().ClearCache();
+}
+
+std::string iPadRenderContext::ReadFseqCompression() const {
+    // @AppStorage("fseq.compression"). Default "zstd" — fastest and the
+    // desktop default; "zlib" is slightly smaller; "none" is uncompressed.
+    std::string mode = "zstd";
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("fseq.compression"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFStringGetTypeID()) {
+            char buf[16] = { 0 };
+            if (CFStringGetCString((CFStringRef)v, buf, sizeof(buf), kCFStringEncodingUTF8)) {
+                std::string s(buf);
+                if (s == "zstd" || s == "zlib" || s == "none") {
+                    mode = s;
+                }
+            }
+        }
+        CFRelease(v);
+    }
+    return mode;
+}
+
+int iPadRenderContext::ReadFseqCompressionLevel() const {
+    // @AppStorage("fseq.compressionLevel"). zstd level 1..22, default 2.
+    int level = 2;
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("fseq.compressionLevel"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFNumberGetTypeID()) {
+            int n = 0;
+            if (CFNumberGetValue((CFNumberRef)v, kCFNumberIntType, &n) && n >= 1 && n <= 22) {
+                level = n;
+            }
+        }
+        CFRelease(v);
+    }
+    return level;
+}
+
+bool iPadRenderContext::AbortRender(int maxTimeMs) {
+    // Mirror the desktop's xLightsFrame::AbortRender contract: signal
+    // every in-flight render job to bail and then BLOCK until they
+    // actually finish (or the timeout elapses). Callers depend on
+    // this — once AbortRender returns, layout-mutation code is free
+    // to rewrite Model state without racing the render thread.
+    if (!_renderEngine) return true;
+    if (IsRenderDone()) return true;
+    _renderEngine->SignalAbort();
+    if (maxTimeMs <= 0) maxTimeMs = 60000;
+    int loops = maxTimeMs / 10;
+    int i = 0;
+    while (!IsRenderDone() && i < loops) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ++i;
+    }
+    return IsRenderDone();
 }
 
 bool iPadRenderContext::WasRenderAborted() const {
@@ -905,6 +1982,26 @@ void iPadRenderContext::RenderEffectForModel(const std::string& model,
     }
 }
 
+bool iPadRenderContext::RenderModelAndWait(const std::string& model, int maxTimeMs) {
+    EnsureSequenceDataSized();
+    if (!_sequenceData.IsValidData()) return false;
+    EnsureRenderEngine();
+    // Make sure no stale jobs are touching the model's frames before we
+    // kick off a fresh full-range render.
+    AbortRender(maxTimeMs);
+    _renderEngine->RenderEffectForModel(model, 0, 99999999,
+                                        _sequenceElements, _sequenceData,
+                                        false, _modelsChangeCount, true);
+    if (maxTimeMs <= 0) maxTimeMs = 60000;
+    int loops = maxTimeMs / 10;
+    int i = 0;
+    while (!IsRenderDone() && i < loops) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ++i;
+    }
+    return IsRenderDone();
+}
+
 void iPadRenderContext::EnsureRenderEngine() {
     if (!_jobPool) {
         _jobPool = std::make_unique<JobPool>("RenderPool");
@@ -918,6 +2015,11 @@ void iPadRenderContext::EnsureRenderEngine() {
     if (!_renderEngine) {
         _renderEngine = std::make_unique<RenderEngine>(*this, *_jobPool, _renderCache);
     }
+    // Re-read the render-cache mode each render kickoff so the Folder Config
+    // picker takes effect without an app restart (the engine itself is long-
+    // lived). RenderEngine checks _renderCache.IsEnabled() per effect.
+    _renderCache.Enable(ReadRenderCacheMode());
+    _renderCache.SetMaximumSizeMB(ReadRenderCacheMaxMB());
 }
 
 void iPadRenderContext::RenderAll() {
@@ -1560,8 +2662,18 @@ bool iPadRenderContext::WriteFseq(const std::string& path) {
         return false;
     }
 
-    std::unique_ptr<FSEQFile> file(FSEQFile::createFSEQFile(
-        path, 2, FSEQFile::CompressionType::zstd, 2));
+    // FSEQ-1 — honor the Folder Config → Rendering compression preference.
+    FSEQFile::CompressionType ct = FSEQFile::CompressionType::zstd;
+    int level = ReadFseqCompressionLevel();
+    const std::string comp = ReadFseqCompression();
+    if (comp == "zlib") {
+        ct = FSEQFile::CompressionType::zlib;
+        level = -99; // level applies only to zstd; use the format default
+    } else if (comp == "none") {
+        ct = FSEQFile::CompressionType::none;
+        level = -99;
+    }
+    std::unique_ptr<FSEQFile> file(FSEQFile::createFSEQFile(path, 2, ct, level));
     if (!file) {
         spdlog::error("WriteFseq: failed to create FSEQ file at {}", path);
         return false;

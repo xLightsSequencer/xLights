@@ -65,4 +65,11 @@ struct AvailableSource {
     std::string canonicalName;
     std::string modelType;
     bool selected{ false };
+    // Lightweight per-source timeline summary surfaced in the import mapping UI
+    // (the iPad analogue of the desktop per-row timeline column). `effectCount`
+    // is the number of source effects under this entry; `durationMs` is the end
+    // time of its last effect. Both default 0 for readers that don't compute
+    // them.
+    int effectCount{ 0 };
+    int durationMs{ 0 };
 };

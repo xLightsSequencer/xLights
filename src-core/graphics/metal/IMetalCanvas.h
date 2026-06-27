@@ -73,9 +73,11 @@ public:
                                                         const char* fShader,
                                                         bool blending) = 0;
 
-    // Frame presentation
-    virtual void addToSyncPoint(id<MTLCommandBuffer>& buffer,
-                                id<CAMetalDrawable>& drawable) = 0;
+    // Frame presentation. Pass by value (not by reference): under ARC, an
+    // `id<…>&` parameter is implicitly `__autoreleasing &`, which cannot
+    // bind to the `__strong` ivars at the call site.
+    virtual void addToSyncPoint(id<MTLCommandBuffer> buffer,
+                                id<CAMetalDrawable> drawable) = 0;
 
     // Drawable access — desktop gets this from MTKView, iPad from CAMetalLayer
     virtual id<CAMetalDrawable> getNextDrawable() = 0;

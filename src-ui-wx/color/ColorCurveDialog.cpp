@@ -524,17 +524,20 @@ void ColorCurvePanel::mouseLeave(wxMouseEvent& event)
 
 void ColorCurvePanel::mouseMoved(wxMouseEvent& event)
 {
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_cross(wxCURSOR_CROSS);
+
     float x;
     Convert(x, event);
     x = ccSortableColorPoint::Normalise(x);
 
     if (_cc->NearPoint(x))
     {
-        SetCursor(wxCURSOR_SIZEWE);
+        SetCursor(s_sizeWE);
     }
     else
     {
-        SetCursor(wxCURSOR_CROSS);
+        SetCursor(s_cross);
         std::string time = "";
         if (_start != -1)
         {

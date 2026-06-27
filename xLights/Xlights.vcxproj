@@ -36,7 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -445,6 +445,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\ai\ollama.cpp" />
     <ClCompile Include="..\src-core\ai\OpenAIAPI.cpp" />
     <ClCompile Include="..\src-core\ai\OpenAIImageGenerator.cpp" />
+    <ClCompile Include="..\src-core\ai\OpenVINOImageGenerator.cpp" />
+    <ClCompile Include="..\src-core\ai\OpenVINOService.cpp" />
     <ClCompile Include="..\src-core\ai\ServiceManager.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\AIImageDialog.cpp" />
@@ -456,9 +458,11 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\automation\LuaRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\PythonRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\xLightsAutomations.cpp" />
+    <ClCompile Include="..\src-ui-wx\CommandPaletteDialog.cpp" />
     <ClCompile Include="..\src-core\diagnostics\CheckSequenceReport.cpp" />
     <ClCompile Include="..\src-core\diagnostics\SequenceChecker.cpp" />
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
+    <ClCompile Include="..\src-core\models\handles\HitTest.cpp" />
     <ClCompile Include="..\src-core\controllers\ILightThat.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BatchRenderDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.cpp" />
@@ -508,7 +512,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\model\EditSubmodelAliasesDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportEffects.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ImportEffects.cpp" />
-    <ClCompile Include="..\src-ui-wx\import_export\TimingImport.cpp" />
+    <ClCompile Include="..\src-core\import_export\TimingImport.cpp" />
     <ClCompile Include="..\src-core\effects\AdjustEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\assist\SketchAssistPanel.cpp" />
     <ClCompile Include="..\src-core\effects\DuplicateEffect.cpp" />
@@ -532,6 +536,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.cpp" />
     <ClCompile Include="..\src-core\effects\SketchEffect.cpp" />
     <ClCompile Include="..\src-core\effects\SketchEffectDrawing.cpp" />
+    <ClCompile Include="..\src-core\effects\SketchSVGImport.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\SketchPanel.cpp" />
     <ClCompile Include="..\src-core\effects\WarpEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\WarpPanel.cpp" />
@@ -552,6 +557,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.cpp" />
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp" />
+    <ClCompile Include="..\src-core\graphics\AngleEGL.cpp" />
+    <ClCompile Include="..\src-core\graphics\GLBackend.cpp" />
     <ClCompile Include="..\src-core\graphics\GLContextManager.cpp" />
     <ClCompile Include="..\src-core\graphics\xlMesh.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\HousePreviewPanel.cpp" />
@@ -626,7 +633,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\sequencer\LayerSelectDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\import_export\LOREdit.cpp" />
+    <ClCompile Include="..\src-core\import_export\ExportModels.cpp" />
+    <ClCompile Include="..\src-core\import_export\ExportEffectsReport.cpp" />
+    <ClCompile Include="..\src-core\import_export\LOREdit.cpp" />
+    <ClCompile Include="..\src-core\import_export\HLSFile.cpp" />
+    <ClCompile Include="..\src-core\import_export\ImportDataRow.cpp" />
+    <ClCompile Include="..\src-core\import_export\Vixen2File.cpp" />
+    <ClCompile Include="..\src-core\import_export\LORMusic.cpp" />
+    <ClCompile Include="..\src-core\import_export\LORPixelEditor.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LORPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LyricUserDictDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.cpp" />
@@ -677,6 +691,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\OpenGLShaders.cpp" />
     <ClCompile Include="..\src-core\models\OutputModelManager.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
+    <ClCompile Include="..\src-core\media\NoteImporter.cpp" />
     <ClCompile Include="..\src-core\media\OnsetDetector.cpp" />
     <ClCompile Include="..\src-core\media\TempoDetector.cpp" />
     <ClCompile Include="..\src-core\media\PitchDetector.cpp" />
@@ -692,6 +707,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
     <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
     <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\MusicCatalog.cpp" />
+    <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferSizeDialog.cpp" />
@@ -789,8 +806,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\effectpanels\SnowflakesPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\WavePanel.cpp" />
     <ClCompile Include="..\src-core\effects\WaveEffect.cpp" />
-    <ClCompile Include="..\src-ui-wx\effects\EffectPresetManager.cpp" />
+    <ClCompile Include="..\src-core\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectWheelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
@@ -829,6 +847,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\models\ModelGroup.cpp" />
     <ClCompile Include="..\src-core\models\ModelManager.cpp" />
     <ClCompile Include="..\src-core\models\ModelScreenLocation.cpp" />
+    <ClCompile Include="..\src-core\models\ModelSet.cpp" />
+    <ClCompile Include="..\src-core\models\ModelSetManager.cpp" />
     <ClCompile Include="..\src-core\models\Node.cpp" />
     <ClCompile Include="..\src-core\models\PolyLineModel.cpp" />
     <ClCompile Include="..\src-core\models\Shapes.cpp" />
@@ -837,6 +857,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\models\SpinnerModel.cpp" />
     <ClCompile Include="..\src-core\models\StarModel.cpp" />
     <ClCompile Include="..\src-core\models\SubModel.cpp" />
+    <ClCompile Include="..\src-core\models\SubModelSymmetrize.cpp" />
     <ClCompile Include="..\src-core\models\TreeModel.cpp" />
     <ClCompile Include="..\src-core\models\WindowFrameModel.cpp" />
     <ClCompile Include="..\src-core\models\WreathModel.cpp" />
@@ -896,6 +917,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\render\RenderEngine.cpp" />
     <ClCompile Include="..\src-core\render\ViewpointMgr.cpp" />
     <ClCompile Include="..\src-ui-wx\render\RenderUI.cpp" />
+    <ClCompile Include="..\src-core\render\ModelGifExporter.cpp" />
+    <ClCompile Include="..\src-core\render\ModelVideoExporter.cpp" />
     <ClCompile Include="..\src-core\render\RenderBuffer.cpp" />
     <ClCompile Include="..\src-core\render\RenderCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RenderCommandEvent.cpp" />
@@ -924,6 +947,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
+    <ClCompile Include="..\src-core\render\SongStructureManager.cpp" />
+    <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp" />
@@ -939,6 +964,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\model\StartChannelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\StrandNodeNamesDialog.cpp" />
     <ClCompile Include="..\src-core\utils\string_utils.cpp" />
+    <ClCompile Include="..\src-core\utils\ZipUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SubBufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\model\SubModelGenerateDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp" />
@@ -984,11 +1010,13 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\media\VideoExporter.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VendorModelDialog.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegVideoReader.cpp" />
+    <ClCompile Include="..\src-core\media\FFmpegVideoWriter.cpp" />
     <ClCompile Include="..\src-core\media\VideoReader.cpp" />
+    <ClCompile Include="..\src-core\media\VideoWriter.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ViewObjectPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\model\ViewpointDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ViewsModelsPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\import_export\Vixen3.cpp" />
+    <ClCompile Include="..\src-core\import_export\Vixen3.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VSAFile.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VsaImportDialog.cpp" />
     <ClCompile Include="..\src-core\media\WindowsHardwareVideoReader.cpp" />
@@ -999,6 +1027,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\color\xlColorPicker.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPickerFields.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColourData.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-core\utils\xlImage.cpp" />
     <ClCompile Include="..\src-core\utils\XsqFileScanner.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
@@ -1055,6 +1085,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\ai\ollama.h" />
     <ClInclude Include="..\src-core\ai\OpenAIAPI.h" />
     <ClInclude Include="..\src-core\ai\OpenAIImageGenerator.h" />
+    <ClInclude Include="..\src-core\ai\OpenVINOImageGenerator.h" />
+    <ClInclude Include="..\src-core\ai\OpenVINOService.h" />
     <ClInclude Include="..\src-core\ai\ServiceManager.h" />
     <ClInclude Include="..\src-core\ai\ServiceProperty.h" />
     <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h" />
@@ -1066,9 +1098,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\automation\automation.h" />
     <ClInclude Include="..\src-ui-wx\automation\LuaRunner.h" />
     <ClInclude Include="..\src-ui-wx\automation\PythonRunner.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteDialog.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteHelper.h" />
     <ClInclude Include="..\src-core\diagnostics\CheckSequenceReport.h" />
     <ClInclude Include="..\src-core\diagnostics\SequenceChecker.h" />
     <ClInclude Include="..\src-core\models\ControllerConnection.h" />
+    <ClInclude Include="..\src-core\models\handles\DragSession.h" />
+    <ClInclude Include="..\src-core\models\handles\Handles.h" />
+    <ClInclude Include="..\src-core\models\handles\HitTest.h" />
     <ClInclude Include="..\src-core\controllers\ILightThat.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BatchRenderDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.h" />
@@ -1163,6 +1200,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.h" />
     <ClInclude Include="..\src-core\effects\SketchEffect.h" />
     <ClInclude Include="..\src-core\effects\SketchEffectDrawing.h" />
+    <ClInclude Include="..\src-core\effects\SketchSVGImport.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\SketchPanel.h" />
     <ClInclude Include="..\src-core\effects\WarpEffect.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\WarpPanel.h" />
@@ -1196,6 +1234,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.h" />
     <ClInclude Include="..\src-core\utils\TempFileManager.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h" />
+    <ClInclude Include="..\src-core\utils\FloatChecks.h" />
+    <ClInclude Include="..\src-core\utils\AutoReleasePool.h" />
     <ClInclude Include="..\src-core\utils\ip_utils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutUtils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LORPreview.h" />
@@ -1203,7 +1243,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LayerSelectDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.h" />
-    <ClInclude Include="..\src-ui-wx\import_export\LOREdit.h" />
+    <ClInclude Include="..\src-core\import_export\ExportModels.h" />
+    <ClInclude Include="..\src-core\import_export\ExportEffectsReport.h" />
+    <ClInclude Include="..\src-core\import_export\LOREdit.h" />
+    <ClInclude Include="..\src-core\import_export\HLSFile.h" />
+    <ClInclude Include="..\src-core\import_export\ImportDataRow.h" />
+    <ClInclude Include="..\src-core\import_export\Vixen2File.h" />
+    <ClInclude Include="..\src-core\import_export\LORMusic.h" />
+    <ClInclude Include="..\src-core\import_export\LORPixelEditor.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LyricUserDictDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.h" />
     <ClInclude Include="..\src-ui-wx\media\MediaImportOptionsDialog.h" />
@@ -1260,6 +1307,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\OpenGLShaders.h" />
     <ClInclude Include="..\src-core\models\OutputModelManager.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
+    <ClInclude Include="..\src-core\media\NoteImporter.h" />
     <ClInclude Include="..\src-core\media\OnsetDetector.h" />
     <ClInclude Include="..\src-core\media\TempoDetector.h" />
     <ClInclude Include="..\src-core\media\PitchDetector.h" />
@@ -1281,6 +1329,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
     <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\MusicCatalog.h" />
+    <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferSizeDialog.h" />
@@ -1371,8 +1421,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\effectpanels\SnowflakesPanel.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\WavePanel.h" />
     <ClInclude Include="..\src-core\effects\WaveEffect.h" />
-    <ClInclude Include="..\src-ui-wx\effects\EffectPresetManager.h" />
+    <ClInclude Include="..\src-core\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectWheelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
@@ -1383,6 +1434,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ReplaceModelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LorConvertDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.h" />
@@ -1406,6 +1458,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\models\ModelGroup.h" />
     <ClInclude Include="..\src-core\models\ModelManager.h" />
     <ClInclude Include="..\src-core\models\ModelScreenLocation.h" />
+    <ClInclude Include="..\src-core\models\ModelSet.h" />
+    <ClInclude Include="..\src-core\models\ModelSetManager.h" />
     <ClInclude Include="..\src-core\models\Node.h" />
     <ClInclude Include="..\src-core\models\PolyLineModel.h" />
     <ClInclude Include="..\src-core\models\Shapes.h" />
@@ -1414,6 +1468,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\models\SpinnerModel.h" />
     <ClInclude Include="..\src-core\models\StarModel.h" />
     <ClInclude Include="..\src-core\models\SubModel.h" />
+    <ClInclude Include="..\src-core\models\SubModelSymmetrize.h" />
     <ClInclude Include="..\src-core\models\TreeModel.h" />
     <ClInclude Include="..\src-core\models\WindowFrameModel.h" />
     <ClInclude Include="..\src-core\models\WreathModel.h" />
@@ -1473,6 +1528,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\DiscoveryAuthDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RenameTextDialog.h" />
+    <ClInclude Include="..\src-core\render\ModelGifExporter.h" />
+    <ClInclude Include="..\src-core\render\ModelVideoExporter.h" />
     <ClInclude Include="..\src-core\render\RenderBuffer.h" />
     <ClInclude Include="..\src-core\render\RenderCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RenderCommandEvent.h" />
@@ -1503,6 +1560,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
+    <ClInclude Include="..\src-core\render\SongStructureManager.h" />
+    <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TimeLine.h" />
@@ -1518,6 +1577,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\model\StartChannelDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\StrandNodeNamesDialog.h" />
     <ClInclude Include="..\src-core\utils\string_utils.h" />
+    <ClInclude Include="..\src-core\utils\ZipUtils.h" />
     <ClInclude Include="..\src-core\utils\ThreadUtils.h" />
     <ClInclude Include="..\src-core\utils\xlPoint.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SubBufferPanel.h" />
@@ -1568,13 +1628,16 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\media\VideoExporter.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VendorModelDialog.h" />
     <ClInclude Include="..\src-core\media\FFmpegVideoReader.h" />
+    <ClInclude Include="..\src-core\media\FFmpegVideoWriter.h" />
     <ClInclude Include="..\src-core\media\VideoFrame.h" />
     <ClInclude Include="..\src-core\media\VideoReader.h" />
     <ClInclude Include="..\src-core\media\VideoReaderImpl.h" />
+    <ClInclude Include="..\src-core\media\VideoWriter.h" />
+    <ClInclude Include="..\src-core\media\VideoWriterImpl.h" />
     <ClInclude Include="..\src-ui-wx\layout\ViewObjectPanel.h" />
     <ClInclude Include="..\src-ui-wx\model\ViewpointDialog.h" />
     <ClInclude Include="..\src-ui-wx\layout\ViewsModelsPanel.h" />
-    <ClInclude Include="..\src-ui-wx\import_export\Vixen3.h" />
+    <ClInclude Include="..\src-core\import_export\Vixen3.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VSAFile.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VsaImportDialog.h" />
     <ClInclude Include="..\src-core\media\WindowsHardwareVideoReader.h" />
@@ -1584,6 +1647,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\color\xlColorCanvas.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPicker.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPickerFields.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerButton.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColourData.h" />
     <ClInclude Include="..\src-core\utils\xlImage.h" />
     <ClInclude Include="..\src-core\utils\Base64.h" />
@@ -1666,6 +1731,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\shared\utils\xlPropertyGrid.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\ExternalHooksUI.h" />
     <ClInclude Include="..\src-ui-wx\graphics\xlGraphicsBase.h" />
+    <ClInclude Include="..\src-core\graphics\AngleEGL.h" />
+    <ClInclude Include="..\src-core\graphics\GLBackend.h" />
     <ClInclude Include="..\src-core\graphics\GLContextManager.h" />
     <ClInclude Include="..\src-core\outputs\SocketAbstraction.h" />
     <ClInclude Include="..\src-core\utils\xlSize.h" />

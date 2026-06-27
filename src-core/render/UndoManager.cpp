@@ -71,6 +71,21 @@ UndoStep::UndoStep( UNDO_ACTIONS action, ModifiedEffectInfo* effect_info )
     modified_effect_info.push_back(effect_info);
 }
 
+UndoStep::UndoStep( UNDO_ACTIONS action, LayerInfo* li )
+: undo_action(action)
+{
+    layer_info.push_back(li);
+}
+
+UndoStep::~UndoStep()
+{
+    for (auto* p : deleted_effect_info)  delete p;
+    for (auto* p : added_effect_info)    delete p;
+    for (auto* p : moved_effect_info)    delete p;
+    for (auto* p : modified_effect_info) delete p;
+    for (auto* p : layer_info)           delete p;
+}
+
 UndoManager::UndoManager(SequenceElements* parent)
 : mParentSequence(parent), mCaptureUndo(false)
 {
@@ -202,6 +217,22 @@ void UndoManager::EnforceMaxSteps()
         mUndoSteps.erase(mUndoSteps.begin());
     }
 }
+void UndoManager::CaptureAddedLayer( const std::string &element_name, int exclusive_layer_index, int layer_number )
+{
+    LayerInfo* li = new LayerInfo(element_name, exclusive_layer_index, layer_number);
+    UndoStep* action = new UndoStep(UNDO_LAYER_ADDED, li);
+    mUndoSteps.push_back(action);
+    EnforceMaxSteps();
+}
+
+void UndoManager::CaptureRemovedLayer( const std::string &element_name, int layer_number )
+{
+    LayerInfo* li = new LayerInfo(element_name, -1, layer_number);
+    UndoStep* action = new UndoStep(UNDO_LAYER_REMOVED, li);
+    mUndoSteps.push_back(action);
+    EnforceMaxSteps();
+}
+
 void UndoManager::CancelLastStep() {
     if (!mUndoSteps.empty()) {
         delete mUndoSteps.back();
@@ -352,6 +383,62 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
             }
         }
         break;
+        case UNDO_LAYER_ADDED:
+        {
+            if (next_action->layer_info.empty()) {
+                spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. DDD");
+                break;
+            }
+            Element* element = mParentSequence->GetElement(next_action->layer_info[0]->element_name);
+            if (element != nullptr) {
+                EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->layer_info[0]->exclusive_layer_index);
+                if (el != nullptr && element->GetEffectLayerCount() > 1) {
+                    int pos = el->GetLayerNumber() - 1;
+                    LayerInfo* li = new LayerInfo(next_action->layer_info[0]->element_name,
+                                                  next_action->layer_info[0]->exclusive_layer_index, pos);
+                    UndoStep* action = new UndoStep(UNDO_LAYER_REMOVED, li);
+                    toList.push_back(action);
+                    element->RemoveEffectLayer(pos);
+                }
+            }
+            mParentSequence->PopulateRowInformation();
+        }
+        break;
+        case UNDO_LAYER_REMOVED:
+        {
+            if (next_action->layer_info.empty()) {
+                spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. EEE");
+                break;
+            }
+            Element* element = mParentSequence->GetElement(next_action->layer_info[0]->element_name);
+            if (element != nullptr) {
+                int pos = next_action->layer_info[0]->layer_number;
+                EffectLayer* el;
+                if (pos >= (int)element->GetEffectLayerCount()) {
+                    el = element->AddEffectLayer();
+                } else {
+                    el = element->InsertEffectLayer(pos);
+                }
+                LayerInfo* li = new LayerInfo(next_action->layer_info[0]->element_name, el->GetIndex(), pos);
+                UndoStep* action = new UndoStep(UNDO_LAYER_ADDED, li);
+                toList.push_back(action);
+                mParentSequence->PopulateRowInformation();
+                // Make sure redo recreates the layers needed to support the smart copy/paste
+                int oldIdx = next_action->layer_info[0]->exclusive_layer_index;
+                if (oldIdx >= 0) {
+                    int newIdx = el->GetIndex();
+                    for (auto* step : fromList) {
+                        if (step->undo_action == UNDO_EFFECT_DELETED) {
+                            for (auto* dei : step->deleted_effect_info) {
+                                if (dei->layer_index == oldIdx)
+                                    dei->layer_index = newIdx;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        break;
         }
         fromList.pop_back();
     }
@@ -377,6 +464,12 @@ std::string UndoManager::GetUndoString()
             break;
         case UNDO_EFFECT_MODIFIED:
             undo_string = "Undo: Effect(s) Modified";
+            break;
+        case UNDO_LAYER_ADDED:
+            undo_string = "Undo: Layer(s) Added";
+            break;
+        case UNDO_LAYER_REMOVED:
+            undo_string = "Undo: Layer(s) Removed";
             break;
         case UNDO_MARKER:
             break;
@@ -405,6 +498,12 @@ std::string UndoManager::GetRedoString()
             break;
         case UNDO_EFFECT_MODIFIED:
             redo_string = "Redo: Effect(s) Modified";
+            break;
+        case UNDO_LAYER_ADDED:
+            redo_string = "Redo: Layer(s) Added";
+            break;
+        case UNDO_LAYER_REMOVED:
+            redo_string = "Redo: Layer(s) Removed";
             break;
         case UNDO_MARKER:
             break;

@@ -20,6 +20,8 @@
 #include "render/Element.h"
 
 #include <log.h>
+#include <wx/listbox.h>
+#include <wx/textctrl.h>
 
 //(*IdInit(AssistPanel)
 const long AssistPanel::ID_SCROLLEDWINDOW_Assist = wxNewId();
@@ -246,8 +248,14 @@ void AssistPanel::OnCharHook(wxKeyEvent& event)
             }
         } else if (mEffect->GetEffectIndex() == EffectManager::eff_SKETCH) {
             auto sketchAssistPanel = dynamic_cast<SketchAssistPanel *>(mPanel);
-            if (sketchAssistPanel != nullptr)
+            if (sketchAssistPanel != nullptr) {
+                auto* focus = wxWindow::FindFocus();
+                if (dynamic_cast<wxTextCtrl*>(focus) != nullptr || dynamic_cast<wxListBox*>(focus) != nullptr) {
+                    event.Skip();
+                    return;
+                }
                 sketchAssistPanel->ForwardKeyEvent(event);
+            }
         }
     }
 }

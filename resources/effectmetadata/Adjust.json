@@ -29,7 +29,22 @@
             "controlType": "spin",
             "default": 0,
             "min": -255,
-            "max": 255
+            "max": 255,
+            "dynamicLabel": {
+                "property": "Action",
+                "map": {
+                    "None": "Unused:",
+                    "Adjust By Value": "Adjust by:",
+                    "Adjust By Percentage": "Adjust by:",
+                    "Set Minimum": "Minimum:",
+                    "Set Maximum": "Maximum:",
+                    "Set Range": "Minimum:",
+                    "Shift With Wrap By Value": "Shift by:",
+                    "Prevent Range": "Minimum:",
+                    "Reverse": "Unused:"
+                },
+                "defaultLabel": "Value 1"
+            }
         },
         {
             "id": "Value2",
@@ -39,7 +54,15 @@
             "controlType": "spin",
             "default": 0,
             "min": -255,
-            "max": 255
+            "max": 255,
+            "dynamicLabel": {
+                "property": "Action",
+                "map": {
+                    "Set Range": "Maximum:",
+                    "Prevent Range": "Maximum:"
+                },
+                "defaultLabel": "Unused:"
+            }
         },
         {
             "id": "NthChannel",
@@ -70,6 +93,32 @@
             "default": 0,
             "min": 0,
             "max": 10000
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": {
+                "property": "Action",
+                "oneOf": [
+                    "None",
+                    "Reverse"
+                ]
+            },
+            "disable": [
+                "Value1"
+            ]
+        },
+        {
+            "when": {
+                "property": "Action",
+                "oneOf": [
+                    "Set Range",
+                    "Prevent Range"
+                ]
+            },
+            "enable": [
+                "Value2"
+            ]
         }
     ]
 }

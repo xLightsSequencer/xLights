@@ -1777,6 +1777,9 @@ int SequenceChecker::RunFileReferenceChecks(CheckSequenceReport& report) {
 
     for (const auto& it : allfiles) {
         std::string ff = FileUtils::FixFile(_showFolder, it);
+        if (_elements.GetSequenceMedia().GetMediaEmbedState(ff).first) {
+            continue;
+        }
         if (StartsWith(ff, _showFolder)) {
             if (FileExists(ff)) {
                 std::string rel = ff.substr(_showFolder.size());

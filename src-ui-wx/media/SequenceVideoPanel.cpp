@@ -48,17 +48,25 @@ SequenceVideoPanel::~SequenceVideoPanel()
 
 void SequenceVideoPanel::SetMediaPath(const std::string& path)
 {
-    if (!VideoReader::IsVideoFile(path))
-    {
+    _path = path;
+    if (!VideoReader::IsVideoFile(path)) {
         _videoReader.reset();
         _videoWidth = 0;
         _videoHeight = 0;
         _videoLength = 0;
         _isValidVideo = false;
         _videoPreview->Clear();
+    } else {
+        _isValidVideo = true;
     }
-    else
-    {
+}
+
+void SequenceVideoPanel::UpdateVideo( int ms )
+{
+    if ( !_isValidVideo || !IsShownOnScreen() )
+        return;
+    
+    if (_videoReader.get() == nullptr) {
         bool isHWAccel = VideoReader::IsHardwareAcceleratedVideo();
         // if using hardware acceleration, keep it in the native BGRA format
         // to avoid some byte reordering, extra copies, etc...
@@ -67,20 +75,15 @@ void SequenceVideoPanel::SetMediaPath(const std::string& path)
         wantsHWType = isHWAccel;
 #endif
         
-        _videoReader.reset(new VideoReader(path, 0, 0, true, true, isHWAccel, isHWAccel, wantsHWType));
+        _videoReader.reset(new VideoReader(_path, 0, 0, true, true, isHWAccel, isHWAccel, wantsHWType));
         if (_videoReader->IsValid()) {
-            _isValidVideo = true;
             _videoWidth = _videoReader->GetWidth();
             _videoHeight = _videoReader->GetHeight();
             _videoLength = _videoReader->GetLengthMS();
+        } else {
+            _isValidVideo = true;
         }
     }
-}
-
-void SequenceVideoPanel::UpdateVideo( int ms )
-{
-    if ( !_isValidVideo || !IsShownOnScreen() )
-        return;
 
     int clampedTime = std::min( ms, _videoLength );
 

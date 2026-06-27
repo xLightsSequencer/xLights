@@ -373,6 +373,9 @@ void AlphaPix::UpdateSerialData(AlphaPixSerial* pd, UDControllerPort* serialData
 }
 
 std::string AlphaPix::ExtractFromPage(std::string const& page, const std::string& parameter, const std::string& type, int start) {
+    if (start < 0 || static_cast<size_t>(start) > page.size()) {
+        return "";
+    }
     const std::string p = page.substr(start);
     if (type == "input") {
         //<input  style = " width: 80px ;TEXT-ALIGN: center" type="text" value="1" name="DMX512"/>

@@ -130,7 +130,10 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManag
         model = DeserializeDmxGeneral(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxServoType || node_name == "dmxservo") {
         model = DeserializeDmxServo(node, modelManager, importing);
-    } else if (type == XmlNodeKeys::DmxServo3dType || node_name == "dmxservo3d") {
+    } else if (type == XmlNodeKeys::DmxServo3dType || type == "DmxServo3Axis" || node_name == "dmxservo3d") {
+        // "DmxServo3Axis" is a legacy alias for DmxServo3d (see DisplayAsTypeFromString
+        // and ModelManager::CreateModel, which both accept it); the servo configuration
+        // comes from the model's XML attributes on import.
         model = DeserializeDmxServo3d(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxSkullType) {
         model = DeserializeDmxSkull(node, modelManager, importing);
@@ -590,6 +593,9 @@ Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, ModelM
     model->SetCubeStyle(node.attribute(XmlNodeKeys::StyleAttribute).as_string(""));
     model->SetStrandStyle(node.attribute(XmlNodeKeys::StrandPerLineAttribute).as_string(""));
     model->SetStrandPerLayer(std::string_view(node.attribute(XmlNodeKeys::StrandPerLayerAttribute).as_string("FALSE")) == "TRUE");
+    model->SetCubeShape(node.attribute(XmlNodeKeys::CubeShapeAttribute).as_int(0));
+    model->SetHollowPct(node.attribute(XmlNodeKeys::CubeHollowAttribute).as_int(0));
+    model->SetRowOffset(node.attribute(XmlNodeKeys::CubeRowOffsetAttribute).as_int(0));
     model->Setup();
     return model;
 }

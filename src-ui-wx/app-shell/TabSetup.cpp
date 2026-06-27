@@ -16,6 +16,7 @@
 #include <wx/time.h>
 #include <wx/stopwatch.h>
 #include <wx/settings.h>
+#include <wx/stdpaths.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>
@@ -23,8 +24,11 @@
 #include <wx/thread.h>
 
 #include <thread>
+#include <chrono>
+#include <ctime>
 
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "layout/LayoutPanel.h"
 #include "render/SequenceFile.h"
 #ifdef __WXOSX__
@@ -229,11 +233,9 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
     PreviewWindows.clear();
 
-    // remove any 3d viewpoints
-    viewpoint_mgr.Clear();
-
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
+    viewpoint_mgr.Clear();
 
     // Force re-initialization of Effect Presets panel when show directory changes.
     // If the panel is already visible, reload it immediately; otherwise defer until next show.
@@ -337,7 +339,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     ApplyLoggingSpecialOptions();
 
     
-    spdlog::debug("Show directory set to : {}.", (const char*)showDirectory.c_str());
+    spdlog::info("Show directory set to : {}.", (const char*)showDirectory.c_str());
 
     if (_logfile != nullptr) {
         wxLog::SetActiveTarget(nullptr);
@@ -353,8 +355,26 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     } else {
         wxLog::SetActiveTarget(new wxLogStderr()); // write to stderr
     }
-    if (std::find(mediaDirectories.begin(), mediaDirectories.end(), CurrentDir) == mediaDirectories.end()) {
-        mediaDirectories.push_back(CurrentDir);
+
+    mediaDirectories.clear();
+    if (!xLightsApp::mediaDir.IsNull())
+        mediaDirectories.push_back(xLightsApp::mediaDir.ToStdString());
+    {
+        wxString mediaDirConfig;
+        config->Read("MediaDir", &mediaDirConfig);
+        if (!mediaDirConfig.empty()) {
+            wxArrayString entries = wxSplit(mediaDirConfig, '|', '\0');
+            for (auto& d : entries) {
+                std::string dstd = d.ToStdString();
+                if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dstd) == mediaDirectories.end())
+                    mediaDirectories.push_back(dstd);
+            }
+        }
+    }
+    {
+        std::string curDir = ToStdString(CurrentDir);
+        if (std::find(mediaDirectories.begin(), mediaDirectories.end(), curDir) == mediaDirectories.end())
+            mediaDirectories.push_back(curDir);
     }
 
     long fseqLinkFlag = 0;
@@ -516,6 +536,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     }
 
+    _outputManager.SomethingChanged();
+    AllModels.RecalcStartChannels();
+    _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SetDir-post-rework");
+
     ValidateWindow();
 
     return true;
@@ -606,6 +631,33 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &def
         }
     }
     return false;
+}
+
+bool xLightsFrame::OfferDefaultShowDirectory(bool permanent) {
+    wxString documents = wxStandardPaths::Get().GetDocumentsDir();
+    wxString defaultShowDir = documents + wxFileName::GetPathSeparator() + "xLights";
+
+    int answer = wxMessageBox("No show folder is set.\n\nWould you like xLights to create and use a default show folder at:\n\n" + defaultShowDir + "\n\nChoose No to pick a different folder.",
+                              "Create Default Show Folder", wxYES_NO | wxICON_QUESTION, this);
+
+    if (answer != wxYES) {
+        return PromptForShowDirectory(permanent);
+    }
+
+    ObtainAccessToURL(documents, true);
+    if (!wxFileName::DirExists(defaultShowDir)) {
+        if (!wxFileName::Mkdir(defaultShowDir, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)) {
+            DisplayError(ToStdString("Unable to create the default show folder:\n" + defaultShowDir + "\n\nPlease choose a folder instead."), this);
+            return PromptForShowDirectory(permanent);
+        }
+    }
+    ObtainAccessToURL(defaultShowDir, true);
+    if (SetDir(defaultShowDir, permanent)) {
+        return true;
+    }
+
+    // Creating/applying the default failed for some reason - fall back to the picker.
+    return PromptForShowDirectory(permanent);
 }
 #pragma endregion
 
@@ -1129,7 +1181,8 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_OBJECTLIST |
         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
-        OutputModelManager::WORK_SAVE_NETWORKS
+        OutputModelManager::WORK_SAVE_NETWORKS |
+        OutputModelManager::WORK_FOCUS_MODELTREE
     );
     if (work & OutputModelManager::WORK_NETWORK_CHANNELSCHANGE) {
         logger_work->debug("    WORK_NETWORK_CHANNELSCHANGE.");
@@ -1341,6 +1394,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work->debug("    Selecting model '{}'.", (const char*)selectedModel.c_str());
         //SelectModel(selectModel);
         layoutPanel->SelectBaseObject(selectedModel);
+        if (work & OutputModelManager::WORK_FOCUS_MODELTREE) {
+            layoutPanel->FocusModelTree();
+        }
     }
     if (work & OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW) {
         logger_work->debug("    WORK_REDRAW_LAYOUTPREVIEW.");
@@ -2029,6 +2085,30 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 _controllerAdapter->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
             }
 
+            {
+                auto* config = GetXLightsConfig();
+                auto ctrlName = controller->GetName();
+
+                wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
+                }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                wxString ts;
+                if (!config->Read(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
+                p->SetValue(ts);
+
+                p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
+                }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                if (!config->Read(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
+                p->SetValue(ts);
+            }
+
             if (controller->IsFromBase()) {
                 Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
                 auto it = Controllers_PropertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
@@ -2126,6 +2206,10 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
                 List_Controllers->SetItemText(cn, event.GetValue().GetString());
 
                 // This fixes up any start channels dependent on the controller name
+                // RenameController rewrites each affected model's start channel
+                // (Model::SetStartChannel → IncrementChangeCount), which can fire
+                // ModelGroup::CheckForChanges on a render thread; stop the renderer first.
+                AbortRender();
                 AllModels.RenameController(oldName, event.GetValue().GetString());
 
                 _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "xLightsFrame::OnControllerPropertyGridChange::ControllerName", nullptr);
@@ -2133,6 +2217,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
         } else if (name == "IP") {
             // This fixes up any start channels dependent on the controller IP
             if (ip_utils::IsIPValid(oldIP) && ip_utils::IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
+                AbortRender();
                 AllModels.ReplaceIPInStartChannels(oldIP, controller->GetIP());
             }
         }
@@ -2340,7 +2425,13 @@ void xLightsFrame::DeleteSelectedControllers() {
         auto msg = wxString::Format("Are you sure you want to delete %d controllers.", (int)todel.size());
         if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
             waitForPingsToComplete();
+            // DeleteController rewrites start channels on every model that referenced
+            // this controller (Model::SetStartChannel → IncrementChangeCount); stop
+            // the renderer before mutating so ModelGroup::CheckForChanges can't fire
+            // on a render thread.
+            AbortRender();
             for (const auto& it : todel) {
+                AllModels.DeleteController(it);
                 _outputManager.DeleteController(it);
             }
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
@@ -2602,6 +2693,8 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
         waitForPingsToComplete();
+        AbortRender();
+        AllModels.DeleteController(name);
         _outputManager.DeleteController(name);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
@@ -2736,6 +2829,16 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         spdlog::debug("Attempt to upload controller inputs successful on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload complete.";
                         res = true;
+                        {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = controller->GetName();
+                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                            }
+                        }
                     }
                     else {
                         spdlog::error("Attempt to upload controller inputs failed on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
@@ -2801,6 +2904,16 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         message = vendor + " Output Upload Complete.";
                         res = true;
+                        {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = controller->GetName();
+                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                            }
+                        }
                     } else {
                         message = vendor + " Output Upload Failed.";
                     }

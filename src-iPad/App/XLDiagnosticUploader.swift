@@ -93,7 +93,41 @@ final class XLDiagnosticUploader {
             }
         }
 
+        pruneStaleDiagnosticsAsync()
         kickoff()
+    }
+
+    // Pre-fix builds let Library/Logs/Diagnostics/*.json grow forever
+    // (the auto-upload path copied but never deleted). Sweep anything
+    // older than the cutoff at startup so existing backlogs drain.
+    // Recent files are left for the next stagePendingUpload() to bundle
+    // and prune.
+    nonisolated private func pruneStaleDiagnosticsAsync() {
+        workQueue.async {
+            let fm = FileManager.default
+            guard let lib = try? fm.url(
+                for: .libraryDirectory, in: .userDomainMask,
+                appropriateFor: nil, create: false
+            ) else { return }
+            let diagnosticsDir = lib
+                .appendingPathComponent("Logs", isDirectory: true)
+                .appendingPathComponent("Diagnostics", isDirectory: true)
+
+            guard let entries = try? fm.contentsOfDirectory(
+                at: diagnosticsDir,
+                includingPropertiesForKeys: [.contentModificationDateKey],
+                options: [.skipsHiddenFiles]
+            ) else { return }
+
+            let cutoff = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+            for entry in entries {
+                let values = try? entry.resourceValues(
+                    forKeys: [.contentModificationDateKey])
+                guard let mtime = values?.contentModificationDate,
+                      mtime < cutoff else { continue }
+                try? fm.removeItem(at: entry)
+            }
+        }
     }
 
     func beginCurrentSession() {
@@ -186,6 +220,17 @@ final class XLDiagnosticUploader {
         let postName = "xLights-iPad-iOS_\(arch)_\(version)-\(build)_\(stamp).zip"
 
         var body = Data()
+        // Desktop attaches the user's email to crash/diagnostic reports for
+        // attribution (`OtherSettingsPanel.cpp:183`). Mirror that here when
+        // the user has set one (`@AppStorage("xLightsEmail")`).
+        let email = (UserDefaults.standard.string(forKey: "xLightsEmail") ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !email.isEmpty {
+            body.append("--\(Self.multipartBoundary)\n".data(using: .utf8)!)
+            body.append(
+                "Content-Disposition: form-data; name=\"email\"\n\n\(email)\n"
+                    .data(using: .utf8)!)
+        }
         body.append("--\(Self.multipartBoundary)\n".data(using: .utf8)!)
         body.append("Content-Type: application/octet-stream\n".data(using: .utf8)!)
         body.append(

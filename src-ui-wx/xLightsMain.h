@@ -101,6 +101,7 @@
 #include "render/SequencePackage.h"
 #include "automation/ScriptsDialog.h"
 #include "app-shell/TipOfTheDayDialog.h"
+#include "CommandPaletteDialog.h"
 #include "diagnostics/CheckSequenceReport.h"
 
 #include "ai/aiType.h"
@@ -118,7 +119,6 @@ class EffectTreeDialog;
 class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
-class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
 class SearchPanel;
@@ -195,7 +195,9 @@ wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CUT_MODEL_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS_TO_MODELS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
@@ -377,6 +379,7 @@ public:
     void LoadPerspectivesMenu();
     void SerializePerspectives(BaseSerializingVisitor &visitor);
     void SerializeSettings(BaseSerializingVisitor &visitor);
+    void SerializeModelSets(BaseSerializingVisitor &visitor);
     struct Perspective {
         std::string name;
         std::string settings;
@@ -442,6 +445,7 @@ public:
     bool IsSequenceDataValid() const
     { return _seqData.IsValidData(); }
     std::string GetPresetIconFilename(const std::string& preset) const;
+    std::string GetPresetIconFilename(const std::string& preset, const std::string& dir) const;
     void CreatePresetIcons();
     void ClearSequenceData();
     void LoadAudioData(SequenceFile& xml_file);
@@ -455,11 +459,11 @@ public:
     bool ExportVideoPreview(wxString const& path);
 
 	void SetAudioControls();
-    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string());
+    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string());
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0, bool autoMap = false, bool importMedia = true);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
@@ -1155,6 +1159,7 @@ public:
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;
+    bool _pasteAsLayers = false;
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
     bool _enablePositionZones = true;
@@ -1182,6 +1187,8 @@ public:
 
     [[nodiscard]] bool IsRenderBell() const { return _renderBellEnabled; }
     void SetRenderBell(bool b) { _renderBellEnabled = b; }
+    [[nodiscard]] bool IsPasteAsLayers() const { return _pasteAsLayers; }
+    void SetPasteAsLayers(bool b) { _pasteAsLayers = b; }
 	[[nodiscard]] bool IsIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void StartAutomationListener();
     [[nodiscard]] bool ProcessHttpRequest(HttpConnection& connection, HttpRequest& request);
@@ -1482,6 +1489,7 @@ public:
     void UpdateRecentFilesList(bool reload);
     void AddToMRU(const std::string& filename);
     bool PromptForShowDirectory(bool permanent, const std::string &defaultDir = "");
+    bool OfferDefaultShowDirectory(bool permanent);
     bool PromptForDirectorySelection(const std::string &msg, std::string &dir);
     bool SaveNetworksFile();
     bool IsControllerUploadLinked() { return _linkedControllerUpload == "Inputs and Outputs"; }
@@ -1585,6 +1593,7 @@ public:
     OutputManager* GetOutputManager() { return &_outputManager; };
     OutputModelManager* GetOutputModelManager() override { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
+    void WriteGIFForPreset(const std::string& preset, EffectPresetManager& manager, const std::string& presetDir);
 
     // Render effects into a list of xlImage frames. Used for preset GIF generation
     // and shader preview thumbnails. The model, sequence data, and elements must
@@ -1599,6 +1608,8 @@ public:
     Model* GetPresetModel() { EnsurePresetModel(); return _presetModel; }
     SequenceData& GetPresetSequenceData() { return _presetSequenceData; }
     SequenceElements& GetPresetSequenceElements() { return _presetSequenceElements; }
+    SequenceData& GetSeqData() { return _seqData; }
+    const SequenceData& GetSeqData() const { return _seqData; }
 
 private:
 
@@ -1606,7 +1617,8 @@ private:
                                 SeqDataType *dataBuf, int startAddr, int modelSize,
                                 bool v2 = false); //Falcon Pi sub sequence .eseq
     void WriteVideoModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
-        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
+        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality = false, bool forceProRes = false,
+        int exportWidth = 0, int exportHeight = 0);
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
     void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
@@ -1627,6 +1639,7 @@ public:
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     Model *GetModel(const std::string& name) const override;
+    unsigned int GetModelGeneration() const override { return AllModels.GetModelGeneration(); }
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
     bool AbortRender(int maxTimeMs, int* numThreadsAborted);
@@ -1642,6 +1655,12 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() override { return _sequenceElements; }
+
+    // Song Structure Region export
+    std::string DoExportSongRegion(int startMS, int endMS, const std::string& regionLabel, const wxString& outputPath);
+    void ExportSongRegion(int startMS, int endMS, const std::string& regionLabel);
+    void ExportAllSongRegions();
+
     TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "") override;
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
@@ -1655,7 +1674,7 @@ public:
     void DoPromoteEffects(ModelElement *element);
     EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name);
     void UpdateEffectPreset(EffectPreset* preset);
-    void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
+    void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion, bool layerMode = false);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
@@ -1725,6 +1744,7 @@ public:
     void SetPasteByTime();
     void ShowSequenceSettings();
     bool HandleAllKeyBinding(wxKeyEvent& event);
+    void OnCommandPalette(wxCommandEvent& event);
 
 private:
     std::map<std::string, std::string> _xmlSettings;
@@ -1944,7 +1964,9 @@ private:
     void PlayModel(wxCommandEvent& event);
     void CutModelEffects(wxCommandEvent& event);
     void CopyModelEffects(wxCommandEvent& event);
+    void CopyModelEffectsToModels(wxCommandEvent& event);
     void PasteModelEffects(wxCommandEvent& event);
+    void PasteModelEffectsWithSubModelLayers(wxCommandEvent& event);
     void ModelSelected(wxCommandEvent& event);
     void PlaySequence(wxCommandEvent& event);
     void PauseSequence(wxCommandEvent& event);
@@ -2067,6 +2089,7 @@ public:
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
+    BufferPanel* GetBufferPanel() const { return bufferPanel; }
 
     std::string GetEffectTextFromWindows(std::string &palette) const;
     void ValidatePanels();
