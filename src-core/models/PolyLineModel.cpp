@@ -224,13 +224,6 @@ void PolyLineModel::InitModel()
     _numSegments = screenLocation.num_points - 1;
     _numDropPoints = 0;
 
-    // A polyline needs at least two points (one segment). Deleting the
-    // in-flight handle mid-create (e.g. Escape while dragging) can shrink
-    // num_points to 1, leaving zero segments. The per-segment vectors then
-    // resize to empty below, but _totalLightCount is still > 0 so
-    // DistributeLightsEvenly would run and index _polyLineSegDropSizes[0] on
-    // an empty vector and crash. Bail out — the caller (FinalizeModel) deletes
-    // the degenerate model right after this returns.
     if (_numSegments < 1) {
         Nodes.clear();
         return;
