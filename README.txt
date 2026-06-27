@@ -39,6 +39,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dan)                   Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
                                  reset fired live update handlers that dereferenced a stale model)
     -bug (dan)                   Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable
+    -bug (charlie)               Fix crash when pressing Escape to cancel a polyline drag during creation that leaves the model with a single point
     -bug (dan)                   Fix crash importing/downloading a DmxServo3Axis model (factory didn't recognize the legacy type alias);
                                  unrecognized/malformed model files now cancel the import with an error instead of crashing
     -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
