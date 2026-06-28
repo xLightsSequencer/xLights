@@ -501,7 +501,6 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
         } else if (HitTestTimingActive(mSelectedRow, event.GetX(), &result)) {
-            mSequenceElements->DeactivateAllTimingElements();
             TimingElement* te = dynamic_cast<TimingElement*>(e);
             te->SetActive(!result);
             int selectedTimingRow = result ? mSelectedRow : -1;
