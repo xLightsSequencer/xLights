@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.12  June ??, 2026
     -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
     -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top
+    -enh (derwin12)              Effect sequence wizard now adds a default New Timing track (#6612)
     -enh (derwin12)              Add Timing Track option to Single Strand chase (cycles per timing mark) (#4771)
     -enh (derwin12)              Allow timeline to zoom out to see any effects outside the duration (#6528)
     -enh (derwin12)              Sync smart remote type across port block for controllers requiring it (#3468)
