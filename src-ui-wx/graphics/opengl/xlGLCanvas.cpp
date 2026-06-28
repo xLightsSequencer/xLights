@@ -136,6 +136,7 @@ END_EVENT_TABLE()
 static const int DEPTH_BUFFER_BITS[] = {32, 24, 16, 12, 10, 8};
 
 wxGLContext *xlGLCanvas::m_sharedContext = nullptr;
+static bool s_oglContextInitFailed = false;
 
 static wxGLAttributes GetAttributes(int &zdepth, bool only2d) {
     OpenGLShaders::SetupDebugLogging();
@@ -632,6 +633,7 @@ void xlGLCanvas::CreateGLContext() {
                            (const char*)(vend ? vend : (const GLubyte*)"?"));
             if (!xlOGL3GraphicsContext::InitializeSharedContext()) {
                 m_logger->error("Failed to initialise shared ANGLE GL context.");
+                s_oglContextInitFailed = true;
             }
         }
         InitializeGLContext();
@@ -706,9 +708,9 @@ void xlGLCanvas::CreateGLContext() {
                 }
             }
             
-            if (!xlOGL3GraphicsContext::InitializeSharedContext())
-            {
+            if (!xlOGL3GraphicsContext::InitializeSharedContext()) {
                 m_logger->error("Failed to initialise shared OpenGL context.");
+                s_oglContextInitFailed = true;
             }
 
             m_context = nullptr;
@@ -771,6 +773,9 @@ xlGraphicsContext *xlGLCanvas::PrepareContextForDrawing() {
     return PrepareContextForDrawing(ClearBackgroundColor());
 }
 xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
+    if (s_oglContextInitFailed) {
+        return nullptr;
+    }
 #ifdef USE_GLES
     // Serialize this on-screen frame against the off-screen ShaderEffect pool so
     // ANGLE's shared D3D11 device is never submitted from two threads at once.
