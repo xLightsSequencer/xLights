@@ -27,7 +27,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Add cylinder shape and offset to cube model (#4369)
     -enh (neil)                  Add ability to link props into "sets" so they move as one (#3703)
     -enh (derwin12)              House Preview: right-click "Keep on Top" keeps the popped-out window above other apps (#5533)
-    -bug (derwin12)              Provide graceful exit rather than crash on Snapdragon/ARM Windows when OpenGL 3.x unavailable (#6608)
     -bug (derwin12)              Allow multiple timing tracks to be active simultaneously in master view (was limited to one)
     -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
     -bug (derwin12)              Fixed missing video files not showing red in the Select Videos panel
