@@ -2205,7 +2205,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
     }
 
     if (!mMouseOperationsCancelled) {
-        if (mResizingMode == EFFECT_RESIZE_MOVE && selectedEffect != nullptr) {
+        Row_Information_Struct* anchorRI = mSequenceElements->GetVisibleRowInformation(row);
+        bool isTimingDrag = (anchorRI != nullptr && anchorRI->element->GetType() == ElementType::ELEMENT_TYPE_TIMING);
+        if (!isTimingDrag && mResizingMode == EFFECT_RESIZE_MOVE && selectedEffect != nullptr) {
             // Ghost drag-to-move/copy: non-destructive drag with dim originals and ghost at target
             if (selectedEffect->GetSelected() == EFFECT_NOT_SELECTED)
                 selectedEffect->SetSelected(EFFECT_SELECTED);
