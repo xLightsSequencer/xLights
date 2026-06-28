@@ -1014,6 +1014,12 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                     }
                 }
             }
+            wxWindow* topLevel = wxGetTopLevelParent(this);
+            if (topLevel != xlights) {
+                mnu.AppendSeparator();
+                wxMenuItem* keepOnTopItem = mnu.Append(0x3001, "Keep on Top", wxEmptyString, wxITEM_CHECK);
+                keepOnTopItem->Check(topLevel->GetWindowStyleFlag() & wxSTAY_ON_TOP);
+            }
             mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
             PopupMenu(&mnu);
         }
@@ -1049,6 +1055,12 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         Reset();
     } else if (id == 0x1000) {
         is3d = !is3d;
+    } else if (id == 0x3000) {
+        wxWindow* topLevel = wxGetTopLevelParent(this);
+        if (topLevel != xlights) {
+            long style = topLevel->GetWindowStyleFlag();
+            topLevel->SetWindowStyleFlag(style & wxSTAY_ON_TOP ? style & ~wxSTAY_ON_TOP : style | wxSTAY_ON_TOP);
+        }
     } else if (is3d) {
         long camIdx = event.GetId() - CAMERA_LOAD_BASE;
         if (camIdx >= 0 && camIdx < xlights->viewpoint_mgr.GetNum3DCameras()) {
