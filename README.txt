@@ -26,6 +26,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (jessica12ryan)         Show last input/output dates in the controller properties (#5728)
     -enh (cybercop23)            Add cylinder shape and offset to cube model (#4369)
     -enh (neil)                  Add ability to link props into "sets" so they move as one (#3703)
+    -bug (derwin12)              Allow multiple timing tracks to be active simultaneously in master view (was limited to one)
     -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
     -bug (derwin12)              Fixed missing video files not showing red in the Select Videos panel
     -bug (derwin12)              Fix State/Face effect dropdowns resetting on icon click (#6595)
