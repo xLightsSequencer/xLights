@@ -170,12 +170,9 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     CurrentSeqXmlFile->ApplyPendingTimings(this);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {
-        if (CurrentSeqXmlFile->GetSequenceType() != "Effect") {
-            // only add timing if the user didnt set up timings (effect sequences start with none)
-            std::string new_timing = "New Timing";
-            CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-            _sequenceElements.AddTimingToAllViews(new_timing);
-        }
+        std::string new_timing = "New Timing";
+        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+        _sequenceElements.AddTimingToAllViews(new_timing);
     } else {
         _sequenceElements.GetTimingElement(0)->SetActive(true);
     }
