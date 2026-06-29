@@ -2927,8 +2927,13 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             if (info[x].IsOk() &&
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name]) {
-                if (info[x].frame != nullptr)
+                if (info[x].frame != nullptr) {
                     info[x].frame->Show();
+                    // On macOS, Cocoa repositions native floating frames during
+                    // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
+                    // reapplies floating_pos/floating_size from the pane info.
+                    update = true;
+                }
             }
         }
         savedPaneShown.clear();
