@@ -97,8 +97,26 @@ if ! curl -fL --retry 3 -o "$ZIP" "$URL"; then
     exit 1
 fi
 
-if ! unzip -oq "$ZIP" -d "$TMP_DIR/x"; then
-    echo "fetch_klightmapper: could not unzip $ASSET." >&2
+# Extract the archive without assuming a particular unzip tool is installed.
+# The Linux build containers don't ship `unzip`, so fall back to bsdtar (which
+# reads zip) and then python3's zipfile module before giving up.
+extract_zip() {
+    src="$1"; dest="$2"
+    mkdir -p "$dest"
+    if command -v unzip >/dev/null 2>&1; then
+        unzip -oq "$src" -d "$dest" && return 0
+    fi
+    if command -v bsdtar >/dev/null 2>&1; then
+        bsdtar -xf "$src" -C "$dest" && return 0
+    fi
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -m zipfile -e "$src" "$dest" && return 0
+    fi
+    return 1
+}
+
+if ! extract_zip "$ZIP" "$TMP_DIR/x"; then
+    echo "fetch_klightmapper: could not extract $ASSET (no unzip/bsdtar/python3)." >&2
     exit 1
 fi
 
