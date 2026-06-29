@@ -1986,12 +1986,14 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
     
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
-    if (effectLayer == nullptr) {
-        spdlog::critical("EffectsGrid::GetEffectAtRowAndTime effectLayer is nullptr ... this is going to crash.");
-    }
-
     Effect* eff = nullptr;
     selectionType = HitLocation::NONE;
+
+    if (effectLayer == nullptr) {
+        spdlog::critical("EffectsGrid::GetEffectAtRowAndTime effectLayer is nullptr for row {} ... bailing out.", row);
+        return nullptr;
+    }
+
     if (effectLayer->HitTestEffectByTime(ms, index)) {
         eff = effectLayer->GetEffect(index);
         int startPos = GetClippedPositionFromTimeMS(eff->GetStartTimeMS());

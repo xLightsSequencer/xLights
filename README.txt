@@ -27,6 +27,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Add cylinder shape and offset to cube model (#4369)
     -enh (neil)                  Add ability to link props into "sets" so they move as one (#3703)
     -enh (derwin12)              House Preview: right-click "Keep on Top" keeps the popped-out window above other apps (#5533)
+    -bug (dkulp)                 Fix waveform render crash when the audio/zoom view list is rebuilt mid-paint (stale view index)
+    -bug (dkulp)                 Fix crash hovering the layout preview in 3D mode when the model list contains a null entry
+    -bug (dkulp)                 Fix crash mousing over the sequencer grid when a row's effect layer is momentarily unavailable
     -bug (derwin12)              Allow multiple timing tracks to be active simultaneously in master view (was limited to one)
     -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
     -bug (derwin12)              Fixed missing video files not showing red in the Select Videos panel

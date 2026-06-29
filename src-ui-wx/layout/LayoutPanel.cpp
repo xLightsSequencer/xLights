@@ -6448,6 +6448,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Editing models");
                 for (const auto& it : modelPreview->GetModels())
                 {
+                    if (it == nullptr) {
+                        continue;
+                    }
                     if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                         if (intersection_distance < distance) {
                             distance = intersection_distance;

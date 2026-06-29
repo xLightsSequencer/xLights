@@ -1047,6 +1047,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     _highNote = -1;
     _media = media;
     views.clear();
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     ResetAnalysisState();
     if (_media != nullptr) {
         _media->SwitchTo(_type);
@@ -1090,7 +1091,7 @@ void Waveform::render()
     }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-    if (mCurrentWaveView >= 0) {
+    if (mCurrentWaveView >= 0 && mCurrentWaveView < (int)views.size()) {
 		DrawWaveView(ctx, views[mCurrentWaveView]);
 	}
 
@@ -1107,7 +1108,7 @@ float Waveform::translateOffset(float f) {
 
 void Waveform::ForceRedraw()
 {
-    if (mCurrentWaveView >= 0) {
+    if (mCurrentWaveView >= 0 && mCurrentWaveView < (int)views.size()) {
         views[mCurrentWaveView].ForceRedraw();
     }
 }
