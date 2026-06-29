@@ -435,6 +435,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/graphics/opengl/xlOGL3GraphicsContext.cpp
     src-ui-wx/graphics/wxTextDrawingContext.cpp
     src-ui-wx/import_export/*.cpp
+    src-ui-wx/klightmapper/*.cpp
     src-ui-wx/layout/*.cpp
     src-ui-wx/media/*.cpp
     src-ui-wx/model/*.cpp
