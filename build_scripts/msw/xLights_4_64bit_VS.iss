@@ -23,7 +23,10 @@
 #define Bits 64
 
 [Setup]
-;; (not yet implemented) SignTool=mystandard
+; Authenticode signing is applied in CI via Azure Trusted Signing (see the
+; "Sign ... (Trusted Signing)" steps in .github/workflows/Ubuntu_Window_Release.yml
+; and win_nightly.yml): xLights.exe and the finished installer .exe are signed
+; with the Kulp Lights LLC certificate. Inno's own SignTool directive is not used.
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory

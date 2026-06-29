@@ -36,6 +36,15 @@ jobs:
     needs: check_for_commits
     if: ${{ needs.check_for_commits.outputs.should_run == 'true' }}
     runs-on: windows-2022
+    # Sign nightlies too, so opt-in beta testers don't hit a SmartScreen wall on
+    # every build. Uses the `nightly` environment (no approval gate) for the OIDC
+    # subject; signing is gated on the WINDOWS_SIGNING_ENABLED repo variable.
+    environment: nightly
+    permissions:
+      id-token: write
+      contents: write
+    env:
+      SIGN: ${{ vars.WINDOWS_SIGNING_ENABLED == 'true' }}
 
     steps:
       - name: Checkout xLights
@@ -74,9 +83,68 @@ jobs:
         working-directory: build_scripts\msw
         run: call build_VS_x64_skip_libltc.cmd
 
+      # --- Authenticode signing via Azure Trusted Signing (Kulp Lights LLC) ----
+      # Same approach as the release workflow: sign our executables, then the
+      # installer. Only runs when WINDOWS_SIGNING_ENABLED is set.
+      - name: Azure login (OIDC for Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign xLights.exe (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: xlights\x64\Release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+      - name: Sign xlDo.exe (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: xlDo\x64\Release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+      - name: Sign fseq_convert.exe (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: fseq_convert\cmake_vs\Release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
       - name: Build Installer
         working-directory: build_scripts\msw
         run: ISCC.exe xLights_4_64bit_VS.iss
+
+      - name: Sign installer (Trusted Signing)
+        if: env.SIGN == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: build_scripts\msw\output
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
 
       - name: Upload Installer
         uses: actions/upload-artifact@v4
