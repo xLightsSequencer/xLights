@@ -29,8 +29,10 @@
 
 #include <pugixml.hpp>
 #include <wx/filename.h>
+#include <wx/timer.h>
 #include <list>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <wx/uri.h>
 #include "CachedFileDownloader.h"
@@ -71,15 +73,19 @@ class VendorModelDialog: public wxDialog
 
     [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
-    void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories);
-    void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId);
+    // Two-level tree population: each vendor node gets a flat, de-duplicated
+    // list of its models (no category rows). See the .cpp for the dedup and
+    // filter-matching details.
+    void AddVendorModelList(wxTreeItemId vendorNode, MVendor* vendor);
+    void AppendModelLeaf(wxTreeItemId vendorNode, MModel* model);
+    [[nodiscard]] bool ModelMatchesFilter(MVendor* vendor, const MModel* model,
+                                          const std::unordered_map<std::string, MVendorCategory*>& catById) const;
     void ValidateWindow();
     void PopulateVendorPanel(MVendor* vendor);
     void PopulateModelPanel(MModel* vendor);
     void PopulateModelPanel(MModelWiring* vendor);
     void LoadModelImage(const std::list<std::string>& imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
-    [[nodiscard]] bool DeleteEmptyCategories(wxTreeItemId& parent);
     [[nodiscard]] bool IsVendorSuppressed(const std::string& vendor);
     void SuppressVendor(const std::string& vendor, bool suppress);
 	[[nodiscard]] bool DownloadModel(MModelWiring* wiring);
@@ -87,6 +93,38 @@ class VendorModelDialog: public wxDialog
     void DownloadSelectedModels();
     [[nodiscard]] wxTreeItemId GetFocusedItem() const;
     void UpdatePanelForItem(wxTreeItemId item);
+
+    // ----- Catalog filter (experimental) -----
+    // Single live-filter input that narrows the tree to model nodes
+    // whose ancestor path (vendor / category / sub-category / model
+    // name) contains EVERY whitespace-separated token from the input
+    // (case-insensitive). e.g. "tree EFL" is two AND-narrowed terms,
+    // matching only items whose path contains both 'tree' and 'efl'.
+    // Categories and un-suppressed vendors with no surviving
+    // descendants are pruned bottom-up by PruneEmptyBranches. Lives
+    // outside wxSmith so the .wxs file does not need to know about it.
+    class wxSearchCtrl* TextCtrl_Filter = nullptr;
+    std::vector<wxString> _filterTokens;  // already lower-cased
+    wxTimer* _filterDebounceTimer = nullptr;
+    bool _initialBuild = true;
+    bool _treeRebuilding = false;
+    static constexpr int kCatalogFilterDebounceMs = 200;
+    void OnCatalogFilterText(wxCommandEvent& event);
+    void OnCatalogFilterCancel(wxCommandEvent& event);
+    void OnCatalogFilterDebounce(wxTimerEvent& event);
+    // Returns true if pathSoFar + leafName contains every token in the
+    // current filter (case-insensitive substring match). pathSoFar is
+    // the ancestor breadcrumb "vendor / category / subcategory" so the
+    // user can filter on hierarchy text — typing "halloween" includes
+    // every descendant of the matching node. Empty filter matches
+    // anything.
+    bool CatalogFilterMatchesPath(const std::string& pathSoFar,
+                                  const std::string& leafName) const;
+    void RebuildTreeUI();
+    // Bottom-up prune that drops Category and Vendor nodes whose
+    // descendants were filtered away. Returns true if the node itself
+    // was deleted. Models and wirings (leaves) are never deleted here.
+    bool PruneEmptyBranches(wxTreeItemId parent);
 
 	public:
 
