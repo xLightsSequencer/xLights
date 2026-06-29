@@ -19,6 +19,7 @@
 #include "SketchEffectDrawing.h"
 
 #include <cstdlib>
+#include <cmath>
 #include <spdlog/fmt/fmt.h>
 
 #include <glm/glm.hpp>
@@ -112,6 +113,19 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     bool path_parsed = false;
     bool pan_path_active = true;
     bool tilt_path_active = true;
+    bool pattern_parsed = false;
+    std::string pattern_algorithm = "Circle";
+    float pattern_width = 90.0f;
+    float pattern_height = 45.0f;
+    float pattern_xoffset = 0.0f;
+    float pattern_yoffset = 0.0f;
+    float pattern_rotation = 0.0f;
+    float pattern_start_offset = 0.0f;
+    float pattern_phase_offset = 0.0f;
+    float pattern_xfreq = 2.0f;
+    float pattern_yfreq = 3.0f;
+    float pattern_xphase = 90.0f;
+    float pattern_yphase = 0.0f;
     bool has_position = false;
     bool has_color = false;
     bool has_color_wheel = false;
@@ -176,6 +190,35 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
         } else if ( cmd_type == "Path" ) {
             path_setting = settings;
             path_parsed = true;
+        } else if ( cmd_type == "Pattern" ) {
+            pattern_algorithm = settings;
+            pattern_parsed = true;
+        } else if ( cmd_type == "PatternWidth" ) {
+            pattern_width = atof(settings.c_str());
+        } else if ( cmd_type == "PatternHeight" ) {
+            pattern_height = atof(settings.c_str());
+        } else if ( cmd_type == "PatternXOffset" ) {
+            pattern_xoffset = atof(settings.c_str());
+        } else if ( cmd_type == "PatternYOffset" ) {
+            pattern_yoffset = atof(settings.c_str());
+        } else if ( cmd_type == "PatternRotation" ) {
+            pattern_rotation = atof(settings.c_str());
+        } else if ( cmd_type == "PatternRotation VC" ) {
+            ValueCurve vc( settings );
+            vc.SetLimits(MOVING_HEAD_PATTERN_ROTATION_MIN, MOVING_HEAD_PATTERN_ROTATION_MAX);
+            pattern_rotation = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+        } else if ( cmd_type == "PatternStartOffset" ) {
+            pattern_start_offset = atof(settings.c_str());
+        } else if ( cmd_type == "PatternPhaseOffset" ) {
+            pattern_phase_offset = atof(settings.c_str());
+        } else if ( cmd_type == "PatternXFreq" ) {
+            pattern_xfreq = atof(settings.c_str());
+        } else if ( cmd_type == "PatternYFreq" ) {
+            pattern_yfreq = atof(settings.c_str());
+        } else if ( cmd_type == "PatternXPhase" ) {
+            pattern_xphase = atof(settings.c_str());
+        } else if ( cmd_type == "PatternYPhase" ) {
+            pattern_yphase = atof(settings.c_str());
         } else if( cmd_type == "Heads" ) {
             heads = Split(settings, ',');
         } else if( cmd_type == "Groupings" ) {
@@ -217,6 +260,14 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     
     if( path_parsed ) {
         CalculatePathPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, time_offset, path_scale, delta, eff_pos, path_setting);
+    }
+
+    if( pattern_parsed ) {
+        CalculatePatternPositions( pan_path_active, tilt_path_active, pan_pos, tilt_pos, pattern_algorithm,
+                                   pattern_width, pattern_height, pattern_xoffset, pattern_yoffset,
+                                   pattern_rotation, pattern_start_offset, pattern_phase_offset,
+                                   pattern_xfreq, pattern_yfreq, pattern_xphase, pattern_yphase, delta, eff_pos);
+        has_position = true;
     }
 
     // find models that map to this moving head position
@@ -443,6 +494,97 @@ void MovingHeadEffect::CalculatePathPositions(bool pan_path_active, bool tilt_pa
         if( tilt_path_active ) {
             tilt_pos = new_tilt;
         }
+    }
+}
+
+// Parametric shape generator.
+// Produces a normalized point in [-1, 1] for a given iterator (0 .. 2*PI).
+void MovingHeadEffect::CalculatePatternPoint(const std::string& algorithm, float iterator, float x_freq, float y_freq, float x_phase, float y_phase, float& x, float& y)
+{
+    const float half_pi = (float)(PI / 2.0);
+    const float pi = (float)PI;
+
+    if (algorithm == "Eight") {
+        x = std::cos((iterator * 2.0f) + half_pi);
+        y = std::cos(iterator);
+    } else if (algorithm == "Line") {
+        x = std::cos(iterator);
+        y = std::cos(iterator);
+    } else if (algorithm == "Line2") {
+        x = iterator / pi - 1.0f;
+        y = iterator / pi - 1.0f;
+    } else if (algorithm == "Diamond") {
+        x = std::pow(std::cos(iterator - half_pi), 3.0f);
+        y = std::pow(std::cos(iterator), 3.0f);
+    } else if (algorithm == "Square") {
+        if (iterator < pi / 2.0f) {
+            x = (iterator * 2.0f / pi) * 2.0f - 1.0f;
+            y = 1.0f;
+        } else if (iterator < pi) {
+            x = 1.0f;
+            y = (1.0f - (iterator - pi / 2.0f) * 2.0f / pi) * 2.0f - 1.0f;
+        } else if (iterator < pi * 3.0f / 2.0f) {
+            x = (1.0f - (iterator - pi) * 2.0f / pi) * 2.0f - 1.0f;
+            y = -1.0f;
+        } else {
+            x = -1.0f;
+            y = ((iterator - pi * 3.0f / 2.0f) * 2.0f / pi) * 2.0f - 1.0f;
+        }
+    } else if (algorithm == "SquareChoppy") {
+        x = std::round(std::cos(iterator));
+        y = std::round(std::sin(iterator));
+    } else if (algorithm == "SquareTrue") {
+        if (iterator < pi / 2.0f) {
+            x = 1.0f; y = 1.0f;
+        } else if (iterator < pi) {
+            x = 1.0f; y = -1.0f;
+        } else if (iterator < pi * 3.0f / 2.0f) {
+            x = -1.0f; y = -1.0f;
+        } else {
+            x = -1.0f; y = 1.0f;
+        }
+    } else if (algorithm == "Leaf") {
+        x = std::pow(std::cos(iterator + half_pi), 5.0f);
+        y = std::cos(iterator);
+    } else if (algorithm == "Lissajous") {
+        x = std::cos((x_freq * iterator) - x_phase);
+        y = std::cos((y_freq * iterator) - y_phase);
+    } else { // Circle (default)
+        x = std::cos(iterator + half_pi);
+        y = std::cos(iterator);
+    }
+}
+
+void MovingHeadEffect::CalculatePatternPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, const std::string& algorithm, float width, float height, float x_offset, float y_offset, float rotation, float start_offset, float phase_offset, float x_freq, float y_freq, float x_phase, float y_phase, float delta, double eff_pos)
+{
+    // Each head can be phase-shifted along the pattern using its slot index (delta).
+    double progress = eff_pos + (double)(delta * phase_offset) / 360.0;
+    progress = progress - std::floor(progress); // wrap to [0, 1)
+
+    float iterator = (float)(progress * 2.0 * PI);
+    iterator += (float)(start_offset * PI / 180.0);
+    while (iterator >= (float)(2.0 * PI)) {
+        iterator -= (float)(2.0 * PI);
+    }
+    while (iterator < 0.0f) {
+        iterator += (float)(2.0 * PI);
+    }
+
+    float x = 0.0f;
+    float y = 0.0f;
+    CalculatePatternPoint(algorithm, iterator, x_freq, y_freq, (float)(x_phase * PI / 180.0), (float)(y_phase * PI / 180.0), x, y);
+
+    float cosR = std::cos((float)(rotation * PI / 180.0));
+    float sinR = std::sin((float)(rotation * PI / 180.0));
+
+    float new_pan = x_offset + x * cosR * width + y * sinR * height;
+    float new_tilt = y_offset - x * sinR * width + y * cosR * height;
+
+    if (pan_path_active) {
+        pan_pos = new_pan;
+    }
+    if (tilt_path_active) {
+        tilt_pos = new_tilt;
     }
 }
 

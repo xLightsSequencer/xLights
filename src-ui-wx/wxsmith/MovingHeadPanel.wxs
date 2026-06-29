@@ -726,6 +726,517 @@
 						<label>Pathing</label>
 					</object>
 					<object class="notebookpage">
+						<object class="wxPanel" name="ID_PANEL_Pattern" variable="PanelPattern" member="yes">
+							<object class="wxFlexGridSizer" variable="FlexGridSizerPattern" member="yes">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_MHPatternEnable" variable="CheckBox_MHPatternEnable" member="yes">
+										<label>Enable Pattern</label>
+										<handler function="OnCheckBox_MHPatternEnableClick" entry="EVT_CHECKBOX" />
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPatternShape" member="yes">
+										<cols>2</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternShape" variable="StaticText_MHPatternShape" member="yes">
+												<label>Shape:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxChoice" name="ID_CHOICE_MHPattern" variable="Choice_MHPattern" member="yes">
+												<selection>0</selection>
+												<content>
+													<item>Circle</item>
+													<item>Eight</item>
+													<item>Line</item>
+													<item>Line2</item>
+													<item>Diamond</item>
+													<item>Square</item>
+													<item>SquareChoppy</item>
+													<item>SquareTrue</item>
+													<item>Leaf</item>
+													<item>Lissajous</item>
+												</content>
+												<handler function="OnChoice_MHPatternSelect" entry="EVT_CHOICE" />
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternWidth" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternWidth" variable="StaticText_MHPatternWidth" member="yes">
+												<label>Pan Size:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternWidth" subclass="BulkEditSlider" variable="Slider_MHPatternWidth" member="yes">
+												<value>90</value>
+												<min>0</min>
+												<max>180</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternWidth" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternWidth" member="yes">
+												<value>90</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternHeight" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternHeight" variable="StaticText_MHPatternHeight" member="yes">
+												<label>Tilt Size:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternHeight" subclass="BulkEditSlider" variable="Slider_MHPatternHeight" member="yes">
+												<value>45</value>
+												<min>0</min>
+												<max>180</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternHeight" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternHeight" member="yes">
+												<value>45</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternXOffset" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternXOffset" variable="StaticText_MHPatternXOffset" member="yes">
+												<label>Pan Center:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternXOffset" subclass="BulkEditSlider" variable="Slider_MHPatternXOffset" member="yes">
+												<value>0</value>
+												<min>-180</min>
+												<max>180</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternXOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternXOffset" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternYOffset" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternYOffset" variable="StaticText_MHPatternYOffset" member="yes">
+												<label>Tilt Center:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternYOffset" subclass="BulkEditSlider" variable="Slider_MHPatternYOffset" member="yes">
+												<value>0</value>
+												<min>-180</min>
+												<max>180</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternYOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternYOffset" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternRotation" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternRotation" variable="StaticText_MHPatternRotation" member="yes">
+												<label>Rotation:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternRotation" subclass="BulkEditSlider" variable="Slider_MHPatternRotation" member="yes">
+												<value>0</value>
+												<min>0</min>
+												<max>360</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxBitmapButton" name="ID_VALUECURVE_MHPatternRotation" subclass="BulkEditValueCurveButton" variable="ValueCurve_MHPatternRotation" member="yes">
+												<bitmap code="GetValueCurveNotSelectedBitmap()" />
+												<style>wxBU_AUTODRAW|wxBORDER_NONE</style>
+											</object>
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternRotation" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternRotation" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternStartOffset" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternStartOffset" variable="StaticText_MHPatternStartOffset" member="yes">
+												<label>Start Offset:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternStartOffset" subclass="BulkEditSlider" variable="Slider_MHPatternStartOffset" member="yes">
+												<value>0</value>
+												<min>0</min>
+												<max>360</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternStartOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternStartOffset" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternPhaseOffset" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternPhaseOffset" variable="StaticText_MHPatternPhaseOffset" member="yes">
+												<label>Head Spread:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternPhaseOffset" subclass="BulkEditSlider" variable="Slider_MHPatternPhaseOffset" member="yes">
+												<value>0</value>
+												<min>-360</min>
+												<max>360</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternPhaseOffset" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternPhaseOffset" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternXFreq" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternXFreq" variable="StaticText_MHPatternXFreq" member="yes">
+												<label>X Frequency:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternXFreq" subclass="BulkEditSlider" variable="Slider_MHPatternXFreq" member="yes">
+												<value>2</value>
+												<min>0</min>
+												<max>32</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternXFreq" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternXFreq" member="yes">
+												<value>2</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternYFreq" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternYFreq" variable="StaticText_MHPatternYFreq" member="yes">
+												<label>Y Frequency:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternYFreq" subclass="BulkEditSlider" variable="Slider_MHPatternYFreq" member="yes">
+												<value>3</value>
+												<min>0</min>
+												<max>32</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternYFreq" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternYFreq" member="yes">
+												<value>3</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternXPhase" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternXPhase" variable="StaticText_MHPatternXPhase" member="yes">
+												<label>X Phase:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternXPhase" subclass="BulkEditSlider" variable="Slider_MHPatternXPhase" member="yes">
+												<value>90</value>
+												<min>0</min>
+												<max>360</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternXPhase" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternXPhase" member="yes">
+												<value>90</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizer_PatternYPhase" member="yes">
+										<cols>4</cols>
+										<growablecols>1</growablecols>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT_MHPatternYPhase" variable="StaticText_MHPatternYPhase" member="yes">
+												<label>Y Phase:</label>
+											</object>
+											<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxSlider" name="ID_SLIDER_MHPatternYPhase" subclass="BulkEditSlider" variable="Slider_MHPatternYPhase" member="yes">
+												<value>0</value>
+												<min>0</min>
+												<max>360</max>
+											</object>
+											<flag>wxALL|wxEXPAND</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+										<object class="spacer">
+											<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+											<option>1</option>
+										</object>
+										<object class="sizeritem">
+											<object class="wxTextCtrl" name="IDD_TEXTCTRL_MHPatternYPhase" subclass="BulkEditTextCtrl" variable="TextCtrl_MHPatternYPhase" member="yes">
+												<value>0</value>
+												<size>25,-1d</size>
+												<style>wxTE_PROCESS_ENTER</style>
+											</object>
+											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+											<border>2</border>
+											<option>1</option>
+										</object>
+									</object>
+									<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND</flag>
+									<border>2</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Pattern</label>
+					</object>
+					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL_Control" variable="PanelControl" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerControl" member="no">
 								<cols>1</cols>
