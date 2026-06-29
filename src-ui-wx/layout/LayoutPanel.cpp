@@ -9368,7 +9368,13 @@ void LayoutPanel::DeleteSelectedModels()
             // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
             xlights->GetOutputModelManager()->SuspendDeferredWork(true);
             xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-            xlights->AbortRender();    // stop any rendering as deleting models from under the renderer will crash xlights
+            if (!xlights->AbortRender()) {
+                // Render didn't drain in time — deleting models now would free
+                // them out from under a running render worker and crash. Skip
+                // the delete and restore the deferred-work flag suspended above.
+                xlights->GetOutputModelManager()->SuspendDeferredWork(false);
+                return;
+            }
 
             CreateUndoPoint("All", wxJoin(modelsToDelete, ','));
 
@@ -9431,7 +9437,9 @@ void LayoutPanel::DeleteSelectedGroups()
 		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
 
 		xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-        xlights->AbortRender(); // stop rendering as deleting groups while rendering is not good
+        // Stop rendering before deleting groups out from under a running render
+        // worker (crash). Bail if render won't drain in time.
+        if (!xlights->AbortRender()) return;
 
 		for (const auto& it : groupsToDelete) {
 			xlights->AllModels.Delete(it.ToStdString());

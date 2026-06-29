@@ -130,6 +130,26 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir) {
 
 bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                                        const std::list<std::string>& mediaFolders) {
+    // A background render may still be in flight (house preview or an open
+    // sequence) holding Model* / PixelBuffer references into the current
+    // ModelManager. Switching show folders rebuilds _modelManager below
+    // (destroying every existing Model), so signal abort and wait for the
+    // JobPool workers to drain first — otherwise a render worker writes node
+    // channel data through a freed model mid-teardown (use-after-free seen in
+    // crash reports as ~ModelManager racing PixelBuffer::SetColors /
+    // Node::GetForChannels). Safe to block here: loadShowFolder runs on a
+    // detached background task, never the main actor, so the wait can't trip
+    // the watchdog. Mirrors the abort+drain CloseSequence already does.
+    if (_renderEngine) {
+        _renderEngine->SignalAbort();
+        auto deadline = std::chrono::steady_clock::now()
+                      + std::chrono::seconds(5);
+        while (!IsRenderDone()
+               && std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
+
     _showDir = showDir;
     _mediaFolders.clear();
 
