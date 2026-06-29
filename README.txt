@@ -31,9 +31,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix waveform render crash when the audio/zoom view list is rebuilt mid-paint (stale view index)
     -bug (dkulp)                 Fix crash hovering the layout preview in 3D mode when the model list contains a null entry
     -bug (dkulp)                 Fix crash mousing over the sequencer grid when a row's effect layer is momentarily unavailable
+    -enh (AlexB)                 During a multi-effect drag, only the colliding ghost effects turn red instead of all of them (#6553)
+    -enh (neil)                  Bulk Edit Rotate skips models whose type doesn't support that axis and reports the skipped models (#6521)
+    -enh (derwin12)              Grey out Symmetrize/Combine Strands in the SubModels menu when they don't apply (#6554)
     -bug (derwin12)              Allow multiple timing tracks to be active simultaneously in master view (was limited to one)
     -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
-    -bug (derwin12)              Fixed missing video files not showing red in the Select Videos panel
     -bug (derwin12)              Fix State/Face effect dropdowns resetting on icon click (#6595)
     -bug (cybercop23)            Ensure channels are recalculated when merging base models to show models
     -bug (derwin12)              Fix corrupted Export House Preview on Windows with odd dimensions 
@@ -43,14 +45,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Spinner model with large hollow was not dimensionally correct (#6558)
     -bug (agfazio)               Fix shader dynamic parameters not persisting (#6567)
     -bug (cybercop23)            Restore the ability to slide multiple effects with shift key (#6576)
-    -bug (dan)                   Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
+    -bug (dkulp)                 Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
                                  reset fired live update handlers that dereferenced a stale model)
-    -bug (dan)                   Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable
+    -bug (dkulp)                 Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable
     -bug (charlie)               Fix crash when pressing Escape to cancel a polyline drag during creation that leaves the model with a single point
-    -bug (dan)                   Fix crash importing/downloading a DmxServo3Axis model (factory didn't recognize the legacy type alias);
+    -bug (dkulp)                 Fix crash importing/downloading a DmxServo3Axis model (factory didn't recognize the legacy type alias);
                                  unrecognized/malformed model files now cancel the import with an error instead of crashing
-    -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
-    -bug (dan)                   Fix crash drawing a texture on the OpenGL backend (Windows/Linux) when the vertex accumulator
+    -bug (dkulp)                 Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
+    -bug (dkulp)                 Fix crash drawing a texture on the OpenGL backend (Windows/Linux) when the vertex accumulator
                                  or texture was null; skip the draw instead, matching the existing drawPrimitive guards
     -bug (dan)                   Fix crash logging an OpenGL shader compile/link failure when the "opengl" logger was never
                                  registered (e.g. on the iPad/Metal-only path); fall back to the default logger
@@ -61,6 +63,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  instead of replacing same-name entries; extra faces/states/submodels unique to the target model now survive (#6587)
     -bug (cybercop23)            Fix Sort By Name/Location in the model group panel incorrectly adding a blank entry at the top (#6588)
     -bug (agfazio)               Fix Double click to expand on group
+    -bug (neil)                  Fix Replace Model "keep position and size" being ignored for locked, base-linked, and two-point models; base-linked models are now blocked as replace targets (#6548)
+    -bug (derwin12)              Fix possible crash in the Moving Head effect panel when recalling/loading settings
+    -bug (derwin12)              Fix crash writing the preview GIF for a preset
+    -bug (agfazio)               Fix crash with CUDA/NVDEC hardware decoded video (#6560)
+    -bug (derwin12)              Linux: fix crash on startup from a Moving Head panel resize before it is shown on screen (#6586)
+    -bug (derwin12)              Refresh the Display Elements panel after renaming a model so the new name shows immediately
+    -bug (agfazio)               Sequencer drag now clamps effects flush against blocking neighbors instead of bouncing back; group stays selected after drop; Ctrl+drag adds to selection (#6556)
+    -bug (agfazio)               Fix being unable to move effects on timing/lyric tracks after the ghost drag-to-move change (#6620)
+    -bug (derwin12)              Windows: graceful exit instead of crash on Snapdragon/ARM when OpenGL 3.x is unavailable, without blocking resize repaints (#6630)
 
 2026.11  June 14, 2026
     NOTE:   Support for macOS versions 10.15 and 11 will likely be dropped fairly soon as the tools we use to build xLights are dropping support.
