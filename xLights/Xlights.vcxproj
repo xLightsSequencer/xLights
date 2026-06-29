@@ -402,6 +402,16 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <Target Name="FetchKLightMapper" BeforeTargets="ClCompile"
+          Condition="!Exists('$(MSBuildProjectDirectory)\..\lib\windows64\klightmapper.lib')">
+    <Message Importance="high" Text="Fetching KLightMapper prebuilt library (one-time)..." />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\ci_scripts\fetch_dependencies.ps1&quot;" />
+  </Target>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\include\klightmapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
     <ClCompile Include="..\dependencies\wxLED\wxLED.cpp" />
@@ -813,6 +823,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\model\GenerateCustomModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
@@ -1428,6 +1440,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
     <ClInclude Include="..\src-ui-wx\model\GenerateCustomModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\KLightMapperBridge.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />

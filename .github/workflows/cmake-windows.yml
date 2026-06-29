@@ -83,7 +83,7 @@ jobs:
       - name: Install ISPC
         uses: ispc/install-ispc-action@main
         with:
-          version: 1.30.0
+          version: 1.31.0
 
       # ── sccache ───────────────────────────────────────────────────────────
       # Ninja supports CMAKE_CXX_COMPILER_LAUNCHER natively — no cl.bat shim.

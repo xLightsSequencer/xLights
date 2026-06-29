@@ -111,6 +111,10 @@ Source: "../../bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 ; ONNX Runtime  dll's
 Source: "../../bin64/onnxruntime.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
+; KLightMapper (Map-from-Lights camera scan) — required; the vcxproj's
+; FetchKLightMapper target stages klightmapper.dll into bin64 at build time.
+Source: "../../bin64/klightmapper.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
 ; Scripts
 ;Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs
 #endif

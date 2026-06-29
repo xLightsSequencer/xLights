@@ -8753,6 +8753,36 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     }
 }
 
+void LayoutPanel::BeginImportModelFromFile(const std::string& xmodelPath) {
+    // Drive the existing "Import Custom" click-to-place flow with a known file
+    // instead of prompting for one. Mirrors OnNewModelTypeButtonClicked selecting
+    // the Import-Custom button: when the user next clicks the layout,
+    // CreateNewModel("Import Custom") -> FinalizeModel -> GetXlightsModel runs, and
+    // because _lastXlightsModel is non-empty GetXlightsModel skips its file prompt
+    // and loads xmodelPath. Used by the desktop KLightMapper scan completion to add
+    // the mapped model straight onto the layout, just like a vendor download.
+    NewModelBitmapButton* importBtn = nullptr;
+    for (const auto& it : buttons) {
+        if (it->GetModelType() == "Import Custom") {
+            importBtn = it;
+            it->SetState(1);
+        } else {
+            it->SetState(0);
+        }
+    }
+    if (importBtn == nullptr) {
+        return; // Import-Custom tool missing (shouldn't happen)
+    }
+    selectedButton = importBtn;
+    UnSelectAllModels();
+    Notebook_Objects->ChangeSelection(0);
+    editing_models = true;
+    modelPreview->SetFocus();
+    // Preset the path LAST: selecting a button leaves _lastXlightsModel untouched
+    // (only deselecting clears it), and GetXlightsModel keys off it at click time.
+    _lastXlightsModel = xmodelPath;
+}
+
 void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]) {
     wxMenuItem* menu_item = mnu.Append(id, name);
     if (icon != nullptr) {

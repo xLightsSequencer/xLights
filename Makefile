@@ -26,7 +26,7 @@ SUDO		= `which sudo`
 SUBDIRS         = xLights
 
 WXWIDGETS_TAG=xlights_2026.11
-ISPC_VERSION=1.30.0
+ISPC_VERSION=1.31.0
 ISPC_ARCH=$(shell uname -m)
 
 ifeq '$(ISPC_ARCH)' 'aarch64'
@@ -43,7 +43,7 @@ endif
 
 .NOTPARALLEL:
 
-all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc makefile subdirs
+all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc klightmapper makefile subdirs
 
 #############################################################################
 
@@ -92,6 +92,12 @@ wxwidgets33: FORCE
 		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
 		fi
+
+klightmapper: FORCE
+	@printf "Checking KLightMapper desktop scan library\n"
+	@if test ! -e lib/linux/libklightmapper.so; then \
+		bash ci_scripts/fetch_klightmapper.sh; \
+	fi
 
 ispc: FORCE
 	@printf "Checking ispc\n"
@@ -157,10 +163,15 @@ install:
 	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
 	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
 	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
+	@if test -e lib/linux/libklightmapper.so; then \
+		install -d -m 755 $(DESTDIR)/${PREFIX}/lib; \
+		install -m 755 -p lib/linux/libklightmapper.so $(DESTDIR)/${PREFIX}/lib/libklightmapper.so; \
+	fi
 
 uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/lib/libklightmapper.so
 
 #############################################################################
 

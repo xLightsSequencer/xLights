@@ -725,6 +725,36 @@ else()
     endif()
 endif()
 
+if(WIN32 OR (UNIX AND NOT APPLE))
+    if(WIN32)
+        set(KLM_FETCH powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_dependencies.ps1")
+        set(KLM_LIB_HINTS ${XL_LIB}/windows64)
+    else()
+        set(KLM_FETCH bash "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_klightmapper.sh")
+        set(KLM_LIB_HINTS ${XL_LIB}/linux)
+    endif()
+    execute_process(COMMAND ${KLM_FETCH}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        RESULT_VARIABLE KLM_FETCH_RC)
+    if(NOT KLM_FETCH_RC EQUAL 0)
+        message(FATAL_ERROR "KLightMapper: required dependency fetch failed (rc=${KLM_FETCH_RC}). "
+                            "Check network access to github.com/KulpLights/KLightMapper.")
+    endif()
+    # The fetch just staged the files; drop any stale NOTFOUND cache before locating.
+    unset(KLM_LIB CACHE)
+    unset(KLM_INC CACHE)
+    find_library(KLM_LIB NAMES klightmapper HINTS ${KLM_LIB_HINTS})
+    find_path(KLM_INC NAMES klm/scan_api.h
+        HINTS ${XL_INC}/klightmapper ${XL_DEPS}/klightmapper/include)
+    if(NOT KLM_LIB OR NOT KLM_INC)
+        message(FATAL_ERROR "KLightMapper: lib/headers missing after fetch (lib=${KLM_LIB} inc=${KLM_INC}).")
+    endif()
+    message(STATUS "KLightMapper: ${KLM_LIB}")
+    target_include_directories(xLights PRIVATE ${KLM_INC})
+    target_link_libraries(xLights PRIVATE ${KLM_LIB})
+endif()
+
 # hidapi
 if(XLIGHTS_USE_VCPKG)
     find_package(hidapi CONFIG REQUIRED)

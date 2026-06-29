@@ -78,10 +78,8 @@
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include "model/GenerateCustomModelDialog.h"
-#ifdef __APPLE__
-#include "mac/CustomModelMethodPickerDialog.h"
-#include "mac/KLightMapperBridge.h"
-#endif
+#include "klightmapper/CustomModelMethodPickerDialog.h"
+#include "klightmapper/KLightMapperBridge.h"
 #include "sequencer/GenerateLyricsDialog.h"
 #include "layout/HousePreviewPanel.h"
 #include "setup/IPEntryDialog.h"
@@ -4300,22 +4298,23 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     // creating the dialog can take some time so display an hourglass
     SetCursor(wxCURSOR_WAIT);
 
-#ifdef __APPLE__
-    // KLightMapper camera-scan offer: on macOS, if a Continuity
-    // Camera is paired (i.e. an iPhone the user can point at the
-    // prop), let them pick the new flow before falling through to
-    // the classic dialog. Empty camera list → no choice, classic
-    // path runs as before.
+    // KLightMapper scan offer: present the method picker so the user can
+    // choose the classic flow, a local camera scan (Continuity Camera /
+    // webcam on macOS, Media Foundation webcam on Windows), or a remote
+    // RTSP/IP camera (which needs no local camera at all). The scan window
+    // runs inside the KLightMapper framework (macOS) or klightmapper.dll
+    // (Windows); klbridge has a backend for each. Previously gated on a
+    // non-empty camera list; the Remote RTSP option makes the picker useful
+    // even with no local camera.
     const auto cams = klbridge::DiscoverContinuityCameras();
-    if (!cams.empty()) {
+    {
         CustomModelMethodPickerDialog picker(this, cams);
         picker.CenterOnParent();
         SetCursor(wxCURSOR_DEFAULT);
         const int picked = picker.ShowModal();
         SetCursor(wxCURSOR_WAIT);
         if (picked == wxID_OK &&
-            picker.GetChoice() == CustomModelMethodPickerDialog::Choice::CameraScan &&
-            !picker.GetSelectedCameraID().empty()) {
+            picker.GetChoice() != CustomModelMethodPickerDialog::Choice::Classic) {
             SetCursor(wxCURSOR_DEFAULT);
             // The scan window is shown non-modally (NSWindow + SwiftUI),
             // so PresentScanWindow returns immediately. Output / timer /
@@ -4323,8 +4322,9 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
             // scan flow because the scan pushes its own DDP traffic to
             // FPP; re-enabling outputs here would collide with that.
             // The completion (fires on the main thread once the user
-            // closes the window) restores everything and hands the
-            // produced .xmodel — if any — to a Save As dialog.
+            // closes the window) restores everything and adds the
+            // produced .xmodel — if any — straight onto the layout via
+            // the Import-Custom click-to-place flow.
             // Scan-dump persistence: each scan writes raw video +
             // per-pattern frames + state JSON into
             // <showDir>/MapFromLightsDebug/scan_<timestamp>/ so a
@@ -4338,38 +4338,21 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
             // <showDir>/MapFromLightsDebug/MapFromLightsDebug/...
             const std::string& showDir = GetShowDirectory();
             const std::string scanDumpParent = showDir;
-            klbridge::PresentScanWindow(
-                picker.GetSelectedCameraID(),
-                scanDumpParent,
+            // Shared completion: add the produced .xmodel onto the layout
+            // and restore output / timer / media state. Reused by both the
+            // local-camera and remote-RTSP scan entry points.
+            std::function<void(std::optional<std::string>)> completion =
                 [this, output, timerRunning, mps](std::optional<std::string> xmodelPath) {
-                    if (xmodelPath.has_value() && !xmodelPath->empty()) {
-                        wxLogNull logNo;
-                        const wxString src(xmodelPath->c_str(), wxConvUTF8);
-                        const wxString defaultName = wxFileName(src).GetName();
-                        const wxString destPath = wxFileSelector(
-                            _("Save mapped custom model"),
-                            wxEmptyString,
-                            defaultName,
-                            "xmodel",
-                            "Custom Model files (*.xmodel)|*.xmodel",
-                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT,
-                            this);
-                        if (!destPath.IsEmpty()) {
-                            if (wxCopyFile(src, destPath, true)) {
-                                wxMessageBox(_("Saved mapped custom model to:\n") + destPath,
-                                             _("Map from Lights"),
-                                             wxOK | wxICON_INFORMATION, this);
-                            } else {
-                                wxMessageBox(_("Could not write the mapped custom model to:\n") + destPath,
-                                             _("Map from Lights"),
-                                             wxOK | wxICON_ERROR, this);
-                            }
-                        }
-                        // Best-effort: remove the temp file regardless of
-                        // whether the user saved it; if save succeeded, the
-                        // destination holds the data, and if they cancelled
-                        // there's nothing to keep.
-                        wxRemoveFile(src);
+                    // Add the mapped model straight onto the layout, like a
+                    // vendor download: switch to the Layout tab and enter the
+                    // Import-Custom click-to-place flow primed with the produced
+                    // .xmodel, so the user clicks the layout to drop it. The temp
+                    // file is read later, at that placement click, so it is NOT
+                    // deleted here (it lives in the OS temp dir). Saving a copy is
+                    // the scan window's optional "Save to File…" button's job.
+                    if (xmodelPath.has_value() && !xmodelPath->empty() && layoutPanel != nullptr) {
+                        Notebook1->SetSelection(LAYOUTTAB);
+                        layoutPanel->BeginImportModelFromFile(*xmodelPath);
                     }
                     if (output) { EnableOutputs(); }
                     if (timerRunning) { OutputTimer.Start(); }
@@ -4379,8 +4362,24 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
                         CurrentSeqXmlFile->GetMedia()->Play();
                         SetAudioControls();
                     }
-                });
-            return;
+                };
+            if (picker.GetChoice() == CustomModelMethodPickerDialog::Choice::CameraScan &&
+                !picker.GetSelectedCameraID().empty()) {
+                klbridge::PresentScanWindow(
+                    picker.GetSelectedCameraID(), scanDumpParent, completion);
+                return;
+            }
+            if (picker.GetChoice() == CustomModelMethodPickerDialog::Choice::RTSPScan &&
+                !picker.GetRTSPURL().empty()) {
+                klbridge::PresentRTSPScanWindow(
+                    picker.GetRTSPURL(),
+                    picker.GetRTSPUsername(),
+                    picker.GetRTSPPassword(),
+                    scanDumpParent, completion);
+                return;
+            }
+            // A scan was chosen but with no valid camera / URL — restore
+            // and fall through to the classic dialog below.
         }
         if (picked != wxID_OK) {
             // User cancelled the picker entirely — same restore +
@@ -4397,7 +4396,6 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
         // Fell through with Classic chosen — continue to the
         // existing dialog below.
     }
-#endif
 
     GenerateCustomModelDialog dialog(this, &_outputManager);
     dialog.CenterOnParent();

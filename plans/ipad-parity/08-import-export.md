@@ -96,7 +96,7 @@
 | Export controller wiring as CSV | menu / context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `UDController::ExportAsCSV`. Desktop Tools menu; iPad ControllerVisualize export menu. |
 | Export controller wiring as JSON | menu / context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `UDController::ExportAsJSON`. |
 | Export / import effect presets (library round-trip) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `EffectTreeDialog` Import/Export `.xpreset` (`EffectTreeDialog.cpp:774/873`); iPad `exportPresets`/`importPresets` (JSON / effects-tree XML). Both round-trip via shared preset blob. |
-| Map From Lights (camera-scan → model geometry) | menu/wizard | ✅ | ✅ | parity | P2 | hard | feasible | macOS desktop via `KLightMapperBridge` (Continuity Camera, `xLightsMain.cpp:4296`); iPad `MapFromLightsWizard`. (Windows/Linux desktop lacks it.) |
+| Map From Lights (camera-scan → model geometry) | menu/wizard | ✅ | ✅ | parity | P2 | hard | feasible | macOS desktop via `KLightMapperBridge` (Continuity Camera, `xLightsMain.cpp:4296`); iPad `MapFromLightsWizard`. Windows/Linux desktop now also supported (local + RTSP/IP camera) via the prebuilt KLightMapper library + `KLightMapperBridge_win.cpp`, fetched by `ci_scripts/fetch_dependencies.ps1` / `fetch_klightmapper.sh`. |
 | Export HinksPix configuration | menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | restricted | Desktop `HinksPixExportDialog` (`xLightsMain.cpp:6083`). Closed/proprietary controller firmware → IAP-gated, low priority. |
 | Import vendor model / vendor music (online catalog) | dialog | ✅ | 🟡 | parity | P2 | medium | feasible | Desktop `VendorModelDialog` / `VendorMusicDialog`; iPad `VendorBrowserSheet` + `XLVendorCatalog` (shared `VendorCatalog`). Model browser present; verify music-download breadth. |
 | Export Effects summary (CSV) | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `ExportEffects.cpp:347-360`; iPad `src-core/import_export/ExportEffectsReport.cpp` (EFX-1) + bridge `XLSequenceDocument.mm:exportEffectsReport(toPath:)` + Tools menu in `XLightsCommands.swift` + fileExporter in `SequencerView.swift`. |
@@ -248,7 +248,8 @@ For this theme there are **no true desktop-missing items**:
 - *Package exclude-audio* — desktop has it (Preferences → Other Settings).
 - *Preset library export* — desktop has it (`EffectTreeDialog` Export
   `.xpreset`).
-- *Map From Lights* — desktop has it on macOS (`KLightMapperBridge`).
+- *Map From Lights* — desktop has it on macOS, Windows, and Linux
+  (`KLightMapperBridge` / `KLightMapperBridge_win.cpp`).
 - *AI Speech-to-Lyrics / online lyric search* — desktop has both.
 
 The only directional nuance: the iPad surfaces several of these more

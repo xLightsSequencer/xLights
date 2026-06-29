@@ -53,7 +53,7 @@ jobs:
     runs-on: windows-2022
     
     env:
-      WX_VERSION: xlights_2026.04
+      WX_VERSION: xlights_2026.11
       SCCACHE_GHA_ENABLED: "true"
     
     steps:
@@ -69,7 +69,7 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.30.0
+        version: 1.31.0
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9

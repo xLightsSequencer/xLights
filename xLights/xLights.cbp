@@ -357,6 +357,10 @@
 		<Unit filename="../src-core/render/GPURenderUtils.h" />
 		<Unit filename="../src-ui-wx/model/GenerateCustomModelDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/GenerateCustomModelDialog.h" />
+		<Unit filename="../src-ui-wx/klightmapper/CustomModelMethodPickerDialog.cpp" />
+		<Unit filename="../src-ui-wx/klightmapper/CustomModelMethodPickerDialog.h" />
+		<Unit filename="../src-ui-wx/klightmapper/KLightMapperBridge.h" />
+		<Unit filename="../src-ui-wx/klightmapper/KLightMapperBridge_win.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/GenerateLyricsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/GenerateLyricsDialog.h" />
 		<Unit filename="../src-ui-wx/layout/HousePreviewPanel.cpp" />

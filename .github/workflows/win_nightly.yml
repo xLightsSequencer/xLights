@@ -49,7 +49,7 @@ jobs:
       - name: install ISPC
         uses: ispc/install-ispc-action@main
         with:
-          version: 1.30.0
+          version: 1.31.0
 
       #   - name: install Inno
       #    run: choco install innosetup
@@ -63,7 +63,7 @@ jobs:
 
       - name: Download wxWidgets
         run: |
-          git clone --depth=1 --shallow-submodules   --recurse-submodules -b xlights_2026.04 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+          git clone --depth=1 --shallow-submodules   --recurse-submodules -b xlights_2026.11 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
 
       - name: Build wxWidgets
         working-directory: ..\wxWidgets\
