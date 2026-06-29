@@ -3348,8 +3348,11 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
             std::string name = panes[x].name.ToStdString();
             if (name != "HousePreview" && name != "ModelPreview") continue;
             recoverNames.push_back(name);
-            recoverPos.push_back(panes[x].frame->GetPosition());
-            recoverSize.push_back(panes[x].frame->GetSize());
+            // Use AUI's stored floating_pos/floating_size rather than the live
+            // native frame position, which on macOS may already be shifted by
+            // Cocoa after a Hide()/Show() cycle.
+            recoverPos.push_back(panes[x].floating_pos);
+            recoverSize.push_back(panes[x].floating_size);
         }
         if (!recoverNames.empty()) {
             for (const auto& nm : recoverNames) {
