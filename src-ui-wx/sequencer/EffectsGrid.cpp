@@ -1927,7 +1927,8 @@ void EffectsGrid::DropEffectAt(int row, const std::string& effectName, const std
     Effect* effect = el->AddEffect(0, effectName, effectSettings, "", startTime, endTime, EFFECT_SELECTED, false);
 
     if (effect != nullptr) {
-        if (xlights->GetEffectManager().GetEffect(effectName) != nullptr &&
+        if (!effectSettings.empty() &&
+            xlights->GetEffectManager().GetEffect(effectName) != nullptr &&
             xlights->GetEffectManager().GetEffect(effectName)->needToAdjustSettings(effectVersion)) {
             xlights->GetEffectManager().GetEffect(effectName)->adjustSettings(effectVersion, effect, false);
         }
@@ -1935,6 +1936,7 @@ void EffectsGrid::DropEffectAt(int row, const std::string& effectName, const std
         mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
         
         mDropRow = row;
+        xlights->ResetPanelDefaultSettings(effectName, nullptr, true);
         ProcessDroppedEffect(effect);
 
         if (xlights->GetBufferPanel() != nullptr) {
