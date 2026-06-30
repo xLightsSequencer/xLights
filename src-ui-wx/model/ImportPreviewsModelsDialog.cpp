@@ -106,7 +106,7 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
     FlexGridSizer2->Insert(0, _filterCtrl, 0, wxALL | wxEXPAND, 2);
     FlexGridSizer2->RemoveGrowableRow(0);
     FlexGridSizer2->AddGrowableRow(1);
-    _filterTimer.SetOwner(this);
+    _filterTimer.SetOwner(this, wxNewId());
     Bind(wxEVT_TIMER, [this](wxTimerEvent&) { PopulateTree(); }, _filterTimer.GetId());
     _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
         _filter = _filterCtrl->GetValue().Lower().Trim().Trim(false);
@@ -115,7 +115,7 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
     _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [this](wxCommandEvent&) {
         _filterTimer.Stop();
         _filterCtrl->ChangeValue("");
-        _filter.clear();
+        _filter.Clear();
         PopulateTree();
     });
 
@@ -217,7 +217,7 @@ bool ImportPreviewsModelsDialog::MatchesFilter(const wxString& name, const wxStr
 {
     if (filterLower.empty()) return true;
     const wxString hay = name.Lower();
-    wxStringTokenizer tok(filterLower, " ");
+    wxStringTokenizer tok(filterLower);
     while (tok.HasMoreTokens()) {
         if (hay.Find(tok.GetNextToken()) == wxNOT_FOUND) return false;
     }
@@ -504,6 +504,7 @@ void ImportPreviewsModelsDialog::SelectAllModelGroups(bool checked)
 
 void ImportPreviewsModelsDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    _filterTimer.Stop();
     EndDialog(wxID_CANCEL);
 }
 
@@ -514,7 +515,7 @@ void ImportPreviewsModelsDialog::OnButton_OkClick(wxCommandEvent& event)
     _filterTimer.Stop();
     if (!_filter.empty()) {
         if (_filterCtrl != nullptr) _filterCtrl->ChangeValue("");
-        _filter.clear();
+        _filter.Clear();
         PopulateTree();
     }
     EndDialog(wxID_OK);
