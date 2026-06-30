@@ -372,8 +372,8 @@
 		<Unit filename="../src-core/utils/JobPool.h" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.cpp" />
 		<Unit filename="../src-ui-wx/media/JukeboxPanel.h" />
-		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.cpp" />
-		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.h" />
+		<Unit filename="../src-ui-wx/preferences/KeyBindingsSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/KeyBindingsSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/app-shell/KeyBindings.cpp" />
 		<Unit filename="../src-ui-wx/app-shell/KeyBindings.h" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.cpp" />
@@ -1515,7 +1515,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ImportPreviewsModelsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/JukeboxPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/KeyBindingEditDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LayoutPanel.wxs" />
@@ -1747,7 +1746,6 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/SearchPanel.wxs" src="../src-ui-wx/diagnostics/SearchPanel.cpp" hdr="../src-ui-wx/diagnostics/SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/MovingHeadPanel.wxs" src="../src-ui-wx/effectpanels/MovingHeadPanel.cpp" hdr="../src-ui-wx/effectpanels/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditColourPickerDialog.wxs" src="../src-ui-wx/sequencer/BulkEditColourPickerDialog.cpp" hdr="../src-ui-wx/sequencer/BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/KeyBindingEditDialog.wxs" src="../src-ui-wx/app-shell/KeyBindingEditDialog.cpp" hdr="../src-ui-wx/app-shell/KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/AboutDialog.wxs" src="../src-ui-wx/app-shell/AboutDialog.cpp" hdr="../src-ui-wx/app-shell/AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/MediaImportOptionsDialog.wxs" src="../src-ui-wx/media/MediaImportOptionsDialog.cpp" hdr="../src-ui-wx/media/MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ScriptsDialog.wxs" src="../src-ui-wx/automation/ScriptsDialog.cpp" hdr="../src-ui-wx/automation/ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />

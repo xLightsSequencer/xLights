@@ -657,7 +657,6 @@ public:
     void OnButtonAddControllerSerialClick(wxCommandEvent& event);
     void OnButtonAddControllerEthernetClick(wxCommandEvent& event);
     void OnButtonAddControllerNullClick(wxCommandEvent& event);
-    void OnMenuItem_KeyBindingsSelected(wxCommandEvent& event);
     void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
@@ -795,7 +794,6 @@ public:
     static const wxWindowID ID_SAVE_AS_SEQUENCE;
     static const wxWindowID ID_CLOSE_SEQ;
     static const wxWindowID ID_SEQ_SETTINGS;
-    static const wxWindowID ID_MNU_KEYBINDINGS;
     static const wxWindowID ID_EXPORT_VIDEO;
     static const wxWindowID ID_MENUITEM2;
     static const wxWindowID ID_MENUITEM8;
@@ -1032,7 +1030,6 @@ public:
     wxMenuItem* MenuItem_Help_Isue_Tracker;
     wxMenuItem* MenuItem_Help_ReleaseNotes;
     wxMenuItem* MenuItem_ImportEffects;
-    wxMenuItem* MenuItem_KeyBindings;
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem_MedVol;

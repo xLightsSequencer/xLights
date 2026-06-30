@@ -29,6 +29,7 @@
 #include "OtherSettingsPanel.h"
 #include "CheckSequenceSettingsPanel.h"
 #include "ServicesPanel.h"
+#include "KeyBindingsSettingsPanel.h"
 
 namespace {
 // Description of a preferences page: name, left-list icon, and a factory that
@@ -142,6 +143,9 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
     pages.push_back({ "Other",
                       PrefSvgIcon(R"(<path d="M4 8h9"/><path d="M17 8h3"/><circle cx="15" cy="8" r="2"/><path d="M4 16h3"/><path d="M11 16h9"/><circle cx="9" cy="16" r="2"/>)", ink),
                       [this](wxWindow* p) { return (wxWindow*)(new OtherSettingsPanel(p, this)); } });
+    pages.push_back({ "Key Bindings",
+                      PrefSvgIcon(R"(<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6.5" cy="10.5" r="0.8" fill="%C%" stroke="none"/><circle cx="10" cy="10.5" r="0.8" fill="%C%" stroke="none"/><circle cx="13.5" cy="10.5" r="0.8" fill="%C%" stroke="none"/><circle cx="17.5" cy="10.5" r="0.8" fill="%C%" stroke="none"/><path d="M8 14.5h8"/>)", ink),
+                      [this](wxWindow* p) { return (wxWindow*)(new KeyBindingsSettingsPanel(p, this)); } });
 #ifdef ENABLE_SERVICES
     pages.push_back({ "Services",
                       PrefSvgIcon(R"(<path d="M9 2v6"/><path d="M15 2v6"/><path d="M6 8h12v2a6 6 0 0 1-12 0z"/><path d="M12 16v6"/>)", ink),

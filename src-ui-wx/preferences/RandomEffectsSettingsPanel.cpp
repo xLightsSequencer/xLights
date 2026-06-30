@@ -87,8 +87,8 @@ RandomEffectsSettingsPanel::RandomEffectsSettingsPanel(wxWindow* parent, xLights
 
     btnAdd->Bind(wxEVT_BUTTON, &RandomEffectsSettingsPanel::OnAdd, this);
     btnRemove->Bind(wxEVT_BUTTON, &RandomEffectsSettingsPanel::OnRemove, this);
-    _availableList->Bind(wxEVT_LISTBOX_DOUBLECLICK, &RandomEffectsSettingsPanel::OnAvailableDClick, this);
-    _usedList->Bind(wxEVT_LISTBOX_DOUBLECLICK, &RandomEffectsSettingsPanel::OnUsedDClick, this);
+    _availableList->Bind(wxEVT_LISTBOX_DCLICK, &RandomEffectsSettingsPanel::OnAvailableDClick, this);
+    _usedList->Bind(wxEVT_LISTBOX_DCLICK, &RandomEffectsSettingsPanel::OnUsedDClick, this);
 }
 
 RandomEffectsSettingsPanel::~RandomEffectsSettingsPanel()

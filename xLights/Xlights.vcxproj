@@ -629,7 +629,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\modelproperties\helpers\DmxAbilityPropertyHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\helpers\DmxComponentPropertyHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\media\JukeboxPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LayerSelectDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.cpp" />
@@ -1240,7 +1240,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\layout\LayoutUtils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LORPreview.h" />
     <ClInclude Include="..\src-ui-wx\media\JukeboxPanel.h" />
-    <ClInclude Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LayerSelectDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.h" />
     <ClInclude Include="..\src-core\import_export\ExportModels.h" />
