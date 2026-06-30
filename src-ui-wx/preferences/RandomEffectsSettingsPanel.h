@@ -1,7 +1,7 @@
 #pragma once
 
 /***************************************************************
- * This source files comes from the xLights project
+ * This source file comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
@@ -12,11 +12,12 @@
 
 //(*Headers(RandomEffectsSettingsPanel)
 #include <wx/panel.h>
-class wxFlexGridSizer;
-class wxStaticText;
 //*)
 
+class wxListBox;
+class wxCommandEvent;
 class xLightsFrame;
+
 class RandomEffectsSettingsPanel: public wxPanel
 {
 	public:
@@ -25,10 +26,8 @@ class RandomEffectsSettingsPanel: public wxPanel
 		virtual ~RandomEffectsSettingsPanel();
 
 		//(*Declarations(RandomEffectsSettingsPanel)
-		wxFlexGridSizer* EffectsGridSizer;
-		wxFlexGridSizer* MainSizer;
 		//*)
-    
+
         virtual bool TransferDataFromWindow() override;
         virtual bool TransferDataToWindow() override;
 
@@ -39,10 +38,21 @@ class RandomEffectsSettingsPanel: public wxPanel
 
 	private:
         xLightsFrame* frame;
-    
+        wxListBox* _availableList = nullptr; // effects NOT used by Generate Random
+        wxListBox* _usedList = nullptr;      // effects used by Generate Random
+
+        // Move the selected rows from one list to the other (both kept sorted).
+        void MoveSelected(wxListBox* from, wxListBox* to);
+        // Mirror the original checkbox behaviour: write changes back immediately
+        // on platforms where the preferences editor applies as-you-go.
+        void ApplyIfImmediate();
+
 		//(*Handlers(RandomEffectsSettingsPanel)
-		void OnEffectCheckBoxClick(wxCommandEvent& event);
 		//*)
+        void OnAdd(wxCommandEvent& event);
+        void OnRemove(wxCommandEvent& event);
+        void OnAvailableDClick(wxCommandEvent& event);
+        void OnUsedDClick(wxCommandEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

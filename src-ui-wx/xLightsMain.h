@@ -1755,8 +1755,6 @@ private:
     bool SeqChanCtrlBasic;
     bool SeqChanCtrlColor;
 	bool mLoopAudio = false;
-
-    std::unique_ptr<wxPreferencesEditor> mPreferencesEditor;
     bool mResetToolbars = false;
     bool mRenderOnSave = false;
     bool mBackupOnSave = false;
