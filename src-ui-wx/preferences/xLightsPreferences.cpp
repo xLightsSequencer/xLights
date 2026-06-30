@@ -145,8 +145,8 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
                       PrefSvgIcon(R"(<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6.5" cy="10.5" r="0.8" fill="%C%" stroke="none"/><circle cx="10" cy="10.5" r="0.8" fill="%C%" stroke="none"/><circle cx="13.5" cy="10.5" r="0.8" fill="%C%" stroke="none"/><circle cx="17.5" cy="10.5" r="0.8" fill="%C%" stroke="none"/><path d="M8 14.5h8"/>)", "#0EA5E9"),
                       [this](wxWindow* p) { return (wxWindow*)(new KeyBindingsSettingsPanel(p, this)); } });
 #ifdef ENABLE_SERVICES
-    pages.push_back({ "Services",
-                      PrefSvgIcon(R"(<path d="M9 2v6"/><path d="M15 2v6"/><path d="M6 8h12v2a6 6 0 0 1-12 0z"/><path d="M12 16v6"/>)", "#F43F5E"),
+    pages.push_back({ "AI",
+                      PrefSvgIcon(R"(<path d="M11 3l1.6 4.4L17 9l-4.4 1.6L11 15l-1.6-4.4L5 9z"/><path d="M18 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>)", "#A855F7"),
                       [this](wxWindow* p) { return (wxWindow*)(new ServicesPanel(p, _serviceManager.get())); } });
 #endif
 
