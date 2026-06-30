@@ -45,6 +45,9 @@ jobs:
       contents: write
     env:
       SIGN: ${{ vars.WINDOWS_SIGNING_ENABLED == 'true' }}
+      # MSIX is only built/published when signing is on AND the publisher (which
+      # must exactly match the Trusted Signing certificate subject) is configured.
+      MSIX: ${{ vars.WINDOWS_SIGNING_ENABLED == 'true' && vars.MSIX_PUBLISHER != '' }}
 
     steps:
       - name: Checkout xLights
@@ -146,6 +149,37 @@ jobs:
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
 
+      # --- MSIX package + nightly auto-update channel --------------------------
+      # Packages the (already-signed) build outputs into an MSIX, signs it with
+      # the same Trusted Signing cert, and writes an .appinstaller pointing at the
+      # stable `nightly`-tag asset URLs so testers auto-update on launch.
+      - name: Build MSIX
+        if: env.MSIX == 'true'
+        shell: pwsh
+        working-directory: build_scripts\msw\msix
+        run: |
+          ./BuildMSIX.ps1 -Revision ${{ github.run_number }} -IdentityName "${{ vars.MSIX_IDENTITY_NAME }}" -Publisher "${{ vars.MSIX_PUBLISHER }}" -PublisherDisplayName "${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}" -OutFile xLights-x64.msix
+
+      - name: Sign MSIX (Trusted Signing)
+        if: env.MSIX == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: kulplightssigning
+          certificate-profile-name: kulplights-public
+          files-folder: build_scripts\msw\output
+          files-folder-filter: msix
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+      - name: Generate .appinstaller
+        if: env.MSIX == 'true'
+        shell: pwsh
+        working-directory: build_scripts\msw\msix
+        run: |
+          $ver = (Get-Content ..\output\msix_version.txt -Raw).Trim()
+          ./MakeAppInstaller.ps1 -Version $ver -IdentityName "${{ vars.MSIX_IDENTITY_NAME }}" -Publisher "${{ vars.MSIX_PUBLISHER }}" -BaseUrl "${{ github.server_url }}/${{ github.repository }}/releases/download/nightly" -MsixFileName xLights-x64.msix -OutFile ..\output\xLights.appinstaller
+
       - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
@@ -162,3 +196,19 @@ jobs:
           title: "nightly"
           files: |
             ./build_scripts/msw/output/*.exe
+
+      # Add the MSIX + .appinstaller to the nightly release the step above just
+      # (re)created. Done separately (not in the files list above) because that
+      # action errors on a glob that matches nothing - which is the normal case
+      # when MSIX is disabled. --clobber replaces the stable-named assets so the
+      # .appinstaller URLs stay constant across nightlies.
+      - name: Publish MSIX to nightly release
+        if: env.MSIX == 'true' && github.ref == 'refs/heads/master'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload nightly \
+            "build_scripts/msw/output/xLights-x64.msix" \
+            "build_scripts/msw/output/xLights.appinstaller" \
+            --clobber

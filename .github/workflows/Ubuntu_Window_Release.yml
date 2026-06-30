@@ -144,6 +144,22 @@ jobs:
         file-digest: SHA256
         timestamp-rfc3161: http://timestamp.acs.microsoft.com
 
+    # --- Microsoft Store package (unsigned; the Store re-signs on ingestion) ----
+    # Built every release so the .msix is ready for manual Partner Center upload.
+    # Bundles the already-signed exes. Output to a separate dir and uploaded as a
+    # workflow artifact (NOT a public release asset) - an unsigned Store-identity
+    # package isn't user-installable, so it must not land in the GitHub release.
+    - name: Build Store MSIX
+      shell: pwsh
+      working-directory: build_scripts\msw\msix
+      run: ./BuildMSIX.ps1 -Store -OutDir ..\store-output
+
+    - name: Upload Store MSIX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: xLights_Store_MSIX
+        path: build_scripts\msw\store-output\xLights-Store-x64.msix
+
     - name: Stage Windows symbol map
       shell: pwsh
       run: |
