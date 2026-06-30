@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <!--xlights>
+            <tip url="00066.html" title="Lua Script: Render and Export Model to Video" category="Sequencing" level="Intermediate" exclude=""/>
+        </xlights-->
+    </head>
+    <body>
+        <h1>Lua Script: Render and Export Model to Video</h1>
+        <p>The built-in Lua script <b>RenderExportModel</b> (found under <b>Tools &gt; Run Script</b>) lets you render one or more sequences and export a single model as a video file — all in one step, without manually opening each sequence.</p>
+        <p>When you run the script you are prompted to choose:</p>
+        <ul>
+            <li>The <b>model</b> to export</li>
+            <li>The <b>video format</b> (see below)</li>
+            <li>Which <b>sequences</b> to process</li>
+            <li>Whether to force <b>high-definition</b> rendering</li>
+        </ul>
+        <p>Each sequence is opened, rendered, exported to a sub-folder named after the model, then closed automatically.</p>
+        <h2>Available video formats</h2>
+        <table border="1" cellpadding="4" cellspacing="0">
+            <tr><th>Format choice</th><th>Output</th><th>Notes</th></tr>
+            <tr><td>Compressed MP4</td><td>.mp4</td><td>H.264 — smallest file, good compatibility</td></tr>
+            <tr><td>High Quality MP4</td><td>.mp4</td><td>HEVC — near-lossless, smaller than raw</td></tr>
+            <tr><td>Uncompressed AVI</td><td>.avi</td><td>Raw RGB — largest file, no quality loss</td></tr>
+            <tr><td>Lossless RGB MOV</td><td>.mov</td><td>Lossless, Mac-friendly alternative to AVI</td></tr>
+            <tr><td>ProRes 4444 MOV</td><td>.mov</td><td>4:4:4 near-lossless; ideal for video editing</td></tr>
+            <tr><td>HD ProRes MOV</td><td>.mov</td><td>ProRes 4444 scaled to 1920&times;1080</td></tr>
+        </table>
+        <p>The <b>BatchRenderExportModel</b> script works the same way but processes every model in a group automatically.</p>
+    </body>
+</html>
