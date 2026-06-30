@@ -8710,9 +8710,22 @@ void xLightsFrame::OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_KeyBindingsSelected(wxCommandEvent& event)
 {
-    KeyBindingEditDialog dlg(this, &GetMainSequencer()->keyBindings, &effectManager);
-
-    dlg.ShowModal();
+    // Modeless so it can stay open while you work elsewhere. Edits apply to the
+    // live key-binding map immediately; Save persists to disk. Reuse an existing
+    // editor by window NAME, not type: wxDynamicCast can't distinguish wxDialog
+    // subclasses in this build (RTTI), so a type scan matched other dialogs.
+    for (wxWindow* w : wxTopLevelWindows) {
+        if (w->GetName() == KeyBindingEditDialog::WINDOW_NAME) {
+            w->Show();
+            w->Raise();
+            w->SetFocus();
+            return;
+        }
+    }
+    auto* dlg = new KeyBindingEditDialog(this, &GetMainSequencer()->keyBindings, &effectManager);
+    dlg->CenterOnParent();
+    dlg->Show();
+    dlg->Raise();
 }
 
 void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event)
