@@ -133,6 +133,7 @@ private:
     static const long ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS;
     static const long ID_ROW_MNU_SELECT_ROW_EFFECTS;
     static const long ID_ROW_MNU_SELECT_MODEL_EFFECTS;
+    static const long ID_ROW_MNU_SELECT_MODEL_EFFECTS_INCL_SUBMODELS;
     static const long ID_ROW_MNU_SELECT_TIMING_EFFECTS;
     static const long ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS;
     static const long ID_ROW_MNU_MODEL_CONVERTTOPERMODEL;
