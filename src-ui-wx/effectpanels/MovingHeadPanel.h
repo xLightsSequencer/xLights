@@ -99,6 +99,7 @@ public:
     wxButton* Button_Odds;
     wxButton* Button_ResetToDefault;
     wxCheckBox* CheckBoxAutoShutter;
+    wxCheckBox* CheckBox_MHShutterEnable;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
     wxCheckBox* CheckBox_MH3;
@@ -300,6 +301,7 @@ protected:
     static const wxWindowID ID_PANEL_Pattern;
     static const wxWindowID ID_PANEL_Color;
     static const wxWindowID ID_CHECKBOX_AUTO_SHUTTER;
+    static const wxWindowID ID_CHECKBOX_MHShutterEnable;
     static const wxWindowID ID_PANEL_ColorWheel;
     static const wxWindowID ID_NOTEBOOK2;
     static const wxWindowID ID_PANEL_Control;
@@ -344,6 +346,7 @@ private:
     void OnButtonDimmerOffClick(wxCommandEvent& event);
     void OnValueCurve_MHTiltOffsetClick(wxCommandEvent& event);
     void OnCheckBoxAutoShutterClick(wxCommandEvent& event);
+    void OnCheckBox_MHShutterEnableClick(wxCommandEvent& event);
     void OnChoice_MHPatternSelect(wxCommandEvent& event);
     void OnCheckBox_MHPatternEnableClick(wxCommandEvent& event);
     //*)

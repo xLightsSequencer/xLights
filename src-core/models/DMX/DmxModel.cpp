@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <spdlog/fmt/fmt.h>
+
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -183,6 +185,10 @@ std::list<std::string> DmxModel::CheckModelSettings()
 
     if (nullptr != preset_ability) {
         res.splice(res.end(), preset_ability->CheckModelSettings(this));
+    }
+
+    if (nullptr != shutter_ability && shutter_ability->GetShutterChannel() != 0 && shutter_ability->GetShutterOnValue() == 0) {
+        res.push_back(fmt::format("    WARN: Model '{}' has a shutter channel ({}) but its Shutter On Value is 0, so the shutter is never held open. The beam may stay dark and Auto Shutter will not work. Set the Shutter On Value to the fixture's 'shutter open' DMX value.", GetName(), shutter_ability->GetShutterChannel()));
     }
 
     res.splice(res.end(), Model::CheckModelSettings());

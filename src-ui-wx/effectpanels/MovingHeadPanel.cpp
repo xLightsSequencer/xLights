@@ -142,6 +142,7 @@ const wxWindowID MovingHeadPanel::IDD_TEXTCTRL_MHPatternYPhase = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Pattern = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Color = wxNewId();
 const wxWindowID MovingHeadPanel::ID_CHECKBOX_AUTO_SHUTTER = wxNewId();
+const wxWindowID MovingHeadPanel::ID_CHECKBOX_MHShutterEnable = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_ColorWheel = wxNewId();
 const wxWindowID MovingHeadPanel::ID_NOTEBOOK2 = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Control = wxNewId();
@@ -576,6 +577,9 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     Notebook2->AddPage(PanelColor, _("Color"), false);
     Notebook2->AddPage(PanelColorWheel, _("ColorWheel"), false);
     FlexGridSizerControl->Add(Notebook2, 1, wxALL|wxEXPAND, 5);
+    CheckBox_MHShutterEnable = new wxCheckBox(PanelControl, ID_CHECKBOX_MHShutterEnable, _("Enable Shutter"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MHShutterEnable"));
+    CheckBox_MHShutterEnable->SetValue(false);
+    FlexGridSizerControl->Add(CheckBox_MHShutterEnable, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     PanelControl->SetSizer(FlexGridSizerControl);
     FlexGridSizerControl->Fit(PanelControl);
     FlexGridSizerControl->SetSizeHints(PanelControl);
@@ -651,6 +655,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     Connect(ID_CHECKBOX_MHIgnoreTilt,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHIgnoreTiltClick);
     Connect(ID_BUTTON_SavePathPreset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonSavePathPresetClick);
     Connect(ID_CHECKBOX_AUTO_SHUTTER,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBoxAutoShutterClick);
+    Connect(ID_CHECKBOX_MHShutterEnable,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHShutterEnableClick);
     Connect(ID_CHOICE_MHPattern,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&MovingHeadPanel::OnChoice_MHPatternSelect);
     Connect(ID_CHECKBOX_MHPatternEnable,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHPatternEnableClick);
     Connect(ID_BUTTON_ResetToDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_ResetToDefaultClick);
@@ -1572,7 +1577,7 @@ void MovingHeadPanel::UpdateColorPanel()
 static std::list<std::string> possettings = {"Heads", "Pan", "Tilt", "PanOffset", "TiltOffset", "Groupings", "Cycles",
                                              "Pan VC", "Tilt VC", "PanOffset VC", "TiltOffset VC", "Groupings VC"};
 static std::list<std::string> pathsettings = {"Path", "PathScale", "TimeOffset", "IgnorePan", "IgnoreTilt", "PathScale VC", "TimeOffset VC" };
-static std::list<std::string> colorsettings = { "Color", "Wheel", "AutoShutter" };
+static std::list<std::string> colorsettings = { "Color", "Wheel", "AutoShutter", "Shutter" };
 static std::list<std::string> dimmersettings = {"Dimmer" };
 static std::list<std::string> patternsettings = {"Pattern", "PatternWidth", "PatternHeight", "PatternXOffset", "PatternYOffset",
                                                  "PatternRotation", "PatternRotation VC", "PatternStartOffset", "PatternPhaseOffset",
@@ -1681,7 +1686,9 @@ void MovingHeadPanel::UpdateColorSettings()
         wheel_active = true;
     }
 
-    if( color_text != xlEMPTY_STRING || wheel_text != xlEMPTY_STRING ) {
+    bool shutter_enable = CheckBox_MHShutterEnable->IsChecked();
+
+    if( color_text != xlEMPTY_STRING || wheel_text != xlEMPTY_STRING || shutter_enable ) {
         for( int i = 1; i <= 8; ++i ) {
             wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
             wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
@@ -1701,6 +1708,9 @@ void MovingHeadPanel::UpdateColorSettings()
                             if (CheckBoxAutoShutter->IsChecked()) {
                                 mh_settings += ";AutoShutter: true";
                             }
+                        }
+                        if( shutter_enable ) {
+                            mh_settings += ";Shutter: On";
                         }
                         mh_textbox->SetValue(mh_settings);
                     }
@@ -1883,6 +1893,8 @@ void MovingHeadPanel::UpdateStatusPanel()
                 bool path_set = false;
                 bool color_set = false;
                 bool dimmer_set = false;
+                bool pattern_set = false;
+                std::string pattern_name;
                 hasrealvalues = false;
                 for (size_t j = 0; j < all_cmds.size(); ++j )
                 {
@@ -1908,6 +1920,9 @@ void MovingHeadPanel::UpdateStatusPanel()
                             hasrealvalues = true;
                     } else if (cmd_type == "Path") {
                         path_set = true;
+                    } else if (cmd_type == "Pattern") {
+                        pattern_set = true;
+                        pattern_name = cmd.substr(cmd.find(':') + 2);
                     } else if (cmd_type == "Color") {
                         color_set = true;
                     } else if (cmd_type == "Dimmer") {
@@ -1964,6 +1979,9 @@ void MovingHeadPanel::UpdateStatusPanel()
                 }
                 if (path_set) {
                     all_settings += "Path: Active\n";
+                }
+                if (pattern_set) {
+                    all_settings += "Pattern: " + pattern_name + "\n";
                 }
                 if (color_set) {
                     all_settings += "Color: Active\n";
@@ -2518,6 +2536,7 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
     UpdateCheckbox("MHIgnorePan", false);
     UpdateCheckbox("MHIgnoreTilt", false);
     UpdateCheckbox("MHPatternEnable", false);
+    UpdateCheckbox("MHShutterEnable", false);
 
     wxArrayString all_cmds = wxSplit(mh_settings, ';');
     for (size_t j = 0; j < all_cmds.size(); ++j )
@@ -2599,6 +2618,8 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
             }
         } else if (cmd_type == "AutoShutter") {
             UpdateCheckbox("AutoShutter", true);
+        } else if (cmd_type == "Shutter") {
+            UpdateCheckbox("MHShutterEnable", true);
         } else if( cmd_type == "Pattern" ) {
             UpdateCheckbox("MHPatternEnable", true);
             wxChoice* shape = (wxChoice*)(this->FindWindowByName("ID_CHOICE_MHPattern"));
@@ -2679,6 +2700,7 @@ void MovingHeadPanel::OnButton_ResetToDefaultClick(wxCommandEvent& event)
     UpdatePathSettings();
     ResetPatternControls();
     UpdatePatternSettings();
+    CheckBox_MHShutterEnable->SetValue(false);
     TextCtrl_Status->SetValue("");
     if (m_rgbColorPanel != nullptr) {
         m_rgbColorPanel->ResetColours();
@@ -2730,6 +2752,12 @@ void MovingHeadPanel::OnValueCurve_MHTiltOffsetClick(wxCommandEvent& event)
 }
 
 void MovingHeadPanel::OnCheckBoxAutoShutterClick(wxCommandEvent& event)
+{
+    UpdateColorSettings();
+    FireChangeEvent();
+}
+
+void MovingHeadPanel::OnCheckBox_MHShutterEnableClick(wxCommandEvent& event)
 {
     UpdateColorSettings();
     FireChangeEvent();
@@ -2815,6 +2843,7 @@ void MovingHeadPanel::SetDefaultParameters()
     CheckBox_MHIgnorePan->SetValue(false);
     CheckBox_MHIgnoreTilt->SetValue(false);
     CheckBoxAutoShutter->SetValue(false);
+    CheckBox_MHShutterEnable->SetValue(false);
 
     ResetPatternControls();
 

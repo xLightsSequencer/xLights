@@ -118,6 +118,7 @@ protected:
         return false;
     }
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer& buffer);
+    void WriteDMXValue(int channel, int value, RenderBuffer& buffer);
     std::list<const Model*> GetModels(const Model* model);
     void UpdateFixturePositions(const Model* cls){};//missing function body
     void RenderMovingHeads(const Model* model_info, const SettingsMap& SettingsMap, RenderBuffer& buffer);
