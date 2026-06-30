@@ -2716,7 +2716,11 @@ void xLightsFrame::DoPostStartupCommands()
 // Don't bother checking for updates when debugging.
 #if !defined(_DEBUG) || defined(SIMULATE_UPGRADE)
 #ifndef __WXOSX__
-        CheckForUpdate(1, true, false);
+        // Packaged (MSIX/Store/App Installer) builds are updated by Windows, not
+        // by the GitHub-download self-updater - skip the automatic check there.
+        if (!IsRunningPackaged()) {
+            CheckForUpdate(1, true, false);
+        }
 #endif
 #endif
         if (_userEmail == "")
@@ -7404,6 +7408,12 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 {
+    if (IsRunningPackaged()) {
+        // The self-updater downloads and runs the Inno installer, which can't
+        // update a Store/App Installer-managed install. Windows handles those.
+        DisplayInfo("This xLights was installed from the Microsoft Store / App Installer, which keeps it up to date automatically.", this);
+        return;
+    }
     bool update_found = CheckForUpdate(3, false, true);
     if (!update_found) {
         DisplayInfo("Update check complete: No update found", this);

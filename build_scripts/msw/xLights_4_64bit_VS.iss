@@ -108,9 +108,6 @@ Source: "../../bin64/libcurl-x64.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; hidapi
 Source: "../../bin64/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
-; Vamp dll's
-Source: "../../bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-
 ; ONNX Runtime  dll's
 Source: "../../bin64/onnxruntime.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 

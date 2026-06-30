@@ -630,6 +630,10 @@ bool xLightsApp::OnInit()
     InitializeXLightsConfig();
     DumpConfig();
 
+    // Point VAMP_PATH at the per-user plugin dir + standard location before any
+    // Vamp plugin is loaded (xLights doesn't bundle the GPL/AGPL plugin pack).
+    ConfigureVampPath();
+
 #ifdef __WXMSW__
     if (!IsSuppressDarkMode()) {
         MSWEnableDarkMode();

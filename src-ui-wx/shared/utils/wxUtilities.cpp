@@ -38,6 +38,10 @@
 
 #include <log.h>
 
+#ifdef __WXMSW__
+#include <appmodel.h> // GetCurrentPackageFullName
+#endif
+
 #include <filesystem>
 #include <mutex>
 #include <system_error>
@@ -254,13 +258,80 @@ std::string GetEffectMetadataDirectory() {
 }
 
 
-void DownloadVamp() {
-    wxMessageBox("We are about to download the Queen Mary Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
+bool IsRunningPackaged() {
 #ifdef __WXMSW__
-    //::wxLaunchDefaultBrowser("https://code.soundsoftware.ac.uk/attachments/download/2623/qm-vamp-plugins-1.8.0-win64.msi");
-    ::wxLaunchDefaultBrowser("https://github.com/vamp-plugins/vamp-plugin-pack/releases/download/v2.0/Vamp.Plugin.Pack.Installer.2.0.exe");
+    UINT32 length = 0;
+    LONG rc = GetCurrentPackageFullName(&length, nullptr);
+    return rc != APPMODEL_ERROR_NO_PACKAGE;
 #else
-    // likely can/should be used for all platforms
+    return false;
+#endif
+}
+
+std::string GetUserVampPluginDir() {
+    return (wxStandardPaths::Get().GetUserLocalDataDir() + wxFileName::GetPathSeparator() + "VampPlugins").ToStdString();
+}
+
+void ConfigureVampPath() {
+#ifdef __WXMSW__
+    wxString existing;
+    if (wxGetEnv("VAMP_PATH", &existing) && !existing.empty()) {
+        return; // respect a user-provided VAMP_PATH
+    }
+    wxString userDir = GetUserVampPluginDir();
+    if (!wxDirExists(userDir)) {
+        wxFileName::Mkdir(userDir, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+    }
+    wxString programFiles;
+    if (!wxGetEnv("ProgramFiles", &programFiles) || programFiles.empty()) {
+        programFiles = "C:\\Program Files";
+    }
+    // Search the per-user dir first (used by packaged/Store installs that can't
+    // write Program Files), then the standard pack location.
+    wxString vampPath = userDir + ";" + programFiles + "\\Vamp Plugins";
+    wxSetEnv("VAMP_PATH", vampPath);
+    spdlog::info("Set VAMP_PATH to '{}'", vampPath.ToStdString());
+#endif
+}
+
+void DownloadVamp() {
+#ifdef __WXMSW__
+    static const char* const PACK_URL = "https://github.com/vamp-plugins/vamp-plugin-pack/releases/download/v2.0/Vamp.Plugin.Pack.Installer.2.0.exe";
+    if (IsRunningPackaged()) {
+        // Store/MSIX: the package dir is read-only and the user may not be an
+        // admin, so fetch the official installer and run it silently into the
+        // per-user plugin dir. xLights hosts nothing - the binaries come from the
+        // official source onto the user's own machine (no redistribution).
+        std::string target = GetUserVampPluginDir();
+        wxFileName::Mkdir(target, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+        std::string installer = (wxFileName::GetTempDir() + wxFileName::GetPathSeparator() + "Vamp.Plugin.Pack.Installer.2.0.exe").ToStdString();
+        {
+            wxBusyCursor busy;
+            if (!CurlManager::HTTPSGetFile(PACK_URL, installer)) {
+                wxMessageBox("Failed to download the Vamp Plugin Pack. Please try again, or install it manually from https://www.vamp-plugins.org/pack.html", "Download failed", wxICON_ERROR);
+                return;
+            }
+        }
+        // NSIS silent install to a per-user dir: "/S /D=<dir>". /D must be last and
+        // unquoted, so use the 8.3 short path to survive any spaces in the path.
+        wxString shortTarget = wxFileName::DirName(target).GetShortPath();
+        if (shortTarget.empty()) shortTarget = target;
+        wxString cmd = "\"" + installer + "\" /S /D=" + shortTarget;
+        wxBusyCursor busy;
+        long rc = wxExecute(cmd, wxEXEC_SYNC);
+        if (rc == 0) {
+            wxMessageBox("Vamp audio-analysis plugins installed. Please close and reopen xLights to use them.", "Vamp plugins installed");
+        } else {
+            wxMessageBox("The Vamp Plugin Pack installer did not complete. You can install it manually from https://www.vamp-plugins.org/pack.html", "Install incomplete", wxICON_WARNING);
+        }
+        return;
+    }
+    // Classic install: direct the user to the official installer (targets Program Files).
+    wxMessageBox("We are about to download the Vamp plugins for your platform. Once downloaded please install them and then close and reopen xLights to use them.");
+    ::wxLaunchDefaultBrowser(PACK_URL);
+#else
+    // Mac/Linux: xLights never bundles Vamp; point at the official pack page.
+    wxMessageBox("We are about to open the Vamp plugin pack download page. Once installed please close and reopen xLights to use them.");
     ::wxLaunchDefaultBrowser("https://www.vamp-plugins.org/pack.html");
 #endif
 }
