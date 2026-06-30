@@ -70,4 +70,286 @@
    <tip url="00064.html" title="Transition Blur" category="Sequencing" level="Intermediate" exclude=""/>
    <tip url="00065.html" title="Lyric User Dictionary" category="Sequencing" level="Intermediate" exclude=""/>
    <tip url="00066.html" title="Lua Script: Render and Export Model to Video" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00067.html" title="Moving Head Pattern Tab" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00068.html" title="Link Props Into Sets" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00070.html" title="Replace Multiple Models At Once" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00071.html" title="Per Model Default For Groups" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00072.html" title="Bulk Rotate On The Layout Tab" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00073.html" title="Model Pane Count Badges" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00080.html" title="Custom Color Picker" category="General" level="Intermediate" exclude=""/>
+   <tip url="00081.html" title="Paste Multi-Layer Effects Anywhere" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00082.html" title="Multi-Model xmodel Files" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00083.html" title="Repick Missing Media" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00090.html" title="Search For Lyrics Online" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00091.html" title="Choose Groups When Importing From Layout" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00092.html" title="Scale Imported Models To Your Layout" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00100.html" title="Show Model Names And Start Channels In Layout" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00101.html" title="The Label Text Model" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00102.html" title="Generate A Timing Track From The Beat" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00103.html" title="Dock And Float The Layout And Presets Panels" category="General" level="Intermediate" exclude=""/>
+   <tip url="00110.html" title="Alternate Audio Tracks" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00111.html" title="Jump To A Prop In The Sequencer" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00112.html" title="Convert Videos Now" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00113.html" title="Search The Controller Visualizer" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00120.html" title="Eleven Labs Lyric Import" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00121.html" title="Face Definition Previews" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00130.html" title="Animated Effect Panel Thumbnails" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00131.html" title="Find Missing Images In Bulk" category="Tools" level="Intermediate" exclude=""/>
+   <tip url="00132.html" title="Effect Sequences For Reusable Overlays" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00133.html" title="More AI Services For Palettes And Mapping" category="General" level="Intermediate" exclude=""/>
+   <tip url="00140.html" title="Embed Images In Your Sequence" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00141.html" title="New Kaleidoscope Patterns" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00142.html" title="Filter The Model List By Regex" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00143.html" title="Hold Shift To Keep Aspect Ratio" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00150.html" title="Generate Images With Gemini" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00151.html" title="Bigger Color Buttons" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00152.html" title="Ring The Bell On Render Errors" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00153.html" title="Spotting Vertical Single Lines" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00160.html" title="Italic And Slanted Text" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00161.html" title="Move Nodes In A Single Submodel" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00162.html" title="Check Sequences From An FPP Playlist" category="FPP" level="Advanced" exclude=""/>
+   <tip url="00163.html" title="Channel Count On FPP Connect" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00170.html" title="Accidental Resize Protection" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00171.html" title="Subdivide Timing Tracks" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00172.html" title="Divide Timings By Interval" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00180.html" title="Newer Autosave Warning" category="General" level="Beginner" exclude=""/>
+   <tip url="00181.html" title="Bulk Edit State Effects" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00182.html" title="Embedded Sequence Details On FPP" category="FPP" level="Advanced" exclude=""/>
+   <tip url="00190.html" title="Sort Your Controllers" category="Controller" level="Beginner" exclude=""/>
+   <tip url="00191.html" title="More Pixels Per Port On WLED ESP32" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00200.html" title="Generate Color Palettes With ChatGPT" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00201.html" title="JPG Images Respect Orientation" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00202.html" title="Pinpoint Errors In Your Effects File" category="General" level="Advanced" exclude=""/>
+   <tip url="00210.html" title="Generate A Color Palette With AI" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00211.html" title="Generate Palettes With Local AI Using Ollama" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00220.html" title="Edit Your Layout In 3D Mode" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00221.html" title="Create Submodels From States And Faces" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00222.html" title="Imports Remember Your Last Folder" category="General" level="Beginner" exclude=""/>
+   <tip url="00230.html" title="Split Multiple Effects At Once" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00231.html" title="Filter Models With Regex When Building Groups" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00232.html" title="Breakdown Selected Phrases" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00233.html" title="Import Effects Onto Submodels" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00240.html" title="Redo Your Last Undo" category="General" level="Beginner" exclude=""/>
+   <tip url="00241.html" title="Find And Replace In Timing Tracks" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00242.html" title="Color Your Candle Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00243.html" title="Import Color Palettes" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00250.html" title="Close Gaps Between Effects" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00251.html" title="Alternate Nodes On A Sphere" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00252.html" title="Export Faces And States To Other Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00253.html" title="Left To Right Text Movement" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00260.html" title="Search For Models And Submodels" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00261.html" title="Import Effects As Per Model" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00262.html" title="FPP Connect Keyboard Shortcut" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00263.html" title="Zip Sequences For ESPixelStick Upload" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00270.html" title="AI Assisted Sequence Mapping" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00271.html" title="Trim Audio In Sequence Settings" category="Sequencing" level="Beginner" exclude=""/>
+   <tip url="00272.html" title="More Strings For Custom Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00273.html" title="Improved Check Sequence Report" category="Tools" level="Beginner" exclude=""/>
+   <tip url="00280.html" title="Replay Without Pressing Play First" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00281.html" title="Remove Models From Groups Quickly" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00282.html" title="Add A Timing Track To All Views" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00283.html" title="Hide The Effect Indicator On Deep Groups" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00290.html" title="A Friendlier FPP Connect Dialog" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00291.html" title="Export And Import Icicle Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00292.html" title="Control The Group Crosshair" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00293.html" title="Reorder Model Aliases" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00300.html" title="Align Effects To The Closest Timing Mark" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00301.html" title="Reverse Submodels When You Reverse A Model" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00302.html" title="Copy A Model With Its Submodels" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00303.html" title="RGB Image Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00304.html" title="Import Submodels From Another Layout" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00305.html" title="Add Silence Before Or After Your Song" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00306.html" title="Flip The Warp Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00307.html" title="Center And Stop Repeating Text" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00308.html" title="Prepare Audio For Smoother Playback" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00309.html" title="Link Servo Effects Together" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00310.html" title="Split An Effect At Your Mouse" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00311.html" title="Keep Servo Start And End In Sync" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00312.html" title="Name Your Model And Submodel Layers" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00313.html" title="Pan The Sequencer With The Middle Mouse" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00314.html" title="Keep The Duration When Duplicating An Effect" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00315.html" title="Invert Channels In DMX Mapping" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00316.html" title="Disable Monitoring For A Controller" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00317.html" title="Animate Models In The Preview" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00340.html" title="Highlight Color For The Bars Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00341.html" title="Two Mouth Colors For Faces" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00342.html" title="Color Your Text By Word" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00343.html" title="Search Sequence Downloads By Creator" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00344.html" title="Zoom To Your Cursor On The Layout" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00345.html" title="Reorder Your Presets" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00346.html" title="Stop Your Arches From Zig-Zagging" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00347.html" title="Choose Your Video Hardware Decoder" category="General" level="Advanced" exclude=""/>
+   <tip url="00348.html" title="RGBWW Pixel Support" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00349.html" title="Select Effects From The Toolbar" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00350.html" title="Add A Palette To The Picture Assistant" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00351.html" title="Resize Image Props" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00352.html" title="Sort A Model Group By Location" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00353.html" title="Keep Group Membership When Copying Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00380.html" title="Control The Render Cache Size" category="Tools" level="Advanced" exclude=""/>
+   <tip url="00381.html" title="Shift Your Palette Colors" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00382.html" title="Ripple Cycles And Scale" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00383.html" title="The Adjust Effect" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00384.html" title="Upload To Inactive Controllers" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00385.html" title="Make A Block Of Ports A Dumb Receiver" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00386.html" title="Adjust The Auto Eye Blink" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00387.html" title="WebP Image Support" category="General" level="Beginner" exclude=""/>
+   <tip url="00388.html" title="Node Count In Model Tooltips" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00389.html" title="Gridlines Point To The Front" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00390.html" title="Friendly Device Names When Importing" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00391.html" title="A Halloween Palette" category="Sequencing" level="Beginner" exclude=""/>
+   <tip url="00392.html" title="Import Twinkly As A 3D Model" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00393.html" title="Base Show Folders" category="General" level="Advanced" exclude=""/>
+   <tip url="00394.html" title="Duplicate An Effect" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00395.html" title="Fade Piano Keys On Press" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00396.html" title="Zoom The Timeline To Your Mouse" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00420.html" title="Draw Models In 3D From Any Angle" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00421.html" title="Parallel FSEQ Uploads" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00422.html" title="Center Pixel On Circle Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00423.html" title="Import Submodels From A CSV File" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00424.html" title="The Guitar Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00425.html" title="SVG Shapes In The VU Meter" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00426.html" title="Warm Up Your Snowflakes And Meteors" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00427.html" title="Invert Channels On The DMX Effect" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00428.html" title="Filter VU Meter Timing Track Triggers" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00429.html" title="CMY Color Mixing On Moving Heads" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00430.html" title="Zoom To Your Selection" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00431.html" title="FPP Command And Effect Timing Tracks" category="FPP" level="Advanced" exclude=""/>
+   <tip url="00432.html" title="Dark Mode On Windows" category="General" level="Beginner" exclude=""/>
+   <tip url="00433.html" title="Use Effect Duration In Shaders" category="Effect" level="Expert" exclude=""/>
+   <tip url="00434.html" title="Metronome Timing With Tags" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00435.html" title="Manage Smart Remotes In The Visualizer" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00460.html" title="Tile And Duplicate Effects" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00461.html" title="Flip A Custom Model Selection" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00462.html" title="Reverse Fades In Color Wash" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00463.html" title="Light Up Nodes While You Select Them" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00464.html" title="Scale And Offset DMX Values" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00465.html" title="Upper And Lower Case Text Tokens" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00466.html" title="Match A Video Effect To Its Video" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00467.html" title="Type Exact Value Curve Points" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00468.html" title="Rename Your Previews" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00469.html" title="Align Models To The Ground" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00470.html" title="SVG Images In The Shapes Effect" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00471.html" title="Shimmer On Face Effects" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00472.html" title="Define Zigzag Wiring For Upload" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00473.html" title="Liquid Effect Gravity Direction" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00474.html" title="Model Icons In The Import Dialog" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00475.html" title="Horizontal Tree Model" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00476.html" title="Choose Your Video Export Codec" category="Tools" level="Advanced" exclude=""/>
+   <tip url="00500.html" title="The Sketch Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00501.html" title="The FX Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00502.html" title="DMX Colour Wheel Support" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00503.html" title="Text Effect Replacement Tokens" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00504.html" title="Silence The Audio" category="General" level="Beginner" exclude=""/>
+   <tip url="00505.html" title="Search Effect Settings" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00506.html" title="Tag Colours For Model Groups" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00507.html" title="Word Flip Text Movement" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00508.html" title="Disable Rendering On An Element" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00509.html" title="Colour Search And Replace" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00510.html" title="Low Definition Rendering Mode" category="Sequencing" level="Advanced" exclude=""/>
+   <tip url="00511.html" title="Multiple Strings On A PolyLine" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00512.html" title="Model Dimensions In Real World Units" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00513.html" title="Keybindings For Faces States And Submodels" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00514.html" title="Import An LOR S5 Preview" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00515.html" title="Auto Repeat Your Morph" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00516.html" title="Twinkly Controller Support" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00517.html" title="Use A 3D Mouse In The Preview" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00540.html" title="Flip Models On The Layout" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00541.html" title="An Alignment Grid On The Layout" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00542.html" title="Spot The First Pixel Of Each Model" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00543.html" title="Assign Models To No Controller" category="Controller" level="Beginner" exclude=""/>
+   <tip url="00544.html" title="Shadow Models" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00545.html" title="Add And Remove Models In The Visualiser" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00546.html" title="Bulk Set Controller Ports On The Layout" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00547.html" title="Emojis In The Shape Effect" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00548.html" title="Play GIFs In The Movie Effect" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00549.html" title="Resize The Inner Layer Of A Star" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00550.html" title="Measure Polyline Segments" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00551.html" title="Alternate Nodes On Matrices And Trees" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00552.html" title="A Taller Audio Waveform" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00553.html" title="Stretch Custom Model Data To The Grid" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00554.html" title="Exclude Channels From Dimming And Gamma" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00580.html" title="Virtual Matrix And LED Panel Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00581.html" title="Use Vendor Supplied Models When Importing" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00582.html" title="Import From Light-O-Rama S5" category="Tools" level="Intermediate" exclude=""/>
+   <tip url="00583.html" title="Reorder The Model List Columns" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00584.html" title="Save A Default Layout View" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00585.html" title="Buffer Styles On Submodels" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00586.html" title="Import Views From Other Sequences" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00587.html" title="Color Filter On The Effects Panel" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00588.html" title="The Multiply Blending Mode" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00589.html" title="Join Submodels" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00590.html" title="Upload Your Show To WLED" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00591.html" title="Change Audio Playback Speed" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00592.html" title="Full xLights Control On FPP Controllers" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00593.html" title="See Model Power Draw In The Visualiser" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00620.html" title="More Transition Styles" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00621.html" title="Download More Shaders" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00622.html" title="Audio Reactive Shaders" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00623.html" title="Export Models For 3D And CAD" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00624.html" title="Import From A Packaged Sequence Zip" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00625.html" title="Preview Your Presets" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00626.html" title="Create A State From A DMX Effect" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00627.html" title="Export A Submodel As An xmodel" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00628.html" title="Map One Source To Many Models" category="General" level="Intermediate" exclude=""/>
+   <tip url="00629.html" title="Value Curves On The Twinkle Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00630.html" title="KiNet Uploads Through FPP" category="FPP" level="Advanced" exclude=""/>
+   <tip url="00631.html" title="Choose Groups When Exporting A Model" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00660.html" title="Single Strand Chase And Bounce Styles" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00661.html" title="Twinkle That Covers Every Pixel" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00662.html" title="Add A Terrain Object" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00663.html" title="Flip And Reverse Submodel Nodes" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00664.html" title="See Which Groups A Model Belongs To" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00665.html" title="Drag To Select Nodes In Model Previews" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00666.html" title="KiNet Output Support" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00667.html" title="Convert A Custom Model To Single Channel" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00668.html" title="Export Controller Connections To A Spreadsheet" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00669.html" title="Crop Pictures To Fill The Model" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00670.html" title="Renumber DMX Channels In The Visualizer" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00671.html" title="Estimate Port Current Draw" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00672.html" title="Mirror And Copy In The Warp Effect" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00673.html" title="Print The Controller Visualizer" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00701.html" title="Disable Rendering Of Individual Effects" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00702.html" title="Create A Timing Track From Effects" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00703.html" title="Measure Your Layout With A Ruler" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00704.html" title="Timing Track Value Curves" category="Sequencer" level="Advanced" exclude=""/>
+   <tip url="00705.html" title="Remove Word And Phoneme Layers" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00706.html" title="Generic Serial Output" category="Controller" level="Advanced" exclude=""/>
+   <tip url="00707.html" title="Search The Model Download" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00708.html" title="FLAC Audio Support" category="Sequencing" level="Beginner" exclude=""/>
+   <tip url="00710.html" title="Multiple Media Directories" category="General" level="Intermediate" exclude=""/>
+   <tip url="00711.html" title="Different Coloured Eyes On Faces" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00712.html" title="Shader Events On A Timing Track" category="Effect" level="Advanced" exclude=""/>
+   <tip url="00713.html" title="Import From LOR S5" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00740.html" title="Virtual Matrix On FPP" category="FPP" level="Intermediate" exclude=""/>
+   <tip url="00741.html" title="Add Models To An Existing Group" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00742.html" title="Erase Existing Effects On Import" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00743.html" title="Drag Shaders Onto The Grid" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00745.html" title="Pinwheel Rotation Offset" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00746.html" title="Temporarily Switch Show Folders" category="General" level="Intermediate" exclude=""/>
+   <tip url="00747.html" title="Import Model Groups From Another Sequence" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00748.html" title="3D Floodlight Beams" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00749.html" title="Scrub The Preview With Your Audio" category="Sequencer" level="Beginner" exclude=""/>
+   <tip url="00750.html" title="Save FPP Passwords" category="FPP" level="Beginner" exclude=""/>
+   <tip url="00751.html" title="See Coordinates While Dragging Models" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00752.html" title="A Second Outline For Faces" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00753.html" title="Auto Wiring For Custom Models" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00780.html" title="Edit Your Key Bindings" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00781.html" title="Suspend And Suppress Effects" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00782.html" title="Chroma Key Transparency" category="Effect" level="Intermediate" exclude=""/>
+   <tip url="00783.html" title="Export An Effect As A GIF" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00784.html" title="Render A Selected Range" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00785.html" title="Ordered Node Selection For Submodels" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00786.html" title="Import GDTF Fixtures" category="Layout" level="Advanced" exclude=""/>
+   <tip url="00787.html" title="Select Effects By Type" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="00788.html" title="The DMX Area Flood Model" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00789.html" title="Scale A Model Group" category="Layout" level="Beginner" exclude=""/>
+   <tip url="00790.html" title="Color Your Sparkles" category="Effect" level="Beginner" exclude=""/>
+   <tip url="00791.html" title="Hide Other Controllers In The Visualiser" category="Controller" level="Intermediate" exclude=""/>
+   <tip url="00792.html" title="Transitions Built For Matrices" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00793.html" title="Layer Your Arches" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="00794.html" title="Open Pixel Control Output" category="Controller" level="Advanced" exclude=""/>
+   <tip url="moc001.html" title="Adding Labels To Timing Tracks" category="Sequencer" level="Intermediate" exclude=""/>
+   <tip url="moc002.html" title="Wiring View Surprise" category="Layout" level="Intermediate" exclude=""/>
+   <tip url="moc003.html" title="Put Only Face Outlines In House/Yard/All Group" category="Layout" level="Beginner" exclude=""/>
+   <tip url="moc004.html" title="Don't Let Effect Import Mapping Be A Drag" category="Sequencer" level="Beginner" exclude=""/>
 </tipofday>
