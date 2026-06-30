@@ -68,4 +68,6 @@
    <tip url="00062.html" title="WLED Controllers Are Now Auto-Discovered" category="Controller" level="Beginner" exclude=""/>
    <tip url="00063.html" title="Repeating A Custom Value Curve With Cycles" category="Sequencing" level="Advanced" exclude=""/>
    <tip url="00064.html" title="Transition Blur" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00065.html" title="Lyric User Dictionary" category="Sequencing" level="Intermediate" exclude=""/>
+   <tip url="00066.html" title="Lua Script: Render and Export Model to Video" category="Sequencing" level="Intermediate" exclude=""/>
 </tipofday>

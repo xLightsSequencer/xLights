@@ -606,8 +606,16 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "FPPCompressed";
         } else if (format == "avicompressed" || format == "mp4compressed") {
             format = "Com";
+        } else if (format == "mp4highquality") {
+            format = "Hig";
         } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
             format = "Unc";
+        } else if (format == "losslessrgb") {
+            format = "Los";
+        } else if (format == "prores4444") {
+            format = "Pro";
+        } else if (format == "hdprores") {
+            format = "HD ";
         } else if (format == "minleon") {
             format = "Min";
         } else if (format == "gif") {
@@ -660,8 +668,16 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "FPPCompressed";
         } else if (format == "avicompressed" || format == "mp4compressed") {
             format = "Com";
+        } else if (format == "mp4highquality") {
+            format = "Hig";
         } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
             format = "Unc";
+        } else if (format == "losslessrgb") {
+            format = "Los";
+        } else if (format == "prores4444") {
+            format = "Pro";
+        } else if (format == "hdprores") {
+            format = "HD ";
         } else if (format == "minleon") {
             format = "Min";
         } else if (format == "gif") {
