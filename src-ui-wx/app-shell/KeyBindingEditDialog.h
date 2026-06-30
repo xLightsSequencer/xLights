@@ -22,8 +22,10 @@
 //*)
 
 class KeyBindingMap;
+class KeyBinding;
 class EffectManager;
 class xLightsFrame;
+class wxSearchCtrl;
 
 class KeyBindingEditDialog : public wxDialog
 {
@@ -33,11 +35,32 @@ class KeyBindingEditDialog : public wxDialog
     xLightsFrame* _xLights = nullptr;
 
     void LoadList();
+    wxString BuildDetails(const KeyBinding& b) const;
+    void RefreshDuplicateHighlights();
+    void DoEditSelected();
+    void RefreshRow(long index, const KeyBinding& b);
+    void UpdateEditEnabled();
     void SetKeyBindingProperties();
     int GetSelectedKeyBindingIndex() const;
     void SelectKey(int id);
 
+    // Display helpers for the bindings list.
+    static wxString RenderShortcut(const KeyBinding& b);
+    void OnListMouseMotion(wxMouseEvent& event);
+    long _tooltipItem = -1;
+
+    wxSearchCtrl* _filterCtrl = nullptr;
+    wxString _filter; // lower-cased; whitespace-tokenised AND match in LoadList
+    wxButton* _editButton = nullptr; // disabled when nothing is selected
+
 public:
+    // Stable window name used to find an already-open instance (type-based
+    // lookup is unreliable here - wxDialog subclasses share RTTI in this build).
+    static constexpr const char* WINDOW_NAME = "xlKeyBindingEditDialog";
+
+    // Public so the popup editor can label a binding with its friendly name.
+    static wxString FriendlyName(const std::string& type);
+
     KeyBindingEditDialog(xLightsFrame* parent, KeyBindingMap* keyBindings, EffectManager* effectManager, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     virtual ~KeyBindingEditDialog();
 
@@ -82,6 +105,7 @@ private:
     //*)
 
     void OnControllerPropertyGridChange(wxPropertyGridEvent& event);
+    void OnClose(wxCloseEvent& event);
 
     DECLARE_EVENT_TABLE()
 };
