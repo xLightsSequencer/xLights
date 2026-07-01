@@ -12,9 +12,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.12  June ??, 2026
     -enh (scott)                 Added new Tip of the Day info for recent release updated items
+    -enh (derwin12)              Sequencer: add "Select Effects incl SubModels" to model right-click menu (#6618)
     -enh (derwin12)              Lua automation: expose all video export formats (High Quality MP4, Lossless RGB, ProRes 4444, HD ProRes) via exportModel / exportModelWithRender
     -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives
     -enh (scott)                 Moving Head effect: new Pattern tab generates pan/tilt from parametric shapes (Circle, Eight, Diamond, Lissajous, etc.) modeled on QLC+ EFX, with a value-curve-animatable rotation
+    -enh (scott)                 Moving Head effect: Enable Shutter checkbox (in the Control tab, for both RGB and color wheel) holds the shutter open at the model's Shutter On Value; Auto Shutter still takes over when active. Check Sequence warns if a shutter channel has a Shutter On Value of 0
     -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
     -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top
     -enh (derwin12)              Effect sequence wizard now adds a default New Timing track (#6612)

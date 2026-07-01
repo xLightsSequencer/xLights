@@ -203,6 +203,7 @@ const long RowHeading::ID_ROW_MNU_DELETE_MODEL_STRAND_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_DELETE_MODEL_NODE_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_ROW_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_MODEL_EFFECTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SELECT_MODEL_EFFECTS_INCL_SUBMODELS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SELECT_TIMING_EFFECTS = wxNewId();
 const long RowHeading::ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS = wxNewId();
 const long RowHeading::ID_ROW_MNU_MODEL_CONVERTTOPERMODEL = wxNewId();
@@ -741,6 +742,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup && element->GetSelectedEffectCount() > 0);
                 rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
                 modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
+                modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS_INCL_SUBMODELS, "Select Effects incl SubModels");
                 rowMenu->Append(ID_ROW_MNU_CUT_ROW, "Cut Effects");
                 modelMenu->Append(ID_ROW_MNU_CUT_MODEL, "Cut Effects");
                 rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
@@ -2096,6 +2098,23 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS) {
         for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {
             element->GetEffectLayer(i)->SelectAllEffects();
+        }
+    } else if (id == ID_ROW_MNU_SELECT_MODEL_EFFECTS_INCL_SUBMODELS) {
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        if (me == nullptr) {
+            if (auto* se = dynamic_cast<SubModelElement*>(element)) me = se->GetModelElement();
+        }
+        if (me != nullptr) {
+            for (int i = 0; i < (int)me->GetEffectLayerCount(); i++) {
+                me->GetEffectLayer(i)->SelectAllEffects();
+            }
+            for (int s = 0; s < me->GetSubModelCount(); s++) {
+                SubModelElement* se = me->GetSubModel(s);
+                if (se == nullptr) continue;
+                for (int i = 0; i < (int)se->GetEffectLayerCount(); i++) {
+                    se->GetEffectLayer(i)->SelectAllEffects();
+                }
+            }
         }
     } else if (id == ID_ROW_MNU_SELECT_TIMING_EFFECTS) {
         for (int i = 0; i < (int)element->GetEffectLayerCount(); i++) {

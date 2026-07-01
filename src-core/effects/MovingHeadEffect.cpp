@@ -20,6 +20,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
 #include <spdlog/fmt/fmt.h>
 
 #include <glm/glm.hpp>
@@ -131,6 +132,7 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
     bool has_color_wheel = false;
     bool has_dimmers = false;
     bool auto_shutter = false;
+    bool shutter_open = false;
     std::string path_setting = "";
     std::vector<std::string> heads;
     std::vector<std::string> colors;
@@ -252,6 +254,8 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             has_dimmers = true;
         } else if (cmd_type == "AutoShutter") {
             auto_shutter = true;
+        } else if (cmd_type == "Shutter") {
+            shutter_open = true;
         }
     }
 
@@ -288,6 +292,16 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                 CalculateDimmer(eff_pos, dimmers, dimmer_channel, buffer);
             }
 
+            // Hold the shutter open at the model's "on" value. Written first so that when
+            // Auto Shutter is active (color wheel) its pulsing curve overwrites this below,
+            // preserving the old behavior; otherwise the shutter stays open.
+            if (shutter_open && mhead->HasShutterAbility()) {
+                auto sa = mhead->GetShutterAbility();
+                if (sa->GetShutterChannel() > 0) {
+                    WriteDMXValue(sa->GetShutterChannel(), sa->GetShutterOnValue(), buffer);
+                }
+            }
+
             if( (has_color || has_color_wheel) && mhead->HasColorAbility() ) {
                 DmxColorAbility* mh_color = mhead->GetColorAbility();
                 if (mh_color != nullptr) {
@@ -307,9 +321,23 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
                     }
                 }
             }
+
             buffer.EnableFixedDMXChannels(mhead);
         }
     }
+}
+
+void MovingHeadEffect::WriteDMXValue(int channel, int value, RenderBuffer& buffer)
+{
+    if (channel <= 0) {
+        return;
+    }
+    uint8_t v = (uint8_t)std::clamp(value, 0, 255);
+    xlColor c = xlBLACK;
+    c.red = v;
+    c.green = v;
+    c.blue = v;
+    buffer.SetPixel(channel - 1, 0, c, false, false, true);
 }
 
 xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const std::vector<std::string>& colors, RenderBuffer &buffer)
