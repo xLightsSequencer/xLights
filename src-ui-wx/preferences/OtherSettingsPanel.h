@@ -46,6 +46,7 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* HardwareVideoDecodingCheckBox;
 		wxCheckBox* ShaderCheckbox;
 		wxChoice* ChoiceCodec;
+		wxChoice* Choice_3DNavigationPreset;
 		wxChoice* Choice_AliasPromptBehavior;
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_MinTipLevel;
@@ -58,6 +59,7 @@ class OtherSettingsPanel: public wxPanel
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
+		wxStaticText* StaticText9;
 		wxTextCtrl* eMailTextControl;
 		//*)
 
@@ -93,6 +95,8 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHECKBOX10;
 		static const wxWindowID ID_CHECKBOX11;
 		static const wxWindowID ID_CHECKBOX_CustomColorPicker;
+		static const wxWindowID ID_STATICTEXT_NAVPRESET;
+		static const wxWindowID ID_CHOICE_3DNAVPRESET;
 		//*)
 
 	private:

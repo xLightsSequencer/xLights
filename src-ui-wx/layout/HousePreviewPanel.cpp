@@ -15,7 +15,10 @@
 
 #include <wx/artprov.h>
 
+#include <cmath>
+
 #include "layout/HousePreviewPanel.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "xLightsMain.h"
 #include "layout/ModelPreview.h"
 #include "render/SequenceFile.h"
@@ -100,6 +103,9 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 
     _modelPreview = new ModelPreview(this, _xLights, allowSelected, style, allowPreviewChange);
     ModelPreviewSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
+    _modelPreview->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&HousePreviewPanel::OnPreviewRightDown, nullptr, this);
+    _modelPreview->Connect(wxEVT_RIGHT_UP, (wxObjectEventFunction)&HousePreviewPanel::OnPreviewRightUp, nullptr, this);
+    _modelPreview->Connect(wxEVT_MOTION, (wxObjectEventFunction)&HousePreviewPanel::OnPreviewMouseMove, nullptr, this);
 
     ValidateWindow(GetSize());
 
@@ -267,4 +273,93 @@ void HousePreviewPanel::OnSliderPositionCmdSliderUpdated(wxScrollEvent& event)
     wxPostEvent(_xLights, seekToEvent);
     _xLights->GetMainSequencer()->PanelTimeLine->ResetMarkers(pos);
     StaticText_Time->SetLabel(FORMATTIME(pos));
+}
+
+void HousePreviewPanel::OnPreviewRightDown(wxMouseEvent& event)
+{
+    if (!_modelPreview->Is3D()) {
+        event.ResumePropagation(1);
+        event.Skip();
+        return;
+    }
+
+    auto* config = GetXLightsConfig();
+    const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+    bool isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
+    const bool isRealRightDown = event.RightDown() || event.RightIsDown();
+    if (isRealRightDown && isPanAction) {
+        _previousMouseX = event.GetX();
+        _previousMouseY = event.GetY();
+        _rightPanDragActive = true;
+        return;
+    }
+
+    event.ResumePropagation(1);
+    event.Skip();
+}
+
+void HousePreviewPanel::OnPreviewRightUp(wxMouseEvent& event)
+{
+    _rightPanDragActive = false;
+    event.ResumePropagation(1);
+    event.Skip();
+}
+
+void HousePreviewPanel::OnPreviewMouseMove(wxMouseEvent& event)
+{
+    if (!_modelPreview->Is3D()) {
+        event.ResumePropagation(1);
+        event.Skip();
+        return;
+    }
+
+    if (_rightPanDragActive) {
+        auto* config = GetXLightsConfig();
+        const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+        bool isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
+        if (!event.RightIsDown() || !isPanAction) {
+            _rightPanDragActive = false;
+        } else {
+        float new_x = event.GetX() - _previousMouseX;
+        float new_y = event.GetY() - _previousMouseY;
+
+        float angleX = glm::radians(_modelPreview->GetCameraRotationX());
+        float angleY = glm::radians(_modelPreview->GetCameraRotationY());
+        float delta_x = 0.0f;
+        float delta_y = 0.0f;
+        float delta_z = 0.0f;
+        bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+        bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+        bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+        if (top_view) {
+            delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+            delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+        } else if (bottom_view) {
+            delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+            delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
+        } else {
+            delta_x = new_x * std::cos(angleY);
+            delta_y = new_y;
+            delta_z = new_x * std::sin(angleY);
+            if (!upside_down_view) {
+                delta_y *= -1.0f;
+            }
+        }
+
+        delta_x *= _modelPreview->GetZoom() * 2.0f;
+        delta_y *= _modelPreview->GetZoom() * 2.0f;
+        delta_z *= _modelPreview->GetZoom() * 2.0f;
+        _modelPreview->SetPan(delta_x, delta_y, delta_z);
+
+        _previousMouseX = event.GetX();
+        _previousMouseY = event.GetY();
+
+        _modelPreview->Refresh();
+        _modelPreview->Update();
+        return;
+        }
+    }
+
+    event.ResumePropagation(1);
+    event.Skip();
 }

@@ -105,6 +105,7 @@
 #include <wx/wfstream.h>
 #include <wx/mstream.h>
 #include <wx/uri.h>
+#include <wx/config.h>
 
 #include <log.h>
 
@@ -712,6 +713,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     modelPreview->Connect(wxEVT_LEFT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDown, nullptr,this);
     modelPreview->Connect(wxEVT_LEFT_UP,(wxObjectEventFunction)&LayoutPanel::OnPreviewLeftUp, nullptr,this);
     modelPreview->Connect(wxEVT_RIGHT_DOWN,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightDown, nullptr,this);
+    modelPreview->Connect(wxEVT_RIGHT_UP,(wxObjectEventFunction)&LayoutPanel::OnPreviewRightUp, nullptr,this);
     modelPreview->Connect(wxEVT_MOTION,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseMove, nullptr,this);
     modelPreview->Connect(wxEVT_LEAVE_WINDOW,(wxObjectEventFunction)&LayoutPanel::OnPreviewMouseLeave, nullptr, this);
     modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&LayoutPanel::OnPreviewLeftDClick, nullptr, this);
@@ -5881,6 +5883,7 @@ void LayoutPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 {
     m_dragging = false;
     m_wheel_down = false;
+    m_right_pan_drag_active = false;
 }
 
 void LayoutPanel::OnPreviewMouseWheelDown(wxMouseEvent& event)
@@ -5894,6 +5897,13 @@ void LayoutPanel::OnPreviewMouseWheelUp(wxMouseEvent& event)
 {
     m_wheel_down = false;
 }
+
+void LayoutPanel::OnPreviewRightUp(wxMouseEvent& event)
+{
+    m_right_pan_drag_active = false;
+    event.Skip();
+}
+
 void LayoutPanel::OnPreviewMotion3DButtonEvent(wxCommandEvent &event) {
     
     if (event.GetString() == "BUTTON_MENU") {
@@ -6223,6 +6233,13 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         m_3d_lasso_shift_continuous = false;
     }
 
+    bool isPanAction = true;
+    if (m_right_pan_drag_active) {
+        auto* config = GetXLightsConfig();
+        const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+        isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
+    }
+
     if (m_creating_bound_rect)
     {
         xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Creating bounding rectangle");
@@ -6232,9 +6249,13 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
         return;
     }
-    else if (m_wheel_down)
+    else if (m_right_pan_drag_active && (!event.RightIsDown() || !isPanAction))
     {
-        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Wheel down");
+        m_right_pan_drag_active = false;
+    }
+    else if (m_wheel_down || m_right_pan_drag_active)
+    {
+        xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Pan drag");
         float new_x = event.GetX() - m_previous_mouse_x;
         float new_y = event.GetY() - m_previous_mouse_y;
         // account for grid rotation
@@ -7080,6 +7101,20 @@ void LayoutPanel::AddResizeOptionsToMenu(wxMenu* mnuResize) {
 void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 {
     modelPreview->SetFocus();
+
+    if (is_3d) {
+        auto* config = GetXLightsConfig();
+        const std::string navPreset = config->Read("/Options/3DNavigationPreset", "Classic");
+        bool isPanAction = navPreset == "Slicer" ? !event.ShiftDown() : event.ShiftDown();
+        const bool isRealRightDown = event.RightDown() || event.RightIsDown();
+        if (isRealRightDown && isPanAction) {
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+            m_right_pan_drag_active = true;
+            return;
+        }
+    }
+
     wxMenu mnu;
 
     int selectedObjectCnt = editing_models ? ModelsSelectedCount() : ViewObjectsSelectedCount();
@@ -9504,7 +9539,6 @@ namespace {
 // replacement clone, taking a single consistent snapshot from the target's
 // screen location.
 //
-// Applied directly through the screen location rather than via
 // Model::SetHcenterPos / SetWidth / etc. The clone is cloned from the source's
 // XML and may inherit the source's locked flag; the Model::Set* setters no-op
 // when IsLocked(), so going straight to the screen location keeps the copy
@@ -9800,10 +9834,10 @@ void LayoutPanel::DoCut(wxCommandEvent& event) {
         event.Skip();
     } else if (selectedBaseObject != nullptr) {
         DoCopy(event);
-		if (editing_models)
-			DeleteSelectedModels();
-		else
-			DeleteSelectedObject();
+        if (editing_models)
+            DeleteSelectedModels();
+        else
+            DeleteSelectedObject();
     }
 }
 
