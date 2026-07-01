@@ -11,8 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.12  June ??, 2026
+    -enh (scott)                 Added new Tip of the Day info for recent release updated items
     -enh (derwin12)              Sequencer: add "Select Effects incl SubModels" to model right-click menu (#6618)
-    =enh (scott)                 Added new Tip of the Day info for recent release updated items
     -enh (derwin12)              Lua automation: expose all video export formats (High Quality MP4, Lossless RGB, ProRes 4444, HD ProRes) via exportModel / exportModelWithRender
     -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives
     -enh (scott)                 Moving Head effect: new Pattern tab generates pan/tilt from parametric shapes (Circle, Eight, Diamond, Lissajous, etc.) modeled on QLC+ EFX, with a value-curve-animatable rotation
@@ -36,6 +36,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (AlexB)                 During a multi-effect drag, only the colliding ghost effects turn red instead of all of them (#6553)
     -enh (neil)                  Bulk Edit Rotate skips models whose type doesn't support that axis and reports the skipped models (#6521)
     -enh (derwin12)              Grey out Symmetrize/Combine Strands in the SubModels menu when they don't apply (#6554)
+    -bug (derwin12)              Fix video/image/shader filenames containing commas being truncated when saved (#6638)
     -bug (derwin12)              Wheel of Effects was not honoring the Reset Effects on Effect change nor setting defaults
     -bug (derwin12)              Fix floating sequencer panes shifting position on macOS after switching to the Layout tab and back (#6631)
     -bug (dkulp)                 Wait for renders to abort before deleting models/groups so a render worker can't crash on freed model data
