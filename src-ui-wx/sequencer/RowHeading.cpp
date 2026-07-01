@@ -599,12 +599,17 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
                 // Groups expand via ShowStrands — ShowSubModels has no effect on them
                 me->ShowStrands(!me->ShowStrands());
             } else {
-                // Plain DblClick: submodels only (no strands)
+                // Plain DblClick: submodels only (no strands), unless strands have effects
                 if (me->ShowSubModels()) {
                     me->ShowSubModels(false);
                     me->ShowStrands(false);
                 } else {
                     me->ShowSubModels(true);
+                    for (int i = 0; i < (int)me->GetStrandCount() && !me->ShowStrands(); ++i) {
+                        StrandElement* se = me->GetStrand(i);
+                        if (se && se->HasEffects())
+                            me->ShowStrands(true);
+                    }
                 }
             }
         }
