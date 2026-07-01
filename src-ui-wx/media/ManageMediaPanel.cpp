@@ -497,6 +497,14 @@ bool MediaViewModel::IsGroup(const wxDataViewItem& item) const
     return node && node->isGroup;
 }
 
+MediaType MediaViewModel::GetMediaType(const wxDataViewItem& item) const
+{
+    if (!item.IsOk()) return MediaType::Image;
+    MediaNode* node = static_cast<MediaNode*>(item.GetID());
+    if (!node || node->isGroup) return MediaType::Image;
+    return node->mediaType;
+}
+
 void MediaViewModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const
 {
     if (!item.IsOk()) { variant = wxString(); return; }
@@ -1385,7 +1393,9 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
     }
 
     // Broken non-image media options (Shader, SVG, TextFile, BinaryFile, Video)
-    MediaType mtype = MediaTypeFromPath(path);
+    // Use the node's stored type rather than re-deriving from the extension, so
+    // paths with no extension (e.g. comma-truncated) are still handled correctly.
+    MediaType mtype = _model->GetMediaType(item);
     if (mtype != MediaType::Image && mtype != MediaType::Audio) {
         std::shared_ptr<MediaCacheEntry> entry;
         switch (mtype) {

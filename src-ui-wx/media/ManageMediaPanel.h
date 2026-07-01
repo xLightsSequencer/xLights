@@ -72,6 +72,7 @@ public:
     // Returns the file path for an item, or empty if it's a group node
     std::string GetFilePath(const wxDataViewItem& item) const;
     bool IsGroup(const wxDataViewItem& item) const;
+    MediaType GetMediaType(const wxDataViewItem& item) const;
     // Find the item for a given file path (invalid item if not found)
     wxDataViewItem FindItem(const std::string& filePath) const;
 
