@@ -859,34 +859,9 @@ public:
             SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
     }
-    virtual void Process() override {
-        // RAII guard — fires rpi completion signal on every exit path (normal,
-        // early-bail, abort, exception). Must come before any return.
-        struct FinishNotifier {
-            RenderEngine* engine;
-            RenderProgressInfo* rpi;
-            ~FinishNotifier() { if (engine && rpi) engine->NotifyJobFinished(rpi); }
-        } finisher{_engine, _rpi};
 
-        auto logger_jobpool = spdlog::get("job");
-        // Log the thread ID as a hash value
-        size_t tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
-        logger_jobpool->debug("Render job thread id {0:x} or {0:d}", tid);
-
-        SetGenericStatus("Initializing rendering thread for {}", 0);
-        int origChangeCount;
+    void ComputeRenderRange() {
         int ss, es;
-
-        rowToRender->IncWaitCount();
-        std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
-        if (rowToRender->DecWaitCount() && !HasNext()) {
-            // other threads for this model waiting, we'll bail fast and let them handle this
-            m_logger->debug("Rendering thread exiting early.");
-            currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
-            return;
-        }
-        SetGenericStatus("Got lock on rendering thread for {}", 0);
-
         rowToRender->GetAndResetDirtyRange(origChangeCount, ss, es);
         if (ss != -1) {
             //expand to cover the whole dirty range
@@ -907,143 +882,131 @@ public:
         }
         if (startFrame < 0) startFrame = 0;
         if (endFrame > (int)seqData->NumFrames()) endFrame = seqData->NumFrames() - 1;
+    }
 
-        EffectLayerInfo mainModelInfo(numLayers);
-        std::map<SNPair, Effect*> nodeEffects;
-        std::map<SNPair, SettingsMap> nodeSettingsMaps;
-        std::map<SNPair, bool> nodeEffectStates;
-        std::map<SNPair, int> nodeEffectIdxs;
+    void InitializeRenderStates() {
+        mainModelInfo = EffectLayerInfo(numLayers);
+        nodeEffects.clear();
+        nodeSettingsMaps.clear();
+        nodeEffectStates.clear();
+        nodeEffectIdxs.clear();
 
-        try {
-            //for (int layer = 0; layer < numLayers; ++layer) {
-            for (int layer = numLayers - 1; layer >= 0; --layer) {
-                SetGenericStatus("Finding starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
-                EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
-                std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
-                mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
-                SetGenericStatus("Initializing starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
-                initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
-                mainModelInfo.effectStates[layer] = true;
-            }
-
-            for (int frame = startFrame; frame <= endFrame; ++frame) {
-                AutoReleasePool pool;
-                currentFrame = frame;
-                SetGenericStatus("{}: Starting frame {} ", frame, true, true);
-
-                if (abort) {
-                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                    break;
-                }
-
-                if (!HasNext() &&
-                        (origChangeCount != rowToRender->getChangeCount()
-                         || rowToRender->GetWaitCount())) {
-                    //we're bailing out but make sure this range is reconsidered
-                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                    break;
-                }
-                if (abort) {
-                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                    break;
-                }
-
-                bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
-                if (!subModelInfos.empty()) {
-                    maybeWaitForFrame(frame);
-
-                    std::string inheritedDuplicateSourceModel;
-                    for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicateSourceModel.empty(); ++lyr) {
-                        EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
-                        std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
-                        int discard = 0;
-                        Effect* eff = findEffectForFrame(elyr, frame, discard);
-                        if (eff != nullptr && eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
-                            eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
-                            inheritedDuplicateSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
-                        }
-                    }
-
-                    for (const auto& a : subModelInfos) {
-                        if (abort) {
-                            rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                            break;
-                        }
-                        EffectLayerInfo *info = a;
-                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared, inheritedDuplicateSourceModel);
-                    }
-                }
-
-                if (!nodeBuffers.empty()) {
-                    maybeWaitForFrame(frame);
-                    for (const auto& it : nodeBuffers) {
-                        if (abort) {
-                            rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                            break;
-                        }
-                        SNPair node = it.first;
-                        PixelBufferClass *buffer = it.second.get();
-
-                        if (buffer == nullptr) {
-                            spdlog::critical("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
-                        }
-
-                        int strand = node.strand;
-                        int inode = node.node;
-                        StrandElement *slayer = rowToRender->GetStrand(strand);
-                        if (slayer == nullptr) {
-                            //deleted strand
-                            continue;
-                        }
-                        EffectLayer *nlayer = slayer->GetNodeLayer(inode, false);
-                        if (nlayer == nullptr) {
-                            //deleted node
-                            continue;
-                        }
-                        std::unique_lock<std::recursive_mutex> nlayerLock(nlayer->GetLock());
-                        Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
-                        if (el != nodeEffects[node] || frame == startFrame) {
-                            nodeEffects[node] = el;
-                            SetInializingStatus(frame, -1, -1, strand, inode);
-                            initialize(0, frame, el, nodeSettingsMaps[node], buffer);
-                            nodeEffectStates[node] = true;
-                        }
-                        bool persist=buffer->IsPersistent(0);
-                        if (!persist || nodeEffects[node] == nullptr || nodeEffects[node]->GetEffectIndex() == -1) {
-                            buffer->Clear(0);
-                        }
-
-                        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
-                        if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node])) {
-                            SetCalOutputStatus(frame, -1, strand, inode);
-                            buffer->HandleLayerBlurZoom(frame, 0);
-                            buffer->HandleLayerTransitions(frame, 0);
-                            //copy to output
-                            std::vector<bool> valid(2, true);
-                            buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels());
-                            buffer->CalcOutput(frame, valid);
-                            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
-                        }
-                    }
-                }
-                //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
-                if (HasNext()) {
-                    SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
-                    FrameDone(frame);
-                }
-            }
-            SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
-        } catch ( std::exception &ex) {
-            assert(false); // so when we debug we catch them
-            printf("Caught an exception %s", ex.what());
-            m_logger->error("Caught an exception on rendering thread: " + std::string(ex.what()));
-            spdlog::error("Caught an exception on rendering thread: {}", ex.what());
-		} catch ( ... ) {
-            assert(false); // so when we debug we catch them
-            printf("Caught an unknown exception");
-            m_logger->error("Caught an unknown exception on rendering thread.");
-            spdlog::error("Caught an unknown exception on rendering thread.");
+        //for (int layer = 0; layer < numLayers; ++layer) {
+        for (int layer = numLayers - 1; layer >= 0; --layer) {
+            SetGenericStatus("Finding starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
+            EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
+            std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
+            mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
+            SetGenericStatus("Initializing starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
+            initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
+            mainModelInfo.effectStates[layer] = true;
         }
+    }
+
+    // Renders one full frame: main model, submodels, then per-node buffers,
+    // and notifies downstream renderers.  Returns false when the frame loop
+    // must stop: aborted, or a newer render request for this row is waiting.
+    bool RenderFrame(int frame) {
+        AutoReleasePool pool;
+        currentFrame = frame;
+        SetGenericStatus("{}: Starting frame {} ", frame, true, true);
+
+        if (abort ||
+                (!HasNext() &&
+                 (origChangeCount != rowToRender->getChangeCount()
+                  || rowToRender->GetWaitCount()))) {
+            //we're bailing out but make sure this range is reconsidered
+            rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+            return false;
+        }
+
+        bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
+        if (!subModelInfos.empty()) {
+            maybeWaitForFrame(frame);
+
+            std::string inheritedDuplicateSourceModel;
+            for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicateSourceModel.empty(); ++lyr) {
+                EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
+                std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
+                int discard = 0;
+                Effect* eff = findEffectForFrame(elyr, frame, discard);
+                if (eff != nullptr && eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
+                    eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
+                    inheritedDuplicateSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
+                }
+            }
+
+            for (const auto& a : subModelInfos) {
+                if (abort) {
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
+                }
+                EffectLayerInfo *info = a;
+                ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared, inheritedDuplicateSourceModel);
+            }
+        }
+
+        if (!nodeBuffers.empty()) {
+            maybeWaitForFrame(frame);
+            for (const auto& it : nodeBuffers) {
+                if (abort) {
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
+                }
+                SNPair node = it.first;
+                PixelBufferClass *buffer = it.second.get();
+
+                if (buffer == nullptr) {
+                    spdlog::critical("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
+                }
+
+                int strand = node.strand;
+                int inode = node.node;
+                StrandElement *slayer = rowToRender->GetStrand(strand);
+                if (slayer == nullptr) {
+                    //deleted strand
+                    continue;
+                }
+                EffectLayer *nlayer = slayer->GetNodeLayer(inode, false);
+                if (nlayer == nullptr) {
+                    //deleted node
+                    continue;
+                }
+                std::unique_lock<std::recursive_mutex> nlayerLock(nlayer->GetLock());
+                Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
+                if (el != nodeEffects[node] || frame == startFrame) {
+                    nodeEffects[node] = el;
+                    SetInializingStatus(frame, -1, -1, strand, inode);
+                    initialize(0, frame, el, nodeSettingsMaps[node], buffer);
+                    nodeEffectStates[node] = true;
+                }
+                bool persist=buffer->IsPersistent(0);
+                if (!persist || nodeEffects[node] == nullptr || nodeEffects[node]->GetEffectIndex() == -1) {
+                    buffer->Clear(0);
+                }
+
+                SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
+                if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node])) {
+                    SetCalOutputStatus(frame, -1, strand, inode);
+                    buffer->HandleLayerBlurZoom(frame, 0);
+                    buffer->HandleLayerTransitions(frame, 0);
+                    //copy to output
+                    std::vector<bool> valid(2, true);
+                    buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels());
+                    buffer->CalcOutput(frame, valid);
+                    buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
+                }
+            }
+        }
+        //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
+        if (HasNext()) {
+            SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
+            FrameDone(frame);
+        }
+        return true;
+    }
+
+    void FinishRender() {
         if (HasNext()) {
             //make sure the previous has told us we're at the end.  If we return before waiting, the previous
             //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
@@ -1062,7 +1025,57 @@ public:
         currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
         m_logger->debug("Rendering thread exiting.");
-	}
+    }
+
+    virtual void Process() override {
+        // RAII guard — fires rpi completion signal on every exit path (normal,
+        // early-bail, abort, exception). Must come before any return.
+        struct FinishNotifier {
+            RenderEngine* engine;
+            RenderProgressInfo* rpi;
+            ~FinishNotifier() { if (engine && rpi) engine->NotifyJobFinished(rpi); }
+        } finisher{_engine, _rpi};
+
+        auto logger_jobpool = spdlog::get("job");
+        // Log the thread ID as a hash value
+        size_t tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        logger_jobpool->debug("Render job thread id {0:x} or {0:d}", tid);
+
+        SetGenericStatus("Initializing rendering thread for {}", 0);
+
+        rowToRender->IncWaitCount();
+        std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
+        if (rowToRender->DecWaitCount() && !HasNext()) {
+            // other threads for this model waiting, we'll bail fast and let them handle this
+            m_logger->debug("Rendering thread exiting early.");
+            currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
+            return;
+        }
+        SetGenericStatus("Got lock on rendering thread for {}", 0);
+
+        ComputeRenderRange();
+
+        try {
+            InitializeRenderStates();
+            for (int frame = startFrame; frame <= endFrame; ++frame) {
+                if (!RenderFrame(frame)) {
+                    break;
+                }
+            }
+            SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
+        } catch ( std::exception &ex) {
+            assert(false); // so when we debug we catch them
+            printf("Caught an exception %s", ex.what());
+            m_logger->error("Caught an exception on rendering thread: " + std::string(ex.what()));
+            spdlog::error("Caught an exception on rendering thread: {}", ex.what());
+		} catch ( ... ) {
+            assert(false); // so when we debug we catch them
+            printf("Caught an unknown exception");
+            m_logger->error("Caught an unknown exception on rendering thread.");
+            spdlog::error("Caught an unknown exception on rendering thread.");
+        }
+        FinishRender();
+    }
 
     void AbortRender() override {
         abort = true;
@@ -1177,6 +1190,15 @@ private:
     std::atomic_int currentFrame;
     std::atomic_bool abort;
     RenderProgressInfo* _rpi = nullptr; // non-owning; set after construction by Render()
+
+    // Frame-loop state lives on the object rather than the Process() stack so
+    // the loop can later run as resumable slices (see plans/render-scheduler.md).
+    EffectLayerInfo mainModelInfo;
+    std::map<SNPair, Effect*> nodeEffects;
+    std::map<SNPair, SettingsMap> nodeSettingsMaps;
+    std::map<SNPair, bool> nodeEffectStates;
+    std::map<SNPair, int> nodeEffectIdxs;
+    int origChangeCount = 0;
 
     std::vector<EffectLayerInfo *> subModelInfos;
 
