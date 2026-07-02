@@ -23,6 +23,11 @@ public:
     // Control
     virtual void AbortRender() = 0;
 
+    // Stall-watchdog hook: reschedule the job if it is suspended waiting for
+    // an upstream frame (a lost wake-up would otherwise hang the batch).
+    // No-op for jobs that are queued, running, or done.
+    virtual void NudgeIfSuspended() {}
+
     // Progress query (atomic reads, callable from any thread)
     virtual int GetCurrentFrame() const = 0;
     virtual int GetEndFrame() const = 0;

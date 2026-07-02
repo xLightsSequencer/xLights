@@ -9,10 +9,10 @@ Status of phases (update as work lands):
 
 | Phase | Description | Status |
 |---|---|---|
-| 0 | Fix `waitForFrame` polling → predicate CV wait | ✅ done (4adc5932e) |
+| 0 | Fix `waitForFrame` polling → predicate CV wait | ✅ done |
 | 1 | Hoist `RenderJob::Process()` locals into members; extract per-frame slice | ✅ done |
 | 2 | Collapse mid-frame waits into a single frame-entry gate (still blocking) | ✅ done |
-| 3 | Gate → suspend/requeue; row ownership token; END-as-state; shrink pools | planned |
+| 3 | Gate → suspend/requeue; row ownership token; END-as-state; shrink pools | ✅ done |
 | 4 | Remove oversubscription config; iPad sizing/comment cleanup; telemetry | planned |
 
 All of this is `src-core/` — desktop and iPad share it (parity auto-applied).

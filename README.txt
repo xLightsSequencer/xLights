@@ -11,10 +11,13 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
+                                 waiting on overlapping models, cutting the render pool from hundreds of threads to
+                                 roughly the CPU core count and reducing memory use on large sequences
     -change (dkulp)              Rendering: render threads waiting on overlapping models now sleep properly instead of
                                  waking 100 times/second, reducing CPU/battery use while rendering large sequences
-
 2026.12  July 2, 2026
+
     -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives
     -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
     -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top

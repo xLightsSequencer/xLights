@@ -89,7 +89,7 @@ public:
 class NextRenderer {
 public:
 
-    NextRenderer() : nextLock(), nextSignal(), previousFrameDone(-1) {
+    NextRenderer() : nextLock(), previousFrameDone(-1) {
     }
 
     virtual ~NextRenderer() {}
@@ -112,26 +112,12 @@ public:
         }
     }
 
+    // Nothing blocks on this anymore; nextLock makes the update atomic with a
+    // suspended RenderJob's registered wake-up frame (see the RenderJob
+    // override, which requeues the job instead of waking a sleeping thread).
     virtual void setPreviousFrameDone(int i) {
-        // The update must happen under nextLock or a waiter can check the
-        // predicate, miss this update, and then sleep through the notify.
-        {
-            std::unique_lock<std::mutex> lock(nextLock);
-            previousFrameDone = i;
-        }
-        nextSignal.notify_all();
-    }
-
-    int waitForFrame(int frame) {
-        if (frame > previousFrameDone) {
-            std::unique_lock<std::mutex> lock(nextLock);
-            nextSignal.wait(lock, [this, frame] { return previousFrameDone >= frame; });
-        }
-        return previousFrameDone;
-    }
-
-    bool checkIfDone(int frame, int timeout = 5) {
-        return previousFrameDone >= frame;
+        std::unique_lock<std::mutex> lock(nextLock);
+        previousFrameDone = i;
     }
 
     int GetPreviousFrameDone() const {
@@ -140,7 +126,6 @@ public:
 
 protected:
     std::mutex nextLock;
-    std::condition_variable nextSignal;
     std::atomic_int previousFrameDone;
 private:
     std::vector<NextRenderer *> next;
@@ -848,12 +833,53 @@ public:
     }
 
     std::atomic_int maxFrameBeforeCheck = -1;
-    void maybeWaitForFrame(int frame) {
-        //make sure we can do this frame
-        if (frame >= maxFrameBeforeCheck) {
-            SetWaitingStatus(frame);
-            maxFrameBeforeCheck = waitForFrame(frame);
-            SetGenericStatus("{}: Processing frame {} ", frame, true, true);
+
+    // Scheduling state for the suspend/requeue scheduler
+    // (phase 3 of plans/render-scheduler.md).
+    enum class SchedPhase { Setup, Frames, Finish, Done };
+    enum class FrameResult { Continue, Suspend, Stop };
+
+    // Called by the upstream renderer/aggregator as it completes each frame.
+    // If this job suspended waiting for that frame, hand it back to the pool
+    // instead of waking a sleeping thread.
+    virtual void setPreviousFrameDone(int frame) override {
+        bool requeue = false;
+        {
+            std::unique_lock<std::mutex> lock(nextLock);
+            previousFrameDone = frame;
+            if (suspended && previousFrameDone >= wantFrame) {
+                suspended = false;
+                requeue = true;
+            }
+        }
+        if (requeue) {
+            _engine->RequeueJob(this);
+        }
+    }
+
+    // Register to be rescheduled when upstream reaches the frame.  Returns
+    // false if the frame is already available - keep running.
+    bool trySuspendUntil(int frame) {
+        std::unique_lock<std::mutex> lock(nextLock);
+        if (previousFrameDone >= frame) {
+            return false;
+        }
+        wantFrame = frame;
+        suspended = true;
+        return true;
+    }
+
+    void NudgeIfSuspended() override {
+        bool requeue = false;
+        {
+            std::unique_lock<std::mutex> lock(nextLock);
+            if (suspended) {
+                suspended = false;
+                requeue = true;
+            }
+        }
+        if (requeue) {
+            _engine->RequeueJob(this);
         }
     }
 
@@ -925,9 +951,11 @@ public:
     }
 
     // Renders one full frame: main model, submodels, then per-node buffers,
-    // and notifies downstream renderers.  Returns false when the frame loop
-    // must stop: aborted, or a newer render request for this row is waiting.
-    bool RenderFrame(int frame) {
+    // and notifies downstream renderers.  Stop = the frame loop must end
+    // (aborted, or a newer render request for this row is waiting); Suspend =
+    // upstream hasn't produced this frame yet and the job has registered to be
+    // requeued when it does - the caller must return the thread to the pool.
+    FrameResult RenderFrame(int frame) {
         AutoReleasePool pool;
         currentFrame = frame;
         SetGenericStatus("{}: Starting frame {} ", frame, true, true);
@@ -938,15 +966,19 @@ public:
                   || rowToRender->GetWaitCount()))) {
             //we're bailing out but make sure this range is reconsidered
             rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-            return false;
+            return FrameResult::Stop;
         }
 
-        // Single upstream gate: every wait on upstream renderers happens here,
-        // before any of the frame's work, so everything below may read/write
-        // seqData[frame] freely.  (Phase 2 of plans/render-scheduler.md; this
-        // becomes the suspend/requeue point in phase 3.)
+        // Single upstream gate: every dependency on upstream renderers is
+        // resolved here, before any of the frame's work, so everything below
+        // may read/write seqData[frame] freely.
         if (frame >= maxFrameBeforeCheck && NeedsUpstreamFrame(frame)) {
-            maybeWaitForFrame(frame);
+            SetWaitingStatus(frame);
+            if (trySuspendUntil(frame)) {
+                return FrameResult::Suspend;
+            }
+            maxFrameBeforeCheck = (int)GetPreviousFrameDone();
+            SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
 
         bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
@@ -1029,15 +1061,19 @@ public:
             SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
             FrameDone(frame);
         }
-        return true;
+        return FrameResult::Continue;
     }
 
+    // May suspend awaiting the upstream END_OF_RENDER_FRAME; re-entered on
+    // requeue.  Ends at CompleteJob() on every path.
     void FinishRender() {
         if (HasNext()) {
-            //make sure the previous has told us we're at the end.  If we return before waiting, the previous
-            //may try sending the END_OF_RENDER_FRAME to us and we'll have been deleted
+            //make sure the previous has told us we're at the end.  If we complete before it has,
+            //the previous may still try to deliver frames to us.
             SetGenericStatus("{}: Waiting on previous renderer for final frame", 0, true);
-            waitForFrame(END_OF_RENDER_FRAME);
+            if (trySuspendUntil(END_OF_RENDER_FRAME)) {
+                return;
+            }
 
             //let the next know we're done
             SetGenericStatus("{}: Notifying next renderer of final frame", 0, true);
@@ -1051,60 +1087,126 @@ public:
         currentFrame = END_OF_RENDER_FRAME;
         //printf("Done rendering %lx (next %lx)\n", (unsigned long)this, (unsigned long)next);
         m_logger->debug("Rendering thread exiting.");
+        CompleteJob();
     }
 
+    // Terminal transition - runs exactly once per job.  Hands the row to the
+    // next parked job (possibly from a newer render batch), then signals batch
+    // completion.  NotifyJobFinished must be the very last touch of any state:
+    // the thread that drops jobsRemaining to zero completes the batch and the
+    // main thread may delete this job any time after.
+    void CompleteJob() {
+        schedPhase = SchedPhase::Done;
+        RenderEngine* engine = _engine;
+        RenderProgressInfo* rpi = _rpi;
+        void* next = rowToRender->ReleaseRenderOwnership(this);
+        if (next != nullptr) {
+            engine->RequeueJob(static_cast<RenderJob*>(next));
+        }
+        engine->NotifyJobFinished(rpi);
+    }
+
+    // One scheduling slice: runs from wherever the job left off until it
+    // completes or suspends.  The pool may call this many times per job.
     virtual void Process() override {
-        // RAII guard — fires rpi completion signal on every exit path (normal,
-        // early-bail, abort, exception). Must come before any return.
-        struct FinishNotifier {
-            RenderEngine* engine;
-            RenderProgressInfo* rpi;
-            ~FinishNotifier() { if (engine && rpi) engine->NotifyJobFinished(rpi); }
-        } finisher{_engine, _rpi};
-
-        auto logger_jobpool = spdlog::get("job");
-        // Log the thread ID as a hash value
-        size_t tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
-        logger_jobpool->debug("Render job thread id {0:x} or {0:d}", tid);
-
-        SetGenericStatus("Initializing rendering thread for {}", 0);
-
-        rowToRender->IncWaitCount();
-        std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
-        if (rowToRender->DecWaitCount() && !HasNext()) {
-            // other threads for this model waiting, we'll bail fast and let them handle this
-            m_logger->debug("Rendering thread exiting early.");
-            currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
-            return;
-        }
-        SetGenericStatus("Got lock on rendering thread for {}", 0);
-
-        ComputeRenderRange();
-
         try {
-            InitializeRenderStates();
-            for (int frame = startFrame; frame <= endFrame; ++frame) {
-                if (!RenderFrame(frame)) {
-                    break;
+            ProcessSlice();
+        } catch (...) {
+            // Safety net for a throw outside the frame loop's own handlers.
+            // Complete the job so the batch (and any downstream renderer
+            // waiting on our END_OF_RENDER_FRAME) can still finish.
+            assert(false); // so when we debug we catch them
+            m_logger->error("Caught an exception on rendering thread outside the frame loop.");
+            spdlog::error("Caught an exception on rendering thread outside the frame loop.");
+            if (schedPhase != SchedPhase::Done) {
+                if (HasNext()) {
+                    FrameDone(END_OF_RENDER_FRAME);
                 }
+                currentFrame = END_OF_RENDER_FRAME;
+                CompleteJob();
             }
-            SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
-        } catch ( std::exception &ex) {
-            assert(false); // so when we debug we catch them
-            printf("Caught an exception %s", ex.what());
-            m_logger->error("Caught an exception on rendering thread: " + std::string(ex.what()));
-            spdlog::error("Caught an exception on rendering thread: {}", ex.what());
-		} catch ( ... ) {
-            assert(false); // so when we debug we catch them
-            printf("Caught an unknown exception");
-            m_logger->error("Caught an unknown exception on rendering thread.");
-            spdlog::error("Caught an unknown exception on rendering thread.");
         }
-        FinishRender();
+    }
+
+    void ProcessSlice() {
+        if (schedPhase == SchedPhase::Setup) {
+            auto logger_jobpool = spdlog::get("job");
+            // Log the thread ID as a hash value
+            size_t tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
+            logger_jobpool->debug("Render job thread id {0:x} or {0:d}", tid);
+
+            SetGenericStatus("Initializing rendering thread for {}", 0);
+
+            if (!rowToRender->TryTakeRenderOwnership(this)) {
+                // an earlier job is rendering this row; we're parked and will be
+                // rescheduled when it completes - the thread goes back to the pool
+                m_logger->debug("Render job parked behind active render of row.");
+                return;
+            }
+            if (rowToRender->GetWaitCount() && !HasNext()) {
+                // newer jobs for this model are parked, bail fast and let them handle this
+                m_logger->debug("Rendering thread exiting early.");
+                currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
+                CompleteJob();
+                return;
+            }
+            SetGenericStatus("Got lock on rendering thread for {}", 0);
+
+            {
+                std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
+                ComputeRenderRange();
+            }
+            resumeFrame = startFrame;
+            schedPhase = SchedPhase::Frames;
+        }
+
+        if (schedPhase == SchedPhase::Frames) {
+            // The render lock is held per-slice (not across suspensions), so
+            // structural layer edits can interleave between slices; the change
+            // count / dirty range machinery triggers the re-render.
+            std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
+            try {
+                if (!statesInitialized) {
+                    InitializeRenderStates();
+                    statesInitialized = true;
+                }
+                bool stopped = false;
+                while (!stopped && resumeFrame <= endFrame) {
+                    FrameResult r = RenderFrame(resumeFrame);
+                    if (r == FrameResult::Suspend) {
+                        return;
+                    }
+                    if (r == FrameResult::Stop) {
+                        stopped = true;
+                    } else {
+                        ++resumeFrame;
+                    }
+                }
+                SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
+            } catch ( std::exception &ex) {
+                assert(false); // so when we debug we catch them
+                printf("Caught an exception %s", ex.what());
+                m_logger->error("Caught an exception on rendering thread: " + std::string(ex.what()));
+                spdlog::error("Caught an exception on rendering thread: {}", ex.what());
+            } catch ( ... ) {
+                assert(false); // so when we debug we catch them
+                printf("Caught an unknown exception");
+                m_logger->error("Caught an unknown exception on rendering thread.");
+                spdlog::error("Caught an unknown exception on rendering thread.");
+            }
+            schedPhase = SchedPhase::Finish;
+        }
+
+        if (schedPhase == SchedPhase::Finish) {
+            FinishRender();
+        }
     }
 
     void AbortRender() override {
         abort = true;
+        // A suspended job holds no thread; requeue it so it can run its bail
+        // path (dirty range, END handshake, completion) promptly.
+        NudgeIfSuspended();
     }
 
     ModelElement* GetModelElement() const { return rowToRender; }
@@ -1218,13 +1320,21 @@ private:
     RenderProgressInfo* _rpi = nullptr; // non-owning; set after construction by Render()
 
     // Frame-loop state lives on the object rather than the Process() stack so
-    // the loop can later run as resumable slices (see plans/render-scheduler.md).
+    // the loop runs as resumable slices (see plans/render-scheduler.md).
     EffectLayerInfo mainModelInfo;
     std::map<SNPair, Effect*> nodeEffects;
     std::map<SNPair, SettingsMap> nodeSettingsMaps;
     std::map<SNPair, bool> nodeEffectStates;
     std::map<SNPair, int> nodeEffectIdxs;
     int origChangeCount = 0;
+
+    // Scheduling state.  suspended/wantFrame are guarded by nextLock; the
+    // rest is only touched by the single thread running the current slice.
+    SchedPhase schedPhase = SchedPhase::Setup;
+    bool suspended = false;
+    int wantFrame = 0;
+    int resumeFrame = 0;
+    bool statesInitialized = false;
 
     std::vector<EffectLayerInfo *> subModelInfos;
 
@@ -1561,7 +1671,7 @@ void RenderEngine::Render(SequenceElements& seqElements,
     pi->aggregators = aggregators;
     pi->jobsRemaining.store((int)count);
 
-    // Link every live job to rpi so the FinishNotifier guard can signal.
+    // Link every live job to rpi so completion can signal.
     for (row = 0; row < (size_t)numRows; ++row) {
         if (jobs[row]) jobs[row]->SetRenderProgressInfo(pi);
     }
@@ -1957,6 +2067,41 @@ void RenderEngine::OnRenderJobComplete(const std::string& modelName) {
 
 void RenderEngine::OnAllRenderJobsComplete() {
     if (_onAllRenderJobsComplete) _onAllRenderJobsComplete();
+}
+
+void RenderEngine::RequeueJob(Job* job) {
+    _jobPool.PushJob(job);
+}
+
+void RenderEngine::CheckForStalledRender() {
+    if (_renderProgressInfo.empty()) {
+        return;
+    }
+    bool poolIdle = _jobPool.isEmpty();
+    auto now = std::chrono::steady_clock::now();
+    for (auto rpi : _renderProgressInfo) {
+        if (rpi->completed.load()) {
+            continue;
+        }
+        long long sum = 0;
+        for (int i = 0; i < rpi->numRows; ++i) {
+            if (rpi->jobs[i]) {
+                sum += rpi->jobs[i]->GetCurrentFrame();
+            }
+        }
+        if (sum != rpi->lastProgressSum) {
+            rpi->lastProgressSum = sum;
+            rpi->lastProgressTime = now;
+        } else if (poolIdle && std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastProgressTime).count() >= 30) {
+            spdlog::error("Render batch stalled - no progress for 30s with an idle job pool. Nudging suspended render jobs.");
+            for (int i = 0; i < rpi->numRows; ++i) {
+                if (rpi->jobs[i]) {
+                    rpi->jobs[i]->NudgeIfSuspended();
+                }
+            }
+            rpi->lastProgressTime = now;
+        }
+    }
 }
 
 void RenderEngine::NotifyJobFinished(RenderProgressInfo* rpi) {

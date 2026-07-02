@@ -533,6 +533,33 @@ void ModelElement::CleanupAfterRender() {
     Element::CleanupAfterRender();
 }
 
+bool ModelElement::TryTakeRenderOwnership(void* job) {
+    std::unique_lock<std::mutex> lock(renderOwnerLock);
+    if (activeRenderJob == nullptr || activeRenderJob == job) {
+        activeRenderJob = job;
+        return true;
+    }
+    pendingRenderJobs.push_back(job);
+    ++waitCount;
+    return false;
+}
+
+void* ModelElement::ReleaseRenderOwnership(void* job) {
+    std::unique_lock<std::mutex> lock(renderOwnerLock);
+    if (activeRenderJob != job) {
+        return nullptr;
+    }
+    activeRenderJob = nullptr;
+    if (pendingRenderJobs.empty()) {
+        return nullptr;
+    }
+    void* next = pendingRenderJobs.front();
+    pendingRenderJobs.pop_front();
+    --waitCount;
+    activeRenderJob = next;
+    return next;
+}
+
 NodeLayer* ModelElement::GetNodeEffectLayer(int index) const
 {
     int startStrand = 0;

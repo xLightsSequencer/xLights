@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <atomic>
+#include <deque>
 #include <mutex>
 #include <string>
 
@@ -281,9 +282,17 @@ class ModelElement : public Element
         virtual NodeLayer* GetNodeEffectLayer(int index) const override;
 
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
+        // Number of render jobs parked waiting for this row (maintained by
+        // Try/ReleaseRenderOwnership below).
         int GetWaitCount() const { return waitCount; }
-        void IncWaitCount() { waitCount++; }
-        int DecWaitCount() { return --waitCount; }
+
+        // Render-row ownership: at most one render job renders this row at a
+        // time.  A job that finds the row busy is parked (and counted in
+        // waitCount) instead of blocking a pool thread; the owner's completion
+        // returns the next parked job so the engine can reschedule it.
+        // See plans/render-scheduler.md §4.3.
+        bool TryTakeRenderOwnership(void* job);
+        void* ReleaseRenderOwnership(void* job);
 
         StrandElement *GetStrand(int strand, bool create = false);
         StrandElement *GetStrand(int strand) const;
@@ -299,5 +308,9 @@ class ModelElement : public Element
         std::vector<SubModelElement*> mSubModels;
         std::vector<StrandElement*> mStrands;
         std::atomic_int waitCount;
+
+        std::mutex renderOwnerLock;
+        void* activeRenderJob = nullptr;
+        std::deque<void*> pendingRenderJobs;
 };
 

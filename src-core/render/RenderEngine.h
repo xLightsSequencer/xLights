@@ -17,6 +17,7 @@
 
 class Effect;
 class IRenderProgressSink;
+class Job;
 class PixelBufferClass;
 class JobPool;
 class Model;
@@ -75,10 +76,19 @@ public:
     void OnRenderJobComplete(const std::string& modelName);
     void OnAllRenderJobsComplete();
 
-    // Called by each RenderJob's RAII guard as it exits Process() (any path:
+    // Called once per RenderJob as it reaches its Done state (any path:
     // normal, aborted, early-bail). The thread that decrements the last job
     // fires the render-batch completion callback.
     void NotifyJobFinished(RenderProgressInfo* rpi);
+
+    // Push a render job (back) onto the pool — used by suspended jobs waking
+    // up and by row-ownership handoff between jobs.
+    void RequeueJob(Job* job);
+
+    // Watchdog: if a batch makes no progress while the pool is idle, a
+    // wake-up was lost — requeue suspended jobs so the batch can finish.
+    // Called from the platforms' render-status polling.
+    void CheckForStalledRender();
 
     // ---- state access (for UI layer) ----
     std::list<RenderProgressInfo*>& GetRenderProgressInfo() { return _renderProgressInfo; }

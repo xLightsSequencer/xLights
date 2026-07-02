@@ -2037,11 +2037,12 @@ bool iPadRenderContext::RenderModelAndWait(const std::string& model, int maxTime
 void iPadRenderContext::EnsureRenderEngine() {
     if (!_jobPool) {
         _jobPool = std::make_unique<JobPool>("RenderPool");
-        // RenderEngine workers can block waiting on frames from other models;
-        // with too few threads a contended sequence deadlocks. Oversubscribe
-        // well past core count so a blocked worker never exhausts the pool.
+        // Render jobs suspend and requeue instead of blocking a thread while
+        // they wait on overlapping models (plans/render-scheduler.md), so the
+        // pool only needs to cover the cores plus a little headroom for jobs
+        // briefly blocked on GPU work or render-cache I/O.
         size_t hw = std::thread::hardware_concurrency();
-        size_t poolThreads = std::max<size_t>(24, hw * 2);
+        size_t poolThreads = std::max<size_t>(6, hw + 2);
         _jobPool->Start(poolThreads);
     }
     if (!_renderEngine) {
@@ -2151,8 +2152,9 @@ bool iPadRenderContext::IsRenderDone() {
     // "done" so abort-and-wait short-circuits cleanly.
     if (!_renderEngine) return true;
     if (!_sequenceData.IsValidData()) return false;
+    _renderEngine->CheckForStalledRender();
     // Each RenderProgressInfo flips its `completed` atomic when its last
-    // RenderJob signals via FinishNotifier (covers normal, aborted, and
+    // RenderJob signals via NotifyJobFinished (covers normal, aborted, and
     // early-bail exits). We both check completion and lazily drain finished
     // entries here -- called from the main thread, so cleanup + callback run
     // safely off the render workers. Any pending rpi keeps the result false.

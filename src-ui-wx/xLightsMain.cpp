@@ -2148,19 +2148,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // needed, it will be turned off later
     OutputTimer.Start(50, wxTIMER_CONTINUOUS);
 
-    // What makes 4 the right answer ... try 10 ... why ... usually it is one thread that runs slow and that model
-    // holds up others so in the time while we wait for the busy thread we can actually run a lot more models
-    // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
-    // threads ... a minor loss of efficiency ... I think the one thread blocks the others is more common.
-    // Dan is concerned on 32 bit windows 10 will chew up too much heap memory ... so splitting the difference we get 7
-    int multiplier = (sizeof(size_t) == 8) ? 10 : 7;
-    if (GetPhysicalMemorySizeMB() > 12 * 1024) {
-        // if we have over 12GB of memory, creating more threads shouldn't be an issue
-        multiplier *= 2;
-    }
-    int threadCount = wxThread::GetCPUCount() * multiplier;
-    if (threadCount < 20) {
-        threadCount = 20;
+    // Render jobs suspend and requeue instead of blocking a thread while they
+    // wait on overlapping models (plans/render-scheduler.md), so the pool only
+    // needs enough threads to keep the cores busy, plus a little headroom for
+    // jobs briefly blocked on GPU work or render-cache I/O.
+    int threadCount = wxThread::GetCPUCount() + 4;
+    if (threadCount < 8) {
+        threadCount = 8;
     }
     jobPool.Start(threadCount);
 
