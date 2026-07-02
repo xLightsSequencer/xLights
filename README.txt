@@ -43,6 +43,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix waveform render crash when the audio/zoom view list is rebuilt mid-paint (stale view index)
     -bug (dkulp)                 Fix crash hovering the layout preview in 3D mode when the model list contains a null entry
     -bug (dkulp)                 Fix crash mousing over the sequencer grid when a row's effect layer is momentarily unavailable
+    -bug (dkulp)                 Fix crash selecting a controller in the Setup list when the named controller could not be found
+    -bug (dkulp)                 Fix intermittent crash with a 3Dconnexion mouse when motion/button events referenced a window being destroyed on the main thread
+    -bug (dkulp)                 Fix ColorWash/Bars/Shockwave/Spirals crash writing past the pixel buffer when rendered into a variable/oversized sub-buffer
+    -bug (dkulp)                 Fix crash loading a malformed OBJ mesh that references vertex/normal/texcoord data it does not contain
+    -bug (dkulp)                 Fix crash hovering the 3D layout preview while placing a new model before its nodes are populated
     -bug (derwin12)              Allow multiple timing tracks to be active simultaneously in master view (was limited to one)
     -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
     -bug (derwin12)              Fix State/Face effect dropdowns resetting on icon click (#6595)

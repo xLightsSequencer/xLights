@@ -3269,7 +3269,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             } else {
                 color = saveColor;
             }
-        } else if (c == nullptr) {
+        } else if (c == nullptr && Nodes[n]) {
+            // Nodes[n] can be a default-constructed (null) slot on a freshly-placed
+            // model; keep SetColor(n) below in sync by only guarding the deref here.
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);
@@ -3308,6 +3310,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
         cache->va->SetName(GetName() + (is_3d ? " - 3DPWiring" : " - 2DWiring"));
         cache->va->PreAlloc(NodeCount);
         for (int x = 0; x < (int)NodeCount; ++x) {
+            if (!Nodes[x] || Nodes[x]->Coords.empty()) {
+                continue;
+            }
             float sx = Nodes[x]->Coords[0].screenX;
             float sy = Nodes[x]->Coords[0].screenY;
             float sz = Nodes[x]->Coords[0].screenZ;

@@ -2323,7 +2323,7 @@ void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
     auto name = List_Controllers->GetItemText(event.GetItem());
     auto controller = _outputManager.GetController(name);
 
-    if (controller->IsFromBase())
+    if (controller != nullptr && controller->IsFromBase())
     {
         List_Controllers->SetToolTip("From Base Show Directory");
     }

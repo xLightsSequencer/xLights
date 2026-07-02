@@ -127,7 +127,11 @@ void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         cwdata.colorV = (float)hsvOrig.value;
     }
 
-    int max = buffer.BufferWi * buffer.BufferHt;
+    // Bound the ISPC writes by the actual pixel allocation, not the logical
+    // dimensions: a variable sub-buffer (value-curve-driven size) or oversized
+    // buffer can leave GetPixelCount() smaller than BufferWi*BufferHt, and the
+    // kernel writes result[index] with no bounds check (crash bucket 926a9fb5a8).
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
     constexpr int bfBlockSize = 4096;
     int blocks = max / bfBlockSize + 1;
     parallel_for(0, blocks, [&cwdata, &buffer, max](int blk) {

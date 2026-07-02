@@ -307,7 +307,9 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         sdata.colorS        = (float)colorHsv.saturation;
         sdata.colorV        = (float)colorHsv.value;
 
-        int max = buffer.BufferWi * buffer.BufferHt;
+        // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+        // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+        int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
         constexpr int bfBlockSize = 4096;
         int blocks = max / bfBlockSize + 1;
         parallel_for(0, blocks, [&sdata, &buffer, max](int blk) {

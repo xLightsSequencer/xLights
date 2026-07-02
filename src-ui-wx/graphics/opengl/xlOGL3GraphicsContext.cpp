@@ -2038,10 +2038,21 @@ public:
         if (ret == 0) {
             ret = input.size();
             MeshVertexInput mvi;
-            mvi.positionX = objects.GetAttrib().vertices[idx.vertex_index * 3];
-            mvi.positionY = objects.GetAttrib().vertices[idx.vertex_index * 3 + 1];
-            mvi.positionZ = objects.GetAttrib().vertices[idx.vertex_index * 3 + 2];
-            if (idx.normal_index == -1) {
+            // tinyobj's fixIndex does not bounds-check positive indices, so a parseable
+            // but malformed OBJ can reference a vertex/normal/texcoord that has no
+            // corresponding v/vn/vt data, leaving the attrib array empty or short. Guard
+            // the array size as well as the -1 "absent" sentinel so we never deref past
+            // the end (null-deref at 0x0, crash bucket 7f18c56ac4).
+            if (idx.vertex_index < 0 || (size_t)(idx.vertex_index * 3 + 2) >= objects.GetAttrib().vertices.size()) {
+                mvi.positionX = 0;
+                mvi.positionY = 0;
+                mvi.positionZ = 0;
+            } else {
+                mvi.positionX = objects.GetAttrib().vertices[idx.vertex_index * 3];
+                mvi.positionY = objects.GetAttrib().vertices[idx.vertex_index * 3 + 1];
+                mvi.positionZ = objects.GetAttrib().vertices[idx.vertex_index * 3 + 2];
+            }
+            if (idx.normal_index < 0 || (size_t)(idx.normal_index * 3 + 2) >= objects.GetAttrib().normals.size()) {
                 mvi.normalX = 0;
                 mvi.normalY = 0;
                 mvi.normalZ = 0;
@@ -2050,7 +2061,7 @@ public:
                 mvi.normalY = objects.GetAttrib().normals[idx.normal_index * 3 + 1];
                 mvi.normalZ = objects.GetAttrib().normals[idx.normal_index * 3 + 2];
             }
-            if (idx.texcoord_index == -1) {
+            if (idx.texcoord_index < 0 || (size_t)(idx.texcoord_index * 2 + 1) >= objects.GetAttrib().texcoords.size()) {
                 mvi.texcoordX = 0;
                 mvi.texcoordY = 0;
             } else {
