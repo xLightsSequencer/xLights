@@ -21,6 +21,7 @@
 #include "controllers/ControllerCaps.h"
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
+#include "utils/ip_utils.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "shared/utils/wxUtilities.h"
@@ -339,8 +340,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto instances = DiscoverFPPInstances(&delegate);
 
         FPP* fpp = nullptr;
+        std::string resolvedIp = ip_utils::ResolveIP(ip);
         for (const auto& it : instances) {
-            if (it->ipAddress == ip && it->fppType == FPP_TYPE::FPP) {
+            if (it->fppType == FPP_TYPE::FPP &&
+                (it->ipAddress == ip || (!resolvedIp.empty() && it->ipAddress == resolvedIp))) {
                 fpp = it;
                 break;
             }
@@ -408,8 +411,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto instances = DiscoverFPPInstances(&delegate);
 
         FPP* fpp = nullptr;
+        std::string resolvedSequenceIp = ip_utils::ResolveIP(ip);
         for (const auto& it : instances) {
-            if (it->ipAddress == ip) {
+            if (it->ipAddress == ip || (!resolvedSequenceIp.empty() && it->ipAddress == resolvedSequenceIp)) {
                 fpp = it;
                 break;
             }
