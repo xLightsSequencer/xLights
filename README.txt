@@ -10,7 +10,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.12  June ??, 2026
+2026.12  July ??, 2026
     -enh (scott)                 Added new Tip of the Day info for recent release updated items
     -enh (derwin12)              Sequencer: add "Select Effects incl SubModels" to model right-click menu (#6618)
     -enh (derwin12)              Lua automation: expose all video export formats (High Quality MP4, Lossless RGB, ProRes 4444, HD ProRes) via exportModel / exportModelWithRender
@@ -23,7 +23,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)              Add Timing Track option to Single Strand chase (cycles per timing mark) (#4771)
     -enh (derwin12)              Allow timeline to zoom out to see any effects outside the duration (#6528)
     -enh (derwin12)              Sync smart remote type across port block for controllers requiring it (#3468)
-    -enh (derwin12)              Remove noop Keep Channels Numbers option from FPP devices (#5459)
     -enh (scott)                 First run with no show folder set: offer to create and use a default show folder at Documents/xLights (or pick one)
     -enh (scott)                 Update dialog can download the new release installer from GitHub and run it (instead of opening a browser)
     -enh (scott)                 Show the active OpenGL backend (ANGLE vs native) in the About dialog and startup log
