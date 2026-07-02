@@ -170,10 +170,16 @@ slot:
 - Watchdog in the existing render-status timer: batch hasn't progressed in N
   seconds while the pool is idle → log loudly, requeue all suspended jobs. A
   lost continuation must show up in logs, not as a silent hang on save/close.
-- Pools drop to ~`hardware_concurrency` everywhere. Remaining in-slice
-  blocking (GPU waits, ShaderEffect's serial GL/ANGLE thread, render-cache
-  I/O, nested `parallel_for` on the separate per-model pool) is bounded
-  resource contention, not dependency waiting — safe with a small pool.
+- Pools drop to ~(CPU cores + GPU cores + small slack) everywhere. Many
+  effects render on the GPU and park their thread in
+  `waitForRenderCompletion`, freeing the CPU core — so the pool carries one
+  extra thread per effect render the GPU can have in flight
+  (`GPURenderUtils::GetGPUEffectConcurrency()`: IORegistry `gpu-core-count`
+  on Apple Silicon macOS; CPU-count proxy on iOS/other Metal devices; 0 with
+  no GPU backend). Remaining in-slice blocking (ShaderEffect's serial
+  GL/ANGLE thread, render-cache I/O, nested `parallel_for` on the separate
+  per-model pool) is bounded resource contention, not dependency waiting —
+  safe with a small pool.
 
 ### 4.5 What doesn't change
 

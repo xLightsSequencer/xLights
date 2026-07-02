@@ -56,6 +56,17 @@ public:
         }
     }
 
+    // Estimated number of effect renders the GPU can process concurrently
+    // (~GPU core count); 0 when there is no GPU render backend.  Used to size
+    // the render pool: a thread parked in waitForRenderCompletion leaves its
+    // CPU core free for another job, so the pool wants cpu + gpu headroom.
+    static int GetGPUEffectConcurrency() {
+        if (INSTANCE) {
+            return INSTANCE->gpuEffectConcurrency();
+        }
+        return 0;
+    }
+
     
     class RotoZoomSettings {
     public:
@@ -114,6 +125,7 @@ protected:
 
     virtual void setPrioritizeGraphics(bool p) = 0;
 
+    virtual int gpuEffectConcurrency() { return 0; }
 
     static GPURenderUtils *INSTANCE;
 };

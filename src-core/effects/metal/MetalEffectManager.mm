@@ -81,6 +81,11 @@ public:
     virtual void setPrioritizeGraphics(bool p) override {
         MetalComputeUtilities::INSTANCE.prioritizeGraphics(p);
     }
+    // Deliberately ignores the user-toggleable isEnabled flag: pool sizing
+    // happens once at startup, before preferences are applied.
+    virtual int gpuEffectConcurrency() override {
+        return MetalComputeUtilities::INSTANCE.gpuCoreCount();
+    }
     virtual bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) override {
         if (enabled() && pixelBuffer) {
             MetalPixelBufferComputeData *d = static_cast<MetalPixelBufferComputeData*>(pixelBuffer->gpuRenderData);

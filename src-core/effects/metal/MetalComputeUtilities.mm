@@ -6,6 +6,9 @@
 #include <thread>
 
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
+#if !TARGET_OS_IPHONE
+#include <IOKit/IOKitLib.h>
+#endif
 
 #include "MetalEffectDataTypes.h"
 #include "DissolveTransitionPattern.h"
@@ -987,6 +990,41 @@ MetalRenderBufferComputeData *MetalRenderBufferComputeData::getMetalRenderBuffer
 }
 
 
+
+int MetalComputeUtilities::gpuCoreCount() {
+    if (!enabled || device == nil) {
+        return 0;
+    }
+#if !TARGET_OS_IPHONE
+    // Apple Silicon publishes the GPU core count in the IORegistry.
+    int count = 0;
+    io_iterator_t iterator;
+    if (IOServiceGetMatchingServices(MACH_PORT_NULL, IOServiceMatching("AGXAccelerator"), &iterator) == KERN_SUCCESS) {
+        io_object_t obj;
+        while ((obj = IOIteratorNext(iterator)) != IO_OBJECT_NULL) {
+            CFTypeRef v = IORegistryEntryCreateCFProperty(obj, CFSTR("gpu-core-count"), kCFAllocatorDefault, 0);
+            if (v != nullptr) {
+                if (CFGetTypeID(v) == CFNumberGetTypeID()) {
+                    int32_t n = 0;
+                    CFNumberGetValue(static_cast<CFNumberRef>(v), kCFNumberSInt32Type, &n);
+                    if (n > count) {
+                        count = n;
+                    }
+                }
+                CFRelease(v);
+            }
+            IOObjectRelease(obj);
+        }
+        IOObjectRelease(iterator);
+    }
+    if (count > 0) {
+        return count;
+    }
+#endif
+    // No public API on iOS (and no IORegistry key for non-Apple-Silicon GPUs);
+    // the CPU core count is a close-enough proxy on Apple hardware.
+    return (int)std::thread::hardware_concurrency();
+}
 
 MetalComputeUtilities::MetalComputeUtilities() {
     enabled = false;

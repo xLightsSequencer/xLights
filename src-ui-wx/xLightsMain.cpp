@@ -2149,10 +2149,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     OutputTimer.Start(50, wxTIMER_CONTINUOUS);
 
     // Render jobs suspend and requeue instead of blocking a thread while they
-    // wait on overlapping models (plans/render-scheduler.md), so the pool only
-    // needs enough threads to keep the cores busy, plus a little headroom for
-    // jobs briefly blocked on GPU work or render-cache I/O.
-    int threadCount = wxThread::GetCPUCount() + 4;
+    // wait on overlapping models (plans/render-scheduler.md), so the pool
+    // needs enough threads to keep the CPU cores busy plus one per effect
+    // render that can be in flight on the GPU (those park their thread in
+    // waitForRenderCompletion, freeing the core), plus a little slack for
+    // render-cache I/O.
+    int threadCount = wxThread::GetCPUCount() + GPURenderUtils::GetGPUEffectConcurrency() + 4;
     if (threadCount < 8) {
         threadCount = 8;
     }
