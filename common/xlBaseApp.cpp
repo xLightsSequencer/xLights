@@ -10,6 +10,8 @@
 #include <iomanip>
 #include <thread>
 #include <inttypes.h>
+#include <filesystem>
+#include <system_error>
 
 #include <wx/buffer.h>
 #include <wx/datetime.h>
@@ -33,6 +35,8 @@
 #endif
 
 #include <log.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/std.h> // fmt formatters for std::type_info (demangled), std::error_code, std::filesystem::path
 
 #include "utils/ExternalHooks.h"
 #include "xLightsVersion.h"
@@ -397,16 +401,31 @@ std::string xlCrashHandler::DescribeCurrentException()
     }
     catch (char const* eMsg)
     {
-        return std::string("C-string exception: \"") + (eMsg ? eMsg : "(null)") + "\".";
+        return fmt::format("C-string exception: \"{}\".", eMsg ? eMsg : "(null)");
     }
-    catch (std::exception& e)
+    catch (std::string const& eMsg)
     {
-        std::string msg = "Standard STD exception of type \"";
-        msg += typeid(e).name();
-        msg += "\" with message \"";
-        msg += e.what();
-        msg += "\".";
-        return msg;
+        return fmt::format("std::string exception: \"{}\".", eMsg);
+    }
+    catch (std::filesystem::filesystem_error const& e)
+    {
+        // Common xLights crash source (throwing fs::exists/copy/etc. on sandbox/iCloud
+        // edge cases). Capture the error code and both paths so the offending file shows.
+        return fmt::format("Filesystem exception of type \"{}\": \"{}\" (error {}: {}) path1=\"{}\" path2=\"{}\".",
+                           typeid(e), e.what(), e.code().value(), e.code().message(),
+                           e.path1().string(), e.path2().string());
+    }
+    catch (std::system_error const& e)
+    {
+        return fmt::format("System exception of type \"{}\": \"{}\" (error {}: {}).",
+                           typeid(e), e.what(), e.code().value(), e.code().message());
+    }
+    catch (std::exception const& e)
+    {
+        // typeid is demangled by fmt's std::type_info formatter, so macOS/Linux reports
+        // read "std::length_error" rather than the raw "St12length_error".
+        return fmt::format("Standard STD exception of type \"{}\" with message \"{}\".",
+                           typeid(e), e.what());
     }
     catch (...)
     {
