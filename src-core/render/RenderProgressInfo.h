@@ -60,4 +60,10 @@ public:
     // Stall watchdog state (see RenderEngine::CheckForStalledRender).
     long long lastProgressSum = -1;
     std::chrono::steady_clock::time_point lastProgressTime = std::chrono::steady_clock::now();
+
+    // Scheduler telemetry, logged to the render log when the batch completes.
+    int totalJobs = 0;
+    std::atomic<int> suspendCount{0};
+    std::atomic<int> parkCount{0};
+    std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 };

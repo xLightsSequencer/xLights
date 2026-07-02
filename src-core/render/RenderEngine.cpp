@@ -866,6 +866,9 @@ public:
         }
         wantFrame = frame;
         suspended = true;
+        if (_rpi) {
+            ++_rpi->suspendCount;
+        }
         return true;
     }
 
@@ -1141,6 +1144,9 @@ public:
                 // an earlier job is rendering this row; we're parked and will be
                 // rescheduled when it completes - the thread goes back to the pool
                 m_logger->debug("Render job parked behind active render of row.");
+                if (_rpi) {
+                    ++_rpi->parkCount;
+                }
                 return;
             }
             if (rowToRender->GetWaitCount() && !HasNext()) {
@@ -1150,7 +1156,7 @@ public:
                 CompleteJob();
                 return;
             }
-            SetGenericStatus("Got lock on rendering thread for {}", 0);
+            SetGenericStatus("Got render ownership of row for {}", 0);
 
             {
                 std::unique_lock<std::recursive_timed_mutex> lock(rowToRender->GetRenderLock());
@@ -1670,6 +1676,7 @@ void RenderEngine::Render(SequenceElements& seqElements,
     pi->restriction = restrictToModels;
     pi->aggregators = aggregators;
     pi->jobsRemaining.store((int)count);
+    pi->totalJobs = (int)count;
 
     // Link every live job to rpi so completion can signal.
     for (row = 0; row < (size_t)numRows; ++row) {
@@ -2114,6 +2121,18 @@ void RenderEngine::NotifyJobFinished(RenderProgressInfo* rpi) {
     // (desktop: UpdateRenderStatus on the wx main loop; iPad: IsRenderDone
     // poll).
     if (rpi->jobsRemaining.fetch_sub(1) != 1) return;
+
+    // Log before flipping `completed` - once it flips, the main-thread drain
+    // may delete rpi at any moment.
+    auto logger = spdlog::get("render");
+    if (logger) {
+        auto elapsedMS = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::steady_clock::now() - rpi->startTime).count();
+        logger->debug("Render batch complete: {} jobs over frames {}-{}, {} suspensions, {} row parks, {}ms",
+                      rpi->totalJobs, rpi->startFrame, rpi->endFrame,
+                      rpi->suspendCount.load(), rpi->parkCount.load(), (long long)elapsedMS);
+    }
+
     bool expected = false;
     rpi->completed.compare_exchange_strong(expected, true);
 }

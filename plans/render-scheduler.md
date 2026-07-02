@@ -13,7 +13,13 @@ Status of phases (update as work lands):
 | 1 | Hoist `RenderJob::Process()` locals into members; extract per-frame slice | ✅ done |
 | 2 | Collapse mid-frame waits into a single frame-entry gate (still blocking) | ✅ done |
 | 3 | Gate → suspend/requeue; row ownership token; END-as-state; shrink pools | ✅ done |
-| 4 | Remove oversubscription config; iPad sizing/comment cleanup; telemetry | planned |
+| 4 | Remove oversubscription config; iPad sizing/comment cleanup; telemetry | ✅ done |
+
+All phases complete. Pool sizing is GPU-aware (cpu + gpu + slack — see §4.4);
+each batch logs jobs/suspensions/row-parks/elapsed to the render log at debug
+level on completion. Remaining follow-on (not scheduled): lazy PixelBuffer
+allocation at a job's first slice, released at Done, to cut peak render
+memory (§3).
 
 All of this is `src-core/` — desktop and iPad share it (parity auto-applied).
 
