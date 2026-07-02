@@ -728,8 +728,6 @@ public:
             if (!freeze) {
                 // Mix canvas pre-loads the buffer with data from underlying layers
                 if (buffer->IsCanvasMix(layer) && layer < numLayers - 1 && !buffer->IsRenderingDisabled(layer)) {
-                    maybeWaitForFrame(frame);
-
                     auto vl = info.validLayers;
                     bool doBlendLayer = false;
                     if (info.settingsMaps[layer].Get("LayersSelected", "") != "") {
@@ -816,7 +814,6 @@ public:
         }
 
         if (effectsToUpdate) {
-            maybeWaitForFrame(frame);
             SetCalOutputStatus(frame, info.submodel, strand, -1);
             for (int x = 0; x < (int)partOfCanvas.size(); x++) {
                 // if the layer was used for a canvas effect, we don't want it
@@ -858,6 +855,30 @@ public:
             maxFrameBeforeCheck = waitForFrame(frame);
             SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
+    }
+
+    // Whether this frame can read or write seqData[frame] and therefore must
+    // wait for upstream renderers first.  Must stay a superset of the output
+    // paths: main-model output requires an effect covering the frame on a main
+    // layer; rows with submodels or node buffers always sync (they previously
+    // waited on every frame).  Frames with no effects skip the gate so a row
+    // with sparse coverage races through the gaps without trailing upstream.
+    bool NeedsUpstreamFrame(int frame) {
+        if (!subModelInfos.empty() || !nodeBuffers.empty()) {
+            return true;
+        }
+        for (int layer = 0; layer < numLayers; ++layer) {
+            EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
+            if (elayer == nullptr) {
+                continue;
+            }
+            std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
+            int idx = 0;
+            if (findEffectForFrame(elayer, frame, idx) != nullptr) {
+                return true;
+            }
+        }
+        return false;
     }
 
     void ComputeRenderRange() {
@@ -920,10 +941,16 @@ public:
             return false;
         }
 
+        // Single upstream gate: every wait on upstream renderers happens here,
+        // before any of the frame's work, so everything below may read/write
+        // seqData[frame] freely.  (Phase 2 of plans/render-scheduler.md; this
+        // becomes the suspend/requeue point in phase 3.)
+        if (frame >= maxFrameBeforeCheck && NeedsUpstreamFrame(frame)) {
+            maybeWaitForFrame(frame);
+        }
+
         bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
         if (!subModelInfos.empty()) {
-            maybeWaitForFrame(frame);
-
             std::string inheritedDuplicateSourceModel;
             for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicateSourceModel.empty(); ++lyr) {
                 EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
@@ -947,7 +974,6 @@ public:
         }
 
         if (!nodeBuffers.empty()) {
-            maybeWaitForFrame(frame);
             for (const auto& it : nodeBuffers) {
                 if (abort) {
                     rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
