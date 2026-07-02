@@ -10,15 +10,15 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.12  July ??, 2026
+2026.12  July 2, 2026
+    -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives
+    -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
+    -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top
     -enh (scott)                 Added new Tip of the Day info for recent release updated items
     -enh (derwin12)              Sequencer: add "Select Effects incl SubModels" to model right-click menu (#6618)
     -enh (derwin12)              Lua automation: expose all video export formats (High Quality MP4, Lossless RGB, ProRes 4444, HD ProRes) via exportModel / exportModelWithRender
-    -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives
     -enh (scott)                 Moving Head effect: new Pattern tab generates pan/tilt from parametric shapes (Circle, Eight, Diamond, Lissajous, etc.) modeled on QLC+ EFX, with a value-curve-animatable rotation
     -enh (scott)                 Moving Head effect: Enable Shutter checkbox (in the Control tab, for both RGB and color wheel) holds the shutter open at the model's Shutter On Value; Auto Shutter still takes over when active. Check Sequence warns if a shutter channel has a Shutter On Value of 0
-    -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
-    -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top
     -enh (derwin12)              Effect sequence wizard now adds a default New Timing track (#6612)
     -enh (derwin12)              Add Timing Track option to Single Strand chase (cycles per timing mark) (#4771)
     -enh (derwin12)              Allow timeline to zoom out to see any effects outside the duration (#6528)
@@ -71,7 +71,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
     -bug (dkulp)                 Fix crash drawing a texture on the OpenGL backend (Windows/Linux) when the vertex accumulator
                                  or texture was null; skip the draw instead, matching the existing drawPrimitive guards
-    -bug (dan)                   Fix crash logging an OpenGL shader compile/link failure when the "opengl" logger was never
+    -bug (dkulp)                   Fix crash logging an OpenGL shader compile/link failure when the "opengl" logger was never
                                  registered (e.g. on the iPad/Metal-only path); fall back to the default logger
     -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
                                  dropdown-style property (#6215, #4175)
