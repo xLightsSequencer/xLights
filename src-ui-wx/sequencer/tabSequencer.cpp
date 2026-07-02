@@ -948,6 +948,14 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
     spdlog::debug("Load sequence {}", (const char*)xml_file.GetFullPath().c_str());
 
+    // LoadSequencerFile below clears and rebuilds every Element/Effect/SettingsMap.
+    // A background render job spun up between CloseSequence's abort and now (e.g. the
+    // converted-file RenderAll / settings-dialog paths) would still be reading those
+    // objects while we free them -> heap corruption / crash (bucket d7ec0a8bbc).
+    // Drain any in-flight render before touching _sequenceElements. LoadSequencerFile
+    // itself does not pump the event loop, so no new render can start mid-rebuild.
+    AbortRender();
+
     PushTraceContext();
     SetFrequency(xml_file.GetFrequency());
     _sequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
