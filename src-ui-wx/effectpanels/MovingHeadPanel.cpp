@@ -540,7 +540,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     PanelPattern->SetSizer(FlexGridSizerPattern);
     PanelPattern->FitInside();
     PanelControl = new wxPanel(Notebook1, ID_PANEL_Control, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Control"));
-    FlexGridSizerControl = new wxFlexGridSizer(1, 1, 0, 0);
+    FlexGridSizerControl = new wxFlexGridSizer(2, 1, 0, 0);
     FlexGridSizerControl->AddGrowableCol(0);
     FlexGridSizerControl->AddGrowableRow(0);
     Notebook2 = new wxNotebook(PanelControl, ID_NOTEBOOK2, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK2"));

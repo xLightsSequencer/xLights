@@ -1240,7 +1240,7 @@
 						<object class="wxPanel" name="ID_PANEL_Control" variable="PanelControl" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizerControl" member="no">
 								<cols>1</cols>
-								<rows>1</rows>
+								<rows>2</rows>
 								<growablecols>0</growablecols>
 								<growablerows>0</growablerows>
 								<object class="sizeritem">
