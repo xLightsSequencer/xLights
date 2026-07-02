@@ -113,16 +113,19 @@ public:
     }
 
     virtual void setPreviousFrameDone(int i) {
-        previousFrameDone = i;
+        // The update must happen under nextLock or a waiter can check the
+        // predicate, miss this update, and then sleep through the notify.
+        {
+            std::unique_lock<std::mutex> lock(nextLock);
+            previousFrameDone = i;
+        }
         nextSignal.notify_all();
     }
 
     int waitForFrame(int frame) {
         if (frame > previousFrameDone) {
             std::unique_lock<std::mutex> lock(nextLock);
-            while (frame > previousFrameDone) {
-                nextSignal.wait_for(lock, std::chrono::milliseconds(10));
-            }
+            nextSignal.wait(lock, [this, frame] { return previousFrameDone >= frame; });
         }
         return previousFrameDone;
     }
