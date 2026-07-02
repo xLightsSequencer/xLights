@@ -36,6 +36,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (AlexB)                 During a multi-effect drag, only the colliding ghost effects turn red instead of all of them (#6553)
     -enh (neil)                  Bulk Edit Rotate skips models whose type doesn't support that axis and reports the skipped models (#6521)
     -enh (derwin12)              Grey out Symmetrize/Combine Strands in the SubModels menu when they don't apply (#6554)
+    -bug (derwin12)              Fix uploadFPPConfig/uploadSequence LUA commands failing with a hostname instead of a numeric IP
     -bug (derwin12)              Fix video/image/shader filenames containing commas being truncated when saved (#6638)
     -bug (derwin12)              Wheel of Effects was not honoring the Reset Effects on Effect change nor setting defaults
     -bug (derwin12)              Fix floating sequencer panes shifting position on macOS after switching to the Layout tab and back (#6631)
