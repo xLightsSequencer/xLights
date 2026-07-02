@@ -1667,12 +1667,20 @@ void xLightsFrame::SaveSequence()
             spdlog::info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
 
             //need to abort any render going on in order to change the SeqData size
-            AbortRender();
+            // AbortRender is best-effort and returns false if it times out (e.g. a
+            // render job wedged in a video decode). Reinitialising seqData while a job
+            // is still live frees the channel blocks out from under it -> use-after-free
+            // in GetColors/SetColors (crash sig 25e8b06bcc / a14ee11b9c). Only resize
+            // once the renders are confirmed stopped, matching the guarded pattern in
+            // xLightsMain.cpp (RenderTree rebuild path).
+            if (AbortRender()) {
+                wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+                int ms = wxAtoi(mss);
 
-            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-            int ms = wxAtoi(mss);
-
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            } else {
+                spdlog::error("Render on Save: could not abort the in-flight render; skipping the seqData resize to avoid a use-after-free.");
+            }
         }
 
         ProgressBar->Show();
@@ -1735,8 +1743,14 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
         return;
 
     if (_seqData.FrameTime() != (unsigned int)timingMS) {
-        AbortRender();
-        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+        // Only resize seqData once renders are confirmed stopped; a bare AbortRender()
+        // can time out and reinitialising under a live job is a use-after-free
+        // (crash sig 25e8b06bcc / a14ee11b9c). See the render-on-save path above.
+        if (AbortRender()) {
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+        } else {
+            spdlog::error("SetSequenceTiming: could not abort the in-flight render; deferring the seqData reinit to avoid a use-after-free.");
+        }
     }
 }
 

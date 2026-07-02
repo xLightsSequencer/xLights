@@ -1626,6 +1626,18 @@ void iPadRenderContext::EnsureSequenceDataSized() {
         && _sequenceData.FrameTime() == frameTime) {
         return;
     }
+    // The shape changed, so init() runs Cleanup() and frees (munmap on iPad's
+    // FILE_BACKED blocks) the seqData channel storage. A render job on a worker
+    // thread mid-GetColors/SetColors holds a raw pointer into that storage, so
+    // freeing it here is a use-after-free (crash sig 25e8b06bcc / a14ee11b9c).
+    // Drain any in-flight render first; if it can't be stopped, skip the resize
+    // rather than pull the buffer out from under a live job. This is the single
+    // choke point for init() so every caller (RenderAll / RenderModelAndWait /
+    // OpenSequence / setSequenceDurationMS) is covered.
+    if (!AbortRender()) {
+        spdlog::error("EnsureSequenceDataSized: could not abort the in-flight render; skipping the seqData resize to avoid a use-after-free.");
+        return;
+    }
     _sequenceData.init(numChannels, numFrames, frameTime);
 }
 

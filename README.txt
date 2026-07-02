@@ -50,6 +50,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash hovering the 3D layout preview while placing a new model before its nodes are populated
     -bug (dkulp)                 Fix crash/heap corruption opening a sequence while a render from the previous sequence was still finishing
     -enh (dkulp)                 Crash reports now record the C++ exception type (demangled) and message, including the error code and file paths for filesystem/system errors
+    -bug (dkulp)                 Fix crash saving-with-render or changing sequence timing while a render is still running (sequence data was freed out from under the render threads)
     -bug (derwin12)              Allow multiple timing tracks to be active simultaneously in master view (was limited to one)
     -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
     -bug (derwin12)              Fix State/Face effect dropdowns resetting on icon click (#6595)
