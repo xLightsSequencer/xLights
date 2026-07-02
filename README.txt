@@ -10,6 +10,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.13  July ??, 2026
+
 2026.12  July 2, 2026
     -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives
     -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
