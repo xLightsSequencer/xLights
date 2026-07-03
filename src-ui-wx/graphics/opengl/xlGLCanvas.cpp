@@ -18,8 +18,10 @@
 #include "graphics/GLBackend.h"
 #include "graphics/AngleEGL.h"
 
+
 #if defined(USE_GLES) && !defined(__WXMAC__)
 // ANGLE / OpenGL ES 3.0 — direct prototypes from libGLESv2 (no fn-ptr loading).
+#define XL_ANGLE_GLES 1
 #ifdef _MSC_VER
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -325,7 +327,7 @@ xlGLCanvas::~xlGLCanvas()
         delete[] m_exportReadbackBuffer;
         m_exportReadbackBuffer = nullptr;
     }
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     if (m_eglContext) {
         xlAngleEGL::DestroyContext(m_eglContext);
         m_eglContext = nullptr;
@@ -444,7 +446,7 @@ void AddDebugLog(xlGLCanvas* c)
     }
     glEnable(GL_DEBUG_OUTPUT);
 }
-#elif defined(USE_GLES)
+#elif defined(XL_ANGLE_GLES)
 // OpenGL ES 3.0 has no GL_DEBUG_OUTPUT / ARB debug callback — no-op.
 void AddDebugLog(xlGLCanvas *) {}
 #else
@@ -562,7 +564,7 @@ void xlGLCanvas::SetCurrentGLContext()
         return;
     }
 #endif
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     if (m_eglContext == nullptr) {
         LOG_GL_ERRORV(CreateGLContext());
     }
@@ -570,7 +572,7 @@ void xlGLCanvas::SetCurrentGLContext()
         xlAngleEGL::MakeCurrent(m_eglContext);
     }
     return;
-#endif
+#else
     static bool errorDisplayed = false;
     glGetError();
     if (m_context == nullptr) {
@@ -585,6 +587,7 @@ void xlGLCanvas::SetCurrentGLContext()
         }
     }
     LOG_GL_ERRORV(m_context->SetCurrent(*this));
+#endif
 }
 
 void xlGLCanvas::CreateGLContext() {
@@ -597,7 +600,7 @@ void xlGLCanvas::CreateGLContext() {
         return;
     }
 #endif
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     if (m_eglContext == nullptr) {
         if (!xlAngleEGL::Initialize()) {
             m_logger->error("ANGLE EGL init failed.");
@@ -638,8 +641,7 @@ void xlGLCanvas::CreateGLContext() {
         }
         InitializeGLContext();
     }
-    return;
-#endif
+#else
     if (m_context == nullptr) {
         wxGLContext *base = m_sharedContext;
         //trying to detect OGL versions and stuff can result in unwanted logs
@@ -745,6 +747,7 @@ void xlGLCanvas::CreateGLContext() {
             InitializeGLContext();
         }
     }
+#endif
 }
 
 void xlGLCanvas::Resized(wxSizeEvent& evt)
@@ -776,7 +779,7 @@ xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
     if (s_oglContextInitFailed) {
         return nullptr;
     }
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     // Serialize this on-screen frame against the off-screen ShaderEffect pool so
     // ANGLE's shared D3D11 device is never submitted from two threads at once.
     // Released in FinishDrawing.
@@ -819,14 +822,14 @@ xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
 }
 void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx, bool display) {
     if (display) {
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
         xlAngleEGL::SwapBuffers(m_eglContext);
 #else
         SwapBuffers();
 #endif
     }
     delete ctx;
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     xlAngleEGL::RenderUnlock();  // paired with RenderLock in PrepareContextForDrawing
 #endif
 }
