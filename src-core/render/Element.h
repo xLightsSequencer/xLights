@@ -293,6 +293,13 @@ class ModelElement : public Element
         // See plans/render-scheduler.md §4.3.
         bool TryTakeRenderOwnership(void* job);
         void* ReleaseRenderOwnership(void* job);
+        // Abort path: pull a parked job out of the queue so the caller can
+        // reschedule it directly.  Returns false if the job wasn't parked
+        // (already handed the row, or never parked).
+        bool CancelParkedRenderJob(void* job);
+        // Teardown path: forget the job entirely (parked or owning) without
+        // waking anything - the whole batch is being deleted.
+        void AbandonRenderOwnership(void* job);
 
         StrandElement *GetStrand(int strand, bool create = false);
         StrandElement *GetStrand(int strand) const;

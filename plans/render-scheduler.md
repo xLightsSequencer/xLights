@@ -16,10 +16,20 @@ Status of phases (update as work lands):
 | 4 | Remove oversubscription config; iPad sizing/comment cleanup; telemetry | ✅ done |
 
 All phases complete. Pool sizing is GPU-aware (cpu + gpu + slack — see §4.4);
-each batch logs jobs/suspensions/row-parks/elapsed to the render log at debug
-level on completion. Remaining follow-on (not scheduled): lazy PixelBuffer
-allocation at a job's first slice, released at Done, to cut peak render
-memory (§3).
+each batch logs jobs/suspensions/row-parks/elapsed on completion. Remaining
+follow-on (not scheduled): lazy PixelBuffer allocation at a job's first slice,
+released at Done, to cut peak render memory (§3).
+
+Post-review hardening (2026-07): per-frame change-count bail extended to
+downstream-having jobs + `ProcessFrame` layer-count clamp (structural edits
+during a suspension can no longer index stale per-layer state — the risk §5.1
+flagged); `~RenderJob` abandons row ownership (no dangling `ModelElement`
+pointers on forced teardown); `previousFrameDone` updates are monotonic (a
+stale lower-frame relay can't re-strand a job waiting on END); the stall
+watchdog is per-batch (no longer masked by other batches keeping the pool
+busy); `AbortRender` cancels parked jobs directly and aborted jobs short-cut
+at Setup; the frame-entry gate uses an advancing per-layer effect cursor
+instead of rescanning each layer's effect list every frame.
 
 All of this is `src-core/` — desktop and iPad share it (parity auto-applied).
 

@@ -10,6 +10,7 @@
 
 #include "Element.h"
 #include "../models/Model.h"
+#include <algorithm>
 #include <list>
 #include <numeric>
 #include <thread>
@@ -558,6 +559,29 @@ void* ModelElement::ReleaseRenderOwnership(void* job) {
     --waitCount;
     activeRenderJob = next;
     return next;
+}
+
+bool ModelElement::CancelParkedRenderJob(void* job) {
+    std::unique_lock<std::mutex> lock(renderOwnerLock);
+    auto it = std::find(pendingRenderJobs.begin(), pendingRenderJobs.end(), job);
+    if (it == pendingRenderJobs.end()) {
+        return false;
+    }
+    pendingRenderJobs.erase(it);
+    --waitCount;
+    return true;
+}
+
+void ModelElement::AbandonRenderOwnership(void* job) {
+    std::unique_lock<std::mutex> lock(renderOwnerLock);
+    auto it = std::find(pendingRenderJobs.begin(), pendingRenderJobs.end(), job);
+    if (it != pendingRenderJobs.end()) {
+        pendingRenderJobs.erase(it);
+        --waitCount;
+    }
+    if (activeRenderJob == job) {
+        activeRenderJob = nullptr;
+    }
 }
 
 NodeLayer* ModelElement::GetNodeEffectLayer(int index) const
