@@ -14,6 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Galaxy effect: no longer takes a very long time to render on very wide/short buffers
                                  (e.g. a "Single Line" render style) - the spiral now skips off-buffer work and hoists
                                  per-angle trig out of the inner loop
+    -enh (dkulp)                 Galaxy effect: blend passes now scan only the galaxy's bounding box instead of the
+                                 whole buffer - up to ~5x faster on large 2D models (e.g. 800x600 groups) at typical
+                                 sizing, with identical output
     -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
                                  waiting on overlapping models, cutting the render pool from hundreds of threads to
                                  roughly the CPU+GPU core count and reducing memory use on large sequences

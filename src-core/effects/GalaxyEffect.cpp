@@ -288,6 +288,16 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         width2 = width2 * (bufferMax / 100.0);
     }
 
+    // The spiral never writes a pixel further than maxR from the center (outermost arm
+    // center + its half-width; the rounded caps stay within current_radius + half_width).
+    // The blend-down passes below therefore only need to scan this bounding box instead
+    // of the full W*H buffer - a large win on big 2D buffers (e.g. an 800x600 group).
+    double maxR = std::max(radius1, radius2) + std::max(width1, width2) / 2.0 + 2.0;
+    int blendX0 = std::max(0, (int)std::floor(pos_x - maxR));
+    int blendX1 = std::min(buffer.BufferWi, (int)std::ceil(pos_x + maxR));
+    int blendY0 = std::max(0, (int)std::floor(pos_y - maxR));
+    int blendY1 = std::min(buffer.BufferHt, (int)std::ceil(pos_y + maxR));
+
     double half_width = 1;
 
     buffer.ClearTempBuf();
@@ -428,8 +438,8 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
         // blend old data down into final buffer
         if (blend_edges && ((inward ? (last_check - abs(adj_angle)) : (abs(adj_angle) - last_check)) >= 90.0)) {
-            for (int x = 0; x < buffer.BufferWi; x++) {
-                for (int y = 0; y < buffer.BufferHt; y++) {
+            for (int x = blendX0; x < blendX1; x++) {
+                for (int y = blendY0; y < blendY1; y++) {
                     int idx = x * bufHt + y;
                     if (temp_colors_pct[idx] > 0.0 && ((inward ? (pixel_age[idx] - abs(adj_angle)) : (abs(adj_angle) - pixel_age[idx])) >= 180.0)) {
                         xlColor c_new;
@@ -510,8 +520,8 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     // blend remaining data down into final buffer
     if (blend_edges) {
-        parallel_for(0, buffer.BufferWi, [&buffer, &temp_colors_pct, bufHt](int x) {
-            for (int y = 0; y < buffer.BufferHt; y++) {
+        parallel_for(blendX0, blendX1, [&buffer, &temp_colors_pct, bufHt, blendY0, blendY1](int x) {
+            for (int y = blendY0; y < blendY1; y++) {
                 int idx = x * bufHt + y;
                 if (temp_colors_pct[idx] > 0.0) {
                     xlColor c_new;
