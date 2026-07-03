@@ -20,6 +20,21 @@ each batch logs jobs/suspensions/row-parks/elapsed on completion. Remaining
 follow-on (not scheduled): lazy PixelBuffer allocation at a job's first slice,
 released at Done, to cut peak render memory (§3).
 
+Third review round (2026-07): requeues are idempotent (an `inPool` CAS
+dedups every wake path, with slice entry clearing `parked` before `inPool`
+so a stale rescue can never double-run a live slice); row accounting is
+lifetime-based (`Attach/DetachRenderJob` at job construction/completion, so
+canceled and not-yet-started jobs hold `~ModelElement`'s guard open, and the
+bail checks use the exact `HasParkedRenderJobs()` predicate); park
+bookkeeping happens before the job is published as claimable; the watchdog
+rescue covers parked jobs and its state is mutex-serialized for iPad's
+multi-threaded polling; `ProcessFrame` re-verifies `previousFrameDone` at
+its seqData touch points (closes the gate-vs-lock-free-edit TOCTOU and
+converts any future gate-coverage bug into a logged skip + re-render);
+`CompleteJob` assigns Done after its throwing region so completion is
+retryable; `maxFrameBeforeCheck` was replaced by reading the atomic
+directly; the GPU pool term is capped at 2× CPU cores.
+
 Second review round (2026-07): the owner is now counted in
 `ModelElement::waitCount` so `~ModelElement`'s teardown guard covers a
 suspended owner (bail checks compare `> 1`); `InitializeRenderStates`

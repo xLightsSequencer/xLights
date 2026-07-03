@@ -14,8 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
                                  waiting on overlapping models, cutting the render pool from hundreds of threads to
                                  roughly the CPU+GPU core count and reducing memory use on large sequences
-    -change (dkulp)              Rendering: render threads waiting on overlapping models now sleep properly instead of
-                                 waking 100 times/second, reducing CPU/battery use while rendering large sequences
+
 2026.12  July 2, 2026
 
     -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives

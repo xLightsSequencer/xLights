@@ -14,6 +14,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <string>
 
 class Effect;
@@ -129,8 +130,10 @@ private:
     RenderTree _renderTree;
     std::list<RenderProgressInfo*> _renderProgressInfo;
     int _abortedRenderJobs = 0;
-    // Throttles CheckForStalledRender's per-job scan (platforms poll it from
-    // ~10ms loops).  Only touched from the platform's render-status thread.
+    // Watchdog bookkeeping.  _stallCheckLock serializes CheckForStalledRender:
+    // on iPad it is polled from more than one thread (main-actor timer plus
+    // background drain loops).  _lastStallCheck throttles the per-job scan.
+    std::mutex _stallCheckLock;
     std::chrono::steady_clock::time_point _lastStallCheck{};
 
     std::function<void()> _onRenderStatusTimerStart;

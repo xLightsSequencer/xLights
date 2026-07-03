@@ -241,6 +241,11 @@ public:
     {
         name = "";
         if (row != nullptr) {
+            // Hold ~ModelElement's guard open for this job's whole lifetime -
+            // queued, parked, suspended, or running (paired in CompleteJob /
+            // the destructor).
+            row->AttachRenderJob();
+            attachedToRow = true;
             name = row->GetModelName();
             mainBuffer = new PixelBufferClass(_ctx);
             numLayers = rowToRender->GetEffectLayerCount();
@@ -389,6 +394,10 @@ public:
         // row's raw pointers so a later render doesn't see a dangling job.
         if (rowToRender != nullptr) {
             rowToRender->AbandonRenderOwnership(this);
+            if (attachedToRow) {
+                rowToRender->DetachRenderJob();
+                attachedToRow = false;
+            }
         }
         if (mainBuffer != nullptr) {
             delete mainBuffer;
@@ -603,6 +612,24 @@ public:
         return frame - (ef->GetStartTimeMS() / frameTime);
     }
 
+    // Ground truth for touching seqData[frame], re-checked at output time:
+    // the frame-entry gate's answer can go stale because effect edits land
+    // without any lock this slice holds (effect add takes only the layer
+    // mutex, effect move takes none).  It also converts any future
+    // gate-coverage (superset) bug from a silent pixel race into a logged
+    // skip - the dirty range re-renders the frame properly afterwards.
+    bool CanOutputFrame(int frame) {
+        if ((int)GetPreviousFrameDone() >= frame) {
+            return true;
+        }
+        if (!gateMissWarned) {
+            gateMissWarned = true;
+            spdlog::warn("Render gate miss on {} frame {}: output produced on a frame the entry gate cleared as empty (concurrent effect edit, or a gate coverage bug). Output skipped; frame marked for re-render.", name, frame);
+        }
+        rowToRender->SetDirtyRange(frame * seqData->FrameTime(), (frame + 1) * seqData->FrameTime());
+        return false;
+    }
+
     bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false, const std::string& inheritedDuplicateSourceModel = std::string()) {
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
@@ -762,7 +789,7 @@ public:
                                 }
                             }
                         }
-                        if (doBlendLayer) {
+                        if (doBlendLayer && CanOutputFrame(frame)) {
                             buffer->SetColors(numLayers, &((*seqData)[frame][0]), seqData->NumChannels());
                             vl[numLayers] = true;
                             blend = false;
@@ -822,7 +849,7 @@ public:
             }
         }
 
-        if (effectsToUpdate) {
+        if (effectsToUpdate && CanOutputFrame(frame)) {
             SetCalOutputStatus(frame, info.submodel, strand, -1);
             for (int x = 0; x < (int)partOfCanvas.size(); x++) {
                 // if the layer was used for a canvas effect, we don't want it
@@ -856,12 +883,21 @@ public:
         return effectsToUpdate;
     }
 
-    std::atomic_int maxFrameBeforeCheck = -1;
-
     // Scheduling state for the suspend/requeue scheduler
     // (phase 3 of plans/render-scheduler.md).
     enum class SchedPhase { Setup, Frames, Finish, Done };
     enum class FrameResult { Continue, Suspend, Stop };
+
+    // Idempotent requeue: inPool is set while the job sits in the pool queue
+    // and cleared at slice entry, so concurrent wake paths (upstream FrameDone,
+    // owner handoff, abort, watchdog rescue) can all call this without ever
+    // double-queuing the job - only one of them wins the CAS.
+    void Requeue() {
+        bool expected = false;
+        if (inPool.compare_exchange_strong(expected, true)) {
+            _engine->RequeueJob(this);
+        }
+    }
 
     // Called by the upstream renderer/aggregator as it completes each frame.
     // If this job suspended waiting for that frame, hand it back to the pool
@@ -879,7 +915,7 @@ public:
             }
         }
         if (requeue) {
-            _engine->RequeueJob(this);
+            Requeue();
         }
     }
 
@@ -898,17 +934,28 @@ public:
         return true;
     }
 
+    // Watchdog/abort rescue.  Covers every threadless-idle state IsIdle()
+    // reports: a suspended job is requeued to re-check its frame, and a
+    // parked job is pulled from the row queue (or, if it was promoted but
+    // its handoff requeue was lost, requeued directly - the inPool CAS makes
+    // a duplicate wake harmless).  A false alarm just re-parks/re-suspends.
     void NudgeIfSuspended() override {
-        bool requeue = false;
+        bool wasSuspended = false;
+        bool wasParked = false;
         {
             std::unique_lock<std::mutex> lock(nextLock);
             if (suspended) {
                 suspended = false;
-                requeue = true;
+                wasSuspended = true;
+            } else if (parked) {
+                wasParked = true;
             }
         }
-        if (requeue) {
-            _engine->RequeueJob(this);
+        if (wasSuspended) {
+            Requeue();
+        } else if (wasParked) {
+            rowToRender->CancelParkedRenderJob(this);
+            Requeue();
         }
     }
 
@@ -1036,21 +1083,22 @@ public:
         // re-renders the whole overlap chain.
         if (abort ||
                 origChangeCount != rowToRender->getChangeCount() ||
-                (!HasNext() && rowToRender->GetWaitCount() > 1)) {
+                (!HasNext() && rowToRender->HasParkedRenderJobs())) {
             //we're bailing out but make sure this range is reconsidered
             rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
             return FrameResult::Stop;
         }
 
         // Single upstream gate: every dependency on upstream renderers is
-        // resolved here, before any of the frame's work, so everything below
-        // may read/write seqData[frame] freely.
-        if (frame >= maxFrameBeforeCheck && frame >= gateSkipUntilFrame && NeedsUpstreamFrame(frame)) {
+        // resolved here, before any of the frame's work.  ProcessFrame
+        // re-verifies previousFrameDone at its seqData touch points, because
+        // effect edits can land lock-free between this check and the effect
+        // lookup (and it backstops any gate-coverage gap).
+        if (frame > (int)GetPreviousFrameDone() && frame >= gateSkipUntilFrame && NeedsUpstreamFrame(frame)) {
             SetWaitingStatus(frame);
             if (trySuspendUntil(frame)) {
                 return FrameResult::Suspend;
             }
-            maxFrameBeforeCheck = (int)GetPreviousFrameDone();
             SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
 
@@ -1164,19 +1212,26 @@ public:
         CompleteJob();
     }
 
-    // Terminal transition - runs exactly once per job.  Hands the row to the
-    // next parked job (possibly from a newer render batch), then signals batch
-    // completion.  NotifyJobFinished must be the very last touch of any state:
-    // the thread that drops jobsRemaining to zero completes the batch and the
-    // main thread may delete this job any time after.
+    // Terminal transition.  Hands the row to the next parked job (possibly
+    // from a newer render batch), then signals batch completion.  Done is
+    // assigned only after the region that can throw (Requeue allocates), so
+    // Process()'s catch-all retries completion instead of stranding the
+    // batch; ReleaseRenderOwnership and the detach are idempotent across a
+    // retry.  NotifyJobFinished must be the very last touch of any state:
+    // the thread that drops jobsRemaining to zero completes the batch and
+    // the main thread may delete this job any time after.
     void CompleteJob() {
-        schedPhase = SchedPhase::Done;
         RenderEngine* engine = _engine;
         RenderProgressInfo* rpi = _rpi;
         void* next = rowToRender->ReleaseRenderOwnership(this);
         if (next != nullptr) {
-            engine->RequeueJob(static_cast<RenderJob*>(next));
+            static_cast<RenderJob*>(next)->Requeue();
         }
+        if (attachedToRow) {
+            rowToRender->DetachRenderJob();
+            attachedToRow = false;
+        }
+        schedPhase = SchedPhase::Done;
         engine->NotifyJobFinished(rpi);
     }
 
@@ -1207,6 +1262,16 @@ public:
     }
 
     void ProcessSlice() {
+        // Order matters: parked must clear before inPool does.  The watchdog's
+        // parked-rescue only requeues after winning the inPool CAS, so as long
+        // as inPool is still true while parked can be stale, a rescue racing
+        // this entry fails the CAS and can never double-run a live slice.
+        {
+            std::unique_lock<std::mutex> lock(nextLock);
+            parked = false;
+        }
+        inPool = false;
+
         if (schedPhase == SchedPhase::Setup) {
             auto logger_jobpool = spdlog::get("job");
             // Log the thread ID as a hash value
@@ -1214,12 +1279,6 @@ public:
             logger_jobpool->debug("Render job thread id {0:x} or {0:d}", tid);
 
             SetGenericStatus("Initializing rendering thread for {}", 0);
-
-            {
-                // rescheduled (owner handoff, cancel, or requeue) - no longer parked
-                std::unique_lock<std::mutex> lock(nextLock);
-                parked = false;
-            }
 
             if (abort) {
                 // Aborted before rendering started (possibly pulled out of the
@@ -1233,22 +1292,33 @@ public:
                 return;
             }
 
+            // All park bookkeeping happens BEFORE TryTakeRenderOwnership: the
+            // instant it publishes us in the row's queue, the owner (or an
+            // abort/rescue) can pop, requeue, run, and even complete+delete
+            // us - nothing may touch `this` after a false return.
+            auto parkLogger = m_logger;
+            {
+                std::unique_lock<std::mutex> lock(nextLock);
+                parked = true;
+            }
+            if (_rpi) {
+                ++_rpi->parkCount;
+            }
             if (!rowToRender->TryTakeRenderOwnership(this)) {
                 // an earlier job is rendering this row; we're parked and will be
                 // rescheduled when it completes - the thread goes back to the pool
-                m_logger->debug("Render job parked behind active render of row.");
-                {
-                    std::unique_lock<std::mutex> lock(nextLock);
-                    parked = true;
-                }
-                if (_rpi) {
-                    ++_rpi->parkCount;
-                }
+                parkLogger->debug("Render job parked behind active render of row.");
                 return;
             }
-            if (rowToRender->GetWaitCount() > 1 && !HasNext()) {
-                // waitCount counts us (the owner) too; > 1 means newer jobs for
-                // this model are parked - bail fast and let them handle this
+            {
+                std::unique_lock<std::mutex> lock(nextLock);
+                parked = false;
+            }
+            if (_rpi) {
+                --_rpi->parkCount;
+            }
+            if (rowToRender->HasParkedRenderJobs() && !HasNext()) {
+                // newer jobs for this model are parked, bail fast and let them handle this
                 m_logger->debug("Rendering thread exiting early.");
                 currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
                 CompleteJob();
@@ -1308,16 +1378,8 @@ public:
 
     void AbortRender() override {
         abort = true;
-        // A parked job holds no thread and would otherwise only wake when the
-        // row's current owner completes; pull it out of the queue and run it
-        // so it can do the END handshake and complete now.  The queue removal
-        // is atomic with the owner's handoff pop, so exactly one side requeues.
-        if (rowToRender != nullptr && rowToRender->CancelParkedRenderJob(this)) {
-            _engine->RequeueJob(this);
-            return;
-        }
-        // A suspended job holds no thread; requeue it so it can run its bail
-        // path (dirty range, END handshake, completion) promptly.
+        // Suspended and parked jobs hold no thread; wake them so they can run
+        // their bail path (dirty range, END handshake, completion) promptly.
         NudgeIfSuspended();
     }
 
@@ -1441,14 +1503,18 @@ private:
     int origChangeCount = 0;
 
     // Scheduling state.  suspended/wantFrame/parked are guarded by nextLock;
-    // the rest is only touched by the single thread running the current slice.
+    // inPool is its own atomic (see Requeue); the rest is only touched by the
+    // single thread running the current slice.
     SchedPhase schedPhase = SchedPhase::Setup;
     bool suspended = false;
     bool parked = false;
+    std::atomic<bool> inPool{true}; // jobs are born queued (Render() pushes them)
+    bool attachedToRow = false;
     int wantFrame = 0;
     int resumeFrame = 0;
     bool statesInitialized = false;
     bool endDelivered = false;
+    bool gateMissWarned = false;
     int gateSkipUntilFrame = 0;
     // Per-main-layer cursor into the (time-ordered) effect list for the
     // frame-entry gate; advances with the frame loop (see NeedsUpstreamFrame).
@@ -2193,13 +2259,22 @@ void RenderEngine::RequeueJob(Job* job) {
 }
 
 size_t RenderEngine::RecommendedPoolSize() {
-    size_t threads = std::thread::hardware_concurrency()
-                     + (size_t)GPURenderUtils::GetGPUEffectConcurrency() + 4;
-    return std::max<size_t>(8, threads);
+    size_t hw = std::thread::hardware_concurrency();
+    // Cap the GPU term: big-GPU Macs report 40-76 cores and the pool doesn't
+    // need one thread per GPU core to keep the queues full.
+    size_t gpu = std::min<size_t>((size_t)GPURenderUtils::GetGPUEffectConcurrency(), hw);
+    return std::max<size_t>(8, hw + gpu + 4);
 }
 
 void RenderEngine::CheckForStalledRender() {
     if (_renderProgressInfo.empty()) {
+        return;
+    }
+    // On iPad this is polled from more than one thread (main-actor timer plus
+    // background drain loops); serialize the watchdog bookkeeping and let a
+    // contended caller just skip - the 30s threshold doesn't need the sample.
+    std::unique_lock<std::mutex> lk(_stallCheckLock, std::try_to_lock);
+    if (!lk.owns_lock()) {
         return;
     }
     // The platforms poll this from ~10ms loops; the 30s stall threshold only
@@ -2238,7 +2313,7 @@ void RenderEngine::CheckForStalledRender() {
             rpi->lastProgressSum = sum;
             rpi->lastProgressTime = now;
         } else if (std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastProgressTime).count() >= 30) {
-            spdlog::error("Render batch made no progress for 30s with all jobs idle. Nudging suspended render jobs.");
+            spdlog::error("Render batch made no progress for 30s with all jobs idle. Rescheduling idle render jobs.");
             for (int i = 0; i < rpi->numRows; ++i) {
                 if (rpi->jobs[i]) {
                     rpi->jobs[i]->NudgeIfSuspended();

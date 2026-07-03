@@ -503,9 +503,17 @@ ModelElement::~ModelElement()
 {
     //make sure none of the render threads are rendering this model
     std::unique_lock<std::recursive_timed_mutex> lock(changeLock);
+    int waited = 0;
     while (waitCount > 0) {
         lock.unlock();
         std::this_thread::sleep_for(std::chrono::seconds(1));
+        if (++waited % 10 == 0) {
+            // The stall watchdog runs on the same (main) thread that is
+            // blocked here, so it cannot rescue a lost wake-up for us - at
+            // least make the wait visible instead of hanging silently.
+            spdlog::error("~ModelElement '{}' still waiting after {}s for {} render job(s) to detach.",
+                          GetModelName(), waited, (int)waitCount);
+        }
         lock.lock();
     }
     for (size_t x = 0; x < mStrands.size(); x++) {
@@ -534,10 +542,10 @@ void ModelElement::CleanupAfterRender() {
     Element::CleanupAfterRender();
 }
 
-// waitCount counts every job attached to the row - the owner plus each
-// parked job - so ~ModelElement's guard also covers an owner that is
-// suspended between slices (holding no lock).  A job promoted from parked
-// to owner keeps its single count.
+// Ownership state is independent of waitCount: jobs attach/detach for their
+// whole lifetime (Attach/DetachRenderJob), so a job canceled out of the park
+// queue - or not yet started - still holds ~ModelElement's guard open until
+// it truly completes.
 bool ModelElement::TryTakeRenderOwnership(void* job) {
     std::unique_lock<std::mutex> lock(renderOwnerLock);
     if (activeRenderJob == job) {
@@ -545,11 +553,9 @@ bool ModelElement::TryTakeRenderOwnership(void* job) {
     }
     if (activeRenderJob == nullptr) {
         activeRenderJob = job;
-        ++waitCount;
         return true;
     }
     pendingRenderJobs.push_back(job);
-    ++waitCount;
     return false;
 }
 
@@ -559,7 +565,6 @@ void* ModelElement::ReleaseRenderOwnership(void* job) {
         return nullptr;
     }
     activeRenderJob = nullptr;
-    --waitCount;
     if (pendingRenderJobs.empty()) {
         return nullptr;
     }
@@ -569,6 +574,11 @@ void* ModelElement::ReleaseRenderOwnership(void* job) {
     return next;
 }
 
+bool ModelElement::HasParkedRenderJobs() {
+    std::unique_lock<std::mutex> lock(renderOwnerLock);
+    return !pendingRenderJobs.empty();
+}
+
 bool ModelElement::CancelParkedRenderJob(void* job) {
     std::unique_lock<std::mutex> lock(renderOwnerLock);
     auto it = std::find(pendingRenderJobs.begin(), pendingRenderJobs.end(), job);
@@ -576,7 +586,6 @@ bool ModelElement::CancelParkedRenderJob(void* job) {
         return false;
     }
     pendingRenderJobs.erase(it);
-    --waitCount;
     return true;
 }
 
@@ -585,11 +594,9 @@ void ModelElement::AbandonRenderOwnership(void* job) {
     auto it = std::find(pendingRenderJobs.begin(), pendingRenderJobs.end(), job);
     if (it != pendingRenderJobs.end()) {
         pendingRenderJobs.erase(it);
-        --waitCount;
     }
     if (activeRenderJob == job) {
         activeRenderJob = nullptr;
-        --waitCount;
     }
 }
 
