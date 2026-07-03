@@ -2733,6 +2733,9 @@
     <ClInclude Include="..\src-core\effects\ispc\SpiralsFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\GalaxyFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\WarpFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -3060,6 +3063,9 @@
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\SpiralsFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\GalaxyFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc">

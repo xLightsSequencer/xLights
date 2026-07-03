@@ -125,6 +125,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalKaleidoscopeEffect(eff);
         case EffectManager::eff_FAN:
             return new MetalFanEffect(eff);
+        case EffectManager::eff_GALAXY:
+            return new MetalGalaxyEffect(eff);
         case EffectManager::eff_SPIRALS:
             return new MetalSpiralsEffect(eff);
         case EffectManager::eff_COLORWASH:

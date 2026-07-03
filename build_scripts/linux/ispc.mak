@@ -53,3 +53,6 @@ OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/CirclesFu
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/WarpFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/WarpFunctions.o
+
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/GalaxyFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/GalaxyFunctions.o

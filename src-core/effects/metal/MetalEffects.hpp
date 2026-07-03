@@ -11,6 +11,7 @@
 #include "../ColorWashEffect.h"
 #include "../BarsEffect.h"
 #include "../CirclesEffect.h"
+#include "../GalaxyEffect.h"
 #include "../ShaderEffect.h"
 
 class MetalButterflyEffectData;
@@ -127,6 +128,19 @@ public:
 
 private:
     MetalSpiralsEffectData *data;
+};
+
+class MetalGalaxyEffectData;
+
+class MetalGalaxyEffect : public GalaxyEffect {
+public:
+    MetalGalaxyEffect(int i);
+    virtual ~MetalGalaxyEffect();
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+private:
+    MetalGalaxyEffectData *data;
 };
 
 class MetalColorWashEffectData;

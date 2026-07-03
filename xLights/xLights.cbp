@@ -987,6 +987,10 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/SpiralsFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/GalaxyFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/GalaxyFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/CirclesFunctions.ispc">
 			<Option link="1" />
 		</Unit>

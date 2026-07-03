@@ -322,6 +322,42 @@ Place files in one of:
 Windows/Linux builds intentionally don't compile `src-iPad/` — new iPad files
 never need `.cbp`/`.vcxproj` entries.
 
+### ISPC kernels (`src-core/effects/ispc/*.ispc`) — extra steps
+
+A new SIMD kernel `FooFunctions.ispc` is **not** auto-discovered anywhere and is
+**gitignored** (`.gitignore`'s bare `ispc` pattern matches the whole `ispc/`
+dir). Every one of these is required:
+
+| File | What to add |
+|---|---|
+| the `.ispc` + generated `.ispc.h` | `git add -f` both (gitignored). Commit the `.ispc.h` (checked in; build regenerates + overwrites only on change). |
+| `macOS/xLights.xcodeproj/project.pbxproj` | Add `effects/ispc/FooFunctions.ispc,` to the `PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet` for the **`ISPCEffectComputeFunctions`** target. Not auto-discovered; missing it fails the x86_64 link (arm64 / static-lib iPad hide it). **`macOS/` is a git submodule** — commit there + bump the pointer. |
+| `build_scripts/linux/ispc.mak` | Add the `OBJ_LINUX_DEBUG +=` / `OBJ_LINUX_RELEASE += …/FooFunctions.o` pair. |
+| `xLights/xLights.cbp` | `<Unit>` for the `.ispc` (with `<Option link="1"/>`) and the `.ispc.h`. |
+| `xLights/Xlights.vcxproj` (+ `.filters`) | `<CustomBuild>` for the `.ispc` (copy an existing kernel's ispc.exe block) and `<ClInclude>` for the `.ispc.h`. |
+| CMake | Auto-globs `*.ispc` — no edit. |
+
+Generate the committed header with the same flags the build's header step uses:
+`ispc --target-os=macos --target=avx2-i32x16 --target=avx1-i32x16 --arch=x86_64
+-h Foo.ispc.h Foo.ispc`, then `sed -i '' '/.ispc.h/d' Foo.ispc.h`.
+
+### Metal kernels (`src-core/effects/metal/*.metal` + `Metal*Effect.mm`) — Apple only
+
+A GPU effect is a `.metal` shader + a `Metal<Foo>Effect.mm` wrapper that **subclasses**
+the CPU effect and overrides `Render` (fall back to the base `Render` when Metal
+isn't viable — no GPU, buffer < `metalBufferSizeThreshold`, or unsupported options).
+Neither file is gitignored (plain `git add`). Metal is Apple-only — **no** `.cbp`,
+`.vcxproj`, or `ispc.mak` edits.
+
+| Piece | What to do |
+|---|---|
+| `Foo.metal` | Compute kernel `kernel void FooEffect(constant MetalFooData&, device uchar4*, uint index)`. **Auto-compiled** into `EffectComputeFunctions.metallib` by the `EffectComputeFunctions` target (it syncs all of `src-core`, no per-file list). |
+| `MetalEffectDataTypes.h` | Add `MetalFooData` struct (shared by `.mm` and `.metal`). |
+| `MetalEffects.hpp` | Declare `class MetalFooEffect : public FooEffect` + `class MetalFooEffectData;`. |
+| `MetalFooEffect.mm` | Wrapper: `data->fn = FindComputeFunction("FooEffect")`, fill the struct, dispatch one thread/pixel. Auto-discovered by `xLights-core`. |
+| `MetalEffectManager.mm` | Add `case eff_FOO: return new MetalFooEffect(eff);` (the `#ifdef __APPLE__ CreateMetalEffect` factory). |
+| `macOS/.../project.pbxproj` | Add `effects/metal/FooFunctions.metal,` to the **`xLights-core`** target's membership-exception list (so xLights-core doesn't also compile it). Verify the symbol landed: `xcrun metal-nm .../EffectComputeFunctions.metallib \| grep FooEffect`. `macOS/` is a submodule. |
+
 ---
 
 ## 6. Code Conventions & Gotchas

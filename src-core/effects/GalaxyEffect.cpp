@@ -15,12 +15,16 @@
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
 #include "Parallel.h"
+#include "ispc/GalaxyFunctions.ispc.h"
 
 #include "../../include/galaxy-16.xpm"
 #include "../../include/galaxy-24.xpm"
 #include "../../include/galaxy-32.xpm"
 #include "../../include/galaxy-48.xpm"
 #include "../../include/galaxy-64.xpm"
+
+// Max palette colors the ISPC gather fast-path supports (matches MAX_GALAXY_COLORS in the kernel).
+static constexpr int MAX_GALAXY_ISPC_COLORS = 8;
 
 // Fallback defaults (used until OnMetadataLoaded replaces them with Galaxy.json values).
 int GalaxyEffect::sCenterXDefault = 50;
@@ -58,6 +62,7 @@ bool GalaxyEffect::sReverseDefault = false;
 bool GalaxyEffect::sBlendEdgesDefault = true;
 bool GalaxyEffect::sInwardDefault = false;
 bool GalaxyEffect::sScaleDefault = true;
+std::string GalaxyEffect::sRenderStyleDefault = "New Render Method";
 
 GalaxyEffect::GalaxyEffect(int id) : RenderableEffect(id, "Galaxy", galaxy_16, galaxy_24, galaxy_32, galaxy_48, galaxy_64)
 {
@@ -112,6 +117,7 @@ void GalaxyEffect::OnMetadataLoaded()
     // at its fallback value of false.
     sInwardDefault = GetBoolDefault("Galaxy_Inward", sInwardDefault);
     sScaleDefault = GetBoolDefault("Galaxy_Scale", sScaleDefault);
+    sRenderStyleDefault = GetStringDefault("Galaxy_RenderStyle", sRenderStyleDefault);
 }
 
 int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
@@ -150,7 +156,7 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
 }
 
 bool GalaxyEffect::needToAdjustSettings(const std::string& version) {
-    return IsVersionOlder("2025.04", version);
+    return IsVersionOlder("2026.13", version);
 }
 
 void GalaxyEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
@@ -163,6 +169,13 @@ void GalaxyEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
     if (IsVersionOlder("2025.04", version)) {
         settings["E_CHECKBOX_Galaxy_Scale"] = "0";
+    }
+    // Preserve the look of sequences that predate the render-style option: keep them on
+    // the original scatter renderer. New effects get the metadata default (New Render Method).
+    if (IsVersionOlder("2026.13", version)) {
+        if (!settings.Contains("E_CHOICE_Galaxy_RenderStyle")) {
+            settings["E_CHOICE_Galaxy_RenderStyle"] = "Old Render Method";
+        }
     }
 }
 
@@ -253,11 +266,6 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 
     if (revolutions == 0)
         return;
-    const int bufHt = buffer.BufferHt;
-    // Flat W*H scratch buffers (index = x*bufHt + y). A vector-of-vectors allocated
-    // BufferWi tiny inner vectors every frame - costly on wide buffers (2832x1 single line).
-    std::vector<double> temp_colors_pct(buffer.BufferWi * bufHt, 0.0);
-    std::vector<double> pixel_age(buffer.BufferWi * bufHt, 0.0);
 
     int num_colors = buffer.palette.Size();
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
@@ -297,6 +305,71 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int blendX1 = std::min(buffer.BufferWi, (int)std::ceil(pos_x + maxR));
     int blendY0 = std::max(0, (int)std::floor(pos_y - maxR));
     int blendY1 = std::min(buffer.BufferHt, (int)std::ceil(pos_y + maxR));
+
+    // "New Render Method": invert the spiral per-pixel with ISPC (each output pixel computed
+    // independently from its covering arms + rounded caps) instead of scatter-drawing it. Much
+    // faster on large 2D models and smoother (no grid black-hole at the center). The kernel
+    // handles all four blend/hard-edge x outward/inward combos; spatial palettes render flat
+    // (as the scalar path already does via GetColor). Only DMX buffers, palettes over 8 colors,
+    // and undersized sub-buffers fall through to the classic scatter. Existing sequences are
+    // migrated to "Old Render Method" so their look is unchanged. Only the galaxy bounding box
+    // is dispatched; uncovered pixels keep the buffer's cleared value.
+    const std::string& renderStyle = SettingsMap.Get("CHOICE_Galaxy_RenderStyle", sRenderStyleDefault);
+    size_t npix = (size_t)buffer.BufferWi * buffer.BufferHt;
+    if (renderStyle != "Old Render Method"
+        && !buffer.IsDmxBuffer()
+        && num_colors > 0 && num_colors <= MAX_GALAXY_ISPC_COLORS
+        && npix <= buffer.GetPixelCount()
+        && blendX1 > blendX0 && blendY1 > blendY0) {
+
+        ispc::GalaxyISPCData gd;
+        gd.width = buffer.BufferWi;
+        gd.height = buffer.BufferHt;
+        gd.pos_x = (float)pos_x;
+        gd.pos_y = (float)pos_y;
+        gd.radius1 = (float)radius1;
+        gd.radius2 = (float)radius2;
+        gd.width1 = (float)width1;
+        gd.width2 = (float)width2;
+        gd.revs = (float)revs;
+        gd.start_angle = (float)start_angle;
+        gd.reverse_dir = reverse_dir ? 1 : 0;
+        gd.inward = inward ? 1 : 0;
+        gd.blend_edges = blend_edges ? 1 : 0;
+        gd.head_end_of_tail = (float)head_end_of_tail;
+        gd.tail_end_of_tail = (float)tail_end_of_tail;
+        gd.color_length = (float)color_length;
+        gd.num_colors = num_colors;
+        for (int i = 0; i < MAX_GALAXY_ISPC_COLORS; i++) {
+            if (i < num_colors) {
+                xlColor c;
+                buffer.palette.GetColor(i, c);
+                gd.palR[i] = c.red; gd.palG[i] = c.green; gd.palB[i] = c.blue;
+            } else {
+                gd.palR[i] = gd.palG[i] = gd.palB[i] = 0;
+            }
+        }
+        xlColor* pixels = buffer.GetPixels();
+        int wi = buffer.BufferWi;
+        // Parallelize across box rows only when the box is big enough to cover the thread
+        // overhead; small galaxies dispatch single-threaded (faster than paying for a fan-out).
+        if ((size_t)(blendY1 - blendY0) * (blendX1 - blendX0) >= 20000) {
+            parallel_for(blendY0, blendY1, [&gd, pixels, wi, blendX0, blendX1](int y) {
+                ispc::GalaxyEffectISPC(&gd, y * wi + blendX0, y * wi + blendX1, (ispc::uint8_t4*)pixels);
+            });
+        } else {
+            for (int y = blendY0; y < blendY1; y++) {
+                ispc::GalaxyEffectISPC(&gd, y * wi + blendX0, y * wi + blendX1, (ispc::uint8_t4*)pixels);
+            }
+        }
+        return;
+    }
+
+    const int bufHt = buffer.BufferHt;
+    // Flat W*H scratch buffers (index = x*bufHt + y). A vector-of-vectors allocated
+    // BufferWi tiny inner vectors every frame - costly on wide buffers (2832x1 single line).
+    std::vector<double> temp_colors_pct(buffer.BufferWi * bufHt, 0.0);
+    std::vector<double> pixel_age(buffer.BufferWi * bufHt, 0.0);
 
     double half_width = 1;
 

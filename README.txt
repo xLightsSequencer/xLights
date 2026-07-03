@@ -17,6 +17,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Galaxy effect: blend passes now scan only the galaxy's bounding box instead of the
                                  whole buffer - up to ~5x faster on large 2D models (e.g. 800x600 groups) at typical
                                  sizing, with identical output
+    -enh (dkulp)                 Galaxy effect: new "Render Style" option - "New Render Method" (default for new
+                                 effects) computes each pixel independently (ISPC on CPU, Metal on GPU for large
+                                 buffers on macOS/iOS) for much faster rendering on large 2D models and a smoother
+                                 center (no grid gap); existing sequences are migrated to "Old Render Method" so their
+                                 look is unchanged
     -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
                                  waiting on overlapping models, cutting the render pool from hundreds of threads to
                                  roughly the CPU+GPU core count and reducing memory use on large sequences
