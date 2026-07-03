@@ -2123,15 +2123,16 @@ void RenderEngine::NotifyJobFinished(RenderProgressInfo* rpi) {
     if (rpi->jobsRemaining.fetch_sub(1) != 1) return;
 
     // Log before flipping `completed` - once it flips, the main-thread drain
-    // may delete rpi at any moment.
-    auto logger = spdlog::get("render");
-    if (logger) {
-        auto elapsedMS = std::chrono::duration_cast<std::chrono::milliseconds>(
-                             std::chrono::steady_clock::now() - rpi->startTime).count();
-        logger->debug("Render batch complete: {} jobs over frames {}-{}, {} suspensions, {} row parks, {}ms",
-                      rpi->totalJobs, rpi->startFrame, rpi->endFrame,
-                      rpi->suspendCount.load(), rpi->parkCount.load(), (long long)elapsedMS);
-    }
+    // may delete rpi at any moment.  User-initiated renders (Render All,
+    // batch render - the ones with a progress sink) log at info so the
+    // summary is visible at default log levels; the per-edit micro-batches
+    // only at debug to keep interactive editing from spamming the log.
+    auto elapsedMS = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::steady_clock::now() - rpi->startTime).count();
+    spdlog::log(rpi->progressSink ? spdlog::level::info : spdlog::level::debug,
+                "Render batch complete: {} jobs over frames {}-{}, {} suspensions, {} row parks, {}ms",
+                rpi->totalJobs, rpi->startFrame, rpi->endFrame,
+                rpi->suspendCount.load(), rpi->parkCount.load(), (long long)elapsedMS);
 
     bool expected = false;
     rpi->completed.compare_exchange_strong(expected, true);
