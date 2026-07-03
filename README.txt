@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -bug (dkulp)                 Galaxy effect: no longer takes a very long time to render on very wide/short buffers
+                                 (e.g. a "Single Line" render style) - the spiral now skips off-buffer work and hoists
+                                 per-angle trig out of the inner loop
     -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
                                  waiting on overlapping models, cutting the render pool from hundreds of threads to
                                  roughly the CPU+GPU core count and reducing memory use on large sequences
