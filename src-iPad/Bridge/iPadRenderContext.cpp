@@ -16,7 +16,6 @@
 #include "render/EffectLayer.h"
 #include "render/Effect.h"
 #include "render/FSEQFile.h"
-#include "render/GPURenderUtils.h"
 #include "render/IRenderJobStatus.h"
 #include "render/RenderProgressInfo.h"
 #include "render/SeqMediaMigration.h"
@@ -2040,12 +2039,9 @@ void iPadRenderContext::EnsureRenderEngine() {
         _jobPool = std::make_unique<JobPool>("RenderPool");
         // Render jobs suspend and requeue instead of blocking a thread while
         // they wait on overlapping models (plans/render-scheduler.md), so the
-        // pool needs to cover the CPU cores plus one per effect render that
-        // can be in flight on the GPU (those park their thread in
-        // waitForRenderCompletion, freeing the core), plus a little slack.
-        size_t hw = std::thread::hardware_concurrency();
-        size_t poolThreads = std::max<size_t>(6, hw + GPURenderUtils::GetGPUEffectConcurrency() + 2);
-        _jobPool->Start(poolThreads);
+        // pool only needs cpu + gpu + slack threads (see
+        // RenderEngine::RecommendedPoolSize).
+        _jobPool->Start(RenderEngine::RecommendedPoolSize());
     }
     if (!_renderEngine) {
         _renderEngine = std::make_unique<RenderEngine>(*this, *_jobPool, _renderCache);

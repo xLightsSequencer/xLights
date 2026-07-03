@@ -20,6 +20,17 @@ each batch logs jobs/suspensions/row-parks/elapsed on completion. Remaining
 follow-on (not scheduled): lazy PixelBuffer allocation at a job's first slice,
 released at Done, to cut peak render memory (§3).
 
+Second review round (2026-07): the owner is now counted in
+`ModelElement::waitCount` so `~ModelElement`'s teardown guard covers a
+suspended owner (bail checks compare `> 1`); `InitializeRenderStates`
+null-guards removed layers; the stall watchdog only fires when every
+unfinished job is idle (suspended/parked — a slow frame is not a stall) and
+throttles its scan to ~1s; the frame-entry gate computes the next covered
+frame on a miss so gap frames skip the layer locks entirely; a repeated
+`FrameDone(END)` from the exception safety net is guarded by an
+`endDelivered` flag; the aggregator's monotonic update is a CAS; pool sizing
+lives in `RenderEngine::RecommendedPoolSize()` shared by both apps.
+
 Post-review hardening (2026-07): per-frame change-count bail extended to
 downstream-having jobs + `ProcessFrame` layer-count clamp (structural edits
 during a suspension can no longer index stale per-layer state — the risk §5.1

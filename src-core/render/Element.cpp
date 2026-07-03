@@ -534,10 +534,18 @@ void ModelElement::CleanupAfterRender() {
     Element::CleanupAfterRender();
 }
 
+// waitCount counts every job attached to the row - the owner plus each
+// parked job - so ~ModelElement's guard also covers an owner that is
+// suspended between slices (holding no lock).  A job promoted from parked
+// to owner keeps its single count.
 bool ModelElement::TryTakeRenderOwnership(void* job) {
     std::unique_lock<std::mutex> lock(renderOwnerLock);
-    if (activeRenderJob == nullptr || activeRenderJob == job) {
+    if (activeRenderJob == job) {
+        return true;
+    }
+    if (activeRenderJob == nullptr) {
         activeRenderJob = job;
+        ++waitCount;
         return true;
     }
     pendingRenderJobs.push_back(job);
@@ -551,12 +559,12 @@ void* ModelElement::ReleaseRenderOwnership(void* job) {
         return nullptr;
     }
     activeRenderJob = nullptr;
+    --waitCount;
     if (pendingRenderJobs.empty()) {
         return nullptr;
     }
     void* next = pendingRenderJobs.front();
     pendingRenderJobs.pop_front();
-    --waitCount;
     activeRenderJob = next;
     return next;
 }
@@ -581,6 +589,7 @@ void ModelElement::AbandonRenderOwnership(void* job) {
     }
     if (activeRenderJob == job) {
         activeRenderJob = nullptr;
+        --waitCount;
     }
 }
 

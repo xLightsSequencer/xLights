@@ -160,9 +160,7 @@ public:
 
     virtual void setPreviousFrameDone(int frame) {
         if (max <= 1) {
-            if (frame > previousFrameDone) {
-                previousFrameDone = frame;
-            }
+            bumpPreviousFrameDone(frame);
             FrameDone(frame);
             return;
         }
@@ -176,14 +174,20 @@ public:
         }
         int i = data[idx].fetch_add(1);
         if (i == (max - 1)) {
-            if (frame > previousFrameDone) {
-                previousFrameDone = frame;
-            }
+            bumpPreviousFrameDone(frame);
             FrameDone(frame);
         }
     }
 
 private:
+    // Monotonic update without nextLock: relays for different frames can race
+    // on different upstream threads, so a plain store could regress the value.
+    void bumpPreviousFrameDone(int frame) {
+        int prev = previousFrameDone.load();
+        while (frame > prev && !previousFrameDone.compare_exchange_weak(prev, frame)) {
+        }
+    }
+
     std::vector<std::atomic_int> data;
     int max;
     const int finalFrame;
@@ -603,11 +607,10 @@ public:
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
         // Clamp to the layer count `info` (and the pixel buffer) were sized
-        // for at job creation: a layer appended while this job was suspended
-        // (the per-slice lock was released) must not push indexing past the
-        // per-layer vectors.  Appends don't bump the change count, so the
-        // frame-loop bail can't catch this case; the extra layer is picked up
-        // by the re-render scheduled when an effect lands on it.
+        // for at job creation.  A slice holds the row's changeLock, so layer
+        // geometry is frozen within a slice; cross-slice edits bump the change
+        // count and the frame-loop bail forces a re-render.  The clamp is the
+        // backstop for anything that mutates layers without the bail noticing.
         int numLayers = std::min((int)el->GetEffectLayerCount(), info.numLayers);
         const int effectiveNumLayers = !inheritedDuplicateSourceModel.empty() ? info.numLayers - 1 : numLayers;
 
@@ -909,6 +912,15 @@ public:
         }
     }
 
+    // True when the job holds no thread and is waiting to be rescheduled
+    // (suspended on an upstream frame, or parked behind the row's owner).
+    // The stall watchdog only fires on a batch whose unfinished jobs are all
+    // idle - a job actively rendering a slow frame is not a stall.
+    bool IsIdle() override {
+        std::unique_lock<std::mutex> lock(nextLock);
+        return suspended || parked;
+    }
+
     // Whether this frame can read or write seqData[frame] and therefore must
     // wait for upstream renderers first.  Must stay a superset of the output
     // paths: main-model output requires an effect covering the frame on a main
@@ -916,12 +928,15 @@ public:
     // waited on every frame).  Frames with no effects skip the gate so a row
     // with sparse coverage races through the gaps without trailing upstream.
     // gateEffectIdxs advances monotonically with the frame loop, so each
-    // effect list is scanned once per render, not once per frame.
+    // effect list is scanned once per render, not once per frame; on a false
+    // return, gateSkipUntilFrame records the next covered frame so the caller
+    // doesn't even re-enter (or re-lock the layers) during the gap.
     bool NeedsUpstreamFrame(int frame) {
         if (!subModelInfos.empty() || !nodeBuffers.empty()) {
             return true;
         }
         int time = frame * seqData->FrameTime();
+        int nextStartMS = INT_MAX;
         for (int layer = 0; layer < numLayers; ++layer) {
             EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
             if (elayer == nullptr) {
@@ -937,13 +952,18 @@ public:
             while (idx < cnt && elayer->GetEffect(idx)->GetEndTimeMS() <= time) {
                 ++idx;
             }
-            for (int e = idx; e < cnt; ++e) {
-                Effect *effect = elayer->GetEffect(e);
-                if (effect->GetStartTimeMS() <= time && effect->GetEndTimeMS() > time) {
+            if (idx < cnt) {
+                Effect *effect = elayer->GetEffect(idx);
+                if (effect->GetStartTimeMS() <= time) {
                     return true;
                 }
+                // effects are time-ordered; this is the layer's next coverage
+                nextStartMS = std::min(nextStartMS, effect->GetStartTimeMS());
             }
         }
+        gateSkipUntilFrame = (nextStartMS == INT_MAX)
+            ? INT_MAX
+            : (nextStartMS + seqData->FrameTime() - 1) / seqData->FrameTime();
         return false;
     }
 
@@ -983,6 +1003,13 @@ public:
         for (int layer = numLayers - 1; layer >= 0; --layer) {
             SetGenericStatus("Finding starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
             EffectLayer *elayer = rowToRender->GetEffectLayer(layer);
+            if (elayer == nullptr) {
+                // layer removed between job creation and first slice
+                mainModelInfo.currentEffects[layer] = nullptr;
+                initialize(layer, startFrame, nullptr, mainModelInfo.settingsMaps[layer], mainBuffer);
+                mainModelInfo.effectStates[layer] = true;
+                continue;
+            }
             std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
             mainModelInfo.currentEffects[layer] = findEffectForFrame(elayer, startFrame, mainModelInfo.currentEffectIdxs[layer]);
             SetGenericStatus("Initializing starting effect for {}, startFrame {}, and layer {} ", (int)startFrame, layer, false, true);
@@ -1009,7 +1036,7 @@ public:
         // re-renders the whole overlap chain.
         if (abort ||
                 origChangeCount != rowToRender->getChangeCount() ||
-                (!HasNext() && rowToRender->GetWaitCount())) {
+                (!HasNext() && rowToRender->GetWaitCount() > 1)) {
             //we're bailing out but make sure this range is reconsidered
             rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
             return FrameResult::Stop;
@@ -1018,7 +1045,7 @@ public:
         // Single upstream gate: every dependency on upstream renderers is
         // resolved here, before any of the frame's work, so everything below
         // may read/write seqData[frame] freely.
-        if (frame >= maxFrameBeforeCheck && NeedsUpstreamFrame(frame)) {
+        if (frame >= maxFrameBeforeCheck && frame >= gateSkipUntilFrame && NeedsUpstreamFrame(frame)) {
             SetWaitingStatus(frame);
             if (trySuspendUntil(frame)) {
                 return FrameResult::Suspend;
@@ -1124,6 +1151,7 @@ public:
             //let the next know we're done
             SetGenericStatus("{}: Notifying next renderer of final frame", 0, true);
             FrameDone(END_OF_RENDER_FRAME);
+            endDelivered = true;
             _engine->OnRenderJobComplete(rowToRender->GetModelName());
             SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
         } else {
@@ -1165,8 +1193,12 @@ public:
             m_logger->error("Caught an exception on rendering thread outside the frame loop.");
             spdlog::error("Caught an exception on rendering thread outside the frame loop.");
             if (schedPhase != SchedPhase::Done) {
-                if (HasNext()) {
+                // endDelivered guards against a throw AFTER FinishRender's
+                // FrameDone(END) - a second END would over-count an
+                // aggregator's fan-in slot and release downstream early.
+                if (HasNext() && !endDelivered) {
                     FrameDone(END_OF_RENDER_FRAME);
+                    endDelivered = true;
                 }
                 currentFrame = END_OF_RENDER_FRAME;
                 CompleteJob();
@@ -1182,6 +1214,12 @@ public:
             logger_jobpool->debug("Render job thread id {0:x} or {0:d}", tid);
 
             SetGenericStatus("Initializing rendering thread for {}", 0);
+
+            {
+                // rescheduled (owner handoff, cancel, or requeue) - no longer parked
+                std::unique_lock<std::mutex> lock(nextLock);
+                parked = false;
+            }
 
             if (abort) {
                 // Aborted before rendering started (possibly pulled out of the
@@ -1199,13 +1237,18 @@ public:
                 // an earlier job is rendering this row; we're parked and will be
                 // rescheduled when it completes - the thread goes back to the pool
                 m_logger->debug("Render job parked behind active render of row.");
+                {
+                    std::unique_lock<std::mutex> lock(nextLock);
+                    parked = true;
+                }
                 if (_rpi) {
                     ++_rpi->parkCount;
                 }
                 return;
             }
-            if (rowToRender->GetWaitCount() && !HasNext()) {
-                // newer jobs for this model are parked, bail fast and let them handle this
+            if (rowToRender->GetWaitCount() > 1 && !HasNext()) {
+                // waitCount counts us (the owner) too; > 1 means newer jobs for
+                // this model are parked - bail fast and let them handle this
                 m_logger->debug("Rendering thread exiting early.");
                 currentFrame = END_OF_RENDER_FRAME; // this is needed otherwise the job does not look done
                 CompleteJob();
@@ -1397,13 +1440,16 @@ private:
     std::map<SNPair, int> nodeEffectIdxs;
     int origChangeCount = 0;
 
-    // Scheduling state.  suspended/wantFrame are guarded by nextLock; the
-    // rest is only touched by the single thread running the current slice.
+    // Scheduling state.  suspended/wantFrame/parked are guarded by nextLock;
+    // the rest is only touched by the single thread running the current slice.
     SchedPhase schedPhase = SchedPhase::Setup;
     bool suspended = false;
+    bool parked = false;
     int wantFrame = 0;
     int resumeFrame = 0;
     bool statesInitialized = false;
+    bool endDelivered = false;
+    int gateSkipUntilFrame = 0;
     // Per-main-layer cursor into the (time-ordered) effect list for the
     // frame-entry gate; advances with the frame loop (see NeedsUpstreamFrame).
     std::vector<int> gateEffectIdxs;
@@ -2146,29 +2192,53 @@ void RenderEngine::RequeueJob(Job* job) {
     _jobPool.PushJob(job);
 }
 
+size_t RenderEngine::RecommendedPoolSize() {
+    size_t threads = std::thread::hardware_concurrency()
+                     + (size_t)GPURenderUtils::GetGPUEffectConcurrency() + 4;
+    return std::max<size_t>(8, threads);
+}
+
 void RenderEngine::CheckForStalledRender() {
     if (_renderProgressInfo.empty()) {
         return;
     }
-    // Per-batch, not gated on pool-wide idleness: another batch keeping the
-    // pool busy must not mask a batch whose wake-up was lost.  A spurious
-    // nudge is harmless - the job re-checks its frame and re-suspends.
+    // The platforms poll this from ~10ms loops; the 30s stall threshold only
+    // needs ~1s resolution, so skip the per-job scan most of the time.
     auto now = std::chrono::steady_clock::now();
+    if (now - _lastStallCheck < std::chrono::seconds(1)) {
+        return;
+    }
+    _lastStallCheck = now;
+
+    // Per-batch, not gated on pool-wide idleness: another batch keeping the
+    // pool busy must not mask a batch whose wake-up was lost.  A batch only
+    // counts as stalled when every unfinished job is idle (suspended/parked,
+    // holding no thread) - a job actively rendering a >30s frame is slow, not
+    // stalled.  A spurious nudge is harmless: the job re-checks and re-suspends.
     for (auto rpi : _renderProgressInfo) {
         if (rpi->completed.load()) {
             continue;
         }
         long long sum = 0;
+        bool anyUnfinished = false;
+        bool allUnfinishedIdle = true;
         for (int i = 0; i < rpi->numRows; ++i) {
             if (rpi->jobs[i]) {
-                sum += rpi->jobs[i]->GetCurrentFrame();
+                int cur = rpi->jobs[i]->GetCurrentFrame();
+                sum += cur;
+                if (cur != END_OF_RENDER_FRAME) {
+                    anyUnfinished = true;
+                    if (!rpi->jobs[i]->IsIdle()) {
+                        allUnfinishedIdle = false;
+                    }
+                }
             }
         }
-        if (sum != rpi->lastProgressSum) {
+        if (sum != rpi->lastProgressSum || !anyUnfinished || !allUnfinishedIdle) {
             rpi->lastProgressSum = sum;
             rpi->lastProgressTime = now;
         } else if (std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastProgressTime).count() >= 30) {
-            spdlog::error("Render batch made no progress for 30s. Nudging suspended render jobs.");
+            spdlog::error("Render batch made no progress for 30s with all jobs idle. Nudging suspended render jobs.");
             for (int i = 0; i < rpi->numRows; ++i) {
                 if (rpi->jobs[i]) {
                     rpi->jobs[i]->NudgeIfSuspended();

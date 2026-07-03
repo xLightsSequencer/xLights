@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <chrono>
 #include <functional>
 #include <list>
 #include <memory>
@@ -38,6 +39,12 @@ class RenderEngine {
 public:
     RenderEngine(RenderContext& ctx, JobPool& pool, RenderCache& cache);
     ~RenderEngine();
+
+    // Render-pool size for this machine: CPU cores + effect renders the GPU
+    // can have in flight (those park their thread in waitForRenderCompletion,
+    // freeing the core) + slack for render-cache I/O.  Shared by the desktop
+    // and iPad pool setup so the heuristic lives in one place.
+    static size_t RecommendedPoolSize();
 
     // ---- render tree ----
     void BuildRenderTree(SequenceElements& elements, unsigned int modelsChangeCount);
@@ -122,6 +129,9 @@ private:
     RenderTree _renderTree;
     std::list<RenderProgressInfo*> _renderProgressInfo;
     int _abortedRenderJobs = 0;
+    // Throttles CheckForStalledRender's per-job scan (platforms poll it from
+    // ~10ms loops).  Only touched from the platform's render-status thread.
+    std::chrono::steady_clock::time_point _lastStallCheck{};
 
     std::function<void()> _onRenderStatusTimerStart;
     std::function<void(const std::string&)> _onRenderJobComplete;

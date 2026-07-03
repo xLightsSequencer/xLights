@@ -282,8 +282,10 @@ class ModelElement : public Element
         virtual NodeLayer* GetNodeEffectLayer(int index) const override;
 
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
-        // Number of render jobs parked waiting for this row (maintained by
-        // Try/ReleaseRenderOwnership below).
+        // Number of render jobs attached to this row: the active owner plus
+        // every parked job (invariant: pendingRenderJobs.size() + (activeRenderJob != nullptr)).
+        // ~ModelElement spins on this, so it must cover an owner suspended
+        // between slices; a job asking "is anyone else waiting?" compares > 1.
         int GetWaitCount() const { return waitCount; }
 
         // Render-row ownership: at most one render job renders this row at a
