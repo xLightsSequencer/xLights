@@ -7240,6 +7240,24 @@ PreviewCamera* xLightsFrame::GetNamedCamera3D(const std::string& name)
     return viewpoint_mgr.GetNamedCamera3D(name);
 }
 
+void xLightsFrame::GetRenderPreviewSize(int& w, int& h) const
+{
+    // Window-independent aspect for the Per-Preview 3D projection: the virtual
+    // preview canvas (the show's previewWidth/previewHeight), NOT the live
+    // house-preview panel size — so renders are reproducible and match iPad /
+    // headless.
+    w = 1280;
+    h = 720;
+    if (IModelPreview* p = GetHousePreview()) {
+        int vw = p->GetVirtualCanvasWidth();
+        int vh = p->GetVirtualCanvasHeight();
+        if (vw > 0 && vh > 0) {
+            w = vw;
+            h = vh;
+        }
+    }
+}
+
 void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
 {
     GenerateLyricsDialog dlg(this, _seqData.NumChannels());

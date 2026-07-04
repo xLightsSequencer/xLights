@@ -1861,6 +1861,7 @@ public:
     void MarkRgbEffectsChanged() override { UnsavedRgbEffectsChanges = true; }
     IModelPreview* GetHousePreview() const override;
     PreviewCamera* GetNamedCamera3D(const std::string& name) override;
+    void GetRenderPreviewSize(int& w, int& h) const override;
 
     // Discovery helpers — consolidate controller discovery logic
     // Gather start addresses from OutputManager controllers + forced IPs from config
