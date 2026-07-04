@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -enh (charlie)               Effect Symbols: define a reusable effect (name, color, settings, palette) once and
+                                 link any number of effects to it. Editing a linked effect updates the symbol and
+                                 propagates to every other linked effect. Symbols round-trip through .xsq and have a
+                                 "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
     -bug (dkulp)                 Galaxy effect: no longer takes a very long time to render on very wide/short buffers
                                  (e.g. a "Single Line" render style) - the spiral now skips off-buffer work and hoists
                                  per-angle trig out of the inner loop

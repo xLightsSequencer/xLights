@@ -24,6 +24,9 @@
 
 #include "color/ColorManager.h"
 #include "render/Effect.h"
+#include "render/EffectSymbol.h"
+#include "render/EffectSymbolManager.h"
+#include "EffectSymbolDialog.h"
 #include "EffectDropTarget.h"
 #include "render/EffectLayer.h"
 #include "sequencer/EffectTimingDialog.h"
@@ -135,6 +138,9 @@ const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DUPLICATE_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_FILL_REGION = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_CREATE_SYMBOL = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_UNLINK_SYMBOL = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_LINK_SYMBOL_BASE = wxNewId();
 
 int findDataEffect::GetStrand() const {
     if (nl != nullptr) {
@@ -434,6 +440,11 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
     if (element == nullptr)
         spdlog::critical("EffectsGrid::rightClick No row element ... this is not going to end well.");
     if (element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+        int rightClickEffectIndex;
+        HitLocation rightClickHit;
+        int rightClickTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
+        _rightClickEffect = GetEffectAtRowAndTime(mSelectedRow, rightClickTimeMS, rightClickEffectIndex, rightClickHit);
+
         wxMenu mnuLayer;
         // Copy / Paste / Delete
         wxMenuItem* menu_cut = mnuLayer.Append(ID_GRID_MNU_CUT, "Cut");
@@ -563,6 +574,49 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
             if (mSequenceElements->GetCurrentView() != MASTER_VIEW) {
                 menu_effect_findeffect->Enable(false);
             }
+        }
+
+        // Effect Symbols
+        mnuLayer.AppendSeparator();
+        EffectSymbolManager& symbolManager = mSequenceElements->GetEffectSymbolManager();
+
+        Effect* symbolTargetEffect = _rightClickEffect != nullptr ? _rightClickEffect : mSelectedEffect;
+        bool hasEffectForSymbol = (symbolTargetEffect != nullptr) || MultipleEffectsSelected() || AtLeastOneEffectSelected();
+        bool hasSingleEffectForSymbol = (symbolTargetEffect != nullptr) && !MultipleEffectsSelected();
+
+        bool anyEffectLinkedToSymbol = false;
+        if (symbolTargetEffect != nullptr && symbolTargetEffect->IsLinkedToSymbol()) {
+            anyEffectLinkedToSymbol = true;
+        }
+        if (!anyEffectLinkedToSymbol) {
+            auto selectedEffects = GetSelectedEffects();
+            for (Effect* eff : selectedEffects) {
+                if (eff != nullptr && eff->IsLinkedToSymbol()) {
+                    anyEffectLinkedToSymbol = true;
+                    break;
+                }
+            }
+        }
+
+        wxMenuItem* menu_create_symbol = mnuLayer.Append(ID_GRID_MNU_CREATE_SYMBOL, "Create Symbol from Effect...");
+        menu_create_symbol->Enable(hasSingleEffectForSymbol);
+
+        if (anyEffectLinkedToSymbol) {
+            mnuLayer.Append(ID_GRID_MNU_UNLINK_SYMBOL, "Unlink from Symbol");
+        }
+
+        std::vector<EffectSymbol*> symbols = symbolManager.GetAllSymbols();
+        if (!symbols.empty()) {
+            wxMenu* mnuLinkSymbol = new wxMenu();
+            int symbolIndex = 0;
+            for (EffectSymbol* sym : symbols) {
+                wxString label = wxString::Format("%s (%s)", sym->GetName().c_str(), sym->GetEffectType().c_str());
+                mnuLinkSymbol->Append(ID_GRID_MNU_LINK_SYMBOL_BASE + symbolIndex, label);
+                symbolIndex++;
+            }
+            mnuLinkSymbol->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&EffectsGrid::OnGridPopup, nullptr, this);
+            wxMenuItem* linkSubmenu = mnuLayer.AppendSubMenu(mnuLinkSymbol, "Link to Symbol");
+            linkSubmenu->Enable(hasEffectForSymbol);
         }
 
         wxMenuItem* menu_effect_timing = mnuLayer.Append(ID_GRID_MNU_TIMING, "Timing");
@@ -1441,6 +1495,13 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
         AddShimmer();
     } else if (id == ID_GRID_MNU_REMOVE_SHIMMER) {
         RemoveShimmer();
+    } else if (id == ID_GRID_MNU_CREATE_SYMBOL) {
+        CreateSymbolFromEffect();
+    } else if (id == ID_GRID_MNU_UNLINK_SYMBOL) {
+        UnlinkEffectFromSymbol();
+    } else if (id >= ID_GRID_MNU_LINK_SYMBOL_BASE && id < ID_GRID_MNU_LINK_SYMBOL_BASE + 100) {
+        int symbolIndex = id - ID_GRID_MNU_LINK_SYMBOL_BASE;
+        LinkEffectToSymbol(symbolIndex);
     }
     Draw();
 }
@@ -6222,6 +6283,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                 if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString()) != nullptr && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                     xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
+                                ef->HandlePastedSymbolLink();
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             }
                         }
@@ -6302,6 +6364,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                             if (!is_timing_effect && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString()) != nullptr && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                 xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                             }
+                            ef->HandlePastedSymbolLink();
                             mSequenceElements->get_undo_mgr().CreateUndoStep();
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             if (!is_timing_effect) {
@@ -6390,6 +6453,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                 if (xlights->GetEffectManager().GetEffect(efdata[0].ToStdString()) != nullptr && xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->needToAdjustSettings(pasteDataVersion.ToStdString())) {
                                     xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
+                                ef->HandlePastedSymbolLink();
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                                 RaiseSelectedEffectChanged(ef, true);
                                 mSelectedEffect = ef;
@@ -7483,6 +7547,14 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                         }
                     }
                 }
+                if (e->IsLinkedToSymbol() && x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT) {
+                    float indicatorSize = 6.0f;
+                    xlColor symbolColor(0, 200, 255);
+                    backgrounds->AddVertex(x2 - indicatorSize, y1, symbolColor);
+                    backgrounds->AddVertex(x2, y1, symbolColor);
+                    backgrounds->AddVertex(x2, y1 + indicatorSize, symbolColor);
+                }
+
                 DrawFadeHints(e, x3, y1, x4, y2, backgrounds);
             }
             if ((mDragDropping || mPartialCellSelected) && mDropRow == row) {
@@ -8940,6 +9012,9 @@ void EffectsGrid::DuplicateSelectedEffects() {
                         }
                         if (!el->HasEffectsInTimeRange(newstart, newEnd)) {
                             Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
+                            if (newef != nullptr) {
+                                newef->HandlePastedSymbolLink();
+                            }
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
                     }
@@ -8958,6 +9033,9 @@ void EffectsGrid::DuplicateSelectedEffects() {
                     long newEnd = mTimeline->RoundToMultipleOfPeriod(newstart + length, mSequenceElements->GetFrequency());
                     if (!el->HasEffectsInTimeRange(newstart, newEnd)) {
                         Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
+                        if (newef != nullptr) {
+                            newef->HandlePastedSymbolLink();
+                        }
                         mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                     }
                     newstart = newEnd;
@@ -9126,4 +9204,122 @@ void EffectsGrid::FillRegionFromTimingMarks() {
 
     sendRenderDirtyEvent();
     ForceRefresh();
+}
+
+void EffectsGrid::CreateSymbolFromEffect()
+{
+    Effect* targetEffect = _rightClickEffect != nullptr ? _rightClickEffect : mSelectedEffect;
+    if (targetEffect == nullptr) {
+        return;
+    }
+
+    EffectSymbolManager& symbolMgr = mSequenceElements->GetEffectSymbolManager();
+
+    wxTextEntryDialog dlg(this, "Enter a name for the effect symbol:", "Create Effect Symbol",
+        xlights->GetEffectManager().GetEffectName(targetEffect->GetEffectIndex()) + " Symbol");
+
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    std::string symbolName = dlg.GetValue().ToStdString();
+    if (symbolName.empty()) {
+        wxMessageBox("Symbol name cannot be empty.", "Error", wxOK | wxICON_ERROR, this);
+        return;
+    }
+
+    if (symbolMgr.GetSymbolByName(symbolName) != nullptr) {
+        wxMessageBox("A symbol with this name already exists. Please choose a different name.",
+            "Error", wxOK | wxICON_ERROR, this);
+        return;
+    }
+
+    EffectSymbol* symbol = symbolMgr.CreateSymbol(symbolName, targetEffect);
+    if (symbol != nullptr) {
+        targetEffect->LinkToSymbol(symbol->GetId());
+        symbolMgr.RegisterLinkedEffect(targetEffect, symbol->GetId());
+
+        wxMessageBox(wxString::Format("Symbol '%s' created successfully.\nThe effect is now linked to this symbol.",
+            symbolName.c_str()), "Symbol Created", wxOK | wxICON_INFORMATION, this);
+    }
+}
+
+void EffectsGrid::UnlinkEffectFromSymbol()
+{
+    EffectSymbolManager& symbolMgr = mSequenceElements->GetEffectSymbolManager();
+
+    auto selectedEffects = GetSelectedEffects();
+
+    auto includeIfMissing = [&selectedEffects](Effect* candidate) {
+        if (candidate == nullptr) return;
+        for (const auto& ef : selectedEffects) {
+            if (ef == candidate) return;
+        }
+        selectedEffects.push_back(candidate);
+    };
+    includeIfMissing(mSelectedEffect);
+    includeIfMissing(_rightClickEffect);
+
+    for (Effect* effect : selectedEffects) {
+        if (effect != nullptr && effect->IsLinkedToSymbol()) {
+            symbolMgr.UnregisterLinkedEffect(effect);
+            effect->UnlinkFromSymbol();
+        }
+    }
+
+    sendRenderDirtyEvent();
+}
+
+void EffectsGrid::LinkEffectToSymbol(int symbolIndex)
+{
+    EffectSymbolManager& symbolMgr = mSequenceElements->GetEffectSymbolManager();
+    std::vector<EffectSymbol*> symbols = symbolMgr.GetAllSymbols();
+
+    if (symbolIndex < 0 || symbolIndex >= static_cast<int>(symbols.size())) {
+        return;
+    }
+
+    EffectSymbol* symbol = symbols[symbolIndex];
+    if (symbol == nullptr) {
+        return;
+    }
+
+    std::vector<Effect*> effectsToLink;
+
+    auto includeIfMissing = [&effectsToLink](Effect* candidate) {
+        if (candidate == nullptr) return;
+        for (Effect* existing : effectsToLink) {
+            if (existing == candidate) return;
+        }
+        effectsToLink.push_back(candidate);
+    };
+
+    if (_rightClickEffect != nullptr) {
+        effectsToLink.push_back(_rightClickEffect);
+    }
+
+    auto selectedEffects = GetSelectedEffects();
+    for (Effect* eff : selectedEffects) {
+        includeIfMissing(eff);
+    }
+
+    includeIfMissing(mSelectedEffect);
+
+    if (effectsToLink.empty()) {
+        return;
+    }
+
+    for (Effect* effect : effectsToLink) {
+        if (effect->IsLinkedToSymbol()) {
+            symbolMgr.UnregisterLinkedEffect(effect);
+            effect->UnlinkFromSymbol();
+        }
+
+        effect->ApplySymbolSettings(symbol);
+
+        effect->LinkToSymbol(symbol->GetId());
+        symbolMgr.RegisterLinkedEffect(effect, symbol->GetId());
+    }
+
+    sendRenderDirtyEvent();
 }

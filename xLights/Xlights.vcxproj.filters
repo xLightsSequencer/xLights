@@ -716,6 +716,15 @@
     <ClCompile Include="..\src-core\render\Effect.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\EffectSymbol.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\EffectSymbolManager.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\EffectSymbolDialog.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\sequencer\EffectDropTarget.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
@@ -2123,6 +2132,15 @@
     </ClInclude>
     <ClInclude Include="..\src-core\render\Effect.h">
       <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\EffectSymbol.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\EffectSymbolManager.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\EffectSymbolDialog.h">
+      <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\sequencer\EffectDropTarget.h">
       <Filter>sequencer</Filter>

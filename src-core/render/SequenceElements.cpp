@@ -80,6 +80,7 @@ void SequenceElements::Clear() {
     mRowInformation.clear();
     mSelectedRanges.clear();
     undo_mgr.Clear();
+    _effectSymbolManager.Clear();
     mSelectedTimingRow = -1;
     mTimingRowCount = 0;
     mFirstVisibleModelRow = 0;
@@ -701,8 +702,14 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     }
                 }
                 if (effectName != "Random") {
-                    effectLayer->AddEffect(id, effectName, settings, pal,
+                    Effect* newEffect = effectLayer->AddEffect(id, effectName, settings, pal,
                                            startTime, endTime, EFFECT_NOT_SELECTED, bProtected, false, importing);
+                    if (newEffect != nullptr && !effect.attribute("linkedSymbol").empty()) {
+                        std::string symbolId = effect.attribute("linkedSymbol").as_string("");
+                        if (!symbolId.empty() && _effectSymbolManager.SymbolExists(symbolId)) {
+                            newEffect->LinkToSymbol(symbolId);
+                        }
+                    }
                 } else {
                     spdlog::warn("Random effect not loaded on element {} layer {} ({:.2f}-{:.2f})", effectLayer->GetParentElement()->GetName(), effectLayer->GetLayerNumber(), startTime / 1000, endTime / 1000);
                 }
@@ -799,6 +806,8 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             mSongStructure.LoadFromXml(e);
         } else if (ename == "Jukebox") {
             LoadJukeboxButtons(e, xml_file.GetJukeboxButtons());
+        } else if (ename == "EffectSymbols") {
+            _effectSymbolManager.LoadFromXml(e);
         } else if (ename == "ElementEffects") {
             // Count effects for progress
             int count = 0;

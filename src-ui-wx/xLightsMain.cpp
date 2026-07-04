@@ -69,6 +69,9 @@
 #include "render/GPURenderUtils.h"
 #include "render/SequenceMedia.h"
 #include "render/SequencePackage.h"
+#include "render/EffectSymbol.h"
+#include "render/EffectSymbolManager.h"
+#include "EffectSymbolDialog.h"
 #include "shared/utils/wxUtilities.h"
 #include "graphics/wxTextDrawingContext.h"
 #ifdef LINUX
@@ -333,6 +336,8 @@ const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_PRESETS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_EFFECTSYMBOLS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_CONVERTSYMBOLS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_FINDDATA = wxNewId();
@@ -1088,6 +1093,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu3->AppendSeparator();
     MenuItem_ColorReplace = new wxMenuItem(Menu3, ID_MNU_COLOURREPLACE, _("Color Replace"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ColorReplace);
+    Menu3->AppendSeparator();
+    MenuItem_EffectSymbols = new wxMenuItem(Menu3, ID_MNU_EFFECTSYMBOLS, _("Effect Symbol Library..."), _("Manage reusable effect symbols"), wxITEM_NORMAL);
+    Menu3->Append(MenuItem_EffectSymbols);
+    MenuItem_ConvertSymbols = new wxMenuItem(Menu3, ID_MNU_CONVERTSYMBOLS, _("Convert All Symbols to Effects"), _("Unlink all effects from symbols for compatibility with older xLights versions"), wxITEM_NORMAL);
+    Menu3->Append(MenuItem_ConvertSymbols);
     MenuBar->Append(Menu3, _("&Edit"));
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
@@ -1409,6 +1419,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENU_GENERATE2DPATH, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_Generate2DPathSelected);
     Connect(ID_MENUITEM_GenerateCustomModel, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(ID_MNU_REMAPCUSTOM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_RemapCustomSelected);
+    Connect(ID_MNU_EFFECTSYMBOLS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_EffectSymbolsSelected);
+    Connect(ID_MNU_CONVERTSYMBOLS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ConvertSymbolsSelected);
     Connect(ID_MENUITEM_GenerateAIImage, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateAIImageSelected);
     Connect(ID_MNU_GENERATELYRICS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
     Connect(ID_MENUITEM_CONVERT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
@@ -6092,9 +6104,116 @@ void xLightsFrame::OnMenuItemHinksPixExportSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
+static std::string ConvertSymbolsForPackage(const std::string& sourcefile)
+{
+    std::string newfile = wxFileName::CreateTempFileName("xsq").ToStdString();
+
+    wxFile in(sourcefile);
+    wxString data;
+    in.ReadAll(&data);
+    in.Close();
+
+    int symbolsStart = data.Find("<EffectSymbols>");
+    int symbolsEnd = data.Find("</EffectSymbols>");
+    if (symbolsStart != wxNOT_FOUND && symbolsEnd != wxNOT_FOUND) {
+        symbolsEnd += 16;
+        if (symbolsEnd < (int)data.Length() && (data[symbolsEnd] == '\n' || data[symbolsEnd] == '\r')) {
+            symbolsEnd++;
+            if (symbolsEnd < (int)data.Length() && (data[symbolsEnd] == '\n' || data[symbolsEnd] == '\r')) {
+                symbolsEnd++;
+            }
+        }
+        data = data.substr(0, symbolsStart) + data.substr(symbolsEnd);
+    }
+
+    wxString result;
+    size_t pos = 0;
+    const wxString attrPrefix("linkedSymbol=\"");
+    while (pos < data.Length()) {
+        int attrStart = data.find(attrPrefix, pos);
+        if (attrStart == wxNOT_FOUND) {
+            result += data.substr(pos);
+            break;
+        }
+        result += data.substr(pos, attrStart - pos);
+        int valueStart = attrStart + attrPrefix.Length();
+        int valueEnd = data.find("\"", valueStart);
+        if (valueEnd != wxNOT_FOUND) {
+            pos = valueEnd + 1;
+            if (pos < data.Length() && data[pos] == ' ') {
+                pos++;
+            }
+        } else {
+            pos = valueStart;
+        }
+    }
+    data = result;
+
+    wxFile out(newfile, wxFile::write);
+    out.Write(data);
+    out.Close();
+
+    return newfile;
+}
+
 void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 {
     PackageSequence();
+}
+
+void xLightsFrame::OnMenuItem_EffectSymbolsSelected(wxCommandEvent& event)
+{
+    EffectSymbolDialog dlg(this, &_sequenceElements);
+    dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItem_ConvertSymbolsSelected(wxCommandEvent& event)
+{
+    if (CurrentSeqXmlFile == nullptr) {
+        wxMessageBox("Please open a sequence first.", "No Sequence", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    EffectSymbolManager& symbolMgr = _sequenceElements.GetEffectSymbolManager();
+    std::vector<EffectSymbol*> symbols = symbolMgr.GetAllSymbols();
+
+    if (symbols.empty()) {
+        wxMessageBox("There are no effect symbols in this sequence.", "No Symbols", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    int linkedCount = 0;
+    for (const auto& symbol : symbols) {
+        linkedCount += symbolMgr.GetLinkedEffects(symbol->GetId()).size();
+    }
+
+    wxString message = wxString::Format(
+        "This will convert %d symbol-linked effect(s) to regular effects and remove %d symbol(s).\n\n"
+        "This is useful when sharing sequences with users running older versions of xLights.\n\n"
+        "Do you want to continue?",
+        linkedCount, (int)symbols.size());
+
+    if (wxMessageBox(message, "Convert Symbols to Effects", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+        return;
+    }
+
+    for (const auto& symbol : symbols) {
+        std::vector<Effect*> linkedEffects = symbolMgr.GetLinkedEffects(symbol->GetId());
+        for (Effect* effect : linkedEffects) {
+            if (effect != nullptr) {
+                effect->UnlinkFromSymbol();
+            }
+        }
+    }
+
+    symbolMgr.Clear();
+
+    _sequenceElements.IncrementChangeCount(nullptr);
+
+    mainSequencer->PanelEffectGrid->Refresh();
+
+    wxMessageBox(wxString::Format("Converted %d effect(s) and removed %d symbol(s).", linkedCount, (int)symbols.size()),
+                 "Conversion Complete", wxOK | wxICON_INFORMATION, this);
 }
 
 std::string xLightsFrame::PackageSequence(bool showDialogs)
@@ -6109,12 +6228,23 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     wxString filename = fn.GetName() + ".xsqz";
     wxString filePath = fn.GetPath() + wxFileName::GetPathSeparator() + filename;
 
+    bool convertSymbols = false;
     if (showDialogs) {
         wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip;*.xsqz)|*.xsqz;*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (fd.ShowModal() == wxID_CANCEL) {
             return "";
         }
         filePath = fd.GetPath();
+
+        if (_sequenceElements.GetEffectSymbolManager().GetSymbolCount() > 0) {
+            int result = wxMessageBox(
+                "This sequence contains effect symbols which may not be compatible with older xLights versions.\n\n"
+                "Would you like to convert symbols to regular effects for the packaged sequence?\n\n"
+                "Note: Your original sequence will not be modified.",
+                "Effect Symbols Detected",
+                wxYES_NO | wxICON_QUESTION, this);
+            convertSymbols = (result == wxYES);
+        }
     }
     // make sure everything is up to date
     if (Notebook1->GetSelection() != LAYOUTTAB) {
@@ -6157,11 +6287,20 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     opts.excludeAudio  = _excludeAudioFromPackagedSequences;
     opts.excludeVideos = _excludeVideosFromPackagedSequences;
 
+    std::string seqXmlPath = CurrentSeqXmlFile->GetFullPath();
+    std::string convertedTmp;
+    if (convertSymbols) {
+        convertedTmp = ConvertSymbolsForPackage(seqXmlPath);
+        if (!convertedTmp.empty()) {
+            seqXmlPath = convertedTmp;
+        }
+    }
+
     std::vector<std::string> packWarnings;
     bool ok = SequencePackage::Pack(
         std::filesystem::path(filePath.ToStdString()),
         CurrentDir.ToStdString(),
-        CurrentSeqXmlFile->GetFullPath(),
+        seqXmlPath,
         CurrentSeqXmlFile->GetMediaFile(),
         altAudio,
         extras,
@@ -6177,6 +6316,10 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         });
 
     prog.Update(100);
+
+    if (!convertedTmp.empty()) {
+        ::wxRemoveFile(convertedTmp);
+    }
 
     if (!ok) {
         spdlog::warn("Error packaging sequence into {}.", (const char*)filePath.c_str());

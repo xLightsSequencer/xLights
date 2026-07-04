@@ -422,6 +422,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/xLightsApp.cpp
     src-ui-wx/xLightsMain.cpp
     src-ui-wx/CommandPaletteDialog.cpp
+    src-ui-wx/EffectSymbolDialog.cpp
     src-ui-wx/ai/*.cpp
     src-ui-wx/app-shell/*.cpp
     src-ui-wx/automation/*.cpp
