@@ -640,10 +640,6 @@ xLightsFrame *xLightsFrame::GetFrame() {
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
     _presetSequenceElements(this),
     _renderMode(renderOnlyMode),
-    jobPool("RenderPool"),
-    _sequenceElements(this),
-    AllModels(&_outputManager, static_cast<RenderContext*>(this)),
-    AllObjects(static_cast<RenderContext*>(this)),
     color_mgr(this)
 {
     
@@ -7233,11 +7229,6 @@ std::vector<std::string> xLightsFrame::GetLayoutGroupNames() const {
 IModelPreview* xLightsFrame::GetHousePreview() const
 {
     return _housePreviewPanel->GetModelPreview();
-}
-
-PreviewCamera* xLightsFrame::GetNamedCamera3D(const std::string& name)
-{
-    return viewpoint_mgr.GetNamedCamera3D(name);
 }
 
 void xLightsFrame::GetRenderPreviewSize(int& w, int& h) const
