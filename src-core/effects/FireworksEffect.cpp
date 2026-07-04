@@ -421,7 +421,7 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         else
         {
             // Load the names of the timing tracks
-            EffectLayer* el = GetTiming(timing);
+            EffectLayer* el = GetTiming(timing, GetSequenceElements(buffer));
 
             if (el == nullptr)
             {

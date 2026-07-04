@@ -210,7 +210,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     // - Face chosen or specific phoneme
     if (phoneme == "" && timing == "") {
         res.push_back(fmt::format("    ERR: Face effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (timing != "" && GetTiming(timing) == nullptr) {
+    } else if (timing != "" && GetTiming(timing, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()) == nullptr) {
         res.push_back(fmt::format("    ERR: Face effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 

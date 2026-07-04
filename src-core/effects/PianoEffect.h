@@ -62,7 +62,7 @@ private:
     bool IsSharp(float f);
     bool KeyDown(std::list<std::pair<float, float>>* pdata, int ch);
     float GetKeyBrightness(std::list<std::pair<float, float>>* pdata, int ch);
-    std::map<int, std::list<std::pair<float, float>>> LoadTimingTrack(const std::string& track, int intervalMS, bool fadeNotes);
+    std::map<int, std::list<std::pair<float, float>>> LoadTimingTrack(const std::string& track, int intervalMS, bool fadeNotes, SequenceElements* seqEl);
     std::list<std::string> ExtractNotes(const std::string& label);
     int ConvertNote(const std::string& note);
 };

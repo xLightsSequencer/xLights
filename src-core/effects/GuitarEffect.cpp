@@ -648,7 +648,7 @@ std::list<std::string> GuitarEffect::CheckEffectSettings(const SettingsMap& sett
     }
     else
     {
-        std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar", 100, 6);
+        std::list<NoteTiming*> timings = LoadTimingTrack(settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), 50, "Guitar", 100, 6, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements());
         if (timings.size() == 0)
         {
             res.push_back(fmt::format("    ERR: Guitar effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Guitar_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
@@ -826,7 +826,7 @@ void GuitarEffect::RenderGuitar(RenderBuffer& buffer, SequenceElements* elements
         buffer.needToInit = false;
         if (_MIDITrack != MIDITrack) {
             cache->ClearTimings();
-            auto notes = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs, type, maxFrets, strings);
+            auto notes = LoadTimingTrack(MIDITrack, buffer.frameTimeInMs, type, maxFrets, strings, elements);
             cache->SetTimings(notes, type, maxFrets);
             elements->AddRenderDependency(MIDITrack, buffer.cur_model);
 
@@ -1160,19 +1160,19 @@ int GuitarEffect::ConvertNote(const std::string& note)
     return number;
 }
 
-std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings)
+std::list<NoteTiming*> GuitarEffect::LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings, SequenceElements* seqEl)
 {
     std::list<NoteTiming*> res;
 
     spdlog::debug("Loading timings from timing track " + track);
 
-    if (GetSequenceElements() == nullptr) {
+    if (seqEl == nullptr) {
         spdlog::debug("No timing tracks found.");
         return res;
     }
 
     // Load the names of the timing tracks
-    EffectLayer* el = GetTiming(track);
+    EffectLayer* el = GetTiming(track, seqEl);
 
     if (el == nullptr) {
         spdlog::debug("Timing track not found.");

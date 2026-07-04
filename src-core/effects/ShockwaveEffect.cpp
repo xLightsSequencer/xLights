@@ -102,7 +102,7 @@ int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x
 {
     std::string timingtrack = e->GetSettings().Get("E_CHOICE_Shockwave_TimingTrack", "");
     if (!timingtrack.empty()) {
-        EffectLayer* el = GetTiming(timingtrack);
+        EffectLayer* el = GetTiming(timingtrack, e->GetParentEffectLayer()->GetParentElement()->GetSequenceElements());
         if (el) {            
             int effectStartMs = (int)e->GetStartTimeMS();
             int effectEndMs = (int)e->GetEndTimeMS();
@@ -167,7 +167,7 @@ void ShockwaveEffect::RenameTimingTrack(std::string oldname, std::string newname
 }
 
 double ShockwaveEffect::getEffectPosition(RenderBuffer& buffer, const SettingsMap& SettingsMap, const std::string &timingtrack) {
-    EffectLayer* el = GetTiming(timingtrack);
+    EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
     int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
     if (cycles < 1) cycles = 1;
 

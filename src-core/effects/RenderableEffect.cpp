@@ -412,12 +412,10 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const S
     return res;
 }
 
-EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
+EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack, SequenceElements* seqEl) const
 {
-    if (timingtrack == "") return nullptr;
+    if (timingtrack == "" || seqEl == nullptr) return nullptr;
 
-    auto* seqEl = GetSequenceElements();
-    if (!seqEl) return nullptr;
     for (int i = 0; i < (int)seqEl->GetElementCount(); i++) {
         Element* e = seqEl->GetElement(i);
         if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack) {
@@ -456,7 +454,8 @@ std::string RenderableEffect::GetTimingTracks(const int max, const int equals) c
 
 Effect* RenderableEffect::GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const
 {
-    EffectLayer* el = GetTiming(timingtrack);
+    SequenceElements* seqEl = buffer.renderContext ? &buffer.renderContext->GetSequenceElements() : nullptr;
+    EffectLayer* el = GetTiming(timingtrack, seqEl);
 
     if (el == nullptr) return nullptr;
 

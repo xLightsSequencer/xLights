@@ -820,7 +820,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             {
                 auto timingtrack = SettingsMap.Get(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TIMING), "");
 
-                EffectLayer* el = GetTiming(timingtrack);
+                EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
 
                 bool b = false;
                 if (el != nullptr) {
