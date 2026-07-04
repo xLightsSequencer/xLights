@@ -107,6 +107,7 @@
 | Sketch: background image + opacity | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad SketchBackgroundRowView. |
 | Sketch: info block (counters) | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad SketchInfoRowView. |
 | Sketch: raw SketchDef field | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad SketchDefRowView (accepts desktop-generated defs incl. curves). |
+| Single Strand: timing-track chase cycles (#4771) | panel+render | ✅ | ✅ | parity | P2 | n/a | feasible | `SingleStrand_TimingTrack` choice added to `resources/effectmetadata/SingleStrand.json` (shared) — UI auto-appears on iPad via metadata-driven panel. Render logic in `src-core/effects/SingleStrandEffect.cpp` (`GetTimingEvent`, `RenameTimingTrack`) — auto-shared. `GetSequenceElements(buffer)` routes through `iPadRenderContext::GetSequenceElements()` so timing lookups work on iPad. No bridge or SwiftUI work needed. |
 | State: state vs timing-track selector | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad StateStateSourceRowView. |
 | Text: font picker (XL font) | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad TextFontXLRowView. |
 | Text: load text from file | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad Text_File_Row. |

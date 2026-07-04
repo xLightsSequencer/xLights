@@ -382,7 +382,12 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
             }
 
             for (const auto& it : Nodes) {
-                for (const auto& coord : it.get()->Coords) {
+                // A freshly-placed model can have default-constructed (null) Node
+                // slots before its nodes are populated; same guard as DisplayModelOnWindow.
+                if (!it) {
+                    continue;
+                }
+                for (const auto& coord : it->Coords) {
 
                     float sx = coord.screenX;
                     float sy = coord.screenY;
@@ -419,7 +424,12 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
             aabb_min.z = 0.0f;
             aabb_max.z = 0.0f;
             for (const auto& it : Nodes) {
-                for (const auto& coord : it.get()->Coords) {
+                // A freshly-placed model can have default-constructed (null) Node
+                // slots before its nodes are populated; same guard as DisplayModelOnWindow.
+                if (!it) {
+                    continue;
+                }
+                for (const auto& coord : it->Coords) {
 
                     float sx = coord.screenX;
                     float sy = coord.screenY;

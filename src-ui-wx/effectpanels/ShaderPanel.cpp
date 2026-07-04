@@ -474,6 +474,8 @@ void ShaderPanel::BuildDynamicUI() {
     BuildPropertiesIntoSizer(parentWin, _dynamicSizer,
                              _shaderConfig->GetDynamicPropertiesJson(),
                              dynamicCols);
+
+    AddListeners(parentWin);
 }
 
 void ShaderPanel::ValidateWindow() {

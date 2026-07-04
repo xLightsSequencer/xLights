@@ -187,7 +187,12 @@ protected:
     double GetValueCurveDouble(const std::string& name, double def, const SettingsMap& SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveInt(const std::string& name, int def, const SettingsMap& SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveIntMax(const std::string& name, int def, const SettingsMap& SettingsMap, int min, int max, int divisor = 1);
-    EffectLayer* GetTiming(const std::string& timingtrack) const;
+    // Resolve a timing track's mark layer from the given sequence elements.
+    // Callers pass the elements from their context: GetSequenceElements(buffer)
+    // in a render, or eff->GetParentEffectLayer()->GetParentElement()->
+    // GetSequenceElements() in a UI/check path — never a cached member, so this
+    // works off the desktop (headless / iPad) too.
+    EffectLayer* GetTiming(const std::string& timingtrack, SequenceElements* seqEl) const;
     Effect* GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const;
     std::string GetTimingTracks(const int maxLayers = 0, const int absoluteLayers = 0) const;
     bool IsVersionOlder(const std::string& compare, const std::string& version);

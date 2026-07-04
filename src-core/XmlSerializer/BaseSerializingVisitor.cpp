@@ -706,6 +706,9 @@ void BaseSerializingVisitor::Visit(const CubeModel& model) {
     attrs.Add(XmlNodeKeys::CubeStringsAttribute,    std::to_string(model.GetCubeStrings()));
     attrs.Add(XmlNodeKeys::StrandPerLineAttribute,  model.GetStrandStyle());
     attrs.Add(XmlNodeKeys::StrandPerLayerAttribute, model.IsStrandPerLayer() ? "TRUE" : "FALSE");
+    attrs.Add(XmlNodeKeys::CubeShapeAttribute,     std::to_string(model.GetCubeShape()));
+    attrs.Add(XmlNodeKeys::CubeHollowAttribute,    std::to_string(model.GetHollowPct()));
+    attrs.Add(XmlNodeKeys::CubeRowOffsetAttribute, std::to_string(model.GetRowOffset()));
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));

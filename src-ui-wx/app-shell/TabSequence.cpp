@@ -996,6 +996,7 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
 
     RenameModelInViews(OldName, NewName);
     _sequenceElements.RenameModelInViews(OldName, NewName);
+    displayElementsPanel->UpdateModelsForSelectedView();
 
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
@@ -1533,7 +1534,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), xlightsFilename, elapsedTime);
-            spdlog::info("{}", (const char*)displayBuff.c_str());
+            spdlog::info("{}", displayBuff.utf8_string());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             mSavedChangeCount = _sequenceElements.GetChangeCount();
             mLastAutosaveCount = mSavedChangeCount;
@@ -1666,12 +1667,20 @@ void xLightsFrame::SaveSequence()
             spdlog::info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
 
             //need to abort any render going on in order to change the SeqData size
-            AbortRender();
+            // AbortRender is best-effort and returns false if it times out (e.g. a
+            // render job wedged in a video decode). Reinitialising seqData while a job
+            // is still live frees the channel blocks out from under it -> use-after-free
+            // in GetColors/SetColors (crash sig 25e8b06bcc / a14ee11b9c). Only resize
+            // once the renders are confirmed stopped, matching the guarded pattern in
+            // xLightsMain.cpp (RenderTree rebuild path).
+            if (AbortRender()) {
+                wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+                int ms = wxAtoi(mss);
 
-            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-            int ms = wxAtoi(mss);
-
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            } else {
+                spdlog::error("Render on Save: could not abort the in-flight render; skipping the seqData resize to avoid a use-after-free.");
+            }
         }
 
         ProgressBar->Show();
@@ -1700,7 +1709,7 @@ void xLightsFrame::SaveSequence()
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
-            spdlog::info(displayBuff.ToStdString());
+            spdlog::info("{}", displayBuff.utf8_string());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             EnableSequenceControls(true);
             mSavedChangeCount = _sequenceElements.GetChangeCount();
@@ -1721,7 +1730,7 @@ void xLightsFrame::SaveSequence()
     }
     float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), display_name, elapsedTime);
-    spdlog::info(displayBuff.ToStdString());
+    spdlog::info("{}", displayBuff.utf8_string());
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = _sequenceElements.GetChangeCount();
@@ -1734,8 +1743,14 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
         return;
 
     if (_seqData.FrameTime() != (unsigned int)timingMS) {
-        AbortRender();
-        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+        // Only resize seqData once renders are confirmed stopped; a bare AbortRender()
+        // can time out and reinitialising under a live job is a use-after-free
+        // (crash sig 25e8b06bcc / a14ee11b9c). See the render-on-save path above.
+        if (AbortRender()) {
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+        } else {
+            spdlog::error("SetSequenceTiming: could not abort the in-flight render; deferring the seqData reinit to avoid a use-after-free.");
+        }
     }
 }
 

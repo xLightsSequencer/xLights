@@ -42,6 +42,11 @@ ispc-*
 ispc
 xLights/xLights.VC.db
 lib/linux/libliquidfun.a
+# KLightMapper desktop scan library — fetched, not committed (ci_scripts/fetch_klightmapper.*).
+# bin64/klightmapper.dll is already covered by bin64/*.dll above.
+lib/linux/libklightmapper.so
+lib/windows64/klightmapper.lib
+include/klightmapper/
 *.opensdf
 *.cbp.mak.orig
 ._*

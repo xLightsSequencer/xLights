@@ -362,6 +362,9 @@ void DumpConfig()
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
     spdlog::info("  OS: {} {}.{}", (const char*)DecodeOS(o).c_str(), verMaj, verMin);
+#ifdef USE_GLES
+    spdlog::info("  Graphics backend: ANGLE (OpenGL ES / Direct3D)");
+#endif
     if (wxIsPlatform64Bit())
     {
         spdlog::info("      64 bit");
@@ -626,6 +629,10 @@ bool xLightsApp::OnInit()
     GetResourcesDirectory(); // bootstrap GetResourcesDir() with wx-dependent path lookup
     InitializeXLightsConfig();
     DumpConfig();
+
+    // Point VAMP_PATH at the per-user plugin dir + standard location before any
+    // Vamp plugin is loaded (xLights doesn't bundle the GPL/AGPL plugin pack).
+    ConfigureVampPath();
 
 #ifdef __WXMSW__
     if (!IsSuppressDarkMode()) {

@@ -63,7 +63,7 @@ protected:
 private:
     void RenderGuitar(RenderBuffer& buffer, SequenceElements* elements, const std::string& type, const std::string& MIDITrack, const std::string& stringAppearance, int maxFrets, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret);
     void DrawGuitar(RenderBuffer& buffer, GuitarTiming* pdata, const std::string& stringAppearance, uint8_t maxFrets, uint8_t strings, bool showStrings, bool fade, bool collapse, double stringWaveFactor, double baseWaveFactor, bool varyWavelengthBasedOnFret);
-    std::list<NoteTiming*> LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings);
+    std::list<NoteTiming*> LoadTimingTrack(const std::string& track, int intervalMS, const std::string& type, uint8_t maxFrets, uint8_t strings, SequenceElements* seqEl);
     std::list<std::string> ExtractNotes(const std::string& label);
     int ConvertNote(const std::string& note);
     void ConvertStringPos(const std::string& note, uint8_t& string, uint8_t& pos);

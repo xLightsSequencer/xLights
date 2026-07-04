@@ -27,4 +27,10 @@ namespace FileUtils
 
 	std::string GetResourcesDir();
     void SetResourcesDir(const std::string& dir);
+
+    // Resolves the effectmetadata directory from GetResourcesDir() (plus
+    // dev-build fallback locations). Returns "" if GetResourcesDir() is unset
+    // or no candidate exists; the empty result is not cached, so it retries
+    // once the resources dir has been established.
+    std::string GetEffectMetadataDirectory();
 };

@@ -26,8 +26,18 @@
 #define GL_POINT_SMOOTH                0x0B10
 #endif
 
+// USE_GLES is defined on Apple too — but there it only powers the off-screen
+// ShaderEffect pool (ANGLE-on-Metal).  This on-screen GL context is never
+// instantiated on macOS (the Metal canvas renders) and, being tied to
+// wxGLCanvas, unavoidably pulls in Apple's <OpenGL/gl.h> via wx — whose
+// glPointSize / GL_* clash with ANGLE's ES3 headers.  So the ES3/ANGLE paths
+// below are the Windows/Linux on-screen build only; macOS compiles the native
+// desktop-GL path (it's dead code there) exactly as it did before ANGLE-Windows.
+#if defined(USE_GLES) && !defined(__WXMAC__)
+#define XL_ANGLE_GLES 1
+#endif
 
-#if defined(USE_GLES)
+#if defined(XL_ANGLE_GLES)
 // OpenGL ES 3.0 via ANGLE — direct ES3 prototypes from libGLESv2; the
 // desktop-GL function-pointer loader below is unnecessary.
 #ifdef _MSC_VER
@@ -195,7 +205,7 @@ static bool LoadGLFunctions() {
 }
 #endif
 
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
 // OpenGL ES compatibility shims.  ES has no fixed-function point size or
 // point/line smoothing: point size is driven by gl_PointSize in the vertex
 // shader (fed by the 'pointSize' uniform), and smoothing is done in the
@@ -315,7 +325,7 @@ public:
     }
 
     void CalcSmoothPointParams(float ps) {
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
         // Drive gl_PointSize through the uniform.  Do NOT write g_glesPointSize
         // here: the no-arg overload reads it as the base point size set by
         // glPointSize(), so mutating it to ps+1 turns the read-modify cycle into
@@ -339,7 +349,7 @@ public:
 
     float CalcSmoothPointParams() {
         float ps;
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
         ps = g_glesPointSize;
 #else
         LOG_GL_ERRORV(glGetFloatv(GL_POINT_SIZE, &ps));
@@ -445,7 +455,7 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
         return false;
     }
 
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     // OpenGL ES 3.0 (ANGLE) shader variants: #version 300 es, explicit float
     // precision, no uniform initializers (illegal in ES 3.00), no 'f' float
     // suffix, and gl_PointSize driven by a 'pointSize' uniform for the
@@ -1492,7 +1502,7 @@ xlGraphicsProgram *xlOGL3GraphicsContext::createGraphicsProgram() {
 
 //drawing methods
 
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
 #include <cstdarg>
 #include "graphics/AngleEGL.h"
 extern "C" __declspec(dllimport) unsigned long __stdcall GetCurrentThreadId(void);
@@ -1625,11 +1635,11 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexAccumu
     } else if (caps > 0) {
         LOG_GL_ERRORV(glEnable(caps));
     }
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDraw("solid", type, start, c, (int)v->getCount(), v->bufferIdx, 0, caps, (int)canvas->IsCoreProfile());
 #endif
     LOG_GL_ERRORV(glDrawArrays(type, start, c));
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDrawOK();
 #endif
     if (type == GL_POINTS && caps == GL_POINT_SMOOTH) {
@@ -1709,11 +1719,11 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorA
             program->SetRenderType(caps);
         }
     }
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDraw("color", type, start, c, (int)v->getCount(), v->vbuffer, v->cbuffer, caps, (int)canvas->IsCoreProfile());
 #endif
     LOG_GL_ERRORV(glDrawArrays(type, start, c));
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDrawOK();
 #endif
     if (type == GL_POINTS && caps == 0x0B10) {
@@ -1842,7 +1852,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     xlOGL3VertexTextureAccumulator *va = dynamic_cast<xlOGL3VertexTextureAccumulator*>(vac);
     xlGLTexture *t = (xlGLTexture*)texture;
 
-    if (va->count == 0) {
+    if (va == nullptr || t == nullptr || va->count == 0) {
         return this;
     }
     int c = count;
@@ -1876,11 +1886,11 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     if (enableCapabilities > 0) {
         LOG_GL_ERRORV(glEnable(enableCapabilities));
     }
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDraw("tex1", GL_TRIANGLES, start, c, (int)va->count, va->vbuffer, 0, enableCapabilities, (int)canvas->IsCoreProfile());
 #endif
     LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, start, c));
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDrawOK();
 #endif
     if (enableCapabilities > 0) {
@@ -1897,7 +1907,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     xlOGL3VertexTextureAccumulator *va = dynamic_cast<xlOGL3VertexTextureAccumulator*>(vac);
     xlGLTexture *t = (xlGLTexture*)texture;
 
-    if (va->count == 0) {
+    if (va == nullptr || t == nullptr || va->count == 0) {
         return this;
     }
     int c = count;
@@ -1936,11 +1946,11 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator
     if (enableCapabilities >  0) {
         LOG_GL_ERRORV(glEnable(enableCapabilities));
     }
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDraw("tex2", GL_TRIANGLES, start, c, (int)va->count, va->vbuffer, 0, enableCapabilities, (int)canvas->IsCoreProfile());
 #endif
     LOG_GL_ERRORV(glDrawArrays(GL_TRIANGLES, start, c));
-#ifdef USE_GLES
+#ifdef XL_ANGLE_GLES
     angleLogDrawOK();
 #endif
     if (enableCapabilities > 0) {
@@ -2038,10 +2048,21 @@ public:
         if (ret == 0) {
             ret = input.size();
             MeshVertexInput mvi;
-            mvi.positionX = objects.GetAttrib().vertices[idx.vertex_index * 3];
-            mvi.positionY = objects.GetAttrib().vertices[idx.vertex_index * 3 + 1];
-            mvi.positionZ = objects.GetAttrib().vertices[idx.vertex_index * 3 + 2];
-            if (idx.normal_index == -1) {
+            // tinyobj's fixIndex does not bounds-check positive indices, so a parseable
+            // but malformed OBJ can reference a vertex/normal/texcoord that has no
+            // corresponding v/vn/vt data, leaving the attrib array empty or short. Guard
+            // the array size as well as the -1 "absent" sentinel so we never deref past
+            // the end (null-deref at 0x0, crash bucket 7f18c56ac4).
+            if (idx.vertex_index < 0 || (size_t)(idx.vertex_index * 3 + 2) >= objects.GetAttrib().vertices.size()) {
+                mvi.positionX = 0;
+                mvi.positionY = 0;
+                mvi.positionZ = 0;
+            } else {
+                mvi.positionX = objects.GetAttrib().vertices[idx.vertex_index * 3];
+                mvi.positionY = objects.GetAttrib().vertices[idx.vertex_index * 3 + 1];
+                mvi.positionZ = objects.GetAttrib().vertices[idx.vertex_index * 3 + 2];
+            }
+            if (idx.normal_index < 0 || (size_t)(idx.normal_index * 3 + 2) >= objects.GetAttrib().normals.size()) {
                 mvi.normalX = 0;
                 mvi.normalY = 0;
                 mvi.normalZ = 0;
@@ -2050,7 +2071,7 @@ public:
                 mvi.normalY = objects.GetAttrib().normals[idx.normal_index * 3 + 1];
                 mvi.normalZ = objects.GetAttrib().normals[idx.normal_index * 3 + 2];
             }
-            if (idx.texcoord_index == -1) {
+            if (idx.texcoord_index < 0 || (size_t)(idx.texcoord_index * 2 + 1) >= objects.GetAttrib().texcoords.size()) {
                 mvi.texcoordX = 0;
                 mvi.texcoordY = 0;
             } else {

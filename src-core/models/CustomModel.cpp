@@ -1002,6 +1002,16 @@ std::string CustomModel::ChannelLayoutHtml(OutputManager* outputManager, bool da
             _data.push_back(ll);
         }
 
+        while (_data.size() < (size_t)_depth) {
+            std::vector<std::vector<std::string>> ll;
+            while (ll.size() < (size_t)_customHeight) {
+                std::vector<std::string> rr;
+                while (rr.size() < (size_t)cols) rr.push_back("");
+                ll.push_back(rr);
+            }
+            _data.push_back(ll);
+        }
+	
         for (int r = 0; r < _customHeight; r++) {
             html += "<tr>";
             for (int l = 0; l < _depth; l++) {

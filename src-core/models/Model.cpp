@@ -1963,11 +1963,12 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
         float maxY = -1000000.0;
         float minY = 1000000.0;
 
-        IModelPreview* modelPreview = nullptr;
         PreviewCamera* pcamera = nullptr;
+        int renderPreviewW = 1280;
+        int renderPreviewH = 720;
         if (auto* rc = modelManager.GetRenderContext()) {
-            modelPreview = rc->GetHousePreview();
             pcamera = rc->GetNamedCamera3D(camera);
+            rc->GetRenderPreviewSize(renderPreviewW, renderPreviewH);
         }
 
         if (pcamera != nullptr && camera != "2D") {
@@ -2018,18 +2019,16 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                         float sz = it2.screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
-                        // modelPreview (house preview) can be null when there is no preview surface
-                        // yet (e.g. the iPad render path before a preview is attached); the TranslatePoint
-                        // result above is the correct fallback in that case.
-                        if (modelPreview != nullptr) {
-                            // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
-                            glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
-                            loc.y *= -1.0f;
-                            sx = loc.x;
-                            sy = loc.y;
-                            it2.screenX = sx;
-                            it2.screenY = sy;
-                        }
+                        // Project through the show's render aspect (window-independent)
+                        // so desktop, iPad and headless produce the same Per-Preview
+                        // buffer. 800,800 is the sample screen size (only a scale — the
+                        // buffer is renormalized below).
+                        glm::vec2 loc = GetModelScreenLocation().GetScreenPositionForAspect(800, 800, renderPreviewW, renderPreviewH, pcamera, sx, sy, sz);
+                        loc.y *= -1.0f;
+                        sx = loc.x;
+                        sy = loc.y;
+                        it2.screenX = sx;
+                        it2.screenY = sy;
                     }
                 }
 
@@ -3269,7 +3268,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             } else {
                 color = saveColor;
             }
-        } else if (c == nullptr) {
+        } else if (c == nullptr && Nodes[n]) {
+            // Nodes[n] can be a default-constructed (null) slot on a freshly-placed
+            // model; keep SetColor(n) below in sync by only guarding the deref here.
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);
@@ -3308,6 +3309,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
         cache->va->SetName(GetName() + (is_3d ? " - 3DPWiring" : " - 2DWiring"));
         cache->va->PreAlloc(NodeCount);
         for (int x = 0; x < (int)NodeCount; ++x) {
+            if (!Nodes[x] || Nodes[x]->Coords.empty()) {
+                continue;
+            }
             float sx = Nodes[x]->Coords[0].screenX;
             float sy = Nodes[x]->Coords[0].screenY;
             float sz = Nodes[x]->Coords[0].screenZ;

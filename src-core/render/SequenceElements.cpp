@@ -107,6 +107,28 @@ int SequenceElements::GetSequenceEnd() const
     return mSequenceEndMS;
 }
 
+int SequenceElements::GetMaxEffectEndTimeMS() const
+{
+    int maxEndMS = 0;
+
+    for (size_t i = 0; i < GetElementCount(); i++) {
+        Element* e = GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
+            for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
+                EffectLayer* el = e->GetEffectLayer(j);
+                for (int k = 0; k < el->GetEffectCount(); k++) {
+                    Effect* eff = el->GetEffect(k);
+                    if (eff->GetEndTimeMS() > maxEndMS) {
+                        maxEndMS = eff->GetEndTimeMS();
+                    }
+                }
+            }
+        }
+    }
+
+    return maxEndMS;
+}
+
 EffectLayer* SequenceElements::GetEffectLayer(const Row_Information_Struct *s) const
 {
     if (s == nullptr) {

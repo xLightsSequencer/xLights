@@ -154,6 +154,18 @@
             "controlType": "checkbox",
             "default": true,
             "description": "When enabled, radius and width values are treated as percentages of the buffer size rather than absolute pixel values."
+        },
+        {
+            "id": "Galaxy_RenderStyle",
+            "label": "Render Style",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Old Render Method",
+                "New Render Method"
+            ],
+            "default": "New Render Method",
+            "description": "Rendering algorithm to use. The new method computes each pixel independently (ISPC/GPU-friendly) for much faster rendering on large 2D models and a smoother center; the old method draws arms by stepping along radial lines. Existing sequences are migrated to preserve 'Old Render Method' so their look does not change."
         }
     ],
     "groups": [
@@ -186,7 +198,8 @@
                         "Galaxy_Reverse",
                         "Galaxy_Blend_Edges",
                         "Galaxy_Inward",
-                        "Galaxy_Scale"
+                        "Galaxy_Scale",
+                        "Galaxy_RenderStyle"
                     ]
                 }
             ],

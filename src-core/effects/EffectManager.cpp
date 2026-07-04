@@ -17,6 +17,7 @@
 #include <spdlog/spdlog.h>
 
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
 #include "OffEffect.h"
 #include "OnEffect.h"
 #include "AdjustEffect.h"
@@ -88,7 +89,7 @@ inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
 #endif
 
 EffectManager::EffectManager(std::string metadataDir)
-    : mMetadataDir(std::move(metadataDir))
+    : mMetadataDir(metadataDir.empty() ? FileUtils::GetEffectMetadataDirectory() : std::move(metadataDir))
 {
     add(createEffect(eff_OFF));
     add(createEffect(eff_ON));

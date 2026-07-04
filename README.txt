@@ -10,17 +10,106 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.12  June ??, 2026
+2026.13  July ??, 2026
     -enh (charlie)               Effect Symbols: define a reusable effect (name, color, settings, palette) once and
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
                                  "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
-    -bug (dan)                   Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
+    -bug (dkulp)                 Galaxy effect: no longer takes a very long time to render on very wide/short buffers
+                                 (e.g. a "Single Line" render style) - the spiral now skips off-buffer work and hoists
+                                 per-angle trig out of the inner loop
+    -enh (dkulp)                 Galaxy effect: blend passes now scan only the galaxy's bounding box instead of the
+                                 whole buffer - up to ~5x faster on large 2D models (e.g. 800x600 groups) at typical
+                                 sizing, with identical output
+    -enh (dkulp)                 Galaxy effect: new "Render Style" option - "New Render Method" (default for new
+                                 effects) computes each pixel independently (ISPC on CPU, Metal on GPU for large
+                                 buffers on macOS/iOS) for much faster rendering on large 2D models and a smoother
+                                 center (no grid gap); existing sequences are migrated to "Old Render Method" so their
+                                 look is unchanged
+    -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
+                                 waiting on overlapping models, cutting the render pool from hundreds of threads to
+                                 roughly the CPU+GPU core count and reducing memory use on large sequences
+
+2026.12  July 2, 2026
+
+    -change (dkulp)              Windows installer and executables are now Authenticode signed (Azure Trusted Signing), reducing SmartScreen/antivirus false positives
+    -change (derwin12)           Remove Keep Channel Numbers for FPP devices (#5459)
+    -change (scott)              Preferences dialog (Windows/Linux) uses a list of pages on the left with icons instead of tabs across the top
+    -enh (scott)                 Added new Tip of the Day info for recent release updated items
+    -enh (derwin12)              Sequencer: add "Select Effects incl SubModels" to model right-click menu (#6618)
+    -enh (derwin12)              Lua automation: expose all video export formats (High Quality MP4, Lossless RGB, ProRes 4444, HD ProRes) via exportModel / exportModelWithRender
+    -enh (scott)                 Moving Head effect: new Pattern tab generates pan/tilt from parametric shapes (Circle, Eight, Diamond, Lissajous, etc.) modeled on QLC+ EFX, with a value-curve-animatable rotation
+    -enh (scott)                 Moving Head effect: Enable Shutter checkbox (in the Control tab, for both RGB and color wheel) holds the shutter open at the model's Shutter On Value; Auto Shutter still takes over when active. Check Sequence warns if a shutter channel has a Shutter On Value of 0
+    -enh (derwin12)              Effect sequence wizard now adds a default New Timing track (#6612)
+    -enh (derwin12)              Add Timing Track option to Single Strand chase (cycles per timing mark) (#4771)
+    -enh (derwin12)              Allow timeline to zoom out to see any effects outside the duration (#6528)
+    -enh (derwin12)              Sync smart remote type across port block for controllers requiring it (#3468)
+    -enh (scott)                 First run with no show folder set: offer to create and use a default show folder at Documents/xLights (or pick one)
+    -enh (scott)                 Update dialog can download the new release installer from GitHub and run it (instead of opening a browser)
+    -enh (scott)                 Show the active OpenGL backend (ANGLE vs native) in the About dialog and startup log
+    -enh (cybercop23)            Add set default option for sequence duration and fps (#5233)
+    -enh (cybercop23)            Sequencer timeline fits the full sequence to the viewport width on load, keep same width for 20/40 fps.
+    -enh (jessica12ryan)         Show last input/output dates in the controller properties (#5728)
+    -enh (cybercop23)            Add cylinder shape and offset to cube model (#4369)
+    -enh (neil)                  Add ability to link props into "sets" so they move as one (#3703)
+    -enh (derwin12)              House Preview: right-click "Keep on Top" keeps the popped-out window above other apps (#5533)
+    -enh (AlexB)                 During a multi-effect drag, only the colliding ghost effects turn red instead of all of them (#6553)
+    -enh (neil)                  Bulk Edit Rotate skips models whose type doesn't support that axis and reports the skipped models (#6521)
+    -enh (derwin12)              Grey out Symmetrize/Combine Strands in the SubModels menu when they don't apply (#6554)
+    -bug (derwin12)              Fix uploadFPPConfig/uploadSequence LUA commands failing with a hostname instead of a numeric IP
+    -bug (derwin12)              Fix video/image/shader filenames containing commas being truncated when saved (#6638)
+    -bug (derwin12)              Wheel of Effects was not honoring the Reset Effects on Effect change nor setting defaults
+    -bug (derwin12)              Fix floating sequencer panes shifting position on macOS after switching to the Layout tab and back (#6631)
+    -bug (dkulp)                 Wait for renders to abort before deleting models/groups so a render worker can't crash on freed model data
+    -bug (dkulp)                 Fix waveform render crash when the audio/zoom view list is rebuilt mid-paint (stale view index)
+    -bug (dkulp)                 Fix crash hovering the layout preview in 3D mode when the model list contains a null entry
+    -bug (dkulp)                 Fix crash mousing over the sequencer grid when a row's effect layer is momentarily unavailable
+    -bug (dkulp)                 Fix crash selecting a controller in the Setup list when the named controller could not be found
+    -bug (dkulp)                 Fix intermittent crash with a 3Dconnexion mouse when motion/button events referenced a window being destroyed on the main thread
+    -bug (dkulp)                 Fix ColorWash/Bars/Shockwave/Spirals crash writing past the pixel buffer when rendered into a variable/oversized sub-buffer
+    -bug (dkulp)                 Fix crash loading a malformed OBJ mesh that references vertex/normal/texcoord data it does not contain
+    -bug (dkulp)                 Fix crash hovering the 3D layout preview while placing a new model before its nodes are populated
+    -bug (dkulp)                 Fix crash/heap corruption opening a sequence while a render from the previous sequence was still finishing
+    -enh (dkulp)                 Crash reports now record the C++ exception type (demangled) and message, including the error code and file paths for filesystem/system errors
+    -bug (dkulp)                 Fix crash saving-with-render or changing sequence timing while a render is still running (sequence data was freed out from under the render threads)
+    -bug (derwin12)              Allow multiple timing tracks to be active simultaneously in master view (was limited to one)
+    -bug (derwin12)              Fix missing video display and re-render in Select Videos panel
+    -bug (derwin12)              Fix State/Face effect dropdowns resetting on icon click (#6595)
+    -bug (cybercop23)            Ensure channels are recalculated when merging base models to show models
+    -bug (derwin12)              Fix corrupted Export House Preview on Windows with odd dimensions 
+    -bug (derwin12)              Crash in Check Sequence with Models that had extra Layers
+    -bug (derwin12)              Missing video files now show in red in the Select Videos panel with Re-select/Bulk Find options
+    -bug (agfazio)               Auto scroll during the drag + copy on drag operations
+    -bug (derwin12)              Spinner model with large hollow was not dimensionally correct (#6558)
+    -bug (agfazio)               Fix shader dynamic parameters not persisting (#6567)
+    -bug (cybercop23)            Restore the ability to slide multiple effects with shift key (#6576)
+    -bug (dkulp)                 Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
                                  reset fired live update handlers that dereferenced a stale model)
-    -bug (dan)                   Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable
-    -bug (dan)                   Fix crash importing/downloading a DmxServo3Axis model (factory didn't recognize the legacy type alias);
+    -bug (dkulp)                 Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable
+    -bug (charlie)               Fix crash when pressing Escape to cancel a polyline drag during creation that leaves the model with a single point
+    -bug (dkulp)                 Fix crash importing/downloading a DmxServo3Axis model (factory didn't recognize the legacy type alias);
                                  unrecognized/malformed model files now cancel the import with an error instead of crashing
-    -bug (dan)                   Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
+    -bug (dkulp)                 Don't crash drawing when a Metal pipeline fails to compile (e.g. older macOS); skip the draw instead
+    -bug (dkulp)                 Fix crash drawing a texture on the OpenGL backend (Windows/Linux) when the vertex accumulator
+                                 or texture was null; skip the draw instead, matching the existing drawPrimitive guards
+    -bug (dkulp)                   Fix crash logging an OpenGL shader compile/link failure when the "opengl" logger was never
+                                 registered (e.g. on the iPad/Metal-only path); fall back to the default logger
+    -bug (derwin12)              Linux: fix Controllers/Layout property panes permanently freezing (no repaint) after editing a
+                                 dropdown-style property (#6215, #4175)
+    -bug (cybercop23)            Fix model rename in Layout not preserving position in non-master Display Element views (#6574)
+    -bug (cybercop23)            Fix Export Faces/States/SubModels from Layout right-click menu creating ghost duplicate submodels
+                                 instead of replacing same-name entries; extra faces/states/submodels unique to the target model now survive (#6587)
+    -bug (cybercop23)            Fix Sort By Name/Location in the model group panel incorrectly adding a blank entry at the top (#6588)
+    -bug (agfazio)               Fix Double click to expand on group
+    -bug (neil)                  Fix Replace Model "keep position and size" being ignored for locked, base-linked, and two-point models; base-linked models are now blocked as replace targets (#6548)
+    -bug (derwin12)              Fix possible crash in the Moving Head effect panel when recalling/loading settings
+    -bug (derwin12)              Fix crash writing the preview GIF for a preset
+    -bug (agfazio)               Fix crash with CUDA/NVDEC hardware decoded video (#6560)
+    -bug (derwin12)              Linux: fix crash on startup from a Moving Head panel resize before it is shown on screen (#6586)
+    -bug (derwin12)              Refresh the Display Elements panel after renaming a model so the new name shows immediately
+    -bug (agfazio)               Sequencer drag now clamps effects flush against blocking neighbors instead of bouncing back; group stays selected after drop; Ctrl+drag adds to selection (#6556)
+    -bug (agfazio)               Fix being unable to move effects on timing/lyric tracks after the ghost drag-to-move change (#6620)
+    -bug (derwin12)              Windows: graceful exit instead of crash on Snapdragon/ARM when OpenGL 3.x is unavailable, without blocking resize repaints (#6630)
 
 2026.11  June 14, 2026
     NOTE:   Support for macOS versions 10.15 and 11 will likely be dropped fairly soon as the tools we use to build xLights are dropping support.

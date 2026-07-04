@@ -84,6 +84,8 @@ public:
 
     void SetZoomLevel(int level);
     int GetZoomLevel() const;
+    bool IsFitZoom() const { return mInFitZoom; }
+    void SetFitZoom();
 
     int GetZoomLevelValue() const;
     int GetMaxZoomLevel();
@@ -191,6 +193,8 @@ private:
     bool m_dragging;
     bool timeline_initiated_play;
     bool mShowAlternateTimingFormat;
+    bool mInFitZoom = false;
+    double mFitTimePerMajorTickMS = 0.0;
 
     void Paint(wxPaintEvent& event);
     void render(wxDC& dc);

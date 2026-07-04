@@ -223,7 +223,12 @@ void PolyLineModel::InitModel()
 
     _numSegments = screenLocation.num_points - 1;
     _numDropPoints = 0;
-    
+
+    if (_numSegments < 1) {
+        Nodes.clear();
+        return;
+    }
+
     // Ensure per-segment vectors match the current segment count exactly.
     // During polyline creation, screenLocation may have more points than
     // the per-segment vectors which are grown via AddHandle(); deleting a

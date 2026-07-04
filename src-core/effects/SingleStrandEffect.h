@@ -20,6 +20,7 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
     {
         return true;
@@ -59,6 +60,7 @@ public:
     static int sSkipsSkipSizeDefault;
     static int sSkipsStartPosDefault;
     static int sSkipsAdvanceDefault;
+    static std::string sTimingTrackDefault;
 
 protected:
     virtual void OnMetadataLoaded() override;
@@ -68,7 +70,8 @@ private:
                                  const std::string& ColorScheme, int Number_Chases, int chaseSize,
                                  const std::string& Chase_Type1,
                                  const std::string& Fade_Type, bool Chase_Group_All,
-                                 float chaseSpeed, float offset);
+                                 float chaseSpeed, float offset, const std::string& TimingTrack);
+    Effect* GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms);
     void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, int Skips_BandSize,
                                  int Skips_SkipSize, int Skips_StartPos, const std::string& Skips_Direction, int advances);
     void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);

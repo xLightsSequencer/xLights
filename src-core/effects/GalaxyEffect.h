@@ -72,6 +72,7 @@ public:
     static bool sBlendEdgesDefault;
     static bool sInwardDefault;
     static bool sScaleDefault;
+    static std::string sRenderStyleDefault;
 
 protected:
     virtual void OnMetadataLoaded() override;

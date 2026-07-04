@@ -35,6 +35,7 @@
             "min": 0,
             "max": 100,
             "suppressIfDefault": true,
+            "settingPrefix": "TEXTCTRL",
             "description": "Sets the alpha transparency of the effect. At 0 the color is fully opaque; at 100 it is fully transparent, allowing effects on lower layers to show through."
         },
         {

@@ -83,6 +83,13 @@ public:
     virtual IModelPreview* GetHousePreview() const { return nullptr; }
     virtual PreviewCamera* GetNamedCamera3D(const std::string& /*name*/) { return nullptr; }
 
+    // Pixel size whose ASPECT RATIO drives the "Per Preview" 3D projection
+    // (glm::perspective(45deg, w/h, ...)). Sourced from the show's stored render
+    // aspect (falling back to the virtual preview canvas) rather than any live
+    // on-screen preview window, so desktop, iPad, and headless render Per-Preview
+    // identically and reproducibly. Only the ratio matters.
+    virtual void GetRenderPreviewSize(int& w, int& h) const { w = 1280; h = 720; }
+
     // ---- status / timer (empty defaults for headless) ----
     virtual void SetLoadingStatusText(const std::string& /*text*/) {}
     virtual void StartOutputTimer() {}

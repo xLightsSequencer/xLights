@@ -66,6 +66,7 @@
 | Model clipboard copy/cut/paste (layout) | shortcut | ✅ | ✅ | parity | P3 | hard | feasible | Desktop DoCopy/DoPaste (CopyPasteBaseObject XML). iPad: bridge `copyModelsToString:` (XmlSerializer::SerializeModels → string) + `pasteModelsFromString:` (deserialize, uniquify, clear controller, +50/+50 offset, RecalcStartChannels) wired to ⌘C/⌘V/⌘X in `LayoutClipboardKeysModifier` (LayoutEditorView.swift). Pasteboard carries a custom `com.xlights.layoutmodels` UTI (declared in xLights-iPad Info.plist) + plain-text fallback, so paste works cross-sequence. |
 | Model keyboard nudge (arrows ±) | shortcut | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Nudge(); iPad arrow-key nudge + per-step undo. |
 | Per-type property grid (all model types) | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad descriptor pane mirrors desktop adapters per type. |
+| Cube model: cylinder shape / hollow % / row offset editing | panel | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop commit 676ad64c5 (#6559) added CubeShape/CubeHollow/CubeRowOffset to CubePropertyAdapter (src-core/models/CubeModel.cpp + src-core/XmlSerializer/); cylinder mode relabels Width/Depth as Circumference/Layers. Shared core renders these cube variants on iPad automatically — only the property-grid editing controls are missing from the iPad cube descriptor pane. |
 | Model tag color | panel | ✅ | ✅ | parity | P2 | easy | feasible | tagColorPicker. |
 | Model active/inactive | panel | ✅ | ✅ | parity | P1 | easy | feasible | boolBinding "active". |
 | Model controller-port connection | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad controllerConnectionFields (port/protocol/smart-remote gated by caps). #6518 restored port management for from-base models in core ModelManager.cpp — shared, auto-applies to iPad. |
@@ -373,6 +374,16 @@
   equivalent of desktop's hover tooltip.
 - **Per-node individual start channels** — desktop has a per-node
   editor; iPad exposes only the start-channel string. Ease: medium.
+- **Cube model: cylinder shape / hollow % / row offset editing.**
+  Desktop commit 676ad64c5 (#6559) added a Cube/Cylinder shape
+  selector (`CubeShape` XML key), `CubeHollow` (hollow %), and
+  `CubeRowOffset` to the `CubePropertyAdapter`; in cylinder mode
+  the Width/Depth labels become Circumference/Layers. The geometry
+  lives in shared core (`src-core/models/CubeModel.cpp`,
+  `src-core/XmlSerializer/` keys) so iPad renders cylinder/hollow
+  cube models correctly via the shared preview. Only the new
+  property-grid editing controls are absent from the iPad cube
+  descriptor pane. Ease: easy.
 
 ### Infeasible
 

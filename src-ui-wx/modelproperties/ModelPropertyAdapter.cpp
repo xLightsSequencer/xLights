@@ -1341,7 +1341,25 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         _model.SetControllerSerialProtocolSpeed((int)std::strtol(cs[event.GetValue().GetLong()].c_str(), nullptr, 10));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
-        _model.SetSmartRemoteType(_model.GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString())));
+        std::string newType = _model.GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString()));
+        _model.SetSmartRemoteType(newType);
+        if (caps != nullptr && caps->AllSmartRemoteTypesPerPortMustBeSame()) {
+            int port = _model.GetControllerPort();
+            if (port > 0) {
+                int block = (port - 1) / 4;
+                for (const auto& it : _model.GetModelManager()) {
+                    Model* other = it.second;
+                    if (other == &_model || other->GetControllerName() != _model.GetControllerName()) {
+                        continue;
+                    }
+                    int otherPort = other->GetControllerPort();
+                    if (otherPort <= 0 || (otherPort - 1) / 4 != block || other->GetSmartRemote() == 0) {
+                        continue;
+                    }
+                    other->SetSmartRemoteType(newType);
+                }
+            }
+        }
         return 0;
     } else if (event.GetPropertyName() == "ModelControllerConnectionProtocol") {
         std::vector<std::string> cp;

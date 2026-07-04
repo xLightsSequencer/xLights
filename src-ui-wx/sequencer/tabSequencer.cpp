@@ -933,10 +933,10 @@ void xLightsFrame::LoadAudioData(SequenceFile& xml_file)
         }
     }
 
-    mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
+    mainSequencer->PanelTimeLine->SetTimeLength(std::max(mMediaLengthMS, _sequenceElements.GetMaxEffectEndTimeMS()));
     mainSequencer->PanelTimeLine->Initialize();
     int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-    mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+    mainSequencer->PanelTimeLine->SetFitZoom();  // default: sequence fills the full viewport
     mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();  // force refresh when new media is loaded
     mainSequencer->PanelWaveForm->UpdatePlayMarker();
@@ -947,6 +947,14 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
 
     spdlog::debug("Load sequence {}", (const char*)xml_file.GetFullPath().c_str());
+
+    // LoadSequencerFile below clears and rebuilds every Element/Effect/SettingsMap.
+    // A background render job spun up between CloseSequence's abort and now (e.g. the
+    // converted-file RenderAll / settings-dialog paths) would still be reading those
+    // objects while we free them -> heap corruption / crash (bucket d7ec0a8bbc).
+    // Drain any in-flight render before touching _sequenceElements. LoadSequencerFile
+    // itself does not pump the event loop, so no new render can start mid-rebuild.
+    AbortRender();
 
     PushTraceContext();
     SetFrequency(xml_file.GetFrequency());
@@ -3348,8 +3356,11 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
             std::string name = panes[x].name.ToStdString();
             if (name != "HousePreview" && name != "ModelPreview") continue;
             recoverNames.push_back(name);
-            recoverPos.push_back(panes[x].frame->GetPosition());
-            recoverSize.push_back(panes[x].frame->GetSize());
+            // Use AUI's stored floating_pos/floating_size rather than the live
+            // native frame position, which on macOS may already be shifted by
+            // Cocoa after a Hide()/Show() cycle.
+            recoverPos.push_back(panes[x].floating_pos);
+            recoverSize.push_back(panes[x].floating_size);
         }
         if (!recoverNames.empty()) {
             for (const auto& nm : recoverNames) {

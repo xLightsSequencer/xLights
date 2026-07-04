@@ -665,6 +665,28 @@ glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheig
     return position;
 }
 
+// Window-independent variant of GetScreenPosition: builds the same projection
+// the desktop house preview computes in ModelPreview::StartDrawing
+// (glm::perspective(45deg, aspect, 1, 200000)) from an explicit aspect ratio
+// (previewWidth/previewHeight) rather than a live preview surface, so the
+// "Per Preview" 3D render buffer is identical across desktop / iPad / headless.
+glm::vec2 ModelScreenLocation::GetScreenPositionForAspect(int screenwidth, int screenheight, int previewWidth, int previewHeight, PreviewCamera* camera, float &sx, float &sy, float &sz) const
+{
+    if (camera == nullptr || previewWidth <= 0 || previewHeight <= 0) {
+        return glm::vec2(sx, sy);
+    }
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f),
+                                      (float)previewWidth / (float)previewHeight,
+                                      1.0f, 200000.0f);
+    glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
+        screenheight,
+        glm::vec3(sx, sy, sz),
+        proj * camera->GetViewMatrix(),
+        Identity
+    );
+    return position;
+}
+
 void ModelScreenLocation::TranslateVector(glm::vec3& point) const
 {
     float sx = point.x;

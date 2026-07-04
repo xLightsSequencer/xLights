@@ -54,6 +54,18 @@
             "description": "Number of complete chase traversals over the effect duration. Higher values make the chase move faster."
         },
         {
+            "id": "SingleStrand_TimingTrack",
+            "label": "Timing Track",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "timingTracks",
+            "expandToFill": true,
+            "lockable": true,
+            "description": "When set, the chase performs the Cycles count between each pair of timing marks on this track instead of over the whole effect duration. No chase is drawn before the first mark or after the last mark."
+        },
+        {
             "id": "Chase_Offset",
             "label": "Offset",
             "type": "float",
@@ -234,6 +246,7 @@
                         "Number_Chases",
                         "Color_Mix1",
                         "Chase_Rotations",
+                        "SingleStrand_TimingTrack",
                         "Chase_Offset",
                         "Chase_Type1",
                         "Fade_Type",
@@ -270,7 +283,8 @@
                 "startsWith": "Static"
             },
             "disable": [
-                "Chase_Rotations"
+                "Chase_Rotations",
+                "SingleStrand_TimingTrack"
             ]
         }
     ]

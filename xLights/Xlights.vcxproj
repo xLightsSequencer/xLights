@@ -181,7 +181,6 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
@@ -228,7 +227,6 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
@@ -263,7 +261,6 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
@@ -308,7 +305,6 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -353,7 +349,6 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -398,9 +393,18 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <Target Name="FetchKLightMapper" BeforeTargets="ClCompile"
+          Condition="!Exists('$(MSBuildProjectDirectory)\..\lib\windows64\klightmapper.lib')">
+    <Message Importance="high" Text="Fetching KLightMapper prebuilt library (one-time)..." />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\ci_scripts\fetch_dependencies.ps1&quot;" />
+  </Target>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\include\klightmapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
@@ -551,6 +555,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\diagnostics\FindDataPanel.cpp" />
     <ClCompile Include="..\src-core\render\FontManager.cpp" />
     <ClCompile Include="..\src-core\render\FSEQFile.cpp" />
+    <ClCompile Include="..\src-core\render\FSEQFileIO.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.cpp" />
     <ClCompile Include="..\src-core\render\GPURenderUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.cpp" />
@@ -813,6 +818,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\model\GenerateCustomModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
@@ -1174,6 +1181,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ShockwaveFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\SpiralsFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\GalaxyFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\WarpFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ISPCComputeUtilities.h" />
@@ -1213,6 +1221,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\diagnostics\FindDataPanel.h" />
     <ClInclude Include="..\src-core\render\FontManager.h" />
     <ClInclude Include="..\src-core\render\FSEQFile.h" />
+    <ClInclude Include="..\src-core\render\FSEQFileIO.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />
@@ -1431,6 +1440,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
     <ClInclude Include="..\src-ui-wx\model\GenerateCustomModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\KLightMapperBridge.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
@@ -1834,6 +1845,17 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\SpiralsFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\GalaxyFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>

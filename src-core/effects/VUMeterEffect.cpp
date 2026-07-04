@@ -206,7 +206,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         {
             res.push_back(fmt::format("    ERR: VU Meter effect '{}' needs a timing track. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
-        else if (GetTiming(timing) == nullptr)
+        else if (GetTiming(timing, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()) == nullptr)
         {
             res.push_back(fmt::format("    ERR: VU Meter effect '{}' has unknown timing track ({}). Model '{}', Start {}", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
@@ -1445,7 +1445,7 @@ void VUMeterEffect::RenderOnColourFrame(RenderBuffer& buffer, int gain)
 
 void VUMeterEffect::RenderPulseFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, int& lasttimingmark)
 {
-    EffectLayer* el = GetTiming(timingtrack);
+    EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
 
     if (el == nullptr) return;
 

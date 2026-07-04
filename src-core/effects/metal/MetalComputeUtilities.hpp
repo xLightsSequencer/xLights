@@ -104,6 +104,9 @@ public:
         pg = p;
     }
 
+    // ~Number of GPU cores, for sizing the render pool (0 if Metal unusable).
+    int gpuCoreCount();
+
     id<MTLComputePipelineState> FindComputeFunction(const char *name);
 
 

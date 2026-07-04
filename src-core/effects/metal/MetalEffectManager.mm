@@ -81,6 +81,11 @@ public:
     virtual void setPrioritizeGraphics(bool p) override {
         MetalComputeUtilities::INSTANCE.prioritizeGraphics(p);
     }
+    // Deliberately ignores the user-toggleable isEnabled flag: pool sizing
+    // happens once at startup, before preferences are applied.
+    virtual int gpuEffectConcurrency() override {
+        return MetalComputeUtilities::INSTANCE.gpuCoreCount();
+    }
     virtual bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) override {
         if (enabled() && pixelBuffer) {
             MetalPixelBufferComputeData *d = static_cast<MetalPixelBufferComputeData*>(pixelBuffer->gpuRenderData);
@@ -120,6 +125,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalKaleidoscopeEffect(eff);
         case EffectManager::eff_FAN:
             return new MetalFanEffect(eff);
+        case EffectManager::eff_GALAXY:
+            return new MetalGalaxyEffect(eff);
         case EffectManager::eff_SPIRALS:
             return new MetalSpiralsEffect(eff);
         case EffectManager::eff_COLORWASH:

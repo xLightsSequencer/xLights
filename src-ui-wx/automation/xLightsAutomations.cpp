@@ -21,6 +21,7 @@
 #include "controllers/ControllerCaps.h"
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
+#include "utils/ip_utils.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "shared/utils/wxUtilities.h"
@@ -143,14 +144,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         if (fname.empty()) {
             if (CurrentSeqXmlFile != nullptr) {
-                std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
-                                                        JSONSafe(CurrentSeqXmlFile->GetName()),
-                                                        JSONSafe(CurrentSeqXmlFile->GetFullPath()),
-                                                        JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
-                                                        CurrentSeqXmlFile->GetSequenceDurationMS(),
-                                                        CurrentSeqXmlFile->GetFrameMS());
-
-                return sendResponse(response, "", 200, true);
+                nlohmann::json j;
+                j["seq"] = CurrentSeqXmlFile->GetName();
+                j["fullseq"] = CurrentSeqXmlFile->GetFullPath();
+                j["media"] = CurrentSeqXmlFile->GetMediaFile();
+                j["len"] = CurrentSeqXmlFile->GetSequenceDurationMS();
+                j["framems"] = CurrentSeqXmlFile->GetFrameMS();
+                return sendResponse(j.dump(), "", 200, true);
             } else {
                 return sendResponse("Sequence not open.", "msg", 503, false);
             }
@@ -169,14 +169,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             OpenSequence(seq, nullptr);
             _promptBatchRenderIssues = oldPrompt;
             _renderMode = oldRenderMode;
-            std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
-                                                    JSONSafe(CurrentSeqXmlFile->GetName()),
-                                                    JSONSafe(CurrentSeqXmlFile->GetFullPath()),
-                                                    JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
-                                                    CurrentSeqXmlFile->GetSequenceDurationMS(),
-                                                    CurrentSeqXmlFile->GetFrameMS());
-
-            return sendResponse(response, "", 200, true);
+            nlohmann::json j;
+            j["seq"] = CurrentSeqXmlFile->GetName();
+            j["fullseq"] = CurrentSeqXmlFile->GetFullPath();
+            j["media"] = CurrentSeqXmlFile->GetMediaFile();
+            j["len"] = CurrentSeqXmlFile->GetSequenceDurationMS();
+            j["framems"] = CurrentSeqXmlFile->GetFrameMS();
+            return sendResponse(j.dump(), "", 200, true);
         }
     } else if (cmd == "closeSequence") {
         if (CurrentSeqXmlFile == nullptr) {
@@ -341,8 +340,10 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto instances = DiscoverFPPInstances(&delegate);
 
         FPP* fpp = nullptr;
+        std::string resolvedIp = ip_utils::ResolveIP(ip);
         for (const auto& it : instances) {
-            if (it->ipAddress == ip && it->fppType == FPP_TYPE::FPP) {
+            if (it->fppType == FPP_TYPE::FPP &&
+                (it->ipAddress == ip || (!resolvedIp.empty() && it->ipAddress == resolvedIp))) {
                 fpp = it;
                 break;
             }
@@ -410,8 +411,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         auto instances = DiscoverFPPInstances(&delegate);
 
         FPP* fpp = nullptr;
+        std::string resolvedSequenceIp = ip_utils::ResolveIP(ip);
         for (const auto& it : instances) {
-            if (it->ipAddress == ip) {
+            if (it->ipAddress == ip || (!resolvedSequenceIp.empty() && it->ipAddress == resolvedSequenceIp)) {
                 fpp = it;
                 break;
             }
@@ -608,8 +610,16 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "FPPCompressed";
         } else if (format == "avicompressed" || format == "mp4compressed") {
             format = "Com";
+        } else if (format == "mp4highquality") {
+            format = "Hig";
         } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
             format = "Unc";
+        } else if (format == "losslessrgb") {
+            format = "Los";
+        } else if (format == "prores4444") {
+            format = "Pro";
+        } else if (format == "hdprores") {
+            format = "HD ";
         } else if (format == "minleon") {
             format = "Min";
         } else if (format == "gif") {
@@ -662,8 +672,16 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "FPPCompressed";
         } else if (format == "avicompressed" || format == "mp4compressed") {
             format = "Com";
+        } else if (format == "mp4highquality") {
+            format = "Hig";
         } else if (format == "aviuncompressed" || format == "mp4uncompressed") {
             format = "Unc";
+        } else if (format == "losslessrgb") {
+            format = "Los";
+        } else if (format == "prores4444") {
+            format = "Pro";
+        } else if (format == "hdprores") {
+            format = "HD ";
         } else if (format == "minleon") {
             format = "Min";
         } else if (format == "gif") {

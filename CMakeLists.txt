@@ -109,6 +109,17 @@ if(WIN32 AND wxWidgets_LIB_DIR)
     link_directories(${wxWidgets_LIB_DIR})
 endif()
 
+# ANGLE build: wx's USE_FILE appends opengl32/glu32 to wxWidgets_LIBRARIES.  The
+# MSVC linker resolves each gl* import to the FIRST lib that exports it, so if
+# opengl32 stays in the wx libs it shadows ANGLE's libGLESv2 (opengl32 exports
+# the GL 1.1 set: glClear/glGetString/glViewport/…) and the ANGLE canvas renders
+# black.  Strip them here; opengl32/glu32 are re-added dead-last (only wx's own
+# wgl* references still need them) in the platform-link block below.
+option(XLIGHTS_USE_ANGLE "Build the ANGLE (OpenGL ES) variant instead of native desktop GL" OFF)
+if(XLIGHTS_USE_ANGLE AND NOT APPLE AND WIN32)
+    list(REMOVE_ITEM wxWidgets_LIBRARIES opengl32 glu32 opengl32.lib glu32.lib)
+endif()
+
 # ─── OpenGL ─────────────────────────────────────────────────────────────────
 find_package(OpenGL REQUIRED)
 
@@ -263,6 +274,7 @@ file(GLOB_RECURSE SRC_CORE
 	src-core/diagnostics/*.cpp
     src-core/discovery/*.cpp
     src-core/import_export/*.cpp
+    src-core/graphics/AngleEGL.cpp
     src-core/graphics/GLBackend.cpp
     src-core/graphics/GLContextManager.cpp
     src-core/graphics/xlFontInfo.cpp
@@ -424,6 +436,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/graphics/opengl/xlOGL3GraphicsContext.cpp
     src-ui-wx/graphics/wxTextDrawingContext.cpp
     src-ui-wx/import_export/*.cpp
+    src-ui-wx/klightmapper/*.cpp
     src-ui-wx/layout/*.cpp
     src-ui-wx/media/*.cpp
     src-ui-wx/model/*.cpp
@@ -567,6 +580,43 @@ endif()
 if(FFMPEG_LIBRARY_DIRS)
     target_link_directories(xLights PRIVATE ${FFMPEG_LIBRARY_DIRS})
 endif()
+# ANGLE (USE_GLES): the gl* provider MUST be linked BEFORE wxWidgets, which
+# pulls in opengl32.  MSVC resolves each gl* import to the FIRST lib on the link
+# line that exports it, so linking libGLESv2 first makes the GL functions bind
+# to ANGLE while wgl* (only in opengl32) still fall through to opengl32 for wx's
+# own GL-canvas code.  If linked after wx, opengl32's GL 1.1 exports (glClear,
+# glGetString, glViewport, glScissor, …) win and the ANGLE canvas renders black
+# (drawing goes to opengl32 with no WGL context).  See plans/angle-support.md.
+if(XLIGHTS_USE_ANGLE AND NOT APPLE)
+    if(XLIGHTS_ANGLE_DIR)
+        # Prebuilt ANGLE SDK: headers + import libs from a directory (e.g. a
+        # release downloaded from mmozeiko/build-angle, or the repo-vendored copy
+        # in include/ + lib/windows64).  No vcpkg, no source build — the slowest
+        # dependency ships as a prebuilt DLL.  find_library matches both the
+        # plain "libGLESv2.lib" (repo-vendored) and "libGLESv2.dll.lib"
+        # (mmozeiko) import-lib naming.
+        message(STATUS "ANGLE: using prebuilt SDK at ${XLIGHTS_ANGLE_DIR}")
+        find_library(XL_ANGLE_GLESV2 NAMES libGLESv2 libGLESv2.dll
+            PATHS ${XLIGHTS_ANGLE_DIR}/lib ${XLIGHTS_ANGLE_DIR}/lib/x64 ${XLIGHTS_ANGLE_DIR}
+            NO_DEFAULT_PATH REQUIRED)
+        find_library(XL_ANGLE_EGL NAMES libEGL libEGL.dll
+            PATHS ${XLIGHTS_ANGLE_DIR}/lib ${XLIGHTS_ANGLE_DIR}/lib/x64 ${XLIGHTS_ANGLE_DIR}
+            NO_DEFAULT_PATH REQUIRED)
+        if(EXISTS ${XLIGHTS_ANGLE_DIR}/include)
+            target_include_directories(xLights PRIVATE ${XLIGHTS_ANGLE_DIR}/include)
+        endif()
+        target_link_libraries(xLights PRIVATE ${XL_ANGLE_GLESV2} ${XL_ANGLE_EGL})
+    else()
+        # vcpkg-provided ANGLE (builds the port from source the first time).
+        find_package(unofficial-angle CONFIG REQUIRED)
+        target_link_libraries(xLights PRIVATE
+            unofficial::angle::libGLESv2
+            unofficial::angle::libEGL)
+    endif()
+    target_compile_definitions(xLights PRIVATE USE_GLES)
+    message(STATUS "OpenGL backend: ANGLE (USE_GLES; libGLESv2 before wx, opengl32 last)")
+endif()
+
 target_link_libraries(xLights PRIVATE
     ${wxWidgets_LIBRARIES}
     ${FFMPEG_LIBS}
@@ -623,12 +673,19 @@ else()
     endif()
 endif()
 
-# OpenGL 
-target_link_libraries(xLights PRIVATE OpenGL::GL)
-if(WIN32)
-	target_link_libraries(xLights PRIVATE glu32)
-elseif(UNIX AND NOT APPLE)
-	target_link_libraries(xLights PRIVATE GL GLU)
+# OpenGL backend — COMPILE-TIME choice of native desktop GL OR ANGLE (OpenGL
+# ES).  Build EITHER one or the other.  The ANGLE/USE_GLES variant links
+# libGLESv2+libEGL earlier (just before the wxWidgets link) so its gl* win
+# symbol resolution over opengl32.  Here we only add the NATIVE desktop-GL libs
+# (default build).  macOS selects ANGLE via macOS/ANGLE.xcconfig, not this path.
+if(NOT (XLIGHTS_USE_ANGLE AND NOT APPLE))
+    target_link_libraries(xLights PRIVATE OpenGL::GL)
+    if(WIN32)
+        target_link_libraries(xLights PRIVATE glu32)
+    elseif(UNIX AND NOT APPLE)
+        target_link_libraries(xLights PRIVATE GL GLU)
+    endif()
+    message(STATUS "OpenGL backend: native desktop GL")
 endif()
 
 # vcpkg FFmpeg ships avfilter with vsrc_gfxcapture_winrt compiled against the
@@ -670,6 +727,36 @@ else()
     endif()
 endif()
 
+if(WIN32 OR (UNIX AND NOT APPLE))
+    if(WIN32)
+        set(KLM_FETCH powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_dependencies.ps1")
+        set(KLM_LIB_HINTS ${XL_LIB}/windows64)
+    else()
+        set(KLM_FETCH bash "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_klightmapper.sh")
+        set(KLM_LIB_HINTS ${XL_LIB}/linux)
+    endif()
+    execute_process(COMMAND ${KLM_FETCH}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        RESULT_VARIABLE KLM_FETCH_RC)
+    if(NOT KLM_FETCH_RC EQUAL 0)
+        message(FATAL_ERROR "KLightMapper: required dependency fetch failed (rc=${KLM_FETCH_RC}). "
+                            "Check network access to github.com/KulpLights/KLightMapper.")
+    endif()
+    # The fetch just staged the files; drop any stale NOTFOUND cache before locating.
+    unset(KLM_LIB CACHE)
+    unset(KLM_INC CACHE)
+    find_library(KLM_LIB NAMES klightmapper HINTS ${KLM_LIB_HINTS})
+    find_path(KLM_INC NAMES klm/scan_api.h
+        HINTS ${XL_INC}/klightmapper ${XL_DEPS}/klightmapper/include)
+    if(NOT KLM_LIB OR NOT KLM_INC)
+        message(FATAL_ERROR "KLightMapper: lib/headers missing after fetch (lib=${KLM_LIB} inc=${KLM_INC}).")
+    endif()
+    message(STATUS "KLightMapper: ${KLM_LIB}")
+    target_include_directories(xLights PRIVATE ${KLM_INC})
+    target_link_libraries(xLights PRIVATE ${KLM_LIB})
+endif()
+
 # hidapi
 if(XLIGHTS_USE_VCPKG)
     find_package(hidapi CONFIG REQUIRED)
@@ -681,6 +768,15 @@ if(WIN32)
     target_link_libraries(xLights PRIVATE ws2_32 winmm comctl32 rpcrt4
                                           mfuuid propsys wmcodecdspuuid
                                           iphlpapi)
+    # ANGLE build: supply opengl32/glu32 as DEFAULT libs (/DEFAULTLIB).  Default
+    # libraries are searched by the linker AFTER every explicit lib, so ANGLE's
+    # libGLESv2 (an explicit lib) wins gl* symbol resolution and opengl32 is used
+    # only for the wgl* that wx's own GL-canvas code references.  Linking opengl32
+    # explicitly instead would let its GL 1.1 exports shadow libGLESv2 and the
+    # ANGLE canvas would render black.
+    if(XLIGHTS_USE_ANGLE AND NOT APPLE)
+        target_link_options(xLights PRIVATE "/DEFAULTLIB:opengl32.lib" "/DEFAULTLIB:glu32.lib")
+    endif()
     if(NOT XLIGHTS_USE_VCPKG)
         # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs
         target_link_directories(xLights PRIVATE ${XL_LIB}/windows64 ${XL_DEPS}/lua/src)
@@ -813,9 +909,6 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/effectmetadata"
             "$<TARGET_FILE_DIR:xLights>/effectmetadata"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/bin64/Vamp"
-            "$<TARGET_FILE_DIR:xLights>/Vamp"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/prompts"
             "$<TARGET_FILE_DIR:xLights>/prompts"

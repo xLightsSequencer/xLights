@@ -16,6 +16,7 @@
 #include <wx/time.h>
 #include <wx/stopwatch.h>
 #include <wx/settings.h>
+#include <wx/stdpaths.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>
@@ -23,6 +24,8 @@
 #include <wx/thread.h>
 
 #include <thread>
+#include <chrono>
+#include <ctime>
 
 #include "xLightsMain.h"
 #include "xLightsApp.h"
@@ -533,6 +536,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir");
     }
 
+    _outputManager.SomethingChanged();
+    AllModels.RecalcStartChannels();
+    _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
+    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SetDir-post-rework");
+
     ValidateWindow();
 
     return true;
@@ -623,6 +631,33 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &def
         }
     }
     return false;
+}
+
+bool xLightsFrame::OfferDefaultShowDirectory(bool permanent) {
+    wxString documents = wxStandardPaths::Get().GetDocumentsDir();
+    wxString defaultShowDir = documents + wxFileName::GetPathSeparator() + "xLights";
+
+    int answer = wxMessageBox("No show folder is set.\n\nWould you like xLights to create and use a default show folder at:\n\n" + defaultShowDir + "\n\nChoose No to pick a different folder.",
+                              "Create Default Show Folder", wxYES_NO | wxICON_QUESTION, this);
+
+    if (answer != wxYES) {
+        return PromptForShowDirectory(permanent);
+    }
+
+    ObtainAccessToURL(documents, true);
+    if (!wxFileName::DirExists(defaultShowDir)) {
+        if (!wxFileName::Mkdir(defaultShowDir, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL)) {
+            DisplayError(ToStdString("Unable to create the default show folder:\n" + defaultShowDir + "\n\nPlease choose a folder instead."), this);
+            return PromptForShowDirectory(permanent);
+        }
+    }
+    ObtainAccessToURL(defaultShowDir, true);
+    if (SetDir(defaultShowDir, permanent)) {
+        return true;
+    }
+
+    // Creating/applying the default failed for some reason - fall back to the picker.
+    return PromptForShowDirectory(permanent);
 }
 #pragma endregion
 
@@ -2050,6 +2085,30 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 _controllerAdapter->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
             }
 
+            {
+                auto* config = GetXLightsConfig();
+                auto ctrlName = controller->GetName();
+
+                wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
+                }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                wxString ts;
+                if (!config->Read(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
+                p->SetValue(ts);
+
+                p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
+                }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                if (!config->Read(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
+                p->SetValue(ts);
+            }
+
             if (controller->IsFromBase()) {
                 Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
                 auto it = Controllers_PropertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
@@ -2264,7 +2323,7 @@ void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
     auto name = List_Controllers->GetItemText(event.GetItem());
     auto controller = _outputManager.GetController(name);
 
-    if (controller->IsFromBase())
+    if (controller != nullptr && controller->IsFromBase())
     {
         List_Controllers->SetToolTip("From Base Show Directory");
     }
@@ -2770,6 +2829,16 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         spdlog::debug("Attempt to upload controller inputs successful on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload complete.";
                         res = true;
+                        {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = controller->GetName();
+                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                            }
+                        }
                     }
                     else {
                         spdlog::error("Attempt to upload controller inputs failed on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
@@ -2835,6 +2904,16 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         message = vendor + " Output Upload Complete.";
                         res = true;
+                        {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = controller->GetName();
+                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                            }
+                        }
                     } else {
                         message = vendor + " Output Upload Failed.";
                     }

@@ -820,7 +820,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             {
                 auto timingtrack = SettingsMap.Get(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TIMING), "");
 
-                EffectLayer* el = GetTiming(timingtrack);
+                EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
 
                 bool b = false;
                 if (el != nullptr) {
@@ -1355,6 +1355,108 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     _hasCoord = Contains(shaderCode, "xl_FragCoord");
 
 #ifdef USE_GLES
+    // Rename user-defined functions whose name shadows a GLSL ES 3.00 built-in.
+    // ESSL3 forbids redeclaring a built-in name; legacy desktop (GLSL 1.20) shaders
+    // do it anyway — e.g. their own sinh/cosh/tanh (which didn't exist before 1.30)
+    // or an extra sign()/distance() overload.  Rename the definition and its call
+    // sites to xl_<name>.  When the user's function is an overload with a different
+    // arity than the built-in (e.g. sign(vec2,vec2,vec2) vs the 1-arg built-in), only
+    // calls with the user's arity are renamed, so genuine built-in calls still resolve.
+    {
+        // "Full replacement" built-ins: added in GLSL 1.30, so a legacy shader that
+        // defines them has the ONLY implementation — every call is the user's, safe
+        // to rename wholesale.
+        static const std::set<std::string> fullReplace = {
+            "sinh","cosh","tanh","asinh","acosh","atanh"
+        };
+        // Pre-existing built-ins and their valid arities.  A user function is only
+        // renamed here if its arity is NOT one the built-in provides — i.e. a genuine
+        // added overload (e.g. sign(vec2,vec2,vec2) vs the 1-arg built-in) — so real
+        // built-in calls of the normal arity are left untouched.  A same-arity
+        // redefinition (e.g. distance(vec2,vec2)) is left alone: ANGLE accepts it, and
+        // renaming it would wrongly capture built-in calls of other types/same arity.
+        static const std::map<std::string, std::set<int>> builtinArity = {
+            {"sign",{1}}, {"distance",{2}}, {"length",{1}}, {"dot",{2}}, {"cross",{2}},
+            {"normalize",{1}}, {"mod",{2}}, {"min",{2}}, {"max",{2}}, {"clamp",{3}},
+            {"mix",{3}}, {"step",{2}}, {"smoothstep",{3}}, {"pow",{2}}, {"reflect",{2}},
+            {"refract",{3}}, {"atan",{1,2}}, {"abs",{1}}, {"floor",{1}}, {"ceil",{1}},
+            {"fract",{1}}, {"sqrt",{1}}, {"exp",{1}}, {"log",{1}}
+        };
+        auto isIdent = [](char c) { return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'; };
+        auto isWs    = [](char c) { return c==' '||c=='\t'||c=='\n'||c=='\r'; };
+
+        // Detect on a comment-stripped copy so //-  and /* */ braces/parens don't skew
+        // the depth/arity scan; the actual rename runs on the original shaderCode.
+        std::string scan = std::regex_replace(shaderCode, std::regex(R"(/\*[\s\S]*?\*/)"), " ");
+        scan = std::regex_replace(scan, std::regex(R"(//[^\n]*)"), "");
+
+        // Global-scope function header:  <type> <name> ( <params> )  {|;
+        static const std::regex hdrRe(R"((\w+)\s+(\w+)\s*\(([^{}();]*)\)\s*[{;])");
+        std::map<std::string, int> shadowing;   // built-in name -> user arity
+        for (auto it = std::sregex_iterator(scan.begin(), scan.end(), hdrRe);
+             it != std::sregex_iterator(); ++it) {
+            const std::smatch& m = *it;
+            std::string name = m[2].str();
+            bool isFullReplace = fullReplace.count(name) != 0;
+            auto arityIt = builtinArity.find(name);
+            if (!isFullReplace && arityIt == builtinArity.end()) continue;  // not a name we touch
+            if (m.position() > 0 && scan[m.position() - 1] == '#') continue;  // #define macro
+            long depth = std::count(scan.begin(), scan.begin() + m.position(), '{')
+                       - std::count(scan.begin(), scan.begin() + m.position(), '}');
+            if (depth != 0) continue;  // only global scope
+            std::string params = m[3].str();
+            std::string compact = params;
+            compact.erase(std::remove_if(compact.begin(), compact.end(), isWs), compact.end());
+            int arity = (compact.empty() || compact == "void")
+                            ? 0 : 1 + (int)std::count(params.begin(), params.end(), ',');
+            // Rename only a full-replacement built-in, or an added overload whose arity
+            // the built-in does not provide.  Skip same-arity redefinitions.
+            if (isFullReplace || !arityIt->second.count(arity)) {
+                shadowing[name] = arity;
+            }
+        }
+
+        for (const auto& [name, arity] : shadowing) {
+            std::string out;
+            out.reserve(shaderCode.size() + 64);
+            size_t i = 0;
+            while (i < shaderCode.size()) {
+                size_t p = shaderCode.find(name, i);
+                if (p == std::string::npos) { out += shaderCode.substr(i); break; }
+                size_t after = p + name.size();
+                bool leftOk  = (p == 0) || !isIdent(shaderCode[p - 1]);
+                bool rightOk = (after >= shaderCode.size()) || !isIdent(shaderCode[after]);
+                size_t q = after;
+                while (q < shaderCode.size() && isWs(shaderCode[q])) ++q;
+                bool isCall = q < shaderCode.size() && shaderCode[q] == '(';
+                bool renamed = false;
+                if (leftOk && rightOk && isCall) {
+                    int commas = 0, pdepth = 0; bool sawArg = false;
+                    for (size_t k = q; k < shaderCode.size(); ++k) {
+                        char c = shaderCode[k];
+                        if (c == '(') ++pdepth;
+                        else if (c == ')') { if (--pdepth == 0) break; }
+                        else if (c == ',' && pdepth == 1) ++commas;
+                        else if (pdepth == 1 && !isWs(c)) sawArg = true;
+                    }
+                    int nargs = commas > 0 ? commas + 1 : (sawArg ? 1 : 0);
+                    if (nargs == arity) {
+                        out += shaderCode.substr(i, p - i);
+                        out += "xl_";
+                        out += name;
+                        i = after;
+                        renamed = true;
+                    }
+                }
+                if (!renamed) {
+                    out += shaderCode.substr(i, after - i);
+                    i = after;
+                }
+            }
+            shaderCode = out;
+        }
+    }
+
     // GLSL ES 3.00 requires global variable initializers to be constant expressions.
     // Desktop GLSL 330 allows non-constant initializers (e.g. "float T = TIME*rate;").
     // Fix: split such declarations and defer their initialization into main().
@@ -1390,8 +1492,36 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
         std::string newCode;
         std::string deferredInits;
         int braceDepth = 0;
+        std::string pending;   // multi-line global-scope statement being accumulated
+        int pendingParen = 0;
 
         while (std::getline(stream, line)) {
+            // A global-scope declaration whose initializer spans multiple lines
+            // (e.g. `mat4 m = mat4(\n vec4(...),\n ... );`) must reach the matcher
+            // below as one unit.  At global scope, accumulate lines until parens
+            // balance — stripping each fragment's // comment first so a comment
+            // can't swallow code joined onto the same line.  Function bodies
+            // (braceDepth > 0) are left untouched.
+            if (braceDepth == 0) {
+                std::string frag = line;
+                size_t cpos = frag.find("//");
+                if (cpos != std::string::npos) frag = frag.substr(0, cpos);
+                int pd = 0;
+                for (char c : frag) { if (c == '(') pd++; else if (c == ')') pd--; }
+                if (!pending.empty()) {
+                    pending += " " + frag;
+                    pendingParen += pd;
+                    if (pendingParen > 0) continue;   // still open — keep accumulating
+                    line = pending;
+                    pending.clear();
+                    pendingParen = 0;
+                } else if (pd > 0) {
+                    pending = frag;
+                    pendingParen = pd;
+                    continue;                         // start of a multi-line statement
+                }
+            }
+
             // Count braces to track scope (outside of strings/comments — good enough for most shaders)
             for (char c : line) {
                 if (c == '{') braceDepth++;
@@ -1436,7 +1566,11 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                             }
                         }
 
-                        // Check each variable — only defer those whose initializer references uniforms
+                        // Check each variable — defer those whose initializer references a
+                        // non-constant value: a uniform, or a global we already deferred
+                        // (the latter makes the pass transitive, e.g. `float T = TIME*rate;`
+                        // then `float sT = T*0.1;` — sT references the deferred T, not a
+                        // uniform directly, so it must be deferred too).
                         bool anyDeferred = false;
                         std::string declLine;
                         for (auto& var : vars) {
@@ -1481,6 +1615,9 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
                                 declLine += varName;
                                 deferredInits += "    " + varName + " = " + initExpr + ";\n";
                                 anyDeferred = true;
+                                // This global is now non-constant too — any later global
+                                // whose initializer references it must also be deferred.
+                                uniformNames.insert(varName);
                             } else {
                                 // Keep initializer (it's constant)
                                 if (!declLine.empty()) declLine += ", ";
@@ -1499,6 +1636,10 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             if (!replaced) {
                 newCode += line + "\n";
             }
+        }
+        // Flush any unterminated accumulation (malformed source) verbatim.
+        if (!pending.empty()) {
+            newCode += pending + "\n";
         }
 
         // Inject deferred initializations at the start of main()
@@ -1522,12 +1663,29 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
 #else
     _code = "#version 330\n\n";
 #endif
-    size_t idx = shaderCode.find("#extension");
-    if (idx != std::string::npos) {
-        size_t nidx = shaderCode.find("\n", idx);
-        _code += shaderCode.substr(0, nidx);
-        _code += "\n";
-        shaderCode = shaderCode.substr(nidx);
+    // Hoist ALL #extension directives to immediately after #version, ahead of
+    // the `precision` preamble.  ESSL 3.00 requires every #extension to precede
+    // any non-preprocessor token, and `precision` statements ARE non-preprocessor
+    // tokens — so an #extension left in the body (or, as the old single-directive
+    // hoist did, appended after the precision lines) is rejected: "extension
+    // directive must occur before any non-preprocessor tokens in ESSL3".  Most
+    // legacy shaders use `: enable`, so extensions unsupported under ES3 (e.g.
+    // GL_OES_standard_derivatives, whose functions are core in ES3) degrade to a
+    // harmless warning rather than a compile error.
+    std::string extensions;
+    for (size_t idx = 0; (idx = shaderCode.find("#extension", idx)) != std::string::npos; ) {
+        if (idx != 0 && shaderCode[idx - 1] != '\n') { idx += 10; continue; }  // not at line start
+        size_t eol = shaderCode.find('\n', idx);
+        size_t lineEnd = (eol == std::string::npos) ? shaderCode.size() : eol + 1;
+        extensions += shaderCode.substr(idx, lineEnd - idx);
+        if (eol == std::string::npos) extensions += "\n";
+        shaderCode.erase(idx, lineEnd - idx);
+    }
+    if (!extensions.empty()) {
+        size_t afterVersion = _code.find('\n');  // end of the "#version ..." line
+        if (afterVersion != std::string::npos) {
+            _code.insert(afterVersion + 1, extensions);
+        }
     }
     _code += prependText;
     _code += shaderCode;

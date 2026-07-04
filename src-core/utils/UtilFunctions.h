@@ -14,6 +14,7 @@
 #include "string_utils.h"
 
 #include <chrono>
+#include <ctime>
 #include <spdlog/fmt/fmt.h>
 #include <string>
 #include <algorithm>
@@ -40,6 +41,46 @@ inline std::string FormatTimeHMS(uint32_t ms) {
 inline int64_t GetCurrentTimeMillis() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+inline uint32_t fnv1a(const std::string& str) {
+    uint32_t hash = 2166136261u;
+    for (char c : str) {
+        hash ^= static_cast<uint8_t>(c);
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
+inline std::string FormatTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto tt = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &tt);
+#else
+    localtime_r(&tt, &tm);
+#endif
+    char buf[64];
+    if (strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm) == 0) {
+        buf[0] = '\0';
+    }
+    return buf;
+}
+
+inline std::string MakeControllerTimestampKey(const std::string& prefix, const std::string& ctrlName, const std::string& showDir) {
+    std::string showPart = "default";
+    if (!showDir.empty()) {
+        auto normPath = std::filesystem::path(showDir).lexically_normal();
+        std::string bname = normPath.filename().string();
+        if (bname.empty() || bname == "/") bname = "root";
+        showPart = bname + "_" + fmt::format("{:08x}", fnv1a(showDir));
+    }
+    std::string key = prefix + "/" + showPart + "/" + ctrlName;
+    for (auto& c : key) {
+        if (c == ':' || c == '/' || c == '\\' || c == '.' || c == ' ') c = '_';
+    }
+    return key;
 }
 
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))

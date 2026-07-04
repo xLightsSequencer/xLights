@@ -118,6 +118,16 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
         CurrentSeqXmlFile->setSupportsModelBlending(false);
     }
 
+    if (wizardactive) {
+        auto* cfg = GetXLightsConfig();
+        std::string savedDur = cfg->Read("DefaultSeqDuration", std::string("30.0"));
+        CurrentSeqXmlFile->SetSequenceDuration(savedDur);
+        std::string savedTiming = cfg->Read("DefaultSeqTiming", std::string(""));
+        if (!savedTiming.empty()) {
+            CurrentSeqXmlFile->SetSequenceTiming(savedTiming);
+        }
+    }
+
     SeqSettingsDialog setting_dlg(this, CurrentSeqXmlFile, &_sequenceElements, mediaDirectories, wxT(""), _defaultSeqView, wizardactive, media, durationMS);
     int ret_code = wxID_ANY;
     if(wizardactive) {
@@ -160,12 +170,9 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     CurrentSeqXmlFile->SetSequenceLoaded(true);
     CurrentSeqXmlFile->ApplyPendingTimings(this);
     if (_sequenceElements.GetNumberOfTimingElements() == 0) {
-        if (CurrentSeqXmlFile->GetSequenceType() != "Effect") {
-            // only add timing if the user didnt set up timings (effect sequences start with none)
-            std::string new_timing = "New Timing";
-            CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
-            _sequenceElements.AddTimingToAllViews(new_timing);
-        }
+        std::string new_timing = "New Timing";
+        CurrentSeqXmlFile->AddNewTimingSection(new_timing, this);
+        _sequenceElements.AddTimingToAllViews(new_timing);
     } else {
         _sequenceElements.GetTimingElement(0)->SetActive(true);
     }

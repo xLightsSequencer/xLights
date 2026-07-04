@@ -23,7 +23,10 @@
 #define Bits 64
 
 [Setup]
-;; (not yet implemented) SignTool=mystandard
+; Authenticode signing is applied in CI via Azure Trusted Signing (see the
+; "Sign ... (Trusted Signing)" steps in .github/workflows/Ubuntu_Window_Release.yml
+; and win_nightly.yml): xLights.exe and the finished installer .exe are signed
+; with the Kulp Lights LLC certificate. Inno's own SignTool directive is not used.
 ; Tell Windows Explorer to reload the environment
 ChangesEnvironment=yes
 ; setting to DisableDirPage no makes it so users can change the installation directory
@@ -105,11 +108,12 @@ Source: "../../bin64/libcurl-x64.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 ; hidapi
 Source: "../../bin64/hidapi.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
-; Vamp dll's
-Source: "../../bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
-
 ; ONNX Runtime  dll's
 Source: "../../bin64/onnxruntime.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
+; KLightMapper (Map-from-Lights camera scan) — required; the vcxproj's
+; FetchKLightMapper target stages klightmapper.dll into bin64 at build time.
+Source: "../../bin64/klightmapper.dll"; DestDir: "{app}";  Flags: "ignoreversion"
 
 ; Scripts
 ;Source: "../../scripts/*.*"; DestDir: "{app}/scripts"   ; Flags: ignoreversion recursesubdirs

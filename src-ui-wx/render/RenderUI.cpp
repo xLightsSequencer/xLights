@@ -185,6 +185,8 @@ void xLightsFrame::UpdateRenderStatus()
         return;
     }
 
+    _renderEngine->CheckForStalledRender();
+
     for (auto it = _renderEngine->GetRenderProgressInfo().begin(); it != _renderEngine->GetRenderProgressInfo().end();) {
         int countModels = 0;
         int countFrames = 0;
@@ -237,8 +239,8 @@ void xLightsFrame::UpdateRenderStatus()
             }
         }
 
-        // Batch completion is signaled atomically by the last RenderJob's
-        // FinishNotifier (see RenderEngine::NotifyJobFinished). The drain
+        // Batch completion is signaled atomically by the last RenderJob
+        // reaching Done (see RenderEngine::NotifyJobFinished). The drain
         // runs on the wx main thread, so this is where we invoke the user
         // callback -- it typically touches UI.
         if (rpi->completed.load()) {

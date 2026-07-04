@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <atomic>
+#include <chrono>
 #include <climits>
 #include <functional>
 #include <list>
@@ -49,10 +50,20 @@ public:
     std::list<Model*> restriction;
 
     // Completion tracking. jobsRemaining is decremented by each RenderJob as it
-    // exits (via RAII guard in Process) — normal, aborted, or early-bail paths.
-    // When it hits zero, the last thread CAS-flips completed and fires callback.
+    // reaches its Done state (normal, aborted, or early-bail paths).  When it
+    // hits zero, the last thread CAS-flips completed and fires callback.
     // Platforms without a UI drain loop (iPad) poll `completed` to know when the
     // render batch has finished.
     std::atomic<int> jobsRemaining;
     std::atomic<bool> completed;
+
+    // Stall watchdog state (see RenderEngine::CheckForStalledRender).
+    long long lastProgressSum = -1;
+    std::chrono::steady_clock::time_point lastProgressTime = std::chrono::steady_clock::now();
+
+    // Scheduler telemetry, logged to the render log when the batch completes.
+    int totalJobs = 0;
+    std::atomic<int> suspendCount{0};
+    std::atomic<int> parkCount{0};
+    std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 };
