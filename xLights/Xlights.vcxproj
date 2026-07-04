@@ -555,6 +555,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\diagnostics\FindDataPanel.cpp" />
     <ClCompile Include="..\src-core\render\FontManager.cpp" />
     <ClCompile Include="..\src-core\render\FSEQFile.cpp" />
+    <ClCompile Include="..\src-core\render\FSEQFileIO.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.cpp" />
     <ClCompile Include="..\src-core\render\GPURenderUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.cpp" />
@@ -1217,6 +1218,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\diagnostics\FindDataPanel.h" />
     <ClInclude Include="..\src-core\render\FontManager.h" />
     <ClInclude Include="..\src-core\render\FSEQFile.h" />
+    <ClInclude Include="..\src-core\render\FSEQFileIO.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />

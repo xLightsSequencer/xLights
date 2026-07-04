@@ -345,6 +345,8 @@
 		<Unit filename="../src-ui-wx/import_export/ExportSettings.h" />
 		<Unit filename="../src-core/render/FSEQFile.cpp" />
 		<Unit filename="../src-core/render/FSEQFile.h" />
+		<Unit filename="../src-core/render/FSEQFileIO.cpp" />
+		<Unit filename="../src-core/render/FSEQFileIO.h" />
 		<Unit filename="../src-ui-wx/import_export/FileConverter.cpp" />
 		<Unit filename="../src-ui-wx/import_export/FileConverter.h" />
 		<Unit filename="../src-ui-wx/diagnostics/FindDataPanel.cpp" />
