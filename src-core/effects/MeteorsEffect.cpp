@@ -163,6 +163,18 @@ public:
 typedef std::list<MeteorClass> MeteorList;
 typedef std::list<MeteorRadialClass> MeteorRadialList;
 
+// Meteor trails overlap, so drawing them from several threads raced for the
+// shared pixels and the winner depended on thread timing — the effect
+// rendered differently run to run.  Draw serially in list order (the move /
+// expire passes stay parallel: they touch only their own meteor).
+template <typename T>
+static void drawMeteorsSerially(std::list<T>& meteors, std::function<void(T&, int)>& f) {
+    int i = 0;
+    for (auto& m : meteors) {
+        f(m, i++);
+    }
+}
+
 class MeteorsRenderCache : public EffectRenderCache {
 public:
     MeteorsRenderCache() {};
@@ -387,7 +399,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
             }
         }
     };
-    parallel_for(cache->meteors, f, 500);
+    drawMeteorsSerially(cache->meteors, f);
 
     HorizontalMoveMeteors(buffer, speed);
 
@@ -531,7 +543,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
             }
         }
     };
-    parallel_for(cache->meteors, f, 500);
+    drawMeteorsSerially(cache->meteors, f);
 
     VerticalMoveMeteors(buffer, speed);
 
@@ -678,7 +690,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int 
             buffer.SetPixel(x, y, hsv);
         }
     };
-    parallel_for(cache->meteors, f, 500);
+    drawMeteorsSerially(cache->meteors, f);
 
     IcicleMoveMeteors(buffer, speed);
 
@@ -888,7 +900,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
             }
         }
     };
-    parallel_for(cache->meteorsRadial, f, 500);
+    drawMeteorsSerially(cache->meteorsRadial, f);
 
     ImplodeMoveMeteors(buffer, speed, xoffset, yoffset, fadeWithDistance);
 
@@ -1084,7 +1096,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
             }
         }
     };
-    parallel_for(cache->meteorsRadial, f, 500);
+    drawMeteorsSerially(cache->meteorsRadial, f);
 
     ExplodeMoveMeteors(buffer, speed, xoffset, yoffset, fadeWithDistance);
 
