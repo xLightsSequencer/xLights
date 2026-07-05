@@ -4171,7 +4171,7 @@ void xLightsFrame::UpdateSequenceLength()
             spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
         }
 
-        mainSequencer->PanelTimeLine->SetTimeLength(std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), _sequenceElements.GetMaxEffectEndTimeMS()));
+        mainSequencer->PanelTimeLine->SetTimeLength(std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), _sequenceElements.GetMaxEffectEndTimeMS() + 5000));
         mainSequencer->PanelTimeLine->Initialize();
         int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
         mainSequencer->PanelTimeLine->SetFitZoom();
