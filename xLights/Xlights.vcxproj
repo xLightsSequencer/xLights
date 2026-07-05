@@ -905,6 +905,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\VideoSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.cpp" />
@@ -1520,6 +1521,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\VideoSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.h" />

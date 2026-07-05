@@ -26,6 +26,7 @@
 #include "RandomEffectsSettingsPanel.h"
 #include "ColorManagerSettingsPanel.h"
 #include "OtherSettingsPanel.h"
+#include "VideoSettingsPanel.h"
 #include "CheckSequenceSettingsPanel.h"
 #include "ServicesPanel.h"
 #include "KeyBindingsSettingsPanel.h"
@@ -138,6 +139,9 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
     pages.push_back({ "Colors",
                       PrefSvgIcon(R"(<path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-1 1-2-.4-.8 0-2 1-2h2a4 4 0 0 0 4-4c0-5-4-8-8-8z"/><circle cx="8" cy="11" r="1.2" fill="%C%" stroke="none"/><circle cx="12" cy="7.5" r="1.2" fill="%C%" stroke="none"/><circle cx="16" cy="11" r="1.2" fill="%C%" stroke="none"/>)", "#F97316"),
                       [this](wxWindow* p) { return (wxWindow*)(new ColorManagerSettingsPanel(p, this)); } });
+    pages.push_back({ "Video",
+                      PrefSvgIcon(R"(<rect x="2" y="5" width="14" height="14" rx="2"/><path d="M16 9l6-3v12l-6-3z"/>)", "#EF4444"),
+                      [this](wxWindow* p) { return (wxWindow*)(new VideoSettingsPanel(p, this)); } });
     pages.push_back({ "Other",
                       PrefSvgIcon(R"(<path d="M4 8h9"/><path d="M17 8h3"/><circle cx="15" cy="8" r="2"/><path d="M4 16h3"/><path d="M11 16h9"/><circle cx="9" cy="16" r="2"/>)", "#64748B"),
                       [this](wxWindow* p) { return (wxWindow*)(new OtherSettingsPanel(p, this)); } });

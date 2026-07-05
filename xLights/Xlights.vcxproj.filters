@@ -634,6 +634,9 @@
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\VideoSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -2043,6 +2046,9 @@
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\VideoSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h">

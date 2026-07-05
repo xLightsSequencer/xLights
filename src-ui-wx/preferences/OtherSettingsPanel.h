@@ -12,19 +12,17 @@
 
 //(*Headers(OtherSettingsPanel)
 #include <wx/panel.h>
+//*)
+
 class wxCheckBox;
 class wxChoice;
-class wxFlexGridSizer;
-class wxGridBagSizer;
+class wxCommandEvent;
 class wxSpinCtrlDouble;
-class wxSpinEvent;
-class wxStaticBoxSizer;
+class wxSpinDoubleEvent;
 class wxStaticText;
 class wxTextCtrl;
-//*)
-class wxSpinDoubleEvent;
-
 class xLightsFrame;
+
 class OtherSettingsPanel: public wxPanel
 {
 	public:
@@ -33,32 +31,6 @@ class OtherSettingsPanel: public wxPanel
 		virtual ~OtherSettingsPanel();
 
 		//(*Declarations(OtherSettingsPanel)
-		wxCheckBox* CheckBox_BatchRenderPromptIssues;
-		wxCheckBox* CheckBox_EnablePositionZones;
-		wxCheckBox* CheckBox_IgnoreVendorModelRecommendations;
-		wxCheckBox* CheckBox_PurgeDownloadCache;
-		wxCheckBox* CheckBox_RecycleTips;
-		wxCheckBox* CheckBox_ShowZoneIndicator;
-		wxCheckBox* CheckBox_UseCustomColorPicker;
-		wxCheckBox* ExcludeAudioCheckBox;
-		wxCheckBox* ExcludeVideosCheckBox;
-		wxCheckBox* GPURenderCheckbox;
-		wxCheckBox* HardwareVideoDecodingCheckBox;
-		wxCheckBox* ShaderCheckbox;
-		wxChoice* ChoiceCodec;
-		wxChoice* Choice_AliasPromptBehavior;
-		wxChoice* Choice_LinkControllerUpload;
-		wxChoice* Choice_MinTipLevel;
-		wxChoice* HardwareVideoRenderChoice;
-		wxSpinCtrlDouble* CtrlPingInterval;
-		wxSpinCtrlDouble* SpinCtrlDoubleBitrate;
-		wxStaticText* StaticText3;
-		wxStaticText* StaticText4;
-		wxStaticText* StaticText5;
-		wxStaticText* StaticText6;
-		wxStaticText* StaticText7;
-		wxStaticText* StaticText8;
-		wxTextCtrl* eMailTextControl;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -67,42 +39,34 @@ class OtherSettingsPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(OtherSettingsPanel)
-		static const wxWindowID ID_CHECKBOX1;
-		static const wxWindowID ID_CHOICE4;
-		static const wxWindowID ID_CHECKBOX7;
-		static const wxWindowID ID_STATICTEXT3;
-		static const wxWindowID ID_CHOICE_CODEC;
-		static const wxWindowID ID_STATICTEXT5;
-		static const wxWindowID ID_SPINCTRLDOUBLE_BITRATE;
-		static const wxWindowID ID_CHECKBOX2;
-		static const wxWindowID ID_CHECKBOX3;
-		static const wxWindowID ID_CHECKBOX4;
-		static const wxWindowID ID_CHECKBOX6;
-		static const wxWindowID ID_CHECKBOX5;
-		static const wxWindowID ID_STATICTEXT4;
-		static const wxWindowID ID_CHOICE3;
-		static const wxWindowID ID_CHECKBOX8;
-		static const wxWindowID ID_STATICTEXT2;
-		static const wxWindowID ID_CHOICE2;
-		static const wxWindowID ID_STATICTEXT6;
-		static const wxWindowID ID_CHOICE_ALIASPROMPT;
-		static const wxWindowID ID_TEXTCTRL1;
-		static const wxWindowID ID_CHECKBOX9;
-		static const wxWindowID ID_STATICTEXT7;
-		static const wxWindowID ID_CTRLPINGINTERVAL;
-		static const wxWindowID ID_CHECKBOX10;
-		static const wxWindowID ID_CHECKBOX11;
-		static const wxWindowID ID_CHECKBOX_CustomColorPicker;
 		//*)
 
 	private:
         xLightsFrame *frame;
 
-		//(*Handlers(OtherSettingsPanel)
-		void OnControlChanged(wxCommandEvent& event);
-		void OnSpinCtrlDoubleBitrateChange(wxSpinDoubleEvent& event);
-		void OnPaint(wxPaintEvent& event);
-		//*)
+        wxCheckBox* CheckBox_BatchRenderPromptIssues = nullptr;
+        wxCheckBox* CheckBox_EnablePositionZones = nullptr;
+        wxCheckBox* CheckBox_IgnoreVendorModelRecommendations = nullptr;
+        wxCheckBox* CheckBox_PurgeDownloadCache = nullptr;
+        wxCheckBox* CheckBox_RecycleTips = nullptr;
+        wxCheckBox* CheckBox_ShowZoneIndicator = nullptr;
+        wxCheckBox* CheckBox_UseCustomColorPicker = nullptr;
+        wxCheckBox* ExcludeAudioCheckBox = nullptr;
+        wxCheckBox* ExcludeVideosCheckBox = nullptr;
+        wxCheckBox* GPURenderCheckbox = nullptr;
+        wxCheckBox* ShaderCheckbox = nullptr;
+        wxChoice* Choice_AliasPromptBehavior = nullptr;
+        wxChoice* Choice_LinkControllerUpload = nullptr;
+        wxChoice* Choice_MinTipLevel = nullptr;
+        wxSpinCtrlDouble* CtrlPingInterval = nullptr;
+        wxTextCtrl* eMailTextControl = nullptr;
 
-		DECLARE_EVENT_TABLE()
+        // Write changes back immediately on platforms where the preferences
+        // editor applies as-you-go.
+        void ApplyIfImmediate();
+
+		//(*Handlers(OtherSettingsPanel)
+		//*)
+        void OnControlChanged(wxCommandEvent& event);
+        void OnSpinCtrlDoubleChange(wxSpinDoubleEvent& event);
 };

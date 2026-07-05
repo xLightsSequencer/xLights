@@ -1244,6 +1244,8 @@
 		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/VideoSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/VideoSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/RandomEffectsSettingsPanel.cpp" />
