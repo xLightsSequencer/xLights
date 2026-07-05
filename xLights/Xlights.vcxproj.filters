@@ -91,6 +91,9 @@
     <ClCompile Include="..\src-core\render\RenderEngine.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\xLightsShowContext.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\ModelGifExporter.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -150,6 +153,9 @@
     <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
+    <ClCompile Include="..\src-core\render\HeadlessRenderContext.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />

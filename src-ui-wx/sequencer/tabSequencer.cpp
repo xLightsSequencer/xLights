@@ -518,6 +518,13 @@ void xLightsFrame::CheckForValidModels()
 {
     
 
+    // Baseline the "saved" change count here — after AdjustEffectSettingsForVersion
+    // (so migrations don't read as unsaved) but before the remap below (so a remap
+    // does mark the sequence dirty). Same seam as before; now reached from
+    // xLightsShowContext::LoadSequenceElements.
+    mSavedChangeCount = _sequenceElements.GetChangeCount();
+    mLastAutosaveCount = mSavedChangeCount;
+
     bool cancelled = false;
 
     spdlog::debug("CheckForValidModels: building model list.");
@@ -957,36 +964,31 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
     AbortRender();
 
     PushTraceContext();
-    SetFrequency(xml_file.GetFrequency());
-    _sequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
-
     AddTraceMessage("loading");
-    _sequenceElements.LoadSequencerFile(xml_file, doc, GetShowDirectory());
+
+    // The shared, wx-free load: frequency, views manager, LoadSequencerFile,
+    // AdjustEffectSettingsForVersion, CheckForValidModels (overridden below for
+    // the interactive remap dialog), PrepareViews / PopulateRowInformation, mark
+    // loaded, ValueCurve wiring — the steps every host runs in this order. See
+    // xLightsShowContext::LoadSequenceElements.
+    if (!LoadSequenceElements(xml_file, doc)) {
+        spdlog::warn("LoadSequencer: failed to load {}", (const char*)xml_file.GetFullPath().c_str());
+        PopTraceContext();
+        return;
+    }
+
+    // Desktop UI on top of the shared load:
+    SetFrequency(xml_file.GetFrequency()); // also refreshes the timeline/waveform panels
 
     // Sync jukebox UI from sequence data
     if (GetJukeboxPanel()) {
         GetJukeboxPanel()->SyncFromData(xml_file.GetJukeboxButtons());
     }
 
-    spdlog::debug("Upgrading sequence");
-    xml_file.AdjustEffectSettingsForVersion(_sequenceElements, this);
-
     Menu_Settings_Sequence->Enable(true);
-
-    mSavedChangeCount = _sequenceElements.GetChangeCount();
-    mLastAutosaveCount = mSavedChangeCount;
-
-    spdlog::debug("Checking for valid models");
-    CheckForValidModels();
 
     spdlog::debug("Loading the audio data");
     LoadAudioData(xml_file);
-
-    spdlog::debug("Preparing views");
-    _sequenceElements.PrepareViews(xml_file);
-
-    spdlog::debug("Populating row information");
-    _sequenceElements.PopulateRowInformation();
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&_sequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);

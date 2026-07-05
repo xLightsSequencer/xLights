@@ -500,6 +500,8 @@
 		<Unit filename="../src-ui-wx/sequencer/RenameTextDialog.h" />
 		<Unit filename="../src-core/render/RenderEngine.cpp" />
 		<Unit filename="../src-core/render/RenderEngine.h" />
+		<Unit filename="../src-core/render/xLightsShowContext.cpp" />
+		<Unit filename="../src-core/render/xLightsShowContext.h" />
 		<Unit filename="../src-core/render/ViewpointMgr.cpp" />
 		<Unit filename="../src-core/render/ViewpointMgr.h" />
 		<Unit filename="../src-ui-wx/render/RenderUI.cpp" />
@@ -1607,6 +1609,8 @@
 		<Unit filename="../src-ui-wx/wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/xLightsframe.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/xlColorPickerFields.wxs" />
+		<Unit filename="../src-core/render/HeadlessRenderContext.cpp" />
+		<Unit filename="../src-core/render/HeadlessRenderContext.h" />
 		<Unit filename="../src-ui-wx/xLightsApp.cpp" />
 		<Unit filename="../src-ui-wx/xLightsApp.h" />
 		<Unit filename="../src-ui-wx/import_export/xLightsImportChannelMapDialog.cpp" />

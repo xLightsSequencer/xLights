@@ -49,6 +49,19 @@
 #include <log.h>
 // END_OF_RENDER_FRAME is defined in RenderProgressInfo.h
 
+// XL_EFFSUM=1 determinism diagnostic: emit content checksums at render stages
+// (C = canvas preload result, O = post-blend seqData slice) to stderr.  Two
+// runs' sorted outputs diff at the first non-deterministic producer.
+static const bool xldbgEffSum = (getenv("XL_EFFSUM") != nullptr);
+static uint64_t xldbgFNV(const uint8_t* d, size_t n) {
+    uint64_t h = 1469598103934665603ULL;
+    for (size_t i = 0; i < n; i++) {
+        h ^= d[i];
+        h *= 1099511628211ULL;
+    }
+    return h;
+}
+
 
 class EffectLayerInfo {
 public:
@@ -830,6 +843,11 @@ public:
                         }
                         });
                     buffer->UnMergeBuffersForLayer(layer);
+
+                    if (xldbgEffSum) {
+                        fprintf(stderr, "SUM C f=%d m=%s s=%d l=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, layer,
+                                (unsigned long long)xldbgFNV((const uint8_t*)rb.GetPixels(), rb.GetPixelCount() * 4));
+                    }
                 }
 
                 info.validLayers[layer] = _engine->RenderEffectFromMap(suppress, ef, layer, frame, info.settingsMaps[layer], *buffer, b);
@@ -841,6 +859,13 @@ public:
                 } else if (info.validLayers[layer]) {
                     buffer->HandleLayerBlurZoom(frame, layer);
                     buffer->HandleLayerTransitions(frame, layer);
+                }
+
+                if (xldbgEffSum && info.validLayers[layer]) {
+                    RenderBuffer& rbl = buffer->BufferForLayer(layer, -1);
+                    GPURenderUtils::waitForRenderCompletion(&rbl);
+                    fprintf(stderr, "SUM L f=%d m=%s s=%d l=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, layer,
+                            (unsigned long long)xldbgFNV((const uint8_t*)rbl.GetPixels(), rbl.GetPixelCount() * 4));
                 }
             } else {
                 info.validLayers[layer] = true;
@@ -862,8 +887,46 @@ public:
                 buffer->SetColors(effectiveNumLayers, &((*seqData)[frame][0]), seqData->NumChannels());
                 info.validLayers[effectiveNumLayers] = true;
             }
+            if (xldbgEffSum && blend) {
+                RenderBuffer& blrb = buffer->BufferForLayer(effectiveNumLayers, -1);
+                fprintf(stderr, "SUM B f=%d m=%s s=%d pfd=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, (int)GetPreviousFrameDone(),
+                        (unsigned long long)xldbgFNV((const uint8_t*)blrb.GetPixels(), blrb.GetPixelCount() * 4));
+            }
             buffer->CalcOutput(frame, info.validLayers);
+            if (xldbgEffSum) {
+                uint64_t h = 1469598103934665603ULL;
+                for (const auto& n : buffer->BufferForLayer(0, -1).GetNodes()) {
+                    xlColor c;
+                    n->GetColor(c);
+                    uint32_t v = c.GetRGBA();
+                    const uint8_t* d = (const uint8_t*)&v;
+                    for (int i = 0; i < 4; i++) {
+                        h ^= d[i];
+                        h *= 1099511628211ULL;
+                    }
+                }
+                fprintf(stderr, "SUM N f=%d m=%s s=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, (unsigned long long)h);
+            }
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
+
+            if (xldbgEffSum) {
+                // hash only this row's actual node channels — the model span
+                // of a group includes gap channels owned by rows this one is
+                // not ordered against, which made span hashes racy artifacts
+                uint64_t h = 1469598103934665603ULL;
+                for (const auto& n : buffer->BufferForLayer(0, -1).GetNodes()) {
+                    uint32_t start = n->ActChan;
+                    uint32_t cnt = n->GetChanCount();
+                    if (start + cnt <= seqData->NumChannels()) {
+                        const uint8_t* d = &((*seqData)[frame][start]);
+                        for (uint32_t i = 0; i < cnt; i++) {
+                            h ^= d[i];
+                            h *= 1099511628211ULL;
+                        }
+                    }
+                }
+                fprintf(stderr, "SUM O f=%d m=%s s=%d pfd=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, (int)GetPreviousFrameDone(), (unsigned long long)h);
+            }
 
             // Position Zone processing (DMX)
             if (_ctx->GetEnablePositionZones()) {
@@ -1787,6 +1850,9 @@ void RenderEngine::Render(SequenceElements& seqElements,
 
                     jobs[row] = job;
                     aggregators[row]->addNext(job);
+                    if (xldbgEffSum) {
+                        fprintf(stderr, "ROW %zu %s\n", row, (*it)->GetName().c_str());
+                    }
                     size_t cn = buffer->GetChanCountPerNode();
                     for (size_t node = 0; node < buffer->GetNodeCount(); ++node) {
                         uint32_t start = buffer->NodeStartChannel(node);
@@ -1798,6 +1864,9 @@ void RenderEngine::Render(SequenceElements& seqElements,
                                     if ((size_t)idx != row) {
                                         if (jobs[idx]->addNext(aggregators[row])) {
                                             aggregators[row]->incNumAggregated();
+                                            if (xldbgEffSum) {
+                                                fprintf(stderr, "EDGE %d -> %zu\n", idx, row);
+                                            }
                                         }
                                     }
                                 }
@@ -2225,12 +2294,18 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             }
                         }
                         });
-                    if (bufCnt > 1) {
+                    // XL_SERIAL_PERMODEL=1: render per-model buffers serially —
+                    // determinism diagnostic isolating this pool from other
+                    // parallel_for uses.
+                    static const bool serialPerModel = (getenv("XL_SERIAL_PERMODEL") != nullptr);
+                    if (bufCnt > 1 && !serialPerModel) {
                         static ParallelJobPool PER_MODEL_POOL("per_model_pool");
                         parallel_for(0, bufCnt, [&f](int x) {f(x); }, 1, &PER_MODEL_POOL);
                     }
                     else {
-                        f(0);
+                        for (int x = 0; x < bufCnt; x++) {
+                            f(x);
+                        }
                     }
                     buffer.MergeBuffersForLayer(layer);
                 }

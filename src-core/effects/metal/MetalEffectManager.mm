@@ -65,14 +65,16 @@ public:
         }
     }
     virtual bool doBlur(RenderBuffer *c, int radius) override {
-        if (c && c->gpuRenderData) {
+        static const bool noGpuBlur = (getenv("XL_NO_GPU_BLUR") != nullptr);
+        if (!noGpuBlur && c && c->gpuRenderData) {
             MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
             return d ? d->blur(radius) : false;
         }
         return false;
     }
     virtual bool doRotoZoom(RenderBuffer *c, RotoZoomSettings &settings) override {
-        if (c->gpuRenderData) {
+        static const bool noGpuRoto = (getenv("XL_NO_GPU_ROTO") != nullptr);
+        if (!noGpuRoto && c->gpuRenderData) {
             MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
             return d ? d->rotoZoom(settings) : false;
         }
@@ -87,7 +89,8 @@ public:
         return MetalComputeUtilities::INSTANCE.gpuCoreCount();
     }
     virtual bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) override {
-        if (enabled() && pixelBuffer) {
+        static const bool noGpuTrans = (getenv("XL_NO_GPU_TRANS") != nullptr);
+        if (!noGpuTrans && enabled() && pixelBuffer) {
             MetalPixelBufferComputeData *d = static_cast<MetalPixelBufferComputeData*>(pixelBuffer->gpuRenderData);
             return d ? d->doTransitions(pixelBuffer, layer, prevRB) : false;
         }
@@ -108,8 +111,39 @@ public:
 
 static MetalRenderUtils METAL_RENDER_UTILS;
 
+// XL_NO_METAL_FX determinism diagnostic: "ALL" or a comma-separated list of
+// effect names ("Shockwave,Kaleidoscope") forces those effects to their CPU
+// implementation while the rest of the GPU pipeline stays active.
+static bool metalEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
+    static const char* env = getenv("XL_NO_METAL_FX");
+    if (env == nullptr) {
+        return false;
+    }
+    std::string list = env;
+    if (list == "ALL") {
+        return true;
+    }
+    static const std::map<EffectManager::RGB_EFFECTS_e, std::string> names = {
+        { EffectManager::eff_BUTTERFLY, "Butterfly" },
+        { EffectManager::eff_PLASMA, "Plasma" },
+        { EffectManager::eff_WARP, "Warp" },
+        { EffectManager::eff_PINWHEEL, "Pinwheel" },
+        { EffectManager::eff_SHOCKWAVE, "Shockwave" },
+        { EffectManager::eff_KALEIDOSCOPE, "Kaleidoscope" },
+        { EffectManager::eff_FAN, "Fan" },
+        { EffectManager::eff_GALAXY, "Galaxy" },
+        { EffectManager::eff_SPIRALS, "Spirals" },
+        { EffectManager::eff_COLORWASH, "ColorWash" },
+        { EffectManager::eff_BARS, "Bars" },
+        { EffectManager::eff_CIRCLES, "Circles" },
+        { EffectManager::eff_SHADER, "Shader" },
+    };
+    auto it = names.find(eff);
+    return it != names.end() && list.find(it->second) != std::string::npos;
+}
+
 RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
-    if (MetalComputeUtilities::INSTANCE.computeEnabled()) {
+    if (MetalComputeUtilities::INSTANCE.computeEnabled() && !metalEffectDisabled(eff)) {
         switch (eff) {
         case EffectManager::eff_BUTTERFLY:
             return new MetalButterflyEffect(eff);

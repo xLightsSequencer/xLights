@@ -2971,7 +2971,10 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         }
         sparkles = &sparklesVector[0];
     }
-    if (!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)) {
+    // XL_NO_GPU_BLEND=1 forces the ISPC layer-blend path (Metal effects still
+    // run) — determinism diagnostic to isolate the GPU blend chain.
+    static const bool noGpuBlend = (getenv("XL_NO_GPU_BLEND") != nullptr);
+    if (noGpuBlend || !GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)) {
         for (int ii = (numLayers - 1); ii >= 0; --ii) {
             if (!validLayers[ii]) {
                 continue;

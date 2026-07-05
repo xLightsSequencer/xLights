@@ -21,11 +21,13 @@
 #include "render/SequenceElements.h"
 #include "render/SequenceViewManager.h"
 #include "render/SequenceData.h"
+#include "render/SequenceFile.h"
 #include "render/ViewpointMgr.h"
 #include "effects/EffectManager.h"
 #include "effects/EffectPresetManager.h"
 
 #include <memory>
+#include <optional>
 
 // Concrete, wx-free owner of a loaded xLights "show": the model / output /
 // effect managers, sequence elements, and render engine that both the desktop
@@ -116,4 +118,76 @@ public:
     const std::string& GetShowDirectory() const override { return showDirectory; }
     const std::string& GetFseqDirectory() const override { return fseqDirectory; }
     [[nodiscard]] const std::list<std::string>& GetMediaFolders() const override { return mediaDirectories; }
+
+    // Result of ScanForMissingModels: models a sequence references that are not
+    // in the current layout, plus the layout models NOT used by the sequence
+    // (the candidate pool a host's remap UI offers).
+    struct MissingModelScan {
+        std::vector<std::string> missing;         // referenced (with effects), not in layout — annotated "name(effectCount)"
+        std::vector<std::string> availableNames;  // layout model + group names not used by the sequence
+        std::vector<std::string> availableModels; // as availableNames, excluding model groups
+    };
+
+    // Walk the sequence's model elements against AllModels (alias-aware) and
+    // report the mismatch. wx-free; hosts drive resolution off the result.
+    MissingModelScan ScanForMissingModels() const;
+
+    // The shared "load the sequence's elements from an open SequenceFile" steps,
+    // in the one correct order. Every host (desktop frame, iPad, headless) ran
+    // these open-coded and each ordering/migration bug (frequency rounding,
+    // AdjustEffectSettingsForVersion, view prep) had to be fixed in all three.
+    // CheckForValidModels() runs at the migration seam (it may add/rename
+    // elements, so it must precede PrepareViews). Returns false if
+    // LoadSequencerFile fails. A host adds its own UI via the two virtuals.
+    bool LoadSequenceElements(SequenceFile& file, pugi::xml_document& doc);
+
+    // Resolve models the sequence references that aren't in the layout. The base
+    // (headless) just logs them; the desktop overrides with the interactive
+    // remap dialog, the iPad with its own mapping UI. Called from
+    // LoadSequenceElements after migration, before PrepareViews.
+    virtual void CheckForValidModels();
+
+    // Host hook after the rows are populated (before the sequence is marked
+    // loaded). Default no-op; the iPad uses it for animated-GIF media compat.
+    virtual void OnSequenceElementsLoaded(SequenceFile& /*file*/) {}
+
+    // ---- Currently-open sequence + its shared lifecycle (non-wx hosts) ----
+    // The desktop frame keeps its own CurrentSeqXmlFile and overrides the
+    // accessors below; these back the headless / iPad hosts, which historically
+    // carried identical copies of all of this.
+    std::unique_ptr<SequenceFile> _sequenceFile;
+    std::optional<pugi::xml_document> _sequenceDoc;
+
+    // Path helpers — pure string logic against the show/media dirs.
+    bool IsInShowFolder(const std::string& file) const override;
+    bool IsInShowOrMediaFolder(const std::string& file) const override;
+    std::string MakeRelativePath(const std::string& file) const override;
+    // No-op by default (headless can't move assets into the show); the iPad and
+    // desktop override with real copies.
+    std::string MoveToShowFolder(const std::string& /*file*/,
+                                 const std::string& /*subdirectory*/,
+                                 bool /*reuse*/) override { return ""; }
+
+    bool IsSequenceLoaded() const override { return _sequenceFile && _sequenceFile->IsOpen(); }
+    AudioManager* GetCurrentMediaManager() const override {
+        return _sequenceFile ? _sequenceFile->GetMedia() : nullptr;
+    }
+
+    // Signal every in-flight render job to bail and block until they finish (or
+    // maxTimeMs elapses). Once this returns, mutating _sequenceElements / _seqData
+    // is safe. The desktop frame overrides with its own render-pool teardown.
+    bool AbortRender(int maxTimeMs = 60000) override;
+
+    // Tear down the open sequence: drain the render, clear elements + seq data,
+    // drop the file/doc.
+    void CloseSequence();
+
+    // "Done" == no in-flight render jobs (must NOT key on _seqData validity —
+    // CloseSequence clears it before the next open). Drains finished progress
+    // entries; safe only from the driver/main thread.
+    bool IsRenderDone();
+
+    // (Re)allocate _seqData when the sequence shape (frames/channels/frameTime)
+    // changes, aborting any in-flight render first to avoid a use-after-free.
+    void EnsureSequenceDataSized();
 };

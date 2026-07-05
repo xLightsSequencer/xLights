@@ -57,7 +57,7 @@ xSchedule, xCapture, xFade, xScanner → moved to their own repos under
 | `outputs/` | Protocol handlers + controller connection config (sACN, ArtNet, DDP, USB, etc.) |
 | `controllers/` | Vendor upload handlers (Falcon, FPP, WLED, etc.) |
 | `media/` | Audio decode/encode/playback. `AudioManager` with abstract `IAudioDecoder`/`IAudioOutput`. Apple: AudioToolbox (decode) + AVAudioEngine (playback). Linux/Windows: FFmpeg + SDL2. Also `xLightsVamp` (VAMP analysis), `AudioLoader` (FFmpeg loader). |
-| `render/` | Rendering engine. `SequenceMedia.cpp` manages image cache/embed (`.xsq` base64 or external refs), resolves paths via `FixFile()`. |
+| `render/` | Rendering engine. `SequenceMedia.cpp` manages image cache/embed (`.xsq` base64 or external refs), resolves paths via `FixFile()`. `xLightsShowContext` is the wx-free show-state base (models/outputs/effects/sequence/render engine) that `xLightsFrame`, `iPadRenderContext`, and `HeadlessRenderContext` all derive from; `LoadSequenceElements` is the shared sequence-open path. `HeadlessRenderContext` powers `--headless` render (see §4). |
 | `graphics/` | wx-free GPU abstraction (see below). |
 | `discovery/` | Controller/output discovery data structures + API. |
 | `XmlSerializer/` | XML (de)serialization for models, objects, RGB effects. Includes GDTF parser. Must not depend on wx/UI. |
@@ -246,6 +246,61 @@ when deploying to device/simulator.
 the desktop build won't surface iOS-specific breaks (e.g. `#ifdef __APPLE__`
 paths, ObjC++ bridge compilation, Swift interop). iPad deps live at
 `/opt/xLights-macOS-dependencies/lib-ios/`.
+
+### Headless render mode (render regression testing)
+
+`--headless` renders `.xsq` sequences to `.fseq` with **no window** and exits
+(`0` = success, `1` = render/write error, `2` = bad args) — the way to render
+from a script/CI/agent loop. It's driven by `HeadlessRenderContext`
+(`src-core/render/`), a concrete wx-free `xLightsShowContext` (the same
+show-state base the desktop `xLightsFrame` and the iPad derive from), so it
+exercises the real render engine, effects, and the shared `LoadSequenceElements`
+open path — nothing is stubbed.
+
+```bash
+# Render one or more sequences (glob works; quote it so the shell doesn't pre-expand)
+xLights --headless -s <showdir> <seq.xsq> [<seq2.xsq> ...]
+xLights --headless -s <showdir> "<showdir>/*.xsq"
+# --outputdir (-od) sets the output dir (default: the show's configured fseq
+# folder); it also applies to the desktop -r (render-and-exit) mode.
+xLights --headless -s <showdir> --outputdir <dir> "<showdir>/*.xsq"
+```
+
+**Same-binary diff — the core technique.** Build ONE **Release** binary and run
+it both `-r` (desktop render) and `--headless`; compare the two `.fseq` with
+`--fseqcmp`. One binary ⇒ build config isn't a confound, and headless
+run-1-vs-run-2 is the noise floor, so a real bug shows as `hl-vs-desktop` ≫
+`hl-run2run`.
+
+```bash
+xLights --fseqcmp <a.fseq> <b.fseq>              # exit 0 iff identical
+xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq> # + per-model diffs + frame-offset probe
+XL_FSEQCMP_DUMPCH=<ch> xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq>  # dump one 1-based channel's A/B series
+```
+
+**Gotchas:**
+- **Use Release** (`xcodebuild` with no `-configuration`); Debug is ~5–10× slower
+  and skews timing.
+- **Sandbox:** the binary can only read paths it has a bookmark for (the show /
+  fseq dirs opened in the GUI), NOT `/private/tmp`. Headless and `--fseqcmp` call
+  `ObtainAccessToURL`; stage comparison fseqs under the show dir or `~/Documents`.
+- **`-r` overwrites** fseqs in the configured folder — use `--outputdir` to redirect.
+- **Expected (non-bug) diffs vs desktop:** GPU shaders (separate GL context, small
+  per-channel float), physics effects (LiquidFun/Box2D), and hardware video decode
+  (AVFoundation may return a marginally different frame near a seek). Random/sparkle
+  effects are deterministic (per-`RenderBuffer` RNG). Headless-to-headless
+  determinism is the regression baseline, not desktop byte-parity.
+
+**Determinism-bisect env vars** (all builds; no cost when unset): `XL_SERIAL=1`
+forces every `parallel_for` serial (isolates CPU thread-order races);
+`XL_NO_GPU_COMPUTE=1` disables GPU compute; `XL_NO_GPU_BLEND`/`_BLUR`/`_ROTO`/`_TRANS`
+disable one Metal stage each; `XL_NO_METAL_FX=ALL` (or `Name,Name`) forces effects
+to CPU; `XL_EFFSUM=1` prints per-stage checksums to stderr (`SUM C`=canvas preload,
+`SUM L`=layer, `SUM O`=post-blend) — sort two runs and diff to name the first
+divergent model/layer/stage; `XL_HEADLESS_NO_GL=1` forces the shader solid-colour
+fallback. The 2×2 matrix (`XL_SERIAL` × `XL_NO_GPU_COMPUTE`) splits a diff into
+CPU-parallel vs GPU sources; serial+noGPU byte-identical ⇒ the scheduler/blend
+chain isn't involved.
 
 ### Linux
 

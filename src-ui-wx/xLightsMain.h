@@ -1684,6 +1684,10 @@ protected:
     static constexpr int RENDER_EXIT_ON_DONE = 1;
     static constexpr int RENDER_ALREADY_RETRIED = 2;
     void OpenRenderAndSaveSequencesF(const wxArrayString &filenames, int flags);
+    // Command-line --outputdir override for -r; applied at the top of
+    // OpenRenderAndSaveSequencesF (after the show's fseqDir has loaded).
+    void SetCommandLineFseqDir(const std::string& dir) { _commandLineFseqDir = dir; }
+    std::string _commandLineFseqDir;
     void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
@@ -1978,7 +1982,7 @@ private:
     void ResizeMainSequencer();
     void LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc);
     void DoLoadPerspective(Perspective* p);
-    void CheckForValidModels();
+    void CheckForValidModels() override;
     void ExportModels(wxString const& filename);
     void ExportEffects(wxString const& filename);
     int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);

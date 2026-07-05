@@ -1499,73 +1499,25 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
         return false;
     }
 
-    // Must set the views manager BEFORE LoadSequencerFile so SequenceElements
-    // can resolve the current view while populating rows. Desktop does the
-    // same in `tabSequencer.cpp::NewSequence/OpenSequence`.
-    _sequenceElements.SetViewsManager(&_sequenceViewManager);
-
-    if (!_sequenceElements.LoadSequencerFile(*_sequenceFile, *_sequenceDoc, showDirectory)) {
+    // Shared load steps (frequency, views manager, LoadSequencerFile, settings
+    // migration, CheckForValidModels [base logs missing models], view prep) plus
+    // the iPad's animated-GIF media fixup via OnSequenceElementsLoaded below. See
+    // xLightsShowContext::LoadSequenceElements.
+    if (!LoadSequenceElements(*_sequenceFile, *_sequenceDoc)) {
         spdlog::warn("iPadRenderContext: Failed to load sequence elements from {}", path);
         _sequenceFile.reset();
         _sequenceDoc.reset();
         return false;
     }
 
-    // PrepareViews grows mAllViews so there is one slot per view in the
-    // view manager. Without this only the Master slot exists and switching
-    // to any other view crashes inside PopulateRowInformation at
-    // `mAllViews[mCurrentView]`. Desktop calls this from tabSequencer.cpp.
-    _sequenceElements.PrepareViews(*_sequenceFile);
-
-    _sequenceElements.PopulateRowInformation();
-
-    {
-        std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
-        std::vector<MediaCompatibilityIssue> gifIssues;
-        for (const auto& vf : videoFiles) {
-            std::string resolved = FileUtils::FixFile(showDirectory, vf);
-            std::string reason = MediaCompatibility::CheckVideoFile(resolved);
-            if (reason.empty()) continue;
-            MediaCompatibilityIssue issue;
-            issue.filePath = resolved;
-            issue.reason = reason;
-            issue.isVideo = true;
-            if (issue.isAnimatedGif() && issue.canConvert()) {
-                gifIssues.push_back(std::move(issue));
-            }
-        }
-        if (!gifIssues.empty()) {
-            int rewritten = seqmedia::ConvertGifVideoEffectsToPictures(_sequenceElements, gifIssues);
-            if (rewritten > 0) {
-                spdlog::info("iPadRenderContext: converted {} animated GIF Video effect(s) to Pictures effects on load of {}",
-                             rewritten, path);
-            }
-        }
-    }
-
-    // Mark the SequenceFile as loaded so subsequent timing-track
-    // additions go through the live in-memory path (creating
-    // elements + marks immediately) instead of the
-    // mPendingTimings queue, which only applies on a future
-    // ApplyPendingTimings call. Desktop does this from
-    // SeqFileUtilities.cpp after every load; the iPad's
-    // sequence-open path is here, so it lands here.
-    _sequenceFile->SetSequenceLoaded(true);
-
-    // ValueCurve needs sequence elements for VC expressions referencing timing tracks
-    ValueCurve::SetSequenceElements(&_sequenceElements);
-
     spdlog::info("iPadRenderContext: Row info size: {}, timing rows: {}",
                  _sequenceElements.GetRowInformationSize(),
                  _sequenceElements.GetNumberOfTimingElements());
 
-    // Pre-allocate SequenceData once per sequence. Previously
-    // RenderAll called init() on every pass, which meant a
-    // Cleanup()+realloc of `_frames` on each render; any concurrent
-    // read from a worker thread would OOB. Allocating here makes
-    // the buffer stable for the sequence's lifetime — render passes
-    // reuse it, and `RenderEngine::Render` already zeros per-frame
-    // data when called with `clear=true`.
+    // Pre-allocate SequenceData once per sequence. Previously RenderAll called
+    // init() on every pass (Cleanup()+realloc of `_frames`), which a concurrent
+    // worker read could OOB. Allocating here keeps the buffer stable for the
+    // sequence's lifetime; RenderEngine::Render zeros per-frame data on clear.
     EnsureSequenceDataSized();
 
     spdlog::info("iPadRenderContext: Opened sequence {} ({} elements, {} ms)",
@@ -1575,90 +1527,32 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
     return true;
 }
 
-void iPadRenderContext::CloseSequence() {
-    // If a background render is in flight, signal abort and wait
-    // for the orchestrator + JobPool workers to wind down before
-    // destroying the SequenceElements / SequenceData they read.
-    // Without this, opening a second sequence while the first one
-    // is still rendering races: main thread enters Clear() while
-    // the render worker is mid-GetElement(), producing a use-
-    // after-free crash deep in StrandElement / ModelElement
-    // destruction (observed in TestFlight as a Thread 0 ↔ Thread 17
-    // collision when picking a sequence from the picker).
-    //
-    // The deadline is generous — typical wind-down is tens of ms,
-    // but a long-running per-model render can take a couple of
-    // seconds to notice the abort. Falling out of the loop after
-    // 5 s is a safety net; the worker may still be running when we
-    // proceed, but at that point we've given up on a clean
-    // shutdown and the user is presumably waiting too long anyway.
-    if (_renderEngine) {
-        _renderEngine->SignalAbort();
-        auto deadline = std::chrono::steady_clock::now()
-                      + std::chrono::seconds(5);
-        while (!IsRenderDone()
-               && std::chrono::steady_clock::now() < deadline) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+void iPadRenderContext::OnSequenceElementsLoaded(SequenceFile& file) {
+    // Some animated-GIF Video effects can't be decoded on iOS; convert them to
+    // Pictures effects on load. Runs after the rows are populated, before the
+    // sequence is marked loaded (xLightsShowContext::LoadSequenceElements seam).
+    // Desktop keeps them as Video effects.
+    std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
+    std::vector<MediaCompatibilityIssue> gifIssues;
+    for (const auto& vf : videoFiles) {
+        std::string resolved = FileUtils::FixFile(showDirectory, vf);
+        std::string reason = MediaCompatibility::CheckVideoFile(resolved);
+        if (reason.empty()) continue;
+        MediaCompatibilityIssue issue;
+        issue.filePath = resolved;
+        issue.reason = reason;
+        issue.isVideo = true;
+        if (issue.isAnimatedGif() && issue.canConvert()) {
+            gifIssues.push_back(std::move(issue));
         }
     }
-    _sequenceElements.Clear();
-    _seqData.Cleanup();
-    _sequenceDoc.reset();
-    _sequenceFile.reset();
-}
-
-void iPadRenderContext::EnsureSequenceDataSized() {
-    if (!_sequenceFile) return;
-    unsigned int numFrames =
-        (unsigned int)(_sequenceFile->GetSequenceDurationMS() /
-                       _sequenceFile->GetFrameMS());
-    unsigned int numChannels = _outputManager.GetTotalChannels();
-    if (numChannels == 0) numChannels = 1;
-    unsigned int frameTime = (unsigned int)_sequenceFile->GetFrameMS();
-
-    // Only reallocate when the shape has actually changed
-    // (sequence duration, frame rate, or channel count). The
-    // `init()` path does a full Cleanup + reallocate; skipping it
-    // on a matching call saves a full sequence's worth of
-    // allocation churn on every render.
-    if (_seqData.IsValidData()
-        && _seqData.NumChannels() == numChannels
-        && _seqData.NumFrames() == numFrames
-        && _seqData.FrameTime() == frameTime) {
-        return;
+    if (!gifIssues.empty()) {
+        int rewritten = seqmedia::ConvertGifVideoEffectsToPictures(_sequenceElements, gifIssues);
+        if (rewritten > 0) {
+            spdlog::info("iPadRenderContext: converted {} animated GIF Video effect(s) to Pictures effects on load of {}",
+                         rewritten, file.GetFullPath());
+        }
     }
-    // The shape changed, so init() runs Cleanup() and frees (munmap on iPad's
-    // FILE_BACKED blocks) the seqData channel storage. A render job on a worker
-    // thread mid-GetColors/SetColors holds a raw pointer into that storage, so
-    // freeing it here is a use-after-free (crash sig 25e8b06bcc / a14ee11b9c).
-    // Drain any in-flight render first; if it can't be stopped, skip the resize
-    // rather than pull the buffer out from under a live job. This is the single
-    // choke point for init() so every caller (RenderAll / RenderModelAndWait /
-    // OpenSequence / setSequenceDurationMS) is covered.
-    if (!AbortRender()) {
-        spdlog::error("EnsureSequenceDataSized: could not abort the in-flight render; skipping the seqData resize to avoid a use-after-free.");
-        return;
-    }
-    _seqData.init(numChannels, numFrames, frameTime);
-}
-
-bool iPadRenderContext::IsInShowFolder(const std::string& file) const {
-    return file.find(showDirectory) == 0;
-}
-
-bool iPadRenderContext::IsInShowOrMediaFolder(const std::string& file) const {
-    if (IsInShowFolder(file)) return true;
-    for (const auto& folder : mediaDirectories) {
-        if (file.find(folder) == 0) return true;
-    }
-    return false;
-}
-
-std::string iPadRenderContext::MakeRelativePath(const std::string& file) const {
-    if (file.find(showDirectory) == 0 && file.size() > showDirectory.size() + 1) {
-        return file.substr(showDirectory.size() + 1);
-    }
-    return file;
 }
 
 namespace {
@@ -1771,10 +1665,6 @@ std::string iPadRenderContext::CopyToMediaFolder(const std::string& file,
     }
     if (!known) return "";
     return CopyIntoRoot(file, mediaFolderPath, subdirectory, /*reuse*/ false);
-}
-
-AudioManager* iPadRenderContext::GetCurrentMediaManager() const {
-    return _sequenceFile ? _sequenceFile->GetMedia() : nullptr;
 }
 
 void iPadRenderContext::SetWaveformTrackIndex(int idx) {
@@ -1981,25 +1871,6 @@ int iPadRenderContext::ReadFseqCompressionLevel() const {
     return level;
 }
 
-bool iPadRenderContext::AbortRender(int maxTimeMs) {
-    // Mirror the desktop's xLightsFrame::AbortRender contract: signal
-    // every in-flight render job to bail and then BLOCK until they
-    // actually finish (or the timeout elapses). Callers depend on
-    // this — once AbortRender returns, layout-mutation code is free
-    // to rewrite Model state without racing the render thread.
-    if (!_renderEngine) return true;
-    if (IsRenderDone()) return true;
-    _renderEngine->SignalAbort();
-    if (maxTimeMs <= 0) maxTimeMs = 60000;
-    int loops = maxTimeMs / 10;
-    int i = 0;
-    while (!IsRenderDone() && i < loops) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        ++i;
-    }
-    return IsRenderDone();
-}
-
 bool iPadRenderContext::WasRenderAborted() const {
     return _renderEngine && _renderEngine->GetAbortedRenderJobs() > 0;
 }
@@ -2140,34 +2011,6 @@ void iPadRenderContext::HandleMemoryCritical() {
 
     spdlog::error("iPadRenderContext: memory critical handled "
                   "(render aborted, preset data freed, unused media removed)");
-}
-
-bool iPadRenderContext::IsRenderDone() {
-    // No render ever kicked off (or already torn down) — treat as
-    // "done" so abort-and-wait short-circuits cleanly.
-    if (!_renderEngine) return true;
-    if (!_seqData.IsValidData()) return false;
-    _renderEngine->CheckForStalledRender();
-    // Each RenderProgressInfo flips its `completed` atomic when its last
-    // RenderJob signals via NotifyJobFinished (covers normal, aborted, and
-    // early-bail exits). We both check completion and lazily drain finished
-    // entries here -- called from the main thread, so cleanup + callback run
-    // safely off the render workers. Any pending rpi keeps the result false.
-    auto& list = _renderEngine->GetRenderProgressInfo();
-    bool allDone = true;
-    for (auto it = list.begin(); it != list.end();) {
-        RenderProgressInfo* rpi = *it;
-        if (rpi->completed.load()) {
-            rpi->CleanupJobs();
-            if (rpi->callback) rpi->callback(_renderEngine->GetAbortedRenderJobs() > 0);
-            delete rpi;
-            it = list.erase(it);
-        } else {
-            allDone = false;
-            ++it;
-        }
-    }
-    return allDone;
 }
 
 float iPadRenderContext::GetRenderProgressFraction() const {

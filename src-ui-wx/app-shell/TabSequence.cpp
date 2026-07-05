@@ -1401,6 +1401,13 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
 
 void xLightsFrame::OpenRenderAndSaveSequencesF(const wxArrayString& origFileNames, int flags)
 {
+    if (!_commandLineFseqDir.empty()) {
+        // -r --outputdir override. The show (and its configured fseqDir) has
+        // loaded by the time this deferred render runs, so apply it here rather
+        // than in OnInit where the show load would clobber it. Set the member
+        // directly (not SetFseqDirectory) so it isn't persisted to the show.
+        fseqDirectory = _commandLineFseqDir;
+    }
     OpenRenderAndSaveSequences(origFileNames, flags & RENDER_EXIT_ON_DONE, flags & RENDER_ALREADY_RETRIED);
 }
 

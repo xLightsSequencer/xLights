@@ -55,7 +55,10 @@ public:
 
     // Sequence management
     bool OpenSequence(const std::string& path);
-    void CloseSequence();
+
+    // Shared-open hook: convert iOS-undecodable animated-GIF Video effects to
+    // Pictures effects (base default is a no-op).
+    void OnSequenceElementsLoaded(SequenceFile& file) override;
 
     // Write the rendered sequence to a v2/zstd/sparse .fseq file matching
     // desktop's `xLightsFrame::WriteFalconPiFile` format. Sparse ranges come
@@ -75,9 +78,9 @@ public:
     // untouched so a normal render can proceed.
     bool TryLoadFseq(const std::string& fseqPath, const std::string& xsqPath);
 
-    // RenderContext implementation
-    bool IsInShowFolder(const std::string& file) const override;
-    bool IsInShowOrMediaFolder(const std::string& file) const override;
+    // RenderContext implementation. IsInShow*Folder, MakeRelativePath,
+    // IsSequenceLoaded, GetCurrentMediaManager, AbortRender and CloseSequence
+    // are provided by the base (xLightsShowContext).
     // Copy `file` into `<showDir>/<subdirectory>`, returning the final
     // absolute path. Appends `_N` on name collision unless `reuse` and
     // the existing file's contents already match. Empty string on
@@ -93,11 +96,7 @@ public:
     std::string CopyToMediaFolder(const std::string& file,
                                    const std::string& mediaFolderPath,
                                    const std::string& subdirectory);
-    std::string MakeRelativePath(const std::string& file) const override;
-
     SequenceViewManager& GetSequenceViewManager() { return _sequenceViewManager; }
-    bool IsSequenceLoaded() const override { return _sequenceFile && _sequenceFile->IsOpen(); }
-    AudioManager* GetCurrentMediaManager() const override;
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
 
     // B43: alt audio track switching for the *waveform display*. Does
@@ -134,7 +133,6 @@ public:
     // no presets file. Returns true when at least one base preset loaded.
     bool LoadBasePresets();
 
-    bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
     // Render a single model over the whole sequence and BLOCK until the
     // render workers finish (or maxTimeMs elapses). Used by the
@@ -169,7 +167,6 @@ public:
     // export over per-model node colours (both call SetModelColors).
     void SetExportInProgress(bool v) { _exportInProgress.store(v); }
     bool IsExportInProgress() const { return _exportInProgress.load(); }
-    bool IsRenderDone();
 
     // Live house-preview camera snapshot. The on-screen house-preview bridge
     // publishes its 2D/3D cameras + active mode + canvas size here on every
@@ -688,8 +685,6 @@ private:
     // Read-only "From Base" preset library (the shared _effectPresetManager is
     // in the base).
     EffectPresetManager _basePresetManager;
-    std::unique_ptr<SequenceFile> _sequenceFile;
-    std::optional<pugi::xml_document> _sequenceDoc;
 
     // Virtual preview canvas size — desktop defaults.
     int _previewWidth = 1280;
@@ -827,6 +822,4 @@ private:
     // Normally a no-op — OpenSequence pre-allocates once and
     // subsequent RenderAll passes reuse. Triggers a fresh init
     // after duration / frame-rate / channel-count mutations.
-public:
-    void EnsureSequenceDataSized();
 };

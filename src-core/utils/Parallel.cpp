@@ -97,6 +97,16 @@ public:
 };
 
 void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep, ParallelJobPool *pool) {
+    // XL_SERIAL=1 forces every parallel_for to run serially on the calling
+    // thread — a determinism diagnostic to separate parallel_for-order bugs
+    // from other non-determinism sources (GPU, scheduling).
+    static const bool forceSerial = (getenv("XL_SERIAL") != nullptr);
+    if (forceSerial) {
+        for (int x = min; x < max; x++) {
+            func(x);
+        }
+        return;
+    }
     int calcSteps = pool->calcSteps(minStep, max - min);
     if (calcSteps <= 1) {
         for (int x = min; x < max; x++) {

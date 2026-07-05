@@ -17,6 +17,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
     -bug (dkulp)                 Meteors effect: fix a threading race drawing overlapping meteor trails - output could
                                  differ from render to render
+    -bug (dkulp)                 Layer blending (macOS GPU): transition masks computed by the CPU fallback (small or
+                                 sub-buffer transitions) were ignored by the GPU blend, which then read out of bounds -
+                                 wrong and non-deterministic transition rendering on affected layers
+    -bug (dkulp)                 Fix a threading race reading effect settings while a "Per Model" buffer style renders
+                                 member models in parallel - an effect parameter could parse as garbage for one model
+                                 for a frame
+    -bug (dkulp)                 Groups that contain a nested group plus that group's members (same channels twice) now
+                                 render deterministically - parallel output writes raced for the shared channels
     -bug (dkulp)                 Canvas layers (macOS GPU): fix non-deterministic output when several nodes of a group
                                  share a buffer pixel
     -bug (dkulp)                 Rotate/Zoom (macOS GPU): fix non-deterministic output when a rotation or zoom maps
@@ -25,6 +33,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  nodes share a buffer pixel - output could differ from render to render
     -bug (dkulp)                 Kaleidoscope effect (Square/Triangle): fix a threading race in the fill that made the
                                  rendered output differ from render to render
+    -bug (dkulp)                 Headless render now honors the "Use GPU For Rendering" preference like the desktop
     -bug (dkulp)                 Galaxy effect: no longer takes a very long time to render on very wide/short buffers
                                  (e.g. a "Single Line" render style) - the spiral now skips off-buffer work and hoists
                                  per-angle trig out of the inner loop
@@ -39,6 +48,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
                                  waiting on overlapping models, cutting the render pool from hundreds of threads to
                                  roughly the CPU+GPU core count and reducing memory use on large sequences
+    -enh (dkulp)                 Add a headless render mode (--headless -s <showdir> <sequence.xsq> ...): loads the show
+                                 and renders sequence(s) to fseq with no window shown, then exits (0 on success). Built on
+                                 a new xLightsShowContext base extracted from xLightsFrame
 
 2026.12  July 2, 2026
 
