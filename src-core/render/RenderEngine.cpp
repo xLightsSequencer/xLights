@@ -906,6 +906,30 @@ public:
                     }
                 }
                 fprintf(stderr, "SUM N f=%d m=%s s=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, (unsigned long long)h);
+
+                // XLDBG_NDUMP="<model>:<startFrame>:<endFrame>" dumps every
+                // node's post-blend color in the window for A/B comparison
+                static const char* ndump = getenv("XLDBG_NDUMP");
+                if (ndump != nullptr) {
+                    static std::string ndModel;
+                    static int ndS = -1, ndE = -1;
+                    if (ndS == -1) {
+                        std::string spec = ndump;
+                        size_t a = spec.find(':');
+                        size_t b = spec.rfind(':');
+                        ndModel = spec.substr(0, a);
+                        ndS = atoi(spec.substr(a + 1, b - a - 1).c_str());
+                        ndE = atoi(spec.substr(b + 1).c_str());
+                    }
+                    if (frame >= ndS && frame <= ndE && el->GetFullName() == ndModel) {
+                        int ni = 0;
+                        for (const auto& n : buffer->BufferForLayer(0, -1).GetNodes()) {
+                            xlColor c;
+                            n->GetColor(c);
+                            fprintf(stderr, "ND f=%d n=%d c=%08x\n", frame, ni++, c.GetRGBA());
+                        }
+                    }
+                }
             }
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
 

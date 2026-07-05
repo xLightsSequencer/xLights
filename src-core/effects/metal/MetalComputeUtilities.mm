@@ -5,7 +5,6 @@
 
 #include <thread>
 
-#include <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #if !TARGET_OS_IPHONE
 #include <IOKit/IOKitLib.h>
 #endif
@@ -567,8 +566,6 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     ownerStale = true;
     rotoOwnerBuffer = nil;
     rotoOwnerSize = 0;
-    cachedBlurKernel = nil;
-    cachedBlurRadius = 0;
 }
 MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
     pixelBufferData = nullptr;
@@ -907,52 +904,53 @@ bool MetalRenderBufferComputeData::blur(int radius) {
         if (commandBuffer == nil) {
             return false;
         }
-        getPixelTexture();
-        
-        /*
-        float sigma = radius - 1;
-        sigma = std::sqrt(sigma);
-        MPSImageGaussianBlur* gblur = [[MPSImageGaussianBlur alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device sigma:sigma];
-        */
-        //tent blur is closest to what is implemented on the C++/CPU side
-        float r = (radius - 1) * 2 - 1;
-        // Reuse the cached kernel when the radius hasn't changed since the
-        // last frame — alloc/init of MPSImageTent triggers driver-side metallib
-        // parsing whose internal hash-table entries leak per-instance.
-        if (cachedBlurKernel != nil && cachedBlurRadius != radius) {
-            cachedBlurKernel = nil;
+        // tent blur is closest to what is implemented on the C++/CPU side.
+        // This was MPSImageTent, but its output varied run to run; the
+        // separable TentBlurH/V kernels are bit-exact on every run with the
+        // same kernel width and clamp edge handling.  Ping-pong through
+        // pixelBufferCopy so no texture round-trip is needed.
+        int kernelWidth = (radius - 1) * 2 - 1;
+        if (kernelWidth < 3) {
+            // matches MPSImageTent with kernelWidth 1 — an identity filter
+            return true;
         }
-        if (cachedBlurKernel == nil) {
-            cachedBlurKernel = [[MPSImageTent alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device
-                                                        kernelWidth:r
-                                                       kernelHeight:r];
-            [(MPSImageTent*)cachedBlurKernel setEdgeMode:MPSImageEdgeModeClamp];
-            [(MPSImageTent*)cachedBlurKernel setLabel:@"Blur"];
-            cachedBlurRadius = radius;
+        id<MTLBuffer> px = getPixelBuffer();
+        id<MTLBuffer> tmp = getPixelBufferCopy();
+        if (px == nil || tmp == nil) {
+            return false;
         }
-        MPSImageTent *gblur = (MPSImageTent*)cachedBlurKernel;
 
-        MPSCopyAllocator myAllocator = ^id <MTLTexture> __attribute__((ns_returns_retained)) ( MPSKernel * __nonnull filter,
-                                                        __nonnull id <MTLCommandBuffer> cmdBuf,
-                                                        __nonnull id <MTLTexture> sourceTexture)
-        {
-            MTLPixelFormat format = sourceTexture.pixelFormat;
-            MTLTextureDescriptor *d = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat: format
-                                                                                         width: sourceTexture.width
-                                                                                        height: sourceTexture.height
-                                                                                     mipmapped: NO];
-            // MPSCopyAllocator typedef declares sourceTexture as ns_consumed
-            // in the SDK; ARC balances the +1 the framework hands us via
-            // the implicit release on block exit.
-            d.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
-            return [cmdBuf.device newTextureWithDescriptor: d];
-        };
+        TentBlurData data;
+        data.width = renderBuffer->BufferWi;
+        data.height = renderBuffer->BufferHt;
+        data.halfK = (kernelWidth - 1) / 2;
+
         [commandBuffer pushDebugGroup:@"Blur"];
-        BOOL ok = [gblur encodeToCommandBuffer:commandBuffer
-                                inPlaceTexture:&pixelTexture
-                         fallbackCopyAllocator:myAllocator];
+        id<MTLComputePipelineState> fns[2] = { MetalComputeUtilities::INSTANCE.tentBlurHFunction,
+                                               MetalComputeUtilities::INSTANCE.tentBlurVFunction };
+        id<MTLBuffer> bufs[2][2] = { { tmp, px }, { px, tmp } }; // {dst, src} per pass
+        for (int pass = 0; pass < 2; pass++) {
+            id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
+            [computeEncoder setLabel:(pass == 0 ? @"TentBlurH" : @"TentBlurV")];
+            [computeEncoder setComputePipelineState:fns[pass]];
+            [computeEncoder setBytes:&data length:sizeof(data) atIndex:0];
+            [computeEncoder setBuffer:bufs[pass][0] offset:0 atIndex:1];
+            [computeEncoder setBuffer:bufs[pass][1] offset:0 atIndex:2];
+            int w = fns[pass].threadExecutionWidth;
+            int h = fns[pass].maxTotalThreadsPerThreadgroup / w;
+            MTLSize threadsPerThreadgroup = MTLSizeMake(w, h, 1);
+            MTLSize threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
+            [computeEncoder dispatchThreads:threadsPerGrid
+                      threadsPerThreadgroup:threadsPerThreadgroup];
+            [computeEncoder endEncoding];
+        }
         [commandBuffer popDebugGroup];
-        return ok;
+        static const bool blurSync = (getenv("XLDBG_BLURSYNC") != nullptr);
+        if (blurSync) {
+            commit();
+            waitForCompletion();
+        }
+        return true;
     }
 }
 
@@ -1206,6 +1204,8 @@ MetalComputeUtilities::MetalComputeUtilities() {
     yrotateClaimFunction = FindComputeFunction("RotoZoomRotateYClaim");
     zrotateClaimFunction = FindComputeFunction("RotoZoomRotateZClaim");
     rotateBlankFunction = FindComputeFunction("RotoZoomBlank");
+    tentBlurHFunction = FindComputeFunction("TentBlurH");
+    tentBlurVFunction = FindComputeFunction("TentBlurV");
     
     getColorsFunction = FindComputeFunction("GetColorsForNodes");
     putColorsFunction = FindComputeFunction("PutColorsForNodes");
@@ -1299,6 +1299,8 @@ MetalComputeUtilities::~MetalComputeUtilities() {
         yrotateClaimFunction = nil;
         zrotateClaimFunction = nil;
         rotateBlankFunction = nil;
+        tentBlurHFunction = nil;
+        tentBlurVFunction = nil;
 
         getColorsFunction = nil;
         putColorsFunction = nil;

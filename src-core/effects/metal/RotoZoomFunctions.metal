@@ -23,6 +23,43 @@ kernel void RotoZoomBlank(constant RotoZoomData &data,
     uint sidx = index.y * data.width + index.x;
     result[sidx] = {0, 0, 0, 0};
 }
+
+// Separable tent blur (replaces MPSImageTent, whose output varied run to
+// run).  Plain per-pixel gathers with a fixed summation order, so the result
+// is bit-exact on every run.  Edge handling clamps like MPSImageEdgeModeClamp.
+kernel void TentBlurH(constant TentBlurData &data,
+                      device uchar4* dst,
+                      const device uchar4* src,
+                      uint2 index [[thread_position_in_grid]]) {
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    float4 acc = 0.0;
+    float sumw = 0.0;
+    for (int i = -data.halfK; i <= data.halfK; i++) {
+        int x = clamp(int(index.x) + i, 0, int(data.width) - 1);
+        float w = float(data.halfK + 1 - abs(i));
+        acc += float4(src[index.y * data.width + x]) * w;
+        sumw += w;
+    }
+    dst[index.y * data.width + index.x] = uchar4(round(acc / sumw));
+}
+
+kernel void TentBlurV(constant TentBlurData &data,
+                      device uchar4* dst,
+                      const device uchar4* src,
+                      uint2 index [[thread_position_in_grid]]) {
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    float4 acc = 0.0;
+    float sumw = 0.0;
+    for (int i = -data.halfK; i <= data.halfK; i++) {
+        int y = clamp(int(index.y) + i, 0, int(data.height) - 1);
+        float w = float(data.halfK + 1 - abs(i));
+        acc += float4(src[y * data.width + index.x]) * w;
+        sumw += w;
+    }
+    dst[index.y * data.width + index.x] = uchar4(round(acc / sumw));
+}
 // The rotate kernels scatter: several source pixels can round() to the same
 // destination, and concurrent GPU threads racing for it made the output
 // non-deterministic run to run.  Each rotation therefore runs in two phases:

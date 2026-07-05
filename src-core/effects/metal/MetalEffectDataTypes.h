@@ -55,18 +55,24 @@ struct PlasmaData
 struct RotoZoomData {
     uint32_t width;
     uint32_t height;
-    
+
     float offset;
     float xrotation;
     int32_t xpivot;
     float yrotation;
     int32_t ypivot;
-    
+
     float zrotation;
     float zoom;
     float zoomquality;
     int32_t pivotpointx;
     int32_t pivotpointy;
+};
+
+struct TentBlurData {
+    uint32_t width;
+    uint32_t height;
+    int32_t halfK; // (kernelWidth - 1) / 2, tent weights halfK+1-|i|
 };
 
 // allow up to 16 arms, more than that and drop to CPU render

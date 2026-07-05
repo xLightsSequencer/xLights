@@ -28,6 +28,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 "Random" value curves and "Random" color curves now produce the same values every
                                  render (previously they re-randomized each render, so effects using them - e.g.
                                  Fireworks with a random palette - rendered differently every time)
+    -bug (dkulp)                 Blur (macOS GPU): replace the MPS tent blur with a deterministic compute kernel -
+                                 the MPS filter's output varied from render to render
     -bug (dkulp)                 Canvas layers (macOS GPU): fix non-deterministic output when several nodes of a group
                                  share a buffer pixel
     -bug (dkulp)                 Rotate/Zoom (macOS GPU): fix non-deterministic output when a rotation or zoom maps

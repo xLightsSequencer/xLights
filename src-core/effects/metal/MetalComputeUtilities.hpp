@@ -94,11 +94,6 @@ private:
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
 
-    // Cached MPSImageTent for blur — recreating per-frame leaks driver-side
-    // metallib parsing state. Keep one alive per buffer, swap when radius changes.
-    id cachedBlurKernel;
-    int cachedBlurRadius;
-    
     static std::atomic<uint32_t> commandBufferCount;
 };
 
@@ -139,6 +134,8 @@ public:
     id<MTLComputePipelineState> yrotateClaimFunction;
     id<MTLComputePipelineState> zrotateClaimFunction;
     id<MTLComputePipelineState> rotateBlankFunction;
+    id<MTLComputePipelineState> tentBlurHFunction;
+    id<MTLComputePipelineState> tentBlurVFunction;
     
     id<MTLComputePipelineState> getColorsFunction;
     id<MTLComputePipelineState> putColorsFunction;
