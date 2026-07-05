@@ -493,6 +493,10 @@ private:
     std::vector<uint32_t> blendBuffer;
     std::vector<uint32_t> indexVector;
     bool allSimpleIndex = true;
+    // true when two nodes share an ActChan (e.g. a group listing a nested
+    // group plus that group's members) — parallel per-node channel writes
+    // would race for the shared channel, so callers must use serial paths
+    bool dupActChans = false;
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }

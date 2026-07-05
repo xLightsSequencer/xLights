@@ -2488,7 +2488,9 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
     // KW ... I think this needs to be optimised
 
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
-        if (layers[0]->buffer.Nodes.size() < 1000) {
+        // dupActChans: two nodes sharing a channel would race in the parallel
+        // path (winner = thread timing); the serial loop is last-node-wins.
+        if (layers[0]->buffer.Nodes.size() < 1000 || layers[0]->buffer.dupActChans) {
             // smaller model, no sense in setting up the parallel_for
             for (auto& n : layers[0]->buffer.Nodes) {
                 size_t start = n->ActChan;

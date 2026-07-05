@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 #ifdef _MSC_VER
 	// required so M_PI will be defined by MSC
 	#define _USE_MATH_DEFINES
@@ -209,6 +210,21 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     }
     if (indexVector.size() < (size_t)indexCount) {
         indexVector.resize(indexCount);
+    }
+    // Groups can legitimately contain the same channels twice (e.g. a group
+    // listing both a nested group and that group's members).  GetColors'
+    // parallel path would let those nodes race for fdata[ActChan], so flag
+    // the buffer and let callers fall back to the serial last-node-wins loop.
+    dupActChans = false;
+    {
+        std::unordered_set<uint32_t> seen;
+        seen.reserve(Nodes.size());
+        for (auto &n : Nodes) {
+            if (!seen.insert(n->ActChan).second) {
+                dupActChans = true;
+                break;
+            }
+        }
     }
     allSimpleIndex = true;
     int idx = 0;
