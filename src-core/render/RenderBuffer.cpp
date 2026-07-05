@@ -108,10 +108,21 @@ void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 }
 
 
+static inline uint64_t rngFnv1a(const std::string& s) {
+    uint64_t h = 0xCBF29CE484222325ULL;
+    for (unsigned char c : s) {
+        h ^= c;
+        h *= 0x100000001B3ULL;
+    }
+    return h;
+}
+
 RenderBuffer::RenderBuffer(RenderContext *ctx, PixelBufferClass *p, const Model *m) : renderContext(ctx), parent(p)
 {
     model = m == nullptr ? p->GetModel() : m;
     cur_model = model->GetFullName();
+    rngModelHash = rngFnv1a(cur_model);
+    computeRandomBaseSeed();
     dmx_buffer = IsDmxDisplayType(model->GetDisplayAs());
     BufferHt = 0;
     BufferWi = 0;
@@ -247,8 +258,21 @@ size_t RenderBuffer::GetColorCount()
     return palette.Size();
 }
 
+// (Re)derive the per-effect base seed. Called once per effect (from
+// SetEffectDuration) so the model name is hashed only once and the base seed
+// only recomputed when the layer's effect changes - the per-frame cost is just
+// the lazy mix in ensureRandomSeed().
+void RenderBuffer::computeRandomBaseSeed()
+{
+    uint64_t s = rngModelHash;
+    s ^= (uint64_t(uint32_t(rngLayerIndex)) + 0x9E3779B97F4A7C15ULL) * 0xFF51AFD7ED558CCDULL;
+    s ^= (uint64_t(uint32_t(curEffStartPer)) + 0x85EBCA6B29B7C4A5ULL) * 0xC2B2AE3D27D4EB4FULL;
+    rngBaseSeed = rngMix64(s);
+    rngSeededForPeriod = -1; // force the serial stream to reseed on next draw
+}
+
 // generates a random number between num1 and num2 inclusive
-double RenderBuffer::RandomRange(double num1, double num2) const
+double RenderBuffer::RandomRange(double num1, double num2)
 {
     double hi,lo;
     if (num1 < num2)
@@ -1053,6 +1077,7 @@ void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
 {
     curEffStartPer = startMsec / frameTimeInMs;
     curEffEndPer = (endMsec - 1) / frameTimeInMs;
+    computeRandomBaseSeed();
 }
 
 void RenderBuffer::GetEffectPeriods(int& start, int& endp) const {
@@ -1168,6 +1193,12 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
     cur_model = buffer.cur_model;
+
+    rngModelHash = buffer.rngModelHash;
+    rngBaseSeed = buffer.rngBaseSeed;
+    rngState = buffer.rngState;
+    rngLayerIndex = buffer.rngLayerIndex;
+    rngSeededForPeriod = buffer.rngSeededForPeriod;
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;

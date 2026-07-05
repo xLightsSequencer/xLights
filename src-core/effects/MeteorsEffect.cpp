@@ -287,7 +287,7 @@ void MeteorsEffect::HorizontalAddMeteors(RenderBuffer& buffer, int ColorScheme, 
 
     MeteorClass m;
     for (int i = 0; i < buffer.BufferHt; i++) {
-        if (rand() % 200 < Count) {
+        if (buffer.randInt(0, 199) < Count) {
             m.x = buffer.BufferWi - 1;
             m.y = i;
 
@@ -296,7 +296,7 @@ void MeteorsEffect::HorizontalAddMeteors(RenderBuffer& buffer, int ColorScheme, 
                 buffer.SetRangeColor(hsv0, hsv1, m.hsv);
                 break;
             case 2:
-                buffer.palette.GetHSV(rand() % colorcnt, m.hsv);
+                buffer.palette.GetHSV(buffer.randInt(0, (int)colorcnt - 1), m.hsv);
                 break;
             }
             cache->meteors.push_back(m);
@@ -360,7 +360,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
         for (int ph = 0; ph <= TailLength; ph++) {
             switch (ColorScheme) {
             case 0:
-                hsv.hue = double(rand() % 1000) / 1000.0;
+                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
                 hsv.saturation = 1.0;
                 hsv.value = 1.0;
                 break;
@@ -430,7 +430,7 @@ void MeteorsEffect::VerticalAddMeteors(RenderBuffer& buffer, int ColorScheme, in
     MeteorClass m;
 
     for (int i = 0; i < buffer.BufferWi; i++) {
-        if (rand() % 200 < Count) {
+        if (buffer.randInt(0, 199) < Count) {
             m.x = i;
             m.y = buffer.BufferHt - 1;
 
@@ -439,7 +439,7 @@ void MeteorsEffect::VerticalAddMeteors(RenderBuffer& buffer, int ColorScheme, in
                     buffer.SetRangeColor(hsv0, hsv1, m.hsv);
                     break;
             case 2:
-                    buffer.palette.GetHSV(rand() % colorcnt, m.hsv);
+                    buffer.palette.GetHSV(buffer.randInt(0, (int)colorcnt - 1), m.hsv);
                     break;
             }
             cache->meteors.push_back(m);
@@ -503,7 +503,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
         for (int ph = 0; ph <= TailLength; ph++) {
             switch (ColorScheme) {
             case 0:
-                hsv.hue = double(rand() % 1000) / 1000.0;
+                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
                 hsv.saturation = 1.0;
                 hsv.value = 1.0;
                 break;
@@ -569,17 +569,17 @@ void MeteorsEffect::IcicleAddMeteors(RenderBuffer& buffer, int ColorScheme, int 
 
     MeteorClass m;
     for (int i = 0; i < buffer.BufferWi; i++) {
-        if (rand() % 200 < Count) {
+        if (buffer.randInt(0, 199) < Count) {
             m.x = i;
             m.y = buffer.BufferHt - 1;
-            m.h = (rand() % (2 * buffer.BufferHt)) / 3; // somewhat variable length -DJ
+            m.h = buffer.randInt(0, 2 * buffer.BufferHt - 1) / 3; // somewhat variable length -DJ
 
             switch (ColorScheme) {
             case 1:
                     buffer.SetRangeColor(hsv0, hsv1, m.hsv);
                     break;
             case 2:
-                    buffer.palette.GetHSV(rand() % colorcnt, m.hsv);
+                    buffer.palette.GetHSV(buffer.randInt(0, (int)colorcnt - 1), m.hsv);
                     break;
             }
             cache->meteors.push_back(m);
@@ -739,14 +739,14 @@ void MeteorsEffect::ImplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int
     m.cnt = 1;
 
     for (int i = 0; i < MinDimension; i++) {
-        if (rand() % 200 < Count) {
+        if (buffer.randInt(0, 199) < Count) {
             double angle;
             if (buffer.BufferHt == 1) {
-                angle = double(rand() % 2) * M_PI;
+                angle = double(buffer.randInt(0, 1)) * M_PI;
             } else if (buffer.BufferWi == 1) {
-                angle = double(rand() % 2) * M_PI - (M_PI / 2.0);
+                angle = double(buffer.randInt(0, 1)) * M_PI - (M_PI / 2.0);
             } else {
-                angle = rand01() * 2.0 * M_PI;
+                angle = buffer.rand01() * 2.0 * M_PI;
             }
             m.dx = buffer.cos(angle);
             m.dy = buffer.sin(angle);
@@ -760,7 +760,7 @@ void MeteorsEffect::ImplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int
                 buffer.SetRangeColor(hsv0, hsv1, m.hsv);
                 break;
             case 2:
-                buffer.palette.GetHSV(rand() % colorcnt, m.hsv);
+                buffer.palette.GetHSV(buffer.randInt(0, (int)colorcnt - 1), m.hsv);
                 break;
             }
             cache->meteorsRadial.push_back(m);
@@ -852,7 +852,7 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
         for (int ph = 0; ph <= TailLength; ph++) {
             switch (ColorScheme) {
             case 0:
-                hsv.hue = double(rand() % 1000) / 1000.0;
+                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
                 hsv.saturation = 1.0;
                 hsv.value = 1.0;
                 break;
@@ -940,14 +940,14 @@ void MeteorsEffect::ExplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int
     m.y = buffer.BufferHt / 2 + trueyoffset;
     m.cnt = 1;
     for (int i = 0; i < MinDimension; i++) {
-        if (rand() % 200 < Count) {
+        if (buffer.randInt(0, 199) < Count) {
             double angle;
             if (buffer.BufferHt == 1) {
-                    angle = double(rand() % 2) * M_PI;
+                    angle = double(buffer.randInt(0, 1)) * M_PI;
             } else if (buffer.BufferWi == 1) {
-                    angle = double(rand() % 2) * M_PI - (M_PI / 2.0);
+                    angle = double(buffer.randInt(0, 1)) * M_PI - (M_PI / 2.0);
             } else {
-                    angle = rand01() * 2.0 * M_PI;
+                    angle = buffer.rand01() * 2.0 * M_PI;
             }
             m.dx = buffer.cos(angle);
             m.dy = buffer.sin(angle);
@@ -957,7 +957,7 @@ void MeteorsEffect::ExplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int
                     buffer.SetRangeColor(hsv0, hsv1, m.hsv);
                     break;
             case 2:
-                    buffer.palette.GetHSV(rand() % colorcnt, m.hsv);
+                    buffer.palette.GetHSV(buffer.randInt(0, (int)colorcnt - 1), m.hsv);
                     break;
             }
             cache->meteorsRadial.push_back(m);
@@ -1051,7 +1051,7 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
             // if (ph >= it->cnt) continue;
             switch (ColorScheme) {
             case 0:
-                hsv.hue = double(rand() % 1000) / 1000.0;
+                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
                 hsv.saturation = 1.0;
                 hsv.value = 1.0;
                 break;

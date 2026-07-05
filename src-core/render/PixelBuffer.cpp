@@ -938,6 +938,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
 
     for (int x = 0; x < numLayers; x++) {
         layers[x] = new LayerInfo(renderContext, this, model);
+        layers[x]->buffer.SetLayerIndex(x);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         if (x == (numLayers - 1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
@@ -989,6 +990,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         Model* m = it;
         assert(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
+        buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
@@ -1003,6 +1005,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         Model* m = it;
         assert(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
+        buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
@@ -2957,7 +2960,12 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         size_t nc = layers[0]->buffer.Nodes.size();
         sparklesVector.resize(nc);
         while (sz < nc) {
-            sparklesVector[sz++] = rand() % 10000;
+            // Deterministic per-node sparkle phase (was global rand(), which
+            // made sparkle placement non-reproducible and mode-dependent).
+            // hashRandomStable is frame-independent and keyed on model/layer/
+            // node index, so headless and desktop produce identical sparkles.
+            sparklesVector[sz] = layers[0]->buffer.hashRandomStable((uint32_t)sz) % 10000;
+            sz++;
         }
         sparkles = &sparklesVector[0];
     }

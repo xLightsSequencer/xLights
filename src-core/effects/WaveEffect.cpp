@@ -233,8 +233,8 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 if (WaveBuffer0[x1] >= 2 * buffer.BufferHt) { delta = -2; WaveBuffer0[x1] = 2 * buffer.BufferHt - 1; if (delay > 1) delay = 1; }
                 if (WaveBuffer0[x1] < 0) { delta = 2; WaveBuffer0[x1] = 0; if (delay > 1) delay = 1; }
                 if (delay < 1) {
-                    delta = (rand() % 7) - 3;
-                    delay = 2 + (rand() % 3);
+                    delta = buffer.randInt(0, 6) - 3;
+                    delay = 2 + buffer.randInt(0, 2);
                 }
             }
             buffer.needToInit = false;

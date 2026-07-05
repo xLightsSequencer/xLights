@@ -39,5 +39,5 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
-    void Update(uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline);
+    void Update(RenderBuffer& buffer, uint32_t seed, uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline);
 };

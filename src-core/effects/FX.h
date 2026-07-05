@@ -2619,8 +2619,15 @@ class WS2812FX {
 
 #ifdef XLIGHTS_FX
     RenderBuffer* _buffer = nullptr;
-    static uint8_t random8(uint8_t limit = 0xFF);
-    static uint8_t random8(uint8_t low, uint8_t high);
+    // WLED RNG wrappers routed through the deterministic per-buffer RNG (_buffer).
+    // Non-static so they can reach _buffer; every call site is a WS2812FX member.
+    uint8_t random8(uint8_t limit = 0xFF);
+    uint8_t random8(uint8_t low, uint8_t high);
+    uint16_t random16(uint16_t limit = 0xFFFF);
+    uint16_t random16(uint16_t low, uint16_t high);
+    uint32_t random(uint32_t limit = 0xFFFF);
+    uint32_t random(uint32_t low, uint32_t high);
+    void random16_set_seed(int seed) {} // no-op: the per-buffer stream is auto-seeded
     void copyPixels(uint16_t dest, uint16_t src, uint16_t count);
 
     typedef uint16_t accum88;

@@ -429,8 +429,40 @@ public:
     void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color);
     void GetMultiColorBlend(float n, bool circular, xlColor &color, int reserveColors = 0);
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
-    double RandomRange(double num1, double num2) const;
+    double RandomRange(double num1, double num2);
     void Color2HSV(const xlColor& color, HSVValue& hsv) const;
+
+    // --- Deterministic per-buffer RNG (reproducible renders) -----------------
+    // Seeded from a stable hash of (model name, layer, effect-start) and reseeded
+    // lazily on first use each frame, so a given draw reproduces regardless of
+    // thread, render start frame, or what other effects drew. Use rand01()/
+    // randInt() in serial code. Inside parallel_for bodies use the stateless
+    // hashRand01()/hashRandom(index) keyed on the element index - they touch no
+    // shared state, so they are thread-safe and order-independent.
+    inline double rand01() {
+        ensureRandomSeed();
+        return (rngMix64(rngState += 0x9E3779B97F4A7C15ULL) >> 11) * (1.0 / 9007199254740992.0);
+    }
+    inline int randInt(int lo, int hi) { // inclusive [lo, hi]
+        if (hi <= lo) return lo;
+        ensureRandomSeed();
+        uint32_t range = uint32_t(hi - lo) + 1u;
+        uint32_t r = uint32_t(rngMix64(rngState += 0x9E3779B97F4A7C15ULL));
+        return lo + int((uint64_t(r) * range) >> 32);
+    }
+    inline uint32_t hashRandom(uint32_t index) const {
+        return uint32_t(rngMix64(rngHashInput(index)) >> 32);
+    }
+    inline double hashRand01(uint32_t index) const {
+        return (rngMix64(rngHashInput(index)) >> 11) * (1.0 / 9007199254740992.0);
+    }
+    // Frame-INDEPENDENT stateless hash for position-anchored randomness that must
+    // stay stable across frames (e.g. a per-pixel seed that shouldn't jitter).
+    // Same (model, layer, effect, index) -> same value on every frame.
+    inline uint32_t hashRandomStable(uint32_t index) const {
+        return uint32_t(rngMix64(rngBaseSeed ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL)) >> 32);
+    }
+    void SetLayerIndex(int idx) { rngLayerIndex = idx; }
     const PaletteClass& GetPalette() const { return palette; }
 
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2) const;
@@ -505,6 +537,30 @@ private:
     friend class PixelBufferClass;
     std::vector<NodeBaseClassPtr> Nodes;
     TextDrawingContext *_textDrawingContext = nullptr;
+
+    // Deterministic per-buffer RNG state (see rand01()/hashRandom()).
+    uint64_t rngModelHash = 0;   // stable hash of cur_model, computed once in ctor
+    uint64_t rngBaseSeed = 0;    // hash(modelHash, layer, curEffStartPer); per effect
+    uint64_t rngState = 0;       // stateful stream, serial path only
+    int rngLayerIndex = 0;
+    int rngSeededForPeriod = -1; // lazy per-frame reseed guard (serial path)
+
+    void computeRandomBaseSeed(); // recompute rngBaseSeed when the effect changes
+    static inline uint64_t rngMix64(uint64_t z) {
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+        return z ^ (z >> 31);
+    }
+    inline uint64_t rngHashInput(uint32_t index) const {
+        return rngBaseSeed ^ (uint64_t(uint32_t(curPeriod)) * 0x9E3779B97F4A7C15ULL)
+                           ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL);
+    }
+    inline void ensureRandomSeed() {
+        if (rngSeededForPeriod != curPeriod) {
+            rngState = rngBaseSeed ^ (uint64_t(uint32_t(curPeriod)) * 0x9E3779B97F4A7C15ULL);
+            rngSeededForPeriod = curPeriod;
+        }
+    }
 
     void SetPixelDMXModel(int x, int y, const xlColor& color);
     void Forget();

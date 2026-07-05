@@ -86,12 +86,12 @@ class CandleState {
 public:
     CandleState() {
     }
-    void init() {
-        flamer = rand01() * 255;
-        flameprimer = rand01() * 255;
-        flameg = rand01() * flamer;
-        flameprimeg = rand01() * flameprimer;
-        wind = rand01() * 255;
+    void init(RenderBuffer& buffer) {
+        flamer = buffer.rand01() * 255;
+        flameprimer = buffer.rand01() * 255;
+        flameg = buffer.rand01() * flamer;
+        flameprimeg = buffer.rand01() * flameprimer;
+        wind = buffer.rand01() * 255;
     }
     uint8_t flameprimer;
     uint8_t flamer;
@@ -123,11 +123,13 @@ static CandleRenderCache* GetCache(RenderBuffer& buffer, int id)
 }
 
 
-void CandleEffect::Update(uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
+void CandleEffect::Update(RenderBuffer& buffer, uint32_t seed, uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
 {
+    // Update() runs inside the perNode parallel_for, so it must use the stateless
+    // hash RNG keyed on distinct indices rather than the serial per-buffer stream.
     // We simulate a gust of wind by setting the wind var to a random value
-    if (uint8_t(rand01() * 255.0) < windVariability) {
-        wind = uint8_t(rand01() * 255.0);
+    if (uint8_t(buffer.hashRand01(seed) * 255.0) < windVariability) {
+        wind = uint8_t(buffer.hashRand01(seed + 1u) * 255.0);
     }
 
     // The wind constantly settles towards its baseline value
@@ -142,8 +144,8 @@ void CandleEffect::Update(uint8_t& flameprime, uint8_t& flame, uint8_t& wind, si
 
     // Depending on the wind strength and the calmness modifier we calculate the odds
     // of the wind knocking down the flame by setting it to random values
-    if (uint8_t(rand01() * 255) < (wind >> windCalmness)) {
-        flame = uint8_t(rand01() * 255);
+    if (uint8_t(buffer.hashRand01(seed + 2u) * 255) < (wind >> windCalmness)) {
+        flame = uint8_t(buffer.hashRand01(seed + 3u) * 255);
     }
 
     // Real flames ook like they have inertia so we use this constant-aproach-rate filter
@@ -205,7 +207,7 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
             states.resize(numStates);
         }
         for (int x = 0; x < numStates; x++) {
-            states[x].init();
+            states[x].init(buffer);
         }
     }
 
@@ -220,8 +222,9 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
                 } else {
                     CandleState* state = &states[index];
 
-                    Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
-                    Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+                    uint32_t seed = uint32_t(index) * 131101u;
+                    Update(buffer, seed, state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+                    Update(buffer, seed + 4u, state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
 
                     if (state->flameprimeg > state->flameprimer)
                         state->flameprimeg = state->flameprimer;
@@ -244,8 +247,8 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     } else {
         CandleState* state = &states[0];
 
-        Update(state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
-        Update(state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+        Update(buffer, 0u, state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+        Update(buffer, 4u, state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
 
         if (state->flameprimeg > state->flameprimer)
             state->flameprimeg = state->flameprimer;

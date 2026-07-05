@@ -101,9 +101,9 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         cache->LastLifeType = Type;
         buffer.ClearTempBuf();
         for (i = 0; i < Count; i++) {
-            x = rand() % BufferWi;
-            y = rand() % BufferHt;
-            buffer.GetMultiColorBlend(rand01(), false, color);
+            x = buffer.randInt(0, BufferWi - 1);
+            y = buffer.randInt(0, BufferHt - 1);
+            buffer.GetMultiColorBlend(buffer.rand01(), false, color);
             buffer.SetTempPixel(x, y, color);
         }
     }
@@ -133,7 +133,7 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (isLive && cnt >= 2 && cnt <= 3) {
                     buffer.SetPixel(x, y, color);
                 } else if (!isLive && cnt == 3) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.GetMultiColorBlend(buffer.rand01(), false, color);
                     buffer.SetPixel(x, y, color);
                 }
                 break;
@@ -142,7 +142,7 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (isLive && (cnt == 2 || cnt == 3 || cnt == 6)) {
                     buffer.SetPixel(x, y, color);
                 } else if (!isLive && (cnt == 3 || cnt == 5)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.GetMultiColorBlend(buffer.rand01(), false, color);
                     buffer.SetPixel(x, y, color);
                 }
                 break;
@@ -151,7 +151,7 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (isLive && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8)) {
                     buffer.SetPixel(x, y, color);
                 } else if (!isLive && (cnt == 3 || cnt == 5 || cnt == 7)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.GetMultiColorBlend(buffer.rand01(), false, color);
                     buffer.SetPixel(x, y, color);
                 }
                 break;
@@ -160,7 +160,7 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (isLive && (cnt == 2 || cnt == 3 || cnt >= 5)) {
                     buffer.SetPixel(x, y, color);
                 } else if (!isLive && (cnt == 3 || cnt == 7 || cnt == 8)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.GetMultiColorBlend(buffer.rand01(), false, color);
                     buffer.SetPixel(x, y, color);
                 }
                 break;
@@ -169,7 +169,7 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                 if (isLive && (cnt >= 5)) {
                     buffer.SetPixel(x, y, color);
                 } else if (!isLive && (cnt == 2 || cnt >= 5)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
+                    buffer.GetMultiColorBlend(buffer.rand01(), false, color);
                     buffer.SetPixel(x, y, color);
                 }
                 break;

@@ -123,11 +123,11 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         // prepopulate first frame
         for (int i = 0; i < Number_Strobes * StrobeDuration; i++) {
             xlColor color;
-            ColorIdx = rand() % colorcnt;
+            ColorIdx = buffer.randInt(0, (int)colorcnt - 1);
             buffer.palette.GetHSV(ColorIdx, hsv); // take first checked color as color of flash
             buffer.palette.GetColor(ColorIdx, color); // take first checked color as color of flash
-            strobe.push_back(StrobeClass(rand() % buffer.BufferWi,
-                rand() % buffer.BufferHt, i % StrobeDuration, hsv, color));
+            strobe.push_back(StrobeClass(buffer.randInt(0, buffer.BufferWi - 1),
+                buffer.randInt(0, buffer.BufferHt - 1), i % StrobeDuration, hsv, color));
         }
     }
 
@@ -135,11 +135,11 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
     while ((int)strobe.size() < Number_Strobes * StrobeDuration) {
         HSVValue hsv;
         xlColor color;
-        ColorIdx = rand() % colorcnt;
+        ColorIdx = buffer.randInt(0, (int)colorcnt - 1);
         buffer.palette.GetHSV(ColorIdx, hsv); // take first checked color as color of flash
         buffer.palette.GetColor(ColorIdx, color); // take first checked color as color of flash
-        strobe.push_back(StrobeClass(rand() % buffer.BufferWi,
-            rand() % buffer.BufferHt, StrobeDuration, hsv, color));
+        strobe.push_back(StrobeClass(buffer.randInt(0, buffer.BufferWi - 1),
+            buffer.randInt(0, buffer.BufferHt - 1), StrobeDuration, hsv, color));
     }
 
     // render strobe, we go through all storbes and decide if they should be turned on
@@ -169,7 +169,7 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         }
 
         if (Strobe_Type == 2) {
-            int r = rand() % 2;
+            int r = buffer.randInt(0, 1);
             if (r == 0) {
                 buffer.SetPixel(x, y - 1, color);
                 buffer.SetPixel(x, y + 1, color);
@@ -185,7 +185,7 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
             buffer.SetPixel(x + 1, y, color);
         }
         if (Strobe_Type == 4) {
-            int r = rand() % 2;
+            int r = buffer.randInt(0, 1);
             if (r == 0) {
                 buffer.SetPixel(x, y - 1, color);
                 buffer.SetPixel(x, y + 1, color);

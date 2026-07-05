@@ -2742,7 +2742,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
             if (random && bars > 2) {
                 int lb = (int)lastbar + 1;
                 while (lb == (int)lastbar + 1) {
-                    lastbar = 1 + static_cast<int>(rand01() * bars);
+                    lastbar = 1 + static_cast<int>(buffer.rand01() * bars);
                 }
                 if (lastbar > bars) lastbar = 1;
             }
@@ -2784,7 +2784,7 @@ void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, st
             if (random && bars > 2) {
                 int lb = (int)lastbar + 1;
                 while (lb == (int)lastbar + 1) {
-                    lastbar = 1 + static_cast<int>(rand01() * bars);
+                    lastbar = 1 + static_cast<int>(buffer.rand01() * bars);
                 }
                 if (lastbar > bars)
                     lastbar = 1;
@@ -2874,7 +2874,7 @@ void VUMeterEffect::RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int 
             if (random && bars > 2) {
                 int lb = (int)lastbar + 1;
                 while (lb == (int)lastbar + 1) {
-                    lastbar = 1 + static_cast<int>(rand01() * bars);
+                    lastbar = 1 + static_cast<int>(buffer.rand01() * bars);
                 }
                 if (lastbar > bars)
                     lastbar = 1;

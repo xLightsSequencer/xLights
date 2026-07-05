@@ -114,7 +114,7 @@ public:
 protected:
     virtual void OnMetadataLoaded() override;
 private:
-    static int DecodeShape(const std::string& shape);
+    static int DecodeShape(RenderBuffer& buffer, const std::string& shape);
     void Drawcircle(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const;
     void Drawheart(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness, double rotation) const;
     void Drawstar(RenderBuffer& buffer, int xc, int yc, double radius, int points, xlColor color, int thickness, double rotation = 0) const;
