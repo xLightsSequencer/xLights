@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "ModelStateDialog.h"
+#include "ModelStatesPanel.h"
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/settings.h>
 #include <wx/progdlg.h>
@@ -29,16 +29,14 @@
 #include "color/xlColourData.h"
 #include "import_export/VendorModelDialog.h"
 #include "XmlSerializer/XmlSerializer.h"
+#include "shared/utils/wxUtilities.h"
 
 #include <log.h>
 #include <algorithm>
 #include <vector>
 
-//(*InternalHeaders(ModelStateDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
-//*)
-
 #include <wx/filefn.h>
 #include <wx/filename.h>
 #include <wx/valtext.h>
@@ -50,53 +48,52 @@
 #include <wx/listbox.h>
 #include <wx/numdlg.h>
 
-//(*IdInit(ModelStateDialog)
-const wxWindowID ModelStateDialog::ID_STATICTEXT2 = wxNewId();
-const wxWindowID ModelStateDialog::ID_CHOICE3 = wxNewId();
-const wxWindowID ModelStateDialog::ID_BUTTON3 = wxNewId();
-const wxWindowID ModelStateDialog::ID_BUTTON_IMPORT = wxNewId();
-const wxWindowID ModelStateDialog::ID_BUTTON4 = wxNewId();
-const wxWindowID ModelStateDialog::ID_CHECKBOX1 = wxNewId();
-const wxWindowID ModelStateDialog::ID_BUTTON1 = wxNewId();
-const wxWindowID ModelStateDialog::ID_GRID_COROSTATES = wxNewId();
-const wxWindowID ModelStateDialog::ID_PANEL2 = wxNewId();
-const wxWindowID ModelStateDialog::ID_CHECKBOX2 = wxNewId();
-const wxWindowID ModelStateDialog::ID_CHECKBOX3 = wxNewId();
-const wxWindowID ModelStateDialog::ID_BUTTON2 = wxNewId();
-const wxWindowID ModelStateDialog::ID_GRID3 = wxNewId();
-const wxWindowID ModelStateDialog::ID_PANEL6 = wxNewId();
-const wxWindowID ModelStateDialog::ID_CHOICEBOOK1 = wxNewId();
-const wxWindowID ModelStateDialog::ID_PANEL5 = wxNewId();
-const wxWindowID ModelStateDialog::ID_STATICTEXT1 = wxNewId();
-const wxWindowID ModelStateDialog::ID_CHOICE_COLOR_DRAW = wxNewId();
-const wxWindowID ModelStateDialog::ID_PANEL_PREVIEW = wxNewId();
-const wxWindowID ModelStateDialog::ID_SPLITTERWINDOW1 = wxNewId();
-//*)
-const long ModelStateDialog::ID_TIMER1 = wxNewId();
+// ID definitions — use wxNewId() to avoid collisions with ModelStateDialog IDs
+const wxWindowID ModelStatesPanel::ID_STATICTEXT2      = wxNewId();
+const wxWindowID ModelStatesPanel::ID_CHOICE3          = wxNewId();
+const wxWindowID ModelStatesPanel::ID_BUTTON3          = wxNewId();
+const wxWindowID ModelStatesPanel::ID_BUTTON_IMPORT    = wxNewId();
+const wxWindowID ModelStatesPanel::ID_BUTTON4          = wxNewId();
+const wxWindowID ModelStatesPanel::ID_CHECKBOX1        = wxNewId();
+const wxWindowID ModelStatesPanel::ID_BUTTON1          = wxNewId();
+const wxWindowID ModelStatesPanel::ID_GRID_COROSTATES  = wxNewId();
+const wxWindowID ModelStatesPanel::ID_PANEL2           = wxNewId();
+const wxWindowID ModelStatesPanel::ID_CHECKBOX2        = wxNewId();
+const wxWindowID ModelStatesPanel::ID_CHECKBOX3        = wxNewId();
+const wxWindowID ModelStatesPanel::ID_BUTTON2          = wxNewId();
+const wxWindowID ModelStatesPanel::ID_GRID3            = wxNewId();
+const wxWindowID ModelStatesPanel::ID_PANEL6           = wxNewId();
+const wxWindowID ModelStatesPanel::ID_CHOICEBOOK1      = wxNewId();
+const wxWindowID ModelStatesPanel::ID_STATICTEXT1      = wxNewId();
+const wxWindowID ModelStatesPanel::ID_CHOICE_COLOR_DRAW   = wxNewId();
+const wxWindowID ModelStatesPanel::ID_CHOICE_STATE_FILTER = wxNewId();
+const wxWindowID ModelStatesPanel::ID_BUTTON_PLAY_STATES  = wxNewId();
+const wxWindowID ModelStatesPanel::ID_SLIDER_STATE_SPEED  = wxNewId();
+const wxWindowID ModelStatesPanel::ID_STATE_ANIM_TIMER    = wxNewId();
+const long       ModelStatesPanel::ID_TIMER1              = wxNewId();
 
-const long ModelStateDialog::STATE_DIALOG_IMPORT_SUB = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_IMPORT_ALL_SUB = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_COPY_STATES = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_IMPORT_MODEL = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_IMPORT_FILE = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_IMPORT_DOWNLOAD = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_COPY = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_RENAME = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_SHIFT = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_REVERSE = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_CLEAR_SELECTED_ROWS = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_CLEAR_STATES = wxNewId();
-const long ModelStateDialog::STATE_DIALOG_EXPORT_TOOTHERS = wxNewId();
-const wxWindowID ModelStateDialog::ID_MNU_ADD_STATE_BEFORE = wxNewId();
-const wxWindowID ModelStateDialog::ID_MNU_ADD_STATE_AFTER = wxNewId();
-const wxWindowID ModelStateDialog::ID_MNU_DELETE_STATE = wxNewId();
-const wxWindowID ModelStateDialog::ID_MNU_MOVE_STATE_UP = wxNewId();
-const wxWindowID ModelStateDialog::ID_MNU_MOVE_STATE_DOWN = wxNewId();
-const wxWindowID ModelStateDialog::ID_MNU_SORT = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_IMPORT_SUB          = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_IMPORT_ALL_SUB      = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_COPY_STATES         = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_IMPORT_MODEL        = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_IMPORT_FILE         = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_IMPORT_DOWNLOAD     = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_COPY                = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_RENAME              = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_SHIFT               = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_REVERSE             = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_CLEAR_SELECTED_ROWS = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_CLEAR_STATES        = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_EXPORT_TOOTHERS     = wxNewId();
+const long ModelStatesPanel::STATE_DIALOG_BULK_COLOR_CHANGE   = wxNewId();
+const wxWindowID ModelStatesPanel::ID_MNU_ADD_STATE_BEFORE    = wxNewId();
+const wxWindowID ModelStatesPanel::ID_MNU_ADD_STATE_AFTER     = wxNewId();
+const wxWindowID ModelStatesPanel::ID_MNU_DELETE_STATE        = wxNewId();
+const wxWindowID ModelStatesPanel::ID_MNU_MOVE_STATE_UP       = wxNewId();
+const wxWindowID ModelStatesPanel::ID_MNU_MOVE_STATE_DOWN     = wxNewId();
+const wxWindowID ModelStatesPanel::ID_MNU_SORT                = wxNewId();
 
-BEGIN_EVENT_TABLE(ModelStateDialog,wxDialog)
-	//(*EventTable(ModelStateDialog)
-	//*)
+BEGIN_EVENT_TABLE(ModelStatesPanel, wxPanel)
 END_EVENT_TABLE()
 
 enum {
@@ -105,204 +102,218 @@ enum {
 };
 
 enum {
-    //ROWTITLE_COL = 0,
     NAME_COL = 0,
     CHANNEL_COL,
     COLOUR_COL
 };
 
-
-#include "models/Model.h"
-#include "shared/utils/wxUtilities.h"
-
 #ifndef wxEVT_GRID_CELL_CHANGE
-//until CodeBlocks is updated to wxWidgets 3.x
 #define wxEVT_GRID_CELL_CHANGE wxEVT_GRID_CELL_CHANGED
 #endif
 
-
-ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size):
-    _outputManager(outputManager), mPointSize(PIXEL_SIZE_ON_DIALOGS)
+ModelStatesPanel::ModelStatesPanel(wxWindow* parent, OutputManager* outputManager, wxWindowID id)
+    : wxPanel(parent, id), _outputManager(outputManager), mPointSize(PIXEL_SIZE_ON_DIALOGS)
 {
-	//(*Initialize(ModelStateDialog)
-	wxBoxSizer* BoxSizer1;
-	wxButton* AddButton;
-	wxFlexGridSizer* FlexGridSizer1;
-	wxFlexGridSizer* FlexGridSizer2;
-	wxFlexGridSizer* FlexGridSizer3;
-	wxFlexGridSizer* FlexGridSizer4;
-	wxFlexGridSizer* FlexGridSizer5;
-	wxFlexGridSizer* FlexGridSizer6;
-	wxFlexGridSizer* FlexGridSizer7;
-	wxFlexGridSizer* PreviewSizer;
-	wxPanel* CoroPanel;
-	wxPanel* NodeRangePanel;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
+    wxButton* AddButton;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxFlexGridSizer* FlexGridSizer5;
+    wxBoxSizer* FlexGridSizer6;
+    wxFlexGridSizer* FlexGridSizer7;
+    wxPanel* CoroPanel;
+    wxPanel* NodeRangePanel;
 
-	Create(parent, wxID_ANY, _("State Definition"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("wxID_ANY"));
-	SetMinSize(wxSize(-1,-1));
-	FlexGridSizer1 = new wxFlexGridSizer(1, 1, 0, 0);
-	FlexGridSizer1->AddGrowableCol(0);
-	FlexGridSizer1->AddGrowableRow(0);
-	SplitterWindow1 = new wxSplitterWindow(this, ID_SPLITTERWINDOW1, wxDefaultPosition, wxDefaultSize, wxSP_3D|wxSP_LIVE_UPDATE, _T("ID_SPLITTERWINDOW1"));
-	SplitterWindow1->SetMinimumPaneSize(100);
-	SplitterWindow1->SetSashGravity(0.5);
-	Panel3 = new wxPanel(SplitterWindow1, ID_PANEL5, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL5"));
-	FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer4->AddGrowableCol(0);
-	FlexGridSizer4->AddGrowableRow(1);
-	FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
-	FlexGridSizer7->AddGrowableCol(1);
-	StaticText3 = new wxStaticText(Panel3, ID_STATICTEXT2, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-	FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	NameChoice = new wxChoice(Panel3, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-	NameChoice->SetMinSize(wxSize(50,-1));
-	FlexGridSizer7->Add(NameChoice, 1, wxALL|wxEXPAND, 5);
-	AddButton = new wxButton(Panel3, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-	FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	Button_Import = new wxButton(Panel3, ID_BUTTON_IMPORT, _T("..."), wxDefaultPosition, wxSize(20,-1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
-	Button_Import->SetMinSize(wxSize(20,-1));
-	FlexGridSizer7->Add(Button_Import, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	DeleteButton = new wxButton(Panel3, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-	FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
-	StateTypeChoice = new wxChoicebook(Panel3, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
-	CoroPanel = new wxPanel(StateTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-	FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer2->AddGrowableCol(0);
-	FlexGridSizer2->AddGrowableRow(1);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer3->AddGrowableCol(1);
-	CustomColorSingleNode = new wxCheckBox(CoroPanel, ID_CHECKBOX1, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-	CustomColorSingleNode->SetValue(false);
-	FlexGridSizer3->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	FlexGridSizer3->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_7Segment = new wxButton(CoroPanel, ID_BUTTON1, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-	FlexGridSizer3->Add(Button_7Segment, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
-	SingleNodeGrid = new wxGrid(CoroPanel, ID_GRID_COROSTATES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROSTATES"));
-	SingleNodeGrid->CreateGrid(200,3);
-	SingleNodeGrid->SetMinSize(wxDLG_UNIT(CoroPanel,wxSize(-1,200)));
-	SingleNodeGrid->EnableEditing(true);
-	SingleNodeGrid->EnableGridLines(true);
-	SingleNodeGrid->SetColLabelSize(20);
-	SingleNodeGrid->SetDefaultColSize(150, true);
-	SingleNodeGrid->SetColLabelValue(0, _("State"));
-	SingleNodeGrid->SetColLabelValue(1, _("Nodes"));
-	SingleNodeGrid->SetColLabelValue(2, _("Color"));
-	SingleNodeGrid->SetDefaultCellFont( SingleNodeGrid->GetFont() );
-	SingleNodeGrid->SetDefaultCellTextColour( SingleNodeGrid->GetForegroundColour() );
-	FlexGridSizer2->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 5);
-	CoroPanel->SetSizer(FlexGridSizer2);
-	NodeRangePanel = new wxPanel(StateTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
-	FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
-	FlexGridSizer5->AddGrowableCol(0);
-	FlexGridSizer5->AddGrowableRow(1);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 3, 0, 0);
-	FlexGridSizer6->AddGrowableCol(1);
-	CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-	CustomColorNodeRanges->SetValue(false);
-	FlexGridSizer6->Add(CustomColorNodeRanges, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-	CheckBox_OutputToLights = new wxCheckBox(NodeRangePanel, ID_CHECKBOX3, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
-	CheckBox_OutputToLights->SetValue(false);
-	FlexGridSizer6->Add(CheckBox_OutputToLights, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Button_7Seg = new wxButton(NodeRangePanel, ID_BUTTON2, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer6->Add(Button_7Seg, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
-	NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
-	NodeRangeGrid->CreateGrid(200,3);
-	NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel,wxSize(-1,200)));
-	NodeRangeGrid->EnableEditing(true);
-	NodeRangeGrid->EnableGridLines(true);
-	NodeRangeGrid->SetColLabelSize(20);
-	NodeRangeGrid->SetDefaultColSize(150, true);
-	NodeRangeGrid->SetColLabelValue(0, _("State"));
-	NodeRangeGrid->SetColLabelValue(1, _("Nodes"));
-	NodeRangeGrid->SetColLabelValue(2, _("Color"));
-	NodeRangeGrid->SetDefaultCellFont( NodeRangeGrid->GetFont() );
-	NodeRangeGrid->SetDefaultCellTextColour( NodeRangeGrid->GetForegroundColour() );
-	FlexGridSizer5->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 5);
-	NodeRangePanel->SetSizer(FlexGridSizer5);
-	StateTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
-	StateTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
-	FlexGridSizer4->Add(StateTypeChoice, 1, wxALL|wxEXPAND, 5);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(Panel3, wxID_OK, wxEmptyString));
-	StdDialogButtonSizer1->AddButton(new wxButton(Panel3, wxID_CANCEL, wxEmptyString));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer4->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	Panel3->SetSizer(FlexGridSizer4);
-	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
-	PreviewSizer = new wxFlexGridSizer(0, 1, 0, 0);
-	PreviewSizer->AddGrowableCol(0);
-	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
-	StaticText1 = new wxStaticText(ModelPreviewPanelLocation, ID_STATICTEXT1, _("Model Display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	BoxSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	ChoiceColorDraw = new wxChoice(ModelPreviewPanelLocation, ID_CHOICE_COLOR_DRAW, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_COLOR_DRAW"));
-	ChoiceColorDraw->SetSelection( ChoiceColorDraw->Append(_("All Colors")) );
-	ChoiceColorDraw->Append(_("White Only"));
-	BoxSizer1->Add(ChoiceColorDraw, 1, wxALL|wxEXPAND, 5);
-	PreviewSizer->Add(BoxSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ModelPreviewPanelLocation->SetSizer(PreviewSizer);
-	SplitterWindow1->SplitVertically(Panel3, ModelPreviewPanelLocation);
-	FlexGridSizer1->Add(SplitterWindow1, 0, wxEXPAND, 0);
-	SetSizer(FlexGridSizer1);
-	Fit();
+    FlexGridSizer4 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer4->AddGrowableCol(0);
+    FlexGridSizer4->AddGrowableRow(1);
 
-	Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelStateDialog::OnMatrixNameChoiceSelect);
-	Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixAddClicked);
-	Connect(ID_BUTTON_IMPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnButton_ImportClick);
-	Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnButtonMatrixDeleteClick);
-	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
-	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
-	Connect(ID_GRID_COROSTATES, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellLeftClick);
-	Connect(ID_GRID_COROSTATES, wxEVT_GRID_CELL_LEFT_DCLICK, (wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellLeftDClick);
-	Connect(ID_GRID_COROSTATES, wxEVT_GRID_LABEL_LEFT_CLICK, (wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridLabelLeftClick);
-	Connect(ID_GRID_COROSTATES, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellChange);
-	Connect(ID_GRID_COROSTATES, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&ModelStateDialog::OnSingleNodeGridCellSelect);
-	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnCustomColorCheckboxClick);
-	Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnCheckBox_OutputToLightsClick);
-	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelStateDialog::OnButton_7SegmentClick);
-	Connect(ID_GRID3, wxEVT_GRID_CELL_LEFT_CLICK, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftClick);
-	Connect(ID_GRID3, wxEVT_GRID_CELL_RIGHT_CLICK, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellRightClick);
-	Connect(ID_GRID3, wxEVT_GRID_CELL_LEFT_DCLICK, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellLeftDClick);
-	Connect(ID_GRID3, wxEVT_GRID_LABEL_LEFT_CLICK, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridLabelLeftClick);
-	Connect(ID_GRID3, wxEVT_GRID_LABEL_LEFT_DCLICK, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridLabelLeftDClick);
-	Connect(ID_GRID3, wxEVT_GRID_CELL_CHANGED, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellChange);
-	Connect(ID_GRID3, wxEVT_GRID_SELECT_CELL, (wxObjectEventFunction)&ModelStateDialog::OnNodeRangeGridCellSelect);
-	Connect(ID_CHOICEBOOK1, wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&ModelStateDialog::OnStateTypeChoicePageChanged);
-	Connect(ID_CHOICE_COLOR_DRAW, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ModelStateDialog::OnChoiceColorDrawSelect);
-	Connect(wxID_ANY, wxEVT_INIT_DIALOG, (wxObjectEventFunction)&ModelStateDialog::OnInit);
-	//*)
+    FlexGridSizer7 = new wxFlexGridSizer(0, 5, 0, 0);
+    FlexGridSizer7->AddGrowableCol(1);
+
+    StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+    FlexGridSizer7->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    NameChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+    NameChoice->SetMinSize(wxSize(50, -1));
+    FlexGridSizer7->Add(NameChoice, 1, wxALL|wxEXPAND, 5);
+
+    AddButton = new wxButton(this, ID_BUTTON3, _("Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
+    FlexGridSizer7->Add(AddButton, 1, wxTOP|wxBOTTOM|wxLEFT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+
+    Button_Import = new wxButton(this, ID_BUTTON_IMPORT, _T("..."), wxDefaultPosition, wxSize(20, -1), 0, wxDefaultValidator, _T("ID_BUTTON_IMPORT"));
+    Button_Import->SetMinSize(wxSize(20, -1));
+    FlexGridSizer7->Add(Button_Import, 1, wxTOP|wxBOTTOM|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+
+    DeleteButton = new wxButton(this, ID_BUTTON4, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    FlexGridSizer7->Add(DeleteButton, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+
+    FlexGridSizer4->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 5);
+
+    StateTypeChoice = new wxChoicebook(this, ID_CHOICEBOOK1, wxDefaultPosition, wxDefaultSize, 0, _T("ID_CHOICEBOOK1"));
+
+    // Single Nodes page
+    CoroPanel = new wxPanel(StateTypeChoice, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
+    FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer2->AddGrowableCol(0);
+    FlexGridSizer2->AddGrowableRow(1);
+
+    FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+    FlexGridSizer3->AddGrowableCol(1);
+
+    CustomColorSingleNode = new wxCheckBox(CoroPanel, ID_CHECKBOX1, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CustomColorSingleNode->SetValue(false);
+    FlexGridSizer3->Add(CustomColorSingleNode, 1, wxALL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
+
+    FlexGridSizer3->Add(-1, -1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+
+    Button_7Segment = new wxButton(CoroPanel, ID_BUTTON1, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+    FlexGridSizer3->Add(Button_7Segment, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+
+    FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
+
+    SingleNodeGrid = new wxGrid(CoroPanel, ID_GRID_COROSTATES, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID_COROSTATES"));
+    SingleNodeGrid->CreateGrid(200, 3);
+    SingleNodeGrid->SetMinSize(wxDLG_UNIT(CoroPanel, wxSize(-1, 200)));
+    SingleNodeGrid->EnableEditing(true);
+    SingleNodeGrid->EnableGridLines(true);
+    SingleNodeGrid->SetColLabelSize(20);
+    SingleNodeGrid->SetDefaultColSize(150, true);
+    SingleNodeGrid->SetColLabelValue(0, _("State"));
+    SingleNodeGrid->SetColLabelValue(1, _("Nodes"));
+    SingleNodeGrid->SetColLabelValue(2, _("Color"));
+    SingleNodeGrid->SetDefaultCellFont(SingleNodeGrid->GetFont());
+    SingleNodeGrid->SetDefaultCellTextColour(SingleNodeGrid->GetForegroundColour());
+    FlexGridSizer2->Add(SingleNodeGrid, 1, wxALL|wxEXPAND, 5);
+    CoroPanel->SetSizer(FlexGridSizer2);
+
+    // Node Ranges page
+    NodeRangePanel = new wxPanel(StateTypeChoice, ID_PANEL6, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL6"));
+    FlexGridSizer5 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer5->AddGrowableCol(0);
+    FlexGridSizer5->AddGrowableRow(1);
+
+    // 7-column toolbar: checkboxes vertically centred; Model Display / States / Speed
+    // each get a label-on-top / control-on-bottom sub-column.
+    FlexGridSizer6 = new wxBoxSizer(wxHORIZONTAL);
+
+    // Col 1: Force Custom Colors + Output to Lights stacked
+    {
+        wxBoxSizer* col = new wxBoxSizer(wxVERTICAL);
+        CustomColorNodeRanges = new wxCheckBox(NodeRangePanel, ID_CHECKBOX2, _("Force Custom Colors"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
+        CustomColorNodeRanges->SetValue(false);
+        col->Add(CustomColorNodeRanges, 0, wxALL|wxALIGN_LEFT, 3);
+        CheckBox_OutputToLights = new wxCheckBox(NodeRangePanel, ID_CHECKBOX3, _("Output to Lights"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
+        CheckBox_OutputToLights->SetValue(false);
+        col->Add(CheckBox_OutputToLights, 0, wxALL|wxALIGN_LEFT, 3);
+        FlexGridSizer6->Add(col, 0, wxALL|wxALIGN_CENTER_VERTICAL, 2);
+    }
+
+    // Col 3: Model Display (label / dropdown)
+    {
+        wxBoxSizer* col = new wxBoxSizer(wxVERTICAL);
+        col->Add(new wxStaticText(NodeRangePanel, ID_STATICTEXT1, _("Model Display:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1")), 0, wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 2);
+        ChoiceColorDraw = new wxChoice(NodeRangePanel, ID_CHOICE_COLOR_DRAW, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_COLOR_DRAW"));
+        ChoiceColorDraw->Append(_("All Colors"));
+        ChoiceColorDraw->Append(_("White Only"));
+        ChoiceColorDraw->SetSelection(0);
+        col->Add(ChoiceColorDraw, 0, wxEXPAND, 0);
+        FlexGridSizer6->Add(col, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    }
+
+    // Col 4: States (label / dropdown)
+    {
+        wxBoxSizer* col = new wxBoxSizer(wxVERTICAL);
+        col->Add(new wxStaticText(NodeRangePanel, wxID_ANY, _("Select State"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 2);
+        StateFilterChoice = new wxChoice(NodeRangePanel, ID_CHOICE_STATE_FILTER, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_STATE_FILTER"));
+        StateFilterChoice->Append("");
+        StateFilterChoice->SetSelection(0);
+        col->Add(StateFilterChoice, 0, wxEXPAND, 0);
+        FlexGridSizer6->Add(col, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    }
+
+    // Col 5: Speed (label / spinctrl)
+    {
+        wxBoxSizer* col = new wxBoxSizer(wxVERTICAL);
+        col->Add(new wxStaticText(NodeRangePanel, wxID_ANY, _("Speed (ms):"), wxDefaultPosition, wxDefaultSize, 0), 0, wxALIGN_CENTER_HORIZONTAL|wxBOTTOM, 2);
+        Spin_StateSpeed = new wxSpinCtrl(NodeRangePanel, ID_SLIDER_STATE_SPEED, wxEmptyString, wxDefaultPosition, wxSize(70, -1), wxSP_ARROW_KEYS, 50, 5000, 500);
+        col->Add(Spin_StateSpeed, 0, wxEXPAND, 0);
+        FlexGridSizer6->Add(col, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    }
+
+    // Col 6: Play
+    Button_PlayStates = new wxButton(NodeRangePanel, ID_BUTTON_PLAY_STATES, _("Play"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_PLAY_STATES"));
+    FlexGridSizer6->Add(Button_PlayStates, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+
+    FlexGridSizer6->AddStretchSpacer(1);
+
+    // Col 7: 7 Segment Display
+    Button_7Seg = new wxButton(NodeRangePanel, ID_BUTTON2, _("7 Segment Display"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+    FlexGridSizer6->Add(Button_7Seg, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+
+    FlexGridSizer5->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
+
+    NodeRangeGrid = new wxGrid(NodeRangePanel, ID_GRID3, wxDefaultPosition, wxDefaultSize, 0, _T("ID_GRID3"));
+    NodeRangeGrid->CreateGrid(200, 3);
+    NodeRangeGrid->SetMinSize(wxDLG_UNIT(NodeRangePanel, wxSize(-1, 200)));
+    NodeRangeGrid->EnableEditing(true);
+    NodeRangeGrid->EnableGridLines(true);
+    NodeRangeGrid->SetColLabelSize(20);
+    NodeRangeGrid->SetDefaultColSize(150, true);
+    NodeRangeGrid->SetColLabelValue(0, _("State"));
+    NodeRangeGrid->SetColLabelValue(1, _("Nodes"));
+    NodeRangeGrid->SetColLabelValue(2, _("Color"));
+    NodeRangeGrid->SetDefaultCellFont(NodeRangeGrid->GetFont());
+    NodeRangeGrid->SetDefaultCellTextColour(NodeRangeGrid->GetForegroundColour());
+    FlexGridSizer5->Add(NodeRangeGrid, 1, wxALL|wxEXPAND, 5);
+    NodeRangePanel->SetSizer(FlexGridSizer5);
+
+    StateTypeChoice->AddPage(CoroPanel, _("Single Nodes"), false);
+    StateTypeChoice->AddPage(NodeRangePanel, _("Node Ranges"), false);
+    FlexGridSizer4->Add(StateTypeChoice, 1, wxALL|wxEXPAND, 5);
+
+    this->SetSizer(FlexGridSizer4);
+    this->Layout();
+
+    // Wire up events using Bind() — not Connect()
+    Bind(wxEVT_COMMAND_CHOICE_SELECTED,      &ModelStatesPanel::OnMatrixNameChoiceSelect,    this, ID_CHOICE3);
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED,       &ModelStatesPanel::OnButtonMatrixAddClicked,    this, ID_BUTTON3);
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED,       &ModelStatesPanel::OnButton_ImportClick,        this, ID_BUTTON_IMPORT);
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED,       &ModelStatesPanel::OnButtonMatrixDeleteClick,   this, ID_BUTTON4);
+    Bind(wxEVT_COMMAND_CHECKBOX_CLICKED,     &ModelStatesPanel::OnCustomColorCheckboxClick,  this, ID_CHECKBOX1);
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED,       &ModelStatesPanel::OnButton_7SegmentClick,      this, ID_BUTTON1);
+    Bind(wxEVT_GRID_CELL_LEFT_CLICK,         &ModelStatesPanel::OnSingleNodeGridCellLeftClick,  this, ID_GRID_COROSTATES);
+    Bind(wxEVT_GRID_CELL_LEFT_DCLICK,        &ModelStatesPanel::OnSingleNodeGridCellLeftDClick, this, ID_GRID_COROSTATES);
+    Bind(wxEVT_GRID_LABEL_LEFT_CLICK,        &ModelStatesPanel::OnSingleNodeGridLabelLeftClick, this, ID_GRID_COROSTATES);
+    Bind(wxEVT_GRID_CELL_CHANGED,            &ModelStatesPanel::OnSingleNodeGridCellChange,     this, ID_GRID_COROSTATES);
+    Bind(wxEVT_GRID_SELECT_CELL,             &ModelStatesPanel::OnSingleNodeGridCellSelect,     this, ID_GRID_COROSTATES);
+    Bind(wxEVT_COMMAND_CHECKBOX_CLICKED,     &ModelStatesPanel::OnCustomColorCheckboxClick,  this, ID_CHECKBOX2);
+    Bind(wxEVT_COMMAND_CHECKBOX_CLICKED,     &ModelStatesPanel::OnCheckBox_OutputToLightsClick, this, ID_CHECKBOX3);
+    Bind(wxEVT_COMMAND_CHOICE_SELECTED,      &ModelStatesPanel::OnChoiceColorDrawSelect,     this, ID_CHOICE_COLOR_DRAW);
+    Bind(wxEVT_COMMAND_CHOICE_SELECTED,      &ModelStatesPanel::OnStateFilterSelect,         this, ID_CHOICE_STATE_FILTER);
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED,       &ModelStatesPanel::OnPlayStatesClick,           this, ID_BUTTON_PLAY_STATES);
+    Bind(wxEVT_COMMAND_BUTTON_CLICKED,       &ModelStatesPanel::OnButton_7SegmentClick,      this, ID_BUTTON2);
+    Bind(wxEVT_GRID_CELL_LEFT_CLICK,         &ModelStatesPanel::OnNodeRangeGridCellLeftClick,    this, ID_GRID3);
+    Bind(wxEVT_GRID_CELL_RIGHT_CLICK,        &ModelStatesPanel::OnNodeRangeGridCellRightClick,   this, ID_GRID3);
+    Bind(wxEVT_GRID_CELL_LEFT_DCLICK,        &ModelStatesPanel::OnNodeRangeGridCellLeftDClick,   this, ID_GRID3);
+    Bind(wxEVT_GRID_LABEL_LEFT_CLICK,        &ModelStatesPanel::OnNodeRangeGridLabelLeftClick,   this, ID_GRID3);
+    Bind(wxEVT_GRID_LABEL_LEFT_DCLICK,       &ModelStatesPanel::OnNodeRangeGridLabelLeftDClick,  this, ID_GRID3);
+    Bind(wxEVT_GRID_CELL_CHANGED,            &ModelStatesPanel::OnNodeRangeGridCellChange,       this, ID_GRID3);
+    Bind(wxEVT_GRID_SELECT_CELL,             &ModelStatesPanel::OnNodeRangeGridCellSelect,       this, ID_GRID3);
+    Bind(wxEVT_GRID_RANGE_SELECT,            &ModelStatesPanel::OnNodeRangeGridRangeSelect,      this, ID_GRID3);
+    Bind(wxEVT_GRID_RANGE_SELECT,            &ModelStatesPanel::OnSingleNodeGridRangeSelect,     this, ID_GRID_COROSTATES);
+    Bind(wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED, &ModelStatesPanel::OnStateTypeChoicePageChanged, this, ID_CHOICEBOOK1);
+    SingleNodeGrid->Bind(wxEVT_SIZE, &ModelStatesPanel::OnSingleNodeGridResize, this);
+    NodeRangeGrid->Bind(wxEVT_SIZE,  &ModelStatesPanel::OnNodeRangeGridResize,  this);
 
     model = nullptr;
-
-    modelPreview = new ModelPreview(ModelPreviewPanelLocation);
-    modelPreview->SetMinSize(wxSize(150, 150));
-    PreviewSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
-    // must wait until the preview row exists; the sizer is laid out by SplitVertically above
-    PreviewSizer->AddGrowableRow(1);
-    PreviewSizer->Fit(ModelPreviewPanelLocation);
-    PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
-
-    modelPreview->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&ModelStateDialog::OnPreviewLeftDown, nullptr, this);
-    modelPreview->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&ModelStateDialog::OnPreviewLeftUp, nullptr, this);
-    modelPreview->Connect(wxEVT_MOTION, (wxObjectEventFunction)&ModelStateDialog::OnPreviewMouseMove, nullptr, this);
-    modelPreview->Connect(wxEVT_LEAVE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnPreviewMouseLeave, nullptr, this);
-    modelPreview->Connect(wxEVT_LEFT_DCLICK, (wxObjectEventFunction)&ModelStateDialog::OnPreviewLeftDClick, nullptr, this);
-
     StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
 
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
-    Center();
-
-    SetEscapeId(wxID_CANCEL);
-    EnableCloseButton(false);
-    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnClose);
-    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelStateDialog::OnCancelButton);
-
-    ValidateWindow();
+    // Wire timers
+    timer1.SetOwner(this, ID_TIMER1);
+    Bind(wxEVT_TIMER, &ModelStatesPanel::OnTimer1Trigger,       this, ID_TIMER1);
+    _stateAnimTimer.SetOwner(this, ID_STATE_ANIM_TIMER);
+    Bind(wxEVT_TIMER, &ModelStatesPanel::OnStateAnimTimerTick,  this, ID_STATE_ANIM_TIMER);
 
     _oldOutputToLights = _outputManager->IsOutputting();
     if (_oldOutputToLights) {
@@ -311,76 +322,87 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
     }
 }
 
-void ModelStateDialog::ConfirmClose()
+ModelStatesPanel::~ModelStatesPanel()
 {
-    if (wxMessageBox("Are you sure you want to close the States window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
-        return;
-    }
-    StopOutputToLights();
-    ModelStateDialog::EndDialog(wxID_CANCEL);
-}
-
-void ModelStateDialog::OnClose(wxCloseEvent& event)
-{
-    ConfirmClose();
-}
-
-void ModelStateDialog::OnCancelButton(wxCommandEvent& event)
-{
-    ConfirmClose();
-}
-
-ModelStateDialog::~ModelStateDialog()
-{
-    //(*Destroy(ModelStateDialog)
-    //*)
-
-    SaveWindowPosition("xLightsModelStateDialogPosition", this);
-    auto* config = GetXLightsConfig();
-    int const i = SplitterWindow1->GetSashPosition();
-    config->Write("ModelStateDialogSashPosition", i);
-    config->Flush();
+    StopStateAnimation();
     StopOutputToLights();
     if (_oldOutputToLights) {
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
     }
 }
 
-/*
-According to the wx forums, set size doesn't work in the object constructor
-because the wxWidget base class recalulates the size and layout,
-It will only works if you use OnInit event or call it later.
-*/
-void ModelStateDialog::OnInit(wxInitDialogEvent& event) {
-    SetSize(1200, 800);
-    wxPoint loc;
-    wxSize sz;
-    LoadWindowPosition("xLightsModelStateDialogPosition", sz, loc);
-    if (loc.x != -1) {
-        if (sz.GetWidth() < 300)
-            sz.SetWidth(300);
-        if (sz.GetHeight() < 200)
-            sz.SetHeight(200);
-        SetPosition(loc);
-        SetSize(sz);
-    }
-    auto* config = GetXLightsConfig();
-    int h = config->ReadLong("ModelStateDialogSashPosition", 0);
-    if (h != 0) {
-        SplitterWindow1->SetSashPosition(h);
-    }
-    EnsureWindowHeaderIsOnScreen(this);
-    Layout();
+void ModelStatesPanel::SetModelPreview(ModelPreview* preview)
+{
+    _modelPreview = preview;
 }
 
-void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& finfo) {
+void ModelStatesPanel::NotifyChange()
+{
+    if (_changeCallback) _changeCallback();
+}
+
+void ModelStatesPanel::SetSubModelCallbacks(std::function<std::vector<std::string>()> getNames,
+                                            std::function<std::string(const std::string&)> getRanges)
+{
+    _getSubModelNames = std::move(getNames);
+    _getSubModelRanges = std::move(getRanges);
+}
+
+void ModelStatesPanel::OnActivate()
+{
+    _isActive = true;
+    if (_modelPreview) {
+        _modelPreview->Bind(wxEVT_LEFT_DOWN,    &ModelStatesPanel::OnPreviewLeftDown,   this);
+        _modelPreview->Bind(wxEVT_LEFT_UP,      &ModelStatesPanel::OnPreviewLeftUp,     this);
+        _modelPreview->Bind(wxEVT_MOTION,       &ModelStatesPanel::OnPreviewMouseMove,  this);
+        _modelPreview->Bind(wxEVT_LEAVE_WINDOW, &ModelStatesPanel::OnPreviewMouseLeave, this);
+        _modelPreview->Bind(wxEVT_LEFT_DCLICK,  &ModelStatesPanel::OnPreviewLeftDClick, this);
+        if (model) {
+            _modelPreview->SetModel(model);
+            CallAfter([this]() {
+                if (_modelPreview && model) {
+                    auto grid = (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) ? SingleNodeGrid : NodeRangeGrid;
+                    SelectRow(grid, -1);
+                }
+            });
+        }
+    }
+}
+
+void ModelStatesPanel::OnDeactivate()
+{
+    _isActive = false;
+    m_creating_bound_rect = false;
+    if (_modelPreview) {
+        _modelPreview->Unbind(wxEVT_LEFT_DOWN,    &ModelStatesPanel::OnPreviewLeftDown,   this);
+        _modelPreview->Unbind(wxEVT_LEFT_UP,      &ModelStatesPanel::OnPreviewLeftUp,     this);
+        _modelPreview->Unbind(wxEVT_MOTION,       &ModelStatesPanel::OnPreviewMouseMove,  this);
+        _modelPreview->Unbind(wxEVT_LEAVE_WINDOW, &ModelStatesPanel::OnPreviewMouseLeave, this);
+        _modelPreview->Unbind(wxEVT_LEFT_DCLICK,  &ModelStatesPanel::OnPreviewLeftDClick, this);
+    }
+}
+
+void ModelStatesPanel::OnSingleNodeGridResize(wxSizeEvent& event)
+{
+    event.Skip();
+    SingleNodeGrid->SetColSize(CHANNEL_COL, std::max(event.GetSize().x - SingleNodeGrid->GetColSize(NAME_COL) - SingleNodeGrid->GetColSize(COLOUR_COL) - 30 - SingleNodeGrid->GetRowLabelSize(), 10));
+}
+
+void ModelStatesPanel::OnNodeRangeGridResize(wxSizeEvent& event)
+{
+    event.Skip();
+    NodeRangeGrid->SetColSize(CHANNEL_COL, std::max(event.GetSize().x - NodeRangeGrid->GetColSize(NAME_COL) - NodeRangeGrid->GetColSize(COLOUR_COL) - 30 - NodeRangeGrid->GetRowLabelSize(), 10));
+}
+
+void ModelStatesPanel::SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& finfo)
+{
     NodeRangeGrid->SetColSize(COLOUR_COL, 50);
+    NodeRangeGrid->SetColSize(CHANNEL_COL, std::max(NodeRangeGrid->GetSize().x - NodeRangeGrid->GetColSize(NAME_COL) - 50 - 30 - NodeRangeGrid->GetRowLabelSize(), 10));
     SingleNodeGrid->SetColSize(COLOUR_COL, 50);
+    SingleNodeGrid->SetColSize(CHANNEL_COL, std::max(SingleNodeGrid->GetSize().x - SingleNodeGrid->GetColSize(NAME_COL) - 50 - 30 - SingleNodeGrid->GetRowLabelSize(), 10));
     NameChoice->Clear();
     model = cls;
-    modelPreview->SetModel(cls);
-
-    SetTitle(GetTitle() + " - " + cls->GetName());
+    if (_modelPreview) _modelPreview->SetModel(cls);
 
     for (auto [name, info] : finfo) {
         NameChoice->Append(name);
@@ -475,7 +497,8 @@ void ModelStateDialog::SetStateInfo(Model* cls, std::map<std::string, std::map<s
     SelectRow(grid, -1);
 }
 
-std::map<std::string, std::map<std::string, std::string>> ModelStateDialog::GetStateInfo() const {
+std::map<std::string, std::map<std::string, std::string>> ModelStatesPanel::GetStateInfo() const
+{
     std::map<std::string, std::map<std::string, std::string>> finfo;
     for (const auto& it : stateData) {
         if (!it.second.empty()) {
@@ -485,7 +508,8 @@ std::map<std::string, std::map<std::string, std::string>> ModelStateDialog::GetS
     return finfo;
 }
 
-static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
+static bool SetGrid(wxGrid* grid, std::map<std::string, std::string>& info)
+{
     bool customColor = false;
     if (info["CustomColors"] == "1") {
         grid->ShowCol(COLOUR_COL);
@@ -517,7 +541,9 @@ static bool SetGrid(wxGrid *grid, std::map<std::string, std::string> &info) {
     return customColor;
 }
 
-void ModelStateDialog::SelectStateModel(const std::string &name) {
+void ModelStatesPanel::SelectStateModel(const std::string& name)
+{
+    StopStateAnimation();
     StateTypeChoice->Enable();
     wxString type = stateData[name]["Type"];
     auto grid = NodeRangeGrid;
@@ -528,24 +554,25 @@ void ModelStateDialog::SelectStateModel(const std::string &name) {
     }
     if (type == "SingleNode") {
         StateTypeChoice->ChangeSelection(SINGLE_NODE_STATE);
-        std::map<std::string, std::string> &info = stateData[name];
+        std::map<std::string, std::string>& info = stateData[name];
         CustomColorSingleNode->SetValue(SetGrid(SingleNodeGrid, info));
         grid = SingleNodeGrid;
     } else if (type == "NodeRange") {
         StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
-        std::map<std::string, std::string> &info = stateData[name];
+        std::map<std::string, std::string>& info = stateData[name];
         CustomColorNodeRanges->SetValue(SetGrid(NodeRangeGrid, info));
     }
     SelectRow(grid, -1);
+    PopulateStateFilter();
 }
 
-void ModelStateDialog::OnMatrixNameChoiceSelect(wxCommandEvent& event)
+void ModelStatesPanel::OnMatrixNameChoiceSelect(wxCommandEvent& event)
 {
     SelectStateModel(NameChoice->GetString(NameChoice->GetSelection()).ToStdString());
     ValidateWindow();
 }
 
-void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
+void ModelStatesPanel::OnButtonMatrixAddClicked(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "New State Model", "Enter name for new state model definition");
     if (dlg.ShowModal() == wxID_OK) {
@@ -572,18 +599,18 @@ void ModelStateDialog::OnButtonMatrixAddClicked(wxCommandEvent& event)
                 StateTypeChoice->ChangeSelection(NODE_RANGE_STATE);
             }
             UpdateStateType();
+            NotifyChange();
         }
     }
     ValidateWindow();
 }
 
-void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
+void ModelStatesPanel::OnButtonMatrixDeleteClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     int i = wxMessageBox("Delete state model definition?", "Are you sure you want to delete " + name + "?",
-                         wxICON_WARNING | wxOK , this);
+                         wxICON_WARNING | wxOK, this);
     if (i == wxID_OK || i == wxOK) {
-
         stateData[name].clear();
         NameChoice->Delete(NameChoice->GetSelection());
         if (NameChoice->GetCount() > 0) {
@@ -595,11 +622,12 @@ void ModelStateDialog::OnButtonMatrixDeleteClick(wxCommandEvent& event)
             StateTypeChoice->Disable();
             DeleteButton->Disable();
         }
+        NotifyChange();
     }
     ValidateWindow();
 }
 
-void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
+void ModelStatesPanel::OnCustomColorCheckboxClick(wxCommandEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
@@ -637,11 +665,11 @@ void ModelStateDialog::OnCustomColorCheckboxClick(wxCommandEvent& event)
     }
 }
 
-void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std::map<std::string, std::string> &info) {
+void ModelStatesPanel::GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info)
+{
     wxString key = wxString::Format("s%03d", wxAtoi(grid->GetRowLabelValue(row)));
     key.Replace(" ", "");
-    if (key != "")
-    {
+    if (key != "") {
         if (grid->GetCellValue(row, NAME_COL) != "" || grid->GetCellBackgroundColour(row, COLOUR_COL) != *wxWHITE || grid->GetCellValue(row, CHANNEL_COL) != "") {
             if (col == COLOUR_COL) {
                 key += "-Color";
@@ -653,8 +681,7 @@ void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std:
             } else {
                 info[key.ToStdString()] = grid->GetCellValue(row, col);
             }
-        }
-        else {
+        } else {
             // if all the values are their defaults then delete them all so we dont keep them unnecessarily
             info.erase((key + "-Color").ToStdString());
             info.erase((key + "-Name").ToStdString());
@@ -664,7 +691,8 @@ void ModelStateDialog::GetValue(wxGrid *grid, const int row, const int col, std:
     SelectRow(grid, row);
 }
 
-void ModelStateDialog::ClearNodeColor(Model* m) {
+void ModelStatesPanel::ClearNodeColor(Model* m)
+{
     xlColor c(xlDARK_GREY);
     int nn = m->GetNodeCount();
     if (m->GetDimmingCurve()) {
@@ -675,7 +703,8 @@ void ModelStateDialog::ClearNodeColor(Model* m) {
     }
 }
 
-xlColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force) {
+xlColor ModelStatesPanel::GetRowColor(wxGrid* grid, int const row, bool const prev, bool const force)
+{
     if (force) {
         return wxColourToXlColor(grid->GetCellBackgroundColour(row, COLOUR_COL));
     }
@@ -685,12 +714,14 @@ xlColor ModelStateDialog::GetRowColor(wxGrid* grid, int const row, bool const pr
     return xlWHITE;
 }
 
-void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
+void ModelStatesPanel::SelectRow(wxGrid* grid, int const r)
+{
+    if (!model) return;
 
     _selected.clear();
     ClearNodeColor(model);
 
-    int const draw_mode = ChoiceColorDraw->GetCurrentSelection();
+    int const draw_mode = ChoiceColorDraw ? ChoiceColorDraw->GetCurrentSelection() : 0;
 
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         if (r == -1) {
@@ -705,7 +736,6 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
                     SetSingleNodeColor(grid, i, c, false);
                 }
             }
-            // redo the selected row to ensure it is white
             xlColor const cc = GetRowColor(grid, r, false, draw_mode == 0 && CustomColorSingleNode->IsChecked());
             SetSingleNodeColor(grid, r, cc, true);
         }
@@ -722,16 +752,70 @@ void ModelStateDialog::SelectRow(wxGrid* grid, int const r) {
                     SetNodeColor(grid, i, c, false);
                 }
             }
-            // redo the selected row to ensure it is white
             xlColor const cc = GetRowColor(grid, r, false, draw_mode == 0 && CustomColorNodeRanges->IsChecked());
             SetNodeColor(grid, r, cc, true);
         }
     }
     grid->Refresh();
-    model->DisplayEffectOnWindow(modelPreview, mPointSize);
+    if (_modelPreview) model->DisplayEffectOnWindow(_modelPreview, mPointSize);
 }
 
-void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c, bool highlight) {
+std::vector<int> ModelStatesPanel::GetSelectedGridRows(wxGrid* grid, int fallbackRow)
+{
+    std::set<int> rowSet;
+    wxArrayInt selRows = grid->GetSelectedRows();
+    for (int r : selRows) rowSet.insert(r);
+    wxGridCellCoordsArray topLeft = grid->GetSelectionBlockTopLeft();
+    wxGridCellCoordsArray bottomRight = grid->GetSelectionBlockBottomRight();
+    for (size_t i = 0; i < topLeft.size() && i < bottomRight.size(); ++i) {
+        for (int r = topLeft[i].GetRow(); r <= bottomRight[i].GetRow(); ++r) {
+            rowSet.insert(r);
+        }
+    }
+    wxGridCellCoordsArray selCells = grid->GetSelectedCells();
+    for (const auto& cell : selCells) {
+        rowSet.insert(cell.GetRow());
+    }
+    if (rowSet.empty() && fallbackRow >= 0) {
+        rowSet.insert(fallbackRow);
+    }
+    return std::vector<int>(rowSet.begin(), rowSet.end());
+}
+
+void ModelStatesPanel::SelectRows(wxGrid* grid, int fallbackRow)
+{
+    if (!model) return;
+    if (grid == NodeRangeGrid) {
+        StopStateAnimation();
+        if (StateFilterChoice && StateFilterChoice->GetSelection() != 0) {
+            StateFilterChoice->SetSelection(0);
+        }
+    }
+    std::vector<int> rows = GetSelectedGridRows(grid, fallbackRow);
+    if (rows.empty()) return;
+
+    _selected.clear();
+    ClearNodeColor(model);
+
+    int const draw_mode = ChoiceColorDraw ? ChoiceColorDraw->GetCurrentSelection() : 0;
+    bool const force_custom = (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE)
+                               ? (draw_mode == 0 && CustomColorSingleNode->IsChecked())
+                               : (draw_mode == 0 && CustomColorNodeRanges->IsChecked());
+
+    for (int row : rows) {
+        xlColor const cc = GetRowColor(grid, row, false, force_custom);
+        if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE)
+            SetSingleNodeColor(grid, row, cc, true);
+        else
+            SetNodeColor(grid, row, cc, true);
+    }
+
+    grid->Refresh();
+    if (_modelPreview) model->DisplayEffectOnWindow(_modelPreview, mPointSize);
+}
+
+void ModelStatesPanel::SetSingleNodeColor(wxGrid* grid, const int row, xlColor const& c, bool highlight)
+{
     wxString v = grid->GetCellValue(row, CHANNEL_COL);
     wxStringTokenizer wtkz(v, ",");
     while (wtkz.HasMoreTokens()) {
@@ -746,8 +830,8 @@ void ModelStateDialog::SetSingleNodeColor(wxGrid* grid, const int row, xlColor c
     }
 }
 
-bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& c, bool highlight) {
-
+bool ModelStatesPanel::SetNodeColor(wxGrid* grid, int const row, xlColor const& c, bool highlight)
+{
     wxString v = grid->GetCellValue(row, CHANNEL_COL);
     if (v.empty()) {
         return false;
@@ -793,26 +877,31 @@ bool ModelStateDialog::SetNodeColor(wxGrid* grid, int const row, xlColor const& 
     return found;
 }
 
-void ModelStateDialog::OnNodeRangeGridCellChange(wxGridEvent& event)
+void ModelStatesPanel::OnNodeRangeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(NodeRangeGrid, event.GetRow(), event.GetCol(), stateData[name]);
+    if (event.GetCol() == NAME_COL) {
+        PopulateStateFilter();
+    }
     ValidateWindow();
+    NotifyChange();
 }
 
-void ModelStateDialog::OnSingleNodeGridCellChange(wxGridEvent& event)
+void ModelStatesPanel::OnSingleNodeGridCellChange(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     GetValue(SingleNodeGrid, event.GetRow(), event.GetCol(), stateData[name]);
     ValidateWindow();
+    NotifyChange();
 }
 
-void ModelStateDialog::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
+void ModelStatesPanel::OnStateTypeChoicePageChanged(wxChoicebookEvent& event)
 {
     UpdateStateType();
 }
 
-void ModelStateDialog::UpdateStateType()
+void ModelStatesPanel::UpdateStateType()
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     stateData[name].clear();
@@ -825,16 +914,16 @@ void ModelStateDialog::UpdateStateType()
             break;
     }
     SelectStateModel(name);
-    ClearNodeColor(model);
+    if (model) ClearNodeColor(model);
 }
 
-void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
+void ModelStatesPanel::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
 {
     if (event.GetCol() == CHANNEL_COL) {
         const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
         bool wasOutputting = StopOutputToLights();
-        { // we need to scope the dialog
+        {
             NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), _outputManager, this);
 
             if (dialog.ShowModal() == wxID_OK) {
@@ -846,8 +935,7 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
         }
         if (wasOutputting)
             StartOutputToLights();
-    }
-    else if (event.GetCol() == COLOUR_COL) {
+    } else if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
         wxColor c = NodeRangeGrid->GetCellBackgroundColour(event.GetRow(), COLOUR_COL);
         auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, c);
@@ -860,7 +948,7 @@ void ModelStateDialog::OnNodeRangeGridCellLeftDClick(wxGridEvent& event)
     SelectRow(NodeRangeGrid, event.GetRow());
 }
 
-void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
+void ModelStatesPanel::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
 {
     if (event.GetCol() == COLOUR_COL) {
         std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -875,35 +963,35 @@ void ModelStateDialog::OnSingleNodeGridCellLeftDClick(wxGridEvent& event)
     SelectRow(SingleNodeGrid, event.GetRow());
 }
 
-void ModelStateDialog::OnNodeRangeGridCellLeftClick(wxGridEvent& event)
+void ModelStatesPanel::OnNodeRangeGridCellLeftClick(wxGridEvent& event)
 {
-    SelectRow(NodeRangeGrid, event.GetRow());
+    SelectRows(NodeRangeGrid, event.GetRow());
     event.ResumePropagation(1);
-    event.Skip(); // continue the event
+    event.Skip();
 }
 
-void ModelStateDialog::OnSingleNodeGridCellLeftClick(wxGridEvent& event)
+void ModelStatesPanel::OnSingleNodeGridCellLeftClick(wxGridEvent& event)
 {
-    SelectRow(SingleNodeGrid, event.GetRow());
+    SelectRows(SingleNodeGrid, event.GetRow());
     event.ResumePropagation(1);
-    event.Skip(); // continue the event
+    event.Skip();
 }
 
-void ModelStateDialog::OnSingleNodeGridCellSelect(wxGridEvent& event)
+void ModelStatesPanel::OnSingleNodeGridCellSelect(wxGridEvent& event)
 {
-    SelectRow(SingleNodeGrid, event.GetRow());
+    SelectRows(SingleNodeGrid, event.GetRow());
     event.ResumePropagation(1);
-    event.Skip(); // continue the event
+    event.Skip();
 }
 
-void ModelStateDialog::OnNodeRangeGridCellSelect(wxGridEvent& event)
+void ModelStatesPanel::OnNodeRangeGridCellSelect(wxGridEvent& event)
 {
-    SelectRow(NodeRangeGrid, event.GetRow());
+    SelectRows(NodeRangeGrid, event.GetRow());
     event.ResumePropagation(1);
-    event.Skip(); // continue the event
+    event.Skip();
 }
 
-void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
+void ModelStatesPanel::OnNodeRangeGridCellRightClick(wxGridEvent& event)
 {
     wxMenu mnu;
 
@@ -920,7 +1008,13 @@ void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
     mnu.Append(STATE_DIALOG_CLEAR_SELECTED_ROWS, "Clear Selected");
     mnu.Append(STATE_DIALOG_CLEAR_STATES, "Clear All Rows");
 
-    mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [gridevent = event, this](wxCommandEvent & rightClkEvent) mutable {
+    if (CustomColorNodeRanges->IsChecked() &&
+        NodeRangeGrid->GetSelectedRows().GetCount() >= 2) {
+        mnu.AppendSeparator();
+        mnu.Append(STATE_DIALOG_BULK_COLOR_CHANGE, "Bulk Color Change...");
+    }
+
+    mnu.Bind(wxEVT_COMMAND_MENU_SELECTED, [gridevent = event, this](wxCommandEvent& rightClkEvent) mutable {
         OnGridPopup(rightClkEvent.GetId(), gridevent);
     });
     PopupMenu(&mnu);
@@ -928,12 +1022,12 @@ void ModelStateDialog::OnNodeRangeGridCellRightClick(wxGridEvent& event)
     event.Skip();
 }
 
-void ModelStateDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
+void ModelStatesPanel::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     const wxString title = name + " - " + NodeRangeGrid->GetCellValue(event.GetRow(), NAME_COL);
     bool wasOutputting = StopOutputToLights();
-    { // we need to scope the dialog
+    {
         NodeSelectGrid dialog(true, title, model, NodeRangeGrid->GetCellValue(event.GetRow(), CHANNEL_COL), _outputManager, this);
 
         if (dialog.ShowModal() == wxID_OK) {
@@ -947,19 +1041,36 @@ void ModelStateDialog::OnNodeRangeGridLabelLeftDClick(wxGridEvent& event)
         StartOutputToLights();
 }
 
-void ModelStateDialog::OnSingleNodeGridLabelLeftClick(wxGridEvent& event) {
-    SelectRow(SingleNodeGrid, -1);
+void ModelStatesPanel::OnSingleNodeGridLabelLeftClick(wxGridEvent& event)
+{
+    event.ResumePropagation(1);
+    event.Skip();
 }
 
-void ModelStateDialog::OnNodeRangeGridLabelLeftClick(wxGridEvent& event) {
-    SelectRow(NodeRangeGrid, -1);
+void ModelStatesPanel::OnNodeRangeGridLabelLeftClick(wxGridEvent& event)
+{
+    event.ResumePropagation(1);
+    event.Skip();
 }
 
-void ModelStateDialog::OnButton_ImportClick(wxCommandEvent& event)
+void ModelStatesPanel::OnNodeRangeGridRangeSelect(wxGridRangeSelectEvent& event)
+{
+    SelectRows(NodeRangeGrid, NodeRangeGrid->GetGridCursorRow());
+    event.ResumePropagation(1);
+    event.Skip();
+}
+
+void ModelStatesPanel::OnSingleNodeGridRangeSelect(wxGridRangeSelectEvent& event)
+{
+    SelectRows(SingleNodeGrid, SingleNodeGrid->GetGridCursorRow());
+    event.ResumePropagation(1);
+    event.Skip();
+}
+
+void ModelStatesPanel::OnButton_ImportClick(wxCommandEvent& event)
 {
     wxMenu mnu;
-    if (DeleteButton->IsEnabled())
-    {
+    if (DeleteButton->IsEnabled()) {
         mnu.Append(STATE_DIALOG_COPY, "Copy");
         mnu.Append(STATE_DIALOG_RENAME, "Rename");
         mnu.AppendSeparator();
@@ -973,44 +1084,37 @@ void ModelStateDialog::OnButton_ImportClick(wxCommandEvent& event)
     mnu.Append(STATE_DIALOG_SHIFT, "Shift Nodes");
     mnu.Append(STATE_DIALOG_REVERSE, "Reverse Nodes");
 
-    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& ModelStateDialog::OnAddBtnPopup, nullptr, this);
+    mnu.Bind(wxEVT_MENU, &ModelStatesPanel::OnAddBtnPopup, this);
     PopupMenu(&mnu);
 }
 
-void ModelStateDialog::AddLabel(wxString label)
+void ModelStatesPanel::AddLabel(wxString label)
 {
     int free = -1;
     wxGrid* grid = nullptr;
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         grid = SingleNodeGrid;
-    }
-    else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         grid = NodeRangeGrid;
     } else {
         return;
     }
 
-    for (int i = 0; i < grid->GetNumberRows(); i++)
-    {
-        if (grid->GetCellValue(i, NAME_COL) == label)
-        {
+    for (int i = 0; i < grid->GetNumberRows(); i++) {
+        if (grid->GetCellValue(i, NAME_COL) == label) {
             free = -1;
             break;
         }
-
-        if (grid->GetCellValue(i,NAME_COL) == "" && free == -1)
-        {
+        if (grid->GetCellValue(i, NAME_COL) == "" && free == -1) {
             free = i;
         }
     }
 
-    if (free != -1)
-    {
+    if (free != -1) {
         grid->SetCellValue(free, NAME_COL, label);
         wxString key = wxString::Format("s%03d", wxAtoi(grid->GetRowLabelValue(free)));
         key.Replace(" ", "");
-        if (key != "")
-        {
+        if (key != "") {
             std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
             key += "-Name";
             stateData[name][key.ToStdString()] = label.Lower();
@@ -1019,55 +1123,46 @@ void ModelStateDialog::AddLabel(wxString label)
     }
 }
 
-void ModelStateDialog::OnButton_7SegmentClick(wxCommandEvent& event)
+void ModelStatesPanel::OnButton_7SegmentClick(wxCommandEvent& event)
 {
     SevenSegmentDialog dialog(this);
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        if (dialog.CheckBox_Ones->IsChecked())
-        {
-            for (int i = 0; i < 10; i++)
-            {
+    if (dialog.ShowModal() == wxID_OK) {
+        if (dialog.CheckBox_Ones->IsChecked()) {
+            for (int i = 0; i < 10; i++) {
                 AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
-        if (dialog.CheckBox_Tens->IsChecked())
-        {
+        if (dialog.CheckBox_Tens->IsChecked()) {
             AddLabel("00");
-            for (int i = 10; i < 100; i += 10)
-            {
+            for (int i = 10; i < 100; i += 10) {
                 AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
-        if (dialog.CheckBox_Hundreds->IsChecked())
-        {
+        if (dialog.CheckBox_Hundreds->IsChecked()) {
             AddLabel("000");
-            for (int i = 100; i < 1000; i += 100)
-            {
+            for (int i = 100; i < 1000; i += 100) {
                 AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
-        if (dialog.CheckBox_Colon->IsChecked())
-        {
+        if (dialog.CheckBox_Colon->IsChecked()) {
             AddLabel("colon");
         }
-        if (dialog.CheckBox_Decimal->IsChecked())
-        {
+        if (dialog.CheckBox_Decimal->IsChecked()) {
             AddLabel("dot");
         }
-        if (dialog.CheckBox_Thousands->IsChecked())
-        {
+        if (dialog.CheckBox_Thousands->IsChecked()) {
             AddLabel("0000");
-            for (int i = 1000; i < 10000; i += 1000)
-            {
+            for (int i = 1000; i < 10000; i += 1000) {
                 AddLabel(wxString::Format(wxT("%i"), i));
             }
         }
+        NotifyChange();
     }
 }
 
-void ModelStateDialog::ValidateWindow() {
+void ModelStatesPanel::ValidateWindow()
+{
     if (NameChoice->GetStringSelection() == "") {
         NodeRangeGrid->Disable();
         SingleNodeGrid->Disable();
@@ -1096,45 +1191,47 @@ void ModelStateDialog::ValidateWindow() {
         NodeRangeGrid->HideCol(COLOUR_COL);
     }
 
-    // check that all states have a name
     wxGrid* grid = nullptr;
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         grid = SingleNodeGrid;
     } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
         grid = NodeRangeGrid;
-    } else {
     }
 
-    wxWindow* okButton = this->FindWindow(wxID_OK);
-    if (grid != nullptr)
-    {
-        bool blank = false;
+    if (grid != nullptr) {
         for (int i = 0; i < grid->GetNumberRows(); i++) {
             if (grid->GetCellValue(i, CHANNEL_COL) != "" && grid->GetCellValue(i, NAME_COL) == "") {
                 grid->SetCellBackgroundColour(i, NAME_COL, *wxRED);
                 grid->SetCellBackgroundColour(i, CHANNEL_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-                blank = true;
             } else if (grid->GetCellValue(i, NAME_COL) != "" && grid->GetCellValue(i, CHANNEL_COL) == "") {
                 grid->SetCellBackgroundColour(i, NAME_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                 grid->SetCellBackgroundColour(i, CHANNEL_COL, *wxRED);
-                blank = true;
-            }
-            else
-            {
+            } else {
                 grid->SetCellBackgroundColour(i, NAME_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
                 grid->SetCellBackgroundColour(i, CHANNEL_COL, wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
             }
         }
-        // enable wxID_OK button
-
-        okButton->Enable(!blank);
-    } else {
-        // enable wxID_OK button
-        okButton->Enable(true);
     }
 }
 
-void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEvent)
+bool ModelStatesPanel::HasInvalidRows() const
+{
+    wxGrid* grid = nullptr;
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        grid = SingleNodeGrid;
+    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+        grid = NodeRangeGrid;
+    }
+    if (grid == nullptr) return false;
+    for (int i = 0; i < grid->GetNumberRows(); i++) {
+        bool hasName = grid->GetCellValue(i, NAME_COL) != "";
+        bool hasChannel = grid->GetCellValue(i, CHANNEL_COL) != "";
+        if (hasName != hasChannel) return true;
+    }
+    return false;
+}
+
+void ModelStatesPanel::OnGridPopup(const int rightEventID, wxGridEvent& gridEvent)
 {
     if (rightEventID == STATE_DIALOG_IMPORT_SUB) {
         ImportSubmodel(gridEvent);
@@ -1156,19 +1253,30 @@ void ModelStateDialog::OnGridPopup(const int rightEventID, wxGridEvent& gridEven
         MoveSelectedDown(gridEvent);
     } else if (rightEventID == ID_MNU_SORT) {
         SortState(gridEvent);
+    } else if (rightEventID == STATE_DIALOG_BULK_COLOR_CHANGE) {
+        const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        const auto rows = GetSelectedGridRows(NodeRangeGrid, gridEvent.GetRow());
+        wxColor seed = NodeRangeGrid->GetCellBackgroundColour(rows[0], COLOUR_COL);
+        auto const& [res, color] = xlColourData::INSTANCE.ShowColorDialog(this, seed);
+        if (res == wxID_OK) {
+            for (int row : rows) {
+                NodeRangeGrid->SetCellBackgroundColour(row, COLOUR_COL, color);
+                GetValue(NodeRangeGrid, row, COLOUR_COL, stateData[name]);
+            }
+            NodeRangeGrid->Refresh();
+        }
     }
 }
 
-void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
+void ModelStatesPanel::ImportSubmodel(wxGridEvent& event)
 {
-    
-
     wxArrayString choices;
-    for (Model* sm : model->GetSubModels()) {
-        choices.Add(sm->Name());
+    if (_getSubModelNames) {
+        for (const auto& n : _getSubModelNames()) choices.Add(n);
+    } else {
+        for (Model* sm : model->GetSubModels()) choices.Add(sm->Name());
     }
 
-    // don't offer a choice if there is nothing to choose
     if (choices.GetCount() == 0) {
         wxMessageBox("No SubModels Found.");
         return;
@@ -1180,31 +1288,32 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
     if (dlg.ShowModal() == wxID_OK) {
         wxArrayString allNodes;
         for (auto const& idx : dlg.GetSelections()) {
-            Model* sm = model->GetSubModel(choices.at(idx));
-            if (sm == nullptr) {
-                spdlog::error(
-                    "Strange ... ModelStateDialog::ImportSubmodel returned no model "
-                    "for %s but it was in the list we gave the user.",
-                    (const char*)choices.at(idx).c_str());
-                continue;
+            wxString smName = choices.at(idx);
+            wxString nodes;
+            if (_getSubModelRanges) {
+                nodes = _getSubModelRanges(smName.ToStdString());
+            } else {
+                Model* sm = model->GetSubModel(smName.ToStdString());
+                if (sm == nullptr) {
+                    spdlog::error(
+                        "Strange ... ModelStatesPanel::ImportSubmodel returned no model "
+                        "for %s but it was in the list we gave the user.",
+                        (const char*)smName.c_str());
+                    continue;
+                }
+                nodes = getSubmodelNodes(sm);
             }
-            const auto nodes = getSubmodelNodes(sm);
-            if (!nodes.IsEmpty()) {
-                allNodes.Add(nodes);
-            }
+            if (!nodes.IsEmpty()) allNodes.Add(nodes);
         }
         const auto newNodes = wxJoin(allNodes, ',', '\0');
 
         auto newNodeArrray = wxSplit(NodeUtils::ExpandNodes(newNodes), ',');
 
-        //sort
         std::sort(newNodeArrray.begin(), newNodeArrray.end(),
-            [](const wxString& a, const wxString& b)
-        {
-            return wxAtoi(a) < wxAtoi(b);
-        });
+            [](const wxString& a, const wxString& b) {
+                return wxAtoi(a) < wxAtoi(b);
+            });
 
-        //make unique
         newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
 
         NodeRangeGrid->SetCellValue(event.GetRow(), CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(newNodeArrray, ',')));
@@ -1215,18 +1324,17 @@ void ModelStateDialog::ImportSubmodel(wxGridEvent& event)
     }
 }
 
-wxString ModelStateDialog::getSubmodelNodes(Model* sm)
+wxString ModelStatesPanel::getSubmodelNodes(Model* sm)
 {
     SubModel* subModel = dynamic_cast<SubModel*>(sm);
     if (subModel == nullptr) {
         return "";
     }
-    
-    // Only process if it's a ranges-type submodel
+
     if (!subModel->IsRanges()) {
         return "";
     }
-    
+
     wxArrayString rows;
     int numRanges = subModel->GetNumRanges();
     for (int i = 0; i < numRanges; i++) {
@@ -1235,41 +1343,51 @@ wxString ModelStateDialog::getSubmodelNodes(Model* sm)
             rows.Add(range);
         }
     }
-    
+
     return wxJoin(rows, ',', '\0');
 }
 
-void ModelStateDialog::OnAddBtnPopup(wxCommandEvent& event) {
+void ModelStatesPanel::OnAddBtnPopup(wxCommandEvent& event)
+{
     if (event.GetId() == STATE_DIALOG_IMPORT_MODEL) {
         ImportStatesFromModel();
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_IMPORT_FILE) {
         const wxString filename = wxFileSelector(_("Choose Model file"), wxEmptyString, wxEmptyString, wxEmptyString, "xModel Files (*.xmodel)|*.xmodel", wxFD_OPEN);
         if (filename.IsEmpty()) {
             return;
         }
         ImportStates(filename);
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_COPY) {
         CopyStateData();
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_RENAME) {
         RenameState();
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_SHIFT) {
         ShiftStateNodes();
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_REVERSE) {
         ReverseStateNodes();
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_IMPORT_ALL_SUB) {
         ImportStatesFromSubModels();
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_IMPORT_DOWNLOAD) {
         const wxString filename = GetDownloadStates();
         if (filename.IsEmpty()) {
             return;
         }
         ImportStates(filename);
+        NotifyChange();
     } else if (event.GetId() == STATE_DIALOG_EXPORT_TOOTHERS) {
         ExportStatesToOtherModels();
+        NotifyChange();
     }
 }
 
-void ModelStateDialog::ImportStatesFromModel()
+void ModelStatesPanel::ImportStatesFromModel()
 {
     xLightsFrame* xlights = xLightsApp::GetFrame();
 
@@ -1277,11 +1395,10 @@ void ModelStateDialog::ImportStatesFromModel()
 
     wxSingleChoiceDialog dlg(GetParent(), "", "Select Model", choices);
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
+    if (dlg.ShowModal() == wxID_OK) {
         Model* m = xlights->GetModel(dlg.GetStringSelection());
-        if (m->GetStateInfo().size() == 0)
-        {
+        if (m == nullptr) return;
+        if (m->GetStateInfo().size() == 0) {
             wxMessageBox(dlg.GetStringSelection() + " contains no states, skipping");
             return;
         }
@@ -1301,19 +1418,15 @@ void ModelStateDialog::ImportStatesFromModel()
     }
 }
 
-void ModelStateDialog::ImportStates(const wxString & filename)
+void ModelStatesPanel::ImportStates(const wxString& filename)
 {
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file(filename.ToStdString().c_str());
 
-    if (result)
-    {
-        std::map<std::string, std::map<std::string, std::string> > newStateInfo = stateData;
+    if (result) {
         pugi::xml_node root = doc.document_element();
         bool stateFound = false;
 
-        // New format: <models><model>...<stateInfo/></model></models>
-        // Old format: <custommodel>...<stateInfo/></custommodel>
         auto processStateInfoChildren = [&](pugi::xml_node parent) {
             for (pugi::xml_node n : parent.children("stateInfo")) {
                 std::map<std::string, std::map<std::string, std::string>> stateInfo;
@@ -1335,8 +1448,7 @@ void ModelStateDialog::ImportStates(const wxString & filename)
         overRide = false;
         showDialog = true;
 
-        if (stateFound)
-        {
+        if (stateFound) {
             NameChoice->Enable();
             StateTypeChoice->Enable();
             DeleteButton->Enable();
@@ -1345,21 +1457,24 @@ void ModelStateDialog::ImportStates(const wxString & filename)
             NameChoice->SetStringSelection(NameChoice->GetString(NameChoice->GetCount() - 1));
             SelectStateModel(NameChoice->GetString(NameChoice->GetCount() - 1).ToStdString());
             ValidateWindow();
-        }
-        else
-        {
+        } else {
             DisplayError(filename + " contains no states.");
         }
-    }
-    else
-    {
+    } else {
         DisplayError(filename + " Failure loading xModel file.");
     }
 }
 
-void ModelStateDialog::ImportStatesFromSubModels()
+void ModelStatesPanel::ImportStatesFromSubModels()
 {
-    if (model->GetSubModels().size() == 0) {
+    std::vector<std::string> subNames;
+    if (_getSubModelNames) {
+        subNames = _getSubModelNames();
+    } else {
+        for (Model* sm : model->GetSubModels()) subNames.push_back(sm->Name());
+    }
+
+    if (subNames.empty()) {
         wxMessageBox("No SubModels Found.");
         return;
     }
@@ -1375,25 +1490,29 @@ void ModelStateDialog::ImportStatesFromSubModels()
             UpdateStateType();
 
             int idx { 0 };
-            for (Model* sm : model->GetSubModels()) {
-                auto subname = cleanSubName(sm->Name());
-                const auto nodes = getSubmodelNodes(sm);
+            for (const auto& smName : subNames) {
+                auto subname = cleanSubName(smName);
+                wxString nodes;
+                if (_getSubModelRanges) {
+                    nodes = _getSubModelRanges(smName);
+                } else {
+                    Model* sm = model->GetSubModel(smName);
+                    nodes = sm ? getSubmodelNodes(sm) : wxString{};
+                }
                 auto newNodeArrray = wxSplit(NodeUtils::ExpandNodes(nodes), ',');
 
-                // sort
                 std::sort(newNodeArrray.begin(), newNodeArrray.end(),
                           [](const wxString& a, const wxString& b) {
                               return wxAtoi(a) < wxAtoi(b);
                           });
 
-                // make unique
                 newNodeArrray.erase(std::unique(newNodeArrray.begin(), newNodeArrray.end()), newNodeArrray.end());
                 NodeRangeGrid->SetCellValue(idx, NAME_COL, subname);
                 NodeRangeGrid->SetCellValue(idx, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(newNodeArrray, ',')));
                 GetValue(NodeRangeGrid, idx, NAME_COL, stateData[name]);
                 GetValue(NodeRangeGrid, idx, CHANNEL_COL, stateData[name]);
                 ++idx;
-                if (idx >= 200) {//state max out at 200
+                if (idx >= 200) {
                     break;
                 }
             }
@@ -1402,43 +1521,36 @@ void ModelStateDialog::ImportStatesFromSubModels()
     }
 }
 
-std::string ModelStateDialog::cleanSubName(std::string name)
+std::string ModelStatesPanel::cleanSubName(std::string name)
 {
     name = ::Lower(name);
     Replace(name, " ", "_");
     return name;
 }
 
-void ModelStateDialog::AddStates(std::map<std::string, std::map<std::string, std::string> > const& states)
+void ModelStatesPanel::AddStates(std::map<std::string, std::map<std::string, std::string>> const& states)
 {
-    for (const auto& state : states)
-    {
+    for (const auto& state : states) {
         auto fname = state.first;
 
-        if (NameChoice->FindString(fname) != wxNOT_FOUND)
-        {
-            if (showDialog)
-            {
+        if (NameChoice->FindString(fname) != wxNOT_FOUND) {
+            if (showDialog) {
                 wxMessageDialog confirm(this, _("State(s) with the Same Name Already Exist.\n Would you Like to Override Them ALL?"), _("Override States"), wxYES_NO);
                 int returnCode = confirm.ShowModal();
                 if (returnCode == wxID_YES)
                     overRide = true;
                 showDialog = false;
             }
-            if (!overRide)
-            {
+            if (!overRide) {
                 const auto basefname = fname;
                 int suffix = 1;
-                while (NameChoice->FindString(fname) != wxNOT_FOUND)
-                {
+                while (NameChoice->FindString(fname) != wxNOT_FOUND) {
                     fname = wxString::Format("%s-%d", basefname, suffix);
                     suffix++;
                 }
                 NameChoice->Append(fname);
             }
-        }
-        else
-        {
+        } else {
             NameChoice->Append(fname);
         }
 
@@ -1446,13 +1558,12 @@ void ModelStateDialog::AddStates(std::map<std::string, std::map<std::string, std
     }
 }
 
-wxArrayString ModelStateDialog::getModelList(ModelManager * modelManager)
+wxArrayString ModelStatesPanel::getModelList(ModelManager* modelManager)
 {
     wxArrayString choices;
-    for (auto it = modelManager->begin(); it != modelManager->end(); ++it)
-    {
+    for (auto it = modelManager->begin(); it != modelManager->end(); ++it) {
         Model* m = it->second;
-        if (m->Name() == model->Name())//Skip Current Model
+        if (m->Name() == model->Name())
             continue;
         if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
             continue;
@@ -1461,7 +1572,7 @@ wxArrayString ModelStateDialog::getModelList(ModelManager * modelManager)
     return choices;
 }
 
-void ModelStateDialog::CopyStates(wxGridEvent& event)
+void ModelStatesPanel::CopyStates(wxGridEvent& event)
 {
     std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     wxArrayString choices;
@@ -1513,7 +1624,7 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
                     }
 
                     std::string newname = wxString::Format("s%03d", stateIdx);
-                    for (int x = stateIdx; x <= 200; x++) {
+                    for (int x2 = stateIdx; x2 <= 200; x2++) {
                         if (stateData[name].contains(newname) ||
                             stateData[name].contains(newname + "-Name") ||
                             stateData[name].contains(newname + "-Color")) {
@@ -1537,8 +1648,9 @@ void ModelStateDialog::CopyStates(wxGridEvent& event)
     }
 }
 
-void ModelStateDialog::OnPreviewLeftUp(wxMouseEvent& event)
+void ModelStatesPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
+    if (!_isActive) return;
     if (m_creating_bound_rect) {
         glm::vec3 ray_origin;
         glm::vec3 ray_direction;
@@ -1549,18 +1661,20 @@ void ModelStateDialog::OnPreviewLeftUp(wxMouseEvent& event)
         SelectAllInBoundingRect(event.ShiftDown());
         m_creating_bound_rect = false;
 
-        modelPreview->ReleaseMouse();
+        if (_modelPreview) _modelPreview->ReleaseMouse();
         ValidateWindow();
     }
 }
 
-void ModelStateDialog::OnPreviewMouseLeave(wxMouseEvent& event)
+void ModelStatesPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 {
+    if (!_isActive) return;
     RenderModel();
 }
 
-void ModelStateDialog::OnPreviewLeftDown(wxMouseEvent& event)
+void ModelStatesPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
+    if (!_isActive) return;
     m_creating_bound_rect = true;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
@@ -1570,19 +1684,19 @@ void ModelStateDialog::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
 
-    // Capture the mouse; this will keep it selecting even if the
-    //  user temporarily leaves the preview area...
-    modelPreview->CaptureMouse();
+    if (_modelPreview) _modelPreview->CaptureMouse();
 }
 
-void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
+void ModelStatesPanel::OnPreviewLeftDClick(wxMouseEvent& event)
 {
+    if (!_isActive) return;
+    if (!_modelPreview) return;
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
     int x = ray_origin.x;
     int y = ray_origin.y;
-    wxString stNode = model->GetNodeNear(modelPreview, xlPoint(x, y), false);
+    wxString stNode = model->GetNodeNear(_modelPreview, xlPoint(x, y), false);
     if (stNode.IsEmpty())
         return;
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -1599,29 +1713,26 @@ void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
         SingleNodeGrid->SetCellValue(row, CHANNEL_COL, node);
         SingleNodeGrid->Refresh();
         GetValue(SingleNodeGrid, row, CHANNEL_COL, stateData[name]);
-    }
-    else if (stateData[name]["Type"] == "NodeRange") {
+    } else if (stateData[name]["Type"] == "NodeRange") {
         int row = NodeRangeGrid->GetGridCursorRow();
         if (row < 0)
             return;
         wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
         auto oldNodeArrray = wxSplit(oldnodes, ',');
 
-        //toggle nodes if double click
         bool found = false;
         for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
             if (*it == stNode) {
-                oldNodeArrray.erase(it);//remove if in list
+                oldNodeArrray.erase(it);
                 found = true;
                 break;
             }
         }
         if (!found) {
-            oldNodeArrray.push_back(stNode);//add if not in list
+            oldNodeArrray.push_back(stNode);
         }
         std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
-            [](const wxString& a, const wxString& b)
-            {
+            [](const wxString& a, const wxString& b) {
                 return wxAtoi(a) < wxAtoi(b);
             });
 
@@ -1632,8 +1743,9 @@ void ModelStateDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     ValidateWindow();
 }
 
-void ModelStateDialog::OnPreviewMouseMove(wxMouseEvent& event)
+void ModelStatesPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
+    if (!_isActive) { event.Skip(); return; }
     event.ResumePropagation(1);
     event.Skip();
     if (m_creating_bound_rect) {
@@ -1646,37 +1758,36 @@ void ModelStateDialog::OnPreviewMouseMove(wxMouseEvent& event)
     }
 }
 
-void ModelStateDialog::RenderModel()
+void ModelStatesPanel::RenderModel()
 {
-    if (modelPreview == nullptr || !modelPreview->StartDrawing(mPointSize)) return;
+    if (_modelPreview == nullptr || !_modelPreview->StartDrawing(mPointSize)) return;
 
     if (m_creating_bound_rect) {
-        modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
     }
-    model->DisplayEffectOnWindow(modelPreview, mPointSize);
-    modelPreview->EndDrawing();
+    model->DisplayEffectOnWindow(_modelPreview, mPointSize);
+    _modelPreview->EndDrawing();
 }
 
-void ModelStateDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
+void ModelStatesPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
 {
+    if (!_modelPreview) return;
     // Trim the mouse location to the preview area
-    //   (It can go outside this area if the button is down and the mouse
-    //    has been captured.)
     x = std::max(x, 0);
     y = std::max(y, 0);
-    x = std::min(x, modelPreview->getWidth());
-    y = std::min(y, modelPreview->getHeight());
+    x = std::min(x, _modelPreview->getWidth());
+    y = std::min(y, _modelPreview->getHeight());
 
     VectorMath::ScreenPosToWorldRay(
-        x, modelPreview->getHeight() - y,
-        modelPreview->getWidth(), modelPreview->getHeight(),
-        modelPreview->GetProjViewMatrix(),
+        x, _modelPreview->getHeight() - y,
+        _modelPreview->getWidth(), _modelPreview->getHeight(),
+        _modelPreview->GetProjViewMatrix(),
         ray_origin,
         ray_direction
     );
 }
 
-void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
+void ModelStatesPanel::SelectAllInBoundingRect(bool shiftDwn)
 {
     if (shiftDwn) {
         RemoveNodes();
@@ -1695,8 +1806,7 @@ void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
     if (row < 0)
         return;
 
-    std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
 
@@ -1718,8 +1828,7 @@ void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
     }
 
     std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
-        [](const wxString& a, const wxString& b)
-        {
+        [](const wxString& a, const wxString& b) {
             return wxAtoi(a) < wxAtoi(b);
         });
 
@@ -1728,7 +1837,7 @@ void ModelStateDialog::SelectAllInBoundingRect(bool shiftDwn)
     GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
 }
 
-void ModelStateDialog::RemoveNodes()
+void ModelStatesPanel::RemoveNodes()
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name == "") {
@@ -1742,8 +1851,7 @@ void ModelStateDialog::RemoveNodes()
     if (row < 0)
         return;
 
-    std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
     wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
@@ -1760,8 +1868,7 @@ void ModelStateDialog::RemoveNodes()
     }
 
     std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
-        [](const wxString& a, const wxString& b)
-        {
+        [](const wxString& a, const wxString& b) {
             return wxAtoi(a) < wxAtoi(b);
         });
 
@@ -1770,7 +1877,7 @@ void ModelStateDialog::RemoveNodes()
     GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
 }
 
-void ModelStateDialog::CopyStateData()
+void ModelStatesPanel::CopyStateData()
 {
     auto const index = NameChoice->GetSelection();
     if (index == -1)
@@ -1793,7 +1900,7 @@ void ModelStateDialog::CopyStateData()
     }
 }
 
-void ModelStateDialog::RenameState()
+void ModelStatesPanel::RenameState()
 {
     auto const index = NameChoice->GetSelection();
     if (index == -1)
@@ -1819,7 +1926,7 @@ void ModelStateDialog::RenameState()
     }
 }
 
-void ModelStateDialog::ShiftStateNodes()
+void ModelStatesPanel::ShiftStateNodes()
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name == "") {
@@ -1843,7 +1950,7 @@ void ModelStateDialog::ShiftStateNodes()
     }
 }
 
-void ModelStateDialog::ReverseStateNodes()
+void ModelStatesPanel::ReverseStateNodes()
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name == "") {
@@ -1861,8 +1968,9 @@ void ModelStateDialog::ReverseStateNodes()
     ClearNodeColor(model);
 }
 
-void ModelStateDialog::OnTimer1Trigger(wxTimerEvent& event)
+void ModelStatesPanel::OnTimer1Trigger(wxTimerEvent& event)
 {
+    if (!model) return;
     wxASSERT(_outputManager->IsOutputting());
     _outputManager->StartFrame(0);
     for (uint32_t n = 0; n < model->GetNodeCount(); ++n) {
@@ -1880,17 +1988,15 @@ void ModelStateDialog::OnTimer1Trigger(wxTimerEvent& event)
     _outputManager->EndFrame();
 }
 
-void ModelStateDialog::StartOutputToLights()
+void ModelStatesPanel::StartOutputToLights()
 {
     if (!timer1.IsRunning()) {
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
-        timer1.SetOwner(this, ID_TIMER1);
-        Connect(ID_TIMER1, wxEVT_TIMER, (wxObjectEventFunction)&ModelStateDialog::OnTimer1Trigger);
         timer1.Start(50, false);
     }
 }
 
-bool ModelStateDialog::StopOutputToLights()
+bool ModelStatesPanel::StopOutputToLights()
 {
     if (timer1.IsRunning()) {
         timer1.Stop();
@@ -1904,23 +2010,183 @@ bool ModelStateDialog::StopOutputToLights()
     return false;
 }
 
-void ModelStateDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
+void ModelStatesPanel::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 {
     if (CheckBox_OutputToLights->IsChecked()) {
         StartOutputToLights();
-    }
-    else {
+    } else {
         StopOutputToLights();
     }
 }
 
-void ModelStateDialog::ClearStates(wxGridEvent& event) {
+void ModelStatesPanel::OnChoiceColorDrawSelect(wxCommandEvent& event)
+{
+    if (!ChoiceColorDraw) return;
+    wxGrid* grid = nullptr;
+    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
+        grid = SingleNodeGrid;
+    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
+        grid = NodeRangeGrid;
+    } else {
+        return;
+    }
+    int const row = grid->GetGridCursorRow();
+    if (row < 0) {
+        return;
+    }
+    SelectRow(grid, row);
+}
+
+void ModelStatesPanel::PopulateStateFilter()
+{
+    if (!StateFilterChoice) return;
+    wxString selected = StateFilterChoice->GetStringSelection();
+    StateFilterChoice->Clear();
+    StateFilterChoice->Append(""); // empty = no filter
+    StateFilterChoice->Append("<ALL>");
+    if (NameChoice->GetCount() > 0 && NameChoice->GetSelection() != wxNOT_FOUND) {
+        std::string defName = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
+        std::set<std::string> seen;
+        std::vector<std::string> names;
+        for (const auto& [k, v] : stateData[defName]) {
+            if (EndsWith(k, "-Name") && !v.empty() && seen.find(v) == seen.end()) {
+                seen.insert(v);
+                names.push_back(v);
+            }
+        }
+        std::sort(names.begin(), names.end());
+        for (const auto& n : names) {
+            StateFilterChoice->Append(wxString(n));
+        }
+    }
+    if (!selected.empty() && StateFilterChoice->SetStringSelection(selected)) {
+        // kept prior selection
+    } else {
+        StateFilterChoice->SetSelection(0);
+    }
+}
+
+void ModelStatesPanel::UpdateStateFilter()
+{
+    if (!StateFilterChoice || !model) return;
+    wxString sel = StateFilterChoice->GetStringSelection();
+    if (sel.empty()) {
+        SelectRows(NodeRangeGrid, NodeRangeGrid->GetGridCursorRow());
+        return;
+    }
+    _selected.clear();
+    ClearNodeColor(model);
+    int const draw_mode = ChoiceColorDraw ? ChoiceColorDraw->GetCurrentSelection() : 0;
+    bool const force_custom = draw_mode == 0 && CustomColorNodeRanges->IsChecked();
+    if (sel == "<ALL>") {
+        for (int i = 0; i < NodeRangeGrid->GetNumberRows(); ++i) {
+            xlColor const c = GetRowColor(NodeRangeGrid, i, false, force_custom);
+            SetNodeColor(NodeRangeGrid, i, c, true);
+        }
+    } else {
+        for (int i = 0; i < NodeRangeGrid->GetNumberRows(); ++i) {
+            if (NodeRangeGrid->GetCellValue(i, NAME_COL) == sel) {
+                xlColor const c = GetRowColor(NodeRangeGrid, i, false, force_custom);
+                SetNodeColor(NodeRangeGrid, i, c, true);
+            }
+        }
+    }
+    NodeRangeGrid->Refresh();
+    if (_modelPreview) model->DisplayEffectOnWindow(_modelPreview, mPointSize);
+}
+
+void ModelStatesPanel::OnStateFilterSelect(wxCommandEvent& event)
+{
+    UpdateStateFilter();
+}
+
+void ModelStatesPanel::BuildStateAnimSteps()
+{
+    _stateAnimSteps.clear();
+
+    // Use explicitly highlighted rows as the source when 2+ rows are selected;
+    // otherwise fall back to every non-empty row in the grid.
+    std::vector<int> source = GetSelectedGridRows(NodeRangeGrid, -1);
+    if (source.size() < 2) {
+        source.clear();
+        for (int i = 0; i < NodeRangeGrid->GetNumberRows(); ++i) {
+            if (!NodeRangeGrid->GetCellValue(i, NAME_COL).empty())
+                source.push_back(i);
+        }
+    }
+
+    // Group source rows by distinct state name and build one step per name.
+    std::vector<std::string> nameOrder;
+    std::map<std::string, std::vector<int>> nameToRows;
+    for (int i : source) {
+        wxString n = NodeRangeGrid->GetCellValue(i, NAME_COL);
+        if (n.empty()) continue;
+        std::string ns = n.ToStdString();
+        if (nameToRows.find(ns) == nameToRows.end()) nameOrder.push_back(ns);
+        nameToRows[ns].push_back(i);
+    }
+    std::sort(nameOrder.begin(), nameOrder.end());
+    for (const auto& n : nameOrder)
+        _stateAnimSteps.push_back(nameToRows[n]);
+}
+
+void ModelStatesPanel::StopStateAnimation()
+{
+    if (!_stateAnimPlaying) return;
+    _stateAnimTimer.Stop();
+    _stateAnimPlaying = false;
+    if (Button_PlayStates) Button_PlayStates->SetLabel(_("Play"));
+    NodeRangeGrid->EnableEditing(true);
+    SelectRow(NodeRangeGrid, -1);
+}
+
+void ModelStatesPanel::OnPlayStatesClick(wxCommandEvent& event)
+{
+    if (_stateAnimPlaying) {
+        StopStateAnimation();
+        return;
+    }
+    BuildStateAnimSteps();
+    if (_stateAnimSteps.empty()) return;
+
+    _stateAnimPlaying = true;
+    _stateAnimStep = 0;
+    Button_PlayStates->SetLabel(_("Stop"));
+    NodeRangeGrid->EnableEditing(false);
+
+    _stateAnimTimer.Start(Spin_StateSpeed->GetValue(), false);
+}
+
+void ModelStatesPanel::OnStateAnimTimerTick(wxTimerEvent& event)
+{
+    if (!model || _stateAnimSteps.empty()) {
+        StopStateAnimation();
+        return;
+    }
+    _selected.clear();
+    ClearNodeColor(model);
+    int const draw_mode = ChoiceColorDraw ? ChoiceColorDraw->GetCurrentSelection() : 0;
+    bool const force_custom = draw_mode == 0 && CustomColorNodeRanges->IsChecked();
+    const auto& rows = _stateAnimSteps[_stateAnimStep % (int)_stateAnimSteps.size()];
+    for (int i : rows) {
+        if (i < NodeRangeGrid->GetNumberRows()) {
+            xlColor const c = GetRowColor(NodeRangeGrid, i, false, force_custom);
+            SetNodeColor(NodeRangeGrid, i, c, true);
+        }
+    }
+    NodeRangeGrid->Refresh();
+    if (_modelPreview) model->DisplayEffectOnWindow(_modelPreview, mPointSize);
+    _stateAnimStep = (_stateAnimStep + 1) % (int)_stateAnimSteps.size();
+}
+
+void ModelStatesPanel::ClearStates(wxGridEvent& event)
+{
     UpdateStateType();
     ValidateWindow();
 }
 
-void ModelStateDialog::ClearSelectedStates(wxGridEvent& event) {
-
+void ModelStatesPanel::ClearSelectedStates(wxGridEvent& event)
+{
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name.empty()) {
         return;
@@ -1930,7 +2196,7 @@ void ModelStateDialog::ClearSelectedStates(wxGridEvent& event) {
         return;
     }
     for (int k = 0; k < NodeRangeGrid->GetNumberCols(); k++) {
-        for (int i = NodeRangeGrid->GetNumberRows(); i >= 0; i--) {
+        for (int i = NodeRangeGrid->GetNumberRows() - 1; i >= 0; i--) {
             if (NodeRangeGrid->IsInSelection(i, k)) {
                 NodeRangeGrid->SetCellValue(i, k, wxEmptyString);
 
@@ -1945,7 +2211,8 @@ void ModelStateDialog::ClearSelectedStates(wxGridEvent& event) {
     NodeRangeGrid->Refresh();
 }
 
-void ModelStateDialog::AddBefore(wxGridEvent& event) {
+void ModelStatesPanel::AddBefore(wxGridEvent& event)
+{
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name.empty() || stateData[name]["Type"] != "NodeRange") {
         return;
@@ -1991,7 +2258,8 @@ void ModelStateDialog::AddBefore(wxGridEvent& event) {
     NodeRangeGrid->Refresh();
 }
 
-void ModelStateDialog::AddAfter(wxGridEvent& event) {
+void ModelStatesPanel::AddAfter(wxGridEvent& event)
+{
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name.empty() || stateData[name]["Type"] != "NodeRange") {
         return;
@@ -2037,7 +2305,8 @@ void ModelStateDialog::AddAfter(wxGridEvent& event) {
     NodeRangeGrid->Refresh();
 }
 
-void ModelStateDialog::DeleteSelected(wxGridEvent& event) {
+void ModelStatesPanel::DeleteSelected(wxGridEvent& event)
+{
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name.empty() || stateData[name]["Type"] != "NodeRange") {
         return;
@@ -2077,7 +2346,8 @@ void ModelStateDialog::DeleteSelected(wxGridEvent& event) {
     NodeRangeGrid->Refresh();
 }
 
-void ModelStateDialog::MoveSelectedUp(wxGridEvent& event) {
+void ModelStatesPanel::MoveSelectedUp(wxGridEvent& event)
+{
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name.empty() || stateData[name]["Type"] != "NodeRange") {
         return;
@@ -2151,7 +2421,8 @@ void ModelStateDialog::MoveSelectedUp(wxGridEvent& event) {
     NodeRangeGrid->Refresh();
 }
 
-void ModelStateDialog::MoveSelectedDown(wxGridEvent& event) {
+void ModelStatesPanel::MoveSelectedDown(wxGridEvent& event)
+{
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name.empty() || stateData[name]["Type"] != "NodeRange") {
         return;
@@ -2225,7 +2496,8 @@ void ModelStateDialog::MoveSelectedDown(wxGridEvent& event) {
     NodeRangeGrid->Refresh();
 }
 
-void ModelStateDialog::SortState(wxGridEvent& event) {
+void ModelStatesPanel::SortState(wxGridEvent& event)
+{
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name.empty() || stateData[name]["Type"] != "NodeRange") {
         return;
@@ -2235,23 +2507,6 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
     int numCols = NodeRangeGrid->GetNumberCols();
     if (numRows == 0 || numCols == 0) {
         return;
-    }
-
-    std::vector<std::pair<int, int>> selectedCells;
-    for (int col = 0; col < numCols; ++col) {
-        for (int row = 0; row < numRows; ++row) {
-            if (NodeRangeGrid->IsInSelection(row, col)) {
-                selectedCells.emplace_back(row, col);
-            }
-        }
-    }
-
-    if (selectedCells.empty()) {
-        int cursorRow = NodeRangeGrid->GetGridCursorRow();
-        int cursorCol = NodeRangeGrid->GetGridCursorCol();
-        if (cursorRow >= 0 && cursorRow < numRows && cursorCol >= 0) {
-            selectedCells.emplace_back(cursorRow, cursorCol);
-        }
     }
 
     struct RowData {
@@ -2278,11 +2533,10 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
     }
 
     std::stable_sort(rows.begin(), rows.end(), [](const RowData& a, const RowData& b) {
-        // Handle empty first column (sort to bottom)
         bool aEmpty = a.values[0].IsEmpty();
         bool bEmpty = b.values[0].IsEmpty();
         if (aEmpty != bEmpty) {
-            return bEmpty; // Empty rows go to the bottom
+            return bEmpty;
         }
         if (!aEmpty && !bEmpty) {
             double aNum, bNum;
@@ -2295,8 +2549,8 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
                 return a.values[0] < b.values[0];
             }
         }
-        return a.originalIndex < b.originalIndex; // Ensure stability
-        });
+        return a.originalIndex < b.originalIndex;
+    });
 
     NodeRangeGrid->BeginBatch();
 
@@ -2307,7 +2561,7 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
 
     std::map<std::string, std::string> tempStateData;
     for (int row = 0; row < numRows; ++row) {
-        wxString key = wxString::Format("s%03d", row+1);
+        wxString key = wxString::Format("s%03d", row + 1);
         for (int col = 0; col < numCols; ++col) {
             wxString value = rows[row].values[col];
             if (col == COLOUR_COL && (value != "" || rows[row].colours[col] != *wxWHITE)) {
@@ -2321,7 +2575,6 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
     }
 
     for (auto it = stateData[name].begin(); it != stateData[name].end();) {
-        wxLogMessage("Checking %s %s", name.c_str(), it->first.c_str());
         if (it->first.find("s") == 0) {
             it = stateData[name].erase(it);
         } else {
@@ -2332,7 +2585,7 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
     stateData[name].insert(tempStateData.begin(), tempStateData.end());
 
     for (int row = 0; row < numRows; ++row) {
-        NodeRangeGrid->SetRowLabelValue(row, wxString::Format("%d", row+1));
+        NodeRangeGrid->SetRowLabelValue(row, wxString::Format("%d", row + 1));
         for (int col = 0; col < numCols; ++col) {
             NodeRangeGrid->SetCellValue(row, col, rows[row].values[col]);
             if (col == COLOUR_COL) {
@@ -2346,8 +2599,8 @@ void ModelStateDialog::SortState(wxGridEvent& event) {
     ValidateWindow();
 }
 
-
-wxString ModelStateDialog::GetDownloadStates() {
+wxString ModelStatesPanel::GetDownloadStates()
+{
     wxProgressDialog* prog = new wxProgressDialog("Model download", "Downloading models ...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
     prog->Show();
     prog->CenterOnParent();
@@ -2367,24 +2620,9 @@ wxString ModelStateDialog::GetDownloadStates() {
     return wxString();
 }
 
-void ModelStateDialog::OnChoiceColorDrawSelect(wxCommandEvent& event) {
-    wxGrid* grid = nullptr;
-    if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
-        grid = SingleNodeGrid;
-    } else if (StateTypeChoice->GetSelection() == NODE_RANGE_STATE) {
-        grid = NodeRangeGrid;
-    } else {
-        return;
-    }
-    int const row = grid->GetGridCursorRow();
-    if (row < 0) {
-        return;
-    }
-    SelectRow(grid, row);
-}
-
-void ModelStateDialog::ExportStatesToOtherModels() {
-    if (wxMessageBox("Are you sure you want to Export this model's States to other models?\nThis will override all the other model's existing states and there is no way to undo it.","Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+void ModelStatesPanel::ExportStatesToOtherModels()
+{
+    if (wxMessageBox("Are you sure you want to Export this model's States to other models?\nThis will override all the other model's existing states and there is no way to undo it.", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
 

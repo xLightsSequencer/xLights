@@ -38,9 +38,8 @@
 
 // Dialog adapters - these need to stay accessible for PopupDialogProperty etc.
 #include "../model/StrandNodeNamesDialog.h"
-#include "../model/ModelFaceDialog.h"
+#include "../model/ModelDefinitionsDialog.h"
 #include "../model/ModelDimmingCurveDialog.h"
-#include "../model/ModelStateDialog.h"
 #include "../model/SubModelsDialog.h"
 #include "../model/EditAliasesDialog.h"
 #include "../model/ModelChainDialog.h"
@@ -81,10 +80,8 @@ class FacesDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     FacesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
-        ModelFaceDialog dlg(propGrid, _outputManager);
-        dlg.SetFaceInfo(m_model, m_model->GetFaceInfo());
+        ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_FACES);
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->SetFaceInfo(dlg.GetFaceInfo());
             if (xLightsApp::GetFrame() != nullptr) {
                 for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
                     xLightsApp::GetFrame()->GetSequenceElements().RenameModelFaceReferences(m_model->GetName(), oldName, newName);
@@ -121,10 +118,8 @@ class StatesDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     StatesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
-        ModelStateDialog dlg(propGrid, _outputManager);
-        dlg.SetStateInfo(m_model, m_model->GetStateInfo());
+        ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_STATES);
         if (dlg.ShowModal() == wxID_OK) {
-            m_model->SetStateInfo(dlg.GetStateInfo());
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -165,20 +160,18 @@ class SubModelsDialogAdapter : public wxPGEditorDialogAdapter {
 public:
     SubModelsDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
-        SubModelsDialog dlg(propGrid, _outputManager);
-        dlg.Setup(m_model);
+        ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_SUBMODELS);
         if (dlg.ShowModal() == wxID_OK) {
-            dlg.Save();
+            if (dlg.ReloadLayout) {
+                wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+                wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
+                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                     OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                     OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
+            }
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
-        }
-        if (dlg.ReloadLayout) {
-            wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-            wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
-            m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                 OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                 OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
         }
         return false;
     }

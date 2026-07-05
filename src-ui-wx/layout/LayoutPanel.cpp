@@ -84,8 +84,7 @@
 #include "outputs/Output.h"
 #include "cad/ModelToCAD.h"
 #include "layout/LORPreview.h"
-#include "model/ModelFaceDialog.h"
-#include "model/ModelStateDialog.h"
+#include "model/ModelDefinitionsDialog.h"
 #include "model/CustomModelDialog.h"
 #include "model/SubModelsDialog.h"
 #include "color/xlColourData.h"
@@ -7847,15 +7846,15 @@ void LayoutPanel::EditSubmodels()
     if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel)
         return;
 
-    SubModelsDialog dlg(this, &xlights->_outputManager);
-    dlg.Setup(md);
+    ModelDefinitionsDialog dlg(this, &xlights->_outputManager, md, TAB_SUBMODELS);
     if (dlg.ShowModal() == wxID_OK) {
-        dlg.Save();
-        md->IncrementChangeCount();
-        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditSubmodels");
+        if (dlg.IsDirty()) {
+            md->IncrementChangeCount();
+            md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditSubmodels");
+        }
         updatePropertyGrid();
     }
-    if (dlg.ReloadLayout) { //force grid to reload
+    if (dlg.ReloadLayout) {
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
         md->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
@@ -7869,20 +7868,16 @@ void LayoutPanel::EditFaces()
     if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel)
         return;
 
-    ModelFaceDialog dlg(this, &xlights->_outputManager);
-    auto oldFaceInfo = md->GetFaceInfo();
-    dlg.SetFaceInfo(md, oldFaceInfo);
+    ModelDefinitionsDialog dlg(this, &xlights->_outputManager, md, TAB_FACES);
     if (dlg.ShowModal() == wxID_OK) {
-        auto newFaceInfo = dlg.GetFaceInfo();
-        if (newFaceInfo != oldFaceInfo) {
-            md->SetFaceInfo(newFaceInfo);
+        if (dlg.IsDirty()) {
             for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
                 xlights->GetSequenceElements().RenameModelFaceReferences(md->GetName(), oldName, newName);
             }
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
-            updatePropertyGrid();
         }
+        updatePropertyGrid();
     }
 }
 
@@ -7892,12 +7887,12 @@ void LayoutPanel::EditStates()
     if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel)
         return;
 
-    ModelStateDialog dlg(this, &xlights->_outputManager);
-    dlg.SetStateInfo(md, md->GetStateInfo());
+    ModelDefinitionsDialog dlg(this, &xlights->_outputManager, md, TAB_STATES);
     if (dlg.ShowModal() == wxID_OK) {
-        md->SetStateInfo(dlg.GetStateInfo());
-        md->IncrementChangeCount();
-        md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditStates");
+        if (dlg.IsDirty()) {
+            md->IncrementChangeCount();
+            md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditStates");
+        }
         updatePropertyGrid();
     }
 }

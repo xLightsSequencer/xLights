@@ -315,9 +315,6 @@
     <ClCompile Include="..\src-core\models\ModelGroup.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\model\ModelFaceDialog.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\FaceMatrixHelpers.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -325,9 +322,6 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\ModelScreenLocation.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\model\ModelStateDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\SingleLineModel.cpp">
@@ -1838,9 +1832,6 @@
     <ClInclude Include="..\src-core\models\ModelGroup.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\model\ModelFaceDialog.h">
-      <Filter>Models</Filter>
-    </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\FaceMatrixHelpers.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -1848,9 +1839,6 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ModelScreenLocation.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\model\ModelStateDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\SingleLineModel.h">
