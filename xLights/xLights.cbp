@@ -465,10 +465,14 @@
 		<Unit filename="../src-ui-wx/sequencer/MetronomeLabelDialog.h" />
 		<Unit filename="../src-ui-wx/model/ModelChainDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ModelChainDialog.h" />
+		<Unit filename="../src-ui-wx/model/ModelDefinitionsDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelDefinitionsDialog.h" />
 		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.h" />
 		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.cpp" />
 		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.h" />
+		<Unit filename="../src-ui-wx/model/ModelFacesPanel.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelFacesPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ModelPreview.cpp" />
@@ -476,6 +480,8 @@
 		<Unit filename="../src-core/graphics/IModelPreview.h" />
 		<Unit filename="../src-ui-wx/import_export/ModelRemap.cpp" />
 		<Unit filename="../src-ui-wx/import_export/ModelRemap.h" />
+		<Unit filename="../src-ui-wx/model/ModelStatesPanel.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelStatesPanel.h" />
 		<Unit filename="../src-ui-wx/layout/Mouse3DManager.cpp" />
 		<Unit filename="../src-ui-wx/layout/Mouse3DManager.h" />
 		<Unit filename="../src-ui-wx/setup/MultiControllerUploadDialog.cpp" />
@@ -601,6 +607,8 @@
 		<Unit filename="../src-ui-wx/model/SubModelGenerateDialog.h" />
 		<Unit filename="../src-ui-wx/model/SubModelsDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/SubModelsDialog.h" />
+		<Unit filename="../src-ui-wx/model/SubModelsPanel.cpp" />
+		<Unit filename="../src-ui-wx/model/SubModelsPanel.h" />
 		<Unit filename="../src-ui-wx/import_export/SuperStarImportDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/SuperStarImportDialog.h" />
 		<Unit filename="../src-ui-wx/app-shell/TabConvert.cpp" />

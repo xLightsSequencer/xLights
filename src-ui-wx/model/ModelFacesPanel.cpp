@@ -544,6 +544,7 @@ void ModelFacesPanel::SetFaceInfo(Model* cls, std::map<std::string, std::map<std
     model = cls;
     if (_modelPreview) _modelPreview->SetModel(cls);
 
+    bool normalized = false;
     for (auto [name, info] : finfo) {
 
         NameChoice->Append(name);
@@ -558,6 +559,7 @@ void ModelFacesPanel::SetFaceInfo(Model* cls, std::map<std::string, std::map<std
             } else {
                 info["Type"] = "Matrix";
             }
+            normalized = true;
         }
 
         // Only call FileUtils::FixFile for Matrix faces - NodeRange and SingleNode faces
@@ -567,13 +569,18 @@ void ModelFacesPanel::SetFaceInfo(Model* cls, std::map<std::string, std::map<std
             {
                 if (it2->first.substr(0, 5) == "Mouth" || it2->first.substr(0, 4) == "Eyes")
                 {
-                    it2->second = FileUtils::FixFile("", it2->second);
+                    std::string fixed = FileUtils::FixFile("", it2->second);
+                    if (fixed != it2->second) {
+                        it2->second = fixed;
+                        normalized = true;
+                    }
                 }
             }
         }
 
         faceData[name] = info;
     }
+    if (normalized && _changeCallback) _changeCallback();
 
     if (NameChoice->GetCount() > 0) {
         FaceTypeChoice->Enable();

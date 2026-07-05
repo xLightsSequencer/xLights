@@ -404,6 +404,7 @@ void ModelStatesPanel::SetStateInfo(Model* cls, std::map<std::string, std::map<s
     model = cls;
     if (_modelPreview) _modelPreview->SetModel(cls);
 
+    bool normalized = false;
     for (auto [name, info] : finfo) {
         NameChoice->Append(name);
 
@@ -415,10 +416,12 @@ void ModelStatesPanel::SetStateInfo(Model* cls, std::map<std::string, std::map<s
             } else if (name == "NodeRange") {
                 info["Type"] = "NodeRange";
             }
+            normalized = true;
         }
 
         stateData[name] = info;
     }
+    if (normalized && _changeCallback) _changeCallback();
 
     if (NameChoice->GetCount() > 0) {
         DeleteButton->Enable();
@@ -499,6 +502,14 @@ void ModelStatesPanel::SetStateInfo(Model* cls, std::map<std::string, std::map<s
 
 std::map<std::string, std::map<std::string, std::string>> ModelStatesPanel::GetStateInfo() const
 {
+    if (NodeRangeGrid->IsCellEditControlShown()) {
+        NodeRangeGrid->SaveEditControlValue();
+        NodeRangeGrid->HideCellEditControl();
+    }
+    if (SingleNodeGrid->IsCellEditControlShown()) {
+        SingleNodeGrid->SaveEditControlValue();
+        SingleNodeGrid->HideCellEditControl();
+    }
     std::map<std::string, std::map<std::string, std::string>> finfo;
     for (const auto& it : stateData) {
         if (!it.second.empty()) {
