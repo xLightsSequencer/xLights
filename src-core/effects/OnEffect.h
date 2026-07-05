@@ -42,7 +42,7 @@ public:
     static int sStartDefault;
     static int sEndDefault;
     static bool sShimmerDefault;
-    static double sCyclesDefault;
+    static float sCyclesDefault;
     static int sTransparencyDefault;
     static int sTransparencyMin;
     static int sTransparencyMax;

@@ -151,6 +151,7 @@ public:
     // Intended for use from OnMetadataLoaded() to populate cached members —
     // NOT for use inside Render() or any hot path (they walk the JSON).
     int GetIntDefault(const std::string& id, int fallback) const;
+    float GetFloatDefault(const std::string& id, float fallback) const;
     double GetDoubleDefault(const std::string& id, double fallback) const;
     bool GetBoolDefault(const std::string& id, bool fallback) const;
     std::string GetStringDefault(const std::string& id, const std::string& fallback) const;

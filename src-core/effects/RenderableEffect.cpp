@@ -102,7 +102,18 @@ double RenderableEffect::GetDoubleDefault(const std::string& propId, double fall
     }
     return it->get<double>();
 }
-
+float RenderableEffect::GetFloatDefault(const std::string& propId, float fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("default");
+    if (it == prop->end() || !it->is_number()) {
+        return fallback;
+    }
+    return it->get<float>();
+}
 bool RenderableEffect::GetBoolDefault(const std::string& propId, bool fallback) const
 {
     const nlohmann::json* prop = GetPropertyMetadata(propId);

@@ -2104,8 +2104,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     inf->maskSize = 0;
 
     inf->renderingDisabled = !layerEnabled || settingsMap.Contains(X_Effect_RenderDisabled);
-    inf->fadeInSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0) * 1000) / frameTimeInMs;
-    inf->fadeOutSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0) * 1000) / frameTimeInMs;
+    inf->fadeInSteps = (int)(settingsMap.GetFloat(TEXTCTRL_Fadein, 0.0f) * 1000.0f) / frameTimeInMs;
+    inf->fadeOutSteps = (int)(settingsMap.GetFloat(TEXTCTRL_Fadeout, 0.0f) * 1000.0f) / frameTimeInMs;
 
     inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
