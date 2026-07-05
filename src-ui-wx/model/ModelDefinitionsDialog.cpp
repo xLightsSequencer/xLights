@@ -166,6 +166,11 @@ void ModelDefinitionsDialog::CommitAllChanges()
 
 void ModelDefinitionsDialog::OnNotebookPageChanged(wxBookCtrlEvent& event)
 {
+    if (event.GetEventObject() != _notebook) {
+        event.Skip();
+        return;
+    }
+
     int oldPage = event.GetOldSelection();
     int newPage = event.GetSelection();
 
@@ -204,7 +209,7 @@ void ModelDefinitionsDialog::OnOK(wxCommandEvent&)
 
 void ModelDefinitionsDialog::ConfirmClose()
 {
-    if (wxMessageBox("Are you sure you want to close without saving?",
+    if (wxMessageBox("Are you sure you want to close?",
                      "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
