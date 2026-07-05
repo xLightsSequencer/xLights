@@ -457,10 +457,50 @@ public:
     static std::set<std::string> failedShaders;
     static std::set<std::string> warnedShaders;
     static std::mutex shaderMapMutex;
+    static uint64_t purgedGeneration; // guarded by shaderMapMutex
+
+    // The GL share group died (Windows TDR / device reset) — every id cached
+    // below belongs to the dead group.  Drop them WITHOUT glDelete (deleting
+    // foreign ids in the new group is at best an error, at worst frees a
+    // recycled object), and forget the program handle rather than returning
+    // it to shaderMap.
+    void DropStaleGLState() {
+        s_shadersInit = false;
+        s_vertexBufferId = 0;
+        s_rbId = 0;
+        s_rbTex = 0;
+        s_audioTex = 0;
+        s_programId = 0;
+        s_rbWidth = 0;
+        s_rbHeight = 0;
+    }
+
+    // Once per generation: empty the global program-id pools (all stale) and
+    // let previously failed shaders retry — a compile that failed during the
+    // device-reset storm shouldn't be blacklisted for the rest of the session.
+    static void PurgeStaleShaderMap(uint64_t gen) {
+        std::unique_lock<std::mutex> lock(shaderMapMutex);
+        if (purgedGeneration == gen) return;
+        purgedGeneration = gen;
+        size_t dropped = 0;
+        for (auto& [code, info] : shaderMap) {
+            if (info != nullptr) {
+                dropped += info->programIds.size();
+                info->programIds.clear();
+            }
+        }
+        failedShaders.clear();
+        spdlog::warn("ShaderEffect: GL share group reset (generation {}) - dropped {} cached program ids; shaders will recompile", gen, dropped);
+    }
 
     ShaderRenderCache() { _shaderConfig = nullptr; }
     virtual ~ShaderRenderCache()
     {
+        if (glGeneration != GLContextManager::Instance().ShareGroupGeneration()) {
+            // Ids were created in a share group that no longer exists; they
+            // must be neither returned to shaderMap nor glDeleted.
+            DropStaleGLState();
+        }
         if (s_programId != 0 && _shaderConfig != nullptr) {
             std::unique_lock<std::mutex> lock(shaderMapMutex);
             shaderMap[s_code]->programIds.push_back(s_programId);
@@ -509,6 +549,13 @@ public:
     }
     void StoreProgramId() {
         if (s_programId && s_shaderInfo) {
+            if (glGeneration != GLContextManager::Instance().ShareGroupGeneration()) {
+                // Program was compiled in a share group that has since been
+                // reset — don't recycle the id into shaderMap (RefreshProgramId
+                // pops without validating) and don't glDelete a foreign id.
+                s_programId = 0;
+                return;
+            }
             std::unique_lock<std::mutex> lock(shaderMapMutex);
             if (s_shaderInfo->programIds.size() > COMPILED_PROGRAM_RETAIN_COUNT) {
                 glDeleteProgram(s_programId);
@@ -533,6 +580,7 @@ public:
     int s_rbWidth = 0;
     int s_rbHeight = 0;
     long _timeMS = 0;
+    uint64_t glGeneration = 0; // ShareGroupGeneration the ids above were created under
     GLContextManager::ContextHandle contextHandle = nullptr;
 
     void InitialiseShaderConfig(const std::string& filename, SequenceElements* sequenceElements) {
@@ -545,6 +593,7 @@ std::map<std::string, ShaderRenderCache::ShaderInfo*> ShaderRenderCache::shaderM
 std::set<std::string> ShaderRenderCache::failedShaders;
 std::set<std::string> ShaderRenderCache::warnedShaders;
 std::mutex ShaderRenderCache::shaderMapMutex;
+uint64_t ShaderRenderCache::purgedGeneration = 1; // matches GLContextManager's initial generation
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
 {
@@ -620,6 +669,17 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     long& _timeMS = cache->_timeMS;
 
     bool contextSet = SetGLContext(cache);
+    if (contextSet) {
+        // A device reset (Windows WDDM TDR, typically under heavy NVDEC video
+        // decode) rebuilds the share group; every GL id cached before it is
+        // dangling and may alias a recycled object.  Drop and recreate.
+        uint64_t gen = GLContextManager::Instance().ShareGroupGeneration();
+        if (cache->glGeneration != gen) {
+            ShaderRenderCache::PurgeStaleShaderMap(gen);
+            cache->DropStaleGLState();
+            cache->glGeneration = gen;
+        }
+    }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
@@ -749,6 +809,24 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
 
     LOG_GL_ERRORV(glBindVertexArray(vao));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
+    // If the bind didn't take (stale id after a device reset, failed
+    // creation), glVertexAttribPointer(offset 0) below would legally point
+    // attribute 0 at client address NULL and glDrawArrays would crash inside
+    // the driver reading it.  Skip the frame instead.
+    GLint boundVbo = 0;
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &boundVbo);
+    if (boundVbo == 0) {
+        spdlog::error("ShaderEffect::Render() - vertex buffer {} not bindable (device reset?), skipping frame", s_vertexBufferId);
+        s_shadersInit = false; // recreate GL objects next frame
+        LOG_GL_ERRORV(glBindVertexArray(0));
+        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+        LOG_GL_ERRORV(glDeleteFramebuffers(1, &fb));
+        LOG_GL_ERRORV(glDeleteVertexArrays(1, &vao));
+        setRenderBufferAll(buffer, xlYELLOW);
+        cache->StoreProgramId();
+        UnsetGLContext(cache);
+        return;
+    }
     LOG_GL_ERRORV(glUseProgram(programId));
     
     int colourIndex = 0;
