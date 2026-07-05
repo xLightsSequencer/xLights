@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <pugixml.hpp>
+#include <mutex>
 #include "ValueCurve.h"
 #include "xLightsVersion.h"
 #include "RenderContext.h"
@@ -2036,6 +2037,21 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 
     // Resolve which audio manager to use for this curve
     AudioManager* _am = _audioTrackName.empty() ? __audioManager : GetAltAudio(_audioTrackName);
+
+    // "Music Trigger Fade" is the one type that lazily populates _values inside
+    // GetValueAt (it needs the audio manager, unavailable at setup). That
+    // push_back - and the point interpolation that reads _values later in this
+    // same call - is a data race when GetValueAt runs concurrently on the same
+    // curve (e.g. the parallel gap-fill in PixelBufferClass::GetMixedColor, or
+    // any effect that evaluates a value curve inside its own parallel_for).
+    // Serialize this type; held for the whole call so populate + read are
+    // consistent. Other types either set res directly or read a _values list
+    // that was populated serially in RenderType(), so they need no lock.
+    std::unique_lock<std::mutex> mtfLock;
+    if (_type == "Music Trigger Fade") {
+        static std::mutex mtfMutex;
+        mtfLock = std::unique_lock<std::mutex>(mtfMutex);
+    }
 
     // If we are music trigger fade and we dont have values ... calculate them on the fly
     if (_type == "Music Trigger Fade") {
