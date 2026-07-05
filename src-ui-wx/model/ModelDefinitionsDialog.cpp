@@ -204,11 +204,9 @@ void ModelDefinitionsDialog::OnOK(wxCommandEvent&)
 
 void ModelDefinitionsDialog::ConfirmClose()
 {
-    if (_isDirty) {
-        if (wxMessageBox("Are you sure you want to close without saving?",
-                         "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
-            return;
-        }
+    if (wxMessageBox("Are you sure you want to close without saving?",
+                     "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        return;
     }
     EndModal(wxID_CANCEL);
 }

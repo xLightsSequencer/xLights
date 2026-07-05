@@ -46,6 +46,7 @@ public:
 
     void SetStateInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& info);
     [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetStateInfo() const;
+    [[nodiscard]] bool HasInvalidRows() const;
 
     void OnActivate();
     void OnDeactivate();
@@ -168,7 +169,6 @@ private:
     void GetValue(wxGrid* grid, const int row, const int col, std::map<std::string, std::string>& info);
     void AddLabel(wxString label);
     void ValidateWindow();
-    bool HasInvalidRows() const;
     void PopulateStateFilter();
     void UpdateStateFilter();
     void BuildStateAnimSteps();
