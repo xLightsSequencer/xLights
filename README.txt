@@ -15,6 +15,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
                                  "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
+    -bug (dkulp)                 Twinkle effect: fix a threading race when twinkling by node on groups where several
+                                 nodes share a buffer pixel - output could differ from render to render
+    -bug (dkulp)                 Kaleidoscope effect (Square/Triangle): fix a threading race in the fill that made the
+                                 rendered output differ from render to render
     -bug (dkulp)                 Galaxy effect: no longer takes a very long time to render on very wide/short buffers
                                  (e.g. a "Single Line" render style) - the spiral now skips off-buffer work and hoists
                                  per-angle trig out of the inner loop

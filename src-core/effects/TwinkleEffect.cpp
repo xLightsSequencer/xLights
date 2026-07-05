@@ -380,7 +380,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         }
     }
 
-    parallel_for(0, cache->curNumStrobe, [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm, cache](int x) {
+    std::function<void(int)> renderStrobe = [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm, cache](int x) {
         strobe[x].duration++;
         if (new_algorithm) {
             if (!strobe[x].strobing) {
@@ -436,5 +436,16 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                 buffer.SetPixel(strobe[x].x, strobe[x].y, hsv); // Turn pixel on
             }
         }
-    }, 500);
+    };
+    if (isByNode) {
+        // SetNodePixel writes every coord of the node, and in a group buffer
+        // several nodes can share a pixel — concurrent strobes racing for a
+        // shared pixel made the output non-deterministic.  Render serially so
+        // the last strobe in index order wins, like the per-pixel path.
+        for (int x = 0; x < cache->curNumStrobe; x++) {
+            renderStrobe(x);
+        }
+    } else {
+        parallel_for(0, cache->curNumStrobe, std::move(renderStrobe), 500);
+    }
 }
