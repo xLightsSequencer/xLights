@@ -14,6 +14,7 @@
 #include <functional>
 #include <pugixml.hpp>
 #include <wx/panel.h>
+#include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
