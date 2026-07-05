@@ -15,6 +15,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
                                  "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
+    -bug (dkulp)                 Canvas layers (macOS GPU): fix non-deterministic output when several nodes of a group
+                                 share a buffer pixel
+    -bug (dkulp)                 Rotate/Zoom (macOS GPU): fix non-deterministic output when a rotation or zoom maps
+                                 several source pixels onto the same destination pixel
     -bug (dkulp)                 Twinkle effect: fix a threading race when twinkling by node on groups where several
                                  nodes share a buffer pixel - output could differ from render to render
     -bug (dkulp)                 Kaleidoscope effect (Square/Triangle): fix a threading race in the fill that made the

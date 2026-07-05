@@ -315,7 +315,8 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             uint8_t tmp[4] = {0, 0, 0, 0};
             [computeEncoder setBytes:tmp length:sizeof(tmp) atIndex:3];
             [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
-            
+            [computeEncoder setBuffer:layerCD->getOwnerBuffer() offset:0 atIndex:5];
+
             NSInteger maxThreads = MetalComputeUtilities::INSTANCE.putColorsFunction.maxTotalThreadsPerThreadgroup;
             NSInteger threads = std::min((NSInteger)data.nodeCount, maxThreads);
             MTLSize gridSize = MTLSizeMake(data.nodeCount, 1, 1);
@@ -526,6 +527,11 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     indexBuffer = nil;
     indexes = nullptr;
     indexesSize = 0;
+    ownerBuffer = nil;
+    ownerSize = 0;
+    ownerStale = true;
+    rotoOwnerBuffer = nil;
+    rotoOwnerSize = 0;
     cachedBlurKernel = nil;
     cachedBlurRadius = 0;
 }
@@ -550,9 +556,14 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::s
             // 64 is the "default" in macOS, we'll try it
             max = 64;
         }
-        
+
         if (commandBufferCount.fetch_add(1) > max) {
             --commandBufferCount;
+            static std::atomic<long> s_cbNil{0};
+            long n = ++s_cbNil;
+            if ((n & (n - 1)) == 0) { // powers of two, avoid log spam
+                fprintf(stderr, "XLDBG: getCommandBuffer over-limit fallback count=%ld\n", n);
+            }
             return nil;
         }
         std::unique_lock<std::mutex> lock(commandBufferMutex);
@@ -595,6 +606,41 @@ id<MTLBuffer> MetalRenderBufferComputeData::getIndexBuffer() {
     return indexBuffer;
 }
 
+// pixel -> owning node table for PutColorsForNodes.  Multiple nodes can map
+// to the same buffer pixel (group buffers especially); an ungated GPU scatter
+// lets whichever thread lands last win, which made canvas-preload output
+// non-deterministic run to run.  The owner is the last node in Nodes order
+// covering the pixel, matching the serial CPU loop's last-node-wins result.
+id<MTLBuffer> MetalRenderBufferComputeData::getOwnerBuffer() {
+    int pixelCount = renderBuffer->GetPixelCount();
+    if (ownerBuffer == nil || ownerSize < pixelCount) {
+        ownerBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:(pixelCount * sizeof(int32_t)) options:MTLResourceStorageModeShared];
+        std::string name = renderBuffer->GetModelName() + "OwnerBuffer";
+        setLabel(ownerBuffer, name);
+        ownerSize = pixelCount;
+        ownerStale = true;
+    }
+    if (ownerStale) {
+        int32_t *owner = static_cast<int32_t*>(ownerBuffer.contents);
+        std::fill(owner, owner + pixelCount, -1);
+        int32_t idx = 0;
+        for (auto &n : renderBuffer->Nodes) {
+            for (auto &c : n->Coords) {
+                if (c.bufY >= 0 && c.bufY < renderBuffer->BufferHt &&
+                    c.bufX >= 0 && c.bufX < renderBuffer->BufferWi) {
+                    int32_t pidx = c.bufY * renderBuffer->BufferWi + c.bufX;
+                    if (pidx < pixelCount) {
+                        owner[pidx] = idx;
+                    }
+                }
+            }
+            ++idx;
+        }
+        ownerStale = false;
+    }
+    return ownerBuffer;
+}
+
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
         int bufferSize = std::max((int)renderBuffer->GetPixelCount(), (int)pixelBufferSize) * 4;
@@ -613,6 +659,7 @@ void MetalRenderBufferComputeData::bufferResized() {
         //buffer needs to get bigger
         getPixelBuffer(false);
     }
+    ownerStale = true;
     int indexCount = renderBuffer->Nodes.size();
     for (auto &n : renderBuffer->Nodes) {
         if (n->Coords.size() > 1) {
@@ -912,17 +959,20 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
         switch (c) {
             case 'X':
                 if (data.xrotation != 0 && data.xrotation != 360) {
-                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.xrotateFunction, data);
+                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.xrotateFunction,
+                                         MetalComputeUtilities::INSTANCE.xrotateClaimFunction, data);
                 }
                 break;
             case 'Y':
                 if (data.yrotation != 0 && data.yrotation != 360) {
-                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.yrotateFunction, data);
+                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.yrotateFunction,
+                                         MetalComputeUtilities::INSTANCE.yrotateClaimFunction, data);
                 }
                 break;
             case 'Z':
                 if (data.zrotation != 0.0 || data.zoom != 1.0) {
-                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.zrotateFunction, data);
+                    callRotoZoomFunction(MetalComputeUtilities::INSTANCE.zrotateFunction,
+                                         MetalComputeUtilities::INSTANCE.zrotateClaimFunction, data);
                 }
                 break;
         }
@@ -933,13 +983,19 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
     return true;
 }
 
-bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> function, RotoZoomData &data) {
+bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> function, id<MTLComputePipelineState> claimFunction, RotoZoomData &data) {
     id<MTLCommandBuffer> commandBuffer = getCommandBuffer("-RotoZoom");
     if (commandBuffer == nil) {
         return false;
     }
     id<MTLBuffer> bufferResult = getPixelBuffer();
     id<MTLBuffer> bufferCopy = getPixelBufferCopy();
+    int pixelCount = data.width * data.height;
+    if (rotoOwnerBuffer == nil || rotoOwnerSize < pixelCount) {
+        rotoOwnerBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:(pixelCount * sizeof(int32_t)) options:MTLResourceStorageModePrivate];
+        setLabel(rotoOwnerBuffer, renderBuffer->GetModelName() + "RotoOwnerBuffer");
+        rotoOwnerSize = pixelCount;
+    }
     @autoreleasepool {
         id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
         [blitCommandEncoder setLabel:@"CopyDataToCopyBuffer"];
@@ -948,12 +1004,18 @@ bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineSta
                                   toBuffer:bufferCopy
                          destinationOffset:0
                                       size:(data.width*data.height*4)];
+        // several sources can map to one destination; fill the claim buffer
+        // with -1 (0xFF bytes) so the claim pass can atomic_max the winning
+        // source index into it
+        [blitCommandEncoder fillBuffer:rotoOwnerBuffer
+                                 range:NSMakeRange(0, pixelCount * sizeof(int32_t))
+                                 value:0xFF];
         [blitCommandEncoder endEncoding];
-        
+
         id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
         [computeEncoder setLabel:MetalComputeUtilities::INSTANCE.rotateBlankFunction.label];
         [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.rotateBlankFunction];
-        
+
         NSInteger dataSize = sizeof(data);
         [computeEncoder setBytes:&data length:dataSize atIndex:0];
         [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
@@ -964,22 +1026,39 @@ bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineSta
         [computeEncoder dispatchThreads:threadsPerGrid
                   threadsPerThreadgroup:threadsPerThreadgroup];
         [computeEncoder endEncoding];
-        
+
+        // claim pass: record the highest source index per destination so the
+        // write pass has a deterministic winner for colliding pixels
+        computeEncoder = [commandBuffer computeCommandEncoder];
+        [computeEncoder setLabel:claimFunction.label];
+        [computeEncoder setComputePipelineState:claimFunction];
+        dataSize = sizeof(data);
+        [computeEncoder setBytes:&data length:dataSize atIndex:0];
+        [computeEncoder setBuffer:rotoOwnerBuffer offset:0 atIndex:1];
+        w = claimFunction.threadExecutionWidth;
+        h = claimFunction.maxTotalThreadsPerThreadgroup / w;
+        threadsPerThreadgroup = MTLSizeMake(w, h, 1);
+        threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
+        [computeEncoder dispatchThreads:threadsPerGrid
+                  threadsPerThreadgroup:threadsPerThreadgroup];
+        [computeEncoder endEncoding];
+
         computeEncoder = [commandBuffer computeCommandEncoder];
         [computeEncoder setLabel:function.label];
         [computeEncoder setComputePipelineState:function];
-        
+
         dataSize = sizeof(data);
         [computeEncoder setBytes:&data length:dataSize atIndex:0];
         [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
         [computeEncoder setBuffer:bufferCopy offset:0 atIndex:2];
+        [computeEncoder setBuffer:rotoOwnerBuffer offset:0 atIndex:3];
         w = function.threadExecutionWidth;
         h = function.maxTotalThreadsPerThreadgroup / w;
         threadsPerThreadgroup = MTLSizeMake(w, h, 1);
         threadsPerGrid = MTLSizeMake(data.width, data.height, 1);
         [computeEncoder dispatchThreads:threadsPerGrid
                   threadsPerThreadgroup:threadsPerThreadgroup];
-    
+
         [computeEncoder endEncoding];
     }
     return true;
@@ -1088,6 +1167,9 @@ MetalComputeUtilities::MetalComputeUtilities() {
     xrotateFunction = FindComputeFunction("RotoZoomRotateX");
     yrotateFunction = FindComputeFunction("RotoZoomRotateY");
     zrotateFunction = FindComputeFunction("RotoZoomRotateZ");
+    xrotateClaimFunction = FindComputeFunction("RotoZoomRotateXClaim");
+    yrotateClaimFunction = FindComputeFunction("RotoZoomRotateYClaim");
+    zrotateClaimFunction = FindComputeFunction("RotoZoomRotateZClaim");
     rotateBlankFunction = FindComputeFunction("RotoZoomBlank");
     
     getColorsFunction = FindComputeFunction("GetColorsForNodes");
@@ -1178,6 +1260,9 @@ MetalComputeUtilities::~MetalComputeUtilities() {
         xrotateFunction = nil;
         yrotateFunction = nil;
         zrotateFunction = nil;
+        xrotateClaimFunction = nil;
+        yrotateClaimFunction = nil;
+        zrotateClaimFunction = nil;
         rotateBlankFunction = nil;
 
         getColorsFunction = nil;
