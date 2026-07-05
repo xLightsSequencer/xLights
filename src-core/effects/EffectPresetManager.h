@@ -148,6 +148,7 @@ public:
     const EffectPresetGroup& GetRoot() const { return _root; }
 
     // Queries
+    bool IsEmpty() const;
     std::vector<std::string> GetAllPresetPaths(const std::string& separator = "\\") const;
     EffectPresetItem* FindItemByPath(const std::string& path, char separator = '\\') const;
     EffectPreset* FindPresetByPath(const std::string& path, char separator = '\\') const;
@@ -174,6 +175,7 @@ private:
     void CollectPresetPaths(const EffectPresetGroup& group, const std::string& prefix,
                             const std::string& separator,
                             std::vector<std::string>& result) const;
+    bool HasPresets(const EffectPresetGroup& group) const;
     bool FixGroupNames(EffectPresetGroup& group);
 
     EffectPresetGroup _root;

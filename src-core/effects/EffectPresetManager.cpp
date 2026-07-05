@@ -476,6 +476,25 @@ void EffectPresetManager::CollectPresetPaths(const EffectPresetGroup& group,
     }
 }
 
+bool EffectPresetManager::IsEmpty() const
+{
+    return !HasPresets(_root);
+}
+
+bool EffectPresetManager::HasPresets(const EffectPresetGroup& group) const
+{
+    for (const auto& child : group.GetChildren()) {
+        if (child->IsGroup()) {
+            if (HasPresets(static_cast<const EffectPresetGroup&>(*child))) {
+                return true;
+            }
+        } else {
+            return true;
+        }
+    }
+    return false;
+}
+
 EffectPresetItem* EffectPresetManager::FindItemByPath(const std::string& path,
                                                        char separator) const
 {

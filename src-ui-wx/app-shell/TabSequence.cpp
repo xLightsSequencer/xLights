@@ -322,19 +322,26 @@ void xLightsFrame::LoadEffectsFile()
                 wxDateTime jsonTime = presetsFile.GetModificationTime();
                 wxDateTime bkpTime = presetsBkp.GetModificationTime();
                 if (bkpTime > jsonTime) {
-                    wxString msg = wxString::Format(
-                        "An autosaved effect presets file was found that is newer than your current file.\n\n"
-                        "Current file:  %s\n"
-                        "Autosave file: %s\n\n"
-                        "Would you like to use the autosave file instead?",
-                        jsonTime.Format("%Y-%m-%d %H:%M:%S"), bkpTime.Format("%Y-%m-%d %H:%M:%S"));
-                    if (wxMessageBox(msg, "Newer Autosave Presets File Found", wxYES_NO | wxICON_QUESTION) == wxYES) {
-                        wxRemoveFile(presetsFile.GetFullPath());
-                        wxRenameFile(presetsBkp.GetFullPath(), presetsFile.GetFullPath());
-                    } else {
-                        wxDateTime older = jsonTime;
-                        older -= wxTimeSpan(0, 0, 3, 0);
-                        presetsBkp.SetTimes(&older, &older, &older);
+                    bool bkpHasPresets = false;
+                    EffectPresetManager bkpManager;
+                    if (bkpManager.LoadJsonFile(presetsBkp.GetFullPath().ToStdString())) {
+                        bkpHasPresets = !bkpManager.IsEmpty();
+                    }
+                    if (bkpHasPresets) {
+                        wxString msg = wxString::Format(
+                            "An autosaved effect presets file was found that is newer than your current file.\n\n"
+                            "Current file:  %s\n"
+                            "Autosave file: %s\n\n"
+                            "Would you like to use the autosave file instead?",
+                            jsonTime.Format("%Y-%m-%d %H:%M:%S"), bkpTime.Format("%Y-%m-%d %H:%M:%S"));
+                        if (wxMessageBox(msg, "Newer Autosave Presets File Found", wxYES_NO | wxICON_QUESTION) == wxYES) {
+                            wxRemoveFile(presetsFile.GetFullPath());
+                            wxRenameFile(presetsBkp.GetFullPath(), presetsFile.GetFullPath());
+                        } else {
+                            wxDateTime older = jsonTime;
+                            older -= wxTimeSpan(0, 0, 3, 0);
+                            presetsBkp.SetTimes(&older, &older, &older);
+                        }
                     }
                 }
             } else {
