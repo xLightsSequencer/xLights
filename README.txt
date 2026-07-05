@@ -30,6 +30,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Fireworks with a random palette - rendered differently every time)
     -bug (dkulp)                 Blur (macOS GPU): replace the MPS tent blur with a deterministic compute kernel -
                                  the MPS filter's output varied from render to render
+    -bug (dkulp)                 Video effects (macOS): frames were occasionally dropped (rendered black) for a
+                                 stretch after a video effect started mid-file, at positions that varied every
+                                 render; the frame chosen for a timestamp could also differ between the decoder
+                                 and its caches. Video playback is now frame-exact and renders reproducibly
     -bug (dkulp)                 Canvas layers (macOS GPU): fix non-deterministic output when several nodes of a group
                                  share a buffer pixel
     -bug (dkulp)                 Rotate/Zoom (macOS GPU): fix non-deterministic output when a rotation or zoom maps
