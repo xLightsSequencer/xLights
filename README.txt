@@ -25,6 +25,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  for a frame
     -bug (dkulp)                 Groups that contain a nested group plus that group's members (same channels twice) now
                                  render deterministically - parallel output writes raced for the shared channels
+    -bug (dkulp)                 "Random" value curves and "Random" color curves now produce the same values every
+                                 render (previously they re-randomized each render, so effects using them - e.g.
+                                 Fireworks with a random palette - rendered differently every time)
     -bug (dkulp)                 Canvas layers (macOS GPU): fix non-deterministic output when several nodes of a group
                                  share a buffer pixel
     -bug (dkulp)                 Rotate/Zoom (macOS GPU): fix non-deterministic output when a rotation or zoom maps
