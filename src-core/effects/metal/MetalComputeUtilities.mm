@@ -117,11 +117,24 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                 [computeEncoder setBytes:&data length:dataSize atIndex:0];
                 [computeEncoder setBuffer:tmpBufferLayer offset:0 atIndex:1];
                 [computeEncoder setBuffer:lcdPixelBuffer offset:0 atIndex:2];
-                if (layerCD->maskBuffer == nil) {
+                if (data.useMask) {
+                    // the transition mask may have been built by the CPU
+                    // fallback (small/sub-buffer transitions) rather than
+                    // the Metal transition path — maskBuffer is nil or
+                    // stale then, and binding the 4-byte dummy while
+                    // useMask is set makes the kernel read out of bounds
+                    // (garbage, and non-deterministic).  Upload it.
+                    id<MTLBuffer> mb = layerCD->maskBuffer;
+                    if (mb == nil || layer->mask != static_cast<uint8_t*>(mb.contents)) {
+                        mb = [MetalComputeUtilities::INSTANCE.device newBufferWithBytes:layer->mask
+                                                                                 length:layer->maskSize
+                                                                                options:MTLResourceStorageModeShared];
+                        setLabel(mb, pixelBuffer->GetModelName() + "-CPUMaskUpload");
+                    }
+                    [computeEncoder setBuffer:mb offset:0 atIndex:3];
+                } else {
                     uint8_t tmp[4] = {0, 0, 0, 0};
                     [computeEncoder setBytes:tmp length:sizeof(tmp) atIndex:3];
-                } else {
-                    [computeEncoder setBuffer:layerCD->maskBuffer offset:0 atIndex:3];
                 }
                 [computeEncoder setBuffer:layerCD->getIndexBuffer() offset:0 atIndex:4];
                 NSInteger maxThreads = MetalComputeUtilities::INSTANCE.getColorsFunction.maxTotalThreadsPerThreadgroup;
@@ -147,10 +160,12 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                               threadsPerThreadgroup:threadsPerThreadgroup];
                     [computeEncoder endEncoding];
                 }
-                if (layer->use_music_sparkle_count ||
-                    layer->sparkle_count > 0 ||
-                    layer->outputSparkleCount > 0) {
-                    
+                static const bool noGpuSparkles = (getenv("XL_NO_GPU_SPARKLES") != nullptr);
+                if (!noGpuSparkles &&
+                    (layer->use_music_sparkle_count ||
+                     layer->sparkle_count > 0 ||
+                     layer->outputSparkleCount > 0)) {
+
                     data.sparkleColor = layer->sparklesColour.asChar4();
                     
                     id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
@@ -337,7 +352,27 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         }
     }
     slRMRB->waitForCompletion();
-    
+
+    // XL_BLENDSUM=1: dump per-layer node-color and final blend checksums to
+    // stderr so two runs can be diffed to the first divergent blend stage.
+    static const bool blendSum = (getenv("XL_BLENDSUM") != nullptr);
+    if (blendSum) {
+        auto fnv = [](const uint8_t* d, size_t n) {
+            uint64_t h = 1469598103934665603ULL;
+            for (size_t i = 0; i < n; i++) { h ^= d[i]; h *= 1099511628211ULL; }
+            return h;
+        };
+        for (int l = validLayers.size() - 1; l >= 0; --l) {
+            if (!validLayers[l]) continue;
+            MetalRenderBufferComputeData *layerCD = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[l]->buffer);
+            id<MTLBuffer> bb = layerCD->getBlendBuffer();
+            fprintf(stderr, "BSUM f=%d m=%s l=%d h=%016llx\n", effectPeriod, pixelBuffer->GetModelName().c_str(), l,
+                    (unsigned long long)fnv((const uint8_t*)bb.contents, pixelBuffer->layers[l]->buffer.GetNodeCount() * 4));
+        }
+        fprintf(stderr, "BSUM f=%d m=%s l=FINAL h=%016llx\n", effectPeriod, pixelBuffer->GetModelName().c_str(),
+                (unsigned long long)fnv((const uint8_t*)tmpBufferBlend.contents, pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * 4));
+    }
+
     xlColor *colors = (xlColor*)(tmpBufferBlend.contents);
     int nc = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount();
     for (int x = 0;  x < nc; x++) {
