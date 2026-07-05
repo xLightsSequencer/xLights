@@ -154,24 +154,41 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
                       [this](wxWindow* p) { return (wxWindow*)(new ServicesPanel(p, _serviceManager.get())); } });
 #endif
 
-    xlPreferencesListDialog dlg(this, pages);
-    dlg.ShowModal();
-
-    if (mRenderOnSave) {
-        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Render All and Save"));
-        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Render All and Save As"));
-        MainToolBar->Realize();
-    } else {
-        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Save"));
-        MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Save As"));
-        MainToolBar->Realize();
+    // Modeless so Preferences can stay open while you keep working in xLights.
+    // Reuse an already-open instance rather than stacking a second dialog.
+    for (wxWindow* w : wxTopLevelWindows) {
+        if (w->GetName() == "xlPreferencesDialog") {
+            w->Show();
+            w->Raise();
+            w->SetFocus();
+            return;
+        }
     }
-
-    ResizeMainSequencer(); // just in case row height has changed
-
-    if (ld != _lowDefinitionRender) {
-            // just in case the user changes the low resolution renderer
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Preferences Change");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Preferences Change");
-    }
+    auto* dlg = new xlPreferencesListDialog(this, pages);
+    dlg->SetName("xlPreferencesDialog");
+    // OK applies (panels save via validators in TransferDataFromWindow) and runs
+    // the post-change work that used to sit after ShowModal(); Cancel/close just
+    // dismiss. Everything captured by value/`this` so it's valid when fired.
+    dlg->Bind(wxEVT_BUTTON, [this, dlg, ld](wxCommandEvent&) {
+        if (!dlg->Validate() || !dlg->TransferDataFromWindow()) return;
+        if (mRenderOnSave) {
+            MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Render All and Save"));
+            MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Render All and Save As"));
+            MainToolBar->Realize();
+        } else {
+            MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Save"));
+            MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Save As"));
+            MainToolBar->Realize();
+        }
+        ResizeMainSequencer(); // just in case row height has changed
+        if (ld != _lowDefinitionRender) {
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Preferences Change");
+            _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Preferences Change");
+        }
+        dlg->Destroy();
+    }, wxID_OK);
+    dlg->Bind(wxEVT_BUTTON, [dlg](wxCommandEvent&) { dlg->Destroy(); }, wxID_CANCEL);
+    dlg->Bind(wxEVT_CLOSE_WINDOW, [dlg](wxCloseEvent&) { dlg->Destroy(); });
+    dlg->Show();
+    dlg->Raise();
 }
