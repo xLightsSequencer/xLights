@@ -99,6 +99,9 @@
 #include "shaders/compiled/PinwheelEffect.spv.h"
 #include "shaders/compiled/KaleidoscopeEffect.spv.h"
 #include "shaders/compiled/WarpEffect.spv.h"
+#include "shaders/compiled/TreeEffect.spv.h"
+#include "shaders/compiled/ShimmerEffect.spv.h"
+#include "shaders/compiled/CandleEffect.spv.h"
 
 #include "../../render/DissolveTransitionPattern.h"
 
@@ -410,7 +413,9 @@ void VulkanComputeUtilities::doInit() {
                                        &u.spiralsEffectFunction, &u.galaxyEffectFunction,
                                        &u.circlesEffectFunction, &u.plasmaEffectFunction,
                                        &u.butterflyEffectFunction, &u.pinwheelEffectFunction,
-                                       &u.kaleidoscopeEffectFunction, &u.warpEffectFunction }) {
+                                       &u.kaleidoscopeEffectFunction, &u.warpEffectFunction,
+                                       &u.treeEffectFunction, &u.shimmerEffectFunction,
+                                       &u.candleEffectFunction }) {
                     if (*p != VK_NULL_HANDLE) {
                         vkDestroyPipeline(u.device, *p, nullptr);
                         *p = VK_NULL_HANDLE;
@@ -636,6 +641,9 @@ bool VulkanComputeUtilities::buildPipelines() {
     XLVK_PIPELINE(pinwheelEffectFunction, PinwheelEffect)
     XLVK_PIPELINE(kaleidoscopeEffectFunction, KaleidoscopeEffect)
     XLVK_PIPELINE(warpEffectFunction, WarpEffect)
+    XLVK_PIPELINE(treeEffectFunction, TreeEffect)
+    XLVK_PIPELINE(shimmerEffectFunction, ShimmerEffect)
+    XLVK_PIPELINE(candleEffectFunction, CandleEffect)
 
 #define XLVK_BLEND(mix, header, ...) \
     { \

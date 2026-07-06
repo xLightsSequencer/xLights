@@ -459,4 +459,78 @@ struct VulkanWarpData {
 };
 static_assert(sizeof(VulkanWarpData) == 36, "VulkanWarpData size drifted from the GLSL std430 block");
 
+#define MAX_VULKAN_TREE_PPB 512
+
+// Mirrors MetalTreeData.  Full-write kernel — every pixel is set.
+struct VulkanTreeData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  ppb;         // pixels_per_branch
+    int32_t  frame;       // light sweep limit (x <= frame)
+    int32_t  branch_row;  // b — branch row currently being lit
+    int32_t  f_mod;       // sweep position within the row
+    int32_t  showlights;
+    xlvk::uchar4 bgColors[MAX_VULKAN_TREE_PPB]; // indexed by mod-1, mod in 1..ppb
+    xlvk::uchar4 lightColors[5];                // indexed by branch % 5
+};
+static_assert(offsetof(VulkanTreeData, bgColors) == 28, "VulkanTreeData bgColors offset drifted from std430");
+static_assert(offsetof(VulkanTreeData, lightColors) == 2076, "VulkanTreeData lightColors offset drifted from std430");
+static_assert(sizeof(VulkanTreeData) == 2096, "VulkanTreeData size drifted from the GLSL std430 block");
+
+#define VULKAN_SHIMMER_MAX_LUT 1024
+#define SHIMMER_LUT_FLAT   0
+#define SHIMMER_LUT_X      1
+#define SHIMMER_LUT_Y      2
+#define SHIMMER_LUT_RANDOM 3
+
+// Mirrors MetalShimmerData.  The Metal LUT (setBytes at index 2) rides inside
+// the params SSBO here as a fixed array (larger spatial LUTs fall back to CPU).
+// frameSeed is a 64-bit RNG seed split into two 32-bit halves (no native uint64
+// in std430); the kernel emulates splitmix64 with umulExtended().
+struct VulkanShimmerData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  lutMode;
+    int32_t  colorCount;
+    uint32_t frameSeedLo;
+    uint32_t frameSeedHi;
+    xlvk::uchar4 lut[VULKAN_SHIMMER_MAX_LUT];
+};
+static_assert(offsetof(VulkanShimmerData, lut) == 24, "VulkanShimmerData lut offset drifted from std430");
+static_assert(sizeof(VulkanShimmerData) == 4120, "VulkanShimmerData size drifted from the GLSL std430 block");
+
+// Mirrors MetalCandleData.  Stateful perNode flame sim: the wrapper uploads the
+// CPU state cache, dispatches (read/write state + write result), commits, waits,
+// and reads the state back — synchronously inside Render.
+struct VulkanCandleData {
+    uint32_t width;
+    uint32_t height;
+    uint32_t maxWid;      // stride of the state array rows
+    uint32_t numStates;
+    uint32_t frameSeedLo;
+    uint32_t frameSeedHi;
+    int32_t  windVariability;
+    int32_t  flameAgility;
+    int32_t  windCalmness;
+    int32_t  windBaseline;
+    int32_t  usePalette;
+    xlvk::uchar4 c1;
+    xlvk::uchar4 c2;
+};
+static_assert(offsetof(VulkanCandleData, c1) == 44, "VulkanCandleData c1 offset drifted from std430");
+static_assert(offsetof(VulkanCandleData, c2) == 48, "VulkanCandleData c2 offset drifted from std430");
+static_assert(sizeof(VulkanCandleData) == 52, "VulkanCandleData size drifted from the GLSL std430 block");
+
+// GPU round-trip layout for CandleEffect.h's CandleState (5 packed uint8_t).
+// Each field is widened to a full uint32 (no 8-bit GLSL storage; avoids
+// cross-thread partial-word writes).  VulkanCandleEffect.cpp packs/unpacks.
+struct VulkanCandleState {
+    uint32_t flameprimer;
+    uint32_t flamer;
+    uint32_t wind;
+    uint32_t flameprimeg;
+    uint32_t flameg;
+};
+static_assert(sizeof(VulkanCandleState) == 20, "VulkanCandleState size drifted from the flat state-buffer layout in CandleEffect.comp");
+
 #endif

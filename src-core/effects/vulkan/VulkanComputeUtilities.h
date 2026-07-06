@@ -238,6 +238,9 @@ public:
     VkPipeline pinwheelEffectFunction = VK_NULL_HANDLE;
     VkPipeline kaleidoscopeEffectFunction = VK_NULL_HANDLE;
     VkPipeline warpEffectFunction = VK_NULL_HANDLE;
+    VkPipeline treeEffectFunction = VK_NULL_HANDLE;
+    VkPipeline shimmerEffectFunction = VK_NULL_HANDLE;
+    VkPipeline candleEffectFunction = VK_NULL_HANDLE;
 
     VkPipeline getColorsFunction = VK_NULL_HANDLE;
     VkPipeline putColorsFunction = VK_NULL_HANDLE;

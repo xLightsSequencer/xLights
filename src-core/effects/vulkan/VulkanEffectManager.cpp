@@ -155,6 +155,9 @@ static bool vulkanEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_PINWHEEL, "Pinwheel" },
         { EffectManager::eff_KALEIDOSCOPE, "Kaleidoscope" },
         { EffectManager::eff_WARP, "Warp" },
+        { EffectManager::eff_TREE, "Tree" },
+        { EffectManager::eff_SHIMMER, "Shimmer" },
+        { EffectManager::eff_CANDLE, "Candle" },
     };
     auto it = names.find(eff);
     return it != names.end() && list.find(it->second) != std::string::npos;
@@ -187,6 +190,12 @@ RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new VulkanKaleidoscopeEffect(eff);
         case EffectManager::eff_WARP:
             return new VulkanWarpEffect(eff);
+        case EffectManager::eff_TREE:
+            return new VulkanTreeEffect(eff);
+        case EffectManager::eff_SHIMMER:
+            return new VulkanShimmerEffect(eff);
+        case EffectManager::eff_CANDLE:
+            return new VulkanCandleEffect(eff);
         default:
             return nullptr;
         }

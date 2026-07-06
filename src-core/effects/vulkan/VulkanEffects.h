@@ -27,6 +27,9 @@
 #include "../PinwheelEffect.h"
 #include "../KaleidoscopeEffect.h"
 #include "../WarpEffect.h"
+#include "../TreeEffect.h"
+#include "../ShimmerEffect.h"
+#include "../CandleEffect.h"
 
 class VulkanBarsEffect : public BarsEffect {
 public:
@@ -122,6 +125,30 @@ class VulkanWarpEffect : public WarpEffect {
 public:
     VulkanWarpEffect(int i);
     virtual ~VulkanWarpEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanTreeEffect : public TreeEffect {
+public:
+    VulkanTreeEffect(int i);
+    virtual ~VulkanTreeEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanShimmerEffect : public ShimmerEffect {
+public:
+    VulkanShimmerEffect(int i);
+    virtual ~VulkanShimmerEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanCandleEffect : public CandleEffect {
+public:
+    VulkanCandleEffect(int i);
+    virtual ~VulkanCandleEffect();
 
     virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
 };
