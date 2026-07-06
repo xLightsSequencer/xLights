@@ -21,6 +21,17 @@
 
 #include "../../render/PixelBuffer.h"
 #include "../../render/RenderBuffer.h"
+#include "VulkanEffectDataTypes.h"
+
+#include "shaders/compiled/TentBlurH.spv.h"
+#include "shaders/compiled/TentBlurV.spv.h"
+#include "shaders/compiled/RotoZoomBlank.spv.h"
+#include "shaders/compiled/RotoZoomRotateX.spv.h"
+#include "shaders/compiled/RotoZoomRotateXClaim.spv.h"
+#include "shaders/compiled/RotoZoomRotateY.spv.h"
+#include "shaders/compiled/RotoZoomRotateYClaim.spv.h"
+#include "shaders/compiled/RotoZoomRotateZ.spv.h"
+#include "shaders/compiled/RotoZoomRotateZClaim.spv.h"
 
 VulkanComputeUtilities VulkanComputeUtilities::INSTANCE;
 
@@ -268,6 +279,11 @@ void VulkanComputeUtilities::doInit() {
         return;
     }
     enabled = true;
+    if (!buildPipelines()) {
+        spdlog::info("Vulkan compute disabled: pipeline creation failed");
+        enabled = false;
+        return;
+    }
     spdlog::info("Vulkan compute enabled: {} (type {}, queue family {})", deviceName, (int)deviceType, queueFamilyIndex);
 
     if (envSet("XL_GPU_STATS")) {
@@ -275,9 +291,10 @@ void VulkanComputeUtilities::doInit() {
         // silently fall back to CPU and would otherwise look like a pass.
         atexit([]() {
             VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
-            fprintf(stderr, "XL_GPU_STATS: blur=%llu rotozoom=%llu transitions=%llu blend=%llu\n",
+            fprintf(stderr, "XL_GPU_STATS: blur=%llu rotozoom=%llu transitions=%llu blend=%llu setup=%llu blurcall=%llu\n",
                     (unsigned long long)u.statBlur.load(), (unsigned long long)u.statRotoZoom.load(),
-                    (unsigned long long)u.statTransition.load(), (unsigned long long)u.statBlend.load());
+                    (unsigned long long)u.statTransition.load(), (unsigned long long)u.statBlend.load(),
+                    (unsigned long long)u.statSetup.load(), (unsigned long long)u.statBlurCall.load());
         });
     }
 
@@ -288,6 +305,22 @@ void VulkanComputeUtilities::doInit() {
             if (u.enabled) {
                 u.enabled = false;
                 vkDeviceWaitIdle(u.device);
+                for (VkPipeline* p : { &u.tentBlurHFunction, &u.tentBlurVFunction,
+                                       &u.xrotateFunction, &u.yrotateFunction, &u.zrotateFunction,
+                                       &u.xrotateClaimFunction, &u.yrotateClaimFunction, &u.zrotateClaimFunction,
+                                       &u.rotateBlankFunction }) {
+                    if (*p != VK_NULL_HANDLE) {
+                        vkDestroyPipeline(u.device, *p, nullptr);
+                        *p = VK_NULL_HANDLE;
+                    }
+                }
+                if (u.pipelineLayout != VK_NULL_HANDLE) {
+                    vkDestroyPipelineLayout(u.device, u.pipelineLayout, nullptr);
+                }
+                if (u.dsLayout != VK_NULL_HANDLE) {
+                    vkDestroyDescriptorSetLayout(u.device, u.dsLayout, nullptr);
+                }
+                u.destroyBuffer(u.dummyBuffer);
                 vmaDestroyAllocator(u.allocator);
                 vkDestroyDevice(u.device, nullptr);
                 if (u.debugMessenger != VK_NULL_HANDLE) {
@@ -391,6 +424,83 @@ void VulkanComputeUtilities::destroyBuffer(VulkanBuffer& b) {
     b = VulkanBuffer();
 }
 
+VkPipeline VulkanComputeUtilities::createComputePipeline(const uint32_t* spirv, size_t sizeBytes, const char* name) {
+    VkShaderModuleCreateInfo smi = {};
+    smi.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    smi.codeSize = sizeBytes;
+    smi.pCode = spirv;
+    VkShaderModule module = VK_NULL_HANDLE;
+    if (vkCreateShaderModule(device, &smi, nullptr, &module) != VK_SUCCESS) {
+        spdlog::error("Vulkan compute: failed to create shader module {}", name);
+        return VK_NULL_HANDLE;
+    }
+    VkComputePipelineCreateInfo pi = {};
+    pi.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    pi.stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pi.stage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    pi.stage.module = module;
+    pi.stage.pName = "main";
+    pi.layout = pipelineLayout;
+    VkPipeline pipeline = VK_NULL_HANDLE;
+    VkResult res = vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &pi, nullptr, &pipeline);
+    vkDestroyShaderModule(device, module, nullptr);
+    if (res != VK_SUCCESS) {
+        spdlog::error("Vulkan compute: failed to create pipeline {} ({})", name, (int)res);
+        return VK_NULL_HANDLE;
+    }
+    setObjectName((uint64_t)pipeline, VK_OBJECT_TYPE_PIPELINE, name);
+    return pipeline;
+}
+
+bool VulkanComputeUtilities::buildPipelines() {
+    VkDescriptorSetLayoutBinding bindings[NUM_BINDINGS] = {};
+    for (uint32_t i = 0; i < NUM_BINDINGS; i++) {
+        bindings[i].binding = i;
+        bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bindings[i].descriptorCount = 1;
+        bindings[i].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    }
+    VkDescriptorSetLayoutCreateInfo li = {};
+    li.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    li.bindingCount = NUM_BINDINGS;
+    li.pBindings = bindings;
+    if (vkCreateDescriptorSetLayout(device, &li, nullptr, &dsLayout) != VK_SUCCESS) {
+        return false;
+    }
+    VkPushConstantRange pcr = {};
+    pcr.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    pcr.offset = 0;
+    pcr.size = PUSH_CONSTANT_SIZE;
+    VkPipelineLayoutCreateInfo pli = {};
+    pli.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pli.setLayoutCount = 1;
+    pli.pSetLayouts = &dsLayout;
+    pli.pushConstantRangeCount = 1;
+    pli.pPushConstantRanges = &pcr;
+    if (vkCreatePipelineLayout(device, &pli, nullptr, &pipelineLayout) != VK_SUCCESS) {
+        return false;
+    }
+    if (!createDeviceBuffer(dummyBuffer, 16, "DummyBinding")) {
+        return false;
+    }
+
+#define XLVK_PIPELINE(member, header) \
+    member = createComputePipeline(header##_spv, sizeof(header##_spv), #header); \
+    if (member == VK_NULL_HANDLE) return false;
+
+    XLVK_PIPELINE(tentBlurHFunction, TentBlurH)
+    XLVK_PIPELINE(tentBlurVFunction, TentBlurV)
+    XLVK_PIPELINE(rotateBlankFunction, RotoZoomBlank)
+    XLVK_PIPELINE(xrotateFunction, RotoZoomRotateX)
+    XLVK_PIPELINE(xrotateClaimFunction, RotoZoomRotateXClaim)
+    XLVK_PIPELINE(yrotateFunction, RotoZoomRotateY)
+    XLVK_PIPELINE(yrotateClaimFunction, RotoZoomRotateYClaim)
+    XLVK_PIPELINE(zrotateFunction, RotoZoomRotateZ)
+    XLVK_PIPELINE(zrotateClaimFunction, RotoZoomRotateZClaim)
+#undef XLVK_PIPELINE
+    return true;
+}
+
 void VulkanComputeUtilities::computeBarrier(VkCommandBuffer cb) {
     VkMemoryBarrier mb = {};
     mb.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
@@ -445,12 +555,101 @@ VulkanRenderBufferComputeData::~VulkanRenderBufferComputeData() {
     u.destroyBuffer(ownerBuffer);
     u.destroyBuffer(rotoOwnerBuffer);
     u.destroyBuffer(maskBuffer);
+    for (VkDescriptorPool p : descriptorPools) {
+        vkDestroyDescriptorPool(u.device, p, nullptr);
+    }
     if (fence != VK_NULL_HANDLE) {
         vkDestroyFence(u.device, fence, nullptr);
     }
     if (commandPool != VK_NULL_HANDLE) {
         vkDestroyCommandPool(u.device, commandPool, nullptr);
     }
+}
+
+VkDescriptorSet VulkanRenderBufferComputeData::allocateDescriptorSet() {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    for (;;) {
+        if (activePool < descriptorPools.size()) {
+            VkDescriptorSetAllocateInfo ai = {};
+            ai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            ai.descriptorPool = descriptorPools[activePool];
+            ai.descriptorSetCount = 1;
+            ai.pSetLayouts = &u.dsLayout;
+            VkDescriptorSet set = VK_NULL_HANDLE;
+            VkResult res = vkAllocateDescriptorSets(u.device, &ai, &set);
+            if (res == VK_SUCCESS) {
+                return set;
+            }
+            if (res != VK_ERROR_OUT_OF_POOL_MEMORY && res != VK_ERROR_FRAGMENTED_POOL) {
+                return VK_NULL_HANDLE;
+            }
+            ++activePool;
+            continue;
+        }
+        VkDescriptorPoolSize ps = {};
+        ps.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        ps.descriptorCount = 128 * VulkanComputeUtilities::NUM_BINDINGS;
+        VkDescriptorPoolCreateInfo pi = {};
+        pi.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        pi.maxSets = 128;
+        pi.poolSizeCount = 1;
+        pi.pPoolSizes = &ps;
+        VkDescriptorPool pool = VK_NULL_HANDLE;
+        if (vkCreateDescriptorPool(u.device, &pi, nullptr, &pool) != VK_SUCCESS) {
+            return VK_NULL_HANDLE;
+        }
+        descriptorPools.push_back(pool);
+        activePool = descriptorPools.size() - 1;
+    }
+}
+
+void VulkanRenderBufferComputeData::resetDescriptorPools() {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    for (VkDescriptorPool p : descriptorPools) {
+        vkResetDescriptorPool(u.device, p, 0);
+    }
+    activePool = 0;
+}
+
+bool VulkanRenderBufferComputeData::encodeDispatch(VkCommandBuffer cb, VkPipeline pipeline, const char* label,
+                                                   const void* push, uint32_t pushSize,
+                                                   std::initializer_list<VkBuffer> buffers,
+                                                   uint32_t gridW, uint32_t gridH) {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    VkDescriptorSet set = allocateDescriptorSet();
+    if (set == VK_NULL_HANDLE) {
+        return false;
+    }
+    VkDescriptorBufferInfo bufferInfos[VulkanComputeUtilities::NUM_BINDINGS];
+    VkWriteDescriptorSet writes[VulkanComputeUtilities::NUM_BINDINGS];
+    uint32_t i = 0;
+    for (VkBuffer b : buffers) {
+        bufferInfos[i] = { b != VK_NULL_HANDLE ? b : u.dummyBuffer.buffer, 0, VK_WHOLE_SIZE };
+        ++i;
+    }
+    for (; i < VulkanComputeUtilities::NUM_BINDINGS; i++) {
+        bufferInfos[i] = { u.dummyBuffer.buffer, 0, VK_WHOLE_SIZE };
+    }
+    for (i = 0; i < VulkanComputeUtilities::NUM_BINDINGS; i++) {
+        writes[i] = {};
+        writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[i].dstSet = set;
+        writes[i].dstBinding = i;
+        writes[i].descriptorCount = 1;
+        writes[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        writes[i].pBufferInfo = &bufferInfos[i];
+    }
+    vkUpdateDescriptorSets(u.device, VulkanComputeUtilities::NUM_BINDINGS, writes, 0, nullptr);
+
+    vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+    vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_COMPUTE, u.pipelineLayout, 0, 1, &set, 0, nullptr);
+    if (push != nullptr && pushSize > 0) {
+        vkCmdPushConstants(cb, u.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, pushSize, push);
+    }
+    // Kernels use 8x8 workgroups and bounds-check (vkCmdDispatch rounds up;
+    // there is no Metal-style exact-grid dispatch).
+    vkCmdDispatch(cb, (gridW + 7) / 8, (gridH + 7) / 8, 1);
+    return true;
 }
 
 VulkanRenderBufferComputeData* VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(RenderBuffer* b) {
@@ -584,6 +783,7 @@ void VulkanRenderBufferComputeData::waitForCompletion() {
             }
             vkResetFences(u.device, 1, &fence);
             vkResetCommandPool(u.device, commandPool, 0);
+            resetDescriptorPools();
             recording = false;
             committed = false;
             --commandBufferCount;
@@ -763,11 +963,155 @@ VulkanBuffer& VulkanRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
 }
 
 bool VulkanRenderBufferComputeData::blur(int radius) {
-    return false;
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    if ((renderBuffer->BufferHt < (radius * 2)) || (renderBuffer->BufferWi < (radius * 2)) ||
+        ((uint32_t)(renderBuffer->BufferWi * renderBuffer->BufferHt) < u.bufferSizeThreshold)) {
+        // Smallish buffer, overhead of sending to GPU will be more than the gain
+        return false;
+    }
+    // tent blur is closest to what is implemented on the C++/CPU side; the
+    // separable TentBlurH/V kernels are bit-exact on every run with the same
+    // kernel width and clamp edge handling.  Ping-pong through
+    // pixelBufferCopy so only two passes are needed.
+    int kernelWidth = (radius - 1) * 2 - 1;
+    if (kernelWidth < 3) {
+        // matches MPSImageTent with kernelWidth 1 — an identity filter
+        return true;
+    }
+    // Acquire buffers BEFORE the command buffer: a buffer-grow path calls
+    // waitForCompletion(), which would end/reset a command buffer handed out
+    // just above it (Metal's buffer getters never touch the command buffer,
+    // so its ordering is safe — ours is not).
+    VulkanBuffer& px = getPixelBuffer();
+    VulkanBuffer& tmp = getPixelBufferCopy();
+    if (!px || !tmp) {
+        return false;
+    }
+    VkCommandBuffer cb = getCommandBuffer("-Blur");
+    if (cb == VK_NULL_HANDLE) {
+        return false;
+    }
+
+    TentBlurData data;
+    data.width = renderBuffer->BufferWi;
+    data.height = renderBuffer->BufferHt;
+    data.halfK = (kernelWidth - 1) / 2;
+
+    // {dst, src} per pass
+    VkBuffer bufs[2][2] = { { tmp.buffer, px.buffer }, { px.buffer, tmp.buffer } };
+    VkPipeline fns[2] = { u.tentBlurHFunction, u.tentBlurVFunction };
+    for (int pass = 0; pass < 2; pass++) {
+        VulkanComputeUtilities::computeBarrier(cb);
+        if (!encodeDispatch(cb, fns[pass], pass == 0 ? "TentBlurH" : "TentBlurV",
+                            &data, sizeof(data), { bufs[pass][0], bufs[pass][1] },
+                            data.width, data.height)) {
+            return false;
+        }
+    }
+    u.statBlur++;
+    static const bool blurSync = (getenv("XLDBG_BLURSYNC") != nullptr);
+    if (blurSync) {
+        commit();
+        waitForCompletion();
+    }
+    return true;
 }
 
 bool VulkanRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings& settings) {
-    return false;
+    if ((renderBuffer->BufferWi * renderBuffer->BufferHt) < 256) {
+        // Smallish buffer, overhead of sending to GPU will be more than the gain
+        return false;
+    }
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+
+    RotoZoomData data;
+    data.width = renderBuffer->BufferWi;
+    data.height = renderBuffer->BufferHt;
+
+    data.offset = settings.offset;
+    data.xrotation = settings.xrotation;
+    data.xpivot = settings.xpivot;
+    data.yrotation = settings.yrotation;
+    data.ypivot = settings.ypivot;
+    data.zrotation = settings.zrotation;
+    data.zoom = settings.zoom;
+    data.zoomquality = settings.zoomquality;
+    data.pivotpointx = settings.pivotpointx;
+    data.pivotpointy = settings.pivotpointy;
+
+    if (!getPixelBuffer()) {
+        return false;
+    }
+    if (!getPixelBufferCopy()) {
+        return false;
+    }
+    for (auto& c : settings.rotationorder) {
+        switch (c) {
+        case 'X':
+            if (data.xrotation != 0 && data.xrotation != 360) {
+                callRotoZoomFunction(u.xrotateFunction, u.xrotateClaimFunction, data);
+            }
+            break;
+        case 'Y':
+            if (data.yrotation != 0 && data.yrotation != 360) {
+                callRotoZoomFunction(u.yrotateFunction, u.yrotateClaimFunction, data);
+            }
+            break;
+        case 'Z':
+            if (data.zrotation != 0.0 || data.zoom != 1.0) {
+                callRotoZoomFunction(u.zrotateFunction, u.zrotateClaimFunction, data);
+            }
+            break;
+        }
+    }
+    return true;
+}
+
+bool VulkanRenderBufferComputeData::callRotoZoomFunction(VkPipeline function, VkPipeline claimFunction, RotoZoomData& data) {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    // Buffers before command buffer — see blur() for why the order matters.
+    VulkanBuffer& bufferResult = getPixelBuffer();
+    VulkanBuffer& bufferCopy = getPixelBufferCopy();
+    VulkanBuffer& owner = getRotoOwnerBuffer();
+    if (!bufferResult || !bufferCopy || !owner) {
+        return false;
+    }
+    VkCommandBuffer cb = getCommandBuffer("-RotoZoom");
+    if (cb == VK_NULL_HANDLE) {
+        return false;
+    }
+    int pixelCount = data.width * data.height;
+
+    // snapshot the current pixels, and fill the claim buffer with -1
+    // (0xFF bytes) so the claim pass can atomicMax the winning source
+    // index into it
+    VulkanComputeUtilities::computeBarrier(cb);
+    VkBufferCopy region = { 0, 0, (VkDeviceSize)(data.width * data.height * 4) };
+    vkCmdCopyBuffer(cb, bufferResult.buffer, bufferCopy.buffer, 1, &region);
+    vkCmdFillBuffer(cb, owner.buffer, 0, pixelCount * sizeof(int32_t), 0xFFFFFFFFu);
+
+    VulkanComputeUtilities::computeBarrier(cb);
+    if (!encodeDispatch(cb, u.rotateBlankFunction, "RotoZoomBlank",
+                        &data, sizeof(data), { bufferResult.buffer }, data.width, data.height)) {
+        return false;
+    }
+
+    // claim pass: record the highest source index per destination so the
+    // write pass has a deterministic winner for colliding pixels
+    VulkanComputeUtilities::computeBarrier(cb);
+    if (!encodeDispatch(cb, claimFunction, "RotoZoomClaim",
+                        &data, sizeof(data), { owner.buffer }, data.width, data.height)) {
+        return false;
+    }
+
+    VulkanComputeUtilities::computeBarrier(cb);
+    if (!encodeDispatch(cb, function, "RotoZoomWrite",
+                        &data, sizeof(data), { bufferResult.buffer, bufferCopy.buffer, owner.buffer },
+                        data.width, data.height)) {
+        return false;
+    }
+    u.statRotoZoom++;
+    return true;
 }
 
 #endif

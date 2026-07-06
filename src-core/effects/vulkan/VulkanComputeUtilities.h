@@ -95,6 +95,17 @@ public:
 
 private:
     bool ensureCommandInfra();
+    bool callRotoZoomFunction(VkPipeline function, VkPipeline claimFunction, struct RotoZoomData& data);
+
+    // Encode one compute dispatch: allocate+write a descriptor set (unused
+    // bindings get the dummy buffer), push constants, dispatch a 2-D grid.
+    // The analogue of one Metal compute-encoder block.
+    bool encodeDispatch(VkCommandBuffer cb, VkPipeline pipeline, const char* label,
+                        const void* push, uint32_t pushSize,
+                        std::initializer_list<VkBuffer> buffers,
+                        uint32_t gridW, uint32_t gridH);
+    VkDescriptorSet allocateDescriptorSet();
+    void resetDescriptorPools();
 
     RenderBuffer* renderBuffer;
     int layer;
@@ -102,6 +113,8 @@ private:
     VkCommandPool commandPool = VK_NULL_HANDLE;
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
     VkFence fence = VK_NULL_HANDLE;
+    std::vector<VkDescriptorPool> descriptorPools;
+    size_t activePool = 0;
     bool recording = false;
     bool committed = false;
 
@@ -160,6 +173,28 @@ public:
     // not, so every pair of dependent dispatches needs one.
     static void computeBarrier(VkCommandBuffer cb);
 
+    // One layout for every kernel: 6 positional storage-buffer bindings
+    // (kernels use bindings 0..n like Metal's setBuffer atIndex:1..; unused
+    // bindings get the dummy buffer) plus a 128-byte push-constant range
+    // (the analogue of Metal setBytes; guaranteed minimum on all devices).
+    static constexpr uint32_t NUM_BINDINGS = 6;
+    static constexpr uint32_t PUSH_CONSTANT_SIZE = 128;
+    VkDescriptorSetLayout dsLayout = VK_NULL_HANDLE;
+    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+    VulkanBuffer dummyBuffer;
+
+    VkPipeline createComputePipeline(const uint32_t* spirv, size_t sizeBytes, const char* name);
+
+    VkPipeline tentBlurHFunction = VK_NULL_HANDLE;
+    VkPipeline tentBlurVFunction = VK_NULL_HANDLE;
+    VkPipeline xrotateFunction = VK_NULL_HANDLE;
+    VkPipeline yrotateFunction = VK_NULL_HANDLE;
+    VkPipeline zrotateFunction = VK_NULL_HANDLE;
+    VkPipeline xrotateClaimFunction = VK_NULL_HANDLE;
+    VkPipeline yrotateClaimFunction = VK_NULL_HANDLE;
+    VkPipeline zrotateClaimFunction = VK_NULL_HANDLE;
+    VkPipeline rotateBlankFunction = VK_NULL_HANDLE;
+
     bool enabled = false;
     std::atomic<bool> pg{false};
     uint32_t bufferSizeThreshold = 2048;
@@ -183,6 +218,8 @@ public:
     std::atomic<uint64_t> statRotoZoom{0};
     std::atomic<uint64_t> statTransition{0};
     std::atomic<uint64_t> statBlend{0};
+    std::atomic<uint64_t> statSetup{0};
+    std::atomic<uint64_t> statBlurCall{0};
 
     void setObjectName(uint64_t handle, VkObjectType type, const std::string& name);
 
@@ -196,6 +233,7 @@ private:
     bool pickPhysicalDevice();
     bool createDeviceAndQueue();
     bool createAllocator();
+    bool buildPipelines();
 
     std::once_flag initFlag;
     VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
