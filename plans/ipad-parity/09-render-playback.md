@@ -21,6 +21,12 @@
 > on **both** platforms (desktop: `PLAY_LOOP` keybind + Replay-Section +
 > Waveform "Render Selected Region"; iPad: B32/B33/B44 loop region).
 
+> **Note (2026-07):** the Linux/Windows desktop gained a Vulkan GPU compute
+> backend (`src-core/effects/vulkan/`, `HAVE_VULKAN`) mirroring the Metal
+> backend's `GPURenderUtils` implementation (blur/rotozoom/transitions/layer
+> blending). Apple platforms (desktop + iPad) keep the Metal backend — the
+> Vulkan sources compile to nothing there, so no iPad action is needed.
+
 ## Parity scorecard
 
 | Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
