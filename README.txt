@@ -49,6 +49,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Fireworks with a random palette - rendered differently every time)
     -bug (dkulp)                 Blur (macOS GPU): replace the MPS tent blur with a deterministic compute kernel -
                                  the MPS filter's output varied from render to render
+    -bug (dkulp)                 RotoZoom (macOS GPU): fix an out-of-bounds scatter in the X/Y rotate kernels - the
+                                 bounds check was applied to the pre-rounded float, so round() could push the
+                                 destination one row past the buffer end into an adjacent layer's Metal buffer,
+                                 corrupting that layer's render for the frame (run-to-run, allocation-dependent).
+                                 Most visible on "Per Model" group buffers (e.g. mini-tree groups) with an active
+                                 X/Y rotation value curve
     -bug (dkulp)                 Video effects (macOS): frames were occasionally dropped (rendered black) for a
                                  stretch after a video effect started mid-file, at positions that varied every
                                  render; the frame chosen for a timestamp could also differ between the decoder

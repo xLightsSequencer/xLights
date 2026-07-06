@@ -82,8 +82,12 @@ kernel void RotoZoomRotateXClaim(constant RotoZoomData &data,
     } else {
         tox = -1 * sine * (pivot - x) + pivot;
     }
-    if (tox >= 0 && tox < data.width) {
-        int toxi = (int)round(tox);
+    // Bounds-check the ROUNDED index, not the float: round() can push a value
+    // in [width-0.5, width) up to width, which would scatter past the end of
+    // the buffer into the next layer's Metal allocation (a run-to-run
+    // determinism corruption).  Matches the CPU SetPixel bounds drop.
+    int toxi = (int)round(tox);
+    if (toxi >= 0 && toxi < (int)data.width) {
         uint didx = index.y * data.width + toxi;
         atomic_fetch_max_explicit(&owner[didx], (int)sidx, memory_order_relaxed);
     }
@@ -107,8 +111,8 @@ kernel void RotoZoomRotateX(constant RotoZoomData &data,
     } else {
         tox = -1 * sine * (pivot - x) + pivot;
     }
-    if (tox >= 0 && tox < data.width) {
-        int toxi = (int)round(tox);
+    int toxi = (int)round(tox);
+    if (toxi >= 0 && toxi < (int)data.width) {
         uint didx = index.y * data.width + toxi;
         if (owner[didx] == (int)sidx) {
             result[didx] = src[sidx];
@@ -133,8 +137,12 @@ kernel void RotoZoomRotateYClaim(constant RotoZoomData &data,
     } else {
         toy = -1 * sine * (pivot - y) + pivot;
     }
-    if (toy >= 0 && toy < data.height) {
-        int toyi = round(toy);
+    // Bounds-check the ROUNDED index (see RotoZoomRotateXClaim): on a height-1
+    // buffer, toy in [0.5, 1.0) passes the float guard but rounds to 1, so
+    // didx = 1*width + x scatters a full row past the buffer end into the
+    // adjacent layer's Metal buffer.
+    int toyi = (int)round(toy);
+    if (toyi >= 0 && toyi < (int)data.height) {
         uint didx = toyi * data.width + index.x;
         atomic_fetch_max_explicit(&owner[didx], (int)sidx, memory_order_relaxed);
     }
@@ -159,8 +167,8 @@ kernel void RotoZoomRotateY(constant RotoZoomData &data,
     } else {
         toy = -1 * sine * (pivot - y) + pivot;
     }
-    if (toy >= 0 && toy < data.height) {
-        int toyi = round(toy);
+    int toyi = (int)round(toy);
+    if (toyi >= 0 && toyi < (int)data.height) {
         uint didx = toyi * data.width + index.x;
         if (owner[didx] == (int)sidx) {
             result[didx] = src[sidx];
