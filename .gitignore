@@ -66,3 +66,5 @@ xScanner/x64
 share
 **/cmake_vs/
 plans/private-**
+# Generated Vulkan SPIR-V headers (built by build_scripts/compile_vulkan_shaders.sh)
+src-core/effects/vulkan/shaders/compiled/*.spv.h

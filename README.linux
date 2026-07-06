@@ -78,6 +78,24 @@ Instructions for other Linux distributions will vary.
 
      sudo apt-get install g++ gcc build-essential libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev freeglut3-dev libavcodec-dev libavformat-dev libswscale-dev libsdl2-dev libavutil-dev libavfilter-dev libportmidi-dev libzstd-dev libwebp-dev libcurl4-openssl-dev libltc-dev liblua5.3-dev libegl-dev libfreetype-dev libharfbuzz-dev libfontconfig-dev wget git cbp2make curl libsecret-1-dev
 
+     GPU-accelerated rendering (Vulkan):
+       BUILD: the compute kernels (src-core/effects/vulkan/shaders/*.comp) are
+       compiled to SPIR-V at build time by glslc, so glslc is a required build
+       tool (like ispc for the SIMD kernels). The Vulkan headers, volk loader,
+       and VulkanMemoryAllocator are vendored as git submodules (fetched by the
+       recursive submodule checkout) and volk loads the driver at runtime, so
+       nothing Vulkan is linked. Install glslc:
+         sudo apt-get install glslc
+       (or build with -DXLIGHTS_USE_VULKAN=OFF / omit it in the .cbp to skip the
+       GPU compute backend entirely.)
+
+       RUNTIME: to actually USE GPU acceleration the machine needs a Vulkan
+       loader and an ICD/driver; without them xLights logs "no Vulkan loader"
+       and falls back to CPU rendering:
+         sudo apt-get install libvulkan1 mesa-vulkan-drivers
+       (mesa-vulkan-drivers covers Intel/AMD; NVIDIA users get Vulkan from the
+       proprietary driver. Enable it under Preferences > Other > GPU rendering.)
+
      Example commands to install packages on Fedora 42
 
      Fedora 38+ defaults to "ffmpeg-free" library to switch to full ffmpeg run, add rpmfusion repo first:
