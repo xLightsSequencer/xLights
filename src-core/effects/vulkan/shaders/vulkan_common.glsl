@@ -25,3 +25,13 @@ float xl_round(float x) {
 float xl_fmod(float x, float y) {
     return x - y * trunc(x / y);
 }
+
+// IQ-style HSV->RGB, matching hsv2rgb() in PinwheelFunctions.metal (used by
+// Shockwave, Pinwheel, ...).  Returns RGBA with alpha 255.
+uvec4 hsv2rgb(vec3 c) {
+    const vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    c = clamp(c, 0.0, 1.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    vec3 rgb = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    return uvec4(uint(rgb.r * 255.0), uint(rgb.g * 255.0), uint(rgb.b * 255.0), 255u);
+}

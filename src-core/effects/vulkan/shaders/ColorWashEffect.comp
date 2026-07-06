@@ -1,0 +1,81 @@
+#version 450
+// Port of ColorWashEffect in ColorWashFunctions.metal.  A single
+// palette-blended base color scaled by per-pixel horizontal/vertical fades.
+// Params mirror VulkanColorWashData (std430); colorHSV is vec4 (only .xyz
+// used) to match the C++ alignas(16) float3.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    uint color;      // packed uchar4
+    vec4 colorHSV;   // .xyz = h,s,v
+    int horizFade;
+    int vertFade;
+    int reverseFades;
+    int shimmerBlack;
+    int allowAlpha;
+} data;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    if (data.shimmerBlack != 0) {
+        result[index] = 0u;
+        return;
+    }
+
+    float halfWi = float(data.width - 1u) / 2.0;
+    float halfHt = float(data.height - 1u) / 2.0;
+
+    float multH = 1.0;
+    float multV = 1.0;
+
+    if (data.horizFade != 0 && halfWi > 0.0) {
+        float dist = abs(halfWi - float(px));
+        multH = (data.reverseFades != 0) ? (dist / halfWi) : (1.0 - dist / halfWi);
+    }
+    if (data.vertFade != 0 && halfHt > 0.0) {
+        float dist = abs(halfHt - float(py));
+        multV = (data.reverseFades != 0) ? (dist / halfHt) : (1.0 - dist / halfHt);
+    }
+
+    uvec4 c = unpackPx(data.color);
+    if (data.allowAlpha != 0) {
+        float alpha = float(c.a) * multH * multV;
+        result[index] = packPx(uvec4(c.r, c.g, c.b, uint(alpha)));
+    } else {
+        float v = data.colorHSV.z * multH * multV;
+        v = clamp(v, 0.0, 1.0);
+
+        float h = data.colorHSV.x;
+        float s = data.colorHSV.y;
+        float r, g, b;
+        if (s == 0.0) {
+            r = v; g = v; b = v;
+        } else {
+            float hh = xl_fmod(h, 1.0) * 6.0;
+            int i = int(hh);
+            float f = hh - float(i);
+            float p = v * (1.0 - s);
+            float q = v * (1.0 - s * f);
+            float t = v * (1.0 - s * (1.0 - f));
+            switch (i) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                default: r = v; g = p; b = q; break;
+            }
+        }
+        result[index] = packPx(uvec4(uint(r * 255.0), uint(g * 255.0), uint(b * 255.0), 255u));
+    }
+}

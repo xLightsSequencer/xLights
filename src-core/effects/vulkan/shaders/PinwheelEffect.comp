@@ -1,0 +1,103 @@
+#version 450
+// Port of PinwheelEffectStyle0 in PinwheelFunctions.metal.  A partial-write
+// effect: only pixels within max_radius and inside an arm's angular sweep
+// are written; the rest keep the buffer's (host-cleared) contents.  Params
+// mirror VulkanPinwheelData.  Metal's shared IQ-style hsv2rgb() is the same
+// hsv2rgb(vec3) in vulkan_common.glsl.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+#define MAX_VULKAN_PINWHEEL_ARMS 16
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    int pinwheel_arms;
+    int xc_adj;
+    int yc_adj;
+    int degrees_per_arm;
+    int pinwheel_twist;
+    int max_radius;
+    int poffset;
+    int pw3dType;
+    int pinwheel_rotation;
+
+    float tmax;
+    float pos;
+
+    int allowAlpha;
+    int numColors;
+
+    uint colorsAsColor[MAX_VULKAN_PINWHEEL_ARMS];  // packed uchar4
+    vec3 colorsAsHSV[MAX_VULKAN_PINWHEEL_ARMS];
+} data;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+    int x = int(index % data.width);
+    int y = int(index / data.width);
+
+    float y1 = float(y) - float(data.yc_adj) - (float(data.height) / 2.0);
+    float x1 = float(x) - float(data.xc_adj) - (float(data.width) / 2.0);
+    float r = sqrt(x1 * x1 + y1 * y1);
+
+    if (r > float(data.max_radius)) return;
+
+    float degrees_twist = (r / float(data.max_radius)) * float(data.pinwheel_twist);
+    float theta = (atan(x1, y1) * 180.0 / 3.14159) + degrees_twist;
+    if (data.pinwheel_rotation == 1) { // do we have CW rotation
+        theta = data.pos + theta + (data.tmax / 2.0) + float(data.poffset);
+    } else {
+        theta = data.pos - theta + (data.tmax / 2.0) + float(data.poffset);
+    }
+    theta = theta + 540.0;
+
+    int t2 = int(theta) % data.degrees_per_arm;
+    if (float(t2) > data.tmax) return;
+
+    float roundv = float(t2) / data.tmax;
+    t2 = abs(t2 - int(data.tmax / 2.0)) * 2;
+    int colorIdx2 = int(theta / float(data.degrees_per_arm)) % data.pinwheel_arms;
+
+    uvec4 color = unpackPx(data.colorsAsColor[colorIdx2]);
+    vec3 hsv = vec3(0.0);
+    if (data.allowAlpha == 0) {
+        hsv = data.colorsAsHSV[colorIdx2];
+    }
+
+    switch (data.pw3dType) {
+        case 1:
+            if (data.allowAlpha != 0) {
+                color.a = uint(255.0 * ((data.tmax - float(t2)) / data.tmax));
+            } else {
+                hsv.z = hsv.z * ((data.tmax - float(t2)) / data.tmax);
+                color = hsv2rgb(hsv);
+            }
+            break;
+        case 2:
+            if (data.allowAlpha != 0) {
+                color.a = uint(255.0 * (float(t2) / data.tmax));
+            } else {
+                hsv.z = hsv.z * (float(t2) / data.tmax);
+                color = hsv2rgb(hsv);
+            }
+            break;
+        case 3:
+            if (data.allowAlpha != 0) {
+                color.a = uint(255.0 * (1.0 - roundv));
+            } else {
+                hsv.z = hsv.z * (1.0 - roundv);
+                color = hsv2rgb(hsv);
+            }
+            break;
+        default:
+            break;
+    }
+
+    result[index] = packPx(color);
+}

@@ -87,6 +87,19 @@
 #include "shaders/compiled/Transition_circles.spv.h"
 #include "shaders/compiled/Transition_dissolve.spv.h"
 
+#include "shaders/compiled/BarsEffect.spv.h"
+#include "shaders/compiled/ColorWashEffect.spv.h"
+#include "shaders/compiled/ShockwaveEffect.spv.h"
+#include "shaders/compiled/FanEffect.spv.h"
+#include "shaders/compiled/SpiralsEffect.spv.h"
+#include "shaders/compiled/GalaxyEffect.spv.h"
+#include "shaders/compiled/CirclesEffect.spv.h"
+#include "shaders/compiled/PlasmaEffect.spv.h"
+#include "shaders/compiled/ButterflyEffect.spv.h"
+#include "shaders/compiled/PinwheelEffect.spv.h"
+#include "shaders/compiled/KaleidoscopeEffect.spv.h"
+#include "shaders/compiled/WarpEffect.spv.h"
+
 #include "../../render/DissolveTransitionPattern.h"
 
 static xlvk::uchar4 toUchar4(const xlColor& c) {
@@ -145,6 +158,11 @@ bool VulkanComputeUtilities::createInstance(bool wantValidation) {
 
     std::vector<const char*> layers;
     std::vector<const char*> extensions;
+    // XL_VULKAN_GPUAV enables GPU-Assisted Validation, which instruments the
+    // compute shaders to bounds-check every buffer access at runtime (catches
+    // out-of-bounds scatter that standard validation cannot see).  Slow — only
+    // for diagnosing shader memory bugs.
+    const bool wantGpuAv = envSet("XL_VULKAN_GPUAV");
     if (wantValidation) {
         uint32_t count = 0;
         vkEnumerateInstanceLayerProperties(&count, nullptr);
@@ -174,6 +192,16 @@ bool VulkanComputeUtilities::createInstance(bool wantValidation) {
     ci.pApplicationInfo = &appInfo;
     ci.enabledLayerCount = (uint32_t)layers.size();
     ci.ppEnabledLayerNames = layers.data();
+
+    VkValidationFeatureEnableEXT enables[] = { VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT };
+    VkValidationFeaturesEXT valFeatures = {};
+    if (validation && wantGpuAv) {
+        extensions.push_back(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+        valFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+        valFeatures.enabledValidationFeatureCount = 1;
+        valFeatures.pEnabledValidationFeatures = enables;
+        ci.pNext = &valFeatures;
+    }
     ci.enabledExtensionCount = (uint32_t)extensions.size();
     ci.ppEnabledExtensionNames = extensions.data();
 
@@ -278,6 +306,9 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
         spdlog::info("Vulkan compute disabled: no usable device (set XL_VULKAN_ALLOW_CPU=1 to permit CPU implementations like lavapipe)");
         return false;
     }
+    VkPhysicalDeviceProperties chosen;
+    vkGetPhysicalDeviceProperties(physicalDevice, &chosen);
+    storageBufferAlignment = std::max((VkDeviceSize)1, chosen.limits.minStorageBufferOffsetAlignment);
     return true;
 }
 
@@ -351,9 +382,10 @@ void VulkanComputeUtilities::doInit() {
         // silently fall back to CPU and would otherwise look like a pass.
         atexit([]() {
             VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
-            fprintf(stderr, "XL_GPU_STATS: blur=%llu rotozoom=%llu transitions=%llu blend=%llu setup=%llu blurcall=%llu\n",
+            fprintf(stderr, "XL_GPU_STATS: blur=%llu rotozoom=%llu transitions=%llu blend=%llu effect=%llu setup=%llu blurcall=%llu\n",
                     (unsigned long long)u.statBlur.load(), (unsigned long long)u.statRotoZoom.load(),
                     (unsigned long long)u.statTransition.load(), (unsigned long long)u.statBlend.load(),
+                    (unsigned long long)u.statEffect.load(),
                     (unsigned long long)u.statSetup.load(), (unsigned long long)u.statBlurCall.load());
         });
     }
@@ -372,7 +404,13 @@ void VulkanComputeUtilities::doInit() {
                                        &u.getColorsFunction, &u.putColorsFunction, &u.adjustHSVFunction,
                                        &u.applySparklesFunction, &u.brightnessContrastFunction,
                                        &u.brightnessLevelFunction, &u.firstLayerFadeFunction,
-                                       &u.nonAlphaFadeFunction }) {
+                                       &u.nonAlphaFadeFunction, &u.barsEffectFunction,
+                                       &u.colorWashEffectFunction,
+                                       &u.shockwaveEffectFunction, &u.fanEffectFunction,
+                                       &u.spiralsEffectFunction, &u.galaxyEffectFunction,
+                                       &u.circlesEffectFunction, &u.plasmaEffectFunction,
+                                       &u.butterflyEffectFunction, &u.pinwheelEffectFunction,
+                                       &u.kaleidoscopeEffectFunction, &u.warpEffectFunction }) {
                     if (*p != VK_NULL_HANDLE) {
                         vkDestroyPipeline(u.device, *p, nullptr);
                         *p = VK_NULL_HANDLE;
@@ -585,6 +623,19 @@ bool VulkanComputeUtilities::buildPipelines() {
     XLVK_PIPELINE(brightnessLevelFunction, AdjustBrightnessLevel)
     XLVK_PIPELINE(firstLayerFadeFunction, FirstLayerFade)
     XLVK_PIPELINE(nonAlphaFadeFunction, NonAlphaFade)
+
+    XLVK_PIPELINE(barsEffectFunction, BarsEffect)
+    XLVK_PIPELINE(colorWashEffectFunction, ColorWashEffect)
+    XLVK_PIPELINE(shockwaveEffectFunction, ShockwaveEffect)
+    XLVK_PIPELINE(fanEffectFunction, FanEffect)
+    XLVK_PIPELINE(spiralsEffectFunction, SpiralsEffect)
+    XLVK_PIPELINE(galaxyEffectFunction, GalaxyEffect)
+    XLVK_PIPELINE(circlesEffectFunction, CirclesEffect)
+    XLVK_PIPELINE(plasmaEffectFunction, PlasmaEffect)
+    XLVK_PIPELINE(butterflyEffectFunction, ButterflyEffect)
+    XLVK_PIPELINE(pinwheelEffectFunction, PinwheelEffect)
+    XLVK_PIPELINE(kaleidoscopeEffectFunction, KaleidoscopeEffect)
+    XLVK_PIPELINE(warpEffectFunction, WarpEffect)
 
 #define XLVK_BLEND(mix, header, ...) \
     { \
@@ -812,6 +863,10 @@ bool VulkanPixelBufferComputeData::doTransition(VkPipeline f, TransitionData& da
     if (prevRB) {
         VulkanRenderBufferComputeData* prevCD = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(prevRB);
         if (prevCD) {
+            // prevRB was written by its own (already-committed) command buffer.
+            // Vulkan does not serialize cross-command-buffer execution the way
+            // Metal does, so fence-wait it before this transition reads it.
+            prevCD->waitForCompletion();
             bufferPrev = prevCD->getPixelBuffer().buffer;
         }
         if (bufferPrev == VK_NULL_HANDLE) {
@@ -954,6 +1009,27 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
         bits.push_back({ layer, layerCD, blendBuf.buffer, pixels.buffer, indexes.buffer, mask });
     }
 
+    // The saveToPixels PutColors pass needs the save layer's owner, pixel and
+    // index buffers.  Acquire them BEFORE the command buffer: getOwnerBuffer()
+    // and getPixelBuffer() have grow paths that call waitForCompletion(), which
+    // would reset the blend command buffer mid-encode (only reachable via
+    // canvas mode's nested saveToPixels blend, where the save layer may not be
+    // among the blended input layers gathered above).
+    VkBuffer saveOwner = VK_NULL_HANDLE;
+    VkBuffer savePixels = VK_NULL_HANDLE;
+    VkBuffer saveIndexes = VK_NULL_HANDLE;
+    if (saveToPixels) {
+        VulkanBuffer& o = slRMRB->getOwnerBuffer();
+        VulkanBuffer& p = slRMRB->getPixelBuffer();
+        VulkanBuffer& ix = slRMRB->getIndexBuffer();
+        if (!o || !p || !ix) {
+            return false;
+        }
+        saveOwner = o.buffer;
+        savePixels = p.buffer;
+        saveIndexes = ix.buffer;
+    }
+
     VkCommandBuffer cb = slRMRB->getCommandBuffer("-Blend");
     if (cb == VK_NULL_HANDLE) {
         return false;
@@ -1041,25 +1117,25 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
     }
     if (saveToPixels) {
         auto layer = pixelBuffer->layers[saveLayer];
-        VulkanRenderBufferComputeData* layerCD = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&layer->buffer);
-        VulkanBuffer& owner = layerCD->getOwnerBuffer();
-        if (!owner) {
-            return false;
-        }
         LayerBlendingData data;
         fillLayerBlendingData(data, layer);
         data.useMask = 0;
 
+        // All save-layer buffers were pre-acquired above (no grow resets cb).
         VulkanComputeUtilities::computeBarrier(cb);
         if (!slRMRB->encodeDispatch(cb, u.putColorsFunction, "PutColors", &data, sizeof(data),
-                                    { layerCD->getPixelBuffer().buffer, tmpBufferBlend.buffer, VK_NULL_HANDLE,
-                                      layerCD->getIndexBuffer().buffer, owner.buffer },
+                                    { savePixels, tmpBufferBlend.buffer, VK_NULL_HANDLE,
+                                      saveIndexes, saveOwner },
                                     data.nodeCount, 0)) {
             return false;
         }
     }
-    slRMRB->commit();
-
+    // The blend command buffer (slRMRB) reads every input layer's pixel
+    // buffer, which was written by that layer's own separate command buffer.
+    // Metal serializes command-buffer execution in commit order, so the
+    // already-committed layer work is guaranteed to finish first; Vulkan gives
+    // no such ordering guarantee, so we must fence-wait the input layers
+    // BEFORE submitting the blend, not after.
     for (int ii = (pixelBuffer->numLayers - 1); ii >= 0; --ii) {
         if (!validLayers[ii]) {
             continue;
@@ -1068,6 +1144,7 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
             GPURenderUtils::waitForRenderCompletion(&pixelBuffer->layers[ii]->buffer);
         }
     }
+    slRMRB->commit();
     slRMRB->waitForCompletion();
     u.statBlend++;
 
@@ -1131,6 +1208,8 @@ VulkanRenderBufferComputeData::~VulkanRenderBufferComputeData() {
     u.destroyBuffer(ownerBuffer);
     u.destroyBuffer(rotoOwnerBuffer);
     u.destroyBuffer(maskBuffer);
+    u.destroyBuffer(cpuMaskUpload);
+    u.destroyBuffer(paramArena);
     for (VkDescriptorPool p : descriptorPools) {
         vkDestroyDescriptorPool(u.device, p, nullptr);
     }
@@ -1185,6 +1264,81 @@ void VulkanRenderBufferComputeData::resetDescriptorPools() {
         vkResetDescriptorPool(u.device, p, 0);
     }
     activePool = 0;
+    paramArenaOffset = 0;
+}
+
+bool VulkanRenderBufferComputeData::stageParams(const void* data, size_t size, VkBuffer& outBuf, VkDeviceSize& outOffset) {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    // Fixed 64KB arena: each effect uploads one param struct (<=~1KB) per
+    // command buffer, so this never fills.  Creating the buffer lazily is safe
+    // during recording (it doesn't touch the command buffer); growing it would
+    // require freeing the old buffer that earlier dispatches in this command
+    // buffer still reference, so we never grow mid-recording — an oversized
+    // request just falls back to CPU.
+    static const VkDeviceSize ARENA_SIZE = 64 * 1024;
+    if (!paramArena) {
+        if (!u.createSharedBuffer(paramArena, ARENA_SIZE, renderBuffer->GetModelName() + "-ParamArena")) {
+            return false;
+        }
+    }
+    VkDeviceSize align = u.storageBufferAlignment;
+    VkDeviceSize off = (paramArenaOffset + align - 1) & ~(align - 1);
+    if (off + size > paramArena.size) {
+        return false;
+    }
+    memcpy(static_cast<uint8_t*>(paramArena.mapped) + off, data, size);
+    outBuf = paramArena.buffer;
+    outOffset = off;
+    paramArenaOffset = off + size;
+    return true;
+}
+
+bool VulkanRenderBufferComputeData::encodeEffectDispatch(VkCommandBuffer cb, VkPipeline pipeline, const char* label,
+                                                         const void* params, uint32_t paramsSize,
+                                                         std::initializer_list<VkBuffer> buffers,
+                                                         uint32_t gridW, uint32_t gridH) {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    VkBuffer paramBuf = VK_NULL_HANDLE;
+    VkDeviceSize paramOff = 0;
+    if (!stageParams(params, paramsSize, paramBuf, paramOff)) {
+        return false;
+    }
+    VkDescriptorSet set = allocateDescriptorSet();
+    if (set == VK_NULL_HANDLE) {
+        return false;
+    }
+    VkDescriptorBufferInfo bufferInfos[VulkanComputeUtilities::NUM_BINDINGS];
+    VkWriteDescriptorSet writes[VulkanComputeUtilities::NUM_BINDINGS];
+    uint32_t i = 0;
+    for (VkBuffer b : buffers) {
+        bufferInfos[i] = { b != VK_NULL_HANDLE ? b : u.dummyBuffer.buffer, 0, VK_WHOLE_SIZE };
+        ++i;
+    }
+    for (; i < VulkanComputeUtilities::NUM_BINDINGS - 1; i++) {
+        bufferInfos[i] = { u.dummyBuffer.buffer, 0, VK_WHOLE_SIZE };
+    }
+    // binding 5 = params SSBO at its arena offset
+    bufferInfos[VulkanComputeUtilities::NUM_BINDINGS - 1] = { paramBuf, paramOff, paramsSize };
+    for (i = 0; i < VulkanComputeUtilities::NUM_BINDINGS; i++) {
+        writes[i] = {};
+        writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writes[i].dstSet = set;
+        writes[i].dstBinding = i;
+        writes[i].descriptorCount = 1;
+        writes[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        writes[i].pBufferInfo = &bufferInfos[i];
+    }
+    vkUpdateDescriptorSets(u.device, VulkanComputeUtilities::NUM_BINDINGS, writes, 0, nullptr);
+
+    vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+    vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_COMPUTE, u.pipelineLayout, 0, 1, &set, 0, nullptr);
+    if (gridH == 0) {
+        vkCmdDispatch(cb, (gridW + 63) / 64, 1, 1);
+    } else {
+        vkCmdDispatch(cb, (gridW + 7) / 8, (gridH + 7) / 8, 1);
+    }
+    u.statEffect++;
+    return true;
 }
 
 bool VulkanRenderBufferComputeData::encodeDispatch(VkCommandBuffer cb, VkPipeline pipeline, const char* label,
@@ -1317,6 +1471,7 @@ void VulkanRenderBufferComputeData::abortCommandBuffer() {
     if (recording && !committed) {
         vkEndCommandBuffer(commandBuffer);
         vkResetCommandPool(VulkanComputeUtilities::INSTANCE.device, commandPool, 0);
+        resetDescriptorPools();
         recording = false;
         --commandBufferCount;
     }
@@ -1343,6 +1498,7 @@ void VulkanRenderBufferComputeData::commit() {
             // Treat as an empty submit: no fence will signal, so mark the
             // fence signaled state by resetting to a clean non-pending pool.
             vkResetCommandPool(u.device, commandPool, 0);
+            resetDescriptorPools();
             recording = false;
             --commandBufferCount;
             return;

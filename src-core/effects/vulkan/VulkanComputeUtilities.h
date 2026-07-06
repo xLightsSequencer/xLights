@@ -96,6 +96,18 @@ public:
                         std::initializer_list<VkBuffer> buffers,
                         uint32_t gridW, uint32_t gridH);
 
+    // Per-effect dispatch: the effect parameter structs exceed the 128-byte
+    // push-constant guarantee, so they are staged into a per-command-buffer
+    // host-visible arena and bound as a read-only SSBO at binding 5.  The
+    // positional `buffers` go to bindings 0..n (binding 0 is the result).
+    bool encodeEffectDispatch(VkCommandBuffer cb, VkPipeline pipeline, const char* label,
+                              const void* params, uint32_t paramsSize,
+                              std::initializer_list<VkBuffer> buffers,
+                              uint32_t gridW, uint32_t gridH);
+    // Copy `size` bytes into the arena (growing it if needed), returning the
+    // buffer + aligned offset.  Lifetime is the current command buffer.
+    bool stageParams(const void* data, size_t size, VkBuffer& outBuf, VkDeviceSize& outOffset);
+
     VulkanBuffer& getPixelBuffer(bool sendToGPU = true);
     VulkanBuffer& getPixelBufferCopy();
     VulkanBuffer& getIndexBuffer();
@@ -131,6 +143,8 @@ private:
     VkFence fence = VK_NULL_HANDLE;
     std::vector<VkDescriptorPool> descriptorPools;
     size_t activePool = 0;
+    VulkanBuffer paramArena;
+    VkDeviceSize paramArenaOffset = 0;
     bool recording = false;
     bool committed = false;
 
@@ -211,6 +225,20 @@ public:
     VkPipeline zrotateClaimFunction = VK_NULL_HANDLE;
     VkPipeline rotateBlankFunction = VK_NULL_HANDLE;
 
+    // Per-effect kernels (Phase D)
+    VkPipeline barsEffectFunction = VK_NULL_HANDLE;
+    VkPipeline colorWashEffectFunction = VK_NULL_HANDLE;
+    VkPipeline shockwaveEffectFunction = VK_NULL_HANDLE;
+    VkPipeline fanEffectFunction = VK_NULL_HANDLE;
+    VkPipeline spiralsEffectFunction = VK_NULL_HANDLE;
+    VkPipeline galaxyEffectFunction = VK_NULL_HANDLE;
+    VkPipeline circlesEffectFunction = VK_NULL_HANDLE;
+    VkPipeline plasmaEffectFunction = VK_NULL_HANDLE;
+    VkPipeline butterflyEffectFunction = VK_NULL_HANDLE;
+    VkPipeline pinwheelEffectFunction = VK_NULL_HANDLE;
+    VkPipeline kaleidoscopeEffectFunction = VK_NULL_HANDLE;
+    VkPipeline warpEffectFunction = VK_NULL_HANDLE;
+
     VkPipeline getColorsFunction = VK_NULL_HANDLE;
     VkPipeline putColorsFunction = VK_NULL_HANDLE;
     VkPipeline adjustHSVFunction = VK_NULL_HANDLE;
@@ -257,6 +285,9 @@ public:
     VmaAllocator allocator = VK_NULL_HANDLE;
     VkPhysicalDeviceType deviceType = VK_PHYSICAL_DEVICE_TYPE_OTHER;
     std::string deviceName;
+    // minStorageBufferOffsetAlignment — arena sub-allocations for effect
+    // param structs (bound as SSBOs) must start on this boundary.
+    VkDeviceSize storageBufferAlignment = 256;
 
     // All vkQueueSubmit calls are serialized on this (queues are externally
     // synchronized); command recording happens lock-free in per-RenderBuffer
@@ -270,6 +301,7 @@ public:
     std::atomic<uint64_t> statBlend{0};
     std::atomic<uint64_t> statSetup{0};
     std::atomic<uint64_t> statBlurCall{0};
+    std::atomic<uint64_t> statEffect{0};
 
     void setObjectName(uint64_t handle, VkObjectType type, const std::string& name);
 

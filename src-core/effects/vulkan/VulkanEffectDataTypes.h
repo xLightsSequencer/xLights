@@ -19,6 +19,7 @@
 //   - static_assert the size of every struct
 #ifdef HAVE_VULKAN
 
+#include <cstddef>
 #include <cstdint>
 
 namespace xlvk {
@@ -109,5 +110,353 @@ struct LayerBlendingData {
     xlvk::uchar4 chromaColor;
 };
 static_assert(sizeof(LayerBlendingData) == 76, "LayerBlendingData layout drifted from the GLSL push-constant block");
+
+// ---------------------------------------------------------------------------
+// Per-effect parameter structs.  These exceed 128 bytes, so they are bound as
+// std430 SSBOs (arena binding 5) rather than push constants.  Layouts mirror
+// the corresponding MetalEffectDataTypes.h structs; xlvk::float3 (16-byte
+// aligned) matches a std430 vec3 array (stride 16).
+
+#define MAX_VULKAN_BARS_COLORS 8
+
+// Bars direction, after alternates are remapped (custom/spatial → CPU).
+#define BARS_DIR_UP        0
+#define BARS_DIR_DOWN      1
+#define BARS_DIR_EXPAND    2
+#define BARS_DIR_COMPRESS  3
+#define BARS_DIR_LEFT      4
+#define BARS_DIR_RIGHT     5
+#define BARS_DIR_HEXPAND   6
+#define BARS_DIR_HCOMPRESS 7
+
+struct VulkanBarsData {
+    uint32_t width;
+    uint32_t height;
+
+    int32_t direction;
+    int32_t barSize;
+    int32_t blockSize;
+    int32_t f_offset;
+    int32_t newCenter;
+    int32_t colorCount;
+    int32_t highlight;
+    int32_t show3D;
+    int32_t gradient;
+    int32_t allowAlpha;
+    int32_t useFirstColorForHighlight;
+
+    xlvk::uchar4 colorsAsRGBA[MAX_VULKAN_BARS_COLORS];
+    xlvk::float3 colorsAsHSV[MAX_VULKAN_BARS_COLORS];
+    xlvk::uchar4 highlightColor;
+};
+static_assert(offsetof(VulkanBarsData, colorsAsHSV) == 96, "VulkanBarsData HSV offset drifted from std430");
+static_assert(offsetof(VulkanBarsData, highlightColor) == 224, "VulkanBarsData highlightColor offset drifted from std430");
+static_assert(sizeof(VulkanBarsData) == 240, "VulkanBarsData size drifted from the GLSL std430 block");
+
+// A lone (non-array) float3 member occupies 12 bytes in std430 but 16 in a
+// C++ alignas(16) type; the GLSL side declares such members as vec4 (using
+// only .xyz) so the layouts match.  Array-of-float3 uses stride 16 on both
+// sides and needs no such adjustment.
+struct VulkanColorWashData {
+    uint32_t width;
+    uint32_t height;
+    xlvk::uchar4 color;
+    xlvk::float3 colorHSV; // GLSL vec4
+    int32_t horizFade;
+    int32_t vertFade;
+    int32_t reverseFades;
+    int32_t shimmerBlack;
+    int32_t allowAlpha;
+};
+static_assert(offsetof(VulkanColorWashData, colorHSV) == 16, "VulkanColorWashData HSV offset drifted from std430");
+static_assert(offsetof(VulkanColorWashData, horizFade) == 32, "VulkanColorWashData horizFade offset drifted from std430");
+static_assert(sizeof(VulkanColorWashData) == 64, "VulkanColorWashData size drifted from the GLSL std430 block");
+
+struct VulkanShockwaveData {
+    uint32_t width;
+    uint32_t height;
+    int32_t xc_adj;
+    int32_t yc_adj;
+    float radius1;
+    float radius2;
+    float radius_center;
+    float half_width;
+    xlvk::uchar4 color;
+    xlvk::float3 colorHSV; // GLSL vec4
+    int32_t blend;
+    int32_t allowAlpha;
+};
+static_assert(offsetof(VulkanShockwaveData, colorHSV) == 48, "VulkanShockwaveData HSV offset drifted from std430");
+static_assert(offsetof(VulkanShockwaveData, blend) == 64, "VulkanShockwaveData blend offset drifted from std430");
+static_assert(sizeof(VulkanShockwaveData) == 80, "VulkanShockwaveData size drifted from the GLSL std430 block");
+
+#define MAX_VULKAN_FAN_COLORS 8
+
+struct VulkanFanData {
+    uint32_t width;
+    uint32_t height;
+
+    int32_t  xc_adj;
+    int32_t  yc_adj;
+
+    float    radius1;
+    float    radius2;
+    float    max_radius;
+
+    float    blade_div_angle;
+    float    blade_width_angle;
+    float    color_angle;
+    float    element_angle;
+    float    element_size;
+    float    angle_offset;
+    float    start_angle;
+    float    blade_angle;
+
+    int32_t  reverse_dir;
+    int32_t  blend_edges;
+    int32_t  allowAlpha;
+    int32_t  num_colors;
+
+    xlvk::uchar4 colorsAsRGBA[MAX_VULKAN_FAN_COLORS];
+    xlvk::float3 colorsAsHSV[MAX_VULKAN_FAN_COLORS];
+};
+static_assert(offsetof(VulkanFanData, colorsAsRGBA) == 76, "VulkanFanData colorsAsRGBA offset drifted from std430");
+static_assert(offsetof(VulkanFanData, colorsAsHSV) == 112, "VulkanFanData colorsAsHSV offset drifted from std430");
+static_assert(sizeof(VulkanFanData) == 240, "VulkanFanData size drifted from the GLSL std430 block");
+
+#define MAX_VULKAN_SPIRALS_COLORS 8
+
+struct VulkanSpiralsData {
+    uint32_t width;
+    uint32_t height;
+
+    int32_t  spiralCount;
+    int32_t  colorCount;
+    int32_t  paletteRepeat;
+
+    float    deltaStrands;
+    float    spiralThickness;
+    float    spiralState;
+    float    rotation;
+
+    int32_t  show3D;
+    int32_t  allowAlpha;
+    float    rotation_sign;
+
+    xlvk::uchar4 colorsAsRGBA[MAX_VULKAN_SPIRALS_COLORS];
+    xlvk::float3 colorsAsHSV[MAX_VULKAN_SPIRALS_COLORS];
+};
+static_assert(offsetof(VulkanSpiralsData, colorsAsRGBA) == 48, "VulkanSpiralsData colorsAsRGBA offset drifted from std430");
+static_assert(offsetof(VulkanSpiralsData, colorsAsHSV) == 80, "VulkanSpiralsData colorsAsHSV offset drifted from std430");
+static_assert(sizeof(VulkanSpiralsData) == 208, "VulkanSpiralsData size drifted from the GLSL std430 block");
+
+#define MAX_VULKAN_GALAXY_COLORS 8
+
+// Mirrors MetalGalaxyData / ispc::GalaxyISPCData — the Galaxy "New Render
+// Method" gather.  All-scalar struct (no uchar4/float3), so std430 layout
+// matches the natural C++ layout byte-for-byte.
+struct VulkanGalaxyData {
+    uint32_t width;
+    uint32_t height;
+    float    pos_x;
+    float    pos_y;
+    float    radius1;
+    float    radius2;
+    float    width1;
+    float    width2;
+    float    revs;
+    float    start_angle;
+    int32_t  reverse_dir;
+    int32_t  inward;
+    int32_t  blend_edges;
+    float    head_end_of_tail;
+    float    tail_end_of_tail;
+    float    color_length;
+    int32_t  num_colors;
+    float    palR[MAX_VULKAN_GALAXY_COLORS];
+    float    palG[MAX_VULKAN_GALAXY_COLORS];
+    float    palB[MAX_VULKAN_GALAXY_COLORS];
+};
+static_assert(offsetof(VulkanGalaxyData, palR) == 68, "VulkanGalaxyData palR offset drifted from std430");
+static_assert(offsetof(VulkanGalaxyData, palG) == 100, "VulkanGalaxyData palG offset drifted from std430");
+static_assert(offsetof(VulkanGalaxyData, palB) == 132, "VulkanGalaxyData palB offset drifted from std430");
+static_assert(sizeof(VulkanGalaxyData) == 164, "VulkanGalaxyData size drifted from the GLSL std430 block");
+
+#define MAX_VULKAN_CIRCLES_BALLS  20
+#define MAX_VULKAN_CIRCLES_COLORS  8
+
+#define CIRCLES_MODE_RADIAL        0
+#define CIRCLES_MODE_RADIAL_3D     1
+#define CIRCLES_MODE_METABALLS     2
+#define CIRCLES_MODE_REGULAR       3
+#define CIRCLES_MODE_FADING        4
+
+struct VulkanCirclesBall {
+    float x, y, radius;
+    int32_t colorIdx;
+};
+static_assert(sizeof(VulkanCirclesBall) == 16, "VulkanCirclesBall must be 16 bytes (std430 array stride)");
+
+struct VulkanCirclesData {
+    uint32_t width;
+    uint32_t height;
+
+    int32_t mode;
+    int32_t numBalls;
+    int32_t colorCount;
+    int32_t allowAlpha;
+    int32_t wrap;
+
+    int32_t cx, cy;
+    int32_t barSize;
+    int32_t blockSize;
+    int32_t f_offset;
+    int32_t maxRadius;
+    int32_t number;
+    int32_t effectState;
+
+    VulkanCirclesBall balls[MAX_VULKAN_CIRCLES_BALLS];
+
+    xlvk::uchar4 colorsAsRGBA[MAX_VULKAN_CIRCLES_COLORS];
+    xlvk::float3 colorsAsHSV[MAX_VULKAN_CIRCLES_COLORS];
+};
+static_assert(offsetof(VulkanCirclesData, balls) == 60, "VulkanCirclesData balls offset drifted from std430");
+static_assert(offsetof(VulkanCirclesData, colorsAsRGBA) == 380, "VulkanCirclesData colorsAsRGBA offset drifted from std430");
+static_assert(offsetof(VulkanCirclesData, colorsAsHSV) == 416, "VulkanCirclesData colorsAsHSV offset drifted from std430");
+static_assert(sizeof(VulkanCirclesData) == 544, "VulkanCirclesData size drifted from the GLSL std430 block");
+
+#define MAX_VULKAN_PLASMA_COLORS 8
+
+// Mirrors PlasmaData.  Metal compiles 5 PlasmaEffectStyleN kernels and picks
+// functions[colorScheme]; the Vulkan port unifies all 5 color mappings into
+// one PlasmaEffect.comp kernel selected by colorScheme (a uniform).
+struct VulkanPlasmaData {
+    uint32_t width;
+    uint32_t height;
+
+    float style;
+    float lineDensity;
+    float time;
+    float sinTime5;
+    float cosTime3;
+    float sinTime2;
+
+    int32_t colorScheme;
+    int32_t numColors;
+    xlvk::uchar4 colors[MAX_VULKAN_PLASMA_COLORS];
+};
+static_assert(offsetof(VulkanPlasmaData, colorScheme) == 32, "VulkanPlasmaData colorScheme offset drifted from std430");
+static_assert(offsetof(VulkanPlasmaData, colors) == 40, "VulkanPlasmaData colors offset drifted from std430");
+static_assert(sizeof(VulkanPlasmaData) == 72, "VulkanPlasmaData size drifted from the GLSL std430 block");
+
+#define MAX_VULKAN_BUTTERFLY_COLORS 8
+
+// Mirrors ButterflyData.  Metal compiles 6 kernels (ButterflyEffectStyle1..5 +
+// ButterflyEffectPlasmaStyles) indexed by functions[style]; the Vulkan port
+// unifies them into one ButterflyEffect.comp kernel with switch(style), where
+// style is the same 1..10 selector Metal used.
+struct VulkanButterflyData {
+    uint32_t width;
+    uint32_t height;
+
+    float offset;
+    int32_t chunks;
+    int32_t skip;
+    int32_t curState;
+
+    int32_t colorScheme;
+    int32_t numColors;
+    int32_t style;
+
+    float plasmaTime;
+
+    xlvk::uchar4 colors[MAX_VULKAN_BUTTERFLY_COLORS];
+};
+static_assert(offsetof(VulkanButterflyData, colors) == 40, "VulkanButterflyData colors offset drifted from std430");
+static_assert(sizeof(VulkanButterflyData) == 72, "VulkanButterflyData size drifted from the GLSL std430 block");
+
+#define MAX_VULKAN_PINWHEEL_ARMS 16
+
+// Mirrors MetalPinwheelData.  Only PinwheelEffectStyle0 is compiled on the
+// Metal side and it already switches on pw3dType internally, so this is a
+// direct 1:1 port.  Written by the RenderNewArms override (no settings
+// parsing).  Partial-write (leaves the pre-cleared buffer outside the arms).
+struct VulkanPinwheelData {
+    uint32_t width;
+    uint32_t height;
+
+    int32_t pinwheel_arms;
+    int32_t xc_adj;
+    int32_t yc_adj;
+    int32_t degrees_per_arm;
+    int32_t pinwheel_twist;
+    int32_t max_radius;
+    int32_t poffset;
+    int32_t pw3dType;
+    int32_t pinwheel_rotation;
+
+    float tmax;
+    float pos;
+
+    int32_t allowAlpha;
+    int32_t numColors;
+
+    xlvk::uchar4 colorsAsColor[MAX_VULKAN_PINWHEEL_ARMS];
+    xlvk::float3 colorsAsHSV[MAX_VULKAN_PINWHEEL_ARMS];
+};
+static_assert(offsetof(VulkanPinwheelData, colorsAsColor) == 60, "VulkanPinwheelData colorsAsColor offset drifted from std430");
+static_assert(offsetof(VulkanPinwheelData, colorsAsHSV) == 128, "VulkanPinwheelData colorsAsHSV offset drifted from std430");
+static_assert(sizeof(VulkanPinwheelData) == 384, "VulkanPinwheelData size drifted from the GLSL std430 block");
+
+#define VULKAN_KALEIDOSCOPE_KTYPE_SQUARE2  0
+#define VULKAN_KALEIDOSCOPE_KTYPE_RADIAL   1
+#define VULKAN_KALEIDOSCOPE_KTYPE_TRIANGLE 2
+
+// A plain 2-float vertex (GLSL vec2) — std430 vec2-array stride is 8, matching
+// this struct's natural 8-byte layout.
+struct VulkanKaleidoscopeVertex {
+    float x;
+    float y;
+};
+static_assert(sizeof(VulkanKaleidoscopeVertex) == 8, "VulkanKaleidoscopeVertex must be 8 bytes (matches GLSL vec2)");
+
+// Mirrors the 3-way Metal kernel choice (fnSquare2/fnRadial/fnTriangle).
+// Source-reading (ADDENDUM 2): reads a source snapshot, partial-write.
+struct VulkanKaleidoscopeData {
+    uint32_t width;
+    uint32_t height;
+
+    float cx;
+    float cy;
+    float size;
+    float rotRad;
+
+    int32_t kType;
+    int32_t maxIter;
+
+    VulkanKaleidoscopeVertex v[3];
+};
+static_assert(offsetof(VulkanKaleidoscopeData, v) == 32, "VulkanKaleidoscopeData v offset drifted from std430");
+static_assert(sizeof(VulkanKaleidoscopeData) == 56, "VulkanKaleidoscopeData size drifted from the GLSL std430 block");
+
+// Mirrors WarpData plus a warpType selector (the port unifies Metal's 13
+// WarpEffectXxx kernels into one WarpEffect.comp switched on warpType).
+// Source-reading (ADDENDUM 2): every type samples the source snapshot.
+// All-scalar, so std430 matches the natural C++ layout.
+struct VulkanWarpData {
+    uint32_t width;
+    uint32_t height;
+
+    uint32_t xPos;
+    uint32_t yPos;
+
+    float speed;
+    float progress;
+    float frequency;
+
+    int32_t direction;
+    int32_t warpType;
+};
+static_assert(sizeof(VulkanWarpData) == 36, "VulkanWarpData size drifted from the GLSL std430 block");
 
 #endif

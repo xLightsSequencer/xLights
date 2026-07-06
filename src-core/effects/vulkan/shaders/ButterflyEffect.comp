@@ -1,0 +1,193 @@
+#version 450
+// Port of ButterflyEffectStyle1..5 and ButterflyEffectPlasmaStyles in
+// ButterflyFunctions.metal.  Metal compiles 6 separate kernels and the
+// wrapper binds functions[style]; here everything is unified into one
+// kernel with a `switch (data.style)` (see the multi-style addendum in the
+// port conventions doc).  Purely procedural — never reads an existing pixel
+// — but styles 1..5 conditionally SKIP writing a pixel (the "chunks/skip"
+// gap pattern), so this is a writeonly buffer that relies on the host
+// having the pre-existing buffer contents already resident (same pattern as
+// Circles/Shockwave: unwritten pixels retain whatever was already there).
+// Plasma styles (6..10) always write every pixel.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+
+#define MAX_BUTTERFLY_COLORS 8
+
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    float offset;
+    int chunks;
+    int skip;
+    int curState;
+
+    int colorScheme;
+    int numColors;
+    int style;
+
+    float plasmaTime;
+
+    uint colors[MAX_BUTTERFLY_COLORS]; // packed uchar4 per color, via unpackPx/packPx
+} data;
+
+const float bfPi  = 3.14159;
+const float bfPi2 = bfPi * 2.0;
+
+uint channelBlend(uint c1, uint c2, float ratio) {
+    return uint(float(c1) + floor(ratio * (float(c2) - float(c1)) + 0.5));
+}
+
+// Matches getMultiColorBlend() in ButterflyFunctions.metal (always called
+// with circular=false from every style, but the parameter is kept for
+// fidelity with the Metal source).
+uvec4 getMultiColorBlend(float n, bool circular) {
+    if (data.numColors <= 1) {
+        return unpackPx(data.colors[0]);
+    }
+    if (n >= 1.0) n = 0.99999;
+    if (n < 0.0) n = 0.0;
+    float realidx = circular ? (n * float(data.numColors)) : (n * float(data.numColors - 1));
+    int coloridx1 = int(floor(realidx));
+    int coloridx2 = (coloridx1 + 1) % data.numColors;
+    float ratio = realidx - float(coloridx1);
+    uvec4 c1 = unpackPx(data.colors[coloridx1]);
+    uvec4 c2 = unpackPx(data.colors[coloridx2]);
+    uvec4 ret;
+    ret.r = channelBlend(c1.r, c2.r, ratio);
+    ret.g = channelBlend(c1.g, c2.g, ratio);
+    ret.b = channelBlend(c1.b, c2.b, ratio);
+    ret.a = 255u;
+    return ret;
+}
+
+// Matches hsv2rgb(half3) in ButterflyFunctions.metal — the same IQ/"K"
+// formula as the shared hsv2rgb(vec3) in vulkan_common.glsl, so the shared
+// one is used directly (no local reimplementation needed).
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    int x = int(px);
+    int y = int(py);
+    int iw = int(data.width);
+    int ih = int(data.height);
+
+    if (data.style >= 1 && data.style <= 5) {
+        float h = 0.0;
+
+        if (data.style == 1) {
+            float x2 = float(x) * float(x);
+            float y2 = float(y) * float(y);
+            float n = abs((x2 - y2) * sin(data.offset + (float(x + y) * bfPi2 / float(ih + iw))));
+            float d = x2 + y2;
+            h = (d > 0.001) ? (n / d) : 0.0;
+        } else if (data.style == 2) {
+            int maxframe = ih * 2;
+            int frame = (ih * data.curState / 200) % maxframe;
+            float f = (frame < maxframe / 2) ? float(frame + 1) : float(maxframe - frame);
+            float x1 = (float(x) - float(iw) / 2.0) / f;
+            float y1 = (float(y) - float(ih) / 2.0) / f;
+            h = sqrt(x1 * x1 + y1 * y1);
+        } else if (data.style == 3) {
+            int maxframe = ih * 2;
+            int frame = (ih * data.curState / 200) % maxframe;
+            float f = (frame < maxframe / 2) ? float(frame + 1) : float(maxframe - frame);
+            f = f * 0.1 + float(ih) / 60.0;
+            float x1 = (float(x) - float(iw) / 2.0) / f;
+            float y1 = (float(y) - float(ih) / 2.0) / f;
+            h = sin(x1) * cos(y1);
+        } else if (data.style == 4) {
+            float n = (float(x) * float(x) - float(y) * float(y)) * sin(data.offset + (float(x + y) * bfPi2 / float(ih + iw)));
+            float d = float(x) * float(x) + float(y) * float(y);
+            h = (d > 0.001) ? (n / d) : 0.0;
+            float intpart;
+            h = modf(h, intpart);
+            if (h < 0.0) h = 1.0 + h;
+        } else { // style == 5
+            //  This section is to fix the colors on pixels at {0,1} and {1,0}
+            if (x == 0 && y == 1) y++;
+            if (x == 1 && y == 0) x++;
+            float n = abs((float(x) * float(x) - float(y) * float(y)) * sin(data.offset + (float(x + y) * bfPi2 / float(ih * iw))));
+            float d = float(x) * float(x) + float(y) * float(y);
+            h = (d > 0.001) ? (n / d) : 0.0;
+        }
+
+        if (data.chunks <= 1 || int(h * float(data.chunks)) % data.skip != 0) {
+            uvec4 color = (data.colorScheme == 0) ? hsv2rgb(vec3(h, 1.0, 1.0)) : getMultiColorBlend(h, false);
+            result[index] = packPx(color);
+        }
+        return;
+    }
+
+    // Plasma styles 6..10 — matches ButterflyEffectPlasmaStyles in
+    // ButterflyFunctions.metal. Always writes every pixel.
+    float invh = 1.0 / float(ih);
+    float invw = 1.0 / float(iw);
+    float time = data.plasmaTime;
+    float onehalf = 1.0 / 2.0;
+    float onethird = 1.0 / 3.0;
+    float halfTime = time / 2.0;
+    float thirdTime = time / 3.0;
+    float fifthTime = time / 5.0;
+    float chunksF = float(data.chunks);
+
+    float rx = float(x) * invw - 0.5;
+    float ry = float(y) * invh - 0.5;
+
+    float v = sin(rx * 10.0 + time);
+    v += sin(10.0 * (rx * sin(halfTime) + ry * cos(thirdTime)) + time);
+
+    float cx = rx + 0.5 * sin(fifthTime);
+    float cy = ry + 0.5 * cos(thirdTime);
+    v += sin(sqrt(100.0 * ((cx * cx) + (cy * cy)) + 1.0 + time));
+
+    v += sin(rx + time);
+    v += sin((ry + time) * onehalf);
+    v += sin((rx + ry + time) * onehalf);
+
+    v += sin(sqrt(rx * rx + ry * ry + 1.0) + time);
+    v = v * onehalf;
+
+    uvec4 color = uvec4(0u, 0u, 0u, 255u);
+    switch (data.style) {
+        case 6:
+            color.r = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
+            color.g = uint((cos(v * chunksF * bfPi) + 1.0) * 128.0);
+            color.b = 0u;
+            break;
+        case 7:
+            color.r = 1u;
+            color.g = uint((cos(v * chunksF * bfPi) + 1.0) * 128.0);
+            color.b = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
+            break;
+        case 8:
+            color.r = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
+            color.g = uint((sin(v * chunksF * bfPi + 2.0 * bfPi * onethird) + 1.0) * 128.0);
+            color.b = uint((sin(v * chunksF * bfPi + 4.0 * bfPi * onethird) + 1.0) * 128.0);
+            break;
+        case 9:
+            {
+                uint g = uint((sin(v * chunksF * bfPi) + 1.0) * 128.0);
+                color.r = g; color.g = g; color.b = g;
+            }
+            break;
+        case 10:
+            if (data.numColors >= 2) {
+                float h = sin(v * chunksF * bfPi + 2.0 * bfPi * onethird) + 0.5;
+                color = getMultiColorBlend(h, false);
+            } else {
+                color.r = 0u; color.g = 0u; color.b = 0u;
+            }
+            break;
+    }
+    result[index] = packPx(color);
+}

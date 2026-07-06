@@ -23,6 +23,7 @@
 #include "../../render/PixelBuffer.h"
 #include "../../render/RenderBuffer.h"
 #include "VulkanComputeUtilities.h"
+#include "VulkanEffects.h"
 
 class VulkanRenderUtils : public GPURenderUtils {
 public:
@@ -54,6 +55,7 @@ public:
         // Unlike Metal (where messaging a nil device degrades quietly), the
         // Vulkan data classes need a live device, so gate on full enablement.
         if (enabled()) {
+            VulkanComputeUtilities::INSTANCE.statSetup++;
             VulkanPixelBufferComputeData *pbc = nullptr;
             if (!parent->gpuRenderData) {
                 pbc = new VulkanPixelBufferComputeData();
@@ -83,6 +85,7 @@ public:
         }
     }
     virtual bool doBlur(RenderBuffer *c, int radius) override {
+        VulkanComputeUtilities::INSTANCE.statBlurCall++;
         static const bool noGpuBlur = (getenv("XL_NO_GPU_BLUR") != nullptr);
         if (!noGpuBlur && c && c->gpuRenderData) {
             VulkanRenderBufferComputeData *d = static_cast<VulkanRenderBufferComputeData*>(c->gpuRenderData);
@@ -127,7 +130,67 @@ public:
 
 static VulkanRenderUtils VULKAN_RENDER_UTILS;
 
+// XL_NO_VULKAN_FX determinism diagnostic: "ALL" or a comma-separated list of
+// effect names ("Bars,Circles") forces those effects to their CPU
+// implementation while the rest of the GPU pipeline stays active.
+static bool vulkanEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
+    static const char* env = getenv("XL_NO_VULKAN_FX");
+    if (env == nullptr) {
+        return false;
+    }
+    std::string list = env;
+    if (list == "ALL") {
+        return true;
+    }
+    static const std::map<EffectManager::RGB_EFFECTS_e, std::string> names = {
+        { EffectManager::eff_BARS, "Bars" },
+        { EffectManager::eff_COLORWASH, "ColorWash" },
+        { EffectManager::eff_SHOCKWAVE, "Shockwave" },
+        { EffectManager::eff_FAN, "Fan" },
+        { EffectManager::eff_SPIRALS, "Spirals" },
+        { EffectManager::eff_GALAXY, "Galaxy" },
+        { EffectManager::eff_CIRCLES, "Circles" },
+        { EffectManager::eff_PLASMA, "Plasma" },
+        { EffectManager::eff_BUTTERFLY, "Butterfly" },
+        { EffectManager::eff_PINWHEEL, "Pinwheel" },
+        { EffectManager::eff_KALEIDOSCOPE, "Kaleidoscope" },
+        { EffectManager::eff_WARP, "Warp" },
+    };
+    auto it = names.find(eff);
+    return it != names.end() && list.find(it->second) != std::string::npos;
+}
+
 RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff) {
+    if (VulkanComputeUtilities::INSTANCE.computeEnabled() && !vulkanEffectDisabled(eff)) {
+        switch (eff) {
+        case EffectManager::eff_BARS:
+            return new VulkanBarsEffect(eff);
+        case EffectManager::eff_COLORWASH:
+            return new VulkanColorWashEffect(eff);
+        case EffectManager::eff_SHOCKWAVE:
+            return new VulkanShockwaveEffect(eff);
+        case EffectManager::eff_FAN:
+            return new VulkanFanEffect(eff);
+        case EffectManager::eff_SPIRALS:
+            return new VulkanSpiralsEffect(eff);
+        case EffectManager::eff_GALAXY:
+            return new VulkanGalaxyEffect(eff);
+        case EffectManager::eff_CIRCLES:
+            return new VulkanCirclesEffect(eff);
+        case EffectManager::eff_PLASMA:
+            return new VulkanPlasmaEffect(eff);
+        case EffectManager::eff_BUTTERFLY:
+            return new VulkanButterflyEffect(eff);
+        case EffectManager::eff_PINWHEEL:
+            return new VulkanPinwheelEffect(eff);
+        case EffectManager::eff_KALEIDOSCOPE:
+            return new VulkanKaleidoscopeEffect(eff);
+        case EffectManager::eff_WARP:
+            return new VulkanWarpEffect(eff);
+        default:
+            return nullptr;
+        }
+    }
     return nullptr;
 }
 
