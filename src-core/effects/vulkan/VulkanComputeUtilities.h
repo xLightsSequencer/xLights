@@ -244,6 +244,9 @@ public:
     VkPipeline waveEffectFunction = VK_NULL_HANDLE;
     VkPipeline garlandsEffectFunction = VK_NULL_HANDLE;
     VkPipeline fillEffectFunction = VK_NULL_HANDLE;
+    VkPipeline meteorsEffectFunction = VK_NULL_HANDLE;
+    VkPipeline twinkleEffectFunction = VK_NULL_HANDLE;
+    VkPipeline lifeEffectFunction = VK_NULL_HANDLE;
 
     VkPipeline getColorsFunction = VK_NULL_HANDLE;
     VkPipeline putColorsFunction = VK_NULL_HANDLE;

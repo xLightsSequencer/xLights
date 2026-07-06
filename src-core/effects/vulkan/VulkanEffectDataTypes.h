@@ -570,4 +570,72 @@ struct VulkanFillData {
 };
 static_assert(sizeof(VulkanFillData) == 12, "VulkanFillData size drifted from the GLSL std430 block");
 
+// Mirrors MetalMeteorsData.  Axis-aligned gather only; the CPU meteor
+// simulation stays shared (VulkanMeteorsEffect hooks GatherMeteors).  frameSeed
+// (rainbow scheme RNG) split into two 32-bit halves (no native uint64).
+struct VulkanMeteorsData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  mode;         // 0 = vertical, 1 = horizontal, 2 = icicle
+    int32_t  direction;    // raw MeteorsEffect: 0 Down, 1 Up, 2 Left, 3 Right, 6/7 Icicle
+    int32_t  tailLength;
+    int32_t  colorScheme;  // 0 = rainbow, 1 = range, 2 = palette
+    int32_t  allowAlpha;
+    int32_t  numMeteors;
+    int32_t  wantBkg;      // icicle: draw dim background icicles
+    uint32_t frameSeedLo;
+    uint32_t frameSeedHi;
+};
+static_assert(offsetof(VulkanMeteorsData, frameSeedLo) == 36, "VulkanMeteorsData frameSeedLo offset drifted from std430");
+static_assert(sizeof(VulkanMeteorsData) == 44, "VulkanMeteorsData size drifted from the GLSL std430 block");
+
+// Mirrors MetalMeteorParticle (24B).  Bound as a flat uint[] in MeteorsEffect.comp
+// (an array-of-struct stride would round to 32 under std430 rule 9).
+struct VulkanMeteorParticle {
+    int32_t a;      // primary axis coord: column (vertical/icicle) or row (horizontal)
+    int32_t base;   // meteor.y (vertical/icicle) or meteor.x (horizontal)
+    int32_t h;      // icicle drip length; 0 otherwise
+    float   hue;
+    float   sat;
+    float   val;
+};
+static_assert(sizeof(VulkanMeteorParticle) == 24, "VulkanMeteorParticle must be 24 bytes (matches the flat 6-word GLSL layout)");
+
+// Mirrors MetalTwinkleData.  Stateful per-light strobe sim (StrobeClass state
+// cache + CPU LUT uploaded, read/write state + scatter-write result, commit,
+// wait, read state back — like VulkanCandleData).  Dispatched per-strobe.
+struct VulkanTwinkleData {
+    uint32_t width;         // BufferWi (pixel-index stride)
+    uint32_t npix;          // pixel-write bound (GetPixelCount())
+    uint32_t curNumStrobe;  // number of live strobe entries (grid bound)
+    int32_t  max_modulo;
+    int32_t  max_modulo2;
+    int32_t  colorcnt;
+    int32_t  lutStride;     // max_modulo + 1
+    int32_t  lutSize;       // colorcnt * lutStride
+    int32_t  new_algorithm;
+    int32_t  reRandomize;
+    uint32_t frameSeedLo;
+    uint32_t frameSeedHi;
+};
+static_assert(offsetof(VulkanTwinkleData, curNumStrobe) == 8, "VulkanTwinkleData curNumStrobe offset drifted from std430");
+static_assert(offsetof(VulkanTwinkleData, frameSeedLo) == 40, "VulkanTwinkleData frameSeedLo offset drifted from std430");
+static_assert(sizeof(VulkanTwinkleData) == 48, "VulkanTwinkleData size drifted from the GLSL std430 block");
+
+// Mirrors MetalLifeData.  Source-reading: prev[] (a snapshot of GetTempBuf())
+// and palette[] uploaded fresh each frame; result is the shared pixel buffer.
+// CPU reads result back to seed the next generation (commit+wait in Render).
+struct VulkanLifeData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  npix;         // min(GetPixelCount(), width*height); wrapped neighbour
+                           // index >= npix counts as black (scalar's bounds guard)
+    int32_t  type;         // ruleset 0..4
+    int32_t  numColors;    // palette.Size() (>= 1)
+    uint32_t frameSeedLo;
+    uint32_t frameSeedHi;
+};
+static_assert(offsetof(VulkanLifeData, frameSeedLo) == 20, "VulkanLifeData frameSeedLo offset drifted from std430");
+static_assert(sizeof(VulkanLifeData) == 28, "VulkanLifeData size drifted from the GLSL std430 block");
+
 #endif

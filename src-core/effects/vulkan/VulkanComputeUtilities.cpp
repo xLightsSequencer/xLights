@@ -105,6 +105,9 @@
 #include "shaders/compiled/WaveEffect.spv.h"
 #include "shaders/compiled/GarlandsEffect.spv.h"
 #include "shaders/compiled/FillEffect.spv.h"
+#include "shaders/compiled/MeteorsEffect.spv.h"
+#include "shaders/compiled/TwinkleEffect.spv.h"
+#include "shaders/compiled/LifeEffect.spv.h"
 
 #include "../../render/DissolveTransitionPattern.h"
 
@@ -419,7 +422,8 @@ void VulkanComputeUtilities::doInit() {
                                        &u.kaleidoscopeEffectFunction, &u.warpEffectFunction,
                                        &u.treeEffectFunction, &u.shimmerEffectFunction,
                                        &u.candleEffectFunction, &u.waveEffectFunction,
-                                       &u.garlandsEffectFunction, &u.fillEffectFunction }) {
+                                       &u.garlandsEffectFunction, &u.fillEffectFunction, &u.meteorsEffectFunction,
+                                       &u.twinkleEffectFunction, &u.lifeEffectFunction }) {
                     if (*p != VK_NULL_HANDLE) {
                         vkDestroyPipeline(u.device, *p, nullptr);
                         *p = VK_NULL_HANDLE;
@@ -651,6 +655,9 @@ bool VulkanComputeUtilities::buildPipelines() {
     XLVK_PIPELINE(waveEffectFunction, WaveEffect)
     XLVK_PIPELINE(garlandsEffectFunction, GarlandsEffect)
     XLVK_PIPELINE(fillEffectFunction, FillEffect)
+    XLVK_PIPELINE(meteorsEffectFunction, MeteorsEffect)
+    XLVK_PIPELINE(twinkleEffectFunction, TwinkleEffect)
+    XLVK_PIPELINE(lifeEffectFunction, LifeEffect)
 
 #define XLVK_BLEND(mix, header, ...) \
     { \

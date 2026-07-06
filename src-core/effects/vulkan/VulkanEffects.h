@@ -33,6 +33,9 @@
 #include "../WaveEffect.h"
 #include "../GarlandsEffect.h"
 #include "../FillEffect.h"
+#include "../MeteorsEffect.h"
+#include "../TwinkleEffect.h"
+#include "../LifeEffect.h"
 
 class VulkanBarsEffect : public BarsEffect {
 public:
@@ -176,6 +179,32 @@ class VulkanFillEffect : public FillEffect {
 public:
     VulkanFillEffect(int i);
     virtual ~VulkanFillEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanMeteorsEffect : public MeteorsEffect {
+public:
+    VulkanMeteorsEffect(int i);
+    virtual ~VulkanMeteorsEffect();
+
+    // Meteors hooks GatherMeteors (the CPU add/move/remove simulation and
+    // swirl/palette precompute stay shared), not Render.
+    virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts) override;
+};
+
+class VulkanTwinkleEffect : public TwinkleEffect {
+public:
+    VulkanTwinkleEffect(int i);
+    virtual ~VulkanTwinkleEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanLifeEffect : public LifeEffect {
+public:
+    VulkanLifeEffect(int i);
+    virtual ~VulkanLifeEffect();
 
     virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
 };
