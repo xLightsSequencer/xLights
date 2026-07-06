@@ -11267,13 +11267,23 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
         ++layerRow;
     };
 
-    for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) {
+    auto effectiveLayers = [](Element* elem) -> int {
+        for (int j = (int)elem->GetEffectLayerCount() - 1; j >= 0; --j) {
+            if (elem->GetEffectLayer(j)->GetEffectCount() > 0)
+                return j + 1;
+        }
+        return 1;
+    };
+
+    int mainCount = effectiveLayers(me);
+    for (int j = 0; j < mainCount; ++j) {
         appendLayer(me->GetEffectLayer(j));
     }
     for (int s = 0; s < me->GetSubModelCount(); ++s) {
         SubModelElement* sub = me->GetSubModel(s);
         if (!sub) continue;
-        for (int j = 0; j < (int)sub->GetEffectLayerCount(); ++j) {
+        int subCount = effectiveLayers(sub);
+        for (int j = 0; j < subCount; ++j) {
             appendLayer(sub->GetEffectLayer(j));
         }
     }

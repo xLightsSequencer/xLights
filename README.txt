@@ -15,7 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
                                  "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
-    -bug (cybrcop23)             Fix "Copy Layers/SubModels to Models" for submodels with trailing empty layers (6647)
+    -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" for submodels with trailing empty layers (#6647)
     -bug (dkulp)                 Meteors effect: fix a threading race drawing overlapping meteor trails - output could
                                  differ from render to render
     -bug (dkulp)                 Layer blending (macOS GPU): transition masks computed by the CPU fallback (small or
