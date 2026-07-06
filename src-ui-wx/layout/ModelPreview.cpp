@@ -13,6 +13,9 @@
 #include <wx/artprov.h>
 #include <wx/config.h>
 
+#include <algorithm>
+#include <unordered_set>
+
 #if defined(USE_GLES) && !defined(__WXMAC__)
     #include <GLES3/gl3.h>
 #elif defined(__WXMAC__)
@@ -368,9 +371,15 @@ ModelGroup* ModelPreview::GetSelectedModelGroup()
 const std::vector<Model*> &ModelPreview::GetModels() {
     tmpModelList.clear();
     if (xlights) {
+        // PreviewModels and the layout-group model lists are cached and only
+        // rebuilt by UpdateModelsList, which runs as deferred ASAP work — a
+        // model delete bumps the AllModels generation before that rebuild, so
+        // a paint or mouse event landing in that window would walk freed
+        // Model pointers. When the generation has moved, return a copy
+        // filtered down to models that still exist.
+        const bool stale = xlights->AllModels.GetModelGeneration() != xlights->PreviewModelsGeneration;
         if (currentLayoutGroup == "Default") {
-            if (additionalModel == nullptr) {
-                //wxASSERT(ValidateModels(xlights->PreviewModels, xlights->AllModels));
+            if (additionalModel == nullptr && !stale) {
                 return xlights->PreviewModels;
             } else {
                 tmpModelList = xlights->PreviewModels;
@@ -394,8 +403,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             for (auto& [gname, grp] : xlights->LayoutGroups) {
                 if (currentLayoutGroup == gname) {
                     foundGrp = true;
-                    if (additionalModel == nullptr) {
-                        //wxASSERT(ValidateModels(grp->GetModels(), xlights->AllModels));
+                    if (additionalModel == nullptr && !stale) {
                         return grp->GetModels();
                     } else {
                         tmpModelList = grp->GetModels();
@@ -408,8 +416,20 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             }
         }
 
-        // Only in debug builds but this really should all be valid or bad things will happen
-        //wxASSERT(ValidateModels(tmpModelList, xlights->AllModels));
+        if (stale && !tmpModelList.empty()) {
+            // membership test must not dereference the (possibly freed)
+            // cached pointers, so build the live set from AllModels
+            std::unordered_set<const Model*> live;
+            for (const auto& a : xlights->AllModels) {
+                live.insert(a.second);
+                for (const auto* sm : a.second->GetSubModels()) {
+                    live.insert(sm);
+                }
+            }
+            tmpModelList.erase(std::remove_if(tmpModelList.begin(), tmpModelList.end(),
+                                              [&live](const Model* m) { return live.find(m) == live.end(); }),
+                               tmpModelList.end());
+        }
     }
     if (additionalModel != nullptr) {
         tmpModelList.push_back(additionalModel);

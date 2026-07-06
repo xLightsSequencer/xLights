@@ -380,17 +380,19 @@ struct NewSequenceWizardView: View {
         case .animation, .effect:
             durationMS = Int(durationSeconds * 1000)
         }
-        let ok = viewModel.newSequence(
-            type: type.bridgeString,
-            mediaPath: mediaPath,
-            durationMS: durationMS,
-            frameMS: frameMS,
-            savePath: path)
-        if ok {
-            dismiss()
-        } else {
-            errorMessage = "The sequence couldn't be created at the selected location. Check file permissions and try again."
+        Task { @MainActor in
+            let ok = await viewModel.newSequence(
+                type: type.bridgeString,
+                mediaPath: mediaPath,
+                durationMS: durationMS,
+                frameMS: frameMS,
+                savePath: path)
+            if ok {
+                dismiss()
+            } else {
+                errorMessage = "The sequence couldn't be created at the selected location. Check file permissions and try again."
+            }
+            saveDoc = nil
         }
-        saveDoc = nil
     }
 }

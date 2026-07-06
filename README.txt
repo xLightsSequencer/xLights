@@ -11,6 +11,22 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -bug (dkulp)                 Fix a crash cancelling (or failing) a model download/import - a malformed .xmodel
+                                 made the deserializer throw after it had already freed the in-flight model, and the
+                                 cancel cleanup then deleted it a second time
+    -bug (dkulp)                 Layout: fix a crash moving the mouse in the 3D preview right after a model is
+                                 deleted - the preview's cached model list could briefly hold freed models until the
+                                 deferred rebuild ran; the list is now validated against the model manager generation
+    -bug (dkulp)                 Fix a crash closing the Key Bindings editor with an uncommitted property edit - the
+                                 property grid committed the pending change from its destructor into the
+                                 already-destroyed dialog
+    -bug (dkulp)                 Fix a crash clicking "Render All" while a sequence is closing, and ignore a second
+                                 click that lands before the toolbar disables
+    -bug (dkulp)                 macOS: fix a crash after finalizing/deleting a model while a property-grid combo
+                                 editor popup is being torn down - the retired editor painted an already-freed
+                                 property (wxWidgets fork fix)
+    -bug (dkulp)                 Metal: creating a texture no longer crashes when the GPU refuses the allocation
+                                 (memory pressure / zero-sized image) - the texture is skipped instead
     -enh (charlie)               Effect Symbols: define a reusable effect (name, color, settings, palette) once and
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
