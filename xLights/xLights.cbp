@@ -995,6 +995,18 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/GalaxyFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/TreeFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/TreeFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/ShimmerFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/ShimmerFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/CandleFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/CandleFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/CirclesFunctions.ispc">
 			<Option link="1" />
 		</Unit>

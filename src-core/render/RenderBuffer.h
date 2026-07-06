@@ -462,6 +462,12 @@ public:
     inline uint32_t hashRandomStable(uint32_t index) const {
         return uint32_t(rngMix64(rngBaseSeed ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL)) >> 32);
     }
+    // Raw 64-bit per-(effect,frame) seed behind hashRandom()/hashRand01(); lets
+    // ISPC/Metal kernels reproduce the hash stream bit-exactly off-CPU:
+    // hashRandom(index) == mix64(frameSeed ^ (uint64(index) * 0xD1B54A32D192ED03)) >> 32.
+    inline uint64_t hashRandomFrameSeed() const {
+        return rngHashInput(0);
+    }
     void SetLayerIndex(int idx) { rngLayerIndex = idx; }
     const PaletteClass& GetPalette() const { return palette; }
 

@@ -132,6 +132,9 @@ static bool metalEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_KALEIDOSCOPE, "Kaleidoscope" },
         { EffectManager::eff_FAN, "Fan" },
         { EffectManager::eff_GALAXY, "Galaxy" },
+        { EffectManager::eff_TREE, "Tree" },
+        { EffectManager::eff_SHIMMER, "Shimmer" },
+        { EffectManager::eff_CANDLE, "Candle" },
         { EffectManager::eff_SPIRALS, "Spirals" },
         { EffectManager::eff_COLORWASH, "ColorWash" },
         { EffectManager::eff_BARS, "Bars" },
@@ -161,6 +164,12 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalFanEffect(eff);
         case EffectManager::eff_GALAXY:
             return new MetalGalaxyEffect(eff);
+        case EffectManager::eff_TREE:
+            return new MetalTreeEffect(eff);
+        case EffectManager::eff_SHIMMER:
+            return new MetalShimmerEffect(eff);
+        case EffectManager::eff_CANDLE:
+            return new MetalCandleEffect(eff);
         case EffectManager::eff_SPIRALS:
             return new MetalSpiralsEffect(eff);
         case EffectManager::eff_COLORWASH:

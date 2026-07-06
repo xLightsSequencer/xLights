@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -enh (dkulp)                 Tree, Shimmer, and Candle (per-node) effects now render on the GPU (Metal on
+                                 macOS) or with SIMD kernels (ISPC) - identical output, faster full-sequence renders
     -bug (dkulp)                 Fix a crash cancelling (or failing) a model download/import - a malformed .xmodel
                                  made the deserializer throw after it had already freed the in-flight model, and the
                                  cancel cleanup then deleted it a second time

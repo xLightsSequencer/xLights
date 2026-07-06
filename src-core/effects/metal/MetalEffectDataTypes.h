@@ -336,6 +336,52 @@ struct MetalGalaxyData {
     float    palB[MAX_METAL_GALAXY_COLORS];
 };
 
+// Tree effect — background/light color tables are precomputed on the CPU with the
+// exact scalar double math so the kernel (pure integer math) is byte-identical to
+// the scalar renderer. Mirrors ispc::TreeISPCData.
+#define MAX_METAL_TREE_PPB 512
+
+struct MetalTreeData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  ppb;         // pixels_per_branch
+    int32_t  frame;       // light sweep limit (x <= frame)
+    int32_t  branch_row;  // b — branch row currently being lit
+    int32_t  f_mod;       // sweep position within the row
+    int32_t  showlights;
+    simd::uchar4 bgColors[MAX_METAL_TREE_PPB]; // indexed by mod-1, mod in 1..ppb
+    simd::uchar4 lightColors[5];               // indexed by branch % 5
+};
+
+// Shimmer effect — kernel fills every pixel from a CPU-built color LUT bound at
+// buffer(2) (setBytes, so at most SHIMMER_MAX_LUT entries — larger spatial LUTs
+// fall back to CPU). lutMode values are ShimmerEffect::ShimmerLutMode.
+#define SHIMMER_MAX_LUT 1024
+
+struct MetalShimmerData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  lutMode;
+    int32_t  colorCount;
+    uint64_t frameSeed;
+};
+
+// Mirrors ispc::CandleISPCData - the Candle perNode flame simulation.
+struct MetalCandleData {
+    uint32_t width;
+    uint32_t height;
+    uint32_t maxWid;      // stride of the state array rows
+    uint32_t numStates;
+    uint64_t frameSeed;   // RenderBuffer::hashRandomFrameSeed() for this frame
+    int32_t  windVariability;
+    int32_t  flameAgility;
+    int32_t  windCalmness;
+    int32_t  windBaseline;
+    int32_t  usePalette;
+    simd::uchar4 c1;
+    simd::uchar4 c2;
+};
+
 struct LayerBlendingData {
     int32_t nodeCount;
     uint32_t bufferWi;
