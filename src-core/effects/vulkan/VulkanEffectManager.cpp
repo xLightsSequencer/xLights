@@ -158,6 +158,9 @@ static bool vulkanEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_TREE, "Tree" },
         { EffectManager::eff_SHIMMER, "Shimmer" },
         { EffectManager::eff_CANDLE, "Candle" },
+        { EffectManager::eff_WAVE, "Wave" },
+        { EffectManager::eff_GARLANDS, "Garlands" },
+        { EffectManager::eff_FILL, "Fill" },
     };
     auto it = names.find(eff);
     return it != names.end() && list.find(it->second) != std::string::npos;
@@ -196,6 +199,12 @@ RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new VulkanShimmerEffect(eff);
         case EffectManager::eff_CANDLE:
             return new VulkanCandleEffect(eff);
+        case EffectManager::eff_WAVE:
+            return new VulkanWaveEffect(eff);
+        case EffectManager::eff_GARLANDS:
+            return new VulkanGarlandsEffect(eff);
+        case EffectManager::eff_FILL:
+            return new VulkanFillEffect(eff);
         default:
             return nullptr;
         }

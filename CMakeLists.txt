@@ -382,7 +382,10 @@ if(XLIGHTS_USE_VULKAN AND UNIX AND NOT APPLE)
         src-core/effects/vulkan/VulkanWarpEffect.cpp
         src-core/effects/vulkan/VulkanTreeEffect.cpp
         src-core/effects/vulkan/VulkanShimmerEffect.cpp
-        src-core/effects/vulkan/VulkanCandleEffect.cpp)
+        src-core/effects/vulkan/VulkanCandleEffect.cpp
+        src-core/effects/vulkan/VulkanWaveEffect.cpp
+        src-core/effects/vulkan/VulkanGarlandsEffect.cpp
+        src-core/effects/vulkan/VulkanFillEffect.cpp)
     set(XLIGHTS_VULKAN_ENABLED TRUE)
 endif()
 

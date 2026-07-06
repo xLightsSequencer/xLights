@@ -30,6 +30,9 @@
 #include "../TreeEffect.h"
 #include "../ShimmerEffect.h"
 #include "../CandleEffect.h"
+#include "../WaveEffect.h"
+#include "../GarlandsEffect.h"
+#include "../FillEffect.h"
 
 class VulkanBarsEffect : public BarsEffect {
 public:
@@ -149,6 +152,30 @@ class VulkanCandleEffect : public CandleEffect {
 public:
     VulkanCandleEffect(int i);
     virtual ~VulkanCandleEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanWaveEffect : public WaveEffect {
+public:
+    VulkanWaveEffect(int i);
+    virtual ~VulkanWaveEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanGarlandsEffect : public GarlandsEffect {
+public:
+    VulkanGarlandsEffect(int i);
+    virtual ~VulkanGarlandsEffect();
+
+    virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanFillEffect : public FillEffect {
+public:
+    VulkanFillEffect(int i);
+    virtual ~VulkanFillEffect();
 
     virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
 };

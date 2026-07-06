@@ -1057,6 +1057,9 @@
 		<Unit filename="../src-core/effects/vulkan/VulkanBarsEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanButterflyEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanCandleEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanWaveEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanGarlandsEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanFillEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanCirclesEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanColorWashEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanFanEffect.cpp" />

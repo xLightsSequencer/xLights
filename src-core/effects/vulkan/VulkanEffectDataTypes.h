@@ -533,4 +533,41 @@ struct VulkanCandleState {
 };
 static_assert(sizeof(VulkanCandleState) == 20, "VulkanCandleState size drifted from the flat state-buffer layout in CandleEffect.comp");
 
+// Mirrors MetalWaveData.  None-fill (constant-color) case only; the per-column
+// band [y1,y2] is uploaded separately as the Cols SSBO (binding 1).
+struct VulkanWaveData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  yoffset;
+    int32_t  mirror;
+    xlvk::uchar4 noneColor;
+};
+static_assert(offsetof(VulkanWaveData, noneColor) == 16, "VulkanWaveData noneColor offset drifted from std430");
+static_assert(sizeof(VulkanWaveData) == 20, "VulkanWaveData size drifted from the GLSL std430 block");
+
+// Mirrors MetalGarlandsData.  colors[] (binding 1, packed uchar4) and yb[]
+// (binding 2, int32) are uploaded fresh every frame (buffMax scales with the
+// buffer, so no fixed LUT fits here).
+struct VulkanGarlandsData {
+    uint32_t width;         // BufferWi
+    uint32_t height;        // BufferHt
+    int32_t  buffMax;       // ring count (BufferHt for Up/Down, BufferWi for Left/Right)
+    int32_t  garlandType;   // 0..4
+    int32_t  dir;           // 0..3 (Up/Down/Left/Right, after Up-then-Down folding)
+    float    invPS;         // 1 / PixelSpacing
+    float    posOffOverPS;  // positionOffset / PixelSpacing
+};
+static_assert(offsetof(VulkanGarlandsData, dir) == 16, "VulkanGarlandsData dir offset drifted from std430");
+static_assert(offsetof(VulkanGarlandsData, invPS) == 20, "VulkanGarlandsData invPS offset drifted from std430");
+static_assert(sizeof(VulkanGarlandsData) == 28, "VulkanGarlandsData size drifted from the GLSL std430 block");
+
+// Mirrors MetalFillData.  Per-line color LUT (binding 1) and painted mask
+// (binding 2) ride in real SSBOs uploaded via createSharedBuffer.
+struct VulkanFillData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  vertical;  // 1 => line is the row (y) [Up/Down]; 0 => the column (x) [Left/Right]
+};
+static_assert(sizeof(VulkanFillData) == 12, "VulkanFillData size drifted from the GLSL std430 block");
+
 #endif
