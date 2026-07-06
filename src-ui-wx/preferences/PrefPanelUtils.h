@@ -11,25 +11,17 @@
  **************************************************************/
 
 #include <wx/window.h>
-#include <wx/statbox.h>
-#include <wx/settings.h>
+#include <wx/stattext.h>
 #include <wx/font.h>
 
-// Section headings on the preferences pages are wxStaticBox captions. On macOS
-// the native box caption uses a smaller "small system font", which looks out of
-// place next to the full-size control labels on the same page. Re-font every
-// wxStaticBox caption on the panel to the standard GUI font (bold) so section
-// titles match the label size and read as intentional headings. Call once after
-// the panel's controls have been created.
-inline void StylePreferenceSectionHeaders(wxWindow* panel) {
-    if (panel == nullptr) return;
-    wxFont f = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+// Build a section heading for a preferences page. Uses the panel's normal
+// control font made bold, so headings read at the same size as the labels
+// beneath them. Preferred over a wxStaticBox caption, whose native font macOS
+// renders smaller and refuses to override via SetFont.
+inline wxStaticText* MakePreferenceSectionHeader(wxWindow* parent, const wxString& title) {
+    auto* header = new wxStaticText(parent, wxID_ANY, title);
+    wxFont f = header->GetFont();
     f.MakeBold();
-    for (wxWindow* child : panel->GetChildren()) {
-        // wxStaticBox has its own wxWidgets RTTI, so IsKindOf is reliable here
-        // even in builds without C++ RTTI.
-        if (child != nullptr && child->IsKindOf(wxCLASSINFO(wxStaticBox))) {
-            child->SetFont(f);
-        }
-    }
+    header->SetFont(f);
+    return header;
 }

@@ -45,7 +45,7 @@ VideoSettingsPanel::VideoSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     renderRow->Add(HardwareVideoRenderChoice, 1, wxEXPAND);
     sizer->Add(renderRow, 0, wxEXPAND | wxALL, 5);
 
-    auto* exportBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Video Export Settings"));
+    sizer->Add(MakePreferenceSectionHeader(this, _("Video Export Settings")), 0, wxLEFT | wxTOP, 10);
     auto* grid = new wxFlexGridSizer(0, 2, 0, 0);
     grid->AddGrowableCol(1);
     grid->Add(new wxStaticText(this, wxID_ANY, _("Video Codec:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
@@ -59,12 +59,10 @@ VideoSettingsPanel::VideoSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     SpinCtrlDoubleBitrate = new wxSpinCtrlDouble(this, wxID_ANY, _T("0"), wxDefaultPosition, wxDefaultSize, 0, 0, 90000, 0, 1000);
     SpinCtrlDoubleBitrate->SetValue(0);
     grid->Add(SpinCtrlDoubleBitrate, 1, wxALL | wxEXPAND, 5);
-    exportBox->Add(grid, 1, wxEXPAND | wxALL, 5);
-    sizer->Add(exportBox, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(grid, 0, wxEXPAND | wxLEFT, 16);
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
-    StylePreferenceSectionHeaders(this);
 
     // The hardware video renderer choice is only honoured on Windows; other
     // platforms decode without the selectable backend (mirrors the prior panel).

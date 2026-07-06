@@ -87,15 +87,17 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     sizer->Add(CheckBox_UseCustomColorPicker, 0, wxALL, 5);
 
     // Packaging Sequences.
-    auto* packBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Packaging Sequences"));
+    sizer->Add(MakePreferenceSectionHeader(this, _("Packaging Sequences")), 0, wxLEFT | wxTOP, 10);
+    auto* packBox = new wxBoxSizer(wxVERTICAL);
     ExcludeVideosCheckBox = new wxCheckBox(this, wxID_ANY, _("Exclude Videos"));
     packBox->Add(ExcludeVideosCheckBox, 0, wxALL, 5);
     ExcludeAudioCheckBox = new wxCheckBox(this, wxID_ANY, _("Exclude Audio"));
     packBox->Add(ExcludeAudioCheckBox, 0, wxALL, 5);
-    sizer->Add(packBox, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(packBox, 0, wxEXPAND | wxLEFT, 16);
 
     // Tip Of The Day.
-    auto* tipBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Tip Of The Day"));
+    sizer->Add(MakePreferenceSectionHeader(this, _("Tip Of The Day")), 0, wxLEFT | wxTOP, 10);
+    auto* tipBox = new wxBoxSizer(wxVERTICAL);
     auto* tipRow = new wxBoxSizer(wxHORIZONTAL);
     tipRow->Add(new wxStaticText(this, wxID_ANY, _("Minimum Tip Level")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
     Choice_MinTipLevel = new wxChoice(this, wxID_ANY);
@@ -108,20 +110,20 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     tipBox->Add(tipRow, 0, wxALL, 5);
     CheckBox_RecycleTips = new wxCheckBox(this, wxID_ANY, _("Recycle tips once all seen"));
     tipBox->Add(CheckBox_RecycleTips, 0, wxALL, 5);
-    sizer->Add(tipBox, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(tipBox, 0, wxEXPAND | wxLEFT, 16);
 
     // Moving Head Adv - Position Zones.
-    auto* zoneBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Moving Head Adv - Position Zones"));
+    sizer->Add(MakePreferenceSectionHeader(this, _("Moving Head Adv - Position Zones")), 0, wxLEFT | wxTOP, 10);
+    auto* zoneBox = new wxBoxSizer(wxVERTICAL);
     CheckBox_EnablePositionZones = new wxCheckBox(this, wxID_ANY, _("Enable Position Zones"));
     CheckBox_EnablePositionZones->SetValue(true);
     zoneBox->Add(CheckBox_EnablePositionZones, 0, wxALL, 5);
     CheckBox_ShowZoneIndicator = new wxCheckBox(this, wxID_ANY, _("Show Zone Indicator in Preview"));
     zoneBox->Add(CheckBox_ShowZoneIndicator, 0, wxALL, 5);
-    sizer->Add(zoneBox, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(zoneBox, 0, wxEXPAND | wxLEFT, 16);
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
-    StylePreferenceSectionHeaders(this);
 
 #ifdef __LINUX__
     ShaderCheckbox->Hide();

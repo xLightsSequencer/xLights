@@ -9,7 +9,6 @@
  **************************************************************/
 
 #include "BackupSettingsPanel.h"
-#include "PrefPanelUtils.h"
 
 //(*InternalHeaders(BackupSettingsPanel)
 #include <wx/checkbox.h>
@@ -100,7 +99,6 @@ BackupSettingsPanel::BackupSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWi
     #ifdef _MSC_VER
     MSWDisableComposited();
     #endif
-    StylePreferenceSectionHeaders(this);
 }
 
 BackupSettingsPanel::~BackupSettingsPanel()
