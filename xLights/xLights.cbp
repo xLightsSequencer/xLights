@@ -142,6 +142,11 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DHAVE_VULKAN" />
+			<Add option="-DVK_NO_PROTOTYPES" />
+			<Add directory="../dependencies/Vulkan-Headers/include" />
+			<Add directory="../dependencies/volk" />
+			<Add directory="../dependencies/VulkanMemoryAllocator/include" />
 		</Compiler>
 		<Unit filename="../common/xlBaseApp.cpp" />
 		<Unit filename="../common/xlBaseApp.h" />
@@ -1025,6 +1030,27 @@
 			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/LayerBlendingFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanBarsEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanButterflyEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanCandleEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanCirclesEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanColorWashEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanFanEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanGalaxyEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanPinwheelEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanPlasmaEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShockwaveEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShimmerEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanSpiralsEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanTreeEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanWarpEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanComputeUtilities.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanComputeUtilities.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanEffectDataTypes.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanEffects.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanEffectManager.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanLibs.cpp" />
 		<Unit filename="../src-ui-wx/graphics/xlGraphicsBase.h" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.h" />

@@ -577,5 +577,7 @@ private:
     
     friend class MetalPixelBufferComputeData;
     friend class MetalRenderBufferComputeData;
+    friend class VulkanPixelBufferComputeData;
+    friend class VulkanRenderBufferComputeData;
     friend class ISPCComputeUtilities;
 };
