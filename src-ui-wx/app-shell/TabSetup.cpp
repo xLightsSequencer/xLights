@@ -1066,7 +1066,7 @@ void xLightsFrame::UpdateControllerSave() {
 }
 
 void xLightsFrame::UpdateLayoutSave() {
-    if (UnsavedRgbEffectsChanges || UnsavedNetworkChanges) {
+    if (UnsavedRgbEffectsChanges || UnsavedNetworkChanges || UnsavedPresetChanges) {
 #ifdef __WXOSX__
         SetButtonBackground(layoutPanel->ButtonSavePreview, wxColour(255, 0, 0), 2);
 #else
@@ -1236,6 +1236,10 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work->debug("    WORK_RGBEFFECTS_CHANGE.");
         // Mark the rgb effects file as needing to be saved
         MarkEffectsFileDirty();
+    }
+    if (work & OutputModelManager::WORK_PRESET_CHANGE) {
+        logger_work->debug("    WORK_PRESET_CHANGE.");
+        MarkPresetsDirty();
     }
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |

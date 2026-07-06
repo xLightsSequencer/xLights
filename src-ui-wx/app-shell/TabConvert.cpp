@@ -810,7 +810,7 @@ void xLightsFrame::EnsurePresetModel()
     boxedLoc.SetScaleZ(1.0f);
     screenLoc.SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
 
-    matrixModel->SetLayoutGroup("Unassigned");
+    matrixModel->SetLayoutGroup("Unassigned", true);
     matrixModel->SetName(PRESET_MODEL_NAME);
     matrixModel->SetStartChannel("1");
     matrixModel->Setup();

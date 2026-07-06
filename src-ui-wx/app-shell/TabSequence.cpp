@@ -350,6 +350,7 @@ void xLightsFrame::LoadEffectsFile()
             _effectPresetManager.Load(effectsNode);
             spdlog::info("Migrated effect presets from xlights_rgbeffects.xml to JSON");
             UnsavedRgbEffectsChanges = true; // trigger save to create the new JSON file
+            UnsavedPresetChanges = true;
         }
     }
     if (_effectPresetManager.GetVersion().empty()) {
@@ -870,26 +871,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         return false;
     }
 
-    // Save effect presets to separate JSON file
-    {
-        wxFileName presetsFile;
-        presetsFile.AssignDir(CurrentDir);
-        if (backup) {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
-        } else {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
-        }
-
-        if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
-            if (backup) {
-                spdlog::warn("Unable to save backup of effect presets file");
-            } else {
-                DisplayError("Unable to save effect presets file", this);
-            }
-        }
-    }
-
     if (!backup) {
+        SavePresetsFile();
         UnsavedRgbEffectsChanges = false;
     }
 
@@ -897,6 +880,30 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     UpdateControllerSave();
 
     return true;
+}
+
+void xLightsFrame::SavePresetsFile(bool backup)
+{
+    wxFileName presetsFile;
+    presetsFile.AssignDir(CurrentDir);
+    if (backup) {
+        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
+    } else {
+        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+    }
+
+    if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
+        if (backup) {
+            spdlog::warn("Unable to save backup of effect presets file");
+        } else {
+            DisplayError("Unable to save effect presets file", this);
+        }
+        return;
+    }
+
+    if (!backup) {
+        UnsavedPresetChanges = false;
+    }
 }
 
 void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)
