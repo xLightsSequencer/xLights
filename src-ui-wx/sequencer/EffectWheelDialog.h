@@ -29,7 +29,6 @@ private:
     void OnMouseMove(wxMouseEvent& event);
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
-    void OnKeyDown(wxKeyEvent& event);
     void OnShow(wxShowEvent& event);
 
     int GetSectorAtMouse(const wxPoint& pos);
@@ -44,6 +43,7 @@ private:
     // Radius constants
     int m_outerRadius;
     int m_innerRadius;
+    bool m_centerHovered;
 
     DECLARE_EVENT_TABLE()
 };

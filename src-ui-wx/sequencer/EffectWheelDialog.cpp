@@ -37,6 +37,7 @@ EffectWheelDialog::EffectWheelDialog(wxWindow* parent, const std::vector<const K
     , m_bindings(bindings)
     , m_selectedBinding(nullptr)
     , m_hoveredSector(-1)
+    , m_centerHovered(false)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -55,8 +56,6 @@ EffectWheelDialog::EffectWheelDialog(wxWindow* parent, const std::vector<const K
     SetClientSize(wxSize(sizeVal, sizeVal));
 
     SetCircularShape(m_outerRadius);
-
-    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(EffectWheelDialog::OnKeyDown), nullptr, this);
 }
 
 void EffectWheelDialog::PositionAtMouse(const wxPoint& mousePos) {
@@ -114,8 +113,12 @@ int EffectWheelDialog::GetSectorAtMouse(const wxPoint& pos) {
 
 void EffectWheelDialog::OnMouseMove(wxMouseEvent& event) {
     int newHover = GetSectorAtMouse(event.GetPosition());
-    if (newHover != m_hoveredSector) {
+    double dx = event.GetPosition().x - m_center.x;
+    double dy = event.GetPosition().y - m_center.y;
+    bool newCenterHovered = (sqrt(dx * dx + dy * dy) < m_innerRadius);
+    if (newHover != m_hoveredSector || newCenterHovered != m_centerHovered) {
         m_hoveredSector = newHover;
+        m_centerHovered = newCenterHovered;
         Refresh();
     }
 }
@@ -209,10 +212,38 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         gc->PopState();
     }
 
-    // Draw central hollow cutout
-    gc->SetBrush(wxBrush(wxColour(20, 20, 20, 255)));
-    gc->SetPen(wxPen(wxColour(255, 255, 255, 80), 2));
+    // Draw central hollow cutout with hover highlight
+    if (m_centerHovered) {
+        gc->SetBrush(wxBrush(wxColour(180, 40, 40, 220)));
+        gc->SetPen(wxPen(wxColour(255, 120, 120, 200), 2));
+    } else {
+        gc->SetBrush(wxBrush(wxColour(20, 20, 20, 255)));
+        gc->SetPen(wxPen(wxColour(255, 255, 255, 80), 2));
+    }
     gc->DrawEllipse(m_center.x - m_innerRadius, m_center.y - m_innerRadius, m_innerRadius * 2, m_innerRadius * 2);
+
+    // Draw "Exit" hint in the center circle
+    {
+        wxColour textColor = m_centerHovered ? wxColour(255, 255, 255) : wxColour(170, 170, 170);
+        bool large = (m_innerRadius > FromDIP(35));
+        wxFont iconFont(large ? 11 : 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont labelFont(large ? 8 : 7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+
+        double iw, ih, lw, lh;
+        gc->SetFont(iconFont, textColor);
+        gc->GetTextExtent(wxT("×"), &iw, &ih);
+        gc->SetFont(labelFont, textColor);
+        gc->GetTextExtent("Exit", &lw, &lh);
+
+        double gap = FromDIP(1.0);
+        double totalH = ih + gap + lh;
+        double startY = m_center.y - totalH / 2.0;
+
+        gc->SetFont(iconFont, textColor);
+        gc->DrawText(wxT("×"), m_center.x - iw / 2.0, startY);
+        gc->SetFont(labelFont, textColor);
+        gc->DrawText("Exit", m_center.x - lw / 2.0, startY + ih + gap);
+    }
 
     delete gc;
 }
@@ -234,17 +265,6 @@ void EffectWheelDialog::OnLeftDown(wxMouseEvent& event) {
 }
 
 void EffectWheelDialog::OnLeftUp(wxMouseEvent& WXUNUSED(event)) {
-}
-
-void EffectWheelDialog::OnKeyDown(wxKeyEvent& event) {
-    if (event.GetKeyCode() == WXK_ESCAPE) {
-        if (HasCapture()) {
-            ReleaseMouse();
-        }
-        EndModal(wxID_CANCEL);
-    } else {
-        event.Skip();
-    }
 }
 
 void EffectWheelDialog::OnShow(wxShowEvent& event) {
