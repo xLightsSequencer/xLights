@@ -58,6 +58,10 @@ public:
     bool doTransitions(PixelBufferClass* pixelBuffer, int layer, RenderBuffer* prevRB);
     bool doBlendLayers(PixelBufferClass* pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels);
 
+    bool doMap(VkPipeline f, struct TransitionData& data, RenderBuffer* buffer);
+    bool doTransition(VkPipeline f, struct TransitionData& data, RenderBuffer* buffer, RenderBuffer* prevRB);
+    bool doTransition(VkPipeline f, struct TransitionData& data, RenderBuffer* buffer, VkBuffer prev);
+
     VulkanBuffer sparkleBuffer;
     VulkanBuffer tmpBufferBlend;
 
@@ -228,6 +232,18 @@ public:
         bool needIndexes;
     };
     std::map<MixTypes, BlendFunctionInfo*> blendFunctions;
+
+    class TransitionInfo {
+    public:
+        explicit TransitionInfo(int t) : function(VK_NULL_HANDLE), type(t), reversed(false) {}
+        TransitionInfo(VkPipeline fn, int t, bool r = false) : function(fn), type(t), reversed(r) {}
+        ~TransitionInfo() = default;
+        VkPipeline function;
+        int type; // 0 = fade/none, 1 = mask/map, 2 = two-buffer, 3 = dissolve
+        bool reversed;
+    };
+    std::map<std::string, TransitionInfo*> transitions;
+    VulkanBuffer dissolveBuffer;
 
     bool enabled = false;
     std::atomic<bool> pg{false};

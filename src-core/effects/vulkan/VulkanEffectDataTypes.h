@@ -63,6 +63,24 @@ struct TentBlurData {
 };
 static_assert(sizeof(TentBlurData) == 12, "TentBlurData layout drifted from the GLSL push-constant block");
 
+// Mirrors TransitionData in MetalEffectDataTypes.h ("out" is renamed —
+// it is a reserved word in GLSL).
+struct TransitionData {
+    uint32_t width;
+    uint32_t height;
+
+    uint32_t pWidth;
+    uint32_t pHeight;
+
+    float adjust;
+    float progress;
+
+    uint32_t hasPrev;
+    uint32_t reverse;
+    uint32_t isOut;
+};
+static_assert(sizeof(TransitionData) == 36, "TransitionData layout drifted from the GLSL push-constant block");
+
 // Mirrors LayerBlendingData in MetalEffectDataTypes.h with the portability
 // rules applied (bool -> uint32_t, uchar4 -> packed uint via xlvk::uchar4).
 struct LayerBlendingData {

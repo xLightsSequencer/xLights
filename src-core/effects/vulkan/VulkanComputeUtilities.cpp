@@ -65,6 +65,30 @@
 #include "shaders/compiled/Blend_BottomTop.spv.h"
 #include "shaders/compiled/Blend_LeftRight.spv.h"
 
+#include "shaders/compiled/Transition_wipe.spv.h"
+#include "shaders/compiled/Transition_clock.spv.h"
+#include "shaders/compiled/Transition_fromMiddle.spv.h"
+#include "shaders/compiled/Transition_squareExplode.spv.h"
+#include "shaders/compiled/Transition_circleExplode.spv.h"
+#include "shaders/compiled/Transition_blinds.spv.h"
+#include "shaders/compiled/Transition_blend.spv.h"
+#include "shaders/compiled/Transition_slideChecks.spv.h"
+#include "shaders/compiled/Transition_slideBars.spv.h"
+#include "shaders/compiled/Transition_shatter.spv.h"
+#include "shaders/compiled/Transition_star.spv.h"
+#include "shaders/compiled/Transition_pinwheel.spv.h"
+#include "shaders/compiled/Transition_bowTie.spv.h"
+#include "shaders/compiled/Transition_blobs.spv.h"
+#include "shaders/compiled/Transition_fold.spv.h"
+#include "shaders/compiled/Transition_zoom.spv.h"
+#include "shaders/compiled/Transition_circularSwirl.spv.h"
+#include "shaders/compiled/Transition_doorway.spv.h"
+#include "shaders/compiled/Transition_swap.spv.h"
+#include "shaders/compiled/Transition_circles.spv.h"
+#include "shaders/compiled/Transition_dissolve.spv.h"
+
+#include "../../render/DissolveTransitionPattern.h"
+
 static xlvk::uchar4 toUchar4(const xlColor& c) {
     return { c.red, c.green, c.blue, c.alpha };
 }
@@ -362,6 +386,13 @@ void VulkanComputeUtilities::doInit() {
                     }
                     bf.second->function = VK_NULL_HANDLE;
                 }
+                for (auto& tr : u.transitions) {
+                    if (tr.second->function != VK_NULL_HANDLE) {
+                        vkDestroyPipeline(u.device, tr.second->function, nullptr);
+                        tr.second->function = VK_NULL_HANDLE;
+                    }
+                }
+                u.destroyBuffer(u.dissolveBuffer);
                 if (u.pipelineLayout != VK_NULL_HANDLE) {
                     vkDestroyPipelineLayout(u.device, u.pipelineLayout, nullptr);
                 }
@@ -369,12 +400,12 @@ void VulkanComputeUtilities::doInit() {
                     vkDestroyDescriptorSetLayout(u.device, u.dsLayout, nullptr);
                 }
                 u.destroyBuffer(u.dummyBuffer);
-                vmaDestroyAllocator(u.allocator);
-                vkDestroyDevice(u.device, nullptr);
-                if (u.debugMessenger != VK_NULL_HANDLE) {
-                    vkDestroyDebugUtilsMessengerEXT(u.instance, u.debugMessenger, nullptr);
-                }
-                vkDestroyInstance(u.instance, nullptr);
+                // Device/instance/allocator are deliberately NOT destroyed:
+                // per-model GPU data can legitimately outlive the render
+                // context at process exit (matching Metal's no-teardown
+                // policy), and the vkDestroyDevice outstanding-object sweep
+                // would flag those as false leaks.  In-run validation is
+                // unaffected.
             }
         });
     }
@@ -588,7 +619,48 @@ bool VulkanComputeUtilities::buildPipelines() {
     XLVK_BLEND(Mix_BottomTop, Blend_BottomTop, 0, true)
     XLVK_BLEND(Mix_LeftRight, Blend_LeftRight, 0, true)
 #undef XLVK_BLEND
+
+    transitions[""] = new TransitionInfo(0);
+    transitions["None"] = new TransitionInfo(0);
+    transitions["Fade"] = new TransitionInfo(0);
+
+#define XLVK_TRANSITION(name, header, type, ...) \
+    { \
+        VkPipeline p = createComputePipeline(header##_spv, sizeof(header##_spv), #header); \
+        if (p == VK_NULL_HANDLE) return false; \
+        transitions[name] = new TransitionInfo(p, type, ##__VA_ARGS__); \
+    }
+
+    XLVK_TRANSITION("Wipe", Transition_wipe, 1)
+    XLVK_TRANSITION("Clock", Transition_clock, 1)
+    XLVK_TRANSITION("From Middle", Transition_fromMiddle, 1)
+    XLVK_TRANSITION("Circle Explode", Transition_circleExplode, 1)
+    XLVK_TRANSITION("Square Explode", Transition_squareExplode, 1)
+    XLVK_TRANSITION("Blend", Transition_blend, 1)
+    XLVK_TRANSITION("Slide Checks", Transition_slideChecks, 1)
+    XLVK_TRANSITION("Slide Bars", Transition_slideBars, 1)
+    XLVK_TRANSITION("Blinds", Transition_blinds, 1)
+
+    XLVK_TRANSITION("Shatter", Transition_shatter, 2, true)
+    XLVK_TRANSITION("Star", Transition_star, 2)
+    XLVK_TRANSITION("Pinwheel", Transition_pinwheel, 2, true)
+    XLVK_TRANSITION("Bow Tie", Transition_bowTie, 2)
+    XLVK_TRANSITION("Blobs", Transition_blobs, 2)
+    XLVK_TRANSITION("Fold", Transition_fold, 2)
+    XLVK_TRANSITION("Zoom", Transition_zoom, 2)
+    XLVK_TRANSITION("Circular Swirl", Transition_circularSwirl, 2, true)
+    XLVK_TRANSITION("Doorway", Transition_doorway, 2)
+    XLVK_TRANSITION("Swap", Transition_swap, 2)
+    XLVK_TRANSITION("Circles", Transition_circles, 2, true)
+    XLVK_TRANSITION("Dissolve", Transition_dissolve, 3, true)
+#undef XLVK_TRANSITION
 #undef XLVK_PIPELINE
+
+    int bufferSize = DissolvePatternWidth * DissolvePatternHeight;
+    if (!createSharedBuffer(dissolveBuffer, bufferSize, "DissolveTransitonPattern")) {
+        return false;
+    }
+    memcpy(dissolveBuffer.mapped, DissolveTransitonPattern, bufferSize);
     return true;
 }
 
@@ -615,7 +687,161 @@ VulkanPixelBufferComputeData::~VulkanPixelBufferComputeData() {
 }
 
 bool VulkanPixelBufferComputeData::doTransitions(PixelBufferClass* pixelBuffer, int layer, RenderBuffer* prevRB) {
-    return false;
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    PixelBufferClass::LayerInfo* li = pixelBuffer->layers[layer];
+    int ms = li->BufferHt * li->BufferWi;
+    if (ms < (int)u.bufferSizeThreshold) {
+        li->maskSize = 0; // start with empty mask
+        return false;
+    }
+    if (li->inMaskFactor < 1.0 || li->outMaskFactor < 1.0) {
+        VulkanRenderBufferComputeData* bd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&li->buffer);
+        if (!bd) {
+            li->maskSize = 0;
+            return false;
+        }
+        if (ms > li->maskMaxSize) {
+            if (bd->isCommitted()) {
+                bd->waitForCompletion();
+            }
+            u.destroyBuffer(bd->maskBuffer);
+            li->maskMaxSize = ms;
+            // round up: the kernels write the byte mask through 32-bit words
+            if (!u.createSharedBuffer(bd->maskBuffer, ((size_t)ms + 3) & ~(size_t)3,
+                                      li->buffer.GetModelName() + "MaskBuffer-" + std::to_string(layer))) {
+                li->maskMaxSize = 0;
+                li->maskSize = 0;
+                return false;
+            }
+            li->mask = static_cast<uint8_t*>(bd->maskBuffer.mapped);
+        }
+    }
+    li->maskSize = 0; // start with empty mask
+
+    const auto& tiIn = u.transitions.find(li->inTransitionType);
+    if (tiIn == u.transitions.end()) {
+        return false;
+    }
+    const auto& tiOut = u.transitions.find(li->outTransitionType);
+    if (tiOut == u.transitions.end()) {
+        return false;
+    }
+
+    TransitionData data;
+    data.width = li->BufferWi;
+    data.height = li->BufferHt;
+    data.hasPrev = prevRB != nullptr ? 1 : 0;
+    data.pWidth = 0;
+    data.pHeight = 0;
+    if (prevRB) {
+        data.pWidth = prevRB->BufferWi;
+        data.pHeight = prevRB->BufferHt;
+    }
+    if (li->inMaskFactor < 1.0) {
+        data.progress = li->inMaskFactor;
+        data.adjust = li->inTransitionAdjust;
+        data.reverse = li->inTransitionReverse ? 1 : 0;
+        data.isOut = 0;
+        if (li->InTransitionAdjustValueCurve.IsActive()) {
+            data.adjust = li->InTransitionAdjustValueCurve.GetOutputValueAt(li->inMaskFactor, li->buffer.GetStartTimeMS(), li->buffer.GetEndTimeMS());
+        }
+        if (tiIn->second->reversed) {
+            data.progress = 1.0f - li->inMaskFactor;
+        }
+        if (tiIn->second->type == 1) {
+            li->maskSize = li->BufferHt * li->BufferWi;
+            if (!doMap(tiIn->second->function, data, &li->buffer)) {
+                return false;
+            }
+        } else if (tiIn->second->type == 2) {
+            if (!doTransition(tiIn->second->function, data, &li->buffer, prevRB)) {
+                return false;
+            }
+        } else if (tiIn->second->type == 3) {
+            if (!doTransition(tiIn->second->function, data, &li->buffer, u.dissolveBuffer.buffer)) {
+                return false;
+            }
+        }
+    }
+    if (li->outMaskFactor < 1.0) {
+        data.progress = li->outMaskFactor;
+        data.adjust = li->outTransitionAdjust;
+        data.reverse = li->outTransitionReverse ? 1 : 0;
+        data.isOut = 1;
+        if (li->OutTransitionAdjustValueCurve.IsActive()) {
+            data.adjust = li->OutTransitionAdjustValueCurve.GetOutputValueAt(li->outMaskFactor, li->buffer.GetStartTimeMS(), li->buffer.GetEndTimeMS());
+        }
+        if (tiOut->second->reversed) {
+            data.progress = 1.0f - li->outMaskFactor;
+        }
+        if (tiOut->second->type == 1) {
+            li->maskSize = li->BufferHt * li->BufferWi;
+            if (!doMap(tiOut->second->function, data, &li->buffer)) {
+                return false;
+            }
+        } else if (tiOut->second->type == 2) {
+            if (!doTransition(tiOut->second->function, data, &li->buffer, prevRB)) {
+                return false;
+            }
+        } else if (tiOut->second->type == 3) {
+            if (!doTransition(tiOut->second->function, data, &li->buffer, u.dissolveBuffer.buffer)) {
+                return false;
+            }
+        }
+    }
+    u.statTransition++;
+    return true;
+}
+
+bool VulkanPixelBufferComputeData::doMap(VkPipeline f, TransitionData& data, RenderBuffer* buffer) {
+    VulkanRenderBufferComputeData* bd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(buffer);
+    if (!bd->maskBuffer) {
+        return false;
+    }
+    VkCommandBuffer cb = bd->getCommandBuffer("-Map");
+    if (cb == VK_NULL_HANDLE) {
+        return false;
+    }
+    VulkanComputeUtilities::computeBarrier(cb);
+    return bd->encodeDispatch(cb, f, "Map", &data, sizeof(data),
+                              { bd->maskBuffer.buffer }, data.width, data.height);
+}
+
+bool VulkanPixelBufferComputeData::doTransition(VkPipeline f, TransitionData& data, RenderBuffer* buffer, RenderBuffer* prevRB) {
+    VkBuffer bufferPrev = VK_NULL_HANDLE;
+    if (prevRB) {
+        VulkanRenderBufferComputeData* prevCD = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(prevRB);
+        if (prevCD) {
+            bufferPrev = prevCD->getPixelBuffer().buffer;
+        }
+        if (bufferPrev == VK_NULL_HANDLE) {
+            return false;
+        }
+    }
+    return doTransition(f, data, buffer, bufferPrev);
+}
+
+bool VulkanPixelBufferComputeData::doTransition(VkPipeline f, TransitionData& data, RenderBuffer* buffer, VkBuffer prev) {
+    VulkanRenderBufferComputeData* bd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(buffer);
+    // Buffers before command buffer — see blur() for why the order matters.
+    VulkanBuffer& bufferResult = bd->getPixelBuffer();
+    VulkanBuffer& bufferCopy = bd->getPixelBufferCopy();
+    if (!bufferResult || !bufferCopy) {
+        return false;
+    }
+    if (prev == VK_NULL_HANDLE) {
+        prev = bufferCopy.buffer;
+    }
+    VkCommandBuffer cb = bd->getCommandBuffer("-Transition");
+    if (cb == VK_NULL_HANDLE) {
+        return false;
+    }
+    VulkanComputeUtilities::computeBarrier(cb);
+    VkBufferCopy region = { 0, 0, (VkDeviceSize)(data.width * data.height * 4) };
+    vkCmdCopyBuffer(cb, bufferResult.buffer, bufferCopy.buffer, 1, &region);
+    VulkanComputeUtilities::computeBarrier(cb);
+    return bd->encodeDispatch(cb, f, "Transition", &data, sizeof(data),
+                              { bufferResult.buffer, bufferCopy.buffer, prev }, data.width, data.height);
 }
 
 void VulkanPixelBufferComputeData::fillLayerBlendingData(LayerBlendingData& data, PixelBufferClass::LayerInfo* layer) {
