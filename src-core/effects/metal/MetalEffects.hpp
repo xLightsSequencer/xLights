@@ -13,12 +13,15 @@
 #include "../CirclesEffect.h"
 #include "../GalaxyEffect.h"
 #include "../TreeEffect.h"
+#include "../TwinkleEffect.h"
 #include "../ShimmerEffect.h"
 #include "../CandleEffect.h"
+#include "../LifeEffect.h"
 #include "../WaveEffect.h"
 #include "../GarlandsEffect.h"
 #include "../ShaderEffect.h"
 #include "../FillEffect.h"
+#include "../MeteorsEffect.h"
 
 class MetalButterflyEffectData;
 
@@ -162,6 +165,19 @@ private:
     MetalTreeEffectData *data;
 };
 
+class MetalTwinkleEffectData;
+
+class MetalTwinkleEffect : public TwinkleEffect {
+public:
+    MetalTwinkleEffect(int i);
+    virtual ~MetalTwinkleEffect();
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+private:
+    MetalTwinkleEffectData *data;
+};
+
 class MetalShimmerEffectData;
 
 class MetalShimmerEffect : public ShimmerEffect {
@@ -187,6 +203,22 @@ private:
     MetalFillEffectData *data;
 };
 
+class MetalMeteorsEffectData;
+
+class MetalMeteorsEffect : public MeteorsEffect {
+public:
+    MetalMeteorsEffect(int i);
+    virtual ~MetalMeteorsEffect();
+
+protected:
+    // Overrides only the per-pixel gather; the base handles all the CPU bookkeeping
+    // and the radial styles. Falls back to the base (ISPC) when Metal isn't viable.
+    virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts) override;
+
+private:
+    MetalMeteorsEffectData *data;
+};
+
 class MetalCandleEffectData;
 
 class MetalCandleEffect : public CandleEffect {
@@ -198,6 +230,19 @@ public:
 
 private:
     MetalCandleEffectData *data;
+};
+
+class MetalLifeEffectData;
+
+class MetalLifeEffect : public LifeEffect {
+public:
+    MetalLifeEffect(int i);
+    virtual ~MetalLifeEffect();
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+private:
+    MetalLifeEffectData *data;
 };
 
 class MetalWaveEffectData;

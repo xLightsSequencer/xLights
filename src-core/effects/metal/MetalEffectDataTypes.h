@@ -423,6 +423,68 @@ struct MetalCandleData {
     simd::uchar4 c2;
 };
 
+// Mirrors ispc::LifeISPCData - Conway's Game of Life. The previous generation is
+// passed as a read-only pixel buffer (buffer 1); the palette (buffer 3) drives the
+// in-kernel GetMultiColorBlend(hashRand01(index)) birth colour.
+struct MetalLifeData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  npix;        // min(GetPixelCount(), width*height); a wrapped neighbour
+                          // whose linear index >= npix counts as black (matches the
+                          // scalar's GetTempPixelRGB bounds guard) and bounds the
+                          // uploaded previous-generation buffer.
+    int32_t  type;        // ruleset 0..4
+    int32_t  numColors;   // palette.Size() (>= 1)
+    uint64_t frameSeed;   // RenderBuffer::hashRandomFrameSeed() for this frame
+};
+
+// Twinkle effect — one thread per strobe entry advances the per-light state
+// (state array at buffer(1), stride-6 int32 = StrobeClass) and writes its unique
+// pixel from a CPU-built RGBA LUT (buffer(2)) whose brightness/color is computed
+// with the exact scalar double math, so the pure-integer kernel is byte-identical
+// to the scalar renderer. Mirrors ispc::TwinkleISPCData (+ curNumStrobe, used as
+// the Metal grid bound in place of ISPC's start/end args).
+struct MetalTwinkleData {
+    uint32_t width;         // BufferWi (pixel-index stride)
+    uint32_t npix;          // pixel-write bound (GetPixelCount())
+    uint32_t curNumStrobe;  // number of live strobe entries (grid bound)
+    int32_t  max_modulo;
+    int32_t  max_modulo2;
+    int32_t  colorcnt;
+    int32_t  lutStride;     // max_modulo + 1
+    int32_t  lutSize;       // colorcnt * lutStride
+    int32_t  new_algorithm;
+    int32_t  reRandomize;
+    uint64_t frameSeed;     // RenderBuffer::hashRandomFrameSeed() for this frame
+};
+
+// Meteors effect — axis-aligned styles only (Down/Up, Left/Right, Icicles). The CPU
+// keeps the sequential spawn/move/expire bookkeeping and snapshots the live meteors
+// into a device particle buffer bound at buffer(2); the kernel inverts the scatter
+// per output pixel (last covering meteor wins). Kept in lockstep with
+// MeteorsFunctions.metal / MeteorsFunctions.ispc. Radial styles stay on the CPU.
+struct MetalMeteorParticle {
+    int32_t a;      // primary axis coord: column (vertical/icicle) or row (horizontal)
+    int32_t base;   // meteor.y (vertical/icicle) or meteor.x (horizontal)
+    int32_t h;      // icicle drip length; 0 otherwise
+    float   hue;
+    float   sat;
+    float   val;
+};
+
+struct MetalMeteorsData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  mode;         // 0 = vertical, 1 = horizontal, 2 = icicle
+    int32_t  direction;    // raw MeteorsEffect: 0 Down, 1 Up, 2 Left, 3 Right, 6/7 Icicle
+    int32_t  tailLength;
+    int32_t  colorScheme;  // 0 = rainbow, 1 = range, 2 = palette
+    int32_t  allowAlpha;
+    int32_t  numMeteors;
+    int32_t  wantBkg;      // icicle: draw dim background icicles
+    uint64_t frameSeed;    // RenderBuffer::hashRandomFrameSeed() for the rainbow scheme
+};
+
 struct LayerBlendingData {
     int32_t nodeCount;
     uint32_t bufferWi;

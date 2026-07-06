@@ -133,8 +133,10 @@ static bool metalEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_FAN, "Fan" },
         { EffectManager::eff_GALAXY, "Galaxy" },
         { EffectManager::eff_TREE, "Tree" },
+        { EffectManager::eff_TWINKLE, "Twinkle" },
         { EffectManager::eff_SHIMMER, "Shimmer" },
         { EffectManager::eff_CANDLE, "Candle" },
+        { EffectManager::eff_LIFE, "Life" },
         { EffectManager::eff_WAVE, "Wave" },
         { EffectManager::eff_GARLANDS, "Garlands" },
         { EffectManager::eff_SPIRALS, "Spirals" },
@@ -142,6 +144,7 @@ static bool metalEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_FILL, "Fill" },
         { EffectManager::eff_BARS, "Bars" },
         { EffectManager::eff_CIRCLES, "Circles" },
+        { EffectManager::eff_METEORS, "Meteors" },
         { EffectManager::eff_SHADER, "Shader" },
     };
     auto it = names.find(eff);
@@ -169,10 +172,14 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalGalaxyEffect(eff);
         case EffectManager::eff_TREE:
             return new MetalTreeEffect(eff);
+        case EffectManager::eff_TWINKLE:
+            return new MetalTwinkleEffect(eff);
         case EffectManager::eff_SHIMMER:
             return new MetalShimmerEffect(eff);
         case EffectManager::eff_CANDLE:
             return new MetalCandleEffect(eff);
+        case EffectManager::eff_LIFE:
+            return new MetalLifeEffect(eff);
         case EffectManager::eff_WAVE:
             return new MetalWaveEffect(eff);
         case EffectManager::eff_GARLANDS:
@@ -187,6 +194,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalBarsEffect(eff);
         case EffectManager::eff_CIRCLES:
             return new MetalCirclesEffect(eff);
+        case EffectManager::eff_METEORS:
+            return new MetalMeteorsEffect(eff);
         case EffectManager::eff_SHADER:
             return new MetalShaderEffect(eff);
         default:

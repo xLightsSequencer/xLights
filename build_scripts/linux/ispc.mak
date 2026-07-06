@@ -57,6 +57,9 @@ OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/WarpFunct
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/GalaxyFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/GalaxyFunctions.o
 
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/MeteorsFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/MeteorsFunctions.o
+
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/GarlandsFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/GarlandsFunctions.o
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/FillFunctions.o
@@ -64,9 +67,13 @@ OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/FillFunct
 
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/TreeFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/TreeFunctions.o
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/TwinkleFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/TwinkleFunctions.o
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/ShimmerFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/ShimmerFunctions.o
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/CandleFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/CandleFunctions.o
+OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/LifeFunctions.o
+OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/LifeFunctions.o
 OBJ_LINUX_DEBUG +=  $(OBJDIR_LINUX_DEBUG)/__/src-core/effects/ispc/WaveFunctions.o
 OBJ_LINUX_RELEASE +=  $(OBJDIR_LINUX_RELEASE)/__/src-core/effects/ispc/WaveFunctions.o

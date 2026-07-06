@@ -2765,6 +2765,9 @@
     <ClInclude Include="..\src-core\effects\ispc\GalaxyFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\MeteorsFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\GarlandsFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -2774,10 +2777,16 @@
     <ClInclude Include="..\src-core\effects\ispc\TreeFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\TwinkleFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\ShimmerFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\CandleFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\LifeFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\WaveFunctions.ispc.h">
@@ -3115,6 +3124,9 @@
     <CustomBuild Include="..\src-core\effects\ispc\GalaxyFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\MeteorsFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\GarlandsFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
@@ -3124,10 +3136,16 @@
     <CustomBuild Include="..\src-core\effects\ispc\TreeFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\TwinkleFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\ShimmerFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\CandleFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\LifeFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\WaveFunctions.ispc">

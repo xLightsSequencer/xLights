@@ -1000,6 +1000,10 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/GalaxyFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/MeteorsFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/MeteorsFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/GarlandsFunctions.ispc">
 			<Option link="1" />
 		</Unit>
@@ -1012,6 +1016,10 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/TreeFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/TwinkleFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/TwinkleFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/ShimmerFunctions.ispc">
 			<Option link="1" />
 		</Unit>
@@ -1020,6 +1028,10 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/CandleFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/LifeFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/LifeFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/WaveFunctions.ispc">
 			<Option link="1" />
 		</Unit>
