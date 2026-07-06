@@ -6,6 +6,8 @@
 #include "ai/PropertyGridBuilder.h"
 #include "ai/aiBase.h"
 
+#include <wx/settings.h>
+
 //(*InternalHeaders(ServicesPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -138,6 +140,10 @@ ServicesPanel::ServicesPanel(wxWindow* parent, ServiceManager* sm, wxWindowID id
 	Connect(ID_BUTTON_TEST, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ServicesPanel::OnButtonTestClick);
 	//*)
     servicesGrid->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, true);
+    // The property grid defaults to its own (smaller) font, which looks out of
+    // place next to the native controls on every other preferences page. Use
+    // the standard GUI font so this page matches the rest of the dialog.
+    servicesGrid->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
     servicesGrid->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&ServicesPanel::OnPropertyGridChange, 0, this);
 
     SetupTests();
