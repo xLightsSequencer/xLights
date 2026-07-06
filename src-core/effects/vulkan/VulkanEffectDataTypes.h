@@ -63,4 +63,33 @@ struct TentBlurData {
 };
 static_assert(sizeof(TentBlurData) == 12, "TentBlurData layout drifted from the GLSL push-constant block");
 
+// Mirrors LayerBlendingData in MetalEffectDataTypes.h with the portability
+// rules applied (bool -> uint32_t, uchar4 -> packed uint via xlvk::uchar4).
+struct LayerBlendingData {
+    int32_t nodeCount;
+    uint32_t bufferWi;
+    uint32_t bufferHi;
+    uint32_t useMask;
+
+    float hueAdjust;
+    float valueAdjust;
+    float saturationAdjust;
+
+    int32_t brightness;
+    int32_t contrast;
+    float fadeFactor;
+    float effectMixThreshold;
+    uint32_t effectMixVaries;
+    uint32_t brightnessLevel;
+    int32_t mixTypeData;
+
+    int32_t outputSparkleCount;
+    xlvk::uchar4 sparkleColor;
+
+    uint32_t isChromaKey;
+    int32_t chromaSensitivity;
+    xlvk::uchar4 chromaColor;
+};
+static_assert(sizeof(LayerBlendingData) == 76, "LayerBlendingData layout drifted from the GLSL push-constant block");
+
 #endif

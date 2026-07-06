@@ -30,6 +30,7 @@
 #include <vk_mem_alloc.h>
 
 #include "GPURenderUtils.h"
+#include "../../render/PixelBuffer.h"
 
 class PixelBufferClass;
 class RenderBuffer;
@@ -59,6 +60,9 @@ public:
 
     VulkanBuffer sparkleBuffer;
     VulkanBuffer tmpBufferBlend;
+
+private:
+    static void fillLayerBlendingData(struct LayerBlendingData& data, PixelBufferClass::LayerInfo* layer);
 };
 
 class VulkanRenderBufferComputeData {
@@ -77,6 +81,17 @@ public:
     VkCommandBuffer getCommandBuffer(const std::string& postfix = "");
     void abortCommandBuffer();
 
+    // Encode one compute dispatch: allocate+write a descriptor set (unused
+    // bindings get the dummy buffer), push constants, dispatch.  gridH == 0
+    // selects the 1-D form (64-wide workgroups); otherwise 8x8 2-D.  The
+    // analogue of one Metal compute-encoder block.  Public because the
+    // per-model blend/transition orchestration encodes into this buffer's
+    // command stream.
+    bool encodeDispatch(VkCommandBuffer cb, VkPipeline pipeline, const char* label,
+                        const void* push, uint32_t pushSize,
+                        std::initializer_list<VkBuffer> buffers,
+                        uint32_t gridW, uint32_t gridH);
+
     VulkanBuffer& getPixelBuffer(bool sendToGPU = true);
     VulkanBuffer& getPixelBufferCopy();
     VulkanBuffer& getIndexBuffer();
@@ -93,17 +108,14 @@ public:
 
     VulkanBuffer maskBuffer;
 
+    // Transition-mask staging for masks built by the CPU transition path
+    // (kept alive until the command buffer completes — Metal relies on ARC
+    // for this, Vulkan needs explicit ownership).
+    VulkanBuffer cpuMaskUpload;
+
 private:
     bool ensureCommandInfra();
     bool callRotoZoomFunction(VkPipeline function, VkPipeline claimFunction, struct RotoZoomData& data);
-
-    // Encode one compute dispatch: allocate+write a descriptor set (unused
-    // bindings get the dummy buffer), push constants, dispatch a 2-D grid.
-    // The analogue of one Metal compute-encoder block.
-    bool encodeDispatch(VkCommandBuffer cb, VkPipeline pipeline, const char* label,
-                        const void* push, uint32_t pushSize,
-                        std::initializer_list<VkBuffer> buffers,
-                        uint32_t gridW, uint32_t gridH);
     VkDescriptorSet allocateDescriptorSet();
     void resetDescriptorPools();
 
@@ -194,6 +206,28 @@ public:
     VkPipeline yrotateClaimFunction = VK_NULL_HANDLE;
     VkPipeline zrotateClaimFunction = VK_NULL_HANDLE;
     VkPipeline rotateBlankFunction = VK_NULL_HANDLE;
+
+    VkPipeline getColorsFunction = VK_NULL_HANDLE;
+    VkPipeline putColorsFunction = VK_NULL_HANDLE;
+    VkPipeline adjustHSVFunction = VK_NULL_HANDLE;
+    VkPipeline applySparklesFunction = VK_NULL_HANDLE;
+    VkPipeline brightnessContrastFunction = VK_NULL_HANDLE;
+    VkPipeline brightnessLevelFunction = VK_NULL_HANDLE;
+    VkPipeline firstLayerFadeFunction = VK_NULL_HANDLE;
+    VkPipeline nonAlphaFadeFunction = VK_NULL_HANDLE;
+
+    class BlendFunctionInfo {
+    public:
+        BlendFunctionInfo(VkPipeline fn, const char* name, int mtd = 0, bool needIndexes = false) :
+            function(fn), name(name), mixTypeData(mtd), needIndexes(needIndexes) {}
+        ~BlendFunctionInfo() = default;
+
+        VkPipeline function;
+        std::string name;
+        int mixTypeData;
+        bool needIndexes;
+    };
+    std::map<MixTypes, BlendFunctionInfo*> blendFunctions;
 
     bool enabled = false;
     std::atomic<bool> pg{false};

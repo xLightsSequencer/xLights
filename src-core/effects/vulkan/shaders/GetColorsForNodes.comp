@@ -1,0 +1,54 @@
+#version 450
+// Port of GetColorsForNodes in LayerBlendingFunctions.metal — gathers each
+// node's color from the layer pixel buffer via the index table, honoring the
+// transition mask.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Mask { uint maskWords[]; };
+layout(std430, set = 0, binding = 3) readonly buffer Idx { int indexes[]; };
+
+uint maskAt(uint midx) {
+    return (maskWords[midx >> 2] >> ((midx & 3u) * 8u)) & 0xFFu;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    int idx = indexes[index];
+
+    if (idx == -1) {
+        result[index] = 0u;
+    } else if ((uint(idx) & 0x80000000u) != 0u) {
+        result[index] = 0u;
+        int ii = int(uint(idx) & 0x7FFFFFFFu);
+        int cnt = indexes[ii];
+        ii++;
+        for (int nc = 0; nc < cnt; nc++) {
+            int nidx = indexes[ii + nc];
+            uvec4 c = unpackPx(src[nidx]);
+
+            uint x = uint(nidx) / data.bufferHi;
+            uint y = uint(nidx) % data.bufferHi;
+            uint midx = x * data.bufferHi + y;
+
+            if (c.a > 0u && (data.useMask == 0u || maskAt(midx) == 0u)) {
+                result[index] = packPx(c);
+                nc = cnt;
+            }
+        }
+    } else {
+        uint x = uint(idx) % data.bufferWi;
+        uint y = uint(idx) / data.bufferWi;
+        uint midx = x * data.bufferHi + y;
+        if (data.useMask != 0u && maskAt(midx) > 0u) {
+            result[index] = 0u;
+        } else {
+            result[index] = src[idx];
+        }
+    }
+}

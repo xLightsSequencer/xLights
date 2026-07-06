@@ -1,0 +1,24 @@
+#version 450
+// Port of AdjustBrightnessLevel in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 color = unpackPx(result[index]);
+    uint c = 0u;
+    if (color.r > 25u) ++c;
+    if (color.g > 25u) ++c;
+    if (color.b > 25u) ++c;
+    // c == 0 or 1: no adjustment (matches ISPC: "0 and 1 result in no adjustment")
+    if (c < 2u) {
+        return;
+    }
+    color = uvec4(color.r / c, color.g / c, color.b / c, color.a);
+    result[index] = packPx(color);
+}

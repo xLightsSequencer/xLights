@@ -33,6 +33,42 @@
 #include "shaders/compiled/RotoZoomRotateZ.spv.h"
 #include "shaders/compiled/RotoZoomRotateZClaim.spv.h"
 
+#include "shaders/compiled/GetColorsForNodes.spv.h"
+#include "shaders/compiled/PutColorsForNodes.spv.h"
+#include "shaders/compiled/AdjustHSV.spv.h"
+#include "shaders/compiled/ApplySparkles.spv.h"
+#include "shaders/compiled/AdjustBrightnessContrast.spv.h"
+#include "shaders/compiled/AdjustBrightnessLevel.spv.h"
+#include "shaders/compiled/FirstLayerFade.spv.h"
+#include "shaders/compiled/NonAlphaFade.spv.h"
+#include "shaders/compiled/Blend_Normal.spv.h"
+#include "shaders/compiled/Blend_Effect1_2.spv.h"
+#include "shaders/compiled/Blend_Mask1.spv.h"
+#include "shaders/compiled/Blend_Mask2.spv.h"
+#include "shaders/compiled/Blend_Unmask1.spv.h"
+#include "shaders/compiled/Blend_Unmask2.spv.h"
+#include "shaders/compiled/Blend_TrueUnmask1.spv.h"
+#include "shaders/compiled/Blend_TrueUnmask2.spv.h"
+#include "shaders/compiled/Blend_Shadow_1on2.spv.h"
+#include "shaders/compiled/Blend_Shadow_2on1.spv.h"
+#include "shaders/compiled/Blend_Layered.spv.h"
+#include "shaders/compiled/Blend_Averaged.spv.h"
+#include "shaders/compiled/Blend_Reveal12.spv.h"
+#include "shaders/compiled/Blend_Reveal21.spv.h"
+#include "shaders/compiled/Blend_Additive.spv.h"
+#include "shaders/compiled/Blend_Subtractive.spv.h"
+#include "shaders/compiled/Blend_Max.spv.h"
+#include "shaders/compiled/Blend_Min.spv.h"
+#include "shaders/compiled/Blend_AsBrightness.spv.h"
+#include "shaders/compiled/Blend_Highlight.spv.h"
+#include "shaders/compiled/Blend_HighlightVibrant.spv.h"
+#include "shaders/compiled/Blend_BottomTop.spv.h"
+#include "shaders/compiled/Blend_LeftRight.spv.h"
+
+static xlvk::uchar4 toUchar4(const xlColor& c) {
+    return { c.red, c.green, c.blue, c.alpha };
+}
+
 VulkanComputeUtilities VulkanComputeUtilities::INSTANCE;
 
 static bool envSet(const char* name) {
@@ -308,11 +344,23 @@ void VulkanComputeUtilities::doInit() {
                 for (VkPipeline* p : { &u.tentBlurHFunction, &u.tentBlurVFunction,
                                        &u.xrotateFunction, &u.yrotateFunction, &u.zrotateFunction,
                                        &u.xrotateClaimFunction, &u.yrotateClaimFunction, &u.zrotateClaimFunction,
-                                       &u.rotateBlankFunction }) {
+                                       &u.rotateBlankFunction,
+                                       &u.getColorsFunction, &u.putColorsFunction, &u.adjustHSVFunction,
+                                       &u.applySparklesFunction, &u.brightnessContrastFunction,
+                                       &u.brightnessLevelFunction, &u.firstLayerFadeFunction,
+                                       &u.nonAlphaFadeFunction }) {
                     if (*p != VK_NULL_HANDLE) {
                         vkDestroyPipeline(u.device, *p, nullptr);
                         *p = VK_NULL_HANDLE;
                     }
+                }
+                // Mix_Effect2 shares Mix_Effect1's pipeline — destroy each
+                // distinct pipeline once.
+                for (auto& bf : u.blendFunctions) {
+                    if (bf.first != MixTypes::Mix_Effect2 && bf.second->function != VK_NULL_HANDLE) {
+                        vkDestroyPipeline(u.device, bf.second->function, nullptr);
+                    }
+                    bf.second->function = VK_NULL_HANDLE;
                 }
                 if (u.pipelineLayout != VK_NULL_HANDLE) {
                     vkDestroyPipelineLayout(u.device, u.pipelineLayout, nullptr);
@@ -497,6 +545,49 @@ bool VulkanComputeUtilities::buildPipelines() {
     XLVK_PIPELINE(yrotateClaimFunction, RotoZoomRotateYClaim)
     XLVK_PIPELINE(zrotateFunction, RotoZoomRotateZ)
     XLVK_PIPELINE(zrotateClaimFunction, RotoZoomRotateZClaim)
+
+    XLVK_PIPELINE(getColorsFunction, GetColorsForNodes)
+    XLVK_PIPELINE(putColorsFunction, PutColorsForNodes)
+    XLVK_PIPELINE(adjustHSVFunction, AdjustHSV)
+    XLVK_PIPELINE(applySparklesFunction, ApplySparkles)
+    XLVK_PIPELINE(brightnessContrastFunction, AdjustBrightnessContrast)
+    XLVK_PIPELINE(brightnessLevelFunction, AdjustBrightnessLevel)
+    XLVK_PIPELINE(firstLayerFadeFunction, FirstLayerFade)
+    XLVK_PIPELINE(nonAlphaFadeFunction, NonAlphaFade)
+
+#define XLVK_BLEND(mix, header, ...) \
+    { \
+        VkPipeline p = createComputePipeline(header##_spv, sizeof(header##_spv), #header); \
+        if (p == VK_NULL_HANDLE) return false; \
+        blendFunctions[MixTypes::mix] = new BlendFunctionInfo(p, #header, ##__VA_ARGS__); \
+    }
+
+    XLVK_BLEND(Mix_Normal, Blend_Normal)
+    XLVK_BLEND(Mix_Effect1, Blend_Effect1_2)
+    // Effect1 and Effect2 share the kernel; mixTypeData selects the direction
+    blendFunctions[MixTypes::Mix_Effect2] = new BlendFunctionInfo(blendFunctions[MixTypes::Mix_Effect1]->function, "Blend_Effect1_2", 1);
+    XLVK_BLEND(Mix_Mask1, Blend_Mask1)
+    XLVK_BLEND(Mix_Mask2, Blend_Mask2)
+    XLVK_BLEND(Mix_Unmask1, Blend_Unmask1)
+    XLVK_BLEND(Mix_Unmask2, Blend_Unmask2)
+    XLVK_BLEND(Mix_TrueUnmask1, Blend_TrueUnmask1)
+    XLVK_BLEND(Mix_TrueUnmask2, Blend_TrueUnmask2)
+    XLVK_BLEND(Mix_Shadow_1on2, Blend_Shadow_1on2)
+    XLVK_BLEND(Mix_Shadow_2on1, Blend_Shadow_2on1)
+    XLVK_BLEND(Mix_Layered, Blend_Layered)
+    XLVK_BLEND(Mix_Average, Blend_Averaged)
+    XLVK_BLEND(Mix_1_reveals_2, Blend_Reveal12)
+    XLVK_BLEND(Mix_2_reveals_1, Blend_Reveal21)
+    XLVK_BLEND(Mix_Additive, Blend_Additive)
+    XLVK_BLEND(Mix_Subtractive, Blend_Subtractive)
+    XLVK_BLEND(Mix_Max, Blend_Max)
+    XLVK_BLEND(Mix_Min, Blend_Min)
+    XLVK_BLEND(Mix_AsBrightness, Blend_AsBrightness)
+    XLVK_BLEND(Mix_Highlight, Blend_Highlight)
+    XLVK_BLEND(Mix_Highlight_Vibrant, Blend_HighlightVibrant)
+    XLVK_BLEND(Mix_BottomTop, Blend_BottomTop, 0, true)
+    XLVK_BLEND(Mix_LeftRight, Blend_LeftRight, 0, true)
+#undef XLVK_BLEND
 #undef XLVK_PIPELINE
     return true;
 }
@@ -526,8 +617,267 @@ VulkanPixelBufferComputeData::~VulkanPixelBufferComputeData() {
 bool VulkanPixelBufferComputeData::doTransitions(PixelBufferClass* pixelBuffer, int layer, RenderBuffer* prevRB) {
     return false;
 }
+
+void VulkanPixelBufferComputeData::fillLayerBlendingData(LayerBlendingData& data, PixelBufferClass::LayerInfo* layer) {
+    data.nodeCount = layer->buffer.GetNodeCount();
+    data.bufferHi = layer->buffer.BufferHt;
+    data.bufferWi = layer->buffer.BufferWi;
+    data.useMask = layer->maskSize > 0 ? 1 : 0;
+    data.hueAdjust = layer->outputHueAdjust;
+    data.valueAdjust = layer->outputValueAdjust;
+    data.saturationAdjust = layer->outputSaturationAdjust;
+    data.outputSparkleCount = layer->outputSparkleCount;
+    data.contrast = layer->contrast;
+    data.brightness = layer->outputBrightnessAdjust;
+    data.isChromaKey = layer->isChromaKey ? 1 : 0;
+    data.chromaSensitivity = layer->chromaSensitivity;
+    data.chromaColor = toUchar4(layer->chromaKeyColour);
+    data.effectMixThreshold = layer->outputEffectMixThreshold;
+    data.effectMixVaries = layer->effectMixVaries ? 1 : 0;
+    data.brightnessLevel = layer->brightnessLevel ? 1 : 0;
+    data.mixTypeData = 0;
+    data.fadeFactor = layer->fadeFactor;
+    data.sparkleColor = toUchar4(layer->sparklesColour);
+}
+
 bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
-    return false;
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < (int)u.bufferSizeThreshold) {
+        return false;
+    }
+    for (int l = validLayers.size() - 1; l >= 0; --l) {
+        if (validLayers[l]) {
+            if (u.blendFunctions.find(pixelBuffer->layers[l]->mixType) == u.blendFunctions.end()) {
+                return false;
+            }
+        }
+    }
+
+    if (!pixelBuffer->sparklesVector.empty()) {
+        if (pixelBuffer->sparkles == &pixelBuffer->sparklesVector[0] && sparkleBuffer) {
+            // buffer was re-initialized; the old GPU copy is stale
+            u.destroyBuffer(sparkleBuffer);
+        }
+        if (!sparkleBuffer) {
+            // round up to a whole number of words: the kernel reads uint16
+            // pairs through 32-bit words
+            size_t len = ((pixelBuffer->sparklesVector.size() * sizeof(uint16_t)) + 3) & ~(size_t)3;
+            if (!u.createSharedBuffer(sparkleBuffer, len, pixelBuffer->GetModelName() + "SparkleBuffer")) {
+                return false;
+            }
+            memcpy(sparkleBuffer.mapped, &pixelBuffer->sparklesVector[0], pixelBuffer->sparklesVector.size() * sizeof(uint16_t));
+            pixelBuffer->sparkles = static_cast<uint16_t*>(sparkleBuffer.mapped);
+        }
+    }
+    if (!tmpBufferBlend) {
+        size_t len = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * sizeof(uint32_t);
+        if (!u.createSharedBuffer(tmpBufferBlend, len, pixelBuffer->GetModelName() + "-BlendBuffer")) {
+            return false;
+        }
+    }
+    VulkanRenderBufferComputeData* slRMRB = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
+    if (!slRMRB) {
+        return false;
+    }
+    if (slRMRB->isCommitted()) {
+        slRMRB->waitForCompletion();
+    }
+
+    // Acquire every buffer needed BEFORE the command buffer (grow paths can
+    // reset it — see blur()).
+    struct LayerBits {
+        PixelBufferClass::LayerInfo* layer;
+        VulkanRenderBufferComputeData* cd;
+        VkBuffer blend;
+        VkBuffer pixels;
+        VkBuffer indexes;
+        VkBuffer mask;
+    };
+    std::vector<LayerBits> bits;
+    for (int l = validLayers.size() - 1; l >= 0; --l) {
+        if (!validLayers[l]) {
+            continue;
+        }
+        auto layer = pixelBuffer->layers[l];
+        VulkanRenderBufferComputeData* layerCD = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&layer->buffer);
+        if (!layerCD) {
+            return false;
+        }
+        VulkanBuffer& blendBuf = layerCD->getBlendBuffer();
+        VulkanBuffer& pixels = layerCD->getPixelBuffer();
+        VulkanBuffer& indexes = layerCD->getIndexBuffer();
+        if (!blendBuf || !pixels || !indexes) {
+            return false;
+        }
+        VkBuffer mask = VK_NULL_HANDLE;
+        if (layer->maskSize > 0) {
+            // The transition mask was built by the CPU transition path —
+            // upload it (kept in a per-layer staging buffer that outlives
+            // the command buffer).
+            VulkanBuffer& mu = layerCD->cpuMaskUpload;
+            size_t len = ((size_t)layer->maskSize + 3) & ~(size_t)3;
+            if (mu.size < len) {
+                u.destroyBuffer(layerCD->cpuMaskUpload);
+                if (!u.createSharedBuffer(layerCD->cpuMaskUpload, len, pixelBuffer->GetModelName() + "-CPUMaskUpload")) {
+                    return false;
+                }
+            }
+            memcpy(layerCD->cpuMaskUpload.mapped, layer->mask, layer->maskSize);
+            mask = layerCD->cpuMaskUpload.buffer;
+        }
+        bits.push_back({ layer, layerCD, blendBuf.buffer, pixels.buffer, indexes.buffer, mask });
+    }
+
+    VkCommandBuffer cb = slRMRB->getCommandBuffer("-Blend");
+    if (cb == VK_NULL_HANDLE) {
+        return false;
+    }
+
+    static const bool noGpuSparkles = (getenv("XL_NO_GPU_SPARKLES") != nullptr);
+
+    // first load the pixel data into the buffers for blending on each layer
+    for (auto& lb : bits) {
+        auto layer = lb.layer;
+        LayerBlendingData data;
+        fillLayerBlendingData(data, layer);
+
+        // first, we grab the color for the node from the buffer for the layer
+        VulkanComputeUtilities::computeBarrier(cb);
+        if (!slRMRB->encodeDispatch(cb, u.getColorsFunction, "GetColors", &data, sizeof(data),
+                                    { lb.blend, lb.pixels, lb.mask, lb.indexes }, data.nodeCount, 0)) {
+            return false;
+        }
+        if (layer->needsHSVAdjust) {
+            VulkanComputeUtilities::computeBarrier(cb);
+            if (!slRMRB->encodeDispatch(cb, u.adjustHSVFunction, "AdjustHSV", &data, sizeof(data),
+                                        { lb.blend }, data.nodeCount, 0)) {
+                return false;
+            }
+        }
+        if (!noGpuSparkles &&
+            (layer->use_music_sparkle_count ||
+             layer->sparkle_count > 0 ||
+             layer->outputSparkleCount > 0)) {
+            VulkanComputeUtilities::computeBarrier(cb);
+            if (!slRMRB->encodeDispatch(cb, u.applySparklesFunction, "ApplySparkles", &data, sizeof(data),
+                                        { lb.blend, sparkleBuffer.buffer }, data.nodeCount, 0)) {
+                return false;
+            }
+        }
+        if (layer->contrast != 0 || layer->outputBrightnessAdjust != 100) {
+            VulkanComputeUtilities::computeBarrier(cb);
+            if (!slRMRB->encodeDispatch(cb, u.brightnessContrastFunction, "ApplyBrightnessContrast", &data, sizeof(data),
+                                        { lb.blend }, data.nodeCount, 0)) {
+                return false;
+            }
+        }
+        if (layer->brightnessLevel) {
+            VulkanComputeUtilities::computeBarrier(cb);
+            if (!slRMRB->encodeDispatch(cb, u.brightnessLevelFunction, "ApplyBrightnessLevel", &data, sizeof(data),
+                                        { lb.blend }, data.nodeCount, 0)) {
+                return false;
+            }
+        }
+    }
+
+    // now all the pixels are loaded and adjusted, now start the blending
+    bool first = true;
+    for (auto& lb : bits) {
+        auto layer = lb.layer;
+        LayerBlendingData data;
+        fillLayerBlendingData(data, layer);
+
+        if (first) {
+            first = false;
+            VulkanComputeUtilities::computeBarrier(cb);
+            if (!slRMRB->encodeDispatch(cb, u.firstLayerFadeFunction, "ApplyFadeBottomLayer", &data, sizeof(data),
+                                        { tmpBufferBlend.buffer, lb.blend }, data.nodeCount, 0)) {
+                return false;
+            }
+        } else {
+            if (!layer->buffer.allowAlpha && layer->fadeFactor != 1.0) {
+                // need to fade the first here as we're not mixing anything
+                VulkanComputeUtilities::computeBarrier(cb);
+                if (!slRMRB->encodeDispatch(cb, u.nonAlphaFadeFunction, "ApplyNonAlphaFade", &data, sizeof(data),
+                                            { lb.blend }, data.nodeCount, 0)) {
+                    return false;
+                }
+            }
+            auto& f = u.blendFunctions[layer->mixType];
+            data.mixTypeData = f->mixTypeData;
+            VulkanComputeUtilities::computeBarrier(cb);
+            if (!slRMRB->encodeDispatch(cb, f->function, f->name.c_str(), &data, sizeof(data),
+                                        { tmpBufferBlend.buffer, lb.blend, f->needIndexes ? lb.indexes : VK_NULL_HANDLE },
+                                        data.nodeCount, 0)) {
+                return false;
+            }
+        }
+    }
+    if (saveToPixels) {
+        auto layer = pixelBuffer->layers[saveLayer];
+        VulkanRenderBufferComputeData* layerCD = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&layer->buffer);
+        VulkanBuffer& owner = layerCD->getOwnerBuffer();
+        if (!owner) {
+            return false;
+        }
+        LayerBlendingData data;
+        fillLayerBlendingData(data, layer);
+        data.useMask = 0;
+
+        VulkanComputeUtilities::computeBarrier(cb);
+        if (!slRMRB->encodeDispatch(cb, u.putColorsFunction, "PutColors", &data, sizeof(data),
+                                    { layerCD->getPixelBuffer().buffer, tmpBufferBlend.buffer, VK_NULL_HANDLE,
+                                      layerCD->getIndexBuffer().buffer, owner.buffer },
+                                    data.nodeCount, 0)) {
+            return false;
+        }
+    }
+    slRMRB->commit();
+
+    for (int ii = (pixelBuffer->numLayers - 1); ii >= 0; --ii) {
+        if (!validLayers[ii]) {
+            continue;
+        }
+        if (ii != saveLayer) {
+            GPURenderUtils::waitForRenderCompletion(&pixelBuffer->layers[ii]->buffer);
+        }
+    }
+    slRMRB->waitForCompletion();
+    u.statBlend++;
+
+    // XL_BLENDSUM=1: dump per-layer node-color and final blend checksums to
+    // stderr so two runs can be diffed to the first divergent blend stage.
+    static const bool blendSum = (getenv("XL_BLENDSUM") != nullptr);
+    if (blendSum) {
+        auto fnv = [](const uint8_t* d, size_t n) {
+            uint64_t h = 1469598103934665603ULL;
+            for (size_t i = 0; i < n; i++) {
+                h ^= d[i];
+                h *= 1099511628211ULL;
+            }
+            return h;
+        };
+        for (auto& lb : bits) {
+            VulkanBuffer& bb = lb.cd->getBlendBuffer();
+            int l = 0;
+            for (int ii = 0; ii < (int)pixelBuffer->layers.size(); ii++) {
+                if (pixelBuffer->layers[ii] == lb.layer) {
+                    l = ii;
+                }
+            }
+            fprintf(stderr, "BSUM f=%d m=%s l=%d h=%016llx\n", effectPeriod, pixelBuffer->GetModelName().c_str(), l,
+                    (unsigned long long)fnv((const uint8_t*)bb.mapped, lb.layer->buffer.GetNodeCount() * 4));
+        }
+        fprintf(stderr, "BSUM f=%d m=%s l=FINAL h=%016llx\n", effectPeriod, pixelBuffer->GetModelName().c_str(),
+                (unsigned long long)fnv((const uint8_t*)tmpBufferBlend.mapped, pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * 4));
+    }
+
+    xlColor* colors = (xlColor*)(tmpBufferBlend.mapped);
+    int nc = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount();
+    for (int x = 0; x < nc; x++) {
+        pixelBuffer->layers[saveLayer]->buffer.Nodes[x]->SetColor(colors[x]);
+    }
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -646,9 +996,13 @@ bool VulkanRenderBufferComputeData::encodeDispatch(VkCommandBuffer cb, VkPipelin
     if (push != nullptr && pushSize > 0) {
         vkCmdPushConstants(cb, u.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, pushSize, push);
     }
-    // Kernels use 8x8 workgroups and bounds-check (vkCmdDispatch rounds up;
-    // there is no Metal-style exact-grid dispatch).
-    vkCmdDispatch(cb, (gridW + 7) / 8, (gridH + 7) / 8, 1);
+    // Kernels bounds-check (vkCmdDispatch rounds up; there is no Metal-style
+    // exact-grid dispatch).  gridH == 0 selects the 1-D 64-wide form.
+    if (gridH == 0) {
+        vkCmdDispatch(cb, (gridW + 63) / 64, 1, 1);
+    } else {
+        vkCmdDispatch(cb, (gridW + 7) / 8, (gridH + 7) / 8, 1);
+    }
     return true;
 }
 

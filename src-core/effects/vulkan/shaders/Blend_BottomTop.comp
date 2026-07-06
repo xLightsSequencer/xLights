@@ -1,0 +1,32 @@
+#version 450
+// Port of BottomTopFunction in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Idx { int indexes[]; };
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 fg = unpackPx(src[index]);
+    bool chromaKeyed = (data.isChromaKey != 0u) && applyChroma(fg);
+    if (!chromaKeyed) {
+        int idx = indexes[index];
+        if (idx == -1) {
+            result[index] = 0u;
+        } else {
+            if ((uint(idx) & 0x80000000u) != 0u) {
+                idx = int(uint(idx) & 0x7FFFFFFFu);
+                idx = indexes[idx + 2];
+            }
+            uint y = uint(idx) / data.bufferWi;
+            if (y < (data.bufferHi / 2u)) {
+                result[index] = packPx(fg);
+            }
+        }
+    }
+}

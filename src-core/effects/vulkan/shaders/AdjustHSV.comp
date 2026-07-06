@@ -1,0 +1,36 @@
+#version 450
+// Port of AdjustHSV in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 color = unpackPx(result[index]);
+
+    vec3 hsv = toHSV(color);
+
+    if (data.hueAdjust != 0.0) {
+        hsv.x += data.hueAdjust;
+        if (hsv.x < 0.0) {
+            hsv.x += 1.0;
+        } else if (hsv.x > 1.0) {
+            hsv.x -= 1.0;
+        }
+    }
+    if (data.saturationAdjust != 0.0) {
+        hsv.y = clamp(hsv.y + data.saturationAdjust, 0.0, 1.0);
+    }
+    if (data.valueAdjust != 0.0) {
+        hsv.z = clamp(hsv.z + data.valueAdjust, 0.0, 1.0);
+    }
+
+    uint alpha = color.a;
+    color = fromHSV(hsv);
+    color.a = alpha;
+    result[index] = packPx(color);
+}

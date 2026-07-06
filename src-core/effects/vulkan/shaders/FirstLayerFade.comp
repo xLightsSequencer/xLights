@@ -1,0 +1,39 @@
+#version 450
+// Port of FirstLayerFade in LayerBlendingFunctions.metal — initializes the
+// blend accumulator from the bottom layer.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 color = unpackPx(src[index]);
+    uint origAlpha = color.a;
+    if (data.fadeFactor != 1.0) {
+        vec3 hsv = toHSV(color);
+        hsv.z *= data.fadeFactor;
+        if (color.a != 255u) {
+            hsv.z *= float(color.a);
+            hsv.z /= 255.0;
+        }
+        color = fromHSV(hsv);
+        color.a = origAlpha;
+    }
+    if (color.a == 0u) {
+        result[index] = 0u;
+    } else if (color.a == 255u) {
+        result[index] = packPx(color);
+    } else {
+        float a = float(color.a);
+        a /= 255.0; // 0 (transparent) - 1.0 (opague)
+        float dr = float(color.r) * a;
+        float dg = float(color.g) * a;
+        float db = float(color.b) * a;
+        result[index] = packPx(uvec4(uint(dr), uint(dg), uint(db), 255u));
+    }
+}
