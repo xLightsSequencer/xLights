@@ -4110,7 +4110,7 @@ void xLightsFrame::CheckUnsavedChanges()
         Notebook1->SetSelection(LAYOUTTAB);
 
         if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
-                                  "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SaveEffectsFile();
         } else {
             wxFileName effectsFile;

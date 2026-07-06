@@ -1171,6 +1171,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
         OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+        OutputModelManager::WORK_PRESET_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
@@ -1194,6 +1195,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
         OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+        OutputModelManager::WORK_PRESET_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
@@ -1220,6 +1222,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+        OutputModelManager::WORK_PRESET_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |

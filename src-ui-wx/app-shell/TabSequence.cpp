@@ -903,6 +903,7 @@ void xLightsFrame::SavePresetsFile(bool backup)
 
     if (!backup) {
         UnsavedPresetChanges = false;
+        UpdateLayoutSave();
     }
 }
 
