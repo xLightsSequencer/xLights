@@ -353,6 +353,47 @@ struct MetalTreeData {
     simd::uchar4 lightColors[5];               // indexed by branch % 5
 };
 
+// Wave effect — the per-column vertical band [y1,y2] is precomputed on the CPU
+// in double precision (incl. std::sin) and passed as a separate int buffer
+// (cols[2x]=y1, cols[2x+1]=y2), so the kernel is pure integer band-testing and
+// byte-identical to the scalar renderer. Only the None (constant-color) fill
+// runs on Metal; Rainbow/Palette need double-precision hue division and stay on
+// the ISPC CPU path.
+struct MetalWaveData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  yoffset;
+    int32_t  mirror;
+    simd::uchar4 noneColor;
+};
+
+// Garlands effect — per-ring blend colors (colors[] at buffer(2)) and truncated
+// y offsets (yb[] at buffer(3)) are precomputed on the CPU with the exact scalar
+// double math, so the kernel (pure integer per-pixel ring inversion) is
+// byte-identical to the scalar renderer. Mirrors ispc::GarlandsData.
+struct MetalGarlandsData {
+    uint32_t width;         // BufferWi
+    uint32_t height;        // BufferHt
+    int32_t  buffMax;       // ring count (BufferHt for Up/Down, BufferWi for Left/Right)
+    int32_t  garlandType;   // 0..4
+    int32_t  dir;           // 0..3 (Up/Down/Left/Right, after Up-then-Down folding)
+    float    invPS;         // 1 / PixelSpacing
+    float    posOffOverPS;  // positionOffset / PixelSpacing
+};
+
+// Fill effect — each thread maps its pixel to a fill line and copies a CPU-built
+// per-line color from the LUT bound at buffer(2) when the matching per-line mask
+// at buffer(3) is set. Both are setBytes, so at most MAX_FILL_LUT lines fit —
+// taller/wider buffers fall back to the CPU/ISPC path. Kept in lockstep with
+// FillFunctions.metal / FillFunctions.ispc.
+#define MAX_FILL_LUT 1024
+
+struct MetalFillData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  vertical;  // 1 => line is the row (y) [Up/Down]; 0 => the column (x) [Left/Right]
+};
+
 // Shimmer effect — kernel fills every pixel from a CPU-built color LUT bound at
 // buffer(2) (setBytes, so at most SHIMMER_MAX_LUT entries — larger spatial LUTs
 // fall back to CPU). lutMode values are ShimmerEffect::ShimmerLutMode.

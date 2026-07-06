@@ -135,8 +135,11 @@ static bool metalEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_TREE, "Tree" },
         { EffectManager::eff_SHIMMER, "Shimmer" },
         { EffectManager::eff_CANDLE, "Candle" },
+        { EffectManager::eff_WAVE, "Wave" },
+        { EffectManager::eff_GARLANDS, "Garlands" },
         { EffectManager::eff_SPIRALS, "Spirals" },
         { EffectManager::eff_COLORWASH, "ColorWash" },
+        { EffectManager::eff_FILL, "Fill" },
         { EffectManager::eff_BARS, "Bars" },
         { EffectManager::eff_CIRCLES, "Circles" },
         { EffectManager::eff_SHADER, "Shader" },
@@ -170,10 +173,16 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalShimmerEffect(eff);
         case EffectManager::eff_CANDLE:
             return new MetalCandleEffect(eff);
+        case EffectManager::eff_WAVE:
+            return new MetalWaveEffect(eff);
+        case EffectManager::eff_GARLANDS:
+            return new MetalGarlandsEffect(eff);
         case EffectManager::eff_SPIRALS:
             return new MetalSpiralsEffect(eff);
         case EffectManager::eff_COLORWASH:
             return new MetalColorWashEffect(eff);
+        case EffectManager::eff_FILL:
+            return new MetalFillEffect(eff);
         case EffectManager::eff_BARS:
             return new MetalBarsEffect(eff);
         case EffectManager::eff_CIRCLES:

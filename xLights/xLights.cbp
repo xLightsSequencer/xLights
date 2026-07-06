@@ -1000,6 +1000,14 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/GalaxyFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/GarlandsFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/GarlandsFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/FillFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/FillFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/TreeFunctions.ispc">
 			<Option link="1" />
 		</Unit>
@@ -1012,6 +1020,10 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/CandleFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/WaveFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/WaveFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/CirclesFunctions.ispc">
 			<Option link="1" />
 		</Unit>

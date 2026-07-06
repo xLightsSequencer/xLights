@@ -15,7 +15,10 @@
 #include "../TreeEffect.h"
 #include "../ShimmerEffect.h"
 #include "../CandleEffect.h"
+#include "../WaveEffect.h"
+#include "../GarlandsEffect.h"
 #include "../ShaderEffect.h"
+#include "../FillEffect.h"
 
 class MetalButterflyEffectData;
 
@@ -171,6 +174,18 @@ public:
 private:
     MetalShimmerEffectData *data;
 };
+class MetalFillEffectData;
+
+class MetalFillEffect : public FillEffect {
+public:
+    MetalFillEffect(int i);
+    virtual ~MetalFillEffect();
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+private:
+    MetalFillEffectData *data;
+};
 
 class MetalCandleEffectData;
 
@@ -183,6 +198,32 @@ public:
 
 private:
     MetalCandleEffectData *data;
+};
+
+class MetalWaveEffectData;
+
+class MetalWaveEffect : public WaveEffect {
+public:
+    MetalWaveEffect(int i);
+    virtual ~MetalWaveEffect();
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+private:
+    MetalWaveEffectData *data;
+};
+
+class MetalGarlandsEffectData;
+
+class MetalGarlandsEffect : public GarlandsEffect {
+public:
+    MetalGarlandsEffect(int i);
+    virtual ~MetalGarlandsEffect();
+
+    virtual void Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) override;
+
+private:
+    MetalGarlandsEffectData *data;
 };
 
 class MetalColorWashEffectData;
