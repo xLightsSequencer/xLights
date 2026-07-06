@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "SequenceFileSettingsPanel.h"
+#include "PrefPanelUtils.h"
 
 //(*InternalHeaders(SequenceFileSettingsPanel)
 #include <wx/button.h>
@@ -192,6 +193,7 @@ SequenceFileSettingsPanel::SequenceFileSettingsPanel(wxWindow* parent,xLightsFra
     #ifdef _MSC_VER
     MSWDisableComposited();
     #endif
+    StylePreferenceSectionHeaders(this);
 }
 
 SequenceFileSettingsPanel::~SequenceFileSettingsPanel()

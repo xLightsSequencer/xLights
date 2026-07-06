@@ -2048,6 +2048,9 @@
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\PrefPanelUtils.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\VideoSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>

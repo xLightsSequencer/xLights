@@ -178,6 +178,15 @@ KeyBindingsSettingsPanel::KeyBindingsSettingsPanel(wxWindow* parent, xLightsFram
 
     auto* topRow = new wxFlexGridSizer(0, 2, 0, 0);
     topRow->AddGrowableCol(1);
+    topRow->Add(new wxStaticText(this, wxID_ANY, _("Category:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    Choice_Category = new wxChoice(this, wxID_ANY);
+    Choice_Category->AppendString(_("All"));
+    Choice_Category->AppendString(_("Effects"));
+    Choice_Category->AppendString(_("Presets"));
+    Choice_Category->AppendString(_("Apply Settings"));
+    Choice_Category->AppendString(_("Commands"));
+    Choice_Category->SetStringSelection(_("All"));
+    topRow->Add(Choice_Category, 1, wxALL | wxEXPAND, 5);
     topRow->Add(new wxStaticText(this, wxID_ANY, _("Scope:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
     Choice_Scope = new wxChoice(this, wxID_ANY);
     Choice_Scope->AppendString("All");
@@ -218,6 +227,7 @@ KeyBindingsSettingsPanel::KeyBindingsSettingsPanel(wxWindow* parent, xLightsFram
     ListCtrl_Bindings->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
     ListCtrl_Bindings->SetColumnWidth(2, wxLIST_AUTOSIZE);
 
+    Choice_Category->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) { LoadList(); });
     Choice_Scope->Bind(wxEVT_CHOICE, &KeyBindingsSettingsPanel::OnChoice_ScopeSelect, this);
     _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { _filter = _filterCtrl->GetValue().Lower(); LoadList(); });
     _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [this](wxCommandEvent&) { _filterCtrl->ChangeValue(""); _filter.clear(); LoadList(); });
@@ -279,6 +289,14 @@ KeyBindingsSettingsPanel::~KeyBindingsSettingsPanel()
 	//*)
 }
 
+wxString KeyBindingsSettingsPanel::CategoryOf(const std::string& type)
+{
+    if (type == "EFFECT") return "Effects";
+    if (type == "PRESET") return "Presets";
+    if (type == "APPLYSETTING") return "Apply Settings";
+    return "Commands";
+}
+
 KBSCOPE EncodeScope(std::string scope)
 {
 	if (scope == "Controller") return KBSCOPE::Setup;
@@ -300,9 +318,13 @@ void KeyBindingsSettingsPanel::LoadList()
 	const wxString scopeSel = Choice_Scope->GetStringSelection();
 	const bool showAll = (scopeSel == "All");
 	const KBSCOPE scope = EncodeScope(scopeSel);
+	const wxString categorySel = Choice_Category->GetStringSelection();
+	const bool allCategories = categorySel.empty() || categorySel == "All";
 	for (const auto& it : _keyBindings->GetBindings())
 	{
 		if (!showAll && !it.InScope(scope))
+			continue;
+		if (!allCategories && CategoryOf(it.GetType()) != categorySel)
 			continue;
 
 		const wxString friendly = FriendlyName(it.GetType());

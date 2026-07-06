@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ColorManagerSettingsPanel.h"
+#include "PrefPanelUtils.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 
@@ -90,6 +91,8 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	Connect(ID_BUTTON_EXPORT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorManagerSettingsPanel::OnButtonExportClick);
 	Connect(ID_BUTTON_RESET, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ColorManagerSettingsPanel::OnButton_ResetClick);
 	//*)
+
+    StylePreferenceSectionHeaders(this);
 
     #ifndef __WXMSW__
     CheckBox_SuppressDarkMode->Show(false);

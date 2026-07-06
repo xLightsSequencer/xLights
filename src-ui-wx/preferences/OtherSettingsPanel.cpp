@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "OtherSettingsPanel.h"
+#include "PrefPanelUtils.h"
 #include "color/xlColourData.h"
 
 #include <wx/checkbox.h>
@@ -120,6 +121,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
+    StylePreferenceSectionHeaders(this);
 
 #ifdef __LINUX__
     ShaderCheckbox->Hide();

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "VideoSettingsPanel.h"
+#include "PrefPanelUtils.h"
 
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -63,6 +64,7 @@ VideoSettingsPanel::VideoSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
+    StylePreferenceSectionHeaders(this);
 
     // The hardware video renderer choice is only honoured on Windows; other
     // platforms decode without the selectable backend (mirrors the prior panel).

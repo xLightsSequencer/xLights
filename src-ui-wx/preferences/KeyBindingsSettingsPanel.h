@@ -50,6 +50,7 @@ class KeyBindingsSettingsPanel : public wxPanel
     void OnListMouseMotion(wxMouseEvent& event);
     long _tooltipItem = -1;
 
+    wxChoice* Choice_Category = nullptr; // filters the list by binding kind
     wxChoice* Choice_Scope = nullptr;
     wxListCtrl* ListCtrl_Bindings = nullptr;
     wxSearchCtrl* _filterCtrl = nullptr;
@@ -61,6 +62,10 @@ class KeyBindingsSettingsPanel : public wxPanel
     void OnButton_AddEffectClick(wxCommandEvent& event);
     void OnButtonAddApplySettingClick(wxCommandEvent& event);
     void OnButtonAddPresetClick(wxCommandEvent& event);
+
+    // Broad category a binding falls into ("Effects", "Presets",
+    // "Apply Settings" or "Commands"), used by the Category dropdown filter.
+    static wxString CategoryOf(const std::string& type);
 
 public:
     // Public so the popup editor can label a binding with its friendly name.
