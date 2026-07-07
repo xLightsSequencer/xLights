@@ -222,6 +222,40 @@ void ShaderEffect::SetBackgroundRender(bool b) {
     GLContextManager::Instance().SetBackgroundRenderEnabled(b);
 }
 
+std::string ShaderEffect::GetNativeVertexShaderSource() {
+    return
+        "#version 330 core\n"
+        // Enables explicit layout(location=) on the varyings below (needed in 330).
+        "#extension GL_ARB_separate_shader_objects : enable\n"
+        "uniform vec2 RENDERSIZE;\n"
+        "uniform vec2 XL_OFFSET;\n"
+        "uniform float XL_ZOOM;\n"
+        "uniform float XL_DURATION;\n"
+        "in vec2 vpos;\n"
+        "in vec2 tpos;\n"
+        // Explicit, matching locations so the separately-compiled MSL vertex and
+        // fragment stages agree on the varying interface (spirv-cross renumbers
+        // per-stage otherwise, since the fragment drops unused varyings).
+        "layout(location=0) out vec2 texCoord;\n"
+        "layout(location=1) out vec2 orig_FragNormCoord;\n"
+        "layout(location=2) out vec2 orig_FragCoord;\n"
+        "layout(location=3) out vec2 xl_FragNormCoord;\n"
+        "layout(location=4) out vec2 xl_FragCoord;\n"
+        "vec2 XL_ZOOM_OFFSET(vec2 coord) {\n  return ((coord.xy - (XL_OFFSET - 0.5) - 0.5) / XL_ZOOM) + 0.5;\n}\n\n"
+        "void isf_vertShaderInit(void)\n"
+        "{\n"
+        "   gl_Position = vec4(vpos,0,1);\n"
+        "   texCoord = tpos;\n"
+        "   orig_FragNormCoord = vec2(tpos.x, tpos.y);\n"
+        "   xl_FragNormCoord = XL_ZOOM_OFFSET(vec2(tpos.x, tpos.y));\n"
+        "   orig_FragCoord = orig_FragNormCoord * RENDERSIZE;\n"
+        "   xl_FragCoord = xl_FragNormCoord * RENDERSIZE;\n"
+        "}\n"
+        "void main(){\n"
+        "    isf_vertShaderInit();"
+        "}\n";
+}
+
 bool ShaderEffect::IsBackgroundRender() {
     return GLContextManager::Instance().IsBackgroundRenderEnabled();
 }

@@ -16,6 +16,9 @@ public:
         return isEnabled && MetalComputeUtilities::INSTANCE.computeEnabled();
     }
     virtual void enable(bool b) override {
+        if (getenv("XL_NATIVE_SHADER_DEBUG")) {
+            fprintf(stderr, "NATIVE enable(%d) this=%p (was %d)\n", (int)b, (void*)this, (int)isEnabled);
+        }
         isEnabled = b;
     }
 
@@ -35,6 +38,11 @@ public:
         }
     }
     virtual void doSetupRenderBuffer(PixelBufferClass *parent, RenderBuffer *buffer, int layer) override {
+        static const bool dbg = getenv("XL_NATIVE_SHADER_DEBUG") != nullptr;
+        if (dbg) {
+            fprintf(stderr, "NATIVE setup rb=%p model=%s layer=%d enabled=%d this=%p\n",
+                    (void*)buffer, buffer->GetModelName().c_str(), layer, (int)isEnabled, (void*)this);
+        }
         if (isEnabled) {
             MetalPixelBufferComputeData *pbc = nullptr;
             if (!parent->gpuRenderData) {

@@ -96,6 +96,7 @@
 | Servo: start/end slider pair | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad ServoStartEndRowView. |
 | Servo: increment/decrement buttons | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad ServoButtonRowView. |
 | Shader: file picker (.fs) | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad Shader_FilenameBlock (EffectFilenameBlockView). |
+| Shader: native Metal render path (GLSL→SPIR-V→MSL, no OpenGL/ANGLE) | render | ✅ | ✅ | parity | P1 | done | feasible | Shared src-core (MetalShaderEffect + MetalShaderTranslator); default ON both platforms, XL_NO_NATIVE_SHADER=1 falls back to GL/ANGLE. Validated: 300-shader corpus renders + iOS-MSL compiles 300/300; on-device smoke test recommended before App Store push. |
 | Shader: dynamic params from uniforms | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad ShaderDynamicParamsView → bridge `shaderDynamicPropertiesJsonForPath` (XLSequenceDocument.h:1551) → renders via full EffectPropertyView (so sliders/choices/checkboxes/point2d **with VC buttons**). |
 | Shader: time speed slider + VC | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad ShaderSpeedRowView (synthetic PropertyMetadata → slider + VC). |
 | Shape: font + emoji category | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad ShapeFontRowView. |

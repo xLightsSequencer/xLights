@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -enh (dkulp)                 macOS/iPad: the Shader effect now renders natively on Metal (shaders are
+                                 translated GLSL -> SPIR-V -> Metal at load and cached) instead of through
+                                 OpenGL/ANGLE - faster, no longer depends on the deprecated OpenGL stack, and
+                                 fixes several shaders that relied on driver-specific behavior (uninitialized
+                                 variables now render consistently).  Set XL_NO_NATIVE_SHADER=1 to fall back
+                                 to the OpenGL path on macOS.
     -enh (alex)                  Tools - Test: connection and auto-upload configuration (if supported) are deferred
                                  until a model or port is first selected, eliminating startup delay. Controller
                                  hostnames are re-resolved on demand so controllers that were offline at startup work

@@ -320,4 +320,9 @@ public:
     virtual void preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) override;
     virtual void copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) override;
     virtual void copyPixelDataFromTexture(RenderBuffer& buffer) override;
+
+    // Native Metal render path (opt-in via XL_NATIVE_SHADER). Translates the ISF
+    // GLSL to MSL and renders through a Metal pipeline instead of OpenGL; falls
+    // back to the base OpenGL ShaderEffect::Render on anything unsupported.
+    virtual void Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
 };
