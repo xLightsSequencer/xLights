@@ -621,6 +621,7 @@ class LayoutPanel: public wxPanel
         int Col_StartChan = 1;
         int Col_EndChan = 2;
         int Col_ControllerConnection = 3;
+        int Col_Info = 4;
 
         ModelPreview *modelPreview = nullptr;
         wxImage *background = nullptr;

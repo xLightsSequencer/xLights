@@ -318,6 +318,33 @@ wxEND_EVENT_TABLE()
 #define STARTCHANCOLNAME "Start Chan"
 #define ENDCHANCOLNAME "End Chan"
 #define CONTCONNCOLNAME "Ctrlr Conn"
+#define INFOCOLNAME "Info"
+
+// Build a run of spaces whose rendered width approximates that of icon, so that a
+// missing icon still consumes about the same horizontal space as a present one and
+// later icons in the same cell line up between rows.
+static wxString MakeIconPlaceholder(wxWindow* wnd, const wxString& icon)
+{
+    wxClientDC dc(wnd);
+    dc.SetFont(wnd->GetFont());
+    int iconWidth = dc.GetTextExtent(icon).GetWidth();
+    int spaceWidth = dc.GetTextExtent(" ").GetWidth();
+    int numSpaces = spaceWidth > 0 ? std::max(1, (int)std::lround(iconWidth / (double)spaceWidth)) : 2;
+    return wxString(' ', numSpaces);
+}
+
+static wxString GetModelInfoText(wxWindow* wnd, const Model* model)
+{
+    static wxString linkIcon = wxString::FromUTF8("\xF0\x9F\x94\x97\xEF\xB8\x8E");
+    static wxString lockIcon = wxString::FromUTF8("\xF0\x9F\x94\x92\xEF\xB8\x8E");
+    static wxString linkPlaceholder = MakeIconPlaceholder(wnd, linkIcon);
+    static wxString lockPlaceholder = MakeIconPlaceholder(wnd, lockIcon);
+
+    wxString info;
+    info += model->IsFromBase() ? linkIcon : linkPlaceholder;
+    info += (model->IsFromBase() || model->IsLocked()) ? lockIcon : lockPlaceholder;
+    return info;
+}
 
 static wxRect scaledRect(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
@@ -1019,6 +1046,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
     TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->SetColumnWidth(Col_Info, wxCOL_WIDTH_AUTOSIZE);
 
 }
 
@@ -1069,11 +1097,13 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
         if (std::find(begin(cols), end(cols), STARTCHANCOLNAME) ==  end(cols)) cols.push_back(STARTCHANCOLNAME);
         if (std::find(begin(cols), end(cols), ENDCHANCOLNAME) == end(cols)) cols.push_back(ENDCHANCOLNAME);
         if (std::find(begin(cols), end(cols), CONTCONNCOLNAME) == end(cols)) cols.push_back(CONTCONNCOLNAME);
+        if (std::find(begin(cols), end(cols), INFOCOLNAME) == end(cols)) cols.push_back(INFOCOLNAME);
     }
     else {
         cols.push_back(STARTCHANCOLNAME);
         cols.push_back(ENDCHANCOLNAME);
         cols.push_back(CONTCONNCOLNAME);
+        cols.push_back(INFOCOLNAME);
     }
 
     int i = 1;
@@ -1098,6 +1128,13 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
                 wxALIGN_LEFT,
                 wxCOL_RESIZABLE | wxCOL_SORTABLE | wxCOL_REORDERABLE);
             Col_ControllerConnection = i++;
+        }
+        else if (c == INFOCOLNAME) {
+            tree->AppendColumn(INFOCOLNAME,
+                wxCOL_WIDTH_AUTOSIZE,
+                wxALIGN_LEFT,
+                wxCOL_RESIZABLE | wxCOL_SORTABLE | wxCOL_REORDERABLE);
+            Col_Info = i++;
         }
     }
 
@@ -1215,6 +1252,8 @@ void LayoutPanel::SaveModelsListColumns()
 
 void LayoutPanel::SaveLayoutPerspective()
 {
+    SaveModelsListColumns();
+
     if (layout_mgr == nullptr) {
         return;
     }
@@ -1700,6 +1739,7 @@ void LayoutPanel::FreezeTreeListView() {
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
     TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
     TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
+    TreeListViewModels->SetColumnWidth(Col_Info, TreeListViewModels->GetColumnWidth(Col_Info));
     treeSorted = TreeListViewModels->GetSortColumn(&treeSortCol, &treeSortAscending);
     
     //turn off the sorting as that is ALSO really slow
@@ -1781,6 +1821,17 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
         }
         TreeListViewModels->SetColumnWidth(3, w);
     }
+    TreeListViewModels->SetColumnWidth(Col_Info, wxCOL_WIDTH_AUTOSIZE);
+    {
+        int w = TreeListViewModels->GetColumnWidth(Col_Info);
+        if (w < 20) {
+            w = TreeListViewModels->WidthFor(INFOCOLNAME);
+        }
+        if (w < 20) {
+            w = 50;
+        }
+        TreeListViewModels->SetColumnWidth(Col_Info, w);
+    }
 }
 
 void LayoutPanel::SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt) {
@@ -1807,6 +1858,10 @@ void LayoutPanel::refreshModelList() {
         Model *model = data != nullptr ? data->GetModel() : nullptr;
 
         if (model != nullptr ) {
+            wxString infoStr = GetModelInfoText(TreeListViewModels, model);
+            if (TreeListViewModels->GetItemText(item, Col_Info) != infoStr) {
+                SetTreeListViewItemText(item, Col_Info, infoStr);
+            }
 
             if( model->GetDisplayAs() != DisplayAsType::ModelGroup ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
@@ -1871,6 +1926,8 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
                                                          LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->GetDisplayAs()), LayoutUtils::GroupMode::Closed),
                                                          LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->GetDisplayAs()), LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
+
+    SetTreeListViewItemText(item, Col_Info, GetModelInfoText(TreeListViewModels, model));
 
     if (model->GetDisplayAs() != DisplayAsType::ModelGroup) {
         wxString startStr = model->GetStartChannelInDisplayFormat(xlights->GetOutputManager());
@@ -4244,6 +4301,14 @@ int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl* treel
         else {
             return NumberAwareStringCompare(sna, snb);
         }
+    }
+    else if (colobj->GetTitle() == INFOCOLNAME) {
+        wxString txt1 = treelist->GetItemText(item1, sortColumn);
+        wxString txt2 = treelist->GetItemText(item2, sortColumn);
+        if (txt1 != txt2) {
+            return txt1.Cmp(txt2);
+        }
+        return NumberAwareStringCompare(a->name, b->name);
     }
 
     // Dont sort things with parents
@@ -9775,6 +9840,7 @@ void LayoutPanel::UnlinkSelectedModels()
         model->SetFromBase(false);
     }
 
+    refreshModelList();
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
 }
 
@@ -9786,6 +9852,7 @@ void LayoutPanel::LockSelectedModels(bool lock)
         model->Lock(lock);
     }
 
+    refreshModelList();
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
 }
 
