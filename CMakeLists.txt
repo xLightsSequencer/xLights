@@ -841,6 +841,14 @@ if(WIN32)
     # ANGLE canvas would render black.
     if(XLIGHTS_USE_ANGLE AND NOT APPLE)
         target_link_options(xLights PRIVATE "/DEFAULTLIB:opengl32.lib" "/DEFAULTLIB:glu32.lib")
+        # wxWidgets' monolithic lib embeds its own /DEFAULTLIB:opengl32 directive,
+        # so opengl32 is pulled in for the wgl* entry points regardless of the
+        # REMOVE_ITEM above.  Its GL 1.1 exports (glPointSize / glColor4f /
+        # glNormal3f / glGetBooleanv) then collide with ANGLE's libGLESv2
+        # (LNK2005).  /FORCE:MULTIPLE keeps the first — explicit → libGLESv2 —
+        # definition so ANGLE wins (matching the runtime backend), while opengl32
+        # still supplies the unique wgl* symbols wx's GL-canvas code needs.
+        target_link_options(xLights PRIVATE "/FORCE:MULTIPLE")
     endif()
     if(NOT XLIGHTS_USE_VCPKG)
         # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs

@@ -29,6 +29,18 @@
 #include <windows.h>
 #endif
 #include <GLES3/gl3.h>
+// GLES3/gl3.h already declares every GL 1.1 core entry point (glBindTexture,
+// glClear, …).  wxGLCanvas later pulls in the desktop <GL/gl.h> (via
+// wx/glcanvas.h in xlGLCanvas.h below), which redeclares the same names with
+// WINGDIAPI/APIENTRY linkage → C2375 "different linkage".  Define the desktop
+// header's include guards so its body is skipped, exactly as the macOS branch
+// does after including <OpenGL/gl3.h>.
+#ifndef __gl_h_
+#define __gl_h_
+#endif
+#ifndef __GL_H__
+#define __GL_H__
+#endif
 static bool hasOpenGL3FramebufferObjects() { return true; }  // FBOs are core in ES3
 
 // TEMP ANGLE crash diagnosis: GL_KHR_debug synchronous callback.  ANGLE reports
