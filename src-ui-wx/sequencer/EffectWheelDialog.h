@@ -29,6 +29,7 @@ private:
     void OnMouseMove(wxMouseEvent& event);
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
     void OnShow(wxShowEvent& event);
 
     int GetSectorAtMouse(const wxPoint& pos);

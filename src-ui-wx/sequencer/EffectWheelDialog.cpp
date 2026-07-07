@@ -56,6 +56,8 @@ EffectWheelDialog::EffectWheelDialog(wxWindow* parent, const std::vector<const K
     SetClientSize(wxSize(sizeVal, sizeVal));
 
     SetCircularShape(m_outerRadius);
+
+    Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(EffectWheelDialog::OnKeyDown), nullptr, this);
 }
 
 void EffectWheelDialog::PositionAtMouse(const wxPoint& mousePos) {
@@ -115,7 +117,7 @@ void EffectWheelDialog::OnMouseMove(wxMouseEvent& event) {
     int newHover = GetSectorAtMouse(event.GetPosition());
     double dx = event.GetPosition().x - m_center.x;
     double dy = event.GetPosition().y - m_center.y;
-    bool newCenterHovered = (sqrt(dx * dx + dy * dy) < m_innerRadius);
+    bool newCenterHovered = (dx * dx + dy * dy < (double)m_innerRadius * m_innerRadius);
     if (newHover != m_hoveredSector || newCenterHovered != m_centerHovered) {
         m_hoveredSector = newHover;
         m_centerHovered = newCenterHovered;
@@ -226,8 +228,8 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     {
         wxColour textColor = m_centerHovered ? wxColour(255, 255, 255) : wxColour(170, 170, 170);
         bool large = (m_innerRadius > FromDIP(35));
-        wxFont iconFont(large ? 11 : 9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-        wxFont labelFont(large ? 8 : 7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+        wxFont iconFont(FromDIP(large ? 11 : 9), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+        wxFont labelFont(FromDIP(large ? 8 : 7), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
         double iw, ih, lw, lh;
         gc->SetFont(iconFont, textColor);
@@ -265,6 +267,17 @@ void EffectWheelDialog::OnLeftDown(wxMouseEvent& event) {
 }
 
 void EffectWheelDialog::OnLeftUp(wxMouseEvent& WXUNUSED(event)) {
+}
+
+void EffectWheelDialog::OnKeyDown(wxKeyEvent& event) {
+    if (event.GetKeyCode() == WXK_ESCAPE) {
+        if (HasCapture()) {
+            ReleaseMouse();
+        }
+        EndModal(wxID_CANCEL);
+    } else {
+        event.Skip();
+    }
 }
 
 void EffectWheelDialog::OnShow(wxShowEvent& event) {
