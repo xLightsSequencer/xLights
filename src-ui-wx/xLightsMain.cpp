@@ -3256,6 +3256,20 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     std::string errors = "";
     BackupDirectory(CurrentDir, newDir, newDir, forceallfiles, _backupSubfolders, errors);
 
+    // Key bindings live in AppData, not the show folder — copy them into the backup too
+    {
+        wxFileName appDataKbf;
+        appDataKbf.AssignDir(wxString(GetSettingsFilePath().parent_path().wstring()));
+        appDataKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+        if (appDataKbf.FileExists()) {
+            wxString kbfDest = newDir + GetPathSeparator() + XLIGHTS_KEYBINDING_FILE;
+            if (!wxCopyFile(appDataKbf.GetFullPath(), kbfDest)) {
+                spdlog::warn("Failed to backup key bindings from AppData: {}",
+                             (const char*)appDataKbf.GetFullPath().c_str());
+            }
+        }
+    }
+
     if (errors != "") {
         DisplayError(errors, this);
     }
@@ -9027,8 +9041,13 @@ void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
         std::string errors;
         for (auto const& file : restoreFiles) {
             prgs.Pulse("Restoring '" + file + "'...");
+            // Key bindings are stored in AppData, not the show folder
+            wxString destDir = showDirectory;
+            if (file == XLIGHTS_KEYBINDING_FILE) {
+                destDir = wxString(GetSettingsFilePath().parent_path().wstring());
+            }
             bool success = wxCopyFile(restoreFolder + GetPathSeparator() + file,
-                                      showDirectory + GetPathSeparator() + file);
+                                      destDir + GetPathSeparator() + file);
             if (!success) {
                 errors += "Unable to copy file \"" + file + "\"\n";
             }
