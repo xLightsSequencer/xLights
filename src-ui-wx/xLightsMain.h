@@ -394,8 +394,10 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
+    void SavePresetsFile(bool backup = false);
     void SaveModelsFile();
     void MarkEffectsFileDirty();
+    void MarkPresetsDirty();
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0) override;
@@ -1521,6 +1523,7 @@ public:
     // convert
 public:
     bool UnsavedRgbEffectsChanges;
+    bool UnsavedPresetChanges = false;
     bool _renderMode = false;
     bool _checkSequenceMode = false;
 

@@ -1659,6 +1659,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     UnsavedNetworkChanges = false;
 
     UnsavedRgbEffectsChanges = false;
+    UnsavedPresetChanges = false;
     mStoredLayoutGroup = "Default";
 
     modelsChangeCount = 0;
@@ -4108,8 +4109,8 @@ void xLightsFrame::CheckUnsavedChanges()
         // to the user what this prompt is for
         Notebook1->SetSelection(LAYOUTTAB);
 
-        if (wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
-                                  "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+        if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
+                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SaveEffectsFile();
         } else {
             wxFileName effectsFile;
@@ -4132,15 +4133,38 @@ void xLightsFrame::CheckUnsavedChanges()
             SaveNetworksFile();
         }
     }
+
+    if (UnsavedPresetChanges) {
+        if (wxYES == wxMessageBox("Save Effect Preset changes?",
+                                  "Effect Presets Changes Confirmation",
+                                  wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+            SavePresetsFile();
+        } else {
+            wxFileName presetsFile;
+            presetsFile.AssignDir(CurrentDir);
+            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+            wxFileName fn(presetsFile.GetFullPath());
+            if (FileExists(fn.GetFullPath())) {
+                fn.Touch();
+            }
+        }
+    }
 }
 
 void xLightsFrame::MarkEffectsFileDirty()
 {
     auto logger_work = spdlog::get("work");
     logger_work->debug("        MarkEffectsFileDirty.");
+    spdlog::debug("MarkEffectsFileDirty called - UnsavedRgbEffectsChanges now true");
 
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges = true;
+}
+
+void xLightsFrame::MarkPresetsDirty()
+{
+    UnsavedPresetChanges = true;
+    UpdateLayoutSave();
 }
 
 void xLightsFrame::MarkModelsAsNeedingRender()
@@ -4780,6 +4804,10 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         if (UnsavedRgbEffectsChanges) {
             spdlog::debug("    Autosaving backup of layout.");
             SaveWorkingLayout();
+        }
+        if (UnsavedPresetChanges) {
+            spdlog::debug("    Autosaving backup of effect presets.");
+            SavePresetsFile(true);
         }
         spdlog::debug("    AutoSave took {} ms.", sw.Time());
 
