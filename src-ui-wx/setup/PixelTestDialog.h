@@ -33,6 +33,7 @@
 #include <glm/glm.hpp>
 
 #include <list>
+#include <set>
 #include <string>
 
 #include "shared/utils/xLightsTimer.h"
@@ -250,6 +251,7 @@ class PixelTestDialog: public wxDialog
         ModelTestItem* _lastModel = nullptr;
         std::list<ModelTestItem*> _models;
         ChannelTracker _channelTracker;
+        std::set<std::string> _uploadedControllers;
         ModelPreview* _modelPreview = nullptr;
 
         int _twinkleRatio = 0;
@@ -484,6 +486,7 @@ class PixelTestDialog: public wxDialog
 
         bool AreChannelsAvailable(Model* model);
         bool AreChannelsAvailable(ModelGroup* model);
+        void EnsureControllerUploaded(long absoluteChannel);
 
 		void CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem& item, wxCheckBoxState state);
         void DumpSelected();

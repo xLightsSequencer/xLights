@@ -113,6 +113,7 @@ class wxDebugReport;
 class aiBase;
 class BaseSerializingVisitor;
 class CopyFormat1;
+class Controller;
 class ControllerCaps;
 class Discovery;
 class DiscoveryDelegate;
@@ -1427,7 +1428,8 @@ public:
     bool DisableOutputs();
     void CycleOutputsIfOn();
 
-    bool ForceEnableOutputs(bool startTimer = true);
+    bool ForceEnableOutputs(bool startTimer = true, bool skipAutoUpload = false);
+    bool UploadControllerForImmediateOutput(Controller* controller);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
     void LogPerspective(const wxString& perspective) const;

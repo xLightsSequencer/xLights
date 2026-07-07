@@ -1192,18 +1192,18 @@ bool OutputManager::StartOutput() {
     bool ok = true;
     bool err = false;
 
+    // Re-resolve any controllers whose hostnames failed to resolve at startup
+    for (const auto& ctrl : GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (eth != nullptr) eth->RefreshResolvedIP();
+    }
+    ip_utils::waitForAllToResolve();
+
     for (const auto& it : GetAllOutputs()) {
 
         // make sure global FPP proxy is up to date ...
         it->SetGlobalFPPProxyIP(_globalFPPProxy);
         it->SetGlobalForceLocalIP(_globalForceLocalIP);
-
-        //try to refresh in case ctrl was turned on after xlights started
-        if (hasAlpha(it->GetResolvedIP())) {
-            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
-            if (ipOutput) ipOutput->SetIP(it->GetResolvedIP(), true, true);
-            ip_utils::waitForAllToResolve();
-        }
 
         bool preok = ok;
         ok = it->Open() && ok;
@@ -1229,6 +1229,28 @@ bool OutputManager::StartOutput() {
     _outputCriticalSection.unlock();
 
     return _outputting; // even partially started is ok
+}
+
+bool OutputManager::StartControllerOutputs(Controller* controller) {
+    if (!_outputCriticalSection.try_lock()) return false;
+
+    auto eth = dynamic_cast<ControllerEthernet*>(controller);
+    if (eth != nullptr) {
+        eth->RefreshResolvedIP();
+        ip_utils::waitForAllToResolve();
+    }
+
+    int started = 0;
+    for (auto output : controller->GetOutputs()) {
+        output->SetGlobalFPPProxyIP(_globalFPPProxy);
+        output->SetGlobalForceLocalIP(_globalForceLocalIP);
+        if (output->Open()) started++;
+    }
+
+    if (started > 0) _outputting = true;
+
+    _outputCriticalSection.unlock();
+    return started > 0;
 }
 
 void OutputManager::StopOutput() {

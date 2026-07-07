@@ -1620,9 +1620,6 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
         DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
     }
 
-    if (!parent->ForceEnableOutputs(false)) {
-        DisplayWarning("At least one output could not be started. See log file for details.", this);
-    }
     Timer1.Start(50, wxTIMER_CONTINUOUS);
 }
 
@@ -1687,6 +1684,33 @@ bool PixelTestDialog::AreChannelsAvailable(Model* model)
     }
 
     return true;
+}
+
+void PixelTestDialog::EnsureControllerUploaded(long absoluteChannel)
+{
+    if (absoluteChannel <= 0) return;
+    if (!CheckBox_OutputToLights->IsChecked()) return;
+
+    int32_t startChannel = 0;
+    Controller* ctrl = _outputManager->GetController(absoluteChannel, startChannel);
+    if (ctrl == nullptr) return;
+    if (!ctrl->IsActive()) return;
+    if (_uploadedControllers.count(ctrl->GetName())) return;
+
+    // Re-resolve hostname and open outputs first so GetResolvedIP() is fresh for the upload.
+    // Don't mark as done on failure — allow retry on the next selection event.
+    if (!_outputManager->StartControllerOutputs(ctrl)) {
+        xLightsFrame* f = (xLightsFrame*)GetParent();
+        f->SetStatusText(ctrl->GetName() + " - Failed to open output");
+        return;
+    }
+
+    _uploadedControllers.insert(ctrl->GetName());
+
+    if (ctrl->IsAutoUpload() && ctrl->SupportsAutoUpload()) {
+        xLightsFrame* f = (xLightsFrame*)GetParent();
+        f->UploadControllerForImmediateOutput(ctrl);
+    }
 }
 
 std::list<std::string> PixelTestDialog::GetModelsOnChannels(int start, int end)
@@ -1910,6 +1934,9 @@ void PixelTestDialog::PopulateVisualModelTree(ModelManager* modelManager)
 void PixelTestDialog::SelectVisualModel(const std::string& model)
 {
     Model* m = _modelManager->GetModel(model);
+    if (m != nullptr) {
+        EnsureControllerUploaded(m->GetFirstChannel() + 1);
+    }
     _modelPreview->SetModel(m);
 
     UpdateVisualModelFromTracker();
@@ -2645,6 +2672,7 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
     }
 
     if (checked == wxCheckBoxState::wxCHK_CHECKED) {
+        EnsureControllerUploaded(tc->GetFirstChannel());
         if (tc->IsContiguous()) {
             _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
         } else {
@@ -2683,6 +2711,7 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
                 if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
                     // check the items
                     tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
+                    EnsureControllerUploaded(tc->GetFirstChannel());
                     if (tc->IsContiguous()) {
                         _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
                     } else {
@@ -3491,11 +3520,7 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
             DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
         }
 
-        xLightsFrame* f = (xLightsFrame*)GetParent();
-
-        if (!f->ForceEnableOutputs(false)) {
-            DisplayWarning("At least one output could not be started. See log file for details.", this);
-        }
+        _uploadedControllers.clear();
         Timer1.Start(50, wxTIMER_CONTINUOUS);
     } else {
         Timer1.Stop();
@@ -3503,6 +3528,7 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
         OnTimer1Trigger(ev);
         _outputManager->StopOutput();
         SetConfigBool("OutputActive", false);
+        _uploadedControllers.clear();
     }
 }
 
