@@ -30,6 +30,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  right-click single controller FPPConnect functionality
     -enh (cybercop23)            Show/base show folder settings moved to a Directories dialog opened from the
                                  Layout tab; controller list columns can be shown/hidden from the header
+    -enh (cybercop23)            Key bindings are now stored in both the show folder and the platform app-data
+                                 folder, kept in sync on every save, backup and restore; a new Preferences >
+                                 Other > "Use keybindings from" option (Show Folder / AppData-shared, default
+                                 Show Folder) controls which copy is authoritative
     -enh (heffneil)              Import Previews and Models: added a filter box above the tree to
                                  quickly find models/groups in a long list
     -enh (heffneil)              Vendor model download: added a live filter box above the catalog tree
