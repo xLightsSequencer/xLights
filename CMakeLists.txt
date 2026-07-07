@@ -360,10 +360,10 @@ file(GLOB SRC_EFFECTS
 # Vulkan silently fall back to the CPU render paths.
 option(XLIGHTS_USE_VULKAN "Enable the Vulkan GPU compute render backend" ON)
 set(XLIGHTS_VULKAN_ENABLED FALSE)
-# Linux only for now.  Apple uses Metal; Windows enablement (glslc CustomBuild,
-# unhiding the checkbox on __WXMSW__) is a separate step -- until then a Windows
-# CMake configure must not require glslc or run the bash shader script.
-if(XLIGHTS_USE_VULKAN AND UNIX AND NOT APPLE)
+# Linux + Windows (CMake).  Apple uses Metal.  The MSBuild .vcxproj still lacks
+# the glslc CustomBuild + ClCompile entries, so the .sln build stays CPU-only;
+# only the CMake path builds the Vulkan backend on Windows.
+if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
     list(APPEND SRC_EFFECTS
         src-core/effects/vulkan/VulkanComputeUtilities.cpp
         src-core/effects/vulkan/VulkanEffectManager.cpp
@@ -601,7 +601,7 @@ if(XLIGHTS_VULKAN_ENABLED)
     # Compile the .comp compute kernels into the SPIR-V headers the vulkan/
     # sources #include.  These are generated (gitignored), not committed —
     # glslc is a build tool here, like ispc for the .ispc kernels.
-    find_program(GLSLC_EXECUTABLE glslc)
+    find_program(GLSLC_EXECUTABLE glslc HINTS $ENV{VULKAN_SDK}/Bin $ENV{VULKAN_SDK}/bin)
     if(NOT GLSLC_EXECUTABLE)
         message(FATAL_ERROR
             "glslc not found — required to build the Vulkan compute backend.\n"
