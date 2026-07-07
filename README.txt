@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  until a model or port is first selected, eliminating startup delay. Controller
                                  hostnames are re-resolved on demand so controllers that were offline at startup work
                                  correctly once they come online.
+    -enh (dkulp)                 Much faster saving of large .fseq files - zstd compression now runs across all
+                                 cores by compressing seekable blocks in parallel instead of single threaded
     -enh (cybercop23)            Effect Presets now track unsaved changes independently from the RGB effects file.
                                  Preset-only edits no longer mark the RGB effects file dirty.
     -enh (dkulp)                 Linux/Windows: GPU-accelerated rendering (Vulkan) for blur, rotozoom, transitions,
