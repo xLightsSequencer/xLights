@@ -158,7 +158,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;HAVE_ORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;HAVE_ORT;HAVE_VULKAN;VK_NO_PROTOTYPES</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj</AdditionalOptions>
@@ -272,7 +272,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT;HAVE_VULKAN;VK_NO_PROTOTYPES</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -401,9 +401,16 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <Message Importance="high" Text="Fetching KLightMapper prebuilt library (one-time)..." />
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\ci_scripts\fetch_dependencies.ps1&quot;" />
   </Target>
+  <!-- Vulkan (x64 only): compile the .comp compute kernels to the SPIR-V headers
+       the vulkan/ C++ #includes.  glslc is a build tool here, like ispc for the
+       .ispc kernels; the generated headers are gitignored, not committed. -->
+  <Target Name="CompileVulkanShaders" BeforeTargets="ClCompile" Condition="'$(Platform)'=='x64'">
+    <Message Importance="high" Text="Compiling Vulkan compute shaders to SPIR-V headers" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\build_scripts\msw\compile_vulkan_shaders.ps1&quot;" />
+  </Target>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\include\klightmapper;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\include\klightmapper;$(MSBuildProjectDirectory)\..\dependencies\Vulkan-Headers\include;$(MSBuildProjectDirectory)\..\dependencies\volk;$(MSBuildProjectDirectory)\..\dependencies\VulkanMemoryAllocator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -523,6 +530,30 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\effects\FX.cpp" />
     <ClCompile Include="..\src-core\effects\GuitarEffect.cpp" />
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanLibs.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanComputeUtilities.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanEffectManager.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanBarsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanButterflyEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanCandleEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanCirclesEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanColorWashEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFanEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFillEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGalaxyEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGarlandsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanKaleidoscopeEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanLifeEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanMeteorsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanPinwheelEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanPlasmaEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShimmerEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShockwaveEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanSpiralsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanTreeEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanTwinkleEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanWarpEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanWaveEffect.cpp" />
     <ClCompile Include="..\src-core\effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="..\src-core\effects\LinesEffect.cpp" />
     <ClCompile Include="..\src-core\effects\MovingHeadEffect.cpp" />
@@ -1196,6 +1227,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\WarpFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ISPCComputeUtilities.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanComputeUtilities.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanEffects.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanEffectDataTypes.h" />
     <ClInclude Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\PinwheelFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\PlasmaFunctions.ispc.h">
