@@ -76,6 +76,20 @@ public:
                                       int startms,
                                       int endms,
                                       bool clear = false) = 0;
+
+    // Request a re-render WITHOUT rendering synchronously on the caller's
+    // thread. RenderEffectForModel runs the render pipeline inline and is only
+    // safe at the top of the event loop; calling it from deep inside a settings
+    // mutation (e.g. Effect::IncrementChangeCount, which holds the effect's
+    // settingsLock) deadlocks against the render worker threads that need that
+    // lock. The desktop overrides this to post the render to the event loop so
+    // it runs once the lock is released. Headless contexts render synchronously
+    // by design, so the default falls back to RenderEffectForModel.
+    virtual void RequestRenderForModel(const std::string& model,
+                                       int startms,
+                                       int endms) {
+        RenderEffectForModel(model, startms, endms);
+    }
     virtual TimingElement* AddTimingElement(const std::string& name,
                                             const std::string& subType = "") = 0;
 

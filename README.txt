@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -bug (charlie)               Fix the app hanging indefinitely when changing a color to a gradient/color
+                                 curve on an effect linked to an Effect Symbol - symbol propagation re-rendered
+                                 linked effects synchronously while holding the effect's settings lock,
+                                 deadlocking the render workers; the re-render is now posted to the event loop
     -enh (dkulp)                 macOS/iPad: the Shader effect now renders natively on Metal (shaders are
                                  translated GLSL -> SPIR-V -> Metal at load and cached) instead of through
                                  OpenGL/ANGLE - faster, no longer depends on the deprecated OpenGL stack, and

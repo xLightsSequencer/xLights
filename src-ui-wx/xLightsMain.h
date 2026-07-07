@@ -1632,6 +1632,7 @@ public:
     void UpdateRenderStatus();
     void LogRenderStatus();
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
+    void RequestRenderForModel(const std::string &model, int startms, int endms) override;
     void RenderTimeSlice(int startms, int endms, bool clear);
 
     void RenderRange(RenderCommandEvent &cmd);
