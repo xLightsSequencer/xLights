@@ -13,7 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.13  July ??, 2026
     -enh (cybercop23)            Effect Presets now track unsaved changes independently from the RGB effects file.
                                  Preset-only edits no longer mark the RGB effects file dirty.
-    -enh (dkulp)                 Linux: GPU-accelerated rendering (Vulkan) for blur, rotozoom, transitions,
+    -enh (dkulp)                 Linux/Windows: GPU-accelerated rendering (Vulkan) for blur, rotozoom, transitions,
                                  layer blending and most effects, mirroring the Metal backend on macOS; falls back
                                  to CPU when no Vulkan driver is present.  Enable via Preferences > Other > GPU rendering
     -enh (dkulp)                 More effects now render on the GPU (Metal on macOS) or with SIMD kernels (ISPC)
