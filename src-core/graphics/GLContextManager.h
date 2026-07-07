@@ -15,7 +15,7 @@
 // without depending on wx/UI types.
 //
 // macOS (CGL):    Independent contexts in pool, share via shared context.
-// macOS (ANGLE):  Single EGL context (ANGLE Metal serializes anyway).
+// iOS:            No GL — no-op stub (shaders render via native Metal).
 // Windows (WGL):  Hidden HWND + WGL contexts, all GL ops serialized on
 //                 an internal worker thread (see ExecuteOnGLThread).
 // Linux:          Independent GLX or EGL pbuffer contexts.
@@ -42,12 +42,6 @@ public:
         // Windows: returns the shared HGLRC (cast to void*) from the main GL canvas.
         // Called lazily on first AcquireContext(), so the canvas need not exist at init time.
         std::function<void*()> getSharedGLContext;
-
-        // Apple/ANGLE: Metal device registry ID to force ANGLE onto the same
-        // GPU as the Metal compute effects.  Set to MTLDevice.registryID.
-        // When non-zero, passed to eglGetPlatformDisplay via
-        // EGL_PLATFORM_ANGLE_DEVICE_ID_HIGH/LOW_ANGLE.
-        uint64_t metalDeviceRegistryID = 0;
     };
 
     // Initialize the manager.  Must be called once before AcquireContext().
@@ -105,10 +99,6 @@ public:
 
     // Destroy all pooled contexts and release resources.
     void Shutdown();
-
-    // Returns the native display handle (EGLDisplay for ANGLE, nullptr otherwise).
-    // Used by MetalShaderEffect for texture sharing.
-    void* GetNativeDisplay() const;
 
     // Platform-specific state lives in the .cpp behind #ifdef guards.
     // Forward-declared here as opaque pointers where needed.

@@ -711,10 +711,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             return ctx ? (void*)ctx->GetGLRC() : nullptr;
         };
 #elif defined(__APPLE__)
-        // macOS: tell ANGLE to use the same Metal GPU as the compute effects
-#ifdef USE_GLES
-        glParams.metalDeviceRegistryID = GetMetalComputeDeviceRegistryID();
-#endif
+        // macOS: CGL is self-contained; no callbacks needed.
 #else
         // Linux: GLContextManager creates its own pure GLX+Pbuffer contexts,
         // completely independent of the wx canvas hierarchy.

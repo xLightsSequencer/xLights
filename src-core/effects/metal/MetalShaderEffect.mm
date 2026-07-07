@@ -28,200 +28,6 @@
 #include <mutex>
 #include <unordered_map>
 
-#ifdef USE_GLES
-
-#define GL_GLES_PROTOTYPES 1
-#define GL_GLEXT_PROTOTYPES 1
-#define EGL_EGL_PROTOTYPES 1
-#define EGL_EGLEXT_PROTOTYPES 1
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <EGL/eglext_angle.h>
-#include <GLES3/gl3.h>
-#include <GLES2/gl2ext.h>
-
-#import <Metal/Metal.h>
-
-#include "../../graphics/GLContextManager.h"
-#include "../OpenGLShaders.h"
-
-#include <log.h>
-#include <mutex>
-
-// ANGLE's Metal backend and the shared EGLImage/Metal device it imports
-// into are not thread-safe, and the size-1 GL context pool does not
-// actually serialize the Metal-side calls here (getBytes/replaceRegion
-// and texture creation don't require the GL context to be current). The
-// render engine runs ShaderEffect::Render on many worker threads at once
-// (per-model jobs plus per-sub-buffer parallel_for), so without this
-// lock one thread can create/replace a shared texture while others read
-// it via getBytes — a data race that crashes in createSharedTexture
-// (sig 5d9f29a77c). Serialize every interop touch through one mutex.
-static std::mutex sMetalInteropMutex;
-
-// -----------------------------------------------------------------------
-// SharedTexture — a texture that exists in both Metal and ANGLE GL,
-// backed by the same GPU memory.
-// -----------------------------------------------------------------------
-struct SharedTexture {
-    EGLImage eglImage = EGL_NO_IMAGE;
-    id<MTLTexture> metalTexture = nil;
-    id<MTLBuffer> metalBuffer = nil;   // non-nil when backed by a RenderBuffer's MTLBuffer (zero-copy)
-    GLuint glTexture = 0;
-    int width = 0;
-    int height = 0;
-};
-
-// Get the MTLDevice that ANGLE is using
-static id<MTLDevice> getANGLEMetalDevice(EGLDisplay display) {
-    EGLAttrib deviceHandle = 0;
-    if (!eglQueryDisplayAttribEXT(display, EGL_DEVICE_EXT, &deviceHandle) || !deviceHandle)
-        return nil;
-    EGLAttrib mtlDevicePtr = 0;
-    if (!eglQueryDeviceAttribEXT((EGLDeviceEXT)deviceHandle, EGL_METAL_DEVICE_ANGLE, &mtlDevicePtr) || !mtlDevicePtr)
-        return nil;
-    return (__bridge id<MTLDevice>)(void*)mtlDevicePtr;
-}
-
-// Import an MTLTexture into ANGLE as a GL texture via EGLImage.
-static bool importTextureToGL(EGLDisplay display, id<MTLTexture> metalTex, SharedTexture& out) {
-    const EGLAttrib imageAttribs[] = { EGL_NONE };
-    EGLImage image = eglCreateImage(display, EGL_NO_CONTEXT, EGL_METAL_TEXTURE_ANGLE,
-                                    (EGLClientBuffer)(__bridge void*)metalTex, imageAttribs);
-    if (image == EGL_NO_IMAGE) {
-        spdlog::error("MetalShaderEffect: eglCreateImage failed: 0x{:X}", eglGetError());
-        return false;
-    }
-
-    GLuint glTex = 0;
-    glGenTextures(1, &glTex);
-    glBindTexture(GL_TEXTURE_2D, glTex);
-    glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, (GLeglImageOES)image);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) {
-        spdlog::error("MetalShaderEffect: GL error after texture import: 0x{:X}", err);
-        eglDestroyImage(display, image);
-        glDeleteTextures(1, &glTex);
-        return false;
-    }
-
-    out.eglImage = image;
-    out.glTexture = glTex;
-    return true;
-}
-
-static void destroySharedTexture(EGLDisplay display, SharedTexture& tex) {
-    if (tex.glTexture) { glDeleteTextures(1, &tex.glTexture); tex.glTexture = 0; }
-    if (tex.eglImage != EGL_NO_IMAGE && display) { eglDestroyImage(display, tex.eglImage); tex.eglImage = EGL_NO_IMAGE; }
-    tex.metalTexture = nil;
-    tex.metalBuffer = nil;
-    tex.width = 0;
-    tex.height = 0;
-}
-
-// Create a standalone shared texture (ANGLE allocates the storage).
-static bool createSharedTexture(EGLDisplay display, int w, int h, SharedTexture& out) {
-    id<MTLDevice> device = getANGLEMetalDevice(display);
-    if (!device) return false;
-
-    MTLTextureDescriptor* desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                                   width:w height:h mipmapped:NO];
-    desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite | MTLTextureUsageRenderTarget;
-    desc.storageMode = MTLStorageModeShared;
-
-    id<MTLTexture> metalTex = [device newTextureWithDescriptor:desc];
-    if (!metalTex) return false;
-
-    if (!importTextureToGL(display, metalTex, out)) {
-        return false;
-    }
-
-    out.metalTexture = metalTex;
-    out.metalBuffer = nil;
-    out.width = w;
-    out.height = h;
-    return true;
-}
-
-// Create a shared texture backed by a RenderBuffer's existing Metal pixel buffer (zero-copy).
-static bool createSharedTextureFromRenderBuffer(EGLDisplay display, void* gpuRenderData,
-                                                 int w, int h, SharedTexture& out) {
-    if (!gpuRenderData) return false;
-
-    id<MTLDevice> device = getANGLEMetalDevice(display);
-    if (!device) return false;
-
-    auto* rbcd = static_cast<MetalRenderBufferComputeData*>(gpuRenderData);
-    id<MTLBuffer> pixelBuffer = rbcd->getPixelBuffer(false);
-    if (!pixelBuffer) return false;
-
-    if (pixelBuffer.device.registryID != device.registryID) return false;
-
-    NSUInteger bytesPerRow = w * 4;
-    NSUInteger minAlignment = [device minimumLinearTextureAlignmentForPixelFormat:MTLPixelFormatRGBA8Unorm];
-    if (bytesPerRow % minAlignment != 0) return false;
-    if (pixelBuffer.length < bytesPerRow * h) return false;
-
-    MTLTextureDescriptor* desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                                   width:w height:h mipmapped:NO];
-    desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite | MTLTextureUsageRenderTarget;
-    desc.storageMode = MTLStorageModeShared;
-
-    id<MTLTexture> metalTex = [pixelBuffer newTextureWithDescriptor:desc offset:0 bytesPerRow:bytesPerRow];
-    if (!metalTex) return false;
-
-    if (!importTextureToGL(display, metalTex, out)) {
-        return false;
-    }
-
-    out.metalTexture = metalTex;
-    out.metalBuffer = pixelBuffer;
-    out.width = w;
-    out.height = h;
-
-    spdlog::info("MetalShaderEffect: ZERO-COPY shared texture {}x{} from RenderBuffer (GL={})", w, h, out.glTexture);
-    return true;
-}
-
-// -----------------------------------------------------------------------
-// MetalShaderEffectCache — per-RenderBuffer cache for the Metal interop state
-// -----------------------------------------------------------------------
-class MetalShaderEffectCache : public EffectRenderCache {
-public:
-    MetalShaderEffectCache() {}
-    virtual ~MetalShaderEffectCache() {
-        // Freeing the shared textures hits ANGLE/EGL + Metal, which can
-        // race a concurrent createSharedTexture on another render thread
-        // (sig 5d9f29a77c) — serialize through the same interop mutex.
-        std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
-        EGLDisplay display = (EGLDisplay)GLContextManager::Instance().GetNativeDisplay();
-        destroySharedTexture(display, sharedInputTex);
-        destroySharedTexture(display, sharedOutputTex);
-    }
-
-    SharedTexture sharedInputTex;
-    SharedTexture sharedOutputTex;
-    bool useMetalInterop = false;
-};
-
-static MetalShaderEffectCache* getMetalCache(int effectId, RenderBuffer& buffer) {
-    int slot = effectId + EffectManager::eff_LASTEFFECT;
-    auto* cache = static_cast<MetalShaderEffectCache*>(buffer.infoCache[slot]);
-    if (!cache) {
-        cache = new MetalShaderEffectCache();
-        buffer.infoCache[slot] = cache;
-    }
-    return cache;
-}
-
-#endif // USE_GLES
-
 // -----------------------------------------------------------------------
 // MetalShaderEffect implementation
 // -----------------------------------------------------------------------
@@ -232,116 +38,14 @@ MetalShaderEffect::MetalShaderEffect(int i) : ShaderEffect(i) {
 MetalShaderEffect::~MetalShaderEffect() {
 }
 
-void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) {
-#ifdef USE_GLES
-    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
-    auto* cache = getMetalCache(id, buffer);
-
-    // Recreate shared textures if the buffer was resized
-    if (cache->useMetalInterop &&
-        (cache->sharedInputTex.width != buffer.BufferWi || cache->sharedInputTex.height != buffer.BufferHt)) {
-        EGLDisplay display = (EGLDisplay)GLContextManager::Instance().GetNativeDisplay();
-        destroySharedTexture(display, cache->sharedInputTex);
-        destroySharedTexture(display, cache->sharedOutputTex);
-        cache->useMetalInterop = false;
-    }
-
-    if (!cache->useMetalInterop && shadersInit) {
-        EGLDisplay display = (EGLDisplay)GLContextManager::Instance().GetNativeDisplay();
-        if (display) {
-            bool inputOk = createSharedTextureFromRenderBuffer(display, buffer.gpuRenderData,
-                                                                buffer.BufferWi, buffer.BufferHt, cache->sharedInputTex);
-            bool outputOk = createSharedTextureFromRenderBuffer(display, buffer.gpuRenderData,
-                                                                 buffer.BufferWi, buffer.BufferHt, cache->sharedOutputTex);
-            if (!inputOk)
-                inputOk = createSharedTexture(display, buffer.BufferWi, buffer.BufferHt, cache->sharedInputTex);
-            if (!outputOk)
-                outputOk = createSharedTexture(display, buffer.BufferWi, buffer.BufferHt, cache->sharedOutputTex);
-
-            if (inputOk && outputOk) {
-                LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, fbId));
-                LOG_GL_ERRORV(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                                      GL_TEXTURE_2D, cache->sharedOutputTex.glTexture, 0));
-                GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-                if (status == GL_FRAMEBUFFER_COMPLETE) {
-                    cache->useMetalInterop = true;
-                    spdlog::info("MetalShaderEffect: interop enabled ({}x{}, input:{}, output:{})",
-                                 buffer.BufferWi, buffer.BufferHt,
-                                 cache->sharedInputTex.metalBuffer ? "zero-copy" : "Metal-copy",
-                                 cache->sharedOutputTex.metalBuffer ? "zero-copy" : "Metal-copy");
-                    // Attach already done above; skip the per-frame re-attach below.
-                    return;
-                } else {
-                    spdlog::warn("MetalShaderEffect: FBO incomplete (0x{:X}), falling back", status);
-                    destroySharedTexture(display, cache->sharedInputTex);
-                    destroySharedTexture(display, cache->sharedOutputTex);
-                }
-                LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-            } else {
-                if (inputOk) destroySharedTexture(display, cache->sharedInputTex);
-                if (outputOk) destroySharedTexture(display, cache->sharedOutputTex);
-            }
-        }
-    }
-
-    // FBO is recreated per-frame in Render(), so re-attach the shared
-    // output texture each frame the interop path is active.
-    if (cache->useMetalInterop) {
-        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, fbId));
-        LOG_GL_ERRORV(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                              GL_TEXTURE_2D, cache->sharedOutputTex.glTexture, 0));
-    }
-#endif
-}
-
-void MetalShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) {
-#ifdef USE_GLES
-    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
-    auto* cache = getMetalCache(id, buffer);
-    if (cache->useMetalInterop) {
-        // If buffer-backed (zero-copy), pixels are already in the texture — just bind it.
-        // Otherwise, upload via Metal's replaceRegion.
-        if (!cache->sharedInputTex.metalBuffer) {
-            MTLRegion region = MTLRegionMake2D(0, 0, buffer.BufferWi, buffer.BufferHt);
-            [cache->sharedInputTex.metalTexture replaceRegion:region mipmapLevel:0
-                                                    withBytes:buffer.GetPixels()
-                                                  bytesPerRow:buffer.BufferWi * 4];
-        }
-        LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, cache->sharedInputTex.glTexture));
-        return;
-    }
-#endif
-    ShaderEffect::copyPixelDataToTexture(buffer, rbTex);
-}
-
-void MetalShaderEffect::copyPixelDataFromTexture(RenderBuffer& buffer) {
-#ifdef USE_GLES
-    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
-    auto* cache = getMetalCache(id, buffer);
-    if (cache->useMetalInterop) {
-        // If buffer-backed (zero-copy), result is already in pixels — just flush GL.
-        // Otherwise, download via Metal's getBytes.
-        glFinish();
-        if (!cache->sharedOutputTex.metalBuffer) {
-            MTLRegion region = MTLRegionMake2D(0, 0, buffer.BufferWi, buffer.BufferHt);
-            [cache->sharedOutputTex.metalTexture getBytes:buffer.GetPixels()
-                                              bytesPerRow:buffer.BufferWi * 4
-                                               fromRegion:region mipmapLevel:0];
-        }
-        return;
-    }
-#endif
-    ShaderEffect::copyPixelDataFromTexture(buffer);
-}
-
 // -----------------------------------------------------------------------
-// Native Metal render path (opt-in via XL_NATIVE_SHADER)
+// Native Metal render path
 // -----------------------------------------------------------------------
 
 namespace {
 
 // Per-RenderBuffer cache for the native pipeline + config. Distinct slot from
-// the base ShaderRenderCache (infoCache[id]) and the ANGLE interop cache.
+// the base ShaderRenderCache (infoCache[id]).
 using UniformValues = std::unordered_map<std::string, std::array<float, 4>>;
 
 // Process-wide program cache keyed by the assembled fragment source (the vertex
@@ -361,6 +65,19 @@ static std::unordered_map<std::string, CachedShaderProgram>& programCache() {
     return cache;
 }
 static constexpr NSUInteger kVertexSlot = 30; // vertex data slot, above the uniform slots
+
+// Command queue for the standalone path (GPU-rendering preference off, so no
+// MetalRenderBufferComputeData exists): the frame is committed + waited on
+// inline here instead of riding the render pipeline's per-buffer command
+// buffer. One shared queue for all shader effects.
+static id<MTLCommandQueue> standaloneCommandQueue() {
+    static id<MTLCommandQueue> queue = []() {
+        id<MTLCommandQueue> q = [MetalComputeUtilities::INSTANCE.device newCommandQueue];
+        [q setLabel:@"NativeShaderEffectStandalone"];
+        return q;
+    }();
+    return queue;
+}
 
 static CachedShaderProgram buildShaderProgram(const std::string& fragmentSource, const std::string& label) {
     static const bool dbg = getenv("XL_NATIVE_SHADER_DEBUG") != nullptr;
@@ -430,17 +147,20 @@ public:
     int width = 0;
     int height = 0;
     bool built = false;
-    bool failed = false; // translation/pipeline unsupported -> GL fallback
+    bool failed = false;            // parse or translation/pipeline failure — latched
+    xlColor failColor = xlYELLOW;   // red = file missing/unparseable, yellow = build failure
 
     void reset() {
         delete config;
         config = nullptr;
         built = false;
         failed = false;
+        failColor = xlYELLOW;
         pso = nil;
         outputTex = nil;
         inputTex = nil;
         audioTex = nil;
+        stagingBuffer = nil;
     }
 
     // Fetch (or build once, process-wide) the translated program, then create
@@ -506,32 +226,44 @@ public:
         return true;
     }
 
-    // Encode one frame into the RenderBuffer's own pixel MTLBuffer. Returns false
-    // (aborting any started command buffer) if it can't run this frame so the
-    // caller falls back to the GL path.
+    // Encode one frame into the RenderBuffer's pixel MTLBuffer (GPU compute on)
+    // or into a private staging buffer read back to buffer.pixels (GPU compute
+    // off — no MetalRenderBufferComputeData exists). Returns false if it can't
+    // run this frame.
     bool encode(RenderBuffer& buffer, const UniformValues& vals, bool overlay) {
         static const bool dbg = getenv("XL_NATIVE_SHADER_DEBUG") != nullptr;
-        MetalRenderBufferComputeData* rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-        if (rbcd == nullptr) {
-            if (dbg && (buffer.curPeriod % 100) == 0) {
-                fprintf(stderr, "NATIVE encodefail rb=%p model=%s f=%d %s: no rbcd\n",
-                        (void*)&buffer, buffer.GetModelName().c_str(),
-                        buffer.curPeriod, shaderFile.c_str());
-            }
-            return false;
-        }
-        id<MTLCommandBuffer> commandBuffer = rbcd->getCommandBuffer();
-        if (commandBuffer == nil) {
-            if (dbg) fprintf(stderr, "NATIVE encodefail f=%d %s: no command buffer\n", buffer.curPeriod, shaderFile.c_str());
-            return false;
-        }
-        id<MTLBuffer> pixelBuffer = rbcd->getPixelBuffer();
         const NSUInteger bpr = buffer.BufferWi * 4;
-        if (pixelBuffer == nil || pixelBuffer.length < bpr * buffer.BufferHt) {
-            if (dbg) fprintf(stderr, "NATIVE encodefail f=%d %s: pixbuf len=%lu need=%lu\n", buffer.curPeriod, shaderFile.c_str(),
-                             (unsigned long)(pixelBuffer ? pixelBuffer.length : 0), (unsigned long)(bpr * buffer.BufferHt));
-            rbcd->abortCommandBuffer();
-            return false;
+        MetalRenderBufferComputeData* rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
+        id<MTLCommandBuffer> commandBuffer = nil;
+        id<MTLBuffer> pixelBuffer = nil;
+        if (rbcd != nullptr) {
+            commandBuffer = rbcd->getCommandBuffer();
+            if (commandBuffer == nil) {
+                if (dbg) fprintf(stderr, "NATIVE encodefail f=%d %s: no command buffer\n", buffer.curPeriod, shaderFile.c_str());
+                return false;
+            }
+            pixelBuffer = rbcd->getPixelBuffer();
+            if (pixelBuffer == nil || pixelBuffer.length < bpr * buffer.BufferHt) {
+                if (dbg) fprintf(stderr, "NATIVE encodefail f=%d %s: pixbuf len=%lu need=%lu\n", buffer.curPeriod, shaderFile.c_str(),
+                                 (unsigned long)(pixelBuffer ? pixelBuffer.length : 0), (unsigned long)(bpr * buffer.BufferHt));
+                rbcd->abortCommandBuffer();
+                return false;
+            }
+        } else {
+            commandBuffer = [standaloneCommandQueue() commandBuffer];
+            if (commandBuffer == nil) {
+                if (dbg) fprintf(stderr, "NATIVE encodefail f=%d %s: no standalone command buffer\n", buffer.curPeriod, shaderFile.c_str());
+                return false;
+            }
+            if (stagingBuffer == nil || stagingBuffer.length < bpr * buffer.BufferHt) {
+                stagingBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bpr * buffer.BufferHt
+                                                                                    options:MTLResourceStorageModeShared];
+            }
+            if (stagingBuffer == nil) {
+                if (dbg) fprintf(stderr, "NATIVE encodefail f=%d %s: no staging buffer\n", buffer.curPeriod, shaderFile.c_str());
+                return false;
+            }
+            pixelBuffer = stagingBuffer;
         }
         const bool usesTexture = fsInfo.samplerTexture >= 0;
         const bool audioMode = audioTex != nil;
@@ -585,8 +317,9 @@ public:
         [enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
         [enc endEncoding];
 
-        // Copy the rendered tiled texture into the RenderBuffer's pixel buffer
-        // (= buffer.pixels). The framework commits + waits on commandBuffer.
+        // Copy the rendered tiled texture into the pixel buffer. With rbcd the
+        // framework commits + waits on commandBuffer; standalone we do it here
+        // synchronously and read the result back into buffer.pixels.
         id<MTLBlitCommandEncoder> blit = [commandBuffer blitCommandEncoder];
         [blit copyFromTexture:outputTex sourceSlice:0 sourceLevel:0
                  sourceOrigin:MTLOriginMake(0, 0, 0)
@@ -594,6 +327,11 @@ public:
                      toBuffer:pixelBuffer destinationOffset:0
         destinationBytesPerRow:bpr destinationBytesPerImage:bpr * buffer.BufferHt];
         [blit endEncoding];
+        if (rbcd == nullptr) {
+            [commandBuffer commit];
+            [commandBuffer waitUntilCompleted];
+            memcpy(buffer.GetPixels(), stagingBuffer.contents, bpr * buffer.BufferHt);
+        }
         return true;
     }
 
@@ -604,6 +342,7 @@ private:
     id<MTLTexture> inputTex = nil;
     id<MTLTexture> outputTex = nil;
     id<MTLTexture> audioTex = nil; // 128x1 R32F FFT/intensity, replaces inputTex for audio shaders
+    id<MTLBuffer> stagingBuffer = nil; // standalone-path readback (no rbcd)
     ShaderTranslate::ShaderStageInfo vsInfo;
     ShaderTranslate::ShaderStageInfo fsInfo;
 
@@ -645,20 +384,21 @@ static MetalShaderNativeCache* getNativeCache(int effectId, RenderBuffer& buffer
 } // namespace
 
 void MetalShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
-    // Native Metal is the default shader path on macOS and iPad;
-    // XL_NO_NATIVE_SHADER=1 falls back to the OpenGL/ANGLE path
-    // (diagnostics / comparison).
+#if !TARGET_OS_IPHONE
+    // macOS-desktop diagnostics/comparison fallback: XL_NO_NATIVE_SHADER=1
+    // routes to the base OpenGL (CGL) path. iOS has no GL path at all.
     static const bool nativeEnabled = getenv("XL_NO_NATIVE_SHADER") == nullptr;
     if (!nativeEnabled) {
         ShaderEffect::Render(eff, SettingsMap, buffer);
         return;
     }
-    auto* cache = getNativeCache(id, buffer);
+#endif
     const std::string shaderFile = SettingsMap.Get("0FILEPICKERCTRL_IFS", "");
     if (shaderFile.empty()) {
-        ShaderEffect::Render(eff, SettingsMap, buffer);
+        buffer.Fill(xlRED); // no shader file configured — same as the base path
         return;
     }
+    auto* cache = getNativeCache(id, buffer);
     // A new effect (or a different shader file) on the same buffer must not
     // reuse the previous effect's compiled pipeline/config — or its failed
     // flag. The infoCache slot is per (buffer, effect TYPE), not per instance,
@@ -668,7 +408,7 @@ void MetalShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
         cache->shaderFile = shaderFile;
     }
     if (cache->failed) {
-        ShaderEffect::Render(eff, SettingsMap, buffer);
+        buffer.Fill(cache->failColor);
         return;
     }
 
@@ -682,13 +422,15 @@ void MetalShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
             }
             if (!cache->config || cache->config->GetCode().empty()) {
                 cache->failed = true;
-                ShaderEffect::Render(eff, SettingsMap, buffer);
+                cache->failColor = xlRED; // missing/unparseable — same as the base path
+                buffer.Fill(cache->failColor);
                 return;
             }
             cache->built = false;
             if (!cache->build(buffer)) {
                 cache->failed = true;
-                ShaderEffect::Render(eff, SettingsMap, buffer);
+                cache->failColor = xlYELLOW; // translation/pipeline failure — same as a GL compile failure
+                buffer.Fill(cache->failColor);
                 return;
             }
         }
@@ -699,8 +441,6 @@ void MetalShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
         float oset = buffer.GetEffectTimeIntervalPosition();
         double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
         cache->timeMS += buffer.frameTimeInMs * timeRate;
-        // NOTE: buffer.needToInit is cleared only after a successful encode —
-        // the base GL fallback relies on it to initialize its own state.
 
         double offsetX = GetValueCurveInt("Shader_Offset_X", 0, SettingsMap, oset, SHADER_OFFSET_X_MIN, SHADER_OFFSET_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 200.0 + 0.5;
         double offsetY = GetValueCurveInt("Shader_Offset_Y", 0, SettingsMap, oset, SHADER_OFFSET_Y_MIN, SHADER_OFFSET_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 200.0 + 0.5;
@@ -787,7 +527,9 @@ void MetalShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
 
         // ---- encode into the RenderBuffer's own pixel MTLBuffer ----
         if (!cache->encode(buffer, vals, SettingsMap.GetBool("CHECKBOX_OverlayBkg", false))) {
-            ShaderEffect::Render(eff, SettingsMap, buffer);
+            // Transient (no command buffer / undersized pixel buffer) — fill
+            // this frame rather than latching failed.
+            buffer.Fill(xlYELLOW);
             return;
         }
         buffer.needToInit = false;

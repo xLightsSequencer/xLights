@@ -25,8 +25,20 @@
 #include <semaphore>
 #include <sstream>
 
-#ifdef USE_GLES
-    // OpenGL ES 3.0 via ANGLE (Windows/Linux) or ANGLE-on-Metal (Apple).
+#ifdef __APPLE__
+    #include <TargetConditionals.h>
+#endif
+#ifndef TARGET_OS_IPHONE
+    #define TARGET_OS_IPHONE 0
+#endif
+
+// iOS has no OpenGL shader path — the native Metal ShaderEffect subclass
+// handles all shader rendering there.  Everything GL below (includes,
+// ShaderRenderCache, the Render body, programIdForShaderCode) is compiled
+// out with !TARGET_OS_IPHONE; the parse/config/settings code stays on all
+// platforms (the Metal translator and the UI depend on it).
+#if defined(USE_GLES) && !defined(__APPLE__)
+    // OpenGL ES 3.0 via ANGLE (Windows/Linux).
     // Direct ES3 prototypes (no function-pointer loading) plus EGL for interop.
     #define GL_GLES_PROTOTYPES 1
     #define EGL_EGL_PROTOTYPES 1
@@ -77,17 +89,14 @@
     extern PFNGLUNIFORM1FPROC glUniform1f;
     extern PFNGLUNIFORM2FPROC glUniform2f;
     extern PFNGLUNIFORM4FPROC glUniform4f;
-#else
+#elif !TARGET_OS_IPHONE
     // Apple desktop GL (CGL)
-    #if !TARGET_OS_IPHONE
-        #include "OpenGL/gl3.h"
-        #define __gl_h_
-        #include <OpenGL/OpenGL.h>
+    #include "OpenGL/gl3.h"
+    #define __gl_h_
+    #include <OpenGL/OpenGL.h>
 
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    #endif
-
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 #include "ShaderEffect.h"
@@ -121,6 +130,7 @@
 
 namespace
 {
+#if !TARGET_OS_IPHONE
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE 0x812F
 #endif
@@ -212,6 +222,7 @@ namespace
         "void main(){\n"
         "    isf_vertShaderInit();"
         "}\n";
+#endif // !TARGET_OS_IPHONE
 
     void setRenderBufferAll(RenderBuffer& buffer, const xlColor& colour) {
         buffer.Fill(colour);
@@ -426,6 +437,8 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
 // Platform-specific GL context management moved to graphics/GLContextManager.cpp
 
+#if !TARGET_OS_IPHONE
+
 #if defined(__APPLE__)
 constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 24;
 #else
@@ -629,6 +642,8 @@ std::set<std::string> ShaderRenderCache::warnedShaders;
 std::mutex ShaderRenderCache::shaderMapMutex;
 uint64_t ShaderRenderCache::purgedGeneration = 1; // matches GLContextManager's initial generation
 
+#endif // !TARGET_OS_IPHONE
+
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
 {
 }
@@ -636,6 +651,8 @@ ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm,
 ShaderEffect::~ShaderEffect()
 {
 }
+
+#if !TARGET_OS_IPHONE
 
 bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     auto& mgr = GLContextManager::Instance();
@@ -1119,6 +1136,24 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     }
     return programId;
 }
+
+#else // TARGET_OS_IPHONE — no GL; MetalShaderEffect overrides Render, so this should never run
+
+void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    setRenderBufferAll(buffer, xlRED);
+}
+
+void ShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) {
+}
+
+void ShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) {
+}
+
+void ShaderEffect::copyPixelDataFromTexture(RenderBuffer& buffer) {
+}
+
+#endif // !TARGET_OS_IPHONE
 
 std::string SafeFloat(const std::string& s)
 {
@@ -1931,6 +1966,6 @@ nlohmann::json ShaderConfig::GetDynamicPropertiesJson() const
     return out;
 }
 
-#if defined(__APPLE__) && !defined(USE_GLES)
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
 #pragma clang diagnostic pop
 #endif
