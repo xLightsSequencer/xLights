@@ -69,7 +69,7 @@ DmxServo3d::~DmxServo3d()
 
 void DmxServo3d::SetNumServos(int val)
 {
-    num_servos = val;
+    num_servos = std::min(val, SUPPORTED_SERVOS);
     if ((int)servos.size() < num_servos) {
         servos.resize(num_servos);
     }
@@ -97,7 +97,7 @@ void DmxServo3d::SetNumStatic(int val)
 
 void DmxServo3d::SetNumMotion(int val)
 {
-    num_motion = val;
+    num_motion = std::min(val, std::min(num_servos, SUPPORTED_SERVOS));
     if ((int)motion_meshs.size() < num_motion) {
         motion_meshs.resize(num_motion);
     }
