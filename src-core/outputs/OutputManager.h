@@ -212,6 +212,7 @@ public:
 
     #pragma region Start and Stop
     bool StartOutput();
+    bool StartControllerOutputs(Controller* controller);
     void StopOutput();
     bool IsOutputting() const { return _outputting; }
     size_t TxNonEmptyCount();

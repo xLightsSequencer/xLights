@@ -3088,7 +3088,25 @@ void xLightsFrame::CycleOutputsIfOn()
     }
 }
 
-bool xLightsFrame::ForceEnableOutputs(bool startTimer)
+bool xLightsFrame::UploadControllerForImmediateOutput(Controller* controller)
+{
+    auto ip = controller->GetResolvedIP();
+    if (ip.empty() || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
+        return false;
+    }
+    BaseController* bc = BaseController::CreateBaseController(controller);
+    bool ok = false;
+    if (bc != nullptr && bc->IsConnected()) {
+        ok = bc->UploadForImmediateOutput(&AllModels, &_outputManager, controller, this);
+        SetStatusText(controller->GetName() + (ok ? " Upload Complete." : " Upload Failed."));
+    } else {
+        SetStatusText(controller->GetName() + " Upload Failed. Unable to connect");
+    }
+    delete bc;
+    return ok;
+}
+
+bool xLightsFrame::ForceEnableOutputs(bool startTimer, bool skipAutoUpload)
 {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
@@ -3098,27 +3116,10 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer)
         if (startTimer) {
             StartOutputTimer();
         }
-        if (outputting) {
+        if (outputting && !skipAutoUpload) {
             for (auto& controller : _outputManager.GetControllers()) {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
-                    auto ip = controller->GetResolvedIP();
-                    if (ip == "" || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
-                        continue;
-                    }
-                    BaseController* bc = BaseController::CreateBaseController(controller);
-                    if (bc != nullptr && bc->IsConnected()) {
-                        if (bc->UploadForImmediateOutput(&AllModels, &_outputManager, controller, this)) {
-                            SetStatusText(controller->GetName() + " Upload Complete.");
-                        } else {
-                            SetStatusText(controller->GetName() + " Upload Failed.");
-                        }
-                    } else {
-                        SetStatusText(controller->GetName() + " Upload Failed. Unable to connect");
-                    }
-                    if (bc) {
-                        delete bc;
-                    }
-                    // upload config
+                    UploadControllerForImmediateOutput(controller);
                 }
             }
         }

@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -enh (alex)                  Tools - Test: connection and auto-upload configuration (if supported) are deferred
+                                 until a model or port is first selected, eliminating startup delay. Controller
+                                 hostnames are re-resolved on demand so controllers that were offline at startup work
+                                 correctly once they come online.
     -enh (charlie)               Effect Symbols: define a reusable effect (name, color, settings, palette) once and
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
