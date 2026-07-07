@@ -3265,7 +3265,7 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
             wxString kbfDest = newDir + GetPathSeparator() + XLIGHTS_KEYBINDING_FILE;
             if (!wxCopyFile(appDataKbf.GetFullPath(), kbfDest)) {
                 spdlog::warn("Failed to backup key bindings from AppData: {}",
-                             (const char*)appDataKbf.GetFullPath().c_str());
+                             appDataKbf.GetFullPath().ToStdString());
             }
         }
     }

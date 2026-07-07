@@ -451,7 +451,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         if (legacy.FileExists()) {
             if (!wxCopyFile(legacy.GetFullPath(), kbf.GetFullPath())) {
                 spdlog::warn("Failed to migrate key bindings from show folder to AppData: {}",
-                             (const char*)legacy.GetFullPath().c_str());
+                             legacy.GetFullPath().ToStdString());
             }
         }
     }
