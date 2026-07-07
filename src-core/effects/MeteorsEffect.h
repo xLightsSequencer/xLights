@@ -12,6 +12,31 @@
 
 #include "RenderableEffect.h"
 
+#include <vector>
+#include <cstdint>
+
+// One live meteor snapshotted for the per-pixel gather kernel (ISPC/Metal). The
+// swirl is already folded into the axis coordinate on the CPU so the kernel needs
+// no trig; hue/sat/val carry meteor.hsv (range/palette + the icicle color).
+struct MeteorSnapshot {
+    int a;       // primary axis coord: column (vertical/icicle) or row (horizontal)
+    int base;    // meteor.y (vertical/icicle) or meteor.x (horizontal)
+    int h;       // icicle drip length (meteor.h); 0 otherwise
+    double hue;
+    double sat;
+    double val;
+};
+
+struct MeteorsGatherParams {
+    int mode;         // 0 = vertical, 1 = horizontal, 2 = icicle
+    int direction;    // raw MeteorsEffect: 0 Down, 1 Up, 2 Left, 3 Right, 6/7 Icicle
+    int tailLength;
+    int colorScheme;  // 0 = rainbow, 1 = range, 2 = palette
+    int allowAlpha;
+    int wantBkg;      // icicle: draw dim background icicles
+    uint64_t frameSeed;
+};
+
 class MeteorsEffect : public RenderableEffect
 {
 public:
@@ -51,6 +76,11 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
+
+    // Per-pixel gather of the axis-aligned styles (vertical/horizontal/icicle).
+    // Base implementation runs ISPC (the CPU path); MetalMeteorsEffect overrides
+    // to dispatch the GPU kernel and falls back here when Metal isn't viable.
+    virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts);
 
 private:
     void RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);

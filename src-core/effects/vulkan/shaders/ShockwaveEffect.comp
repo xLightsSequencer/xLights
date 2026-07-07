@@ -1,0 +1,50 @@
+#version 450
+// Port of ShockwaveEffectStyle0 in ShockwaveFunctions.metal.  A partial-write
+// effect: only pixels within the shockwave ring are written; the rest keep
+// the buffer's (host-cleared) contents.  Params mirror VulkanShockwaveData.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int xc_adj;
+    int yc_adj;
+    float radius1;
+    float radius2;
+    float radius_center;
+    float half_width;
+    uint color;      // packed uchar4
+    vec4 colorHSV;   // .xyz
+    int blend;
+    int allowAlpha;
+} data;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+    int x = int(index % data.width);
+    int y = int(index / data.width);
+    float x1 = float(x) - float(data.xc_adj);
+    float y1 = float(y) - float(data.yc_adj);
+    float r = length(vec2(x1, y1));
+    if (r >= data.radius1 && r <= data.radius2) {
+        if (data.blend > 0) {
+            uvec4 ncolor = unpackPx(data.color);
+            float color_pct = 1.0 - abs(r - data.radius_center) / data.half_width;
+            if (data.allowAlpha != 0) {
+                ncolor.a = uint(255.0 * color_pct);
+            } else {
+                vec3 hsv = data.colorHSV.xyz;
+                hsv.z = hsv.z * color_pct;
+                ncolor = hsv2rgb(hsv);
+            }
+            result[index] = packPx(ncolor);
+        } else {
+            result[index] = data.color;
+        }
+    }
+}

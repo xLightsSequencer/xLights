@@ -20,6 +20,7 @@
 //                 an internal worker thread (see ExecuteOnGLThread).
 // Linux:          Independent GLX or EGL pbuffer contexts.
 
+#include <atomic>
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
@@ -91,6 +92,17 @@ public:
     // lambda capturing locals; ExecuteOnGLThread blocks so this is safe).
     void ExecuteOnGLThread(std::function<void()> fn);
 
+    // Monotonic id of the current GL share group.  Bumped whenever the share
+    // root is destroyed and rebuilt (Windows WDDM TDR / device reset kills
+    // every context at once) — at that point ALL GL object ids callers have
+    // cached (programs, buffers, textures, renderbuffers) are dangling, and
+    // because the new share group recycles small ids, a stale id can even
+    // pass glIsProgram and alias a different object.  Callers caching GL ids
+    // across frames must compare this against the generation they cached
+    // under and drop (not glDelete) everything on mismatch.
+    uint64_t ShareGroupGeneration() const { return _shareGroupGeneration.load(std::memory_order_acquire); }
+    void BumpShareGroupGeneration() { _shareGroupGeneration.fetch_add(1, std::memory_order_acq_rel); }
+
     // Destroy all pooled contexts and release resources.
     void Shutdown();
 
@@ -111,6 +123,7 @@ private:
 
     bool _initialized = false;
     bool _backgroundRenderEnabled = false;
+    std::atomic<uint64_t> _shareGroupGeneration{1};
     InitParams _params;
     PlatformState* _platform = nullptr;
 };

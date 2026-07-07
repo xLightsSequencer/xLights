@@ -866,6 +866,34 @@ public:
                     GPURenderUtils::waitForRenderCompletion(&rbl);
                     fprintf(stderr, "SUM L f=%d m=%s s=%d l=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, layer,
                             (unsigned long long)xldbgFNV((const uint8_t*)rbl.GetPixels(), rbl.GetPixelCount() * 4));
+
+                    // XLDBG_LDUMP="<model>:<layer>:<frame>:<outfile>" dumps the raw layer pixels
+                    static const char* ldump = getenv("XLDBG_LDUMP");
+                    if (ldump != nullptr) {
+                        static std::string ldModel, ldFile;
+                        static int ldLayer = -1, ldFrame = -1;
+                        if (ldLayer == -1) {
+                            std::string spec = ldump;
+                            size_t a = spec.find(':');
+                            size_t b = spec.find(':', a + 1);
+                            size_t c = spec.find(':', b + 1);
+                            ldModel = spec.substr(0, a);
+                            ldLayer = atoi(spec.substr(a + 1, b - a - 1).c_str());
+                            ldFrame = atoi(spec.substr(b + 1, c - b - 1).c_str());
+                            ldFile = spec.substr(c + 1);
+                        }
+                        if (frame >= ldFrame && frame <= ldFrame + 60 && layer == ldLayer && el->GetFullName() == ldModel) {
+                            std::string path = ldFile + "." + std::to_string(frame) + ".bin";
+                            FILE* f = fopen(path.c_str(), "wb");
+                            if (f != nullptr) {
+                                int wi = rbl.BufferWi, ht = rbl.BufferHt;
+                                fwrite(&wi, 4, 1, f);
+                                fwrite(&ht, 4, 1, f);
+                                fwrite(rbl.GetPixels(), 4, rbl.GetPixelCount(), f);
+                                fclose(f);
+                            }
+                        }
+                    }
                 }
             } else {
                 info.validLayers[layer] = true;

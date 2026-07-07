@@ -353,6 +353,45 @@ file(GLOB SRC_EFFECTS
     src-core/effects/*.cpp
     src-core/effects/ispc/ISPCComputeUtilities.cpp
 )
+
+# ─── Vulkan compute backend (Linux/Windows analogue of the Metal backend) ───
+# Headers/loader come from the vendored submodules; volk dlopens the Vulkan
+# loader at runtime, so there is no link-time dependency and machines without
+# Vulkan silently fall back to the CPU render paths.
+option(XLIGHTS_USE_VULKAN "Enable the Vulkan GPU compute render backend" ON)
+set(XLIGHTS_VULKAN_ENABLED FALSE)
+# Linux only for now.  Apple uses Metal; Windows enablement (glslc CustomBuild,
+# unhiding the checkbox on __WXMSW__) is a separate step -- until then a Windows
+# CMake configure must not require glslc or run the bash shader script.
+if(XLIGHTS_USE_VULKAN AND UNIX AND NOT APPLE)
+    list(APPEND SRC_EFFECTS
+        src-core/effects/vulkan/VulkanComputeUtilities.cpp
+        src-core/effects/vulkan/VulkanEffectManager.cpp
+        src-core/effects/vulkan/VulkanLibs.cpp
+        src-core/effects/vulkan/VulkanBarsEffect.cpp
+        src-core/effects/vulkan/VulkanColorWashEffect.cpp
+        src-core/effects/vulkan/VulkanShockwaveEffect.cpp
+        src-core/effects/vulkan/VulkanFanEffect.cpp
+        src-core/effects/vulkan/VulkanSpiralsEffect.cpp
+        src-core/effects/vulkan/VulkanGalaxyEffect.cpp
+        src-core/effects/vulkan/VulkanCirclesEffect.cpp
+        src-core/effects/vulkan/VulkanPlasmaEffect.cpp
+        src-core/effects/vulkan/VulkanButterflyEffect.cpp
+        src-core/effects/vulkan/VulkanPinwheelEffect.cpp
+        src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp
+        src-core/effects/vulkan/VulkanWarpEffect.cpp
+        src-core/effects/vulkan/VulkanTreeEffect.cpp
+        src-core/effects/vulkan/VulkanShimmerEffect.cpp
+        src-core/effects/vulkan/VulkanCandleEffect.cpp
+        src-core/effects/vulkan/VulkanWaveEffect.cpp
+        src-core/effects/vulkan/VulkanGarlandsEffect.cpp
+        src-core/effects/vulkan/VulkanFillEffect.cpp
+        src-core/effects/vulkan/VulkanMeteorsEffect.cpp
+        src-core/effects/vulkan/VulkanTwinkleEffect.cpp
+        src-core/effects/vulkan/VulkanLifeEffect.cpp)
+    set(XLIGHTS_VULKAN_ENABLED TRUE)
+endif()
+
 # ─── ISPC (Intel SPMD Program Compiler — SIMD kernels) ──────────────────────
 # Visual Studio generators do not support enable_language(ISPC).
 # Use it on Linux/macOS (Ninja/Makefile), fall back to add_custom_command on VS.
@@ -551,6 +590,32 @@ target_include_directories(xLights PRIVATE
     ${ZSTD_INC}
     ${CURL_INC}
 )
+
+if(XLIGHTS_VULKAN_ENABLED)
+    target_compile_definitions(xLights PRIVATE HAVE_VULKAN VK_NO_PROTOTYPES)
+    target_include_directories(xLights PRIVATE
+        ${XL_DEPS}/Vulkan-Headers/include
+        ${XL_DEPS}/volk
+        ${XL_DEPS}/VulkanMemoryAllocator/include)
+
+    # Compile the .comp compute kernels into the SPIR-V headers the vulkan/
+    # sources #include.  These are generated (gitignored), not committed —
+    # glslc is a build tool here, like ispc for the .ispc kernels.
+    find_program(GLSLC_EXECUTABLE glslc)
+    if(NOT GLSLC_EXECUTABLE)
+        message(FATAL_ERROR
+            "glslc not found — required to build the Vulkan compute backend.\n"
+            "Install it (Ubuntu/Debian: apt-get install glslc; or the Vulkan SDK)\n"
+            "or reconfigure with -DXLIGHTS_USE_VULKAN=OFF.")
+    endif()
+    file(GLOB _vulkan_comp CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp)
+    add_custom_target(vulkan_shaders
+        COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
+                bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
+        SOURCES ${_vulkan_comp}
+        COMMENT "Compiling Vulkan compute shaders to SPIR-V headers")
+    add_dependencies(xLights vulkan_shaders)
+endif()
 
 # ─── zlib ───────────────────────────────────────────────────────────────────
 if(NOT XLIGHTS_USE_VCPKG)
@@ -776,6 +841,14 @@ if(WIN32)
     # ANGLE canvas would render black.
     if(XLIGHTS_USE_ANGLE AND NOT APPLE)
         target_link_options(xLights PRIVATE "/DEFAULTLIB:opengl32.lib" "/DEFAULTLIB:glu32.lib")
+        # wxWidgets' monolithic lib embeds its own /DEFAULTLIB:opengl32 directive,
+        # so opengl32 is pulled in for the wgl* entry points regardless of the
+        # REMOVE_ITEM above.  Its GL 1.1 exports (glPointSize / glColor4f /
+        # glNormal3f / glGetBooleanv) then collide with ANGLE's libGLESv2
+        # (LNK2005).  /FORCE:MULTIPLE keeps the first — explicit → libGLESv2 —
+        # definition so ANGLE wins (matching the runtime backend), while opengl32
+        # still supplies the unique wgl* symbols wx's GL-canvas code needs.
+        target_link_options(xLights PRIVATE "/FORCE:MULTIPLE")
     endif()
     if(NOT XLIGHTS_USE_VCPKG)
         # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs

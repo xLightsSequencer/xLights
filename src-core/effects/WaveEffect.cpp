@@ -19,6 +19,9 @@
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
+#include "Parallel.h"
+
+#include "ispc/WaveFunctions.ispc.h"
 
 #include "../../include/wave-16.xpm"
 #include "../../include/wave-24.xpm"
@@ -167,7 +170,8 @@ static inline int GetWaveFillColor(const std::string &color) {
     return 0; //None
 }
 
-void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &buffer,
+                                  WaveKernelConfig &cfg, std::vector<int32_t> &cols) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
@@ -196,13 +200,10 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     }
     std::vector<int> &WaveBuffer0 = cache->WaveBuffer;
 
-    int y, ystart;
-    double deltay;
+    int ystart;
     static const double pi_180 = 0.01745329;
-    xlColor color;
-    HSVValue hsv, hsv0, hsv1;
+    HSVValue hsv0;
     buffer.palette.GetHSV(0, hsv0);
-    buffer.palette.GetHSV(1, hsv1);
 
     if (NumberWaves == 0) {
         NumberWaves = 1;
@@ -241,9 +242,29 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         }
     }
     double degree_per_x = static_cast<double>(NumberWaves) / buffer.BufferWi;
-    hsv.saturation = 1.0;
-    hsv.value = 1.0;
-    hsv.hue = 1.0;
+
+    cfg.width = buffer.BufferWi;
+    cfg.height = buffer.BufferHt;
+    cfg.fillColor = FillColor;
+    cfg.mirror = MirrorWave ? 1 : 0;
+    cfg.yoffset = roundedWaveYOffset;
+    cfg.numColors = (int)buffer.GetColorCount();
+    cfg.noneColor = xlColor(hsv0);
+    for (int i = 0; i < MAX_WAVE_COLORS; i++) {
+        if (i < cfg.numColors) {
+            buffer.palette.GetColor(i, cfg.palColors[i]);
+        } else {
+            cfg.palColors[i].Set(0, 0, 0);
+        }
+    }
+
+    // 2 ints per column. Default sentinel y1 > y2 (empty main + mirror band).
+    cols.assign((size_t)buffer.BufferWi * 2, 0);
+    for (int x = 0; x < buffer.BufferWi; x++) {
+        cols[2 * x] = 0;
+        cols[2 * x + 1] = -1;
+    }
+
     for (int x = 0; x < buffer.BufferWi; x++) {
         double degree;
         if (!WaveDirection)
@@ -263,25 +284,6 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         double sinradMinus1 = buffer.sin(radianMinus1);
 
         if (WaveType == WAVETYPE_TRIANGLE) { // Triangle
-            /*
-             .
-             .
-             .      x
-             .     x x
-             .    x   x
-             .   x     x
-             .  x       x
-             . x         x
-             ******************************************** yc
-             .      a
-             .
-             .
-             .
-             .
-             .
-             .
-             */
-
             double waves = ((double)NumberWaves / 180.0) / 5; // number of waves
             int amp = buffer.BufferHt * WaveHeight / 100;
 
@@ -309,36 +311,9 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         }
 
         if (x >= 0 && x < buffer.BufferWi && ystart >= 0 && ystart < buffer.BufferHt) {
-            //  SetPixel(x,ystart,hsv0);  // just leading edge
-            /*
-
-             BufferHt
-             .
-             .
-             .
-             x <- y2
-             x <- ystart. calculated point of wave
-             x <- y1
-             .
-             .
-             + < - yc
-             .
-             .
-             x <- y2mirror
-             x
-             x <- y1mirror
-             .
-             .
-             .
-             0
-             */
-
-
             int y1 = (int)(ystart - (r*(ThicknessWave / 100.0)));
             int y2 = (int)(ystart + (r*(ThicknessWave / 100.0)));
             if (y2 <= y1) y2 = y1 + 1; //minimum height
-
-            //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 
             if (WaveType == WAVETYPE_SQUARE) { // Square Wave
                 if (std::signbit(sinrad) != std::signbit(sinradMinus1)) {
@@ -362,50 +337,52 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
             }
 
-            int y1mirror = yc + (yc - y1);
-            int y2mirror = yc + (yc - y2);
-            deltay = y2 - y1;
-
-            for (y = y1; y <= y2; y++) {
-                int adjustedY = y + roundedWaveYOffset;
-                if (FillColor <= 0) { //default to this if no selection -DJ
-                    buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
-                } else if (FillColor == 1) {
-
-                    hsv.hue = (double)(y - y1) / deltay;
-                    buffer.SetPixel(x, adjustedY, hsv); // rainbow
-                } else if (FillColor == 2) {
-                    hsv.hue = (double)(y - y1) / deltay;
-                    buffer.GetMultiColorBlend(hsv.hue, false, color);
-                    buffer.SetPixel(x, adjustedY, color); // palete fill
-                }
-            }
-
-            if (MirrorWave) {
-
-                if (y1mirror < y2mirror) {
-                    y1 = y1mirror;
-                    y2 = y2mirror;
-                } else {
-                    y2 = y1mirror;
-                    y1 = y2mirror;
-                }
-
-                for (y = y1; y <= y2; y++) {
-                    int adjustedY = y + roundedWaveYOffset;
-                    if (FillColor <= 0) { //default to this if no selection -DJ
-                        buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
-                    } else if (FillColor == 1) {
-
-                        hsv.hue = (double)(y - y1) / deltay;
-                        buffer.SetPixel(x, adjustedY, hsv); // rainbow
-                    } else if (FillColor == 2) {
-                        hsv.hue = (double)(y - y1) / deltay;
-                        buffer.GetMultiColorBlend(hsv.hue, false, color);
-                        buffer.SetPixel(x, adjustedY, color); // palete fill
-                    }
-                }
-            }
+            cols[2 * x] = y1;
+            cols[2 * x + 1] = y2;
         }
     }
+}
+
+void WaveEffect::RenderWaveISPC(const WaveKernelConfig &cfg, const std::vector<int32_t> &cols, RenderBuffer &buffer) {
+    if (cfg.width <= 0 || cfg.height <= 0) {
+        return;
+    }
+
+    ispc::WaveISPCData wd;
+    wd.width = cfg.width;
+    wd.height = cfg.height;
+    wd.fillColor = cfg.fillColor;
+    wd.mirror = cfg.mirror;
+    wd.yoffset = cfg.yoffset;
+    wd.numColors = cfg.numColors;
+    wd.noneColor.v[0] = cfg.noneColor.red;
+    wd.noneColor.v[1] = cfg.noneColor.green;
+    wd.noneColor.v[2] = cfg.noneColor.blue;
+    wd.noneColor.v[3] = cfg.noneColor.alpha;
+    for (int i = 0; i < MAX_WAVE_COLORS; i++) {
+        wd.palColors[i].v[0] = cfg.palColors[i].red;
+        wd.palColors[i].v[1] = cfg.palColors[i].green;
+        wd.palColors[i].v[2] = cfg.palColors[i].blue;
+        wd.palColors[i].v[3] = cfg.palColors[i].alpha;
+    }
+
+    // Clamp to the real allocation: a variable sub-buffer can have
+    // GetPixelCount() < BufferWi*BufferHt and the kernel writes unguarded.
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
+    const int32_t *colsPtr = cols.data();
+    constexpr int waveBlockSize = 4096;
+    int blocks = max / waveBlockSize + 1;
+    parallel_for(0, blocks, [&wd, &buffer, max, colsPtr](int block) {
+        int start = block * waveBlockSize;
+        int end = start + waveBlockSize;
+        if (end > max) end = max;
+        ispc::WaveEffectISPC(&wd, colsPtr, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+    });
+}
+
+void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    WaveKernelConfig cfg;
+    std::vector<int32_t> cols;
+    BuildWaveColumns(SettingsMap, buffer, cfg, cols);
+    RenderWaveISPC(cfg, cols, buffer);
 }

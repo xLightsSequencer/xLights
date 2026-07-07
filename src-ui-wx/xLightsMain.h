@@ -2040,6 +2040,9 @@ private:
 public:
     FILE* _logfile = nullptr;
     std::vector<Model *> PreviewModels;
+    // AllModels generation PreviewModels was last rebuilt at; a mismatch means a
+    // model was added/deleted since and cached Model* lists may hold freed pointers
+    unsigned int PreviewModelsGeneration = 0;
     std::map<std::string, std::unique_ptr<LayoutGroup>> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
     ColorManager color_mgr;

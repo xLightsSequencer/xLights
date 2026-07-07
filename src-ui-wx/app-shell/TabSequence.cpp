@@ -1233,6 +1233,7 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
             }
         }
     }
+    PreviewModelsGeneration = AllModels.GetModelGeneration();
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
@@ -1283,6 +1284,7 @@ void xLightsFrame::UpdateModelsList()
             }
         }
     }
+    PreviewModelsGeneration = AllModels.GetModelGeneration();
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
@@ -1839,9 +1841,15 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
 
 void xLightsFrame::RenderAll()
 {
-    
-
-    if (!_seqData.IsValidData()) {
+    if (mRendering) {
+        // the wxYield() below pumps the event queue, so a queued second
+        // toolbar click can re-enter before the controls are disabled
+        return;
+    }
+    // CurrentSeqXmlFile can be null while _seqData is still valid during
+    // CloseSequence teardown; a toolbar click landing in that window
+    // passed the guard and faulted on the model-blending check below
+    if (!_seqData.IsValidData() || CurrentSeqXmlFile == nullptr) {
         spdlog::warn("Aborting render all because sequence data has not been initialised.");
         return;
     }

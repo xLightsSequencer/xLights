@@ -25,13 +25,7 @@
 
 #include <wx/preferences.h>
 #include "xLightsMain.h"
-
-
-#ifdef __WXOSX__
-extern "C" {
-extern bool isMetalComputeSupported();
-}
-#endif
+#include "render/GPURenderUtils.h"
 
 //(*IdInit(OtherSettingsPanel)
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
@@ -238,19 +232,19 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     HardwareVideoDecodingCheckBox->Hide();
     ShaderCheckbox->Hide();
     HardwareVideoRenderChoice->Hide();
-    GPURenderCheckbox->Hide();
 #endif
 #ifdef __WXOSX__
-    if (!isMetalComputeSupported()) {
-        GPURenderCheckbox->Hide();
-    }
     ShaderCheckbox->Hide();
     HardwareVideoRenderChoice->Hide();
 #endif
 #ifdef __WXMSW__
-    GPURenderCheckbox->Hide();
     MSWDisableComposited();
 #endif
+    // Hardware GPU compute backend (Metal / Vulkan) — hide the toggle when no
+    // usable device is present, independent of the user-toggleable enable flag.
+    if (GPURenderUtils::GetGPUEffectConcurrency() <= 0) {
+        GPURenderCheckbox->Hide();
+    }
 
     TransferDataToWindow();
 }

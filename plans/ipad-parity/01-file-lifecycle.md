@@ -30,7 +30,7 @@
 
 | Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
 |---|---|---|---|---|---|---|---|---|
-| New Sequence | menu/toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Desktop wizard (≤5 steps) vs iPad 3-step wizard (type/content/save). |
+| New Sequence | menu/toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Desktop wizard (≤5 steps) vs iPad 3-step wizard (type/content/save). 2026-07-05: create runs detached off the main actor (`SequencerViewModel.newSequence` async) — the bridge's close/abort-render wait was blowing the 0x8BADF00D watchdog (crash sig 03308ce269). |
 | New Seq — type picker | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Musical/Animation/Effect both. |
 | New Seq — media pick | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad routes through MediaRelocation; desktop free path. |
 | New Seq — duration & frame rate | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad TextField + segmented picker (25/50/100). |
@@ -44,7 +44,7 @@
 | Open Packaged Sequence (.xsqz) | system | 🟡 | ✅ | desktop-weaker | P2 | medium | feasible | iPad opens an `.xsqz` **and repacks it back to the original on Save** (round-trip; `SequencerViewModel.swift:32-37`). Desktop opens by *extracting* read-only (`xLightsApp.cpp:840` `readOnlyZipFile`), NOT in File>Open, and cannot save back into the same package — its `SequencePackage::Pack` is a separate export. Reverse-parity item; see theme 14. |
 | Save Sequence | menu/toolbar/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘S; clears undo + writes fseq when enabled. |
 | Save Sequence As | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘⇧S → fileExporter; updates path. |
-| Close Sequence | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘W; closeRequestToken → prompt. |
+| Close Sequence | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘W; closeRequestToken → prompt. 2026-07-05: teardown (abort-render wait + bridge close) runs detached off the main actor (`closeSequence` async, watchdog sig 0c45db2f0e); `abortRenderAndWait:` now passes its timeout through to `AbortRender`. |
 | Unsaved-changes prompt on close | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop SaveChangesDialog; iPad confirmationDialog (Save/Discard/Cancel). |
 | Unsaved-changes handling on quit/background | dialog | ✅ | 🟡 | parity | P1 | easy | feasible | Desktop CheckUnsavedChanges prompt; iPad silently saves on `.inactive`/`.background` (Stage-Manager pill can't host an alert). |
 | Sequence Settings dialog/sheet | menu/toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Tabs differ (see below). |

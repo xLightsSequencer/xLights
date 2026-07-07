@@ -634,7 +634,7 @@ struct ContentView: View {
                 set: { if !$0 { autosaveRecoveryDate = nil } }
                )) {
             Button("Recover") {
-                _ = viewModel.applyAutosaveBackup()
+                Task { _ = await viewModel.applyAutosaveBackup() }
                 autosaveRecoveryDate = nil
             }
             Button("Discard Backup", role: .destructive) {

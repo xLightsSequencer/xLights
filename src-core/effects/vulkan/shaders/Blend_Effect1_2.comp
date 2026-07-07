@@ -1,0 +1,44 @@
+#version 450
+// Port of Effect1_2Function in LayerBlendingFunctions.metal.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+    uvec4 fg = unpackPx(src[index]);
+    bool chromaKeyed = (data.isChromaKey != 0u) && applyChroma(fg);
+    if (!chromaKeyed) {
+        // n = 0 in the Metal source; pow(x, 2n+1) kept verbatim
+        uvec4 bg = unpackPx(result[index]);
+        float emt, emtNot;
+        if (data.effectMixVaries == 0u) {
+            emt = data.effectMixThreshold;
+            if ((emt > 0.000001) && (emt < 0.99999)) {
+                emtNot = 1.0 - data.effectMixThreshold;
+                emt = cos((XL_PI / 4.0) * (pow(2.0 * emt - 1.0, 1.0) + 1.0));
+                emtNot = cos((XL_PI / 4.0) * (pow(2.0 * emtNot - 1.0, 1.0) + 1.0));
+            } else {
+                emtNot = data.effectMixThreshold;
+                emt = 1.0 - data.effectMixThreshold;
+            }
+        } else {
+            emt = data.effectMixThreshold;
+            emtNot = 1.0 - data.effectMixThreshold;
+        }
+        if (data.mixTypeData == 1) {
+            fg = uvec4(uint(float(fg.r) * emtNot), uint(float(fg.g) * emtNot), uint(float(fg.b) * emtNot), 0u);
+            bg = uvec4(uint(float(bg.r) * emt), uint(float(bg.g) * emt), uint(float(bg.b) * emt), 0u);
+        } else {
+            fg = uvec4(uint(float(fg.r) * emt), uint(float(fg.g) * emt), uint(float(fg.b) * emt), 0u);
+            bg = uvec4(uint(float(bg.r) * emtNot), uint(float(bg.g) * emtNot), uint(float(bg.b) * emtNot), 0u);
+        }
+        result[index] = packPx(uvec4(fg.r + bg.r, fg.g + bg.g, fg.b + bg.b, 255u));
+    }
+}

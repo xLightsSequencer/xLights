@@ -10,9 +10,13 @@
 
 #include "CandleEffect.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <spdlog/fmt/fmt.h>
 #include <map>
+
+#include "ispc/CandleFunctions.ispc.h"
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -82,23 +86,16 @@ std::list<std::string> CandleEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-class CandleState {
-public:
-    CandleState() {
-    }
-    void init(RenderBuffer& buffer) {
-        flamer = buffer.rand01() * 255;
-        flameprimer = buffer.rand01() * 255;
-        flameg = buffer.rand01() * flamer;
-        flameprimeg = buffer.rand01() * flameprimer;
-        wind = buffer.rand01() * 255;
-    }
-    uint8_t flameprimer;
-    uint8_t flamer;
-    uint8_t wind;
-    uint8_t flameprimeg;
-    uint8_t flameg;
-};
+// the ISPC/Metal kernels index the state array as raw bytes with a stride of 5
+static_assert(sizeof(CandleState) == 5, "CandleState must stay 5 packed bytes");
+
+void CandleState::init(RenderBuffer& buffer) {
+    flamer = buffer.rand01() * 255;
+    flameprimer = buffer.rand01() * 255;
+    flameg = buffer.rand01() * flamer;
+    flameprimeg = buffer.rand01() * flameprimer;
+    wind = buffer.rand01() * 255;
+}
 
 class CandleRenderCache : public EffectRenderCache
 {
@@ -125,8 +122,8 @@ static CandleRenderCache* GetCache(RenderBuffer& buffer, int id)
 
 void CandleEffect::Update(RenderBuffer& buffer, uint32_t seed, uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline)
 {
-    // Update() runs inside the perNode parallel_for, so it must use the stateless
-    // hash RNG keyed on distinct indices rather than the serial per-buffer stream.
+    // Uses the stateless hash RNG keyed on distinct seeds rather than the serial
+    // per-buffer stream so the result is reproducible regardless of call order.
     // We simulate a gust of wind by setting the wind var to a random value
     if (uint8_t(buffer.hashRand01(seed) * 255.0) < windVariability) {
         wind = uint8_t(buffer.hashRand01(seed + 1u) * 255.0);
@@ -164,6 +161,30 @@ void CandleEffect::Update(RenderBuffer& buffer, uint32_t seed, uint8_t& flamepri
     // We don't. It adds to the realism.
 }
 
+std::vector<CandleState>* CandleEffect::getPerNodeStates(RenderBuffer& buffer, const SettingsMap& SettingsMap, int& maxWid)
+{
+    CandleRenderCache* cache = GetCache(buffer, id);
+    std::vector<CandleState>& states = cache->_states;
+
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+
+        xlSize maxBuffer = buffer.GetMaxBuffer(SettingsMap);
+        int maxMWi = maxBuffer.width == -1 ? buffer.BufferWi : maxBuffer.width;
+        int maxMHt = maxBuffer.height == -1 ? buffer.BufferHt : maxBuffer.height;
+        cache->maxWid = maxMWi;
+        int numStates = maxMWi * maxMHt;
+        if (numStates > (int)states.size()) {
+            states.resize(numStates);
+        }
+        for (int x = 0; x < numStates; x++) {
+            states[x].init(buffer);
+        }
+    }
+    maxWid = cache->maxWid;
+    return &states;
+}
+
 // 10 <= HeightPct <= 100
 void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
@@ -189,62 +210,63 @@ void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
         }
     }
 
-    CandleRenderCache* cache = GetCache(buffer, id);
-    std::vector<CandleState>& states = cache->_states;
-
-    if (buffer.needToInit) {
-        buffer.needToInit = false;
-
-        int numStates = 1;
-        if (perNode) {
-            xlSize maxBuffer = buffer.GetMaxBuffer(SettingsMap);
-            int maxMWi = maxBuffer.width == -1 ? buffer.BufferWi : maxBuffer.width;
-            int maxMHt = maxBuffer.height == -1 ? buffer.BufferHt : maxBuffer.height;
-            cache->maxWid = maxMWi;
-            numStates = maxMWi * maxMHt;
-        }
-        if (numStates > (int)states.size()) {
-            states.resize(numStates);
-        }
-        for (int x = 0; x < numStates; x++) {
-            states[x].init(buffer);
-        }
-    }
-
     if (perNode) {
-        int maxW = cache->maxWid;
-        parallel_for(0, buffer.BufferHt, [&buffer, &states, maxW, windVariability, flameAgility, windCalmness, windBaseline, usePalette, c1, c2, this](int y) {
-            for (int x = 0; x < buffer.BufferWi; x++) {
-                size_t index = y * maxW + x;
-                if (index >= states.size()) {
-                    // this should never happen
-                    assert(false);
-                } else {
-                    CandleState* state = &states[index];
+        int maxW = 0;
+        std::vector<CandleState>& states = *getPerNodeStates(buffer, SettingsMap, maxW);
+        if (states.empty()) {
+            return;
+        }
 
-                    uint32_t seed = uint32_t(index) * 131101u;
-                    Update(buffer, seed, state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
-                    Update(buffer, seed + 4u, state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
-
-                    if (state->flameprimeg > state->flameprimer)
-                        state->flameprimeg = state->flameprimer;
-                    if (state->flameg > state->flamer)
-                        state->flameprimeg = state->flameprimer;
-
-                    xlColor c;
-                    if (usePalette) {
-                        float t = float(state->flameprimer) / 255.0f;
-                        c.red = uint8_t(c1.red * (1.0f - t) + c2.red * t);
-                        c.green = uint8_t(c1.green * (1.0f - t) + c2.green * t);
-                        c.blue = uint8_t(c1.blue * (1.0f - t) + c2.blue * t);
-                    } else {
-                        c = xlColor(state->flameprimer, state->flameprimeg / 2, 0);
-                    }
-                    buffer.SetPixel(x, y, c);
+        // ISPC gather: one lane per pixel runs both flame Updates (bit-identical
+        // hashRand01 emulation) against the shared per-node state cache and writes
+        // the color.
+        ispc::CandleISPCData cd;
+        cd.width = buffer.BufferWi;
+        cd.height = buffer.BufferHt;
+        cd.maxWid = maxW;
+        cd.numStates = (uint32_t)states.size();
+        cd.frameSeed = buffer.hashRandomFrameSeed();
+        // Clamp to the ranges the kernel emulates bit-identically to the old scalar
+        // loop; windCalmness feeds a right shift, so a value >= 32 would be UB. A
+        // value curve or hand-edited setting can exceed the slider metadata bounds,
+        // so clamp the values feeding the kernel rather than keep a scalar fallback.
+        cd.windVariability = std::clamp(windVariability, 0, 255);
+        cd.flameAgility = std::clamp(flameAgility, 0, 254);
+        cd.windCalmness = std::clamp(windCalmness, 0, 31);
+        cd.windBaseline = std::clamp(windBaseline, 0, 255);
+        cd.usePalette = usePalette ? 1 : 0;
+        cd.c1r = c1.red; cd.c1g = c1.green; cd.c1b = c1.blue;
+        cd.c2r = c2.red; cd.c2g = c2.green; cd.c2b = c2.blue;
+        xlColor* pixels = buffer.GetPixels();
+        uint8_t* statesPtr = reinterpret_cast<uint8_t*>(states.data());
+        int wi = buffer.BufferWi;
+        // Bound writes by the real pixel allocation: a variable sub-buffer can leave
+        // GetPixelCount() below BufferWi*BufferHt and the kernel writes result[index]
+        // unguarded.
+        int npix = (int)std::min<size_t>((size_t)buffer.BufferWi * buffer.BufferHt, buffer.GetPixelCount());
+        if (npix >= 20000) {
+            parallel_for(0, buffer.BufferHt, [&cd, pixels, statesPtr, wi, npix](int y) {
+                int start = y * wi;
+                int end = std::min(start + wi, npix);
+                if (start < end) {
+                    ispc::CandleEffectISPC(&cd, start, end, statesPtr, (ispc::uint8_t4*)pixels);
                 }
-            }
-        });
+            });
+        } else {
+            ispc::CandleEffectISPC(&cd, 0, npix, statesPtr, (ispc::uint8_t4*)pixels);
+        }
     } else {
+        CandleRenderCache* cache = GetCache(buffer, id);
+        std::vector<CandleState>& states = cache->_states;
+
+        if (buffer.needToInit) {
+            buffer.needToInit = false;
+            if (states.empty()) {
+                states.resize(1);
+            }
+            states[0].init(buffer);
+        }
+
         CandleState* state = &states[0];
 
         Update(buffer, 0u, state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);

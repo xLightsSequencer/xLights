@@ -11,8 +11,21 @@
  **************************************************************/
 
 #include <cstdint>
+#include <vector>
 
 #include "RenderableEffect.h"
+
+class CandleState {
+public:
+    CandleState() {
+    }
+    void init(RenderBuffer& buffer);
+    uint8_t flameprimer;
+    uint8_t flamer;
+    uint8_t wind;
+    uint8_t flameprimeg;
+    uint8_t flameg;
+};
 
 class CandleEffect : public RenderableEffect
 {
@@ -40,4 +53,5 @@ public:
 protected:
     virtual void OnMetadataLoaded() override;
     void Update(RenderBuffer& buffer, uint32_t seed, uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline);
+    std::vector<CandleState>* getPerNodeStates(RenderBuffer& buffer, const SettingsMap& settings, int& maxWid);
 };
