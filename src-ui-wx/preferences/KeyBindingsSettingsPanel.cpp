@@ -181,7 +181,7 @@ KeyBindingsSettingsPanel::KeyBindingsSettingsPanel(wxWindow* parent, xLightsFram
     topRow->Add(new wxStaticText(this, wxID_ANY, _("Category:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
     Choice_Category = new wxChoice(this, wxID_ANY);
     Choice_Category->AppendString(_("All"));
-    Choice_Category->AppendString(_("Effects"));
+    Choice_Category->AppendString(_("Effects / Wheel of Effects"));
     Choice_Category->AppendString(_("Presets"));
     Choice_Category->AppendString(_("Apply Settings"));
     Choice_Category->AppendString(_("Commands"));
@@ -218,6 +218,13 @@ KeyBindingsSettingsPanel::KeyBindingsSettingsPanel(wxWindow* parent, xLightsFram
     btnRow->Add(addPreset, 0, wxRIGHT, 6);
     btnRow->Add(addApply, 0);
     topSizer->Add(btnRow, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 6);
+
+    auto* note = new wxStaticText(this, wxID_ANY,
+        _("Effects assigned a key binding also appear on the Wheel of Effects in the "
+          "sequencer — double-click an empty spot on the effect grid to open it."));
+    note->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+    note->Wrap(520);
+    topSizer->Add(note, 0, wxLEFT | wxRIGHT | wxBOTTOM, 8);
 
     SetSizer(topSizer);
     SetMinSize(wxSize(560, 420));
@@ -291,7 +298,7 @@ KeyBindingsSettingsPanel::~KeyBindingsSettingsPanel()
 
 wxString KeyBindingsSettingsPanel::CategoryOf(const std::string& type)
 {
-    if (type == "EFFECT") return "Effects";
+    if (type == "EFFECT") return "Effects / Wheel of Effects";
     if (type == "PRESET") return "Presets";
     if (type == "APPLYSETTING") return "Apply Settings";
     return "Commands";
