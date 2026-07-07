@@ -1697,16 +1697,19 @@ void PixelTestDialog::EnsureControllerUploaded(long absoluteChannel)
     if (!ctrl->IsActive()) return;
     if (_uploadedControllers.count(ctrl->GetName())) return;
 
-    _uploadedControllers.insert(ctrl->GetName());
-
-    xLightsFrame* f = (xLightsFrame*)GetParent();
-
-    if (ctrl->IsAutoUpload() && ctrl->SupportsAutoUpload()) {
-        f->UploadControllerForImmediateOutput(ctrl);
+    // Re-resolve hostname and open outputs first so GetResolvedIP() is fresh for the upload.
+    // Don't mark as done on failure — allow retry on the next selection event.
+    if (!_outputManager->StartControllerOutputs(ctrl)) {
+        xLightsFrame* f = (xLightsFrame*)GetParent();
+        f->SetStatusText(ctrl->GetName() + " - Failed to open output");
+        return;
     }
 
-    if (!_outputManager->StartControllerOutputs(ctrl)) {
-        f->SetStatusText(ctrl->GetName() + " - Failed to open output");
+    _uploadedControllers.insert(ctrl->GetName());
+
+    if (ctrl->IsAutoUpload() && ctrl->SupportsAutoUpload()) {
+        xLightsFrame* f = (xLightsFrame*)GetParent();
+        f->UploadControllerForImmediateOutput(ctrl);
     }
 }
 
@@ -3516,8 +3519,6 @@ void PixelTestDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
         if (GetConfigBool("OutputActive", false)) {
             DisplayWarning("Another process seems to be outputting to lights right now. This may not generate the result expected.", this);
         }
-
-        xLightsFrame* f = (xLightsFrame*)GetParent();
 
         _uploadedControllers.clear();
         Timer1.Start(50, wxTIMER_CONTINUOUS);
