@@ -1006,6 +1006,11 @@ bool GLContextManager::MakeCurrent(ContextHandle ctx) {
                 _platform->shaderShareRootHwnd &&
                 !IsWindow(_platform->shaderShareRootHwnd)) {
                 spdlog::warn("GLContextManager: share-root also invalidated by TDR, rebuilding");
+                // The whole share group dies with the root: every GL object id
+                // cached anywhere (ShaderRenderCache programs/buffers/textures)
+                // is now dangling.  Bump the generation so those caches reset
+                // instead of binding stale — or worse, recycled — ids.
+                BumpShareGroupGeneration();
                 wglDeleteContext(_platform->shaderShareRoot);
                 _platform->shaderShareRoot = nullptr;
                 if (_platform->shaderShareRootHdc) {

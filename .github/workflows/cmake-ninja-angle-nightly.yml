@@ -80,6 +80,17 @@ jobs:
         with:
           version: 1.31.0
 
+      # glslc (ships in the Vulkan SDK's Bin) compiles the .comp compute kernels
+      # to SPIR-V headers.  The CMake Vulkan block is mandatory on Windows and
+      # aborts with FATAL_ERROR if glslc is missing, so the SDK must be present
+      # before Configure.  The action exports VULKAN_SDK and adds Bin to PATH, so
+      # the CMakeLists find_program(glslc) HINT resolves.
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          install_runtime: false
+          cache: true
+
       # ── sccache ───────────────────────────────────────────────────────────
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.10

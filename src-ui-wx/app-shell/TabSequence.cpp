@@ -350,6 +350,7 @@ void xLightsFrame::LoadEffectsFile()
             _effectPresetManager.Load(effectsNode);
             spdlog::info("Migrated effect presets from xlights_rgbeffects.xml to JSON");
             UnsavedRgbEffectsChanges = true; // trigger save to create the new JSON file
+            UnsavedPresetChanges = true;
         }
     }
     if (_effectPresetManager.GetVersion().empty()) {
@@ -870,26 +871,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         return false;
     }
 
-    // Save effect presets to separate JSON file
-    {
-        wxFileName presetsFile;
-        presetsFile.AssignDir(CurrentDir);
-        if (backup) {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
-        } else {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
-        }
-
-        if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
-            if (backup) {
-                spdlog::warn("Unable to save backup of effect presets file");
-            } else {
-                DisplayError("Unable to save effect presets file", this);
-            }
-        }
-    }
-
     if (!backup) {
+        SavePresetsFile();
         UnsavedRgbEffectsChanges = false;
     }
 
@@ -897,6 +880,31 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     UpdateControllerSave();
 
     return true;
+}
+
+void xLightsFrame::SavePresetsFile(bool backup)
+{
+    wxFileName presetsFile;
+    presetsFile.AssignDir(CurrentDir);
+    if (backup) {
+        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
+    } else {
+        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+    }
+
+    if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
+        if (backup) {
+            spdlog::warn("Unable to save backup of effect presets file");
+        } else {
+            DisplayError("Unable to save effect presets file", this);
+        }
+        return;
+    }
+
+    if (!backup) {
+        UnsavedPresetChanges = false;
+        UpdateLayoutSave();
+    }
 }
 
 void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)
@@ -1225,6 +1233,7 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
             }
         }
     }
+    PreviewModelsGeneration = AllModels.GetModelGeneration();
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
@@ -1275,6 +1284,7 @@ void xLightsFrame::UpdateModelsList()
             }
         }
     }
+    PreviewModelsGeneration = AllModels.GetModelGeneration();
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
@@ -1831,9 +1841,15 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
 
 void xLightsFrame::RenderAll()
 {
-    
-
-    if (!_seqData.IsValidData()) {
+    if (mRendering) {
+        // the wxYield() below pumps the event queue, so a queued second
+        // toolbar click can re-enter before the controls are disabled
+        return;
+    }
+    // CurrentSeqXmlFile can be null while _seqData is still valid during
+    // CloseSequence teardown; a toolbar click landing in that window
+    // passed the guard and faulted on the model-blending check below
+    if (!_seqData.IsValidData() || CurrentSeqXmlFile == nullptr) {
         spdlog::warn("Aborting render all because sequence data has not been initialised.");
         return;
     }

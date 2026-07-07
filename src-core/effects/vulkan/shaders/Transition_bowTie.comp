@@ -1,0 +1,88 @@
+#version 450
+// Port of bowTieTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+// code for bowTie transition
+float check3(vec2 p1, vec2 p2, vec2 p3) {
+    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+}
+bool pointInTriangle(vec2 pt, vec2 p1, vec2 p2, vec2 p3) {
+    bool b1 = check3(pt, p1, p2) < 0.0;
+    bool b2 = check3(pt, p2, p3) < 0.0;
+    bool b3 = check3(pt, p3, p1) < 0.0;
+    return b1 == b2 && b2 == b3;
+}
+const float bowTieHeight = 0.5;
+uvec4 bowTie_firstHalf(vec2 uv, float progress, float adjust) {
+    if (uv.y < 0.5) {
+        vec2 botLeft = vec2(0.0, progress - bowTieHeight);
+        vec2 botRight = vec2(1.0, progress - bowTieHeight);
+        vec2 tip = vec2(adjust, progress);
+        if (pointInTriangle(uv, botLeft, botRight, tip)) {
+            return tex2Dsrc(uv.x, uv.y);
+        }
+    } else {
+        vec2 topLeft = vec2(0.0, 1.0 - progress + bowTieHeight);
+        vec2 topRight = vec2(1.0, 1.0 - progress + bowTieHeight);
+        vec2 tip = vec2(adjust, 1.0 - progress);
+        if (pointInTriangle(uv, topLeft, topRight, tip)) {
+            return tex2Dsrc(uv.x, uv.y);
+        }
+    }
+    if (data.hasPrev != 0u) {
+        return tex2Dprev(uv.x, uv.y);
+    }
+    return uvec4(0u, 0u, 0u, 255u);
+}
+uvec4 bowTie_secondHalf(vec2 uv, float progress, float adjust) {
+    if (uv.x > adjust) {
+        vec2 top = vec2(progress + bowTieHeight, 1.0);
+        vec2 bot = vec2(progress + bowTieHeight, 0.0);
+        vec2 tip = vec2(xl_lerpf(adjust, 1.0, 2.0 * (progress - 0.5)), 0.5);
+        if (pointInTriangle(uv, top, bot, tip)) {
+            if (data.hasPrev != 0u) {
+                return tex2Dprev(uv.x, uv.y);
+            } else {
+                return uvec4(0u, 0u, 0u, 255u);
+            }
+        }
+    } else {
+        vec2 top = vec2(1.0 - progress - bowTieHeight, 1.0);
+        vec2 bot = vec2(1.0 - progress - bowTieHeight, 0.0);
+        vec2 tip = vec2(xl_lerpf(adjust, 0.0, 2.0 * (progress - 0.5)), 0.5);
+        if (pointInTriangle(uv, top, bot, tip)) {
+            if (data.hasPrev != 0u) {
+                return tex2Dprev(uv.x, uv.y);
+            } else {
+                return uvec4(0u, 0u, 0u, 255u);
+            }
+        }
+    }
+    return tex2Dsrc(uv.x, uv.y);
+}
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float bowTieAdjust = 0.01 * data.adjust;
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+    vec2 xy = vec2(s, t);
+
+    float progress = data.progress;
+    if (data.reverse != 0u) {
+        progress = 1.0 - progress;
+    }
+    result[sidx] = packPx((progress < 0.5) ? bowTie_firstHalf(xy, progress, bowTieAdjust) : bowTie_secondHalf(xy, progress, bowTieAdjust));
+}

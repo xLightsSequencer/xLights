@@ -27,6 +27,7 @@
 #include "UtilFunctions.h"
 
 #include "Parallel.h"
+#include "ispc/MeteorsFunctions.ispc.h"
 
 std::string MeteorsEffect::sTypeDefault = "Rainbow";
 std::string MeteorsEffect::sEffectDefault = "Down";
@@ -203,6 +204,46 @@ float MeteorsEffect::calcEffectStateOffset(int mSpeed, RenderBuffer& buffer) {
     return (float(mSpeed * buffer.frameTimeInMs)) / 50.0f;
 }
 
+// Base (CPU) gather: run the ISPC kernel. Each output pixel is scored against the
+// snapshotted meteor list; the last meteor in draw order that covers it wins,
+// reproducing the scalar SetPixel overwrite. Uncovered pixels are left at the
+// buffer's cleared value (the render engine pre-clears each frame).
+void MeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts) {
+    ispc::MeteorsISPCData d;
+    d.width = buffer.BufferWi;
+    d.height = buffer.BufferHt;
+    d.mode = params.mode;
+    d.direction = params.direction;
+    d.tailLength = params.tailLength;
+    d.colorScheme = params.colorScheme;
+    d.allowAlpha = params.allowAlpha;
+    d.numMeteors = (int)parts.size();
+    d.wantBkg = params.wantBkg;
+    d.frameSeed = params.frameSeed;
+
+    std::vector<ispc::MeteorParticle> ip(parts.size());
+    for (size_t i = 0; i < parts.size(); i++) {
+        ip[i].a = parts[i].a;
+        ip[i].base = parts[i].base;
+        ip[i].h = parts[i].h;
+        ip[i].hue = parts[i].hue;
+        ip[i].sat = parts[i].sat;
+        ip[i].val = parts[i].val;
+    }
+
+    xlColor* pixels = buffer.GetPixels();
+    const ispc::MeteorParticle* pp = ip.data();
+    int W = buffer.BufferWi;
+    int H = buffer.BufferHt;
+    if ((size_t)W * H >= 20000) {
+        parallel_for(0, H, [&d, pp, pixels, W](int y) {
+            ispc::MeteorsEffectISPC(&d, pp, y * W, y * W + W, (ispc::uint8_t4*)pixels);
+        });
+    } else {
+        ispc::MeteorsEffectISPC(&d, pp, 0, W * H, (ispc::uint8_t4*)pixels);
+    }
+}
+
 
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
@@ -365,41 +406,18 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
     // create new meteors
     HorizontalAddMeteors(buffer, ColorScheme, Count);
 
-    // render meteors
-
-    std::function<void(MeteorClass&, int)> f = [&buffer, MeteorsEffect, TailLength, SwirlIntensity, ColorScheme](MeteorClass& meteor, int n) {
-        HSVValue hsv;
-        for (int ph = 0; ph <= TailLength; ph++) {
-            switch (ColorScheme) {
-            case 0:
-                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
-                hsv.saturation = 1.0;
-                hsv.value = 1.0;
-                break;
-            default:
-                hsv = meteor.hsv;
-                break;
-            }
-
-            double swirl_phase = double(meteor.x) / 5.0 + double(n) / 100.0;
-            int dy = int(double(SwirlIntensity * buffer.BufferHt) / 80.0 * buffer.sin(swirl_phase));
-
-            int x = meteor.x + ph;
-            int y = meteor.y + dy;
-            if (MeteorsEffect == 3)
-                x = buffer.BufferWi - x;
-
-            if (buffer.allowAlpha) {
-                xlColor c(hsv);
-                c.alpha = 255.0 * (1.0 - double(ph) / TailLength);
-                buffer.SetPixel(x, y, c);
-            } else {
-                hsv.value *= 1.0 - double(ph) / TailLength;
-                buffer.SetPixel(x, y, hsv);
-            }
-        }
-    };
-    drawMeteorsSerially(cache->meteors, f);
+    // render meteors: snapshot the live list (swirl folded into the row) and gather per-pixel
+    std::vector<MeteorSnapshot> parts;
+    parts.reserve(cache->meteors.size());
+    int n = 0;
+    for (auto& meteor : cache->meteors) {
+        double swirl_phase = double(meteor.x) / 5.0 + double(n) / 100.0;
+        int dy = int(double(SwirlIntensity * buffer.BufferHt) / 80.0 * buffer.sin(swirl_phase));
+        parts.push_back({ meteor.y + dy, meteor.x, 0, meteor.hsv.hue, meteor.hsv.saturation, meteor.hsv.value });
+        ++n;
+    }
+    MeteorsGatherParams params{ 1, MeteorsEffect, TailLength, ColorScheme, buffer.allowAlpha ? 1 : 0, 0, buffer.hashRandomFrameSeed() };
+    GatherMeteors(buffer, params, parts);
 
     HorizontalMoveMeteors(buffer, speed);
 
@@ -508,42 +526,20 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
     // create new meteors
     VerticalAddMeteors(buffer, ColorScheme, Count);
 
-    // render meteors
-
-    std::function<void(MeteorClass&, int)> f = [&buffer, MeteorsEffect, TailLength, SwirlIntensity, ColorScheme](MeteorClass& meteor, int n) {
-        HSVValue hsv;
-        for (int ph = 0; ph <= TailLength; ph++) {
-            switch (ColorScheme) {
-            case 0:
-                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
-                hsv.saturation = 1.0;
-                hsv.value = 1.0;
-                break;
-            default:
-                hsv = meteor.hsv;
-                break;
-            }
-
-            // we adjust x axis with some sine function if swirl1 or swirl2
-            // swirling more than 25% of the buffer width doesn't look good
-            double swirl_phase = double(meteor.y) / 5.0 + double(n) / 100.0;
-            int dx = int(double(SwirlIntensity * buffer.BufferWi) / 80.0 * buffer.sin(swirl_phase));
-            int x = meteor.x + dx;
-            int y = meteor.y + ph;
-            if (MeteorsEffect == 1)
-                y = buffer.BufferHt - y;
-
-            if (buffer.allowAlpha) {
-                xlColor c(hsv);
-                c.alpha = 255.0 * (1.0 - double(ph) / TailLength);
-                buffer.SetPixel(x, y, c);
-            } else {
-                hsv.value *= 1.0 - double(ph) / TailLength;
-                buffer.SetPixel(x, y, hsv);
-            }
-        }
-    };
-    drawMeteorsSerially(cache->meteors, f);
+    // render meteors: snapshot the live list (swirl folded into the column) and gather per-pixel
+    std::vector<MeteorSnapshot> parts;
+    parts.reserve(cache->meteors.size());
+    int n = 0;
+    for (auto& meteor : cache->meteors) {
+        // we adjust x axis with some sine function if swirl1 or swirl2
+        // swirling more than 25% of the buffer width doesn't look good
+        double swirl_phase = double(meteor.y) / 5.0 + double(n) / 100.0;
+        int dx = int(double(SwirlIntensity * buffer.BufferWi) / 80.0 * buffer.sin(swirl_phase));
+        parts.push_back({ meteor.x + dx, meteor.y, 0, meteor.hsv.hue, meteor.hsv.saturation, meteor.hsv.value });
+        ++n;
+    }
+    MeteorsGatherParams params{ 0, MeteorsEffect, TailLength, ColorScheme, buffer.allowAlpha ? 1 : 0, 0, buffer.hashRandomFrameSeed() };
+    GatherMeteors(buffer, params, parts);
 
     VerticalMoveMeteors(buffer, speed);
 
@@ -617,7 +613,6 @@ void MeteorsEffect::IcicleRemoveMeteors(RenderBuffer& buffer)
     cache->meteors.remove_if(IcicleHasExpired());
 }
 
-#define numents(thing) (sizeof(thing) / sizeof(thing[0]))
 //icicle drip effect, based on RenderMeteorsVertical: -DJ
 void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mSpeed, int warmupFrames)
 {
@@ -650,47 +645,22 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int 
     // create new meteors
     IcicleAddMeteors(buffer, ColorScheme, Count);
 
-    // render meteors
-
-    // draw some dim icicles for bkg:
-    if (want_bkg) {
-        xlColor c(100, 50, 255); // light blue
-        // HSV hsv = c;
-        //        m.hsv.saturation = 0.5;
-        //        m.hsv.value = 1.0;
-        // c = m.hsv;
-        int ystaggered[] = { 0, 5, 1, 2, 4 };
-        for (int x = 0; x < buffer.BufferWi; x += 3)
-            for (int y = 0; y < buffer.BufferHt; y += 3)
-                    buffer.SetPixel(x, y + ystaggered[(x / 3) % numents(ystaggered)], c);
+    // render meteors: snapshot the live list (swirl folded into the column) and gather
+    // per-pixel. The dim background icicles and the colored-tip/white-body/variable-length
+    // drip logic all move into the kernel.
+    std::vector<MeteorSnapshot> parts;
+    parts.reserve(cache->meteors.size());
+    int n = 0;
+    for (auto& meteor : cache->meteors) {
+        // we adjust x axis with some sine function if swirl1 or swirl2
+        // swirling more than 25% of the buffer width doesn't look good
+        float swirl_phase = float(meteor.y) / 5.0f + float(n) / 100.0f;
+        int dx = int(float(SwirlIntensity * buffer.BufferWi) / 80.0f * buffer.sin(swirl_phase));
+        parts.push_back({ meteor.x + dx, meteor.y, meteor.h, meteor.hsv.hue, meteor.hsv.saturation, meteor.hsv.value });
+        ++n;
     }
-
-    std::function<void(MeteorClass&, int)> f = [&buffer, MeteorsEffect, TailLength, SwirlIntensity](MeteorClass& meteor, int n) {
-        int x, y, dx;
-        HSVValue hsv;
-        for (int ph = 0; ph <= TailLength; ph++) {
-            if (!ph || (ph <= meteor.h - meteor.y))
-                hsv = meteor.hsv; // only make the end of the drip colored
-            else {
-                hsv.value = .4;
-                hsv.hue = hsv.saturation = 0;
-            } // white icicle
-
-            // we adjust x axis with some sine function if swirl1 or swirl2
-            // swirling more than 25% of the buffer width doesn't look good
-            float swirl_phase = float(meteor.y) / 5.0f + float(n) / 100.0f;
-            dx = int(float(SwirlIntensity * buffer.BufferWi) / 80.0f * buffer.sin(swirl_phase));
-
-            x = meteor.x + dx;
-            y = meteor.y + ph;
-            if (MeteorsEffect == 1)
-                y = buffer.BufferHt - y;
-            if (y < meteor.h)
-                continue; // variable length icicle drips -DJ
-            buffer.SetPixel(x, y, hsv);
-        }
-    };
-    drawMeteorsSerially(cache->meteors, f);
+    MeteorsGatherParams params{ 2, MeteorsEffect, TailLength, ColorScheme, buffer.allowAlpha ? 1 : 0, want_bkg ? 1 : 0, buffer.hashRandomFrameSeed() };
+    GatherMeteors(buffer, params, parts);
 
     IcicleMoveMeteors(buffer, speed);
 

@@ -1,0 +1,37 @@
+#version 450
+// Port of RotoZoomRotateY in RotoZoomFunctions.metal (write pass).
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "rotozoom_pc.glsl"
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Owner { int owner[]; };
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+
+    float y = float(index.y);
+    float sine = sin((data.yrotation + 90.0) * XL_PI / 180.0);
+    float pivot = (float(data.ypivot) * float(data.height)) / 100.0;
+
+    float toy;
+    if (y >= pivot) {
+        toy = sine * (y - pivot) + pivot;
+    } else {
+        toy = -1.0 * sine * (pivot - y) + pivot;
+    }
+    // Bounds-check the ROUNDED index (see RotoZoomRotateYClaim).
+    int toyi = int(xl_round(toy));
+    if (toyi >= 0 && toyi < int(data.height)) {
+        uint didx = uint(toyi) * data.width + index.x;
+        if (owner[didx] == int(sidx)) {
+            result[didx] = src[sidx];
+        }
+    }
+}

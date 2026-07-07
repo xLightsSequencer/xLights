@@ -1336,13 +1336,26 @@ class SequencerViewModel {
                       mediaPath: String,
                       durationMS: Int,
                       frameMS: Int,
-                      savePath: String) -> Bool {
-        let ok = document.newSequence(
-            atPath: savePath,
-            type: type,
-            mediaPath: mediaPath,
-            durationMS: Int32(durationMS),
-            frameMS: Int32(frameMS))
+                      savePath: String) async -> Bool {
+        if openInFlight {
+            print("newSequence: ignoring concurrent create of \(savePath)")
+            return false
+        }
+        openInFlight = true
+        defer { openInFlight = false }
+        // Heavy: the bridge closes the current sequence (AbortRender can
+        // block up to 60s draining in-flight render jobs), saves the new
+        // .xsq, then runs the full open chain. On the main actor this was
+        // blowing the 0x8BADF00D watchdog. Detach it; the guard above is
+        // held across the await so an open can't race the C++ context.
+        let ok = await Task.detached { [document] in
+            document.newSequence(
+                atPath: savePath,
+                type: type,
+                mediaPath: mediaPath,
+                durationMS: Int32(durationMS),
+                frameMS: Int32(frameMS))
+        }.value
         if ok {
             isSequenceLoaded = true
             isDirty = false
@@ -2001,7 +2014,7 @@ class SequencerViewModel {
     /// swapping filenames on disk, then reloading. Desktop's
     /// recovery flow renames `foo.xbkp` → `foo.xsq` to claim the
     /// backup; we do the same through FileManager.
-    func applyAutosaveBackup() -> Bool {
+    func applyAutosaveBackup() async -> Bool {
         let xsqPath = document.currentSequencePath()
         if xsqPath.isEmpty { return false }
         let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
@@ -2020,7 +2033,7 @@ class SequencerViewModel {
         }
         try? fm.removeItem(atPath: archived)
         // Re-open so in-memory state matches the promoted file.
-        closeSequence()
+        await closeSequence()
         openSequence(path: xsqPath)
         return true
     }
@@ -2086,7 +2099,7 @@ class SequencerViewModel {
     /// copies the snapshot over the working file, then reopens. Only
     /// supports non-packaged `.xsq` sequences; returns false otherwise.
     @discardableResult
-    func restoreBackup(_ snapshot: BackupSnapshot) -> Bool {
+    func restoreBackup(_ snapshot: BackupSnapshot) async -> Bool {
         guard isSequenceLoaded, !document.isPackagedSequence() else { return false }
         let target = document.currentSequencePath()
         guard !target.isEmpty,
@@ -2101,7 +2114,7 @@ class SequencerViewModel {
         writeSaveBackup(ofSequenceAt: target)
 
         suppressAutosaveBackup()
-        closeSequence()
+        await closeSequence()
 
         _ = XLSequenceDocument.obtainAccess(toPath: target, enforceWritable: true)
         do {
@@ -2121,12 +2134,12 @@ class SequencerViewModel {
     /// canonical `.xsq` on disk. Deletes the autosave `.xbkp` first so
     /// the re-open does not immediately offer "recover unsaved changes"
     /// on a file the user just chose to revert.
-    func revertToLastSaved() {
+    func revertToLastSaved() async {
         guard isSequenceLoaded else { return }
         let path = document.currentSequencePath()
         guard !path.isEmpty else { return }
         suppressAutosaveBackup()
-        closeSequence()
+        await closeSequence()
         openSequence(path: path)
     }
 
@@ -2170,27 +2183,22 @@ class SequencerViewModel {
         }
     }
 
-    func closeSequence() {
+    func closeSequence() async {
+        if openInFlight {
+            print("closeSequence: ignoring close while an open/close is in flight")
+            return
+        }
+        openInFlight = true
+        defer { openInFlight = false }
+
         if isOutputting { toggleOutput() }
         stopPlayback()
         stopDirtyPolling()
         stopAutosaveTimer()
         cancelBackgroundRender()
-        // Wait for any background render jobs to exit before tearing
-        // down SequenceElements / SequenceData — the render workers
-        // hold pointers into those structures and would crash on next
-        // frame access if we proceeded with close while they're busy.
-        _ = document.abortRenderAndWait(5.0)
-        let wasPackaged = packageSandboxDir != nil
-        document.closeSequence()
 
-        // Wipe the sandbox scratch dir used for Files-provider
-        // `.xsqz` opens (if any). The bridge's closeSequence wiped
-        // the *extraction* temp dir; this wipes the separate
-        // "incoming copy" dir that held the sandbox `.xsqz` itself.
-        if let sandbox = packageSandboxDir {
-            try? FileManager.default.removeItem(at: sandbox)
-        }
+        let sandbox = packageSandboxDir
+        let wasPackaged = sandbox != nil
         packageSandboxDir = nil
         packageOriginalURL = nil
 
@@ -2201,12 +2209,30 @@ class SequencerViewModel {
         // the show-folder setup screen. FolderConfig.showFolder
         // (the persisted config) tells us whether a "real" show
         // folder was ever configured — if so, the bridge's
-        // closeSequence already re-loaded it and we leave
+        // closeSequence re-loads it and we leave
         // isShowFolderLoaded true.
         if wasPackaged && FolderConfig.showFolder == nil {
             isShowFolderLoaded = false
             showFolderPath = ""
         }
+
+        // Tear down off the main actor: abortRenderAndWait blocks up to
+        // 5s draining render workers (they hold pointers into
+        // SequenceElements / SequenceData), and the bridge close aborts
+        // again and can re-load the show folder after a packaged open.
+        // Run synchronously on the main actor this was blowing the
+        // 0x8BADF00D watchdog. `openInFlight` is held across the await
+        // so an open can't race the teardown; the sandbox scratch dir
+        // (the "incoming copy" dir for Files-provider `.xsqz` opens —
+        // the bridge wipes the separate *extraction* dir) is removed
+        // only after the C++ close is done with it.
+        await Task.detached { [document] in
+            _ = document.abortRenderAndWait(5.0)
+            document.closeSequence()
+            if let sandbox {
+                try? FileManager.default.removeItem(at: sandbox)
+            }
+        }.value
 
         isSequenceLoaded = false
         isDirty = false

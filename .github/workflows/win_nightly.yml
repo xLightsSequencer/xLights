@@ -63,6 +63,16 @@ jobs:
         with:
           version: 1.31.0
 
+      # glslc (Vulkan SDK Bin) compiles the .comp compute kernels to SPIR-V
+      # headers via the Xlights.vcxproj CompileVulkanShaders pre-build target
+      # (x64).  The action exports VULKAN_SDK so that target's PowerShell script
+      # finds glslc; without it the msbuild step fails at the pre-build event.
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          install_runtime: false
+          cache: true
+
       #   - name: install Inno
       #    run: choco install innosetup
 

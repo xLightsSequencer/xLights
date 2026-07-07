@@ -1,0 +1,161 @@
+#version 450
+// Port of KaleidoscopeEffectSquare2 / KaleidoscopeEffectRadial /
+// KaleidoscopeEffectTriangle in KaleidoscopeFunctions.metal, unified into one
+// kernel selected by data.kType (0 = Square2, 1 = Radial, 2 = Triangle —
+// covers the 6/8/12-fold types, which only differ in the CPU-computed
+// triangle vertices/maxIter, not in kernel math).
+//
+// This is a source-reading, partial-write effect: binding 1 is a snapshot of
+// the pixels taken (via vkCmdCopyBuffer) before this dispatch, binding 0 is
+// the destination. Each thread maps its pixel to a source location; if that
+// location is out of bounds, or equal to the thread's own pixel, the Metal
+// kernels simply return without writing — so `result` must NOT be
+// `writeonly` (the pre-existing contents are left in place for those
+// pixels, matching the CPU/Metal behavior).
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Source { uint src[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    float cx;
+    float cy;
+    float size;      // halfSize for Square2, segments for Radial, size for Triangle
+    float rotRad;
+    int kType;       // 0 = Square2, 1 = Radial, 2 = Triangle
+    int maxIter;     // max reflection iterations for Triangle types
+    vec2 v[3];       // triangle vertices (Triangle types only)
+} data;
+
+const float KALE_PI = 3.14159265358979323846;
+
+// Triangle-wave reflection: fold v into [-halfSize, +halfSize]
+float ReflectCoord(float v, float halfSize) {
+    float period = 4.0 * halfSize;
+    v = xl_fmod(v + halfSize, period);
+    if (v < 0.0)
+        v += period;
+    if (v <= 2.0 * halfSize) {
+        return v - halfSize;
+    } else {
+        return 3.0 * halfSize - v;
+    }
+}
+
+// Signed distance of point (px,py) relative to directed line from (lx1,ly1) to (lx2,ly2).
+// Positive = left side (inside for CCW triangle), negative = outside.
+float SignedDist(float px, float py, float lx1, float ly1, float lx2, float ly2) {
+    return (lx2 - lx1) * (py - ly1) - (ly2 - ly1) * (px - lx1);
+}
+
+// Reflect point (px, py) across the line from (lx1,ly1) to (lx2,ly2).
+void ReflectPointAcrossLine(inout float px, inout float py,
+                             float lx1, float ly1, float lx2, float ly2) {
+    float dx = lx2 - lx1;
+    float dy = ly2 - ly1;
+    float denom = dx * dx + dy * dy;
+    float a = (dx * dx - dy * dy) / denom;
+    float b = 2.0 * dx * dy / denom;
+    float rx = px - lx1;
+    float ry = py - ly1;
+    px = a * rx + b * ry + lx1;
+    py = b * rx - a * ry + ly1;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    float x = float(px);
+    float y = float(py);
+    float sxF;
+    float syF;
+
+    if (data.kType == 0) {
+        // Square 2: coordinate folding (no iteration needed)
+        float halfSize = data.size;
+        float dx = x - data.cx;
+        float dy = y - data.cy;
+        float cosR = cos(-data.rotRad);
+        float sinR = sin(-data.rotRad);
+        float lx = dx * cosR - dy * sinR;
+        float ly = dx * sinR + dy * cosR;
+
+        lx = ReflectCoord(lx, halfSize);
+        ly = ReflectCoord(ly, halfSize);
+
+        float cosRF = cos(data.rotRad);
+        float sinRF = sin(data.rotRad);
+        sxF = lx * cosRF - ly * sinRF + data.cx;
+        syF = lx * sinRF + ly * cosRF + data.cy;
+    } else if (data.kType == 1) {
+        // Radial: polar folding into wedge segments
+        float dx = x - data.cx;
+        float dy = y - data.cy;
+        float radius = sqrt(dx * dx + dy * dy);
+
+        if (radius < 0.5) return;
+
+        int segments = max(2, int(data.size));
+        float wedgeAngle = 2.0 * KALE_PI / float(segments);
+
+        float angle = atan(dy, dx);
+        angle -= data.rotRad;
+
+        angle = xl_fmod(angle, 2.0 * KALE_PI);
+        if (angle < 0.0)
+            angle += 2.0 * KALE_PI;
+
+        float folded = xl_fmod(angle, 2.0 * wedgeAngle);
+        if (folded > wedgeAngle)
+            folded = 2.0 * wedgeAngle - folded;
+
+        folded += data.rotRad;
+
+        sxF = data.cx + radius * cos(folded);
+        syF = data.cy + radius * sin(folded);
+    } else {
+        // Triangle types (6-fold, 8-fold, 12-fold): iterative reflection into triangle
+        float v0x = data.v[0].x, v0y = data.v[0].y;
+        float v1x = data.v[1].x, v1y = data.v[1].y;
+        float v2x = data.v[2].x, v2y = data.v[2].y;
+
+        for (int i = 0; i < data.maxIter; i++) {
+            float d0 = SignedDist(x, y, v0x, v0y, v1x, v1y);
+            float d1 = SignedDist(x, y, v1x, v1y, v2x, v2y);
+            float d2 = SignedDist(x, y, v2x, v2y, v0x, v0y);
+
+            // Inside the triangle (small tolerance for rounding)
+            if (d0 >= -0.5 && d1 >= -0.5 && d2 >= -0.5) {
+                break;
+            }
+
+            // Reflect across the edge we are most outside of
+            if (d0 < d1 && d0 < d2) {
+                ReflectPointAcrossLine(x, y, v0x, v0y, v1x, v1y);
+            } else if (d1 < d0 && d1 < d2) {
+                ReflectPointAcrossLine(x, y, v1x, v1y, v2x, v2y);
+            } else {
+                ReflectPointAcrossLine(x, y, v2x, v2y, v0x, v0y);
+            }
+        }
+
+        sxF = x;
+        syF = y;
+    }
+
+    int sx = int(xl_round(sxF));
+    int sy = int(xl_round(syF));
+
+    if (sx >= 0 && sx < int(data.width) && sy >= 0 && sy < int(data.height)) {
+        if (sx != int(px) || sy != int(py)) {
+            result[index] = src[uint(sy) * data.width + uint(sx)];
+        }
+    }
+}

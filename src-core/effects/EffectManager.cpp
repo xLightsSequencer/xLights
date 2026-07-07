@@ -82,6 +82,11 @@ extern RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff);
 inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
     return CreateMetalEffect(eff);
 }
+#elif defined(HAVE_VULKAN)
+extern RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff);
+inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
+    return CreateVulkanEffect(eff);
+}
 #else
 inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
     return nullptr;

@@ -353,6 +353,14 @@ void KeyBindingEditDialog::OnControllerPropertyGridChange(wxPropertyGridEvent& e
 
 KeyBindingEditDialog::~KeyBindingEditDialog()
 {
+	// wxPropertyGrid commits any pending editor change from its own destructor
+	// (DoSelectProperty(nullptr) -> CommitChangesFromEditor), which fires
+	// wxEVT_PG_CHANGED. Without this disconnect that re-enters
+	// OnControllerPropertyGridChange after this dialog's members and sibling
+	// child widgets are already destroyed.
+	if (_propertyGrid != nullptr) {
+		_propertyGrid->Disconnect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&KeyBindingEditDialog::OnControllerPropertyGridChange, 0, this);
+	}
 	//(*Destroy(KeyBindingEditDialog)
 	//*)
 }

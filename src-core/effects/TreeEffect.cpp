@@ -13,6 +13,13 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
+#include "Parallel.h"
+
+#include "ispc/TreeFunctions.ispc.h"
+
+// Max pixels_per_branch the ISPC/Metal kernels support: their color tables are
+// fixed-size arrays of this length (see MAX_TREE_ISPC_PPB in the kernel).
+static constexpr int MAX_TREE_ISPC_PPB = 512;
 
 #include "../../include/tree-16.xpm"
 #include "../../include/tree-24.xpm"
@@ -63,9 +70,66 @@ void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     maxFrame=(Branches+1) * buffer.BufferWi;
     if(effectState>0 && maxFrame>0) frame = (effectState/4)%maxFrame;
     else frame=1;
-    
+
+    // ISPC-accelerated path (the CPU path). Every per-pixel decision is integer math,
+    // so the color tables are precomputed here with the exact scalar double math and
+    // the kernel output is byte-identical to the scalar loop below. Only buffers whose
+    // pixels_per_branch exceeds the kernel's fixed color-table size fall through to the
+    // scalar tail (BufferWi > 0 also guards the divide-by-width in the setup below).
+    if (pixels_per_branch <= MAX_TREE_ISPC_PPB && buffer.BufferWi > 0) {
+        ispc::TreeISPCData tdata;
+        tdata.width = buffer.BufferWi;
+        tdata.height = buffer.BufferHt;
+        tdata.ppb = pixels_per_branch;
+        tdata.frame = frame;
+        tdata.branch_row = (effectState / buffer.BufferWi) % Branches;
+        tdata.f_mod = (effectState / 4) % buffer.BufferWi;
+        tdata.showlights = showlights ? 1 : 0;
+        for (mod = 1; mod <= pixels_per_branch; mod++) {
+            V = 1 - (1.0 * mod / pixels_per_branch) * 0.70;
+            buffer.palette.GetColor(0, color);
+            if (buffer.allowAlpha) {
+                color.alpha = 255.0 * V;
+            } else {
+                HSVValue hsv = color.asHSV();
+                hsv.value = V;
+                color = hsv;
+            }
+            tdata.bgColors[mod - 1].v[0] = color.red;
+            tdata.bgColors[mod - 1].v[1] = color.green;
+            tdata.bgColors[mod - 1].v[2] = color.blue;
+            tdata.bgColors[mod - 1].v[3] = color.alpha;
+        }
+        for (r = 0; r < 5; r++) {
+            H = r / 4.0;
+            HSVValue hsv;
+            hsv.hue = H;
+            hsv.saturation = 1.0;
+            hsv.value = 1.0;
+            color = hsv;
+            tdata.lightColors[r].v[0] = color.red;
+            tdata.lightColors[r].v[1] = color.green;
+            tdata.lightColors[r].v[2] = color.blue;
+            tdata.lightColors[r].v[3] = color.alpha;
+        }
+        // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
+        // for a variable sub-buffer, and the ISPC kernel writes unguarded.
+        int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
+        constexpr int treeBlockSize = 4096;
+        int blocks = max / treeBlockSize + 1;
+        parallel_for(0, blocks, [&tdata, &buffer, max](int block) {
+            int start = block * treeBlockSize;
+            int end = start + treeBlockSize;
+            if (end > max) end = max;
+            ispc::TreeEffectISPC(&tdata, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+        });
+        return;
+    }
+
+    // Scalar tail — reached only when pixels_per_branch > MAX_TREE_ISPC_PPB, which the
+    // fixed-size kernel color tables cannot hold (very tall buffers with few branches).
     i=0;
-    
+
     for (y=0; y<buffer.BufferHt; y++) // For my 20x120 megatree, BufferHt =120
     {
         for (x=0; x<buffer.BufferWi; x++) // BufferWi=20 in the above example

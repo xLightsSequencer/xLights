@@ -5500,6 +5500,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             spdlog::error("Unable to load model from '{}': {}", last_model, e.what());
             DisplayError("Unable to load model file:\n" + std::string(e.what()));
             cancelled = true;
+            // CreateDefaultModelFromSavedModelNode deletes the passed-in model
+            // before deserializing, so on a throw `model` is already freed;
+            // returning it non-null makes FinalizeModel's cancel path delete
+            // it a second time.
+            model = nullptr;
         }
 
         if (!cancelled && model != nullptr) {
@@ -5543,8 +5548,8 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     try {
                         extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
                     } catch (const std::exception& e) {
+                        // the callee already deleted extraModel before throwing
                         spdlog::error("Unable to load additional model: {}", e.what());
-                        delete extraModel;
                         continue;
                     }
                     if (extraCancelled || extraModel == nullptr) continue;
@@ -5814,8 +5819,14 @@ void LayoutPanel::FinalizeModel()
                 // it internally before returning a newly deserialized model. On failure it returns
                 // nullptr having already freed the passed-in pointer, so we must NOT delete
                 // extraModel here (would double-delete). Match the primary model path which also
-                // just returns without manual cleanup.
-                extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                // just returns without manual cleanup. The deserializer throws on a malformed
+                // file (after freeing extraModel), so catch it or it escapes FinalizeModel.
+                try {
+                    extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                } catch (const std::exception& e) {
+                    spdlog::error("Unable to load additional model from '{}': {}", extraModelPath, e.what());
+                    continue;
+                }
 
                 if (extraCancelled || extraModel == nullptr) {
                     continue;

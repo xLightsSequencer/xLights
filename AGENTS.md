@@ -286,10 +286,13 @@ XL_FSEQCMP_DUMPCH=<ch> xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq>  # dump 
   `ObtainAccessToURL`; stage comparison fseqs under the show dir or `~/Documents`.
 - **`-r` overwrites** fseqs in the configured folder — use `--outputdir` to redirect.
 - **Expected (non-bug) diffs vs desktop:** GPU shaders (separate GL context, small
-  per-channel float), physics effects (LiquidFun/Box2D), and hardware video decode
-  (AVFoundation may return a marginally different frame near a seek). Random/sparkle
-  effects are deterministic (per-`RenderBuffer` RNG). Headless-to-headless
-  determinism is the regression baseline, not desktop byte-parity.
+  per-channel float) and physics effects (LiquidFun/Box2D). Video effects ARE
+  deterministic (the old "decoder variance" was dropped frames + inconsistent
+  frame selection in the AVFoundation bridge, both fixed; `XLDBG_VID=1` logs
+  every served frame's requested time / pts / pixel hash and every null return
+  if it regresses). Random/sparkle effects are deterministic (per-`RenderBuffer`
+  RNG). Headless-to-headless determinism is the regression baseline, not
+  desktop byte-parity.
 
 **Determinism-bisect env vars** (all builds; no cost when unset): `XL_SERIAL=1`
 forces every `parallel_for` serial (isolates CPU thread-order races);

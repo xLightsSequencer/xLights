@@ -395,8 +395,10 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
+    void SavePresetsFile(bool backup = false);
     void SaveModelsFile();
     void MarkEffectsFileDirty();
+    void MarkPresetsDirty();
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0) override;
@@ -1523,6 +1525,7 @@ public:
     // convert
 public:
     bool UnsavedRgbEffectsChanges;
+    bool UnsavedPresetChanges = false;
     bool _renderMode = false;
     bool _checkSequenceMode = false;
 
@@ -2039,6 +2042,9 @@ private:
 public:
     FILE* _logfile = nullptr;
     std::vector<Model *> PreviewModels;
+    // AllModels generation PreviewModels was last rebuilt at; a mismatch means a
+    // model was added/deleted since and cached Model* lists may hold freed pointers
+    unsigned int PreviewModelsGeneration = 0;
     std::map<std::string, std::unique_ptr<LayoutGroup>> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
     ColorManager color_mgr;
