@@ -20,7 +20,7 @@
 						<object class="wxSpinCtrl" name="ID_SPINCTRL_NumServos" variable="SpinCtrl_NumServos" member="yes">
 							<value>1</value>
 							<min>1</min>
-							<max>25</max>
+							<max>24</max>
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>

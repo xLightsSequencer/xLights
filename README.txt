@@ -51,6 +51,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  property (wxWidgets fork fix)
     -bug (dkulp)                 Metal: creating a texture no longer crashes when the GPU refuses the allocation
                                  (memory pressure / zero-sized image) - the texture is skipped instead
+    -bug (cybercop23)            Fix a crash configuring a 3D Servo model when the servo count is increased via
+                                 the Servo Config dialog (#6663)
     -enh (charlie)               Effect Symbols: define a reusable effect (name, color, settings, palette) once and
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
