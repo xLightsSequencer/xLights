@@ -824,6 +824,9 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             else if (type == "INSERT_LAYER_BELOW") {
                 PanelEffectGrid->InsertEffectLayerBelow();
             }
+            else if (type == "COPY_MODEL_LAYERS_TO_MODELS") {
+                PanelEffectGrid->CopyModelLayersToModelsForSelection();
+            }
             else if (type == "TOGGLE_ELEMENT_EXPAND") {
                 PanelEffectGrid->ToggleExpandElement(PanelRowHeadings);
             }

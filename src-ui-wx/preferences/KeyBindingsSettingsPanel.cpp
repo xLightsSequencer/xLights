@@ -24,6 +24,7 @@
 #include <wx/textctrl.h>
 #include <wx/tokenzr.h>
 #include <wx/font.h>
+#include <algorithm>
 #include <map>
 #include <string>
 #include <vector>
@@ -327,6 +328,17 @@ void KeyBindingsSettingsPanel::LoadList()
 	const KBSCOPE scope = EncodeScope(scopeSel);
 	const wxString categorySel = Choice_Category->GetStringSelection();
 	const bool allCategories = categorySel.empty() || categorySel == "All";
+
+	// Collect the visible rows first so the Action column can be shown
+	// alphabetically regardless of the bindings' storage order.
+	struct Row {
+		wxString friendly;
+		wxString shortcut;
+		wxString details;
+		long id;
+		const KeyBinding* binding;
+	};
+	std::vector<Row> rows;
 	for (const auto& it : _keyBindings->GetBindings())
 	{
 		if (!showAll && !it.InScope(scope))
@@ -349,13 +361,22 @@ void KeyBindingsSettingsPanel::LoadList()
 			if (!match) continue;
 		}
 
-		auto item = ListCtrl_Bindings->InsertItem(ListCtrl_Bindings->GetItemCount(), friendly);
-		ListCtrl_Bindings->SetItem(item, 1, shortcut);
-		ListCtrl_Bindings->SetItem(item, 2, details);
-		ListCtrl_Bindings->SetItemData(item, it.GetId());
+		rows.push_back({ friendly, shortcut, details, (long)it.GetId(), &it });
+	}
+
+	std::stable_sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
+		return a.friendly.CmpNoCase(b.friendly) < 0;
+	});
+
+	for (const auto& r : rows)
+	{
+		auto item = ListCtrl_Bindings->InsertItem(ListCtrl_Bindings->GetItemCount(), r.friendly);
+		ListCtrl_Bindings->SetItem(item, 1, r.shortcut);
+		ListCtrl_Bindings->SetItem(item, 2, r.details);
+		ListCtrl_Bindings->SetItemData(item, r.id);
 		// Zebra striping using theme-aware colours (works in light and dark).
 		ListCtrl_Bindings->SetItemBackgroundColour(item, (item % 2 == 0) ? evenRow : oddRow);
-		if (it.GetKey() != WXK_NONE && _keyBindings->IsDuplicateKey(it))
+		if (r.binding->GetKey() != WXK_NONE && _keyBindings->IsDuplicateKey(*r.binding))
 		{
 			ListCtrl_Bindings->SetItemTextColour(item, *wxRED);
 		}
@@ -417,6 +438,7 @@ wxString KeyBindingsSettingsPanel::FriendlyName(const std::string& type)
         { "EXPORT_LAYOUT_DXF", "Export Layout (DXF)" },
         { "FPP_CONNECT", "FPP Connect" },
         { "FOCUS_SEQUENCER", "Focus Effects Grid" },
+        { "COPY_MODEL_LAYERS_TO_MODELS", "Copy Layers/SubModels to Models" },
     };
     auto o = overrides.find(type);
     if (o != overrides.end()) return o->second;
