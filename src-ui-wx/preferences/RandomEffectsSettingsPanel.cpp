@@ -91,6 +91,19 @@ RandomEffectsSettingsPanel::RandomEffectsSettingsPanel(wxWindow* parent, xLights
         }
     }
 
+    // On macOS a wxListBox populated before it reaches its final width can keep
+    // rendering items truncated to the old (narrow) column width. Once the panel
+    // has its real size, rebuild each list's contents so the column re-measures.
+    CallAfter([this] {
+        for (wxListBox* lb : { _availableList, _usedList }) {
+            wxArrayString items;
+            for (unsigned int i = 0; i < lb->GetCount(); ++i) {
+                items.Add(lb->GetString(i));
+            }
+            lb->Set(items);
+        }
+    });
+
     btnAdd->Bind(wxEVT_BUTTON, &RandomEffectsSettingsPanel::OnAdd, this);
     btnRemove->Bind(wxEVT_BUTTON, &RandomEffectsSettingsPanel::OnRemove, this);
     _availableList->Bind(wxEVT_LISTBOX_DCLICK, &RandomEffectsSettingsPanel::OnAvailableDClick, this);
