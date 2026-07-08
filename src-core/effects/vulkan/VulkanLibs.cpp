@@ -17,9 +17,19 @@
 
 // Platform surface (WSI) entry points for the on-screen graphics backend —
 // volk only defines/loads them when the platform macro is set in the
-// implementation TU.
+// implementation TU.  On Linux we load both the Xlib and Wayland entry points:
+// xLights still forces the X11 GDK backend today (for GLX), but Vulkan can
+// present natively on either, which is the path toward dropping that force and
+// running pure Wayland.
 #if defined(_WIN32) && !defined(VK_USE_PLATFORM_WIN32_KHR)
 #define VK_USE_PLATFORM_WIN32_KHR
+#elif defined(__linux__) && !defined(__ANDROID__)
+#ifndef VK_USE_PLATFORM_XLIB_KHR
+#define VK_USE_PLATFORM_XLIB_KHR
+#endif
+#ifndef VK_USE_PLATFORM_WAYLAND_KHR
+#define VK_USE_PLATFORM_WAYLAND_KHR
+#endif
 #endif
 
 #define VOLK_IMPLEMENTATION

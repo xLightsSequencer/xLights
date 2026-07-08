@@ -499,6 +499,12 @@ file(GLOB_RECURSE SRC_UI
 
 if(XLIGHTS_VULKAN_ENABLED)
     list(APPEND SRC_UI src-ui-wx/graphics/vulkan/xlVulkanCanvas.cpp)
+    if(UNIX AND NOT APPLE)
+        list(APPEND SRC_UI
+            src-ui-wx/graphics/vulkan/xlVulkanX11Surface.cpp
+            src-ui-wx/graphics/vulkan/xlVulkanWaylandSurface.cpp
+            src-ui-wx/graphics/vulkan/xlSoftwareGLProbe.cpp)
+    endif()
 endif()
 
 # macOS-only Objective-C++ helper for the command palette (SF Symbols / colors).
@@ -615,6 +621,16 @@ if(XLIGHTS_VULKAN_ENABLED)
     # their references so the Windows builds link cleanly without them.
     if(UNIX AND NOT APPLE)
         target_compile_definitions(xLights PRIVATE HAVE_VULKAN_SHADER)
+        # The native-Wayland Vulkan surface helper calls into GDK/GTK
+        # (gdk_wayland_* live in libgdk-3); the Xlib helper needs nothing extra.
+        find_package(PkgConfig QUIET)
+        if(PkgConfig_FOUND)
+            pkg_check_modules(GTK3 QUIET gtk+-3.0)
+            if(GTK3_FOUND)
+                target_include_directories(xLights PRIVATE ${GTK3_INCLUDE_DIRS})
+                target_link_libraries(xLights PRIVATE ${GTK3_LIBRARIES})
+            endif()
+        endif()
         # glslang from the vendored static build's install prefix (produced by the
         # Makefile `glslang` target).  Only-if-found so the lean build
         # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.

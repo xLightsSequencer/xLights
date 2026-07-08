@@ -18,7 +18,10 @@
 
 #include "xlVulkanCanvas.h"
 
+#include <cstring>
+
 #include <wx/image.h>
+#include <wx/utils.h> // wxGetDisplayInfo (X11 vs Wayland backend + display ptr)
 
 #include <spdlog/spdlog.h>
 
@@ -37,6 +40,12 @@
 #include "graphics/vulkan/xlVulkanGraphicsContext.h"
 #include "effects/vulkan/VulkanComputeUtilities.h"
 
+#if !defined(_WIN32)
+#include "xlVulkanX11Surface.h"
+#include "xlVulkanWaylandSurface.h"
+#include "xlSoftwareGLProbe.h"
+#endif
+
 xlVulkanCanvas::xlVulkanCanvas(wxWindow* parent, wxWindowID id, const wxPoint& pos,
                                const wxSize& size, long style, const wxString& name, bool only2d) :
     xlGLCanvas(parent, id, pos, size, style, name, only2d) {
@@ -50,17 +59,53 @@ xlVulkanCanvas::~xlVulkanCanvas() {
     destroyVulkan();
 }
 
+// "Auto" backend heuristic: true when OpenGL will fall back to Mesa's software
+// rasterizer (llvmpipe) anyway — either because the app forced it (virtio-gpu,
+// see xLightsApp) or the user/driver did.  There's then no hardware GL to lose,
+// so Auto prefers Vulkan (lavapipe), which also sidesteps the buggy virgl GLX
+// path.  Env-only for now; a GL_RENDERER probe would additionally catch a silent
+// Mesa llvmpipe fallback that sets no env flag.
+static bool softwareGLLikely() {
+    const char* s = getenv("LIBGL_ALWAYS_SOFTWARE");
+    if (s != nullptr && *s != '\0' && strcmp(s, "0") != 0 && wxString(s).CmpNoCase("false") != 0) {
+        return true;
+    }
+    const char* g = getenv("GALLIUM_DRIVER");
+    if (g != nullptr && (strstr(g, "llvmpipe") != nullptr || strstr(g, "softpipe") != nullptr || strstr(g, "swrast") != nullptr)) {
+        return true;
+    }
+#ifdef __WXGTK__
+    // No env hint — probe the real GL renderer once (catches a silent Mesa
+    // llvmpipe fallback).  X11 only (the app forces the X11 GDK backend); a
+    // throwaway GLX pbuffer context, current only for the single glGetString.
+    wxDisplayInfo di = wxGetDisplayInfo();
+    if (di.type == wxDisplayX11 && xlProbeSoftwareGL(di.dpy) == 1) {
+        return true;
+    }
+#endif
+    return false;
+}
+
 bool xlVulkanCanvas::VulkanSelected() {
     static int cached = -1;
     if (cached == -1) {
         cached = 0;
         // Persisted with the rest of xLights' settings (settings.json via the
         // config adapter), set from Preferences > Other > "Preview graphics".
-        std::string pref = GetXLightsConfig()->Read("xLightsGraphicsBackend", "OpenGL");
-        bool want = wxString(pref).CmpNoCase("Vulkan") == 0;
+        // "Auto" (default) uses Vulkan only when GL would be software anyway;
+        // "Vulkan"/"OpenGL" force the choice.  XL_GRAPHICS_BACKEND overrides.
+        std::string pref = GetXLightsConfig()->Read("xLightsGraphicsBackend", "Auto");
         const char* env = getenv("XL_GRAPHICS_BACKEND");
         if (env != nullptr) {
-            want = wxString(env).CmpNoCase("Vulkan") == 0;
+            pref = env;
+        }
+        bool want;
+        if (wxString(pref).CmpNoCase("Vulkan") == 0) {
+            want = true;
+        } else if (wxString(pref).CmpNoCase("OpenGL") == 0) {
+            want = false;
+        } else { // "Auto" (or any unrecognized value)
+            want = softwareGLLikely();
         }
         if (want) {
             if (VulkanPipelineCache::INSTANCE.ensureInit()) {
@@ -214,10 +259,27 @@ bool xlVulkanCanvas::initVulkan() {
         return false;
     }
 #else
-    // Linux surface plumbing (XID via GTK) is a follow-up; the runtime switch
-    // keeps these canvases on the OpenGL path until then.
-    vulkanFailed = true;
-    return false;
+    // Linux: create the surface for whichever GDK backend is live.  The X11
+    // (Xlib) path works today, since the app forces GDK_BACKEND=x11 for GLX;
+    // the native Wayland path is what lets xLights eventually drop that force
+    // and present without XWayland — Vulkan, unlike GLX, can do pure Wayland.
+    wxDisplayInfo di = wxGetDisplayInfo();
+    VkResult sres = VK_ERROR_EXTENSION_NOT_PRESENT;
+    if (di.type == wxDisplayWayland) {
+        sres = xlVulkanCreateWaylandSurface(vk.instance, (void*)GetHandle(), &surface);
+    } else if (di.type == wxDisplayX11) {
+        unsigned long xwin = GetXWindow();
+        if (di.dpy != nullptr && xwin != 0) {
+            sres = xlVulkanCreateX11Surface(vk.instance, di.dpy, xwin, &surface);
+        }
+    }
+    if (sres != VK_SUCCESS) {
+        spdlog::warn("Vulkan graphics: surface creation failed for {} (backend {}), falling back to OpenGL",
+                     getName(), (int)di.type);
+        surface = VK_NULL_HANDLE;
+        vulkanFailed = true;
+        return false;
+    }
 #endif
 
     VkBool32 presentSupported = VK_FALSE;

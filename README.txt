@@ -15,6 +15,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  grid, waveform and color canvases), runtime-switchable via Preferences > Other >
                                  "Preview graphics" (or XL_GRAPHICS_BACKEND=Vulkan); defaults to OpenGL and falls
                                  back automatically when Vulkan is unavailable
+    -enh (dan)                   Linux: wire the Vulkan preview rendering backend, with both X11 (Xlib) and native
+                                 Wayland surfaces so it can eventually present without the forced XWayland/GLX path;
+                                 same runtime switch, same automatic OpenGL fallback.  The "Preview graphics"
+                                 preference gains an "Auto" default that picks Vulkan only when OpenGL would fall
+                                 back to software (llvmpipe) anyway (by env hint or by probing the actual GL
+                                 renderer), otherwise keeps hardware OpenGL
 	-bug (charlie)               Fix the app hanging indefinitely when changing a color to a gradient/color
                                  curve on an effect linked to an Effect Symbol - symbol propagation re-rendered
                                  linked effects synchronously while holding the effect's settings lock,

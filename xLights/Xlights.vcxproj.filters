@@ -1473,6 +1473,15 @@
     <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.cpp">
       <Filter>graphics\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanX11Surface.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanWaylandSurface.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlSoftwareGLProbe.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\wxTextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\color\wxColorCurveButton.cpp" />
@@ -3054,6 +3063,15 @@
       <Filter>graphics\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanX11Surface.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanWaylandSurface.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlSoftwareGLProbe.h">
       <Filter>graphics\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\color\wxColorCurveButton.h" />
