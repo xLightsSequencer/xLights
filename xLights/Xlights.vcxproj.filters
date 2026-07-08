@@ -822,7 +822,6 @@
     </ClCompile>
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\ScriptsDialog.cpp" />
-    <ClCompile Include="..\src-core\graphics\AngleEGL.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\graphics\GLBackend.cpp">
@@ -3014,7 +3013,6 @@
     <ClInclude Include="..\src-core\outputs\SocketAbstraction.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-core\graphics\AngleEGL.h">
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\graphics\GLBackend.h">

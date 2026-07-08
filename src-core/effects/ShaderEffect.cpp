@@ -37,16 +37,7 @@
 // ShaderRenderCache, the Render body, programIdForShaderCode) is compiled
 // out with !TARGET_OS_IPHONE; the parse/config/settings code stays on all
 // platforms (the Metal translator and the UI depend on it).
-#if defined(USE_GLES) && !defined(__APPLE__)
-    // OpenGL ES 3.0 via ANGLE (Windows/Linux).
-    // Direct ES3 prototypes (no function-pointer loading) plus EGL for interop.
-    #define GL_GLES_PROTOTYPES 1
-    #define EGL_EGL_PROTOTYPES 1
-    #include <EGL/egl.h>
-    #include <EGL/eglext.h>
-    #include <EGL/eglext_angle.h>
-    #include <GLES3/gl3.h>
-#elif !defined(__APPLE__)
+#if !defined(__APPLE__)
     #ifdef _WIN32
     #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
@@ -161,11 +152,7 @@ namespace
         LOG_GL_ERRORV(glGenTextures(1, &texId));
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, texId));
 
-#ifdef USE_GLES
-        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 128, 1, 0, GL_RED, GL_FLOAT, nullptr));
-#else
         LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 128, 1, 0, GL_RED, GL_FLOAT, nullptr));
-#endif
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -182,21 +169,12 @@ namespace
         GLuint rb = 0;
         LOG_GL_ERRORV(glGenRenderbuffers(1, &rb));
         LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, rb));
-#ifdef USE_GLES
-        LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height));
-#else
         LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height));
-#endif
         return rb;
     }
 
     const char* vsSrc =
-#ifdef USE_GLES
-        "#version 300 es\n"
-        "precision highp float;\n"
-#else
         "#version 330 core\n"
-#endif
         "uniform vec2 RENDERSIZE;\n"
         "uniform vec2 XL_OFFSET;\n"
         "uniform float XL_ZOOM;\n"
@@ -1443,19 +1421,10 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
     prependText += "vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
-#ifdef USE_GLES
-    // OpenGL ES has no sampler2DRect; provide sampler2D equivalents so shaders
-    // written for desktop GL still compile (they sample via normalized coords).
-    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   return texture(sampler, normLoc);\n}\n\n";
-    prependText += "vec4 IMG_PIXEL_RECT(sampler2D sampler, vec2 pct, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2D sampler, vec2 pct) {\n   return texture(sampler, xl_FragNormCoord);\n}\n\n";
-    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2D sampler, vec2 pct) {\n   return texture(sampler, xl_FragNormCoord);\n}\n\n";
-#else
     prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
-#endif
     prependText += "ivec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n";
 
 #ifdef __DEBUG
@@ -1501,315 +1470,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     _hasTime = Contains(shaderCode, "TIME");
     _hasCoord = Contains(shaderCode, "xl_FragCoord");
 
-#ifdef USE_GLES
-    // Rename user-defined functions whose name shadows a GLSL ES 3.00 built-in.
-    // ESSL3 forbids redeclaring a built-in name; legacy desktop (GLSL 1.20) shaders
-    // do it anyway — e.g. their own sinh/cosh/tanh (which didn't exist before 1.30)
-    // or an extra sign()/distance() overload.  Rename the definition and its call
-    // sites to xl_<name>.  When the user's function is an overload with a different
-    // arity than the built-in (e.g. sign(vec2,vec2,vec2) vs the 1-arg built-in), only
-    // calls with the user's arity are renamed, so genuine built-in calls still resolve.
-    {
-        // "Full replacement" built-ins: added in GLSL 1.30, so a legacy shader that
-        // defines them has the ONLY implementation — every call is the user's, safe
-        // to rename wholesale.
-        static const std::set<std::string> fullReplace = {
-            "sinh","cosh","tanh","asinh","acosh","atanh"
-        };
-        // Pre-existing built-ins and their valid arities.  A user function is only
-        // renamed here if its arity is NOT one the built-in provides — i.e. a genuine
-        // added overload (e.g. sign(vec2,vec2,vec2) vs the 1-arg built-in) — so real
-        // built-in calls of the normal arity are left untouched.  A same-arity
-        // redefinition (e.g. distance(vec2,vec2)) is left alone: ANGLE accepts it, and
-        // renaming it would wrongly capture built-in calls of other types/same arity.
-        static const std::map<std::string, std::set<int>> builtinArity = {
-            {"sign",{1}}, {"distance",{2}}, {"length",{1}}, {"dot",{2}}, {"cross",{2}},
-            {"normalize",{1}}, {"mod",{2}}, {"min",{2}}, {"max",{2}}, {"clamp",{3}},
-            {"mix",{3}}, {"step",{2}}, {"smoothstep",{3}}, {"pow",{2}}, {"reflect",{2}},
-            {"refract",{3}}, {"atan",{1,2}}, {"abs",{1}}, {"floor",{1}}, {"ceil",{1}},
-            {"fract",{1}}, {"sqrt",{1}}, {"exp",{1}}, {"log",{1}}
-        };
-        auto isIdent = [](char c) { return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'; };
-        auto isWs    = [](char c) { return c==' '||c=='\t'||c=='\n'||c=='\r'; };
-
-        // Detect on a comment-stripped copy so //-  and /* */ braces/parens don't skew
-        // the depth/arity scan; the actual rename runs on the original shaderCode.
-        std::string scan = std::regex_replace(shaderCode, std::regex(R"(/\*[\s\S]*?\*/)"), " ");
-        scan = std::regex_replace(scan, std::regex(R"(//[^\n]*)"), "");
-
-        // Global-scope function header:  <type> <name> ( <params> )  {|;
-        static const std::regex hdrRe(R"((\w+)\s+(\w+)\s*\(([^{}();]*)\)\s*[{;])");
-        std::map<std::string, int> shadowing;   // built-in name -> user arity
-        for (auto it = std::sregex_iterator(scan.begin(), scan.end(), hdrRe);
-             it != std::sregex_iterator(); ++it) {
-            const std::smatch& m = *it;
-            std::string name = m[2].str();
-            bool isFullReplace = fullReplace.count(name) != 0;
-            auto arityIt = builtinArity.find(name);
-            if (!isFullReplace && arityIt == builtinArity.end()) continue;  // not a name we touch
-            if (m.position() > 0 && scan[m.position() - 1] == '#') continue;  // #define macro
-            long depth = std::count(scan.begin(), scan.begin() + m.position(), '{')
-                       - std::count(scan.begin(), scan.begin() + m.position(), '}');
-            if (depth != 0) continue;  // only global scope
-            std::string params = m[3].str();
-            std::string compact = params;
-            compact.erase(std::remove_if(compact.begin(), compact.end(), isWs), compact.end());
-            int arity = (compact.empty() || compact == "void")
-                            ? 0 : 1 + (int)std::count(params.begin(), params.end(), ',');
-            // Rename only a full-replacement built-in, or an added overload whose arity
-            // the built-in does not provide.  Skip same-arity redefinitions.
-            if (isFullReplace || !arityIt->second.count(arity)) {
-                shadowing[name] = arity;
-            }
-        }
-
-        for (const auto& [name, arity] : shadowing) {
-            std::string out;
-            out.reserve(shaderCode.size() + 64);
-            size_t i = 0;
-            while (i < shaderCode.size()) {
-                size_t p = shaderCode.find(name, i);
-                if (p == std::string::npos) { out += shaderCode.substr(i); break; }
-                size_t after = p + name.size();
-                bool leftOk  = (p == 0) || !isIdent(shaderCode[p - 1]);
-                bool rightOk = (after >= shaderCode.size()) || !isIdent(shaderCode[after]);
-                size_t q = after;
-                while (q < shaderCode.size() && isWs(shaderCode[q])) ++q;
-                bool isCall = q < shaderCode.size() && shaderCode[q] == '(';
-                bool renamed = false;
-                if (leftOk && rightOk && isCall) {
-                    int commas = 0, pdepth = 0; bool sawArg = false;
-                    for (size_t k = q; k < shaderCode.size(); ++k) {
-                        char c = shaderCode[k];
-                        if (c == '(') ++pdepth;
-                        else if (c == ')') { if (--pdepth == 0) break; }
-                        else if (c == ',' && pdepth == 1) ++commas;
-                        else if (pdepth == 1 && !isWs(c)) sawArg = true;
-                    }
-                    int nargs = commas > 0 ? commas + 1 : (sawArg ? 1 : 0);
-                    if (nargs == arity) {
-                        out += shaderCode.substr(i, p - i);
-                        out += "xl_";
-                        out += name;
-                        i = after;
-                        renamed = true;
-                    }
-                }
-                if (!renamed) {
-                    out += shaderCode.substr(i, after - i);
-                    i = after;
-                }
-            }
-            shaderCode = out;
-        }
-    }
-
-    // GLSL ES 3.00 requires global variable initializers to be constant expressions.
-    // Desktop GLSL 330 allows non-constant initializers (e.g. "float T = TIME*rate;").
-    // Fix: split such declarations and defer their initialization into main().
-    {
-        std::set<std::string> uniformNames = {
-            "TIME", "TIMEDELTA", "RENDERSIZE", "PASSINDEX", "FRAMEINDEX",
-            "DATE", "NUMCOLORS", "clearBuffer", "resetNow", "texSampler",
-            "XL_OFFSET", "XL_ZOOM", "XL_DURATION",
-            "xl_FragNormCoord", "xl_FragCoord", "orig_FragNormCoord", "orig_FragCoord"
-        };
-        for (const auto& p : _parms) {
-            uniformNames.insert(p._name);
-        }
-
-        // Join split declarations where the type is alone on one line:
-        //   vec2\n    center = 0.5*RENDERSIZE.xy;  -->  vec2 center = 0.5*RENDERSIZE.xy;
-        static const std::regex splitDeclRe(
-            R"(\n(\s*)(float|int|bool|u?vec[234]|mat[234](?:x[234])?|ivec[234]|uvec[234])\s*\n(\s*\w+\s*=))",
-            std::regex_constants::ECMAScript);
-        shaderCode = std::regex_replace(shaderCode, splitDeclRe, "\n$1$2 $3");
-
-        // Match global-scope type declarations with initializers:
-        //   float foo = expr;  vec2 bar = expr;  etc.
-        // Also handles comma-separated multi-variable declarations:
-        //   float T = TIME * rate, moy = 0.0;
-        // but NOT: const float foo = 1.0;  uniform float foo;  void main()  #define  //comment
-        static const std::regex declRe(
-            R"(^(\s*)(float|int|bool|u?vec[234]|mat[234](?:x[234])?|ivec[234]|uvec[234])\s+(.+?)\s*;\s*(?://.*)?\s*$)",
-            std::regex_constants::ECMAScript);
-
-        std::istringstream stream(shaderCode);
-        std::string line;
-        std::string newCode;
-        std::string deferredInits;
-        int braceDepth = 0;
-        std::string pending;   // multi-line global-scope statement being accumulated
-        int pendingParen = 0;
-
-        while (std::getline(stream, line)) {
-            // A global-scope declaration whose initializer spans multiple lines
-            // (e.g. `mat4 m = mat4(\n vec4(...),\n ... );`) must reach the matcher
-            // below as one unit.  At global scope, accumulate lines until parens
-            // balance — stripping each fragment's // comment first so a comment
-            // can't swallow code joined onto the same line.  Function bodies
-            // (braceDepth > 0) are left untouched.
-            if (braceDepth == 0) {
-                std::string frag = line;
-                size_t cpos = frag.find("//");
-                if (cpos != std::string::npos) frag = frag.substr(0, cpos);
-                int pd = 0;
-                for (char c : frag) { if (c == '(') pd++; else if (c == ')') pd--; }
-                if (!pending.empty()) {
-                    pending += " " + frag;
-                    pendingParen += pd;
-                    if (pendingParen > 0) continue;   // still open — keep accumulating
-                    line = pending;
-                    pending.clear();
-                    pendingParen = 0;
-                } else if (pd > 0) {
-                    pending = frag;
-                    pendingParen = pd;
-                    continue;                         // start of a multi-line statement
-                }
-            }
-
-            // Count braces to track scope (outside of strings/comments — good enough for most shaders)
-            for (char c : line) {
-                if (c == '{') braceDepth++;
-                else if (c == '}') braceDepth--;
-            }
-
-            bool replaced = false;
-            if (braceDepth == 0) {
-                // At global scope — check for non-const variable decl with uniform-dependent initializer
-                std::string trimmed = line;
-                auto ws = trimmed.find_first_not_of(" \t");
-                if (ws != std::string::npos) trimmed = trimmed.substr(ws);
-
-                // Skip lines that can't be variable declarations
-                if (!trimmed.empty() && trimmed[0] != '#' && trimmed[0] != '/' &&
-                    trimmed.rfind("const ", 0) != 0 && trimmed.rfind("uniform ", 0) != 0 &&
-                    trimmed.rfind("in ", 0) != 0 && trimmed.rfind("out ", 0) != 0 &&
-                    trimmed.rfind("void ", 0) != 0 && trimmed.rfind("struct ", 0) != 0) {
-
-                    std::smatch m;
-                    if (std::regex_match(line, m, declRe)) {
-                        std::string varList = m[3].str();
-                        std::string indent = m[1].str();
-                        std::string typeName = m[2].str();
-
-                        // Split comma-separated variables at top-level commas only
-                        // (skip commas inside parentheses from function calls)
-                        std::vector<std::string> vars;
-                        int parenDepth = 0;
-                        size_t start = 0;
-                        for (size_t i = 0; i <= varList.size(); ++i) {
-                            if (i < varList.size()) {
-                                if (varList[i] == '(') parenDepth++;
-                                else if (varList[i] == ')') parenDepth--;
-                                else if (varList[i] == ',' && parenDepth == 0) {
-                                    vars.push_back(varList.substr(start, i - start));
-                                    start = i + 1;
-                                    continue;
-                                }
-                            } else {
-                                vars.push_back(varList.substr(start));
-                            }
-                        }
-
-                        // Check each variable — defer those whose initializer references a
-                        // non-constant value: a uniform, or a global we already deferred
-                        // (the latter makes the pass transitive, e.g. `float T = TIME*rate;`
-                        // then `float sT = T*0.1;` — sT references the deferred T, not a
-                        // uniform directly, so it must be deferred too).
-                        bool anyDeferred = false;
-                        std::string declLine;
-                        for (auto& var : vars) {
-                            // Trim whitespace
-                            auto s = var.find_first_not_of(" \t");
-                            if (s != std::string::npos) var = var.substr(s);
-                            auto e = var.find_last_not_of(" \t");
-                            if (e != std::string::npos) var = var.substr(0, e + 1);
-
-                            auto eqPos = var.find('=');
-                            if (eqPos == std::string::npos) {
-                                // No initializer — keep as-is
-                                if (!declLine.empty()) declLine += ", ";
-                                declLine += var;
-                                continue;
-                            }
-
-                            std::string varName = var.substr(0, eqPos);
-                            auto ne = varName.find_last_not_of(" \t");
-                            if (ne != std::string::npos) varName = varName.substr(0, ne + 1);
-
-                            std::string initExpr = var.substr(eqPos + 1);
-                            auto ns = initExpr.find_first_not_of(" \t");
-                            if (ns != std::string::npos) initExpr = initExpr.substr(ns);
-
-                            bool hasUniformRef = false;
-                            for (const auto& u : uniformNames) {
-                                size_t pos = 0;
-                                while ((pos = initExpr.find(u, pos)) != std::string::npos) {
-                                    bool leftOk = (pos == 0 || (!std::isalnum(initExpr[pos - 1]) && initExpr[pos - 1] != '_'));
-                                    size_t uend = pos + u.size();
-                                    bool rightOk = (uend >= initExpr.size() || (!std::isalnum(initExpr[uend]) && initExpr[uend] != '_'));
-                                    if (leftOk && rightOk) { hasUniformRef = true; break; }
-                                    pos = uend;
-                                }
-                                if (hasUniformRef) break;
-                            }
-
-                            if (hasUniformRef) {
-                                // Emit declaration without initializer
-                                if (!declLine.empty()) declLine += ", ";
-                                declLine += varName;
-                                deferredInits += "    " + varName + " = " + initExpr + ";\n";
-                                anyDeferred = true;
-                                // This global is now non-constant too — any later global
-                                // whose initializer references it must also be deferred.
-                                uniformNames.insert(varName);
-                            } else {
-                                // Keep initializer (it's constant)
-                                if (!declLine.empty()) declLine += ", ";
-                                declLine += var;
-                            }
-                        }
-
-                        if (anyDeferred) {
-                            newCode += indent + typeName + " " + declLine + ";\n";
-                            replaced = true;
-                        }
-                    }
-                }
-            }
-
-            if (!replaced) {
-                newCode += line + "\n";
-            }
-        }
-        // Flush any unterminated accumulation (malformed source) verbatim.
-        if (!pending.empty()) {
-            newCode += pending + "\n";
-        }
-
-        // Inject deferred initializations at the start of main()
-        if (!deferredInits.empty()) {
-            // Find "void main()" and inject after the opening brace
-            auto mainPos = newCode.find("void main()");
-            if (mainPos == std::string::npos) mainPos = newCode.find("void main(void)");
-            if (mainPos == std::string::npos) mainPos = newCode.find("void main ()");
-            if (mainPos != std::string::npos) {
-                auto bracePos = newCode.find('{', mainPos);
-                if (bracePos != std::string::npos) {
-                    newCode.insert(bracePos + 1, "\n    // [ES compat] deferred global initializers\n" + deferredInits);
-                }
-            }
-        }
-
-        shaderCode = newCode;
-    }
-
-    _code = "#version 300 es\nprecision highp float;\nprecision mediump sampler2D;\n\n";
-#else
     _code = "#version 330\n\n";
-#endif
     // Hoist ALL #extension directives to immediately after #version, ahead of
     // the `precision` preamble.  ESSL 3.00 requires every #extension to precede
     // any non-preprocessor token, and `precision` statements ARE non-preprocessor

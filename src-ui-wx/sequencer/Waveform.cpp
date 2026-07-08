@@ -9,19 +9,7 @@
  **************************************************************/
 
 #include <wx/wx.h>
-#if defined(USE_GLES) && !defined(__WXMAC__)
-    #include <GLES3/gl3.h>
-    // GLES3/gl3.h already declares the GL 1.1 core entry points.  The later
-    // <wx/glcanvas.h> drags in the desktop <GL/gl.h>, whose WINGDIAPI/APIENTRY
-    // prototypes clash with the ES3 ones (C2375 "different linkage").  Define the
-    // desktop header's include guards so its body is skipped.
-    #ifndef __gl_h_
-    #define __gl_h_
-    #endif
-    #ifndef __GL_H__
-    #define __GL_H__
-    #endif
-#elif defined(__WXMAC__)
+#if defined(__WXMAC__)
     #include "OpenGL/gl.h"
 #else
     #include <GL/gl.h>

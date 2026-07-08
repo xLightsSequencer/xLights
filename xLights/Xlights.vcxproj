@@ -272,7 +272,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT;HAVE_VULKAN;VK_NO_PROTOTYPES</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT;HAVE_VULKAN;HAVE_VULKAN_SHADER;VK_NO_PROTOTYPES</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -533,6 +533,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\effects\vulkan\VulkanLibs.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanComputeUtilities.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanEffectManager.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderTranslate.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\glslang_resources\ResourceLimits.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanBarsEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanButterflyEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanCandleEffect.cpp" />
@@ -601,7 +605,6 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlSoftwareGLProbe.cpp" />
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp" />
-    <ClCompile Include="..\src-core\graphics\AngleEGL.cpp" />
     <ClCompile Include="..\src-core\graphics\GLBackend.cpp" />
     <ClCompile Include="..\src-core\graphics\GLContextManager.cpp" />
     <ClCompile Include="..\src-core\graphics\xlMesh.cpp" />
@@ -1237,6 +1240,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\effects\ispc\ISPCComputeUtilities.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanComputeUtilities.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanEffects.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderTranslate.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderEffect.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\glslang_resources\ResourceLimits.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanEffectDataTypes.h" />
     <ClInclude Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\PinwheelFunctions.ispc.h" />
@@ -1812,7 +1819,6 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\shared\utils\xlPropertyGrid.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\ExternalHooksUI.h" />
     <ClInclude Include="..\src-ui-wx\graphics\xlGraphicsBase.h" />
-    <ClInclude Include="..\src-core\graphics\AngleEGL.h" />
     <ClInclude Include="..\src-core\graphics\GLBackend.h" />
     <ClInclude Include="..\src-core\graphics\GLContextManager.h" />
     <ClInclude Include="..\src-core\outputs\SocketAbstraction.h" />

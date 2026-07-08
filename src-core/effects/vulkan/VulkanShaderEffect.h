@@ -27,6 +27,12 @@ public:
     VulkanShaderEffect(int i);
     virtual ~VulkanShaderEffect();
 
+    // Headless validation for the --shadertranslate CLI: run the ISF->Vulkan
+    // GLSL transform + glslang GLSL->SPIR-V on an assembled fragment shader
+    // (both stages).  Returns true if both produced SPIR-V; else sets `error`.
+    // No GPU/device required — proves the translation path alone.
+    static bool ValidateTranslate(const std::string& assembledFragCode, std::string& error);
+
 protected:
     virtual bool nativeAvailable() const override;
     virtual CacheBase* newCache() const override;

@@ -13,17 +13,12 @@
 namespace xlGLBackend {
 
 Type CompiledBackend() {
-#ifdef USE_GLES
-    return Type::ANGLE;
-#else
     return Type::Native;
-#endif
 }
 
 const char* ToString(Type t) {
     switch (t) {
     case Type::Native: return "Native";
-    case Type::ANGLE:  return "ANGLE";
     }
     return "?";
 }

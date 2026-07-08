@@ -16,69 +16,9 @@
 #include <log.h>
 
 #include "graphics/GLBackend.h"
-#include "graphics/AngleEGL.h"
 
 
-#if defined(USE_GLES) && !defined(__WXMAC__)
-// ANGLE / OpenGL ES 3.0 — direct prototypes from libGLESv2 (no fn-ptr loading).
-#define XL_ANGLE_GLES 1
-#ifdef _MSC_VER
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#endif
-#include <GLES3/gl3.h>
-// GLES3/gl3.h already declares every GL 1.1 core entry point (glBindTexture,
-// glClear, …).  wxGLCanvas later pulls in the desktop <GL/gl.h> (via
-// wx/glcanvas.h in xlGLCanvas.h below), which redeclares the same names with
-// WINGDIAPI/APIENTRY linkage → C2375 "different linkage".  Define the desktop
-// header's include guards so its body is skipped, exactly as the macOS branch
-// does after including <OpenGL/gl3.h>.
-#ifndef __gl_h_
-#define __gl_h_
-#endif
-#ifndef __GL_H__
-#define __GL_H__
-#endif
-static bool hasOpenGL3FramebufferObjects() { return true; }  // FBOs are core in ES3
-
-// TEMP ANGLE crash diagnosis: GL_KHR_debug synchronous callback.  ANGLE reports
-// the reason for a failing/invalid GL call (and often the internal state just
-// before an access-violation) through this callback ON the offending thread.
-// Bits below aren't in the ES3.0 core header.
-#ifndef GL_DEBUG_OUTPUT
-#define GL_DEBUG_OUTPUT 0x92E0
-#endif
-#ifndef GL_DEBUG_OUTPUT_SYNCHRONOUS
-#define GL_DEBUG_OUTPUT_SYNCHRONOUS 0x8242
-#endif
-#ifndef GL_DEBUG_SEVERITY_HIGH
-#define GL_DEBUG_SEVERITY_HIGH   0x9146
-#define GL_DEBUG_SEVERITY_MEDIUM 0x9147
-#endif
-typedef void (GL_APIENTRY *XL_GLDEBUGPROCKHR)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar*, const void*);
-typedef void (GL_APIENTRY *XL_PFNGLDBGCBKHR)(XL_GLDEBUGPROCKHR, const void*);
-typedef void (GL_APIENTRY *XL_PFNGLDBGCTLKHR)(GLenum, GLenum, GLenum, GLsizei, const GLuint*, GLboolean);
-static void GL_APIENTRY xlAngleDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei, const GLchar* message, const void*) {
-    if (severity != GL_DEBUG_SEVERITY_HIGH && severity != GL_DEBUG_SEVERITY_MEDIUM) return;
-    static FILE* f = fopen("D:\\software\\xLights2026\\angle_khr.txt", "w");
-    if (f) {
-        fprintf(f, "[KHR] sev=0x%X type=0x%X id=%u src=0x%X: %s\n", severity, type, id, source, message ? message : "");
-        fflush(f);
-    }
-}
-static void installAngleDebugCallback() {
-    static bool warned = false;
-    auto cb  = (XL_PFNGLDBGCBKHR)xlAngleEGL::GetProcAddress("glDebugMessageCallbackKHR");
-    auto ctl = (XL_PFNGLDBGCTLKHR)xlAngleEGL::GetProcAddress("glDebugMessageControlKHR");
-    if (!cb) { if (!warned) { warned = true; spdlog::warn("ANGLE: glDebugMessageCallbackKHR unavailable"); } return; }
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    cb(xlAngleDebugCallback, nullptr);
-    if (ctl) ctl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-}
-#elif !defined(__WXMAC__)
+#if !defined(__WXMAC__)
 #ifdef _MSC_VER
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -339,12 +279,6 @@ xlGLCanvas::~xlGLCanvas()
         delete[] m_exportReadbackBuffer;
         m_exportReadbackBuffer = nullptr;
     }
-#ifdef XL_ANGLE_GLES
-    if (m_eglContext) {
-        xlAngleEGL::DestroyContext(m_eglContext);
-        m_eglContext = nullptr;
-    }
-#endif
     if (m_context && m_context != m_sharedContext) {
         // VAOs owned by m_context are freed automatically when the context is destroyed.
         // Do not call SetCurrent here: the window may already be hidden or destroyed
@@ -353,7 +287,7 @@ xlGLCanvas::~xlGLCanvas()
     }
 }
 
-#if defined(__WXMSW__) && !defined(USE_GLES)
+#if defined(__WXMSW__)
 static const char * getStringForSource(GLenum source) {
 
     switch(source) {
@@ -458,9 +392,6 @@ void AddDebugLog(xlGLCanvas* c)
     }
     glEnable(GL_DEBUG_OUTPUT);
 }
-#elif defined(XL_ANGLE_GLES)
-// OpenGL ES 3.0 has no GL_DEBUG_OUTPUT / ARB debug callback — no-op.
-void AddDebugLog(xlGLCanvas *) {}
 #else
 void AddDebugLog(xlGLCanvas *c) {
     glEnable(GL_DEBUG_OUTPUT);
@@ -576,15 +507,6 @@ void xlGLCanvas::SetCurrentGLContext()
         return;
     }
 #endif
-#ifdef XL_ANGLE_GLES
-    if (m_eglContext == nullptr) {
-        LOG_GL_ERRORV(CreateGLContext());
-    }
-    if (m_eglContext != nullptr) {
-        xlAngleEGL::MakeCurrent(m_eglContext);
-    }
-    return;
-#else
     static bool errorDisplayed = false;
     glGetError();
     if (m_context == nullptr) {
@@ -599,7 +521,6 @@ void xlGLCanvas::SetCurrentGLContext()
         }
     }
     LOG_GL_ERRORV(m_context->SetCurrent(*this));
-#endif
 }
 
 void xlGLCanvas::CreateGLContext() {
@@ -612,48 +533,6 @@ void xlGLCanvas::CreateGLContext() {
         return;
     }
 #endif
-#ifdef XL_ANGLE_GLES
-    if (m_eglContext == nullptr) {
-        if (!xlAngleEGL::Initialize()) {
-            m_logger->error("ANGLE EGL init failed.");
-            return;
-        }
-        // wxGLCanvas owns the native window; ANGLE renders an EGL window
-        // surface onto it.  GetHandle() is the HWND on Windows.  (Linux/GTK
-        // needs the X11/Wayland surface handle — see plan; HWND-equivalent
-        // extraction TBD there.)
-        m_eglContext = xlAngleEGL::CreateWindowContext((void*)GetHandle(),
-                                                       GetSize().GetWidth(),
-                                                       GetSize().GetHeight());
-        if (m_eglContext == nullptr) {
-            m_logger->error("ANGLE EGL window surface creation failed.");
-            return;
-        }
-        xlAngleEGL::MakeCurrent(m_eglContext);
-        // ES3 is shader-only and REQUIRES a bound VAO for every draw — must be
-        // set on EVERY canvas (bindVertexArrayID() is a no-op otherwise, which
-        // crashes glDrawArrays on ANGLE).  Not just the first canvas.
-        isCoreProfile = true;
-        installAngleDebugCallback();  // TEMP ANGLE crash diagnosis (per-context)
-        // First canvas brings up the shared GL programs/buffers exactly once.
-        static bool s_sharedInit = false;
-        if (!s_sharedInit) {
-            s_sharedInit = true;
-            const GLubyte* str = glGetString(GL_VERSION);
-            const GLubyte* rend = glGetString(GL_RENDERER);
-            const GLubyte* vend = glGetString(GL_VENDOR);
-            m_logger->info("{} - glVer: {} ({})({})  [ANGLE]", GetName().ToStdString(),
-                           (const char*)(str ? str : (const GLubyte*)"?"),
-                           (const char*)(rend ? rend : (const GLubyte*)"?"),
-                           (const char*)(vend ? vend : (const GLubyte*)"?"));
-            if (!xlOGL3GraphicsContext::InitializeSharedContext()) {
-                m_logger->error("Failed to initialise shared ANGLE GL context.");
-                s_oglContextInitFailed = true;
-            }
-        }
-        InitializeGLContext();
-    }
-#else
     if (m_context == nullptr) {
         wxGLContext *base = m_sharedContext;
         //trying to detect OGL versions and stuff can result in unwanted logs
@@ -759,7 +638,6 @@ void xlGLCanvas::CreateGLContext() {
             InitializeGLContext();
         }
     }
-#endif
 }
 
 void xlGLCanvas::Resized(wxSizeEvent& evt)
@@ -791,24 +669,6 @@ xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
     if (s_oglContextInitFailed) {
         return nullptr;
     }
-#ifdef XL_ANGLE_GLES
-    // Serialize this on-screen frame against the off-screen ShaderEffect pool so
-    // ANGLE's shared D3D11 device is never submitted from two threads at once.
-    // Released in FinishDrawing.
-    xlAngleEGL::RenderLock();
-    // The on-screen window context and the off-screen ShaderEffect pool share one
-    // ANGLE display, hence one D3D11 device with context virtualization.  ANGLE
-    // restores a context's D3D11 render-target/blend state on eglMakeCurrent, but
-    // SKIPS that work when the context is already current on the calling thread.
-    // The main thread keeps its window context current across frames, so after a
-    // worker shader-render activates the pool's pbuffer context on the shared
-    // device, the next on-screen eglMakeCurrent(window) is a no-op and ANGLE
-    // leaves the device pointing at the pool's (now stale/released) render target
-    // — the next draw faults in RenderStateCache::GetBlendStateKey.  Clearing
-    // current here forces the following MakeCurrent to fully re-activate the
-    // window context and restore its render targets.
-    xlAngleEGL::ClearCurrent();
-#endif
     InitializeGLContext();
     SetCurrentGLContext();
 
@@ -834,16 +694,9 @@ xlGraphicsContext* xlGLCanvas::PrepareContextForDrawing(const xlColor &bg) {
 }
 void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx, bool display) {
     if (display) {
-#ifdef XL_ANGLE_GLES
-        xlAngleEGL::SwapBuffers(m_eglContext);
-#else
         SwapBuffers();
-#endif
     }
     delete ctx;
-#ifdef XL_ANGLE_GLES
-    xlAngleEGL::RenderUnlock();  // paired with RenderLock in PrepareContextForDrawing
-#endif
 }
 
 bool xlGLCanvas::getFrameForExport(VideoWriterFrame& frame) {

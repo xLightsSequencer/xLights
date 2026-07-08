@@ -2801,9 +2801,6 @@ void xLightsFrame::OnAbout(wxCommandEvent& event)
     ver += wxString::Format("\nGCC %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #endif
 #endif
-#ifdef USE_GLES
-    ver += "\nGraphics: ANGLE (OpenGL ES / Direct3D)";
-#endif
     AboutDialog dlg(this);
 
     dlg.IconBitmap->SetIcon(wxArtProvider::GetIconBundle("xlART_xLights_Icons", wxART_FRAME_ICON).GetIcon(wxSize(128, 128)));
