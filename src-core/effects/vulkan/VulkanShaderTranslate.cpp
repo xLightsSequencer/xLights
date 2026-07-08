@@ -17,14 +17,17 @@
 
 // Windows .sln build links deps via #pragma comment (the CMake build defines
 // XLIGHTS_CMAKE_BUILD and links glslang via target_link_libraries instead).
-// glslang was built from tag sdk-1.3.231.1 into lib/windows64 (reflection-only,
-// SPIRV-Tools optimizer disabled); debug libs carry the 'd' suffix.
+// Vendored glslang submodule is 11.1.0 (dependencies/glslang, built into
+// dependencies/glslang-build) — OGLCompiler was merged into MachineIndependent
+// in this version and no longer exists as a separate lib; debug libs would
+// carry the 'd' suffix, but only a Release glslang build exists currently.
 #if defined(_WIN32) && !defined(XLIGHTS_CMAKE_BUILD)
 #ifdef _DEBUG
 #pragma comment(lib, "glslangd.lib")
 #pragma comment(lib, "MachineIndependentd.lib")
 #pragma comment(lib, "GenericCodeGend.lib")
 #pragma comment(lib, "OSDependentd.lib")
+#pragma comment(lib, "glslang-default-resource-limitsd.lib")
 #pragma comment(lib, "SPIRVd.lib")
 #pragma comment(lib, "SPIRV-Toolsd.lib")
 #pragma comment(lib, "SPIRV-Tools-optd.lib")
@@ -34,6 +37,7 @@
 #pragma comment(lib, "MachineIndependent.lib")
 #pragma comment(lib, "GenericCodeGen.lib")
 #pragma comment(lib, "OSDependent.lib")
+#pragma comment(lib, "glslang-default-resource-limits.lib")
 #pragma comment(lib, "SPIRV.lib")
 #pragma comment(lib, "SPIRV-Tools.lib")
 #pragma comment(lib, "SPIRV-Tools-opt.lib")
