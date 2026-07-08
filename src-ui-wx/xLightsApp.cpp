@@ -28,6 +28,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #endif
 #include <wx/time.h>
 #include <wx/image.h>
+#include <wx/fontmap.h>
 //*)
 
 #include <wx/stdpaths.h>
@@ -603,6 +604,26 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     }
 }
 #endif
+
+// --headless has no xLightsFrame/top-level window at all, so whatever the
+// desktop's normal startup does to keep wx's font mapper from ever popping
+// its "unknown encoding" dialog never runs. Without a human to click Yes/No,
+// that dialog blocks the process forever — observed hanging for hours on
+// real show sequences with an unusual Text/Shape font encoding. Forcing
+// interactive=false makes wx fall back silently (that encoding's text may
+// not render pixel-perfect) instead of blocking headless runs.
+class HeadlessNonInteractiveFontMapper : public wxFontMapper {
+public:
+    bool GetAltForEncoding(wxFontEncoding encoding, wxNativeEncodingInfo* info,
+                           const wxString& facename = wxEmptyString,
+                           bool /*interactive*/ = true) override {
+        return wxFontMapper::GetAltForEncoding(encoding, info, facename, false);
+    }
+    wxFontEncoding CharsetToEncoding(const wxString& charset,
+                                     bool /*interactive*/ = true) override {
+        return wxFontMapper::CharsetToEncoding(charset, false);
+    }
+};
 
 bool xLightsApp::OnInit()
 {
@@ -1197,6 +1218,9 @@ bool xLightsApp::OnInit()
         SetHeadlessNoDock();
 #endif
         wxInitAllImageHandlers();
+        // No window means no human to click through wx's "unknown encoding"
+        // font dialog; force it to fail silently instead of blocking forever.
+        wxFontMapperBase::Set(new HeadlessNonInteractiveFontMapper());
         // Initialize the offscreen GL context manager so ShaderEffect renders
         // (it has no CPU fallback — without this it fills solid colour). On
         // macOS this is self-contained CGL: no window, no worker thread, no
