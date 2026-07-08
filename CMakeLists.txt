@@ -366,6 +366,8 @@ set(XLIGHTS_VULKAN_ENABLED FALSE)
 if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
     list(APPEND SRC_EFFECTS
         src-core/effects/vulkan/VulkanComputeUtilities.cpp
+        src-core/effects/vulkan/VulkanGraphicsUtilities.cpp
+        src-core/effects/vulkan/VulkanShaderTranslate.cpp
         src-core/effects/vulkan/VulkanEffectManager.cpp
         src-core/effects/vulkan/VulkanLibs.cpp
         src-core/effects/vulkan/VulkanBarsEffect.cpp
@@ -391,7 +393,7 @@ if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
         src-core/effects/vulkan/VulkanLifeEffect.cpp
         # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
         src-core/graphics/vulkan/VulkanPipelineCache.cpp
-        src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp)
+        src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp
     set(XLIGHTS_VULKAN_ENABLED TRUE)
 endif()
 

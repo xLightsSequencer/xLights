@@ -69,7 +69,7 @@ compile_dir() {
     done
 }
 
-compile_dir "$SHADER_DIR" "$SHADER_DIR"/*.comp
+compile_dir "$SHADER_DIR" "$SHADER_DIR"/*.comp "$SHADER_DIR"/*.vert "$SHADER_DIR"/*.frag
 compile_dir "$GFX_SHADER_DIR" "$GFX_SHADER_DIR"/*.vert "$GFX_SHADER_DIR"/*.frag
 
 if [ "$changed" -eq 0 ]; then

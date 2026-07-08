@@ -10,6 +10,7 @@
 #ifdef HAVE_VULKAN
 
 #include "VulkanComputeUtilities.h"
+#include "VulkanGraphicsUtilities.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -465,6 +466,12 @@ void VulkanComputeUtilities::doInit() {
         return;
     }
     spdlog::info("Vulkan compute enabled: {} (type {}, queue family {})", deviceName, (int)deviceType, queueFamilyIndex);
+    if (getenv("XL_VULKAN_GFXTEST") != nullptr) {
+        // Bring up + self-test the graphics-pipeline foundation for headless
+        // verification.  initInline (not ensureInit) since we're inside this
+        // object's call_once and must not re-enter it.
+        VulkanGraphicsUtilities::INSTANCE.initInline();
+    }
 
     if (envSet("XL_GPU_STATS")) {
         // Proof that GPU paths actually ran: below-threshold test sequences
@@ -582,7 +589,8 @@ bool VulkanComputeUtilities::createSharedBuffer(VulkanBuffer& b, size_t size, co
     VkBufferCreateInfo bi = {};
     bi.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bi.size = size;
-    bi.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    // UNIFORM_BUFFER too, so shared buffers can also back the Shader effect's UBO.
+    bi.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     bi.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     VmaAllocationCreateInfo ai = {};
@@ -611,7 +619,8 @@ bool VulkanComputeUtilities::createDeviceBuffer(VulkanBuffer& b, size_t size, co
     VkBufferCreateInfo bi = {};
     bi.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bi.size = size;
-    bi.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    // UNIFORM_BUFFER too, so shared buffers can also back the Shader effect's UBO.
+    bi.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     bi.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     VmaAllocationCreateInfo ai = {};

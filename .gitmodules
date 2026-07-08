@@ -41,3 +41,9 @@
 [submodule "dependencies/VulkanMemoryAllocator"]
 	path = dependencies/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "dependencies/glslang"]
+	path = dependencies/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "dependencies/SPIRV-Headers"]
+	path = dependencies/SPIRV-Headers
+	url = https://github.com/KhronosGroup/SPIRV-Headers.git

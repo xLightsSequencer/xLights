@@ -1094,6 +1094,8 @@
 		<Unit filename="../src-core/effects/vulkan/VulkanTreeEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanWarpEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanComputeUtilities.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanGraphicsUtilities.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShaderTranslate.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanComputeUtilities.h" />
 		<Unit filename="../src-core/effects/vulkan/VulkanEffectDataTypes.h" />
 		<Unit filename="../src-core/effects/vulkan/VulkanEffects.h" />
