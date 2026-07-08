@@ -20,6 +20,7 @@
 #include "../WaveEffect.h"
 #include "../GarlandsEffect.h"
 #include "../ShaderEffect.h"
+#include "../SPIRVShaderEffect.h"
 #include "../FillEffect.h"
 #include "../MeteorsEffect.h"
 
@@ -312,14 +313,16 @@ private:
 };
 
 
-class MetalShaderEffect : public ShaderEffect {
+class MetalShaderEffect : public SPIRVShaderEffect {
 public:
     MetalShaderEffect(int i);
     virtual ~MetalShaderEffect();
 
-    // Native Metal render path: translates the ISF GLSL to MSL and renders
-    // through a Metal pipeline. On macOS desktop, XL_NO_NATIVE_SHADER=1 falls
-    // back to the base OpenGL (CGL) ShaderEffect::Render; on iOS there is no
-    // GL path.
-    virtual void Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+protected:
+    virtual bool nativeAvailable() const override;
+    virtual CacheBase* newCache() const override;
+    virtual bool nativeBuild(CacheBase* cache, RenderBuffer& buffer) override;
+    virtual bool nativeEncode(CacheBase* cache, RenderBuffer& buffer,
+                              const UniformValues& vals, InputKind kind,
+                              const float* audio128) override;
 };

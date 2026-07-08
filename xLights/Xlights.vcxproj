@@ -566,6 +566,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ShaderEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\SPIRVShaderEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\ShaderSourceTransforms.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\ShaderPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ShapeEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.cpp" />
@@ -1254,6 +1256,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHRgbPickerPanel.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.h" />
     <ClInclude Include="..\src-core\effects\ShaderEffect.h" />
+    <ClInclude Include="..\src-core\effects\SPIRVShaderEffect.h" />
+    <ClInclude Include="..\src-core\effects\ShaderSourceTransforms.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\ShaderPanel.h" />
     <ClInclude Include="..\src-core\effects\ShapeEffect.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.h" />

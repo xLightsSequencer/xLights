@@ -46,6 +46,7 @@
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
+					<Add directory="../dependencies/glslang-build/install/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -70,6 +71,12 @@
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang-default-resource-limits.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libSPIRV.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libMachineIndependent.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libGenericCodeGen.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libOSDependent.a" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -111,6 +118,7 @@
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
+					<Add directory="../dependencies/glslang-build/install/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -135,6 +143,12 @@
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang-default-resource-limits.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libSPIRV.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libMachineIndependent.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libGenericCodeGen.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libOSDependent.a" />
 				</Linker>
 			</Target>
 		</Build>
@@ -885,6 +899,10 @@
 		<Unit filename="../src-ui-wx/effectpanels/ServoPanel.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/ServoPanel.h" />
 		<Unit filename="../src-core/effects/ShaderEffect.cpp" />
+		<Unit filename="../src-core/effects/SPIRVShaderEffect.cpp" />
+		<Unit filename="../src-core/effects/SPIRVShaderEffect.h" />
+		<Unit filename="../src-core/effects/ShaderSourceTransforms.cpp" />
+		<Unit filename="../src-core/effects/ShaderSourceTransforms.h" />
 		<Unit filename="../src-core/effects/ShaderEffect.h" />
 		<Unit filename="../src-ui-wx/effectpanels/ShaderPanel.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/ShaderPanel.h" />

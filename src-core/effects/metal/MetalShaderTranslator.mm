@@ -79,43 +79,6 @@ bool inlineAll(const std::vector<uint32_t>& in, std::vector<uint32_t>& out, std:
     return opt.Run(in.data(), in.size(), &out);
 }
 
-// spirv-cross emits GLSL pow() as Metal powr(), and both powr() and Metal's
-// pow() return NaN for ANY negative base. GL drivers strength-reduce constant
-// integral exponents (pow(x, 2.0) -> x*x), so real-world shaders rely on
-// pow(negative, integral) working. Emulate that: negative base with an integral
-// exponent uses pow(|x|, y) with the sign of an odd power; anything else keeps
-// Metal semantics (NaN, as the GLSL spec allows).
-static const char* kXlPowHelper =
-    "template <typename T>\n"
-    "static inline T xl_pow(T x, T y) {\n"
-    "    T mag = metal::pow(metal::abs(x), y);\n"
-    "    T odd = metal::select(T(1), T(-1), metal::fmod(y, T(2)) != T(0));\n"
-    "    return metal::select(metal::pow(x, y), mag * odd,\n"
-    "                         (x < T(0)) && (metal::fract(y) == T(0)));\n"
-    "}\n";
-
-std::string fixupMSL(std::string msl) {
-    bool used = false;
-    size_t p = 0;
-    while ((p = msl.find("powr(", p)) != std::string::npos) {
-        // don't touch identifiers ending in "powr" (none expected, but be safe)
-        if (p == 0 || (!isalnum((unsigned char)msl[p - 1]) && msl[p - 1] != '_')) {
-            msl.replace(p, 5, "xl_pow(");
-            used = true;
-            p += 7;
-        } else {
-            p += 5;
-        }
-    }
-    if (used) {
-        size_t ns = msl.find("using namespace metal;");
-        if (ns != std::string::npos) {
-            msl.insert(msl.find('\n', ns) + 1, kXlPowHelper);
-        }
-    }
-    return msl;
-}
-
 // GL drivers commonly zero-init shader locals, and real-world ISF shaders rely
 // on that luck (e.g. `float i,g,d=1.;` then reading i/g). Metal gives garbage
 // instead -> NaN -> black. Emit explicit zero initializers so the accidental GL
@@ -274,8 +237,8 @@ TranslatedProgram TranslateProgram(const std::string& vertexGLSL, const std::str
         };
         auto vNames = captureNames(vc);
         auto fNames = captureNames(fc);
-        out.vertexMSL = fixupMSL(vc.compile());
-        out.fragmentMSL = fixupMSL(fc.compile());
+        out.vertexMSL = vc.compile();
+        out.fragmentMSL = fc.compile();
         out.vertex = reflectStage(vc, true, vNames);
         out.fragment = reflectStage(fc, false, fNames);
         out.ok = !out.vertexMSL.empty() && !out.fragmentMSL.empty();

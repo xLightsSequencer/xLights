@@ -432,6 +432,12 @@
     <ClCompile Include="..\src-core\effects\ShaderEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\effects\SPIRVShaderEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\ShaderSourceTransforms.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\effects\ShapeEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -1933,6 +1939,12 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\sequencer\NoteRangeDialog.h" />
     <ClInclude Include="..\src-core\effects\ShaderEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\SPIRVShaderEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ShaderSourceTransforms.h">
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\ShapeEffect.h">
