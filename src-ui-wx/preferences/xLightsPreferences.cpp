@@ -101,6 +101,16 @@ public:
         SetSizer(topSizer);
         topSizer->SetSizeHints(this);
         Fit();
+
+        // wxTreebook doesn't propagate its pages' minimum size to its own, so
+        // SetSizeHints leaves the dialog with no real minimum width and it can
+        // be narrowed until page content (e.g. the Random Effects lists) clips.
+        // Enforce a minimum wide enough for the nav plus a full-width page.
+        wxSize minDlg(minWidth + FromDIP(210), minHeight + FromDIP(70));
+        SetMinSize(minDlg);
+        wxSize cur = GetSize();
+        SetSize(wxSize(std::max(cur.GetWidth(), minDlg.GetWidth()),
+                       std::max(cur.GetHeight(), minDlg.GetHeight())));
         CentreOnParent();
     }
 };
