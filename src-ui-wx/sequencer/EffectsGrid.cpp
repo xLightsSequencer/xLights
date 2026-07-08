@@ -5420,6 +5420,33 @@ void EffectsGrid::AlignSelectedEffectsToTimingMark() {
         }
         return closest_MS;
     };
+    // returns the timing mark boundaries immediately at/before and after timeMS
+    auto GetSurroundingMarks = [&tel](int const timeMS) {
+        int prev = std::numeric_limits<int>::min();
+        int next = std::numeric_limits<int>::max();
+        for (int index = 0; index < tel->GetEffectCount(); index++) {
+            auto* tim_ef = tel->GetEffect(index);
+            for (int boundary : { tim_ef->GetStartTimeMS(), tim_ef->GetEndTimeMS() }) {
+                if (boundary <= timeMS && boundary > prev) {
+                    prev = boundary;
+                }
+                if (boundary > timeMS && boundary < next) {
+                    next = boundary;
+                }
+            }
+        }
+        return std::make_pair(prev, next);
+    };
+    // true if any effect other than self overlaps [t1MS, t2MS). HitTestEffectBetweenTime
+    // is not usable here as it misses effects that span the range without a boundary in it (#6652)
+    auto RangeOccupied = [](EffectLayer* layer, Effect* self, int t1MS, int t2MS) {
+        for (auto* other : layer->GetEffects()) {
+            if (other != self && other->GetStartTimeMS() < t2MS && other->GetEndTimeMS() > t1MS) {
+                return true;
+            }
+        }
+        return false;
+    };
     mSequenceElements->get_undo_mgr().CreateUndoStep();
     for (int i = 0; i < mSequenceElements->GetRowInformationSize(); i++) {
         auto* el = mSequenceElements->GetEffectLayer(i);
@@ -5429,20 +5456,30 @@ void EffectsGrid::AlignSelectedEffectsToTimingMark() {
                 if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
                     auto const st = ef->GetStartTimeMS();
                     auto const end = ef->GetEndTimeMS();
-                    auto const closest_st = GetClosestMark(st);
-                    auto const closest_end = GetClosestMark(end);
+                    auto closest_st = GetClosestMark(st);
+                    auto closest_end = GetClosestMark(end);
                     if (closest_st == std::numeric_limits<int>::max() ||
                         closest_end == std::numeric_limits<int>::max()) {
                         continue;
                     }
-                    if (closest_st == closest_end) { // skip if new start and end are the same
-                        continue;
+                    if (closest_st == closest_end) {
+                        // both ends are nearest the same mark, so snapping each end to its
+                        // closest mark would collapse the effect. Snap to the timing cell
+                        // around the effect's midpoint instead of doing nothing (#6659)
+                        auto const [cell_st, cell_end] = GetSurroundingMarks((st + end) / 2);
+                        if (cell_st == std::numeric_limits<int>::min() ||
+                            cell_end == std::numeric_limits<int>::max()) {
+                            continue; // effect is before the first or after the last mark
+                        }
+                        closest_st = cell_st;
+                        closest_end = cell_end;
                     }
                     if (closest_st == st && closest_end == end) { // skip if nothing changed
                         continue;
                     }
-                    auto const has_pre = el->HitTestEffectBetweenTime(closest_st, st);
-                    auto const has_post = el->HitTestEffectBetweenTime(end, closest_end);
+                    // only a move that expands the effect can collide with a neighbour
+                    auto const has_pre = closest_st < st && RangeOccupied(el, ef, closest_st, st);
+                    auto const has_post = closest_end > end && RangeOccupied(el, ef, end, closest_end);
                     if (has_pre && has_post) { // skip if another effect in the way
                         continue;
                     }

@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -bug (daryl)                 Fix #6659 Align To Closest Timing Mark silently doing nothing when both ends of an
+                                 effect are closest to the same timing mark - the effect now snaps to the timing
+                                 cell it sits in
+    -bug (daryl)                 Fix #6652 Align To Closest Timing Mark creating impossible effect overlaps - the
+                                 collision check missed effects that spanned the alignment range
     -enh (scott)                 Windows: experimental Vulkan preview rendering backend (model preview, sequencer
                                  grid, waveform and color canvases), runtime-switchable via Preferences > Other >
                                  "Preview graphics" (or XL_GRAPHICS_BACKEND=Vulkan); defaults to OpenGL and falls
