@@ -31,7 +31,7 @@
 #include <cctype>
 
 #include "KeyBindingsSettingsPanel.h"
-#include "KeyBindings.h"
+#include "app-shell/KeyBindings.h"
 #include "effects/EffectManager.h"
 #include "effects/RenderableEffect.h"
 #include "xLightsMain.h"
