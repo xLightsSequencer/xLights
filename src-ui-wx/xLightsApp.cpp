@@ -28,8 +28,8 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #endif
 #include <wx/time.h>
 #include <wx/image.h>
-#include <wx/fontmap.h>
 //*)
+#include <wx/fontmap.h>
 
 #include <wx/stdpaths.h>
 #include <wx/cmdline.h>
