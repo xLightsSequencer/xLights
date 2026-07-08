@@ -1137,6 +1137,15 @@
     <ClCompile Include="..\src-core\effects\vulkan\VulkanEffectManager.cpp">
       <Filter>Effects\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderTranslate.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\effects\vulkan\VulkanBarsEffect.cpp">
       <Filter>Effects\vulkan</Filter>
     </ClCompile>
@@ -2631,6 +2640,15 @@
       <Filter>Effects\ispc</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\vulkan\VulkanComputeUtilities.h">
+      <Filter>Effects\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderEffect.h">
+      <Filter>Effects\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderTranslate.h">
+      <Filter>Effects\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.h">
       <Filter>Effects\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\vulkan\VulkanEffects.h">

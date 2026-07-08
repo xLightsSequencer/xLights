@@ -290,6 +290,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       <Profile>true</Profile>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalLibraryDirectories>..\dependencies\glslang-build\install\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glslang.lib;SPIRV.lib;MachineIndependent.lib;GenericCodeGen.lib;OSDependent.lib;glslang-default-resource-limits.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>xLightsApp.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -533,6 +535,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\effects\vulkan\VulkanLibs.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanComputeUtilities.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanEffectManager.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderTranslate.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanBarsEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanButterflyEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanCandleEffect.cpp" />
@@ -1233,6 +1238,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\effects\ispc\WarpFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ISPCComputeUtilities.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanComputeUtilities.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderEffect.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderTranslate.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanEffects.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanEffectDataTypes.h" />
     <ClInclude Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc.h" />
