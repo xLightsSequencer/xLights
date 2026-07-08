@@ -15,6 +15,7 @@
 #include <wx/string.h>
 //*)
 
+#include <wx/font.h>
 #include <wx/menu.h>
 #include <wx/srchctrl.h>
 #include <wx/tokenzr.h>
@@ -35,7 +36,7 @@ BEGIN_EVENT_TABLE(CheckboxSelectDialog,wxDialog)
 	//*)
 END_EVENT_TABLE()
 
-CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &title, const wxArrayString& items, const wxArrayString& itemsSelected, wxWindowID id,const wxPoint& pos,const wxSize& size)
+CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &title, const wxArrayString& items, const wxArrayString& itemsSelected, const wxString& header, const wxString& headerBold, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
 	//(*Initialize(CheckboxSelectDialog)
 	wxFlexGridSizer* FlexGridSizer1;
@@ -71,12 +72,31 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
         _checked.insert(item);
     }
 
+    int insertRow = 0;
+    if (!header.IsEmpty() || !headerBold.IsEmpty()) {
+        wxBoxSizer* headerSizer = new wxBoxSizer(wxHORIZONTAL);
+        if (!header.IsEmpty()) {
+            wxStaticText* normalLabel = new wxStaticText(this, wxID_ANY, header);
+            headerSizer->Add(normalLabel, 0, wxALIGN_CENTER_VERTICAL, 0);
+        }
+        if (!headerBold.IsEmpty()) {
+            wxStaticText* boldLabel = new wxStaticText(this, wxID_ANY, headerBold);
+            wxFont f = boldLabel->GetFont();
+            f.SetWeight(wxFONTWEIGHT_BOLD);
+            boldLabel->SetFont(f);
+            headerSizer->Add(boldLabel, 0, wxALIGN_CENTER_VERTICAL, 0);
+        }
+        FlexGridSizer1->Insert(insertRow++, headerSizer, 0, wxALL, 5);
+    }
+
     _filterCtrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     _filterCtrl->ShowCancelButton(true);
     _filterCtrl->SetDescriptiveText(_("Filter"));
-    FlexGridSizer1->Insert(0, _filterCtrl, 0, wxALL | wxEXPAND, 5);
+    FlexGridSizer1->Insert(insertRow++, _filterCtrl, 0, wxALL | wxEXPAND, 5);
+
+    // The checklist has shifted down by the rows we inserted; keep it the growable one.
     FlexGridSizer1->RemoveGrowableRow(0);
-    FlexGridSizer1->AddGrowableRow(1);
+    FlexGridSizer1->AddGrowableRow(insertRow);
 
     _filterCtrl->Bind(wxEVT_TEXT, &CheckboxSelectDialog::OnFilterText, this);
     _filterCtrl->Bind(wxEVT_TEXT_ENTER, &CheckboxSelectDialog::OnFilterText, this);
@@ -90,6 +110,11 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
 	SetTitle(title);
 
     SetEscapeId(Button_Cancel->GetId());
+
+    // Recompute the layout hints now that the header/filter rows exist, otherwise
+    // the min size (set by the generated code before these inserts) clips the buttons.
+    Layout();
+    FlexGridSizer1->SetSizeHints(this);
 
     ValidateWindow();
 }
