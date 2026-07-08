@@ -30,6 +30,7 @@ const long CheckboxSelectDialog::ID_MCU_SELECTALL = wxNewId();
 const long CheckboxSelectDialog::ID_MCU_SELECTNONE = wxNewId();
 const long CheckboxSelectDialog::ID_MCU_SELECT_HIGH = wxNewId();
 const long CheckboxSelectDialog::ID_MCU_DESELECT_HIGH = wxNewId();
+const long CheckboxSelectDialog::ID_FILTERTIMER = wxNewId();
 
 BEGIN_EVENT_TABLE(CheckboxSelectDialog,wxDialog)
 	//(*EventTable(CheckboxSelectDialog)
@@ -100,10 +101,11 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
 
     _filterCtrl->Bind(wxEVT_TEXT, &CheckboxSelectDialog::OnFilterText, this);
     _filterCtrl->Bind(wxEVT_TEXT_ENTER, &CheckboxSelectDialog::OnFilterText, this);
-    _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &CheckboxSelectDialog::OnFilterText, this);
+    _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &CheckboxSelectDialog::OnFilterCancel, this);
 
-    _filterTimer.SetOwner(this);
-    Bind(wxEVT_TIMER, &CheckboxSelectDialog::OnFilterTimer, this);
+    _filterTimer.SetOwner(this, ID_FILTERTIMER);
+    Bind(wxEVT_TIMER, &CheckboxSelectDialog::OnFilterTimer, this, ID_FILTERTIMER);
+    Bind(wxEVT_CLOSE_WINDOW, &CheckboxSelectDialog::OnCloseWindow, this);
 
     PopulateList();
 
@@ -216,6 +218,22 @@ void CheckboxSelectDialog::PopulateList()
 void CheckboxSelectDialog::OnFilterText(wxCommandEvent& event)
 {
     _filterTimer.StartOnce(200);
+}
+
+void CheckboxSelectDialog::OnFilterCancel(wxCommandEvent& event)
+{
+    _filterTimer.Stop();
+    SyncCheckedFromList();
+    _filterCtrl->ChangeValue(wxEmptyString);
+    _filter.Clear();
+    PopulateList();
+    ValidateWindow();
+}
+
+void CheckboxSelectDialog::OnCloseWindow(wxCloseEvent& event)
+{
+    _filterTimer.Stop();
+    event.Skip();
 }
 
 void CheckboxSelectDialog::OnFilterTimer(wxTimerEvent& event)

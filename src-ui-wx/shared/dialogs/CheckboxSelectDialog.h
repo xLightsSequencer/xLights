@@ -51,6 +51,7 @@ class CheckboxSelectDialog: public wxDialog
 		static const long ID_MCU_SELECTNONE;
 		static const long ID_MCU_SELECT_HIGH;
         static const long ID_MCU_DESELECT_HIGH;
+		static const long ID_FILTERTIMER;
 
 	private:
 
@@ -67,6 +68,8 @@ class CheckboxSelectDialog: public wxDialog
 		void SelectHighLightedLayers(bool select = true);
 
 		void OnFilterText(wxCommandEvent& event);
+		void OnFilterCancel(wxCommandEvent& event);
+		void OnCloseWindow(wxCloseEvent& event);
 		void OnFilterTimer(wxTimerEvent& event);
 		void PopulateList();
 		void SyncCheckedFromList();
