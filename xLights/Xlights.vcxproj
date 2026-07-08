@@ -158,7 +158,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;HAVE_ORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;HAVE_ORT;HAVE_VULKAN;VK_NO_PROTOTYPES</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj</AdditionalOptions>
@@ -181,7 +181,6 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
@@ -228,7 +227,6 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
@@ -263,7 +261,6 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 
 </Command>
     </PostBuildEvent>
@@ -275,7 +272,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT;HAVE_VULKAN;VK_NO_PROTOTYPES</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -308,7 +305,6 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -353,7 +349,6 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -398,9 +393,25 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
-xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
 </Command>
     </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <Target Name="FetchKLightMapper" BeforeTargets="ClCompile"
+          Condition="!Exists('$(MSBuildProjectDirectory)\..\lib\windows64\klightmapper.lib')">
+    <Message Importance="high" Text="Fetching KLightMapper prebuilt library (one-time)..." />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\ci_scripts\fetch_dependencies.ps1&quot;" />
+  </Target>
+  <!-- Vulkan (x64 only): compile the .comp compute kernels to the SPIR-V headers
+       the vulkan/ C++ #includes.  glslc is a build tool here, like ispc for the
+       .ispc kernels; the generated headers are gitignored, not committed. -->
+  <Target Name="CompileVulkanShaders" BeforeTargets="ClCompile" Condition="'$(Platform)'=='x64'">
+    <Message Importance="high" Text="Compiling Vulkan compute shaders to SPIR-V headers" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\build_scripts\msw\compile_vulkan_shaders.ps1&quot;" />
+  </Target>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\..\include\klightmapper;$(MSBuildProjectDirectory)\..\dependencies\Vulkan-Headers\include;$(MSBuildProjectDirectory)\..\dependencies\volk;$(MSBuildProjectDirectory)\..\dependencies\VulkanMemoryAllocator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\xlBaseApp.cpp" />
@@ -519,6 +530,30 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\FX.cpp" />
     <ClCompile Include="..\src-core\effects\GuitarEffect.cpp" />
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanLibs.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanComputeUtilities.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanEffectManager.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanBarsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanButterflyEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanCandleEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanCirclesEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanColorWashEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFanEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFillEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGalaxyEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGarlandsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanKaleidoscopeEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanLifeEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanMeteorsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanPinwheelEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanPlasmaEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShimmerEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShockwaveEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanSpiralsEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanTreeEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanTwinkleEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanWarpEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanWaveEffect.cpp" />
     <ClCompile Include="..\src-core\effects\KaleidoscopeEffect.cpp" />
     <ClCompile Include="..\src-core\effects\LinesEffect.cpp" />
     <ClCompile Include="..\src-core\effects\MovingHeadEffect.cpp" />
@@ -531,6 +566,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ShaderEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\SPIRVShaderEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\ShaderSourceTransforms.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\ShaderPanel.cpp" />
     <ClCompile Include="..\src-core\effects\ShapeEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.cpp" />
@@ -551,10 +588,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\diagnostics\FindDataPanel.cpp" />
     <ClCompile Include="..\src-core\render\FontManager.cpp" />
     <ClCompile Include="..\src-core\render\FSEQFile.cpp" />
+    <ClCompile Include="..\src-core\render\FSEQFileIO.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.cpp" />
     <ClCompile Include="..\src-core\render\GPURenderUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.cpp" />
+    <ClCompile Include="..\src-core\graphics\vulkan\VulkanPipelineCache.cpp" />
+    <ClCompile Include="..\src-core\graphics\vulkan\xlVulkanGraphicsContext.cpp" />
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.cpp" />
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="..\src-core\graphics\AngleEGL.cpp" />
@@ -813,6 +854,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\model\GenerateCustomModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
@@ -916,6 +959,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RenameTextDialog.cpp" />
     <ClCompile Include="..\src-core\render\RenderEngine.cpp" />
+    <ClCompile Include="..\src-core\render\xLightsShowContext.cpp" />
     <ClCompile Include="..\src-core\render\ViewpointMgr.cpp" />
     <ClCompile Include="..\src-ui-wx\render\RenderUI.cpp" />
     <ClCompile Include="..\src-core\render\ModelGifExporter.cpp" />
@@ -940,6 +984,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\render\SequencePackage.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.cpp" />
     <ClCompile Include="..\src-core\render\Effect.cpp" />
+    <ClCompile Include="..\src-core\render\EffectSymbol.cpp" />
+    <ClCompile Include="..\src-core\render\EffectSymbolManager.cpp" />
+    <ClCompile Include="..\src-ui-wx\EffectSymbolDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectDropTarget.cpp" />
     <ClCompile Include="..\src-core\render\EffectLayer.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectsGrid.cpp" />
@@ -1033,6 +1080,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\utils\xlImage.cpp" />
     <ClCompile Include="..\src-core\utils\XsqFileScanner.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
+    <ClCompile Include="..\src-core\render\HeadlessRenderContext.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />
@@ -1172,9 +1220,22 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\ispc\KaleidoscopeFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ShockwaveFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\SpiralsFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\GalaxyFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\MeteorsFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\GarlandsFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\FillFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\TreeFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\TwinkleFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\ShimmerFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\CandleFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\LifeFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\WaveFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\WarpFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ISPCComputeUtilities.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanComputeUtilities.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanEffects.h" />
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanEffectDataTypes.h" />
     <ClInclude Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\PinwheelFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\PlasmaFunctions.ispc.h">
@@ -1196,6 +1257,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHRgbPickerPanel.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.h" />
     <ClInclude Include="..\src-core\effects\ShaderEffect.h" />
+    <ClInclude Include="..\src-core\effects\SPIRVShaderEffect.h" />
+    <ClInclude Include="..\src-core\effects\ShaderSourceTransforms.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\ShaderPanel.h" />
     <ClInclude Include="..\src-core\effects\ShapeEffect.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.h" />
@@ -1211,9 +1274,15 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\diagnostics\FindDataPanel.h" />
     <ClInclude Include="..\src-core\render\FontManager.h" />
     <ClInclude Include="..\src-core\render\FSEQFile.h" />
+    <ClInclude Include="..\src-core\render\FSEQFileIO.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\IVulkanCanvas.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\VulkanFrameData.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\VulkanPipelineCache.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\xlVulkanGraphicsContext.h" />
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.h" />
     <ClInclude Include="..\src-core\graphics\tiny_obj_loader.h" />
     <ClInclude Include="..\src-core\graphics\xlFontInfo.h" />
     <ClInclude Include="..\src-core\graphics\xlGraphicsAccumulators.h" />
@@ -1429,6 +1498,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
     <ClInclude Include="..\src-ui-wx\model\GenerateCustomModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\KLightMapperBridge.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
@@ -1554,6 +1625,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\render\SequencePackage.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.h" />
     <ClInclude Include="..\src-core\render\Effect.h" />
+    <ClInclude Include="..\src-core\render\EffectSymbol.h" />
+    <ClInclude Include="..\src-core\render\EffectSymbolManager.h" />
+    <ClInclude Include="..\src-ui-wx\EffectSymbolDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectDropTarget.h" />
     <ClInclude Include="..\src-core\render\EffectLayer.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsGrid.h" />
@@ -1660,6 +1734,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\shared\utils\xlGridCanvas.h" />
     <ClInclude Include="..\src-ui-wx\xLightsApp.h" />
     <ClInclude Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.h" />
+    <ClInclude Include="..\src-core\render\HeadlessRenderContext.h" />
     <ClInclude Include="..\src-ui-wx\xLightsMain.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\xLightsTimer.h" />
     <ClInclude Include="..\src-core\xLightsVersion.h" />
@@ -1831,6 +1906,116 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\SpiralsFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\GalaxyFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\MeteorsFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\GarlandsFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\FillFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\TreeFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\TwinkleFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\ShimmerFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\CandleFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\LifeFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\WaveFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>

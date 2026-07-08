@@ -14,6 +14,18 @@
 
 //(*AppHeaders
 #include "xLightsMain.h"
+#include "render/HeadlessRenderContext.h"
+#include "render/TextDrawingContext.h"
+#include "graphics/wxTextDrawingContext.h"
+#include "graphics/GLContextManager.h"
+#include "render/FSEQFile.h"
+#include "render/GPURenderUtils.h"
+#include "media/VideoReader.h"
+#include <wx/config.h>
+
+#ifdef __APPLE__
+void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (no Dock/focus)
+#endif
 #include <wx/time.h>
 #include <wx/image.h>
 //*)
@@ -29,6 +41,7 @@
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
 #include <thread>
+#include <chrono>
 #include <iomanip>
 #include "utils/ThreadUtils.h"
 #include <curl/curl.h>
@@ -40,6 +53,12 @@
 #include "settings/XLightsConfigAdapter.h"
 #include "utils/TraceLog.h"
 #include "utils/ExternalHooks.h"
+#include "effects/ShaderEffect.h"  // --shadertranslate spike
+#ifdef __APPLE__
+#include "effects/metal/MetalShaderTranslator.h"
+#endif
+#include <fstream>
+#include <sstream>
 #include "shared/utils/BitmapCache.h"
 #include "utils/CurlManager.h"
 #include "render/SequencePackage.h"
@@ -587,6 +606,19 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
 
 bool xLightsApp::OnInit()
 {
+#ifdef __APPLE__
+    // A headless render must not pop a Dock icon or steal focus. The app bundle
+    // launches as a foreground (Regular) app, so demote to a background app as
+    // early as possible — before the rest of startup — when --headless is on the
+    // command line. (Re-asserted in the --headless branch below.)
+    for (int i = 1; i < argc; ++i) {
+        const wxString a(argv[i]);
+        if (a == "--headless" || a == "-hl") {
+            SetHeadlessNoDock();
+            break;
+        }
+    }
+#endif
     SetMainThreadId();
     InitialiseLogging(false);
 
@@ -630,6 +662,10 @@ bool xLightsApp::OnInit()
     InitializeXLightsConfig();
     DumpConfig();
 
+    // Point VAMP_PATH at the per-user plugin dir + standard location before any
+    // Vamp plugin is loaded (xLights doesn't bundle the GPL/AGPL plugin pack).
+    ConfigureVampPath();
+
 #ifdef __WXMSW__
     if (!IsSuppressDarkMode()) {
         MSWEnableDarkMode();
@@ -669,9 +705,13 @@ bool xLightsApp::OnInit()
     {
         { wxCMD_LINE_SWITCH, "h", "help", "displays help on the command line parameters", wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
+        { wxCMD_LINE_SWITCH, "hl", "headless", "render sequence(s) to fseq with no window and exit" },
+        { wxCMD_LINE_SWITCH, "fc", "fseqcmp", "compare two .fseq files channel-for-channel and exit (0=identical)" },
+        { wxCMD_LINE_SWITCH, "st", "shadertranslate", "assemble every .fs shader in the show dir to GLSL (spike) and exit" },
         { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit" },
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
+        { wxCMD_LINE_OPTION, "od", "outputdir", "output dir for rendered fseq files (-r / --headless); default: show's configured fseq folder" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
         { wxCMD_LINE_SWITCH, "a", "aport", "turn on xFade A port" },
@@ -787,8 +827,44 @@ bool xLightsApp::OnInit()
         } else if (!showDir.IsNull()) {
             mediaDir = showDir;
         }
+        // Expand any glob patterns (containing '*' or '?') in the positional
+        // parameters. On macOS/Linux the shell usually expands these before we
+        // ever see them, but quoted patterns - and Windows, whose shells don't
+        // glob - arrive here literally. This lets "xLights --headless *.xsq" (or
+        // a quoted "*.xsq") render every matching sequence in one run. Mirrors
+        // the -r glob handling. Scoped in braces so the switch's other case
+        // labels can jump past the paramFiles construction.
+        {
+        wxArrayString paramFiles;
         for (size_t x = 0; x < parser.GetParamCount(); x++) {
-            wxString sequenceFile = parser.GetParam(x);
+            wxString param = parser.GetParam(x);
+            if (param.Contains("*") || param.Contains("?")) {
+                wxFileName patternFn(param);
+                wxString patternDir = patternFn.GetPath();
+                if (patternDir.IsEmpty()) {
+                    patternDir = wxGetCwd();
+                }
+                // Glob runs before the show dir's sandbox access is obtained, so
+                // wxDir enumeration would otherwise fail on macOS. Activate the
+                // security-scoped bookmark for the pattern dir first.
+                ObtainAccessToURL(patternDir.ToStdString(), false);
+                wxArrayString matches;
+                GetAllFilesInDir(patternDir, matches, patternFn.GetFullName());
+                if (matches.IsEmpty()) {
+                    spdlog::warn("No files matched command line pattern: {}.", (const char*)param.c_str());
+                    info += _("No files matched pattern ") + param + "\n";
+                } else {
+                    matches.Sort();
+                    for (const auto& m : matches) {
+                        paramFiles.push_back(m);
+                    }
+                }
+            } else {
+                paramFiles.push_back(param);
+            }
+        }
+        for (size_t x = 0; x < paramFiles.GetCount(); x++) {
+            wxString sequenceFile = paramFiles[x];
             if (sequenceFile.Lower().EndsWith(".zip") || sequenceFile.Lower().EndsWith(".xsqz")) {
                 spdlog::info("Sequence zip file passed on command line: {}.", (const char*)sequenceFile.c_str());
                 info += _("Loading read only sequence ") + sequenceFile + "\n";
@@ -810,6 +886,7 @@ bool xLightsApp::OnInit()
                 sequenceFiles.push_back(sequenceFile);
             }
         }
+        } // end paramFiles scope
 
         if (readOnlyZipFile != "" && sequenceFiles.Count() > 0) {
             // illegal combination of files
@@ -817,7 +894,7 @@ bool xLightsApp::OnInit()
             sequenceFiles.Clear();
         }
 
-        if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !info.empty() && readOnlyZipFile == "")
+        if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !parser.Found("hl") && !parser.Found("fc") && !parser.Found("st") && !info.empty() && readOnlyZipFile == "")
         {
             wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK); // pre-frame: callback not yet registered
         }
@@ -873,6 +950,361 @@ bool xLightsApp::OnInit()
         }
     }
 
+    // ---- shader-translation spike: run every .fs in the show dir through the
+    // real ParseShaderFromSource/ShaderConfig assembly and dump the resulting
+    // GLSL to <showdir>/_xlate/<name>.frag, so an external glslang+SPIRV-Cross
+    // pass can measure how much of the corpus translates to SPIR-V/MSL. No window.
+    if (parser.Found("st")) {
+        std::string dir = showDir.ToStdString();
+        ObtainAccessToURL(dir, true);
+        std::string outDir = dir + "/_xlate";
+        std::error_code ec;
+        std::filesystem::create_directories(outDir, ec);
+        wxArrayString files;
+        GetAllFilesInDir(showDir, files, "*.fs");
+        files.Sort();
+        int total = 0, assembled = 0, parseFail = 0, nativeOk = 0, nativeFail = 0;
+        for (const auto& fpath : files) {
+            total++;
+            std::ifstream in(fpath.ToStdString(), std::ios::binary);
+            std::stringstream ss;
+            ss << in.rdbuf();
+            const std::string src = ss.str();
+            const std::string base = wxFileName(fpath).GetName().ToStdString();
+            ShaderConfig* cfg = ShaderEffect::ParseShaderFromSource(fpath.ToStdString(), src, nullptr);
+            if (cfg == nullptr) {
+                parseFail++;
+                printf("PARSEFAIL\t%s\n", base.c_str());
+                continue;
+            }
+            std::ofstream out(outDir + "/" + base + ".frag", std::ios::binary);
+            out << cfg->GetCode();
+            out.close();
+            assembled++;
+#ifdef __APPLE__
+            std::string terr;
+            if (ShaderTranslate::ValidateRenderPipeline(ShaderEffect::GetNativeVertexShaderSource(), cfg->GetCode(), terr)) {
+                nativeOk++;
+            } else {
+                nativeFail++;
+                printf("NATIVEFAIL\t%s\t%s\n", base.c_str(), terr.substr(0, 160).c_str());
+            }
+#endif
+            delete cfg;
+        }
+        printf("shadertranslate: %d .fs found, %d assembled -> %s, %d parse-fail\n",
+               total, assembled, outDir.c_str(), parseFail);
+        printf("native VS+FS -> MTLRenderPipelineState: %d ok, %d fail (of %d assembled)\n",
+               nativeOk, nativeFail, assembled);
+        std::exit(0);
+    }
+
+    // ---- fseq comparison utility: decode two .fseq files to full-width
+    // per-channel frames (robust to sparse vs non-sparse layout) and report
+    // any differing channel samples. Used to prove headless renders match the
+    // desktop render. No window.
+    if (parser.Found("fc")) {
+        if (sequenceFiles.GetCount() != 2) {
+            printf("--fseqcmp requires exactly two .fseq file arguments (got %u)\n",
+                   (unsigned)sequenceFiles.GetCount());
+            std::exit(2);
+        }
+        const std::string pa = sequenceFiles[0].ToStdString();
+        const std::string pb = sequenceFiles[1].ToStdString();
+        // Restore security-scoped access (sandboxed builds) before the raw
+        // fopen inside openFSEQFile.
+        ObtainAccessToURL(pa, false);
+        ObtainAccessToURL(pb, false);
+        std::unique_ptr<FSEQFile> fa(FSEQFile::openFSEQFile(pa));
+        std::unique_ptr<FSEQFile> fb(FSEQFile::openFSEQFile(pb));
+        if (!fa || !fb) {
+            printf("--fseqcmp: could not open %s\n", (!fa ? pa.c_str() : pb.c_str()));
+            std::exit(2);
+        }
+        const uint32_t maxCh = std::max((uint32_t)fa->getMaxChannel(), (uint32_t)fb->getMaxChannel());
+        const uint32_t frames = (uint32_t)std::min(fa->getNumFrames(), fb->getNumFrames());
+        printf("A %s: %llu frames, maxCh %u, step %d\n", pa.c_str(),
+               (unsigned long long)fa->getNumFrames(), (unsigned)fa->getMaxChannel(), fa->getStepTime());
+        printf("B %s: %llu frames, maxCh %u, step %d\n", pb.c_str(),
+               (unsigned long long)fb->getNumFrames(), (unsigned)fb->getMaxChannel(), fb->getStepTime());
+        std::vector<std::pair<uint32_t, uint32_t>> rng{ { 0, maxCh } };
+        fa->prepareRead(rng);
+        fb->prepareRead(rng);
+        std::vector<uint8_t> ba(maxCh, 0), bb(maxCh, 0);
+        std::vector<uint32_t> chDiffFrames(maxCh, 0); // per-channel: # frames that differ
+        std::vector<uint8_t> chMaxDiff(maxCh, 0);     // per-channel: max |A-B|
+        uint64_t diffSamples = 0, diff1 = 0, diffSmall = 0, diffBig = 0;
+        int maxAbsDiff = 0;
+        long firstFrame = -1;
+        uint32_t firstCh = 0;
+        // Optional: dump A vs B for one channel across frames (env, 1-based).
+        const char* dumpEnv = getenv("XL_FSEQCMP_DUMPCH");
+        const uint32_t dumpCh = dumpEnv ? (uint32_t)strtoul(dumpEnv, nullptr, 10) : 0;
+        std::vector<std::pair<uint8_t, uint8_t>> series;
+        if (dumpCh != 0 && dumpCh <= maxCh) series.reserve(frames);
+        for (uint32_t fr = 0; fr < frames; ++fr) {
+            std::fill(ba.begin(), ba.end(), 0);
+            std::fill(bb.begin(), bb.end(), 0);
+            FSEQFile::FrameData* da = fa->getFrame(fr);
+            FSEQFile::FrameData* db = fb->getFrame(fr);
+            if (da) { da->readFrame(ba.data(), maxCh); delete da; }
+            if (db) { db->readFrame(bb.data(), maxCh); delete db; }
+            for (uint32_t c = 0; c < maxCh; ++c) {
+                if (ba[c] != bb[c]) {
+                    ++diffSamples;
+                    int d = std::abs((int)ba[c] - (int)bb[c]);
+                    if (d > maxAbsDiff) maxAbsDiff = d;
+                    if (d == 1) ++diff1;
+                    else if (d <= 4) ++diffSmall;
+                    else ++diffBig;
+                    if (firstFrame < 0) { firstFrame = (long)fr; firstCh = c; }
+                    ++chDiffFrames[c];
+                    if (d > chMaxDiff[c]) chMaxDiff[c] = (uint8_t)std::min(d, 255);
+                }
+            }
+            if (dumpCh != 0 && dumpCh <= maxCh) series.emplace_back(ba[dumpCh - 1], bb[dumpCh - 1]);
+        }
+        if (dumpCh != 0 && !series.empty()) {
+            printf("\nchannel %u  A vs B (first 80 frames; * = differ):\n", dumpCh);
+            for (uint32_t fr = 0; fr < series.size() && fr < 80; ++fr) {
+                printf("  fr %3u  A=%3u  B=%3u  %s\n", fr, series[fr].first, series[fr].second,
+                       series[fr].first != series[fr].second ? "*" : "");
+            }
+        }
+        if (diffSamples == 0) {
+            printf("IDENTICAL: %u frames x %u channels match exactly\n", frames, maxCh);
+        } else {
+            const uint64_t total = (uint64_t)frames * maxCh;
+            printf("DIFFER: %llu / %llu samples (%.2f%%); first at frame %ld channel %u\n",
+                   (unsigned long long)diffSamples, (unsigned long long)total,
+                   100.0 * (double)diffSamples / (double)total, firstFrame, firstCh);
+            printf("  magnitude: maxAbsDiff=%d  |  d==1: %llu  d<=4: %llu  d>4: %llu\n",
+                   maxAbsDiff, (unsigned long long)diff1,
+                   (unsigned long long)diffSmall, (unsigned long long)diffBig);
+
+            uint32_t diffChans = 0;
+            for (uint32_t c = 0; c < maxCh; ++c) if (chDiffFrames[c]) ++diffChans;
+            printf("  channels touched: %u / %u\n", diffChans, maxCh);
+
+            // Map differing channels back to models (needs the show for channel
+            // assignment). maxΔ>4 tends to be video (independent decode); ≤4 is
+            // GPU-context float noise from shaders/Metal. Group rows overlap real
+            // models so they're skipped (each channel belongs to one top-model).
+            if (!showDir.IsEmpty()) {
+                ObtainAccessToURL(showDir.ToStdString(), false);
+                HeadlessRenderContext mapCtx;
+                std::list<std::string> mf;
+                if (mapCtx.LoadShowFolder(showDir.ToStdString(), mf)) {
+                    struct MS { std::string name; uint32_t s1; uint32_t e1; uint64_t dch; int mx; };
+                    std::vector<MS> ms;
+                    // Track union of channels owned by some model. Buffer/overlay
+                    // models (ImportBuffer, HiddenRight, ...) can share channels, so
+                    // per-model dch sums may exceed the distinct channel count.
+                    std::vector<bool> owned(maxCh, false);
+                    for (auto it = mapCtx.AllModels.begin(); it != mapCtx.AllModels.end(); ++it) {
+                        Model* m = it->second;
+                        if (m == nullptr || m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+                        const uint32_t f = m->GetFirstChannel();      // 0-based
+                        const uint32_t cc = m->GetChanCount();
+                        if (cc == 0) continue;
+                        const uint32_t last = (uint32_t)std::min((uint64_t)f + cc, (uint64_t)maxCh);
+                        uint64_t dch = 0;
+                        int mx = 0;
+                        for (uint32_t c = f; c < last; ++c) {
+                            if (chDiffFrames[c]) { ++dch; if (chMaxDiff[c] > mx) mx = chMaxDiff[c]; owned[c] = true; }
+                        }
+                        if (dch > 0) { ms.push_back({ it->first, f + 1, f + cc, dch, mx }); }
+                    }
+                    std::sort(ms.begin(), ms.end(), [](const MS& a, const MS& b) {
+                        if (a.mx != b.mx) return a.mx > b.mx;
+                        return a.dch > b.dch;
+                    });
+                    printf("\nPer-model differences (worst first):\n");
+                    printf("  %-5s  %-13s  %-19s  %s\n", "maxD", "diffCh/totCh", "channels(1-based)", "model");
+                    for (auto& e : ms) {
+                        char chc[48];
+                        snprintf(chc, sizeof(chc), "%u-%u", e.s1, e.e1);
+                        char dcc[32];
+                        snprintf(dcc, sizeof(dcc), "%llu/%llu",
+                                 (unsigned long long)e.dch, (unsigned long long)(e.e1 - e.s1 + 1));
+                        printf("  %-5d  %-13s  %-19s  %s\n", e.mx, dcc, chc, e.name.c_str());
+                    }
+                    uint64_t leftover = 0;
+                    for (uint32_t c = 0; c < maxCh; ++c) if (chDiffFrames[c] && !owned[c]) ++leftover;
+                    if (leftover > 0) {
+                        printf("  (%llu differing channels not owned by any model)\n",
+                               (unsigned long long)leftover);
+                    }
+                } else {
+                    printf("  (could not load show '%s' for model mapping)\n", showDir.ToStdString().c_str());
+                }
+            } else {
+                printf("  (pass -s <showdir> to map differing channels to model names)\n");
+            }
+
+            // Frame-offset probe: shift A by k frames and see if the diff drops.
+            // A sharp minimum at k!=0 = a systematic frame offset (a real bug);
+            // min at 0 = the content genuinely differs per frame (video/shader).
+            printf("\nframe-offset probe (subsampled mean |Δ| per frame):\n");
+            {
+                const uint32_t step = std::max<uint32_t>(1, frames / 200);
+                std::vector<uint8_t> sa(maxCh, 0), sb(maxCh, 0);
+                int bestShift = 0;
+                double bestAvg = -1;
+                for (int shift = -3; shift <= 3; ++shift) {
+                    double sum = 0;
+                    uint32_t n = 0;
+                    for (uint32_t fr = 0; fr < frames; fr += step) {
+                        const long fa2 = (long)fr + shift;
+                        if (fa2 < 0 || fa2 >= (long)frames) continue;
+                        std::fill(sa.begin(), sa.end(), 0);
+                        std::fill(sb.begin(), sb.end(), 0);
+                        FSEQFile::FrameData* da2 = fa->getFrame((uint32_t)fa2);
+                        FSEQFile::FrameData* db2 = fb->getFrame(fr);
+                        if (da2) { da2->readFrame(sa.data(), maxCh); delete da2; }
+                        if (db2) { db2->readFrame(sb.data(), maxCh); delete db2; }
+                        uint64_t s = 0;
+                        for (uint32_t c = 0; c < maxCh; ++c) s += std::abs((int)sa[c] - (int)sb[c]);
+                        sum += (double)s;
+                        ++n;
+                    }
+                    const double avg = n ? sum / n : 0;
+                    printf("  A shift %+d: %.0f%s\n", shift, avg, shift == 0 ? "   (aligned)" : "");
+                    if (bestAvg < 0 || avg < bestAvg) { bestAvg = avg; bestShift = shift; }
+                }
+                if (bestShift != 0) {
+                    printf("  --> min at shift %+d: looks like a %d-frame offset between the renders\n",
+                           bestShift, bestShift);
+                } else {
+                    printf("  --> min at shift 0: content genuinely differs per frame (not an offset)\n");
+                }
+            }
+        }
+        std::exit(diffSamples == 0 ? 0 : 1);
+    }
+
+    // ---- Headless render: no window at all. Load the show + sequence(s),
+    // render to fseq, and exit. Proof that xLightsShowContext carries a full
+    // render without an xLightsFrame. See HeadlessRenderContext / AGENTS.md.
+    if (parser.Found("hl")) {
+        if (showDir.IsEmpty() || sequenceFiles.IsEmpty()) {
+            spdlog::error("--headless requires a show directory (-s <dir>) and at least one sequence file");
+            return false;
+        }
+#ifdef __APPLE__
+        // Run as a background app: no Dock icon, no focus stealing, so a
+        // background render doesn't disrupt the desktop.
+        SetHeadlessNoDock();
+#endif
+        wxInitAllImageHandlers();
+        // Initialize the offscreen GL context manager so ShaderEffect renders
+        // (it has no CPU fallback — without this it fills solid colour). On
+        // macOS this is self-contained CGL: no window, no worker thread, no
+        // event loop. Empty params match the desktop frame (USE_GLES is off on
+        // desktop). Metal-compute + GPURenderUtils self-initialize via static
+        // ctors, so nothing else is needed for GPU-accelerated effects.
+        if (getenv("XL_HEADLESS_NO_GL") == nullptr) {
+            GLContextManager::InitParams glParams;
+            GLContextManager::Instance().Initialize(glParams);
+        } else {
+            spdlog::warn("--headless: XL_HEADLESS_NO_GL set — skipping GL init (shaders will fall back to solid colour)");
+        }
+        // Register the text backend so Text/Shape effects render (the wx backend
+        // draws to offscreen bitmaps and is thread-safe on macOS/Windows).
+        // Mirrors xLightsFrame's registration.
+        TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
+                                            wxTextDrawingContext::ParseTextFont,
+                                            wxTextDrawingContext::ParseShapeFont);
+        TextDrawingContext::Initialize();
+
+        // Video decode backend: mirror the desktop's hardware-accel preference.
+        // The flag defaults false, so without this headless picks FFmpeg while the
+        // desktop picks AVFoundation (macOS) for the same file — different decoders
+        // yield different frames and a large fseq divergence on video effects.
+        {
+            auto* cfg = GetXLightsConfig();
+#ifdef __APPLE__
+            bool hwVideo = true;
+            cfg->Read("xLightsVideoReaderAccelerated", &hwVideo, true);
+            VideoReader::SetHardwareAcceleratedVideo(hwVideo);
+            VideoReader::InitHWAcceleration();
+#else
+            bool hwVideo = false;
+            int hwRenderer = 1;
+            cfg->Read("xLightsVideoReaderAccelerated", &hwVideo, false);
+            cfg->Read("xLightsVideoReaderRenderer", &hwRenderer, 1);
+            VideoReader::SetHardwareAcceleratedVideo(hwVideo);
+            VideoReader::SetHardwareRenderType(hwRenderer);
+#endif
+        }
+
+        // GPU compute: mirror the desktop's preference (xLightsMain.cpp reads
+        // xLightsGPURendering into GPURenderUtils::SetEnabled). XL_NO_GPU_COMPUTE=1
+        // overrides for CPU-only A/B determinism testing.
+        {
+            bool gpuRendering = true;
+            GetXLightsConfig()->Read("xLightsGPURendering", &gpuRendering, true);
+            if (getenv("XL_NO_GPU_COMPUTE") != nullptr) {
+                gpuRendering = false;
+                spdlog::warn("--headless: XL_NO_GPU_COMPUTE set — GPU compute disabled");
+            }
+            GPURenderUtils::SetEnabled(gpuRendering);
+        }
+
+        std::list<std::string> mediaFolders;
+        if (!mediaDir.IsEmpty() && mediaDir != showDir) {
+            mediaFolders.push_back(mediaDir.ToStdString());
+        }
+
+        bool allOk = true;
+        {
+            // Scoped so the context (render engine + job pool) tears down cleanly
+            // before we exit the process.
+            HeadlessRenderContext ctx;
+            if (!ctx.LoadShowFolder(showDir.ToStdString(), mediaFolders)) {
+                spdlog::error("--headless: failed to load show folder {}", showDir.ToStdString());
+                std::exit(2);
+            }
+
+            // Where the fseqs go: --outputdir if given, else the show's configured
+            // fseq folder (ctx read it from xlights_rgbeffects.xml, defaulting to
+            // the show dir) — matching desktop -r instead of writing next to the
+            // .xsq. Authorize it for the macOS sandbox before writing.
+            wxString outputDir;
+            parser.Found("od", &outputDir);
+            const wxString outDir = outputDir.IsEmpty() ? wxString(ctx.GetFseqDirectory()) : outputDir;
+            if (!outDir.IsEmpty()) {
+                ObtainAccessToURL(outDir.ToStdString(), true);
+            }
+
+            for (const auto& seq : sequenceFiles) {
+                const std::string seqPath = seq.ToStdString();
+                spdlog::info("--headless: rendering {}", seqPath);
+                const auto seqStart = std::chrono::steady_clock::now();
+                if (!ctx.OpenSequence(seqPath)) { allOk = false; continue; }
+                if (!ctx.RenderAndWait()) { allOk = false; }
+                wxFileName outFn(seq);
+                outFn.SetExt("fseq");
+                if (!outDir.IsEmpty()) outFn.SetPath(outDir);
+                const std::string outPath = outFn.GetFullPath().ToStdString();
+                if (ctx.WriteFseq(outPath)) {
+                    const double elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - seqStart).count();
+                    // Match the desktop batch-render timing line (TabSequence.cpp)
+                    // and flush so per-file progress is visible during a batch.
+                    printf("%s     Updated in %7.3f seconds\n", outPath.c_str(), elapsed);
+                    fflush(stdout);
+                    spdlog::info("--headless: wrote {}", outPath);
+                } else {
+                    allOk = false;
+                }
+                ctx.CloseSequence();
+            }
+        }
+        spdlog::info("--headless: done ({})", allOk ? "success" : "with errors");
+        // No window, no event loop — exit with a status a script/agent can check.
+        std::exit(allOk ? 0 : 1);
+    }
+
     //(*AppInitialize
     bool wxsOK = true;
     wxInitAllImageHandlers();
@@ -892,6 +1324,12 @@ bool xLightsApp::OnInit()
     __frame = topFrame;
 
     if (renderOnlyMode) {
+        wxString outputDir;
+        if (parser.Found("od", &outputDir) && !outputDir.IsEmpty()) {
+            // Applied at the top of OpenRenderAndSaveSequencesF, after the show
+            // (and its configured fseqDir) has finished loading.
+            topFrame->SetCommandLineFseqDir(outputDir.ToStdString());
+        }
         topFrame->CallAfter(&xLightsFrame::OpenRenderAndSaveSequencesF, sequenceFiles, xLightsFrame::RENDER_EXIT_ON_DONE);
     }
 

@@ -367,6 +367,11 @@ class LayoutPanel: public wxPanel
         void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
         void UnSelectAllModels(bool addBkgProps = true );
+        // Begin the click-to-place import flow for a known .xmodel file (e.g. the
+        // temp model a KLightMapper scan produces). Selects the "Import Custom"
+        // tool and presets the path so the next layout click drops the model —
+        // the same placement path as importing/downloading a model.
+        void BeginImportModelFromFile(const std::string& xmodelPath);
         void showBackgroundProperties();
         void SelectAllModels();
         void SetupPropGrid(BaseObject *model);

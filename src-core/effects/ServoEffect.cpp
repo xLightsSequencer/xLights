@@ -114,7 +114,7 @@ std::list<std::string> ServoEffect::CheckEffectSettings(const SettingsMap& setti
         std::string timing = settings.Get("E_CHOICE_Servo_TimingTrack", "");
         if (timing == "") {
             res.push_back(fmt::format("    ERR: Servo effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-        } else if (timing != "" && GetTiming(timing) == nullptr) {
+        } else if (timing != "" && GetTiming(timing, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()) == nullptr) {
             res.push_back(fmt::format("    ERR: Servo effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }

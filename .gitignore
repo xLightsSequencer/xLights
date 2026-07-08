@@ -42,6 +42,11 @@ ispc-*
 ispc
 xLights/xLights.VC.db
 lib/linux/libliquidfun.a
+# KLightMapper desktop scan library — fetched, not committed (ci_scripts/fetch_klightmapper.*).
+# bin64/klightmapper.dll is already covered by bin64/*.dll above.
+lib/linux/libklightmapper.so
+lib/windows64/klightmapper.lib
+include/klightmapper/
 *.opensdf
 *.cbp.mak.orig
 ._*
@@ -61,3 +66,7 @@ xScanner/x64
 share
 **/cmake_vs/
 plans/private-**
+# Generated Vulkan SPIR-V headers (built by build_scripts/compile_vulkan_shaders.sh)
+src-core/effects/vulkan/shaders/compiled/*.spv.h
+src-core/graphics/vulkan/shaders/compiled/*.spv.h
+dependencies/glslang-build/

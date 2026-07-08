@@ -1,0 +1,141 @@
+#version 450
+// Port of PlasmaEffectStyle0..4 in PlasmaFunctions.metal.  Metal compiles 5
+// separate kernels (one per palette "ColorScheme") and the wrapper picks
+// functions[ColorScheme]; GLSL has one entry point per module, so per the
+// multi-style convention the 5 variants are unified here behind
+// `switch (data.colorScheme)`.  The plasma "v" field math (plasmaCalc_vldpi)
+// is shared across all 5 styles; only the final color mapping differs.
+// Fully procedural / full-write: every pixel is computed from params alone,
+// the source buffer is never read.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    float style;        // SLIDER_Plasma_Style (density term inside plasmaCalc_vldpi)
+    float lineDensity;
+    float time;
+    float sinTime5;
+    float cosTime3;
+    float sinTime2;
+
+    int colorScheme;    // 0-4: which PlasmaEffectStyleN color mapping to use
+    int numColors;
+    uint colors[8];      // packed RGBA palette entries (MAX_VULKAN_PLASMA_COLORS)
+} data;
+
+const float PLASMA_PI = 3.1415926535897932384626433832;
+const float PLASMA_PI3 = PLASMA_PI / 3.0;
+
+// Port of plasma_channelBlend (Metal `half` ratio -> float here).
+uint plasmaChannelBlend(uint c1, uint c2, float ratio) {
+    return uint(int(c1) + int(floor(ratio * (float(c2) - float(c1)) + 0.5)));
+}
+
+// Port of plasma_getMultiColorBlend.  The only caller (style 0) always
+// passes circular=false, so that parameter is dropped here.
+uvec4 plasmaGetMultiColorBlend(float n) {
+    if (data.numColors <= 1) {
+        return unpackPx(data.colors[0]);
+    }
+    if (n >= 1.0) n = 0.99999;
+    if (n < 0.0) n = 0.0;
+
+    float realidx = n * float(data.numColors - 1);
+    int coloridx1 = int(floor(realidx));
+    int coloridx2 = (coloridx1 + 1) % data.numColors;
+    float ratio = realidx - float(coloridx1);
+
+    uvec4 c1 = unpackPx(data.colors[coloridx1]);
+    uvec4 c2 = unpackPx(data.colors[coloridx2]);
+    uvec4 ret;
+    ret.r = plasmaChannelBlend(c1.r, c2.r, ratio);
+    ret.g = plasmaChannelBlend(c1.g, c2.g, ratio);
+    ret.b = plasmaChannelBlend(c1.b, c2.b, ratio);
+    ret.a = 255u;
+    return ret;
+}
+
+// Port of plasmaCalc_vldpi. reference: http://www.bidouille.org/prog/plasma
+float plasmaCalc_vldpi(uint x, uint y) {
+    float time = data.time;
+
+    float rx = data.width > 1u ? (float(x) / float(data.width - 1u)) : 0.0; // rx is now in the range 0.0 to 1.0
+    float rx2 = rx * rx;
+    float cx = rx + 0.5 * data.sinTime5;
+    float cx2 = cx * cx;
+    float sin_rx_time = sin(rx + time);
+
+    // 1st equation
+    float v = sin(rx * 10.0 + time);
+    float ry = data.height > 1u ? (float(y) / float(data.height - 1u)) : 0.0;
+
+    // second equation
+    v += sin(10.0 * (rx * data.sinTime2 + ry * data.cosTime3) + time);
+
+    // third equation
+    float cy = ry + 0.5 * data.cosTime3;
+    v += sin(sqrt((data.style * 50.0) * (cx2 + (cy * cy)) + time));
+
+    v += sin_rx_time;
+    v += sin((ry + time) / 2.0);
+    v += sin((rx + ry + time) / 2.0);
+    v += sin(sqrt(rx2 + ry * ry) + time);
+    v = v / 2.0;
+
+    return v * data.lineDensity * PLASMA_PI;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    float vldpi = plasmaCalc_vldpi(px, py);
+    uvec4 ret;
+
+    switch (data.colorScheme) {
+        case 0: {
+            float h = (sin(vldpi + 2.0 * PLASMA_PI3) + 1.0) * 0.5;
+            ret = plasmaGetMultiColorBlend(h);
+            break;
+        }
+        case 1: {
+            ret.r = uint((sin(vldpi) + 1.0) * 255.0 / 2.0);
+            ret.g = uint((cos(vldpi) + 1.0) * 255.0 / 2.0);
+            ret.b = 0u;
+            ret.a = 255u;
+            break;
+        }
+        case 2: {
+            ret.b = uint((sin(vldpi) + 1.0) * 255.0 / 2.0);
+            ret.g = uint((cos(vldpi) + 1.0) * 255.0 / 2.0);
+            ret.r = 1u; // matches PlasmaEffectStyle2's ret.r = 1 quirk in Metal
+            ret.a = 255u;
+            break;
+        }
+        case 3: {
+            ret.r = uint((sin(vldpi) + 1.0) * 255.0 / 2.0);
+            ret.g = uint((sin(vldpi + 2.0 * PLASMA_PI3) + 1.0) * 255.0 / 2.0);
+            ret.b = uint((sin(vldpi + 4.0 * PLASMA_PI3) + 1.0) * 255.0 / 2.0);
+            ret.a = 255u;
+            break;
+        }
+        default: { // case 4
+            uint r = uint((sin(vldpi) + 1.0) * 255.0 / 2.0);
+            ret.r = r;
+            ret.g = r;
+            ret.b = r;
+            ret.a = 255u;
+            break;
+        }
+    }
+
+    result[index] = packPx(ret);
+}

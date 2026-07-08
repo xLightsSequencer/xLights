@@ -64,7 +64,7 @@ class KaleidoscopeEffect : public RenderableEffect
 
     protected:
         virtual void OnMetadataLoaded() override;
-        bool KaleidoscopeDone(const std::vector<std::vector<bool>>& current);
+        bool KaleidoscopeDone(const std::vector<std::vector<uint8_t>>& current);
         std::pair<int, int> GetSourceLocation(int x, int y, const KaleidoscopeEdge& edge, int width, int height);
         void RenderNew(const std::string& type, int xCentre, int yCentre, int size, int rotation, RenderBuffer& buffer);
         static KaleidoscopeTriangle ComputeTriangle(const std::string& type, double cx, double cy, double size, double rotRad);

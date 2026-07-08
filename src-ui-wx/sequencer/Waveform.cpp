@@ -11,6 +11,16 @@
 #include <wx/wx.h>
 #if defined(USE_GLES) && !defined(__WXMAC__)
     #include <GLES3/gl3.h>
+    // GLES3/gl3.h already declares the GL 1.1 core entry points.  The later
+    // <wx/glcanvas.h> drags in the desktop <GL/gl.h>, whose WINGDIAPI/APIENTRY
+    // prototypes clash with the ES3 ones (C2375 "different linkage").  Define the
+    // desktop header's include guards so its body is skipped.
+    #ifndef __gl_h_
+    #define __gl_h_
+    #endif
+    #ifndef __GL_H__
+    #define __GL_H__
+    #endif
 #elif defined(__WXMAC__)
     #include "OpenGL/gl.h"
 #else
@@ -1047,6 +1057,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     _highNote = -1;
     _media = media;
     views.clear();
+    mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     ResetAnalysisState();
     if (_media != nullptr) {
         _media->SwitchTo(_type);
@@ -1090,7 +1101,7 @@ void Waveform::render()
     }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-    if (mCurrentWaveView >= 0) {
+    if (mCurrentWaveView >= 0 && mCurrentWaveView < (int)views.size()) {
 		DrawWaveView(ctx, views[mCurrentWaveView]);
 	}
 
@@ -1107,7 +1118,7 @@ float Waveform::translateOffset(float f) {
 
 void Waveform::ForceRedraw()
 {
-    if (mCurrentWaveView >= 0) {
+    if (mCurrentWaveView >= 0 && mCurrentWaveView < (int)views.size()) {
         views[mCurrentWaveView].ForceRedraw();
     }
 }

@@ -938,6 +938,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
 
     for (int x = 0; x < numLayers; x++) {
         layers[x] = new LayerInfo(renderContext, this, model);
+        layers[x]->buffer.SetLayerIndex(x);
         layers[x]->buffer.SetFrameTimeInMs(frameTimeInMs);
         if (x == (numLayers - 1)) {
             // for the model "blend" layer, use the "Single Line" style so none of the nodes will overlap with others
@@ -989,6 +990,7 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
         Model* m = it;
         assert(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
+        buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
@@ -1003,6 +1005,7 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
         Model* m = it;
         assert(m != nullptr);
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
+        buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
         m->InitRenderBufferNodes("Default", "2D", "None", buf->Nodes, buf->BufferWi, buf->BufferHt, 0);
         buf->InitBuffer(buf->BufferHt, buf->BufferWi, "None");
@@ -2101,8 +2104,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     inf->maskSize = 0;
 
     inf->renderingDisabled = !layerEnabled || settingsMap.Contains(X_Effect_RenderDisabled);
-    inf->fadeInSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadein, 0.0) * 1000) / frameTimeInMs;
-    inf->fadeOutSteps = (int)(settingsMap.GetDouble(TEXTCTRL_Fadeout, 0.0) * 1000) / frameTimeInMs;
+    inf->fadeInSteps = (int)(settingsMap.GetFloat(TEXTCTRL_Fadein, 0.0f) * 1000.0f) / frameTimeInMs;
+    inf->fadeOutSteps = (int)(settingsMap.GetFloat(TEXTCTRL_Fadeout, 0.0f) * 1000.0f) / frameTimeInMs;
 
     inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
@@ -2485,7 +2488,9 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
     // KW ... I think this needs to be optimised
 
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
-        if (layers[0]->buffer.Nodes.size() < 1000) {
+        // dupActChans: two nodes sharing a channel would race in the parallel
+        // path (winner = thread timing); the serial loop is last-node-wins.
+        if (layers[0]->buffer.Nodes.size() < 1000 || layers[0]->buffer.dupActChans) {
             // smaller model, no sense in setting up the parallel_for
             for (auto& n : layers[0]->buffer.Nodes) {
                 size_t start = n->ActChan;
@@ -2957,11 +2962,19 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         size_t nc = layers[0]->buffer.Nodes.size();
         sparklesVector.resize(nc);
         while (sz < nc) {
-            sparklesVector[sz++] = rand() % 10000;
+            // Deterministic per-node sparkle phase (was global rand(), which
+            // made sparkle placement non-reproducible and mode-dependent).
+            // hashRandomStable is frame-independent and keyed on model/layer/
+            // node index, so headless and desktop produce identical sparkles.
+            sparklesVector[sz] = layers[0]->buffer.hashRandomStable((uint32_t)sz) % 10000;
+            sz++;
         }
         sparkles = &sparklesVector[0];
     }
-    if (!GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)) {
+    // XL_NO_GPU_BLEND=1 forces the ISPC layer-blend path (Metal effects still
+    // run) — determinism diagnostic to isolate the GPU blend chain.
+    static const bool noGpuBlend = (getenv("XL_NO_GPU_BLEND") != nullptr);
+    if (noGpuBlend || !GPURenderUtils::BlendLayers(this, EffectPeriod, validLayers, saveLayer, saveToPixels)) {
         for (int ii = (numLayers - 1); ii >= 0; --ii) {
             if (!validLayers[ii]) {
                 continue;

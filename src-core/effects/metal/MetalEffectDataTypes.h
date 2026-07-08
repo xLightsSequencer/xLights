@@ -55,18 +55,24 @@ struct PlasmaData
 struct RotoZoomData {
     uint32_t width;
     uint32_t height;
-    
+
     float offset;
     float xrotation;
     int32_t xpivot;
     float yrotation;
     int32_t ypivot;
-    
+
     float zrotation;
     float zoom;
     float zoomquality;
     int32_t pivotpointx;
     int32_t pivotpointy;
+};
+
+struct TentBlurData {
+    uint32_t width;
+    uint32_t height;
+    int32_t halfK; // (kernelWidth - 1) / 2, tent weights halfK+1-|i|
 };
 
 // allow up to 16 arms, more than that and drop to CPU render
@@ -302,6 +308,181 @@ struct MetalSpiralsData {
 
     simd::uchar4  colorsAsRGBA[MAX_METAL_SPIRALS_COLORS];
     simd::float3  colorsAsHSV[MAX_METAL_SPIRALS_COLORS];
+};
+
+#define MAX_METAL_GALAXY_COLORS 8
+
+// Mirrors ispc::GalaxyISPCData - the Galaxy "New Render Method" gather.
+struct MetalGalaxyData {
+    uint32_t width;
+    uint32_t height;
+    float    pos_x;
+    float    pos_y;
+    float    radius1;
+    float    radius2;
+    float    width1;
+    float    width2;
+    float    revs;
+    float    start_angle;
+    int32_t  reverse_dir;
+    int32_t  inward;
+    int32_t  blend_edges;
+    float    head_end_of_tail;
+    float    tail_end_of_tail;
+    float    color_length;
+    int32_t  num_colors;
+    float    palR[MAX_METAL_GALAXY_COLORS];
+    float    palG[MAX_METAL_GALAXY_COLORS];
+    float    palB[MAX_METAL_GALAXY_COLORS];
+};
+
+// Tree effect — background/light color tables are precomputed on the CPU with the
+// exact scalar double math so the kernel (pure integer math) is byte-identical to
+// the scalar renderer. Mirrors ispc::TreeISPCData.
+#define MAX_METAL_TREE_PPB 512
+
+struct MetalTreeData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  ppb;         // pixels_per_branch
+    int32_t  frame;       // light sweep limit (x <= frame)
+    int32_t  branch_row;  // b — branch row currently being lit
+    int32_t  f_mod;       // sweep position within the row
+    int32_t  showlights;
+    simd::uchar4 bgColors[MAX_METAL_TREE_PPB]; // indexed by mod-1, mod in 1..ppb
+    simd::uchar4 lightColors[5];               // indexed by branch % 5
+};
+
+// Wave effect — the per-column vertical band [y1,y2] is precomputed on the CPU
+// in double precision (incl. std::sin) and passed as a separate int buffer
+// (cols[2x]=y1, cols[2x+1]=y2), so the kernel is pure integer band-testing and
+// byte-identical to the scalar renderer. Only the None (constant-color) fill
+// runs on Metal; Rainbow/Palette need double-precision hue division and stay on
+// the ISPC CPU path.
+struct MetalWaveData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  yoffset;
+    int32_t  mirror;
+    simd::uchar4 noneColor;
+};
+
+// Garlands effect — per-ring blend colors (colors[] at buffer(2)) and truncated
+// y offsets (yb[] at buffer(3)) are precomputed on the CPU with the exact scalar
+// double math, so the kernel (pure integer per-pixel ring inversion) is
+// byte-identical to the scalar renderer. Mirrors ispc::GarlandsData.
+struct MetalGarlandsData {
+    uint32_t width;         // BufferWi
+    uint32_t height;        // BufferHt
+    int32_t  buffMax;       // ring count (BufferHt for Up/Down, BufferWi for Left/Right)
+    int32_t  garlandType;   // 0..4
+    int32_t  dir;           // 0..3 (Up/Down/Left/Right, after Up-then-Down folding)
+    float    invPS;         // 1 / PixelSpacing
+    float    posOffOverPS;  // positionOffset / PixelSpacing
+};
+
+// Fill effect — each thread maps its pixel to a fill line and copies a CPU-built
+// per-line color from the LUT bound at buffer(2) when the matching per-line mask
+// at buffer(3) is set. Both are setBytes, so at most MAX_FILL_LUT lines fit —
+// taller/wider buffers fall back to the CPU/ISPC path. Kept in lockstep with
+// FillFunctions.metal / FillFunctions.ispc.
+#define MAX_FILL_LUT 1024
+
+struct MetalFillData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  vertical;  // 1 => line is the row (y) [Up/Down]; 0 => the column (x) [Left/Right]
+};
+
+// Shimmer effect — kernel fills every pixel from a CPU-built color LUT bound at
+// buffer(2) (setBytes, so at most SHIMMER_MAX_LUT entries — larger spatial LUTs
+// fall back to CPU). lutMode values are ShimmerEffect::ShimmerLutMode.
+#define SHIMMER_MAX_LUT 1024
+
+struct MetalShimmerData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  lutMode;
+    int32_t  colorCount;
+    uint64_t frameSeed;
+};
+
+// Mirrors ispc::CandleISPCData - the Candle perNode flame simulation.
+struct MetalCandleData {
+    uint32_t width;
+    uint32_t height;
+    uint32_t maxWid;      // stride of the state array rows
+    uint32_t numStates;
+    uint64_t frameSeed;   // RenderBuffer::hashRandomFrameSeed() for this frame
+    int32_t  windVariability;
+    int32_t  flameAgility;
+    int32_t  windCalmness;
+    int32_t  windBaseline;
+    int32_t  usePalette;
+    simd::uchar4 c1;
+    simd::uchar4 c2;
+};
+
+// Mirrors ispc::LifeISPCData - Conway's Game of Life. The previous generation is
+// passed as a read-only pixel buffer (buffer 1); the palette (buffer 3) drives the
+// in-kernel GetMultiColorBlend(hashRand01(index)) birth colour.
+struct MetalLifeData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  npix;        // min(GetPixelCount(), width*height); a wrapped neighbour
+                          // whose linear index >= npix counts as black (matches the
+                          // scalar's GetTempPixelRGB bounds guard) and bounds the
+                          // uploaded previous-generation buffer.
+    int32_t  type;        // ruleset 0..4
+    int32_t  numColors;   // palette.Size() (>= 1)
+    uint64_t frameSeed;   // RenderBuffer::hashRandomFrameSeed() for this frame
+};
+
+// Twinkle effect — one thread per strobe entry advances the per-light state
+// (state array at buffer(1), stride-6 int32 = StrobeClass) and writes its unique
+// pixel from a CPU-built RGBA LUT (buffer(2)) whose brightness/color is computed
+// with the exact scalar double math, so the pure-integer kernel is byte-identical
+// to the scalar renderer. Mirrors ispc::TwinkleISPCData (+ curNumStrobe, used as
+// the Metal grid bound in place of ISPC's start/end args).
+struct MetalTwinkleData {
+    uint32_t width;         // BufferWi (pixel-index stride)
+    uint32_t npix;          // pixel-write bound (GetPixelCount())
+    uint32_t curNumStrobe;  // number of live strobe entries (grid bound)
+    int32_t  max_modulo;
+    int32_t  max_modulo2;
+    int32_t  colorcnt;
+    int32_t  lutStride;     // max_modulo + 1
+    int32_t  lutSize;       // colorcnt * lutStride
+    int32_t  new_algorithm;
+    int32_t  reRandomize;
+    uint64_t frameSeed;     // RenderBuffer::hashRandomFrameSeed() for this frame
+};
+
+// Meteors effect — axis-aligned styles only (Down/Up, Left/Right, Icicles). The CPU
+// keeps the sequential spawn/move/expire bookkeeping and snapshots the live meteors
+// into a device particle buffer bound at buffer(2); the kernel inverts the scatter
+// per output pixel (last covering meteor wins). Kept in lockstep with
+// MeteorsFunctions.metal / MeteorsFunctions.ispc. Radial styles stay on the CPU.
+struct MetalMeteorParticle {
+    int32_t a;      // primary axis coord: column (vertical/icicle) or row (horizontal)
+    int32_t base;   // meteor.y (vertical/icicle) or meteor.x (horizontal)
+    int32_t h;      // icicle drip length; 0 otherwise
+    float   hue;
+    float   sat;
+    float   val;
+};
+
+struct MetalMeteorsData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  mode;         // 0 = vertical, 1 = horizontal, 2 = icicle
+    int32_t  direction;    // raw MeteorsEffect: 0 Down, 1 Up, 2 Left, 3 Right, 6/7 Icicle
+    int32_t  tailLength;
+    int32_t  colorScheme;  // 0 = rainbow, 1 = range, 2 = palette
+    int32_t  allowAlpha;
+    int32_t  numMeteors;
+    int32_t  wantBkg;      // icicle: draw dim background icicles
+    uint64_t frameSeed;    // RenderBuffer::hashRandomFrameSeed() for the rainbow scheme
 };
 
 struct LayerBlendingData {

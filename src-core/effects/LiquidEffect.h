@@ -119,7 +119,7 @@ protected:
     void CreateBarrier(b2World* world, float x, float y, float width, float height);
     void Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors, int despeckle, float gravityX, float gravityY);
     bool LostForever(int x, int y, int w, int h, float gravityX, float gravityY);
-    void CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize, float& flowAccumulator, float dt, int maxParticles);
+    void CreateParticles(RenderBuffer& buffer, b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize, float& flowAccumulator, float dt, int maxParticles);
     void CreateParticleSystem(b2World* world, int lifetime, int size, int maxParticles);
     void Step(b2World* world, RenderBuffer& buffer, bool enabled[], int lifetime, const std::string& particleType, bool mixcolors,
               int x1, int y1, int direction1, int velocity1, int flow1, int sourceSize1, bool flowMusic1,

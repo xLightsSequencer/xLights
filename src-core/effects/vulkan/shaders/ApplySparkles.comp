@@ -1,0 +1,47 @@
+#version 450
+// Port of ApplySparkles in LayerBlendingFunctions.metal.  The sparkle
+// counters are uint16 values packed two per word; each thread owns exactly
+// one half-word, so the And/Or atomic pair updates it without disturbing
+// the neighbor.
+
+layout(local_size_x = 64) in;
+
+#include "blend_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) buffer Sparkles { uint sparkles[]; };
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= uint(data.nodeCount)) return;
+
+    uvec4 c = unpackPx(result[index]);
+    if (c.r != 0u || c.g != 0u || c.b != 0u) {
+        int sc = data.outputSparkleCount;
+        uint word = index >> 1u;
+        uint shift = (index & 1u) * 16u;
+        uint sparkle = (sparkles[word] >> shift) & 0xFFFFu;
+
+        switch (int(sparkle) % (208 - sc)) {
+            case 1:
+            case 7:
+                // too dim
+                break;
+            case 2:
+            case 6:
+                result[index] = packPx(ApplyBrightnessC(unpackPx(data.sparkleColor), 0.53));
+                break;
+            case 3:
+            case 5:
+                result[index] = packPx(ApplyBrightnessC(unpackPx(data.sparkleColor), 0.75));
+                break;
+            case 4:
+                result[index] = data.sparkleColor;
+                break;
+            default:
+                break;
+        }
+        atomicAnd(sparkles[word], ~(0xFFFFu << shift));
+        atomicOr(sparkles[word], ((sparkle + 1u) & 0xFFFFu) << shift);
+    }
+}

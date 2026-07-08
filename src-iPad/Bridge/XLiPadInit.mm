@@ -20,7 +20,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
-#include "graphics/GLContextManager.h"
 #include "osxUtils/MetalDeviceManager.h"
 #include "osxUtils/XLMetricKit.h"
 #include "render/SequenceMedia.h"
@@ -274,16 +273,8 @@ static void LogMachineConfig() {
     FileUtils::SetResourcesDir(std::string([resourcesPath UTF8String]));
     spdlog::info("Resources dir: {}", FileUtils::GetResourcesDir());
 
-    // Initialize MetalDeviceManager (needed for Metal compute effects and ANGLE GPU matching)
+    // Initialize MetalDeviceManager (needed for Metal compute effects)
     MetalDeviceManager::instance().retain();
-
-    // Initialize GLContextManager with ANGLE (Metal backend)
-    GLContextManager::InitParams glParams;
-    glParams.metalDeviceRegistryID = MetalDeviceManager::instance().getMTLDevice().registryID;
-    GLContextManager::Instance().Initialize(glParams);
-
-    spdlog::info("GLContextManager initialized with ANGLE Metal backend, device registry ID: {}",
-                 glParams.metalDeviceRegistryID);
 
     // Construct the AI ServiceManager + iPad settings store. Built-in
     // services (chatGPT, claude, ollama, gemini, GenericClient) are

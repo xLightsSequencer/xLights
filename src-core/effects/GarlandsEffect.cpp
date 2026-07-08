@@ -13,6 +13,9 @@
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
+#include "Parallel.h"
+
+#include "ispc/GarlandsFunctions.ispc.h"
 
 #include "../../include/garlands-16.xpm"
 #include "../../include/garlands-24.xpm"
@@ -81,7 +84,7 @@ void GarlandsEffect::adjustSettings(const std::string& version, Effect* effect, 
     }
 }
 
-int GetDirection(const std::string &direction) {
+int GarlandsEffect::GetDirection(const std::string &direction) {
     if ("Up" == direction) {
         return 0;
     } else if ("Down" == direction) {
@@ -111,9 +114,6 @@ void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     if (Spacing < 1) {
         Spacing = 1;
     }
-    int x,y,yadj,ylimit,ring;
-    double ratio;
-    xlColor color;
     int dir = GetDirection(SettingsMap.Get("CHOICE_Garlands_Direction", sDirectionDefault));
     double position = buffer.GetEffectTimeIntervalPosition(cycles);
     if (dir > 3) {
@@ -130,88 +130,51 @@ void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
         buffMax = buffer.BufferWi;
         garlandWid = buffer.BufferHt;
     }
-    double PixelSpacing=Spacing*buffMax/100.0;
-    if (PixelSpacing < 2.0) PixelSpacing=2.0;
-    
-    
+    if (buffMax < 1 || garlandWid < 1) {
+        return;
+    }
+    double PixelSpacing = Spacing * buffMax / 100.0;
+    if (PixelSpacing < 2.0) PixelSpacing = 2.0;
+
     double total = buffMax * PixelSpacing - buffMax + 1;
     double positionOffset = total * position;
-    
-    for (ring = 0; ring < buffMax; ring++)
-    {
-        ratio=double(buffMax-ring-1)/double(buffMax);
+
+    // The scalar renderer scattered one ring at a time; because the per-column
+    // ring->pixel map is strictly increasing (injective), the ISPC kernel inverts
+    // it per pixel. The per-ring blend colors and truncated y offsets are computed
+    // here with the exact scalar double math so the kernel is byte-identical.
+    std::vector<ispc::uint8_t4> colors(buffMax);
+    std::vector<int32_t> yb(buffMax);
+    xlColor color;
+    for (int ring = 0; ring < buffMax; ring++) {
+        double ratio = double(buffMax - ring - 1) / double(buffMax);
         buffer.GetMultiColorBlend(ratio, false, color);
-        
-        y = 1.0 + ring*PixelSpacing - positionOffset;
-        
-        
-        ylimit=ring;
-        for (x=0; x<garlandWid; x++)
-        {
-            yadj=y;
-            switch (GarlandType)
-            {
-                case 1:
-                    switch (x%5)
-                {
-                    case 2:
-                        yadj-=2;
-                        break;
-                    case 1:
-                    case 3:
-                        yadj-=1;
-                        break;
-                }
-                    break;
-                case 2:
-                    switch (x%5)
-                {
-                    case 2:
-                        yadj-=4;
-                        break;
-                    case 1:
-                    case 3:
-                        yadj-=2;
-                        break;
-                }
-                    break;
-                case 3:
-                    switch (x%6)
-                {
-                    case 3:
-                        yadj-=6;
-                        break;
-                    case 2:
-                    case 4:
-                        yadj-=4;
-                        break;
-                    case 1:
-                    case 5:
-                        yadj-=2;
-                        break;
-                }
-                    break;
-                case 4:
-                    switch (x%5)
-                {
-                    case 1:
-                    case 3:
-                        yadj-=2;
-                        break;
-                }
-                    break;
-            }
-            if (yadj < ylimit) yadj=ylimit;
-            if (yadj < buffMax) {
-                if (dir == 1 || dir == 2) {
-                    yadj = buffMax - yadj - 1;
-                }
-                if (dir > 1) {
-                    buffer.SetPixel(yadj,x,color);
-                } else {
-                    buffer.SetPixel(x,yadj,color);
-                }
-            }
-        }
+        colors[ring].v[0] = color.red;
+        colors[ring].v[1] = color.green;
+        colors[ring].v[2] = color.blue;
+        colors[ring].v[3] = color.alpha;
+        yb[ring] = (int)(1.0 + ring * PixelSpacing - positionOffset);
     }
+
+    ispc::GarlandsData gdata;
+    gdata.width = buffer.BufferWi;
+    gdata.height = buffer.BufferHt;
+    gdata.buffMax = buffMax;
+    gdata.garlandType = GarlandType;
+    gdata.dir = dir;
+    gdata.invPS = (float)(1.0 / PixelSpacing);
+    gdata.posOffOverPS = (float)(positionOffset / PixelSpacing);
+
+    // Bound the ISPC writes by the actual pixel allocation, not the logical
+    // dimensions: a variable sub-buffer can leave GetPixelCount() < BufferWi*BufferHt
+    // and the kernel writes result[index] with no bounds check.
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
+    constexpr int glBlockSize = 4096;
+    int blocks = max / glBlockSize + 1;
+    parallel_for(0, blocks, [&gdata, &colors, &yb, &buffer, max](int blk) {
+        int start = blk * glBlockSize;
+        int end = start + glBlockSize;
+        if (end > max) end = max;
+        ispc::GarlandsEffectISPC(&gdata, start, end, colors.data(), yb.data(), (ispc::uint8_t4*)buffer.GetPixels());
+    });
 }

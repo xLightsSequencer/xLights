@@ -11267,13 +11267,23 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
         ++layerRow;
     };
 
-    for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) {
+    auto effectiveLayers = [](Element* elem) -> int {
+        for (int j = (int)elem->GetEffectLayerCount() - 1; j >= 0; --j) {
+            if (elem->GetEffectLayer(j)->GetEffectCount() > 0)
+                return j + 1;
+        }
+        return 1;
+    };
+
+    int mainCount = effectiveLayers(me);
+    for (int j = 0; j < mainCount; ++j) {
         appendLayer(me->GetEffectLayer(j));
     }
     for (int s = 0; s < me->GetSubModelCount(); ++s) {
         SubModelElement* sub = me->GetSubModel(s);
         if (!sub) continue;
-        for (int j = 0; j < (int)sub->GetEffectLayerCount(); ++j) {
+        int subCount = effectiveLayers(sub);
+        for (int j = 0; j < subCount; ++j) {
             appendLayer(sub->GetEffectLayer(j));
         }
     }
@@ -11588,24 +11598,15 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (BOOL)abortRenderAndWait:(NSTimeInterval)timeoutSeconds {
     if (!_context) return YES;
-    // Signal every in-flight render job to bail. Workers test the
-    // abort flag at their next frame boundary, so this unblocks them
-    // within milliseconds for typical sequences.
-    _context->AbortRender();
-    // Spin-wait on IsRenderDone(). The poll interval is short because
-    // we're on the main thread here and want the UI to close promptly,
-    // but aborted jobs finish quickly so the expected case is one or
-    // two iterations. The timeout is a safety net — we'd rather force
-    // a late teardown than hang the app indefinitely on a stuck job.
-    NSDate* deadline = [NSDate dateWithTimeIntervalSinceNow:
-                        timeoutSeconds > 0 ? timeoutSeconds : 5.0];
-    while (!_context->IsRenderDone()) {
-        if ([[NSDate date] compare:deadline] == NSOrderedDescending) {
-            return NO;
-        }
-        [NSThread sleepForTimeInterval:0.01];
-    }
-    return YES;
+    // AbortRender signals every in-flight render job to bail and waits
+    // (up to the budget) for them to unwind. Workers test the abort
+    // flag at their next frame boundary, so the expected case returns
+    // within milliseconds; the timeout is a safety net — we'd rather
+    // force a late teardown than hang indefinitely on a stuck job.
+    // The budget must be passed through: the argless overload waits
+    // 60s, defeating the caller's timeout.
+    double budget = timeoutSeconds > 0 ? timeoutSeconds : 5.0;
+    return _context->AbortRender((int)(budget * 1000.0)) ? YES : NO;
 }
 
 - (void)handleMemoryWarning {

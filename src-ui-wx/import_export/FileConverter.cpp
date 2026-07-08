@@ -30,6 +30,7 @@
 
 
 #include "render/FSEQFile.h"
+#include "render/FSEQFileIO.h"
 #include "FileConverter.h"
 #include <pugixml.hpp>
 #include <sstream>
@@ -1418,83 +1419,17 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
     delete file;
 }
 
-static int compressMemoryBuffer(const wxMemoryOutputStream &out, uint8_t *outbuf, int max, void *pool) {
-    auto cctx = ZSTD_createCStream();
-    ZSTD_initCStream(cctx, 3);
-#ifndef LINUX
-    ZSTD_CCtx_refThreadPool(cctx, (POOL_ctx_s*)pool);
-#endif
-    
-    ZSTD_outBuffer output;
-    output.size = max;
-    output.dst = outbuf;
-    output.pos = 0;
-    
-    ZSTD_inBuffer input;
-    input.size = out.GetLength();
-    uint8_t *src = (uint8_t*)malloc(output.size);
-    input.src = src;
-    input.pos = 0;
-    
-    out.CopyTo(src, input.size);
-
-    ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_end);
-    free(src);
-    ZSTD_freeCStream(cctx);
-    return output.pos;
-}
-static int compressFile(std::vector<uint8_t> &data, const std::string &filepath, void *pool) {
-    std::ifstream ifs(filepath, std::ios::binary | std::ios::ate);
-    if (!ifs.is_open()) {
-        return 0;
-    }
-    
-    std::streampos fileSize = ifs.tellg();
-    ifs.seekg(0, std::ios::beg);
-    data.resize(fileSize);
-
-    auto cctx = ZSTD_createCStream();
-    ZSTD_initCStream(cctx, 3);
-#ifndef LINUX
-    ZSTD_CCtx_refThreadPool(cctx, (POOL_ctx_s*)pool);
-#endif
-    
-    ZSTD_outBuffer output;
-    output.size = fileSize;
-    output.dst = &data[0];
-    output.pos = 0;
-    
-    ZSTD_inBuffer input;
-    constexpr int BUFFER_SIZE = 128 * 1024;
-    std::vector<uint8_t> buffer(BUFFER_SIZE);
-    input.size = BUFFER_SIZE;
-    input.src = &buffer[0];
-    input.pos = 0;
-    
-    while (!ifs.eof()) {
-        ifs.read(reinterpret_cast<char*>(buffer.data()), BUFFER_SIZE);
-        input.size = ifs.gcount();
-        input.pos = 0;
-        while (input.pos < input.size) {
-            ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_continue);
-        }
-    }
-    ZSTD_compressStream2(cctx, &output, &input, ZSTD_e_end);
-
-    ZSTD_freeCStream(cctx);
-    data.resize(output.pos);
-    return output.pos;
-}
 void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 {
     spdlog::debug("Start fseq write");
 
-    bool isEffectSeq = params.xLightsFrm->CurrentSeqXmlFile != nullptr &&
+    bool isEffectSeq = params.xLightsFrm != nullptr &&
+                       params.xLightsFrm->CurrentSeqXmlFile != nullptr &&
                        params.xLightsFrm->CurrentSeqXmlFile->GetSequenceType() == "Effect";
 
-    const wxUint8 fType = params.xLightsFrm->_fseqVersion;
+    const wxUint8 fType = params.xLightsFrm ? params.xLightsFrm->_fseqVersion : 2;
     int vMajor = 2;
-    int clevel = 2;
+    int clevel = 3;
     bool allowSparse = false;
     FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
 
@@ -1523,212 +1458,79 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
         }
     }
 
-    FSEQFile *file = FSEQFile::createFSEQFile(params.out_filename, vMajor, ctype, clevel);
-    if (!file) {
+    FSEQFileIO::WriteOptions opts;
+    opts.version = vMajor;
+    opts.compression = ctype;
+    opts.compressionLevel = clevel;
+    // The frame wrapper (xLightsFrame::WriteFalconPiFile) fills params.ranges only
+    // when its caller allows sparse; honor that intent. FSEQFileIO recomputes the
+    // identical master-view ranges from params.elements.
+    opts.sparse = allowSparse && !params.ranges.empty();
+    opts.isEffectSeq = isEffectSeq;
+    opts.source = "xLights " + wxPlatformInfo::Get().GetOperatingSystemFamilyName() + " " + GetDisplayVersionString();
+    if (params.media_filename != nullptr && !params.media_filename->empty()) {
+        opts.mediaFile = *params.media_filename;
+    }
+
+    // Embed the rgbeffects (XR), network/outputs (XN), and sequence (XS) XML so
+    // the .fseq is self-describing. Use the on-disk file when there are no
+    // unsaved edits (the state the render used), else freshly built XML.
+    if (vMajor == 2 && params.elements != nullptr && params.xLightsFrm != nullptr) {
+        {
+            FSEQFileIO::EmbeddedBlob xr;
+            xr.code[0] = 'X';
+            xr.code[1] = 'R';
+            wxFileName effectsFile;
+            effectsFile.AssignDir(params.xLightsFrm->CurrentDir);
+            effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
+            const std::string rgbPath = effectsFile.GetFullPath().ToStdString();
+            if (!params.xLightsFrm->UnsavedRgbEffectsChanges && FileExists(rgbPath)) {
+                xr.filePath = rgbPath;
+            } else {
+                xr.xml = params.xLightsFrm->BuildEffectsXml();
+            }
+            opts.embedded.push_back(std::move(xr));
+        }
+        if (params._outputManager != nullptr) {
+            FSEQFileIO::EmbeddedBlob xn;
+            xn.code[0] = 'X';
+            xn.code[1] = 'N';
+            wxFileName networkFile;
+            networkFile.AssignDir(params.xLightsFrm->CurrentDir);
+            networkFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
+            const std::string netPath = networkFile.GetFullPath().ToStdString();
+            if (!params.xLightsFrm->UnsavedNetworkChanges && FileExists(netPath)) {
+                xn.filePath = netPath;
+            } else {
+                pugi::xml_document xmlDoc;
+                params._outputManager->SaveToXML(xmlDoc);
+                std::ostringstream oss;
+                xmlDoc.save(oss);
+                xn.xml = oss.str();
+            }
+            opts.embedded.push_back(std::move(xn));
+        }
+        if (params.xLightsFrm->CurrentSeqXmlFile != nullptr) {
+            FSEQFileIO::EmbeddedBlob xs;
+            xs.code[0] = 'X';
+            xs.code[1] = 'S';
+            const std::string xsqPath = params.xLightsFrm->CurrentSeqXmlFile->GetFullPath();
+            if (params.xLightsFrm->mSavedChangeCount == params.elements->GetChangeCount() && FileExists(xsqPath)) {
+                xs.filePath = xsqPath;
+            } else {
+                pugi::xml_document doc;
+                params.xLightsFrm->CurrentSeqXmlFile->BuildDocument(doc, *params.elements);
+                std::ostringstream oss;
+                doc.save(oss, "  ");
+                xs.xml = oss.str();
+            }
+            opts.embedded.push_back(std::move(xs));
+        }
+    }
+
+    if (!FSEQFileIO::Write(params.out_filename.ToStdString(), params.seq_data,
+                           params.elements, params.xLightsFrm, opts)) {
         params.ConversionError(wxString("Unable to create file: ") + params.out_filename + ". Check directory and file permissions.");
-        return;
     }
-    size_t stepSize = isEffectSeq ? params.seq_data.NumChannels() : roundTo4(params.seq_data.NumChannels());
-    wxUint16 stepTime = params.seq_data.FrameTime();
-    if (vMajor == 2) {
-        file->enableMinorVersionFeatures(2);
-    }
-    file->setChannelCount(stepSize);
-    file->setStepTime(stepTime);
-    file->setNumFrames(params.seq_data.NumFrames());
-    if (params.media_filename) {
-        if ((*params.media_filename).length() > 0) {
-            FSEQFile::VariableHeader header;
-            header.code[0] = 'm';
-            header.code[1] = 'f';
-            
-            int len = strlen((*params.media_filename).c_str()) + 1;
-            header.data.resize(len);
-            strcpy((char *)&header.data[0], params.media_filename->c_str());
-            file->addVariableHeader(header);
-        }
-    }
-    FSEQFile::VariableHeader header;
-    header.code[0] = 's';
-    header.code[1] = 'p';
-    std::string ver = "xLights " + wxPlatformInfo::Get().GetOperatingSystemFamilyName() + " " + GetDisplayVersionString();
-    int len = strlen(ver.c_str()) + 1;
-    header.data.resize(len);
-    strcpy((char *)&header.data[0], ver.c_str());
-    file->addVariableHeader(header);
-    
-    if (vMajor >= 2 && allowSparse && !params.ranges.empty()) {
-        for (auto &r : params.ranges) {
-            V2FSEQFile* v2file = (V2FSEQFile*)file;
-            v2file->m_sparseRanges.push_back(r);
-            spdlog::info("Sparse range - Start: {}  End: {}   Size: {}\n", r.first + 1, (r.first + r.second), r.second);
-        }
-    }
-    if (isEffectSeq) {
-        // Mark file as an effect sequence so FPP upload can distinguish
-        // effect sequences from regular sparse files
-        FSEQFile::VariableHeader esHeader;
-        esHeader.code[0] = 'e';
-        esHeader.code[1] = 'S';
-        esHeader.data.push_back(1); // version/flag byte
-        file->addVariableHeader(esHeader);
-    }
-    if (vMajor == 2 && params.elements) {
-        for (int x = 0; x < params.elements->GetNumberOfTimingElements(); x++) {
-            TimingElement *te = params.elements->GetTimingElement(x);
-            if (te->GetSubType() == "FPP Commands" || te->GetSubType() == "FPP Effects") {
-                std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> commands;
-                for (int l = 0; l < (int)te->GetEffectLayerCount(); l++) {
-                    EffectLayer *layer = te->GetEffectLayer(l);
-                    for (auto & eff : layer->GetAllEffects()) {
-                        commands[eff->GetEffectName()].push_back(std::make_pair(eff->GetStartTimeMS(), eff->GetEndTimeMS()));
-                    }
-                }
-                int totalLen = 3; // 1 byte ver, 2 byte count
-                std::string fppInstances = ""; // null terminated list of hosts these apply to. (not yet used)
-                totalLen += fppInstances.size() + 1;
-                for (auto &a : commands) {
-                    totalLen += a.first.length() + 1 + 4; // null plus count
-                    totalLen += a.second.size() * 8;
-                }
-                FSEQFile::VariableHeader commandHeader;
-                commandHeader.extendedData = true;
-                commandHeader.code[0] = 'F';
-                if (te->GetSubType() == "FPP Effects") {
-                    commandHeader.code[1] = 'E';
-                } else {
-                    commandHeader.code[1] = 'C';
-                }
-                commandHeader.data.resize(totalLen);
-                uint8_t *data = &commandHeader.data[0];
-                data[0] = 1; //version flag
-                uint32_t *t2 = (uint32_t*)&data[1];
-                *t2 = (uint32_t)commands.size();
-                strcpy((char *)&data[5], fppInstances.c_str());
-                data += 6 + fppInstances.size();
-                for (auto &a : commands) {
-                    std::string c = a.first;
-                    uint32_t count = a.second.size();
-
-                    strcpy((char*)data, c.c_str());
-                    data += c.length() + 1;
-                    uint32_t *t = (uint32_t*)data;
-                    *t = count;
-                    data += 4;
-                    ++t;
-                    for (size_t x = 0; x < count; ++x) {
-                        uint32_t sframe = a.second[x].first;
-                        uint32_t eframe = a.second[x].second;
-                        sframe /= stepTime;
-                        eframe /= stepTime;
-                        *t = sframe;
-                        ++t;
-                        *t = eframe;
-                        ++t;
-                    }
-                    data += count * 8;
-                }
-                file->addVariableHeader(commandHeader);
-            }
-        }
-        if (params.xLightsFrm) {
-#ifndef LINUX
-            POOL_ctx_s* pool = ZSTD_createThreadPool(std::thread::hardware_concurrency());
-#else
-            void *pool = nullptr;
-#endif
-            if (params.xLightsFrm) {
-                FSEQFile::VariableHeader header;
-                header.code[0] = 'X';
-                header.code[1] = 'R';
-                header.extendedData = true;
-                if (!params.xLightsFrm->UnsavedRgbEffectsChanges) {
-                    wxFileName effectsFile;
-                    effectsFile.AssignDir(params.xLightsFrm->CurrentDir);
-                    effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
-                    wxFileName fn(effectsFile.GetFullPath());
-                    if (FileExists(fn.GetFullPath())) {
-                        compressFile(header.data, fn.GetFullPath().ToStdString(), pool);
-                    }
-                }
-                if (header.data.size() == 0) {
-                    auto xml = params.xLightsFrm->BuildEffectsXml();
-                    wxMemoryOutputStream out;
-                    size_t len = xml.length();
-                    out.Write(xml.c_str(), len);
-                    header.data.resize(out.GetLength());
-                    int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
-                    header.data.resize(sz);
-                }
-                file->addVariableHeader(header);
-                // printf("XR:   in: %d   out: %d\n", (int)out.GetLength(), sz);
-            }
-            if (params._outputManager) {
-                FSEQFile::VariableHeader header;
-                header.code[0] = 'X';
-                header.code[1] = 'N';
-                header.extendedData = true;
-                if (!params.xLightsFrm->UnsavedNetworkChanges) {
-                    wxFileName effectsFile;
-                    effectsFile.AssignDir(params.xLightsFrm->CurrentDir);
-                    effectsFile.SetFullName(_(XLIGHTS_NETWORK_FILE));
-                    wxFileName fn(effectsFile.GetFullPath());
-                    if (FileExists(fn.GetFullPath())) {
-                        compressFile(header.data, fn.GetFullPath().ToStdString(), pool);
-                    }
-                }
-                if (header.data.size() == 0) {
-                    pugi::xml_document xmlDoc;
-                    params._outputManager->SaveToXML(xmlDoc);
-                    std::ostringstream oss;
-                    xmlDoc.save(oss);
-                    std::string xmlStr = oss.str();
-                    wxMemoryOutputStream out;
-                    out.Write(xmlStr.data(), xmlStr.size());
-                    header.data.resize(out.GetLength());
-                    int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
-                    header.data.resize(sz);
-                }
-                file->addVariableHeader(header);
-            }
-            if (params.xLightsFrm && params.xLightsFrm->CurrentSeqXmlFile) {
-                wxMemoryOutputStream out;
-                FSEQFile::VariableHeader header;
-                header.code[0] = 'X';
-                header.code[1] = 'S';
-                header.extendedData = true;
-
-                if (params.xLightsFrm->mSavedChangeCount == params.elements->GetChangeCount()) {
-                    if (FileExists(params.xLightsFrm->CurrentSeqXmlFile->GetFullPath())) {
-                        compressFile(header.data, params.xLightsFrm->CurrentSeqXmlFile->GetFullPath(), pool);
-                    }
-                }
-                if (header.data.size() == 0) {
-                    pugi::xml_document doc;
-                    params.xLightsFrm->CurrentSeqXmlFile->BuildDocument(doc, *params.elements);
-                    std::ostringstream oss;
-                    doc.save(oss, "  ");
-                    std::string xmlStr = oss.str();
-                    out.Write(xmlStr.data(), xmlStr.size());
-                    header.data.resize(out.GetLength());
-                    int sz = compressMemoryBuffer(out, &header.data[0], out.GetLength(), pool);
-                    header.data.resize(sz);
-                }
-                file->addVariableHeader(header);
-                // printf("XS:   in: %d   out: %d\n", (int)out.GetLength(), sz);
-            }
-#ifndef LINUX
-            ZSTD_freeThreadPool(pool);
-#endif
-        }
-    }
-
-    file->writeHeader();
-    size_t size = params.seq_data.NumFrames();
-    for (int x = 0; x < (int)size; x++) {
-        file->addFrame(x, &params.seq_data[x][0]);
-    }
-    file->finalize();
-    delete file;
     spdlog::debug("End fseq write");
 }

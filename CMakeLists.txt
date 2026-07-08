@@ -353,6 +353,51 @@ file(GLOB SRC_EFFECTS
     src-core/effects/*.cpp
     src-core/effects/ispc/ISPCComputeUtilities.cpp
 )
+
+# ─── Vulkan compute backend (Linux/Windows analogue of the Metal backend) ───
+# Headers/loader come from the vendored submodules; volk dlopens the Vulkan
+# loader at runtime, so there is no link-time dependency and machines without
+# Vulkan silently fall back to the CPU render paths.
+option(XLIGHTS_USE_VULKAN "Enable the Vulkan GPU compute render backend" ON)
+set(XLIGHTS_VULKAN_ENABLED FALSE)
+# Linux + Windows (CMake).  Apple uses Metal.  The MSBuild .vcxproj still lacks
+# the glslc CustomBuild + ClCompile entries, so the .sln build stays CPU-only;
+# only the CMake path builds the Vulkan backend on Windows.
+if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
+    list(APPEND SRC_EFFECTS
+        src-core/effects/vulkan/VulkanComputeUtilities.cpp
+        src-core/effects/vulkan/VulkanGraphicsUtilities.cpp
+        src-core/effects/vulkan/VulkanShaderTranslate.cpp
+        src-core/effects/vulkan/VulkanEffectManager.cpp
+        src-core/effects/vulkan/VulkanLibs.cpp
+        src-core/effects/vulkan/VulkanBarsEffect.cpp
+        src-core/effects/vulkan/VulkanColorWashEffect.cpp
+        src-core/effects/vulkan/VulkanShockwaveEffect.cpp
+        src-core/effects/vulkan/VulkanFanEffect.cpp
+        src-core/effects/vulkan/VulkanSpiralsEffect.cpp
+        src-core/effects/vulkan/VulkanGalaxyEffect.cpp
+        src-core/effects/vulkan/VulkanCirclesEffect.cpp
+        src-core/effects/vulkan/VulkanPlasmaEffect.cpp
+        src-core/effects/vulkan/VulkanButterflyEffect.cpp
+        src-core/effects/vulkan/VulkanPinwheelEffect.cpp
+        src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp
+        src-core/effects/vulkan/VulkanWarpEffect.cpp
+        src-core/effects/vulkan/VulkanTreeEffect.cpp
+        src-core/effects/vulkan/VulkanShimmerEffect.cpp
+        src-core/effects/vulkan/VulkanCandleEffect.cpp
+        src-core/effects/vulkan/VulkanWaveEffect.cpp
+        src-core/effects/vulkan/VulkanGarlandsEffect.cpp
+        src-core/effects/vulkan/VulkanFillEffect.cpp
+        src-core/effects/vulkan/VulkanMeteorsEffect.cpp
+        src-core/effects/vulkan/VulkanTwinkleEffect.cpp
+        src-core/effects/vulkan/VulkanLifeEffect.cpp
+        # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
+        src-core/graphics/vulkan/VulkanPipelineCache.cpp
+        src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp
+        src-core/effects/vulkan/VulkanShaderEffect.cpp)
+    set(XLIGHTS_VULKAN_ENABLED TRUE)
+endif()
+
 # ─── ISPC (Intel SPMD Program Compiler — SIMD kernels) ──────────────────────
 # Visual Studio generators do not support enable_language(ISPC).
 # Use it on Linux/macOS (Ninja/Makefile), fall back to add_custom_command on VS.
@@ -422,6 +467,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/xLightsApp.cpp
     src-ui-wx/xLightsMain.cpp
     src-ui-wx/CommandPaletteDialog.cpp
+    src-ui-wx/EffectSymbolDialog.cpp
     src-ui-wx/ai/*.cpp
     src-ui-wx/app-shell/*.cpp
     src-ui-wx/automation/*.cpp
@@ -435,6 +481,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/graphics/opengl/xlOGL3GraphicsContext.cpp
     src-ui-wx/graphics/wxTextDrawingContext.cpp
     src-ui-wx/import_export/*.cpp
+    src-ui-wx/klightmapper/*.cpp
     src-ui-wx/layout/*.cpp
     src-ui-wx/media/*.cpp
     src-ui-wx/model/*.cpp
@@ -449,6 +496,10 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/shared/utils/*.cpp
     src-ui-wx/support/*.cpp
 )
+
+if(XLIGHTS_VULKAN_ENABLED)
+    list(APPEND SRC_UI src-ui-wx/graphics/vulkan/xlVulkanCanvas.cpp)
+endif()
 
 # macOS-only Objective-C++ helper for the command palette (SF Symbols / colors).
 # Must be appended after the glob: file(GLOB) does not evaluate generator
@@ -549,6 +600,54 @@ target_include_directories(xLights PRIVATE
     ${ZSTD_INC}
     ${CURL_INC}
 )
+
+if(XLIGHTS_VULKAN_ENABLED)
+    target_compile_definitions(xLights PRIVATE HAVE_VULKAN VK_NO_PROTOTYPES)
+    target_include_directories(xLights PRIVATE
+        ${XL_DEPS}/Vulkan-Headers/include
+        ${XL_DEPS}/volk
+        ${XL_DEPS}/VulkanMemoryAllocator/include)
+
+    # The native Vulkan Shader effect (graphics-pipeline path + glslang
+    # GLSL->SPIR-V) is Linux-only for now.  Windows Vulkan is compute-only until
+    # the glslang packaging/link is sorted there (the SDK's glslang lib set
+    # varies by version); HAVE_VULKAN_SHADER gates the shader/graphics sources and
+    # their references so the Windows builds link cleanly without them.
+    if(UNIX AND NOT APPLE)
+        target_compile_definitions(xLights PRIVATE HAVE_VULKAN_SHADER)
+        # glslang from the vendored static build's install prefix (produced by the
+        # Makefile `glslang` target).  Only-if-found so the lean build
+        # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.
+        target_include_directories(xLights PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/include)
+        foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent)
+            find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
+            if(GLSLANG_${_gl}_LIB)
+                target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
+            endif()
+        endforeach()
+    endif()
+
+    # Compile the .comp compute kernels into the SPIR-V headers the vulkan/
+    # sources #include.  These are generated (gitignored), not committed —
+    # glslc is a build tool here, like ispc for the .ispc kernels.
+    find_program(GLSLC_EXECUTABLE glslc HINTS $ENV{VULKAN_SDK}/Bin $ENV{VULKAN_SDK}/bin)
+    if(NOT GLSLC_EXECUTABLE)
+        message(FATAL_ERROR
+            "glslc not found — required to build the Vulkan compute backend.\n"
+            "Install it (Ubuntu/Debian: apt-get install glslc; or the Vulkan SDK)\n"
+            "or reconfigure with -DXLIGHTS_USE_VULKAN=OFF.")
+    endif()
+    file(GLOB _vulkan_comp CONFIGURE_DEPENDS
+        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp
+        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.vert
+        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.frag)
+    add_custom_target(vulkan_shaders
+        COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
+                bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
+        SOURCES ${_vulkan_comp}
+        COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
+    add_dependencies(xLights vulkan_shaders)
+endif()
 
 # ─── zlib ───────────────────────────────────────────────────────────────────
 if(NOT XLIGHTS_USE_VCPKG)
@@ -725,6 +824,36 @@ else()
     endif()
 endif()
 
+if(WIN32 OR (UNIX AND NOT APPLE))
+    if(WIN32)
+        set(KLM_FETCH powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_dependencies.ps1")
+        set(KLM_LIB_HINTS ${XL_LIB}/windows64)
+    else()
+        set(KLM_FETCH bash "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_klightmapper.sh")
+        set(KLM_LIB_HINTS ${XL_LIB}/linux)
+    endif()
+    execute_process(COMMAND ${KLM_FETCH}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        RESULT_VARIABLE KLM_FETCH_RC)
+    if(NOT KLM_FETCH_RC EQUAL 0)
+        message(FATAL_ERROR "KLightMapper: required dependency fetch failed (rc=${KLM_FETCH_RC}). "
+                            "Check network access to github.com/KulpLights/KLightMapper.")
+    endif()
+    # The fetch just staged the files; drop any stale NOTFOUND cache before locating.
+    unset(KLM_LIB CACHE)
+    unset(KLM_INC CACHE)
+    find_library(KLM_LIB NAMES klightmapper HINTS ${KLM_LIB_HINTS})
+    find_path(KLM_INC NAMES klm/scan_api.h
+        HINTS ${XL_INC}/klightmapper ${XL_DEPS}/klightmapper/include)
+    if(NOT KLM_LIB OR NOT KLM_INC)
+        message(FATAL_ERROR "KLightMapper: lib/headers missing after fetch (lib=${KLM_LIB} inc=${KLM_INC}).")
+    endif()
+    message(STATUS "KLightMapper: ${KLM_LIB}")
+    target_include_directories(xLights PRIVATE ${KLM_INC})
+    target_link_libraries(xLights PRIVATE ${KLM_LIB})
+endif()
+
 # hidapi
 if(XLIGHTS_USE_VCPKG)
     find_package(hidapi CONFIG REQUIRED)
@@ -744,6 +873,14 @@ if(WIN32)
     # ANGLE canvas would render black.
     if(XLIGHTS_USE_ANGLE AND NOT APPLE)
         target_link_options(xLights PRIVATE "/DEFAULTLIB:opengl32.lib" "/DEFAULTLIB:glu32.lib")
+        # wxWidgets' monolithic lib embeds its own /DEFAULTLIB:opengl32 directive,
+        # so opengl32 is pulled in for the wgl* entry points regardless of the
+        # REMOVE_ITEM above.  Its GL 1.1 exports (glPointSize / glColor4f /
+        # glNormal3f / glGetBooleanv) then collide with ANGLE's libGLESv2
+        # (LNK2005).  /FORCE:MULTIPLE keeps the first — explicit → libGLESv2 —
+        # definition so ANGLE wins (matching the runtime backend), while opengl32
+        # still supplies the unique wgl* symbols wx's GL-canvas code needs.
+        target_link_options(xLights PRIVATE "/FORCE:MULTIPLE")
     endif()
     if(NOT XLIGHTS_USE_VCPKG)
         # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs
@@ -877,9 +1014,6 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/effectmetadata"
             "$<TARGET_FILE_DIR:xLights>/effectmetadata"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/bin64/Vamp"
-            "$<TARGET_FILE_DIR:xLights>/Vamp"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/prompts"
             "$<TARGET_FILE_DIR:xLights>/prompts"

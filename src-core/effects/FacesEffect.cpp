@@ -210,7 +210,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     // - Face chosen or specific phoneme
     if (phoneme == "" && timing == "") {
         res.push_back(fmt::format("    ERR: Face effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (timing != "" && GetTiming(timing) == nullptr) {
+    } else if (timing != "" && GetTiming(timing, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()) == nullptr) {
         res.push_back(fmt::format("    ERR: Face effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
@@ -611,7 +611,7 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
-        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
+        cache = new FacesRenderCache(buffer.randInt(0, maxEyeDelay));
         buffer.infoCache[id] = cache;
     }
 
@@ -631,7 +631,7 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
             if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                 //calculate the blink time taking into account user selection
                 int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
-                cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                 cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                 eye = "Closed";
             } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -852,7 +852,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
-        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
+        cache = new FacesRenderCache(buffer.randInt(0, maxEyeDelay));
 
         buffer.infoCache[id] = cache;
     }
@@ -982,7 +982,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                     //calculate the blink time taking into account user selection
                     int maxEyeDelay = GetMaxEyeDelay( eyeBlinkFreq );
-                    cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                    cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -1036,7 +1036,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                     if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                         if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
                             // don't want to blink RIGHT at the start of the rest, delay a little bit
-                            int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + intRand(150, 549);
+                            int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + buffer.randInt(150, 549);
 
                             // also don't want it right at the end
                             if ((tmp + 130) > endms) {
@@ -1048,7 +1048,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                             //calculate the blink time taking into account user selection
                             int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
                             int EyeBlinkDuration = GetEyeBlinkDuration(eyeBlinkDuration);
-                            cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                            cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                             cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + EyeBlinkDuration + 1; // 100ms blink
                             eyes = "Closed";
                         }
@@ -1066,7 +1066,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                     //calculate the blink time, taking into account user selection
                     int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
                     int EyeBlinkDuration = GetEyeBlinkDuration(eyeBlinkDuration);
-                    cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                    cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + EyeBlinkDuration + 1; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {

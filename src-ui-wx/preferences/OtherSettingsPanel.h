@@ -32,14 +32,12 @@ class OtherSettingsPanel: public wxPanel
 
 		//(*Declarations(OtherSettingsPanel)
 		//*)
+		// Hand-added (outside the wxSmith guards): preview graphics backend
+		// selector, only present on builds with the Vulkan backend compiled in.
+		wxChoice* GraphicsBackendChoice = nullptr;
 
         virtual bool TransferDataFromWindow() override;
         virtual bool TransferDataToWindow() override;
-
-	protected:
-
-		//(*Identifiers(OtherSettingsPanel)
-		//*)
 
 	private:
         xLightsFrame *frame;

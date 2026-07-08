@@ -143,11 +143,16 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
     }
 }
 
+// owner gates the scatter: several nodes can map to the same pixel, and
+// concurrent GPU threads racing for it made the result non-deterministic.
+// Only the owning node (last in Nodes order, matching the serial CPU loop)
+// writes the shared pixel.
 kernel void PutColorsForNodes(constant LayerBlendingData &data,
                               device uchar4* result,
                               const device uchar4* src,
                               const constant uchar*  mask,
                               const device int32_t *indexes,
+                              const device int32_t *owner,
                               uint index [[thread_position_in_grid]])
 {
     if (index >= (uint)data.nodeCount) return;
@@ -159,6 +164,7 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
         int cnt = indexes[idx++];
         for (int n = 0; n < cnt; n++) {
             int nidx = indexes[idx + n];
+            if (owner[nidx] != (int32_t)index) continue;
             int32_t x = nidx / data.bufferHi;
             int32_t y = nidx - (x * data.bufferHi);
             int32_t midx = x * data.bufferHi + y;
@@ -168,6 +174,8 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
                 result[nidx] = src[index];
             }
         }
+    } else if (owner[idx] != (int32_t)index) {
+        // another node owns this pixel
     } else if (data.useMask) {
         int32_t x = idx / data.bufferHi;
         int32_t y = idx - (x * data.bufferHi);

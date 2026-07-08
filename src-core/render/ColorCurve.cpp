@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <string_view>
 
@@ -321,18 +322,34 @@ xlColor ColorCurve::GetValueAt(float offset) const
             if (offset == pt->x) return c2;
         }
 
+        // Deterministic stand-in for rand(): keyed on the evaluation offset
+        // and the segment colors, so a render reproduces run to run while the
+        // color still varies as the offset moves through the effect.
+        auto hashRand01 = [offset, &c1, &c2](uint32_t salt) {
+            uint32_t ob;
+            std::memcpy(&ob, &offset, sizeof(ob));
+            uint64_t h = 0x9E3779B97F4A7C15ULL ^ ob;
+            h = (h ^ c1.GetRGBA()) * 0xFF51AFD7ED558CCDULL;
+            h = (h ^ c2.GetRGBA()) * 0xC2B2AE3D27D4EB4FULL;
+            h = (h ^ salt) * 0xFF51AFD7ED558CCDULL;
+            h ^= h >> 33;
+            h *= 0xC2B2AE3D27D4EB4FULL;
+            h ^= h >> 29;
+            return (h >> 11) * (1.0 / 9007199254740992.0);
+        };
+
         // handle black & white differently
         if (c1.Red() == c1.Green() && c1.Green() == c1.Blue() && c2.Red() == c2.Green() && c2.Green() == c2.Blue())
         {
-            double r = rand01();
+            double r = hashRand01(0);
             return xlColor(r * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
                            r * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
                            r * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
         }
 
-        return xlColor(rand01() * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
-                       rand01() * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
-                       rand01() * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
+        return xlColor(hashRand01(1) * std::abs((float)c1.Red() - (float)c2.Red()) + std::min(c1.Red(), c2.Red()),
+                       hashRand01(2) * std::abs((float)c1.Green() - (float)c2.Green()) + std::min(c1.Green(), c2.Green()),
+                       hashRand01(3) * std::abs((float)c1.Blue() - (float)c2.Blue()) + std::min(c1.Blue(), c2.Blue()));
     }
 
     return xlBLACK;

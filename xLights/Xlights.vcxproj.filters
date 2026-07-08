@@ -62,6 +62,8 @@
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\model\GenerateCustomModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\klightmapper\KLightMapperBridge_win.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
@@ -87,6 +89,9 @@
     <ClCompile Include="..\src-ui-wx\layout\PreviewPane.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RenameTextDialog.cpp" />
     <ClCompile Include="..\src-core\render\RenderEngine.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\xLightsShowContext.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\ModelGifExporter.cpp">
@@ -148,6 +153,9 @@
     <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
+    <ClCompile Include="..\src-core\render\HeadlessRenderContext.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />
@@ -188,6 +196,9 @@
     <ClCompile Include="..\src-ui-wx\setup\MultiControllerUploadDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\wxModelGridCellRenderer.cpp" />
     <ClCompile Include="..\src-core\render\FSEQFile.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\FSEQFileIO.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\PathGenerationDialog.cpp" />
@@ -419,6 +430,12 @@
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\sequencer\NoteRangeDialog.cpp" />
     <ClCompile Include="..\src-core\effects\ShaderEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\SPIRVShaderEffect.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\ShaderSourceTransforms.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\ShapeEffect.cpp">
@@ -715,6 +732,15 @@
     </ClCompile>
     <ClCompile Include="..\src-core\render\Effect.cpp">
       <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\EffectSymbol.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\EffectSymbolManager.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\EffectSymbolDialog.cpp">
+      <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\sequencer\EffectDropTarget.cpp">
       <Filter>sequencer</Filter>
@@ -1107,6 +1133,78 @@
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp">
       <Filter>Effects\ispc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanLibs.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanComputeUtilities.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanEffectManager.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanBarsEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanButterflyEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanCandleEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanCirclesEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanColorWashEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFanEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFillEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGalaxyEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanGarlandsEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanKaleidoscopeEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanLifeEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanMeteorsEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanPinwheelEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanPlasmaEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShimmerEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanShockwaveEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanSpiralsEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanTreeEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanTwinkleEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanWarpEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanWaveEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\ServicesPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -1371,6 +1469,15 @@
     <ClCompile Include="..\src-core\utils\NodeUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.cpp" />
+    <ClCompile Include="..\src-core\graphics\vulkan\VulkanPipelineCache.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\graphics\vulkan\xlVulkanGraphicsContext.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\wxTextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\color\wxColorCurveButton.cpp" />
@@ -1464,6 +1571,8 @@
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
     <ClInclude Include="..\src-ui-wx\model\GenerateCustomModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\CustomModelMethodPickerDialog.h" />
+    <ClInclude Include="..\src-ui-wx\klightmapper\KLightMapperBridge.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
@@ -1837,6 +1946,12 @@
     <ClInclude Include="..\src-core\effects\ShaderEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\effects\SPIRVShaderEffect.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ShaderSourceTransforms.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ShapeEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
@@ -2130,6 +2245,15 @@
     <ClInclude Include="..\src-core\render\Effect.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\EffectSymbol.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\EffectSymbolManager.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\EffectSymbolDialog.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\sequencer\EffectDropTarget.h">
       <Filter>sequencer</Filter>
     </ClInclude>
@@ -2156,6 +2280,8 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SongStructureManager.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2517,6 +2643,15 @@
     <ClInclude Include="..\src-core\effects\ispc\ISPCComputeUtilities.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanComputeUtilities.h">
+      <Filter>Effects\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanEffects.h">
+      <Filter>Effects\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\vulkan\VulkanEffectDataTypes.h">
+      <Filter>Effects\vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -2742,6 +2877,36 @@
     <ClInclude Include="..\src-core\effects\ispc\SpiralsFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\GalaxyFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\MeteorsFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\GarlandsFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\FillFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\TreeFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\TwinkleFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\ShimmerFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\CandleFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\LifeFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\WaveFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\WarpFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -2889,6 +3054,21 @@
     <ClInclude Include="..\src-core\utils\NodeUtils.h" />
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\IVulkanCanvas.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\graphics\vulkan\VulkanFrameData.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\graphics\vulkan\VulkanPipelineCache.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\graphics\vulkan\xlVulkanGraphicsContext.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\color\wxColorCurveButton.h" />
     <ClInclude Include="..\src-ui-wx\color\wxColorCurveRenderer.h" />
     <ClInclude Include="..\src-ui-wx\support\EzGrid.h" />
@@ -2986,8 +3166,14 @@
     <Filter Include="graphics\opengl\GL">
       <UniqueIdentifier>{6ee588bc-dc96-462e-b373-e36fbb8a27e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="graphics\vulkan">
+      <UniqueIdentifier>{8d469b33-0cc9-59c0-b0a4-a3581ef86bcf}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Effects\ispc">
       <UniqueIdentifier>{6b247f11-eaa7-479e-9e82-e1369cd64fad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects\vulkan">
+      <UniqueIdentifier>{7c358a22-fbb8-48af-af93-f2470de75abe}</UniqueIdentifier>
     </Filter>
     <Filter Include="Prompts">
       <UniqueIdentifier>{22d4d199-c5a9-4be6-8413-da0802e96e06}</UniqueIdentifier>
@@ -3069,6 +3255,36 @@
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\SpiralsFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\GalaxyFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\MeteorsFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\GarlandsFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\FillFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\TreeFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\TwinkleFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\ShimmerFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\CandleFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\LifeFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\WaveFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc">

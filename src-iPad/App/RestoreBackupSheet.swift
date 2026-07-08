@@ -82,10 +82,12 @@ struct RestoreBackupSheet: View {
                 presenting: restoreTarget
             ) { snap in
                 Button("Restore", role: .destructive) {
-                    if viewModel.restoreBackup(snap) {
-                        dismiss()
-                    } else {
-                        failureMessage = "Could not restore \(snap.fileName)."
+                    Task { @MainActor in
+                        if await viewModel.restoreBackup(snap) {
+                            dismiss()
+                        } else {
+                            failureMessage = "Could not restore \(snap.fileName)."
+                        }
                     }
                 }
                 Button("Cancel", role: .cancel) { }

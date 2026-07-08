@@ -99,7 +99,7 @@ static void SnowstormAdvance(RenderBuffer& buffer, SnowstormClass& ssItem)
     const int arr[] = { 30,20,10,5,0,5,10,20,20,15,10,10,10,10,10,15 }; // 2 sets of 8 numbers, each of which add up to 100
     xlPoint adv = SnowstormVector(7);
     int i0 = ssItem.idx % 7 <= 4 ? 0 : cnt;
-    int r = rand() % 100;
+    int r = buffer.randInt(0, 99);
     for (int i = 0, val = 0; i < cnt; i++)
     {
         val += arr[i0 + i];
@@ -167,11 +167,11 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
             buffer.SetRangeColor(hsv0, hsv1, ssItem.hsv);
 
             // start in a random state
-            int r = rand() % (2 * TailLength);
+            int r = buffer.randInt(0, 2 * TailLength - 1);
             if (r > 0) {
                 xlPoint xy;
-                xy.x = rand() % buffer.BufferWi;
-                xy.y = rand() % buffer.BufferHt;
+                xy.x = buffer.randInt(0, buffer.BufferWi - 1);
+                xy.y = buffer.randInt(0, buffer.BufferHt - 1);
                 ssItem.points.push_back(xy);
             }
             if (r >= TailLength) {
@@ -202,18 +202,18 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
                 it.points.clear();  // start over
                 it.ssDecay = 0;
             }
-            else if (rand() % 20 < sSpeed) {
+            else if (buffer.randInt(0, 19) < sSpeed) {
                 it.ssDecay++;
             }
         }
 
         if (it.points.empty()) {
             xlPoint xy;
-            xy.x = rand() % buffer.BufferWi;
-            xy.y = rand() % buffer.BufferHt;
+            xy.x = buffer.randInt(0, buffer.BufferWi - 1);
+            xy.y = buffer.randInt(0, buffer.BufferHt - 1);
             it.points.push_back(xy);
         }
-        else if (rand() % 20 < sSpeed) {
+        else if (buffer.randInt(0, 19) < sSpeed) {
             SnowstormAdvance(buffer, it);
         }
 

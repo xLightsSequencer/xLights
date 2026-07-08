@@ -69,6 +69,9 @@
 #include "render/GPURenderUtils.h"
 #include "render/SequenceMedia.h"
 #include "render/SequencePackage.h"
+#include "render/EffectSymbol.h"
+#include "render/EffectSymbolManager.h"
+#include "EffectSymbolDialog.h"
 #include "shared/utils/wxUtilities.h"
 #include "graphics/wxTextDrawingContext.h"
 #ifdef LINUX
@@ -78,10 +81,8 @@
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include "model/GenerateCustomModelDialog.h"
-#ifdef __APPLE__
-#include "mac/CustomModelMethodPickerDialog.h"
-#include "mac/KLightMapperBridge.h"
-#endif
+#include "klightmapper/CustomModelMethodPickerDialog.h"
+#include "klightmapper/KLightMapperBridge.h"
 #include "sequencer/GenerateLyricsDialog.h"
 #include "layout/HousePreviewPanel.h"
 #include "setup/IPEntryDialog.h"
@@ -333,6 +334,8 @@ const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_PRESETS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_EFFECTSYMBOLS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_CONVERTSYMBOLS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_FINDDATA = wxNewId();
@@ -640,10 +643,6 @@ xLightsFrame *xLightsFrame::GetFrame() {
 xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
     _presetSequenceElements(this),
     _renderMode(renderOnlyMode),
-    jobPool("RenderPool"),
-    _sequenceElements(this),
-    AllModels(&_outputManager, static_cast<RenderContext*>(this)),
-    AllObjects(static_cast<RenderContext*>(this)),
     color_mgr(this)
 {
     
@@ -710,10 +709,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             return ctx ? (void*)ctx->GetGLRC() : nullptr;
         };
 #elif defined(__APPLE__)
-        // macOS: tell ANGLE to use the same Metal GPU as the compute effects
-#ifdef USE_GLES
-        glParams.metalDeviceRegistryID = GetMetalComputeDeviceRegistryID();
-#endif
+        // macOS: CGL is self-contained; no callbacks needed.
 #else
         // Linux: GLContextManager creates its own pure GLX+Pbuffer contexts,
         // completely independent of the wx canvas hierarchy.
@@ -1090,6 +1086,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu3->AppendSeparator();
     MenuItem_ColorReplace = new wxMenuItem(Menu3, ID_MNU_COLOURREPLACE, _("Color Replace"), wxEmptyString, wxITEM_NORMAL);
     Menu3->Append(MenuItem_ColorReplace);
+    Menu3->AppendSeparator();
+    MenuItem_EffectSymbols = new wxMenuItem(Menu3, ID_MNU_EFFECTSYMBOLS, _("Effect Symbol Library..."), _("Manage reusable effect symbols"), wxITEM_NORMAL);
+    Menu3->Append(MenuItem_EffectSymbols);
+    MenuItem_ConvertSymbols = new wxMenuItem(Menu3, ID_MNU_CONVERTSYMBOLS, _("Convert All Symbols to Effects"), _("Unlink all effects from symbols for compatibility with older xLights versions"), wxITEM_NORMAL);
+    Menu3->Append(MenuItem_ConvertSymbols);
     MenuBar->Append(Menu3, _("&Edit"));
     Menu1 = new wxMenu();
     ActionTestMenuItem = new wxMenuItem(Menu1, ID_MENUITEM13, _("&Test"), wxEmptyString, wxITEM_NORMAL);
@@ -1410,6 +1411,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENU_GENERATE2DPATH, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_Generate2DPathSelected);
     Connect(ID_MENUITEM_GenerateCustomModel, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenu_GenerateCustomModelSelected);
     Connect(ID_MNU_REMAPCUSTOM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_RemapCustomSelected);
+    Connect(ID_MNU_EFFECTSYMBOLS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_EffectSymbolsSelected);
+    Connect(ID_MNU_CONVERTSYMBOLS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ConvertSymbolsSelected);
     Connect(ID_MENUITEM_GenerateAIImage, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateAIImageSelected);
     Connect(ID_MNU_GENERATELYRICS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
     Connect(ID_MENUITEM_CONVERT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
@@ -1648,6 +1651,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     UnsavedNetworkChanges = false;
 
     UnsavedRgbEffectsChanges = false;
+    UnsavedPresetChanges = false;
     mStoredLayoutGroup = "Default";
 
     modelsChangeCount = 0;
@@ -2145,21 +2149,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // needed, it will be turned off later
     OutputTimer.Start(50, wxTIMER_CONTINUOUS);
 
-    // What makes 4 the right answer ... try 10 ... why ... usually it is one thread that runs slow and that model
-    // holds up others so in the time while we wait for the busy thread we can actually run a lot more models
-    // what is the worst that could happen ... all models want to run hard so we lose some efficiency while we churn between
-    // threads ... a minor loss of efficiency ... I think the one thread blocks the others is more common.
-    // Dan is concerned on 32 bit windows 10 will chew up too much heap memory ... so splitting the difference we get 7
-    int multiplier = (sizeof(size_t) == 8) ? 10 : 7;
-    if (GetPhysicalMemorySizeMB() > 12 * 1024) {
-        // if we have over 12GB of memory, creating more threads shouldn't be an issue
-        multiplier *= 2;
-    }
-    int threadCount = wxThread::GetCPUCount() * multiplier;
-    if (threadCount < 20) {
-        threadCount = 20;
-    }
-    jobPool.Start(threadCount);
+    // Render jobs suspend and requeue instead of blocking a thread while they
+    // wait on overlapping models (plans/render-scheduler.md), so the pool only
+    // needs cpu + gpu + slack threads (see RenderEngine::RecommendedPoolSize).
+    jobPool.Start(RenderEngine::RecommendedPoolSize());
 
     if (!xLightsApp::sequenceFiles.IsEmpty()) {
         spdlog::debug("Opening sequence: {}.", (const char*)xLightsApp::sequenceFiles[0].c_str());
@@ -2421,13 +2414,6 @@ xLightsFrame::~xLightsFrame()
     // must call these or the app will crash on exit
     m_mgr->UnInit();
     MainAuiManager->UnInit();
-
-    for (int x = 0; x < (int)Notebook1->GetPageCount(); x++) {
-        wxWindow* w = Notebook1->GetPage(x);
-        if (w->GetEventHandler() == m_mgr) {
-            w->RemoveEventHandler(m_mgr);
-        }
-    }
 
     // unconnect these as the call to DeleteAllPages will cause pages to change and the page numbers to possibly not match
     Disconnect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
@@ -2713,7 +2699,11 @@ void xLightsFrame::DoPostStartupCommands()
 // Don't bother checking for updates when debugging.
 #if !defined(_DEBUG) || defined(SIMULATE_UPGRADE)
 #ifndef __WXOSX__
-        CheckForUpdate(1, true, false);
+        // Packaged (MSIX/Store/App Installer) builds are updated by Windows, not
+        // by the GitHub-download self-updater - skip the automatic check there.
+        if (!IsRunningPackaged()) {
+            CheckForUpdate(1, true, false);
+        }
 #endif
 #endif
         if (_userEmail == "")
@@ -2922,8 +2912,13 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
             if (info[x].IsOk() &&
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name]) {
-                if (info[x].frame != nullptr)
+                if (info[x].frame != nullptr) {
                     info[x].frame->Show();
+                    // On macOS, Cocoa repositions native floating frames during
+                    // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
+                    // reapplies floating_pos/floating_size from the pane info.
+                    update = true;
+                }
             }
         }
         savedPaneShown.clear();
@@ -3079,7 +3074,25 @@ void xLightsFrame::CycleOutputsIfOn()
     }
 }
 
-bool xLightsFrame::ForceEnableOutputs(bool startTimer)
+bool xLightsFrame::UploadControllerForImmediateOutput(Controller* controller)
+{
+    auto ip = controller->GetResolvedIP();
+    if (ip.empty() || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
+        return false;
+    }
+    BaseController* bc = BaseController::CreateBaseController(controller);
+    bool ok = false;
+    if (bc != nullptr && bc->IsConnected()) {
+        ok = bc->UploadForImmediateOutput(&AllModels, &_outputManager, controller, this);
+        SetStatusText(controller->GetName() + (ok ? " Upload Complete." : " Upload Failed."));
+    } else {
+        SetStatusText(controller->GetName() + " Upload Failed. Unable to connect");
+    }
+    delete bc;
+    return ok;
+}
+
+bool xLightsFrame::ForceEnableOutputs(bool startTimer, bool skipAutoUpload)
 {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
@@ -3089,27 +3102,10 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer)
         if (startTimer) {
             StartOutputTimer();
         }
-        if (outputting) {
+        if (outputting && !skipAutoUpload) {
             for (auto& controller : _outputManager.GetControllers()) {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
-                    auto ip = controller->GetResolvedIP();
-                    if (ip == "" || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
-                        continue;
-                    }
-                    BaseController* bc = BaseController::CreateBaseController(controller);
-                    if (bc != nullptr && bc->IsConnected()) {
-                        if (bc->UploadForImmediateOutput(&AllModels, &_outputManager, controller, this)) {
-                            SetStatusText(controller->GetName() + " Upload Complete.");
-                        } else {
-                            SetStatusText(controller->GetName() + " Upload Failed.");
-                        }
-                    } else {
-                        SetStatusText(controller->GetName() + " Upload Failed. Unable to connect");
-                    }
-                    if (bc) {
-                        delete bc;
-                    }
-                    // upload config
+                    UploadControllerForImmediateOutput(controller);
                 }
             }
         }
@@ -4099,8 +4095,8 @@ void xLightsFrame::CheckUnsavedChanges()
         // to the user what this prompt is for
         Notebook1->SetSelection(LAYOUTTAB);
 
-        if (wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
-                                  "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+        if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
+                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SaveEffectsFile();
         } else {
             wxFileName effectsFile;
@@ -4123,15 +4119,38 @@ void xLightsFrame::CheckUnsavedChanges()
             SaveNetworksFile();
         }
     }
+
+    if (UnsavedPresetChanges) {
+        if (wxYES == wxMessageBox("Save Effect Preset changes?",
+                                  "Effect Presets Changes Confirmation",
+                                  wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+            SavePresetsFile();
+        } else {
+            wxFileName presetsFile;
+            presetsFile.AssignDir(CurrentDir);
+            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+            wxFileName fn(presetsFile.GetFullPath());
+            if (FileExists(fn.GetFullPath())) {
+                fn.Touch();
+            }
+        }
+    }
 }
 
 void xLightsFrame::MarkEffectsFileDirty()
 {
     auto logger_work = spdlog::get("work");
     logger_work->debug("        MarkEffectsFileDirty.");
+    spdlog::debug("MarkEffectsFileDirty called - UnsavedRgbEffectsChanges now true");
 
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges = true;
+}
+
+void xLightsFrame::MarkPresetsDirty()
+{
+    UnsavedPresetChanges = true;
+    UpdateLayoutSave();
 }
 
 void xLightsFrame::MarkModelsAsNeedingRender()
@@ -4162,7 +4181,7 @@ void xLightsFrame::UpdateSequenceLength()
             spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
         }
 
-        mainSequencer->PanelTimeLine->SetTimeLength(std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), _sequenceElements.GetMaxEffectEndTimeMS()));
+        mainSequencer->PanelTimeLine->SetTimeLength(std::max(CurrentSeqXmlFile->GetSequenceDurationMS(), _sequenceElements.GetMaxEffectEndTimeMS() + 5000));
         mainSequencer->PanelTimeLine->Initialize();
         int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
         mainSequencer->PanelTimeLine->SetFitZoom();
@@ -4295,22 +4314,23 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
     // creating the dialog can take some time so display an hourglass
     SetCursor(wxCURSOR_WAIT);
 
-#ifdef __APPLE__
-    // KLightMapper camera-scan offer: on macOS, if a Continuity
-    // Camera is paired (i.e. an iPhone the user can point at the
-    // prop), let them pick the new flow before falling through to
-    // the classic dialog. Empty camera list → no choice, classic
-    // path runs as before.
+    // KLightMapper scan offer: present the method picker so the user can
+    // choose the classic flow, a local camera scan (Continuity Camera /
+    // webcam on macOS, Media Foundation webcam on Windows), or a remote
+    // RTSP/IP camera (which needs no local camera at all). The scan window
+    // runs inside the KLightMapper framework (macOS) or klightmapper.dll
+    // (Windows); klbridge has a backend for each. Previously gated on a
+    // non-empty camera list; the Remote RTSP option makes the picker useful
+    // even with no local camera.
     const auto cams = klbridge::DiscoverContinuityCameras();
-    if (!cams.empty()) {
+    {
         CustomModelMethodPickerDialog picker(this, cams);
         picker.CenterOnParent();
         SetCursor(wxCURSOR_DEFAULT);
         const int picked = picker.ShowModal();
         SetCursor(wxCURSOR_WAIT);
         if (picked == wxID_OK &&
-            picker.GetChoice() == CustomModelMethodPickerDialog::Choice::CameraScan &&
-            !picker.GetSelectedCameraID().empty()) {
+            picker.GetChoice() != CustomModelMethodPickerDialog::Choice::Classic) {
             SetCursor(wxCURSOR_DEFAULT);
             // The scan window is shown non-modally (NSWindow + SwiftUI),
             // so PresentScanWindow returns immediately. Output / timer /
@@ -4318,8 +4338,9 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
             // scan flow because the scan pushes its own DDP traffic to
             // FPP; re-enabling outputs here would collide with that.
             // The completion (fires on the main thread once the user
-            // closes the window) restores everything and hands the
-            // produced .xmodel — if any — to a Save As dialog.
+            // closes the window) restores everything and adds the
+            // produced .xmodel — if any — straight onto the layout via
+            // the Import-Custom click-to-place flow.
             // Scan-dump persistence: each scan writes raw video +
             // per-pattern frames + state JSON into
             // <showDir>/MapFromLightsDebug/scan_<timestamp>/ so a
@@ -4333,38 +4354,21 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
             // <showDir>/MapFromLightsDebug/MapFromLightsDebug/...
             const std::string& showDir = GetShowDirectory();
             const std::string scanDumpParent = showDir;
-            klbridge::PresentScanWindow(
-                picker.GetSelectedCameraID(),
-                scanDumpParent,
+            // Shared completion: add the produced .xmodel onto the layout
+            // and restore output / timer / media state. Reused by both the
+            // local-camera and remote-RTSP scan entry points.
+            std::function<void(std::optional<std::string>)> completion =
                 [this, output, timerRunning, mps](std::optional<std::string> xmodelPath) {
-                    if (xmodelPath.has_value() && !xmodelPath->empty()) {
-                        wxLogNull logNo;
-                        const wxString src(xmodelPath->c_str(), wxConvUTF8);
-                        const wxString defaultName = wxFileName(src).GetName();
-                        const wxString destPath = wxFileSelector(
-                            _("Save mapped custom model"),
-                            wxEmptyString,
-                            defaultName,
-                            "xmodel",
-                            "Custom Model files (*.xmodel)|*.xmodel",
-                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT,
-                            this);
-                        if (!destPath.IsEmpty()) {
-                            if (wxCopyFile(src, destPath, true)) {
-                                wxMessageBox(_("Saved mapped custom model to:\n") + destPath,
-                                             _("Map from Lights"),
-                                             wxOK | wxICON_INFORMATION, this);
-                            } else {
-                                wxMessageBox(_("Could not write the mapped custom model to:\n") + destPath,
-                                             _("Map from Lights"),
-                                             wxOK | wxICON_ERROR, this);
-                            }
-                        }
-                        // Best-effort: remove the temp file regardless of
-                        // whether the user saved it; if save succeeded, the
-                        // destination holds the data, and if they cancelled
-                        // there's nothing to keep.
-                        wxRemoveFile(src);
+                    // Add the mapped model straight onto the layout, like a
+                    // vendor download: switch to the Layout tab and enter the
+                    // Import-Custom click-to-place flow primed with the produced
+                    // .xmodel, so the user clicks the layout to drop it. The temp
+                    // file is read later, at that placement click, so it is NOT
+                    // deleted here (it lives in the OS temp dir). Saving a copy is
+                    // the scan window's optional "Save to File…" button's job.
+                    if (xmodelPath.has_value() && !xmodelPath->empty() && layoutPanel != nullptr) {
+                        Notebook1->SetSelection(LAYOUTTAB);
+                        layoutPanel->BeginImportModelFromFile(*xmodelPath);
                     }
                     if (output) { EnableOutputs(); }
                     if (timerRunning) { OutputTimer.Start(); }
@@ -4374,8 +4378,24 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
                         CurrentSeqXmlFile->GetMedia()->Play();
                         SetAudioControls();
                     }
-                });
-            return;
+                };
+            if (picker.GetChoice() == CustomModelMethodPickerDialog::Choice::CameraScan &&
+                !picker.GetSelectedCameraID().empty()) {
+                klbridge::PresentScanWindow(
+                    picker.GetSelectedCameraID(), scanDumpParent, completion);
+                return;
+            }
+            if (picker.GetChoice() == CustomModelMethodPickerDialog::Choice::RTSPScan &&
+                !picker.GetRTSPURL().empty()) {
+                klbridge::PresentRTSPScanWindow(
+                    picker.GetRTSPURL(),
+                    picker.GetRTSPUsername(),
+                    picker.GetRTSPPassword(),
+                    scanDumpParent, completion);
+                return;
+            }
+            // A scan was chosen but with no valid camera / URL — restore
+            // and fall through to the classic dialog below.
         }
         if (picked != wxID_OK) {
             // User cancelled the picker entirely — same restore +
@@ -4392,7 +4412,6 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
         // Fell through with Classic chosen — continue to the
         // existing dialog below.
     }
-#endif
 
     GenerateCustomModelDialog dialog(this, &_outputManager);
     dialog.CenterOnParent();
@@ -4771,6 +4790,10 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         if (UnsavedRgbEffectsChanges) {
             spdlog::debug("    Autosaving backup of layout.");
             SaveWorkingLayout();
+        }
+        if (UnsavedPresetChanges) {
+            spdlog::debug("    Autosaving backup of effect presets.");
+            SavePresetsFile(true);
         }
         spdlog::debug("    AutoSave took {} ms.", sw.Time());
 
@@ -6095,9 +6118,116 @@ void xLightsFrame::OnMenuItemHinksPixExportSelected(wxCommandEvent& event)
     dlg.ShowModal();
 }
 
+static std::string ConvertSymbolsForPackage(const std::string& sourcefile)
+{
+    std::string newfile = wxFileName::CreateTempFileName("xsq").ToStdString();
+
+    wxFile in(sourcefile);
+    wxString data;
+    in.ReadAll(&data);
+    in.Close();
+
+    int symbolsStart = data.Find("<EffectSymbols>");
+    int symbolsEnd = data.Find("</EffectSymbols>");
+    if (symbolsStart != wxNOT_FOUND && symbolsEnd != wxNOT_FOUND) {
+        symbolsEnd += 16;
+        if (symbolsEnd < (int)data.Length() && (data[symbolsEnd] == '\n' || data[symbolsEnd] == '\r')) {
+            symbolsEnd++;
+            if (symbolsEnd < (int)data.Length() && (data[symbolsEnd] == '\n' || data[symbolsEnd] == '\r')) {
+                symbolsEnd++;
+            }
+        }
+        data = data.substr(0, symbolsStart) + data.substr(symbolsEnd);
+    }
+
+    wxString result;
+    size_t pos = 0;
+    const wxString attrPrefix("linkedSymbol=\"");
+    while (pos < data.Length()) {
+        int attrStart = data.find(attrPrefix, pos);
+        if (attrStart == wxNOT_FOUND) {
+            result += data.substr(pos);
+            break;
+        }
+        result += data.substr(pos, attrStart - pos);
+        int valueStart = attrStart + attrPrefix.Length();
+        int valueEnd = data.find("\"", valueStart);
+        if (valueEnd != wxNOT_FOUND) {
+            pos = valueEnd + 1;
+            if (pos < data.Length() && data[pos] == ' ') {
+                pos++;
+            }
+        } else {
+            pos = valueStart;
+        }
+    }
+    data = result;
+
+    wxFile out(newfile, wxFile::write);
+    out.Write(data);
+    out.Close();
+
+    return newfile;
+}
+
 void xLightsFrame::OnMenuItem_PackageSequenceSelected(wxCommandEvent& event)
 {
     PackageSequence();
+}
+
+void xLightsFrame::OnMenuItem_EffectSymbolsSelected(wxCommandEvent& event)
+{
+    EffectSymbolDialog dlg(this, &_sequenceElements);
+    dlg.ShowModal();
+}
+
+void xLightsFrame::OnMenuItem_ConvertSymbolsSelected(wxCommandEvent& event)
+{
+    if (CurrentSeqXmlFile == nullptr) {
+        wxMessageBox("Please open a sequence first.", "No Sequence", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    EffectSymbolManager& symbolMgr = _sequenceElements.GetEffectSymbolManager();
+    std::vector<EffectSymbol*> symbols = symbolMgr.GetAllSymbols();
+
+    if (symbols.empty()) {
+        wxMessageBox("There are no effect symbols in this sequence.", "No Symbols", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    int linkedCount = 0;
+    for (const auto& symbol : symbols) {
+        linkedCount += symbolMgr.GetLinkedEffects(symbol->GetId()).size();
+    }
+
+    wxString message = wxString::Format(
+        "This will convert %d symbol-linked effect(s) to regular effects and remove %d symbol(s).\n\n"
+        "This is useful when sharing sequences with users running older versions of xLights.\n\n"
+        "Do you want to continue?",
+        linkedCount, (int)symbols.size());
+
+    if (wxMessageBox(message, "Convert Symbols to Effects", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+        return;
+    }
+
+    for (const auto& symbol : symbols) {
+        std::vector<Effect*> linkedEffects = symbolMgr.GetLinkedEffects(symbol->GetId());
+        for (Effect* effect : linkedEffects) {
+            if (effect != nullptr) {
+                effect->UnlinkFromSymbol();
+            }
+        }
+    }
+
+    symbolMgr.Clear();
+
+    _sequenceElements.IncrementChangeCount(nullptr);
+
+    mainSequencer->PanelEffectGrid->Refresh();
+
+    wxMessageBox(wxString::Format("Converted %d effect(s) and removed %d symbol(s).", linkedCount, (int)symbols.size()),
+                 "Conversion Complete", wxOK | wxICON_INFORMATION, this);
 }
 
 std::string xLightsFrame::PackageSequence(bool showDialogs)
@@ -6112,12 +6242,23 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     wxString filename = fn.GetName() + ".xsqz";
     wxString filePath = fn.GetPath() + wxFileName::GetPathSeparator() + filename;
 
+    bool convertSymbols = false;
     if (showDialogs) {
         wxFileDialog fd(this, "Zip file to create.", CurrentDir, filename, "zip file(*.zip;*.xsqz)|*.xsqz;*.zip", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (fd.ShowModal() == wxID_CANCEL) {
             return "";
         }
         filePath = fd.GetPath();
+
+        if (_sequenceElements.GetEffectSymbolManager().GetSymbolCount() > 0) {
+            int result = wxMessageBox(
+                "This sequence contains effect symbols which may not be compatible with older xLights versions.\n\n"
+                "Would you like to convert symbols to regular effects for the packaged sequence?\n\n"
+                "Note: Your original sequence will not be modified.",
+                "Effect Symbols Detected",
+                wxYES_NO | wxICON_QUESTION, this);
+            convertSymbols = (result == wxYES);
+        }
     }
     // make sure everything is up to date
     if (Notebook1->GetSelection() != LAYOUTTAB) {
@@ -6160,11 +6301,20 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
     opts.excludeAudio  = _excludeAudioFromPackagedSequences;
     opts.excludeVideos = _excludeVideosFromPackagedSequences;
 
+    std::string seqXmlPath = CurrentSeqXmlFile->GetFullPath();
+    std::string convertedTmp;
+    if (convertSymbols) {
+        convertedTmp = ConvertSymbolsForPackage(seqXmlPath);
+        if (!convertedTmp.empty()) {
+            seqXmlPath = convertedTmp;
+        }
+    }
+
     std::vector<std::string> packWarnings;
     bool ok = SequencePackage::Pack(
         std::filesystem::path(filePath.ToStdString()),
         CurrentDir.ToStdString(),
-        CurrentSeqXmlFile->GetFullPath(),
+        seqXmlPath,
         CurrentSeqXmlFile->GetMediaFile(),
         altAudio,
         extras,
@@ -6180,6 +6330,10 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         });
 
     prog.Update(100);
+
+    if (!convertedTmp.empty()) {
+        ::wxRemoveFile(convertedTmp);
+    }
 
     if (!ok) {
         spdlog::warn("Error packaging sequence into {}.", (const char*)filePath.c_str());
@@ -7234,9 +7388,22 @@ IModelPreview* xLightsFrame::GetHousePreview() const
     return _housePreviewPanel->GetModelPreview();
 }
 
-PreviewCamera* xLightsFrame::GetNamedCamera3D(const std::string& name)
+void xLightsFrame::GetRenderPreviewSize(int& w, int& h) const
 {
-    return viewpoint_mgr.GetNamedCamera3D(name);
+    // Window-independent aspect for the Per-Preview 3D projection: the virtual
+    // preview canvas (the show's previewWidth/previewHeight), NOT the live
+    // house-preview panel size — so renders are reproducible and match iPad /
+    // headless.
+    w = 1280;
+    h = 720;
+    if (IModelPreview* p = GetHousePreview()) {
+        int vw = p->GetVirtualCanvasWidth();
+        int vh = p->GetVirtualCanvasHeight();
+        if (vw > 0 && vh > 0) {
+            w = vw;
+            h = vh;
+        }
+    }
 }
 
 void xLightsFrame::OnMenuItem_GenerateLyricsSelected(wxCommandEvent& event)
@@ -7396,6 +7563,12 @@ void xLightsFrame::OnMenuItemBatchRenderSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_UpdateSelected(wxCommandEvent& event)
 {
+    if (IsRunningPackaged()) {
+        // The self-updater downloads and runs the Inno installer, which can't
+        // update a Store/App Installer-managed install. Windows handles those.
+        DisplayInfo("This xLights was installed from the Microsoft Store / App Installer, which keeps it up to date automatically.", this);
+        return;
+    }
     bool update_found = CheckForUpdate(3, false, true);
     if (!update_found) {
         DisplayInfo("Update check complete: No update found", this);

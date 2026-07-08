@@ -24,12 +24,8 @@
 
 #include <wx/preferences.h>
 #include "xLightsMain.h"
-
-#ifdef __WXOSX__
-extern "C" {
-extern bool isMetalComputeSupported();
-}
-#endif
+#include "render/GPURenderUtils.h"
+#include "settings/XLightsConfigAdapter.h"
 
 OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindowID id, const wxPoint& pos, const wxSize& size) :
     wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL), frame(f)
@@ -103,6 +99,22 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     sizer->Add(CheckBox_UseCustomColorPicker, 0, wxLEFT | wxTOP, 5);
     sizer->Add(MakePreferenceHint(this, _("Use the built-in colour picker instead of the operating system's.")), 0, wxLEFT | wxBOTTOM, 24);
 
+#ifdef HAVE_VULKAN
+    // Preview graphics backend selector (read at startup by xlVulkanCanvas).
+    {
+        auto* gfxRow = new wxBoxSizer(wxHORIZONTAL);
+        gfxRow->Add(new wxStaticText(this, wxID_ANY, _("Preview graphics backend:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+        GraphicsBackendChoice = new wxChoice(this, wxID_ANY);
+        GraphicsBackendChoice->Append(_("OpenGL"));
+        GraphicsBackendChoice->Append(_("Vulkan"));
+        GraphicsBackendChoice->SetSelection(0);
+        gfxRow->Add(GraphicsBackendChoice, 0, wxEXPAND);
+        sizer->Add(gfxRow, 0, wxLEFT | wxTOP, 8);
+        sizer->Add(MakePreferenceHint(this, _("Rendering backend used for the preview panels. Takes effect after restarting xLights.")), 0, wxLEFT | wxBOTTOM, 8);
+        GraphicsBackendChoice->Bind(wxEVT_CHOICE, &OtherSettingsPanel::OnControlChanged, this);
+    }
+#endif
+
     // Packaging Sequences.
     sizer->Add(MakePreferenceSectionHeader(this, _("Packaging Sequences")), 0, wxLEFT | wxTOP, 10);
     sizer->Add(MakePreferenceHint(this, _("Media to leave out when packaging a sequence to share.")), 0, wxLEFT, 16);
@@ -148,22 +160,20 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 #ifdef __LINUX__
     ShaderCheckbox->Hide();
     ShaderHint->Hide();
-    GPURenderCheckbox->Hide();
-    GPURenderHint->Hide();
 #endif
 #ifdef __WXOSX__
-    if (!isMetalComputeSupported()) {
-        GPURenderCheckbox->Hide();
-        GPURenderHint->Hide();
-    }
     ShaderCheckbox->Hide();
     ShaderHint->Hide();
 #endif
 #ifdef __WXMSW__
-    GPURenderCheckbox->Hide();
-    GPURenderHint->Hide();
     MSWDisableComposited();
 #endif
+    // Hide the GPU-rendering toggle when no usable GPU compute device is present
+    // (independent of the user-toggleable enable flag).
+    if (GPURenderUtils::GetGPUEffectConcurrency() <= 0) {
+        GPURenderCheckbox->Hide();
+        GPURenderHint->Hide();
+    }
 
     eMailTextControl->Bind(wxEVT_TEXT, &OtherSettingsPanel::OnControlChanged, this);
     Choice_LinkControllerUpload->Bind(wxEVT_CHOICE, &OtherSettingsPanel::OnControlChanged, this);
@@ -205,6 +215,13 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
     frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
     xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
+#ifdef HAVE_VULKAN
+    if (GraphicsBackendChoice != nullptr) {
+        auto* config = GetXLightsConfig();
+        config->Write("xLightsGraphicsBackend", GraphicsBackendChoice->GetStringSelection());
+        config->Flush();
+    }
+#endif
     return true;
 }
 
@@ -225,6 +242,14 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_EnablePositionZones->SetValue(frame->GetEnablePositionZones());
     CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
     CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
+#ifdef HAVE_VULKAN
+    if (GraphicsBackendChoice != nullptr) {
+        wxString backend = GetXLightsConfig()->Read("xLightsGraphicsBackend", "OpenGL");
+        if (!GraphicsBackendChoice->SetStringSelection(backend)) {
+            GraphicsBackendChoice->SetSelection(0);
+        }
+    }
+#endif
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__

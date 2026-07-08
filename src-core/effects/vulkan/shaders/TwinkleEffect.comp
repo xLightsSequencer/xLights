@@ -1,0 +1,159 @@
+#version 450
+// Port of the Twinkle effect per-light strobe kernel in TwinkleFunctions.metal
+// (mirrors TwinkleFunctions.ispc -- keep the two in lockstep). Each thread owns
+// one strobe entry in the persistent state array: it advances the per-light
+// state (duration++, the New-Method finish flag, or the reRandomize wrap) and
+// writes its unique pixel from a CPU-built RGBA LUT. All per-pixel work is
+// integer, and the brightness/color LUT is precomputed on the CPU (shared
+// TwinkleEffect::buildTwinkleLut, exact scalar double math), so this path is
+// byte-identical to the historical scalar renderer.
+//
+// STATEFUL: binding 0 is the persistent state array, a flat int32 array with
+// a stride of 6 (matching StrobeClass: x, y, duration, colorindex, strobing,
+// isByNode), read-modify-written in place every dispatch and copied back to
+// the CPU cache afterward by VulkanTwinkleEffect.cpp. StrobeClass is six
+// packed int32 fields (24 bytes) with natural 4-byte alignment throughout, so
+// (unlike CandleState's uint8 fields) it uploads/downloads as a straight
+// memcpy -- no widening needed -- and rides here as a flat `int` array rather
+// than an array of a named GLSL struct (sidesteps the std430 rule that
+// struct-typed array elements get their alignment rounded up to 16 bytes,
+// which would desync the stride from the 24-byte C++ layout).
+//
+// DISPATCH IS PER-STROBE, not per-pixel: the wrapper passes (curNumStrobe, 0)
+// as the grid, so the bounds check below is against d.curNumStrobe, not a
+// pixel count. `result` (binding 2) is a scatter-write target sized to the
+// full pixel buffer and must stay a plain (non-writeonly) buffer: unlit
+// pixels are left untouched, matching cleared/Persistent buffers on the
+// scalar renderer.
+//
+// Binding numbers here are Vulkan's own (encodeEffectDispatch assigns
+// bindings positionally, 0..n, in the order the buffer list is passed; the
+// params SSBO always rides at binding 5 regardless of list length) -- they do
+// NOT match TwinkleFunctions.metal's buffer(1)/buffer(2)/buffer(3) argument
+// indices (Metal's buffer(0) is the params struct via setBytes, which has no
+// Vulkan equivalent in this list). What DOES match is the relative order:
+// state, then lut, then result, exactly like the Metal encoder's argument
+// table.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer StateB { int states[]; };
+// Packed uchar4 LUT entries (r = low byte, matches packPx/xlColor's byte
+// order) -- one packed uint per (colorindex, duration) pair.
+layout(std430, set = 0, binding = 1) readonly buffer Lut { uint lut[]; };
+layout(std430, set = 0, binding = 2) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;         // BufferWi (pixel-index stride)
+    uint npix;          // pixel-write bound (GetPixelCount())
+    uint curNumStrobe;  // number of live strobe entries (grid bound)
+    int max_modulo;
+    int max_modulo2;
+    int colorcnt;
+    int lutStride;      // max_modulo + 1
+    int lutSize;        // colorcnt * lutStride
+    int new_algorithm;
+    int reRandomize;
+    // 64-bit RNG frame seed split into two 32-bit halves -- see the u64
+    // emulation below (same technique as ShimmerEffect.comp/CandleEffect.comp).
+    uint frameSeedLo;
+    uint frameSeedHi;
+} data;
+
+// A 64-bit value as a (lo, hi) uint32 pair. Emulates RenderBuffer::rngMix64
+// (the splitmix64 finalizer, mirrored bit-for-bit as twinkleMix64 in
+// TwinkleFunctions.metal / TwinkleFunctions.ispc) without relying on a native
+// 64-bit GLSL integer type, which is not guaranteed available on every Vulkan
+// implementation. Identical subset to ShimmerEffect.comp's helpers (local
+// copy, per this codebase's per-effect-kernel convention) -- Twinkle only
+// needs the top 32 bits of the mix (no rounding-correction path, unlike
+// CandleEffect.comp's candleRand255).
+struct u64 { uint lo; uint hi; };
+
+u64 u64Xor(u64 a, u64 b) { return u64(a.lo ^ b.lo, a.hi ^ b.hi); }
+
+// a >> n, restricted to 0 < n < 32 -- the only shifts twinkleMix64 needs
+// (27, 30, 31), so a single word boundary crossing suffices.
+u64 u64Shr(u64 a, uint n) {
+    return u64((a.lo >> n) | (a.hi << (32u - n)), a.hi >> n);
+}
+
+// (a * b) mod 2^64. aHi*bHi is dropped entirely (it only contributes to bits
+// >= 64). The cross terms aHi*bLo + aLo*bHi are multiplied by 2^32 in the
+// full product, so only their low 32 bits (which plain GLSL uint `*`/`+`
+// already wrap to) survive truncation to 64 bits. umulExtended supplies the
+// exact high/low halves of the aLo*bLo term.
+u64 u64Mul(u64 a, u64 b) {
+    uint msb, lsb;
+    umulExtended(a.lo, b.lo, msb, lsb);
+    uint cross = a.hi * b.lo + a.lo * b.hi;
+    return u64(lsb, msb + cross);
+}
+
+// Bit-identical to twinkleMix64 (TwinkleFunctions.metal) / RenderBuffer::rngMix64.
+u64 twinkleMix64(u64 z) {
+    z = u64Xor(z, u64Shr(z, 30u));
+    z = u64Mul(z, u64(0x1CE4E5B9u, 0xBF58476Du)); // 0xBF58476D1CE4E5B9
+    z = u64Xor(z, u64Shr(z, 27u));
+    z = u64Mul(z, u64(0x133111EBu, 0x94D049BBu)); // 0x94D049BB133111EB
+    z = u64Xor(z, u64Shr(z, 31u));
+    return z;
+}
+
+// Bit-identical to twinkleHashRandom (TwinkleFunctions.metal):
+// mix64(frameSeed ^ (uint64(index) * 0xD1B54A32D192ED03)) >> 32.
+uint twinkleHashRandom(u64 frameSeed, uint index) {
+    u64 idxTerm = u64Mul(u64(index, 0u), u64(0xD192ED03u, 0xD1B54A32u)); // 0xD1B54A32D192ED03
+    u64 mixed = twinkleMix64(u64Xor(frameSeed, idxTerm));
+    return mixed.hi; // >> 32
+}
+
+void main() {
+    uint si = gl_GlobalInvocationID.x;
+    if (si >= data.curNumStrobe) return;
+
+    int base = int(si) * 6;
+    int sx = states[base + 0];
+    int sy = states[base + 1];
+    int duration = states[base + 2];
+    int colorindex = states[base + 3];
+    int strobing = states[base + 4];
+
+    int max_modulo = data.max_modulo;
+    uint umax_modulo2 = uint(data.max_modulo2);
+    uint ucolorcnt = uint(data.colorcnt);
+
+    int dnext = duration + 1;
+    bool skip = (data.new_algorithm != 0 && strobing == 0) || (dnext < 0);
+    if (!skip) {
+        if (dnext == max_modulo) {
+            dnext = 0;
+            if (data.new_algorithm != 0) {
+                strobing = 0;
+            } else if (data.reRandomize != 0) {
+                u64 frameSeed = u64(data.frameSeedLo, data.frameSeedHi);
+                uint k = si * 131101u;
+                dnext = dnext - int(twinkleHashRandom(frameSeed, k) % umax_modulo2);
+                colorindex = int(twinkleHashRandom(frameSeed, k + 1u) % ucolorcnt);
+            }
+        }
+        int i7 = dnext;
+        int cl = i7 < 0 ? 0 : (i7 > max_modulo ? max_modulo : i7);
+        int lutIdx = colorindex * data.lutStride + cl;
+        if (lutIdx < 0) {
+            lutIdx = 0;
+        }
+        if (lutIdx >= data.lutSize) {
+            lutIdx = data.lutSize - 1;
+        }
+        int pidx = sy * int(data.width) + sx;
+        if (pidx >= 0 && pidx < int(data.npix)) {
+            result[pidx] = lut[lutIdx];
+        }
+    }
+
+    states[base + 2] = dnext;
+    states[base + 3] = colorindex;
+    states[base + 4] = strobing;
+}

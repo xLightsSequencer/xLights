@@ -10,13 +10,16 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <chrono>
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <string>
 
 class Effect;
 class IRenderProgressSink;
+class Job;
 class PixelBufferClass;
 class JobPool;
 class Model;
@@ -37,6 +40,12 @@ class RenderEngine {
 public:
     RenderEngine(RenderContext& ctx, JobPool& pool, RenderCache& cache);
     ~RenderEngine();
+
+    // Render-pool size for this machine: CPU cores + effect renders the GPU
+    // can have in flight (those park their thread in waitForRenderCompletion,
+    // freeing the core) + slack for render-cache I/O.  Shared by the desktop
+    // and iPad pool setup so the heuristic lives in one place.
+    static size_t RecommendedPoolSize();
 
     // ---- render tree ----
     void BuildRenderTree(SequenceElements& elements, unsigned int modelsChangeCount);
@@ -75,10 +84,19 @@ public:
     void OnRenderJobComplete(const std::string& modelName);
     void OnAllRenderJobsComplete();
 
-    // Called by each RenderJob's RAII guard as it exits Process() (any path:
+    // Called once per RenderJob as it reaches its Done state (any path:
     // normal, aborted, early-bail). The thread that decrements the last job
     // fires the render-batch completion callback.
     void NotifyJobFinished(RenderProgressInfo* rpi);
+
+    // Push a render job (back) onto the pool — used by suspended jobs waking
+    // up and by row-ownership handoff between jobs.
+    void RequeueJob(Job* job);
+
+    // Watchdog: if a batch makes no progress while the pool is idle, a
+    // wake-up was lost — requeue suspended jobs so the batch can finish.
+    // Called from the platforms' render-status polling.
+    void CheckForStalledRender();
 
     // ---- state access (for UI layer) ----
     std::list<RenderProgressInfo*>& GetRenderProgressInfo() { return _renderProgressInfo; }
@@ -112,6 +130,11 @@ private:
     RenderTree _renderTree;
     std::list<RenderProgressInfo*> _renderProgressInfo;
     int _abortedRenderJobs = 0;
+    // Watchdog bookkeeping.  _stallCheckLock serializes CheckForStalledRender:
+    // on iPad it is polled from more than one thread (main-actor timer plus
+    // background drain loops).  _lastStallCheck throttles the per-job scan.
+    std::mutex _stallCheckLock;
+    std::chrono::steady_clock::time_point _lastStallCheck{};
 
     std::function<void()> _onRenderStatusTimerStart;
     std::function<void(const std::string&)> _onRenderJobComplete;

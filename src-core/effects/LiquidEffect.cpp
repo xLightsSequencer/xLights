@@ -575,7 +575,7 @@ xlColor LiquidEffect::GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y
     return xlColor(red / count, green / count, blue / count);
 }
 
-void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize, float& flowAccumulator, float dt, int maxParticles)
+void LiquidEffect::CreateParticles(RenderBuffer& buffer, b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize, float& flowAccumulator, float dt, int maxParticles)
 {
     static const float pi2 = 6.283185307f;
     float posx = (float)x * (float)width / 100.0;
@@ -592,7 +592,7 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
     float velx = (float)velocity / 10.0 * RenderBuffer::cos(pi2 * (float)direction / 360.0);
     float vely = (float)velocity / 10.0 * RenderBuffer::sin(pi2 * (float)direction / 360.0);
 
-    float velVariation = rand01() * 0.1;
+    float velVariation = buffer.rand01() * 0.1;
     velVariation -= velVariation / 2.0;
 
     velx -= velx * velVariation;
@@ -688,10 +688,10 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
 
         if (sourceSize == 0) {
             // Randomly pick a position within the emitter's radius.
-            const float32 angle = rand01() * 2.0f * b2_pi;
+            const float32 angle = buffer.rand01() * 2.0f * b2_pi;
 
             // Distance from the center of the circle.
-            const float32 distance = rand01();
+            const float32 distance = buffer.rand01();
             b2Vec2 positionOnUnitCircle(RenderBuffer::sin(angle), RenderBuffer::cos(angle));
 
             // Initial position.
@@ -700,7 +700,7 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
                 posy + positionOnUnitCircle.y * distance * 0.5);
         } else {
             // Distance from the center of the circle.
-            const float32 distance = rand01() * ((float)sourceSize - (float)sourceSize / 2.0);
+            const float32 distance = buffer.rand01() * ((float)sourceSize - (float)sourceSize / 2.0);
 
             float offx = distance * RenderBuffer::cos(pi2 * ((float)direction + 90.0) / 360.0);
             float offy = distance * RenderBuffer::sin(pi2 * ((float)direction + 90.0) / 360.0);
@@ -715,7 +715,7 @@ void LiquidEffect::CreateParticles(b2ParticleSystem* ps, int x, int y, int direc
 
         // give it a lifetime
         if (lifetime > 0) {
-            float randomlt = lt + (lt * 0.2 * rand01()) - (lt *.01);
+            float randomlt = lt + (lt * 0.2 * buffer.rand01()) - (lt *.01);
             pd.lifetime = randomlt;
         }
         ps->CreateParticle(pd);
@@ -780,16 +780,16 @@ void LiquidEffect::Step(b2World* world, RenderBuffer &buffer, bool enabled[], in
 
                 switch (i) {
                 case 0:
-                    CreateParticles(ps, x1, y1, direction1, velocity1, flow1, flowMusic1, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize1, flowAccumulators[0], timeStep, maxParticles);
+                    CreateParticles(buffer, ps, x1, y1, direction1, velocity1, flow1, flowMusic1, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize1, flowAccumulators[0], timeStep, maxParticles);
                     break;
                 case 1:
-                    CreateParticles(ps, x2, y2, direction2, velocity2, flow2, flowMusic2, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize2, flowAccumulators[1], timeStep, maxParticles);
+                    CreateParticles(buffer, ps, x2, y2, direction2, velocity2, flow2, flowMusic2, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize2, flowAccumulators[1], timeStep, maxParticles);
                     break;
                 case 2:
-                    CreateParticles(ps, x3, y3, direction3, velocity3, flow3, flowMusic3, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize3, flowAccumulators[2], timeStep, maxParticles);
+                    CreateParticles(buffer, ps, x3, y3, direction3, velocity3, flow3, flowMusic3, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize3, flowAccumulators[2], timeStep, maxParticles);
                     break;
                 case 3:
-                    CreateParticles(ps, x4, y4, direction4, velocity4, flow4, flowMusic4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize4, flowAccumulators[3], timeStep, maxParticles);
+                    CreateParticles(buffer, ps, x4, y4, direction4, velocity4, flow4, flowMusic4, lifetime, buffer.BufferWi, buffer.BufferHt, color, particleType, mixcolors, audioLevel, sourceSize4, flowAccumulators[3], timeStep, maxParticles);
                     break;
                 }
                 ++j;

@@ -425,11 +425,11 @@ bool ControllerPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, 
             for (const auto& prop : caps->GetExtraPropertyDefs()) {
                 if (event.GetPropertyName() == "Controller" + prop.name) {
                     if (prop.type == "String") {
-                        _controller.SetExtraProperty(prop.name, event.GetPropertyValue().GetString().ToStdString());
+                        (void)_controller.SetExtraProperty(prop.name, event.GetPropertyValue().GetString().ToStdString());
                     } else if (prop.type == "Enum") {
                         int idx = event.GetPropertyValue().GetLong();
                         if (idx < (int)prop.values.size()) {
-                            _controller.SetExtraProperty(prop.name, prop.values[idx]);
+                            (void)_controller.SetExtraProperty(prop.name, prop.values[idx]);
                         }
                     }
                     outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::" + name);

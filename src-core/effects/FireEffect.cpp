@@ -245,7 +245,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     
     // build fire
     for (int x = 0; x < maxMWi; ++x) {
-        int r = 150 + (rand() % 50);
+        int r = 150 + buffer.randInt(0, 49);
         SetFireBuffer(x, 0, r, cache->FireBuffer, maxMWi, maxMHt);
     }
     int step = std::max(1, 255 * 100 / curHt / HeightPct);
@@ -275,7 +275,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             }
             int new_index = n > 0 ? sum / n : 0;
             if (new_index > 0) {
-                new_index += (rand() % 100 < 20) ? step : -step;
+                new_index += (buffer.randInt(0, 99) < 20) ? step : -step;
                 if (new_index < 0)
                     new_index = 0;
                 if (new_index >= FirePalette.size())

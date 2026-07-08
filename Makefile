@@ -19,14 +19,13 @@ INSTALL_PROGRAM = install -m 755 -p
 DEL_FILE        = rm -f
 ICON_SIZES      = 16x16 32x32 64x64 128x128 256x256
 DICT_FILES      = phoneme_mapping extended_dictionary standard_dictionary user_dictionary
-QMVAMP_FILES	= INSTALL_linux.txt qm-vamp-plugins.n3 README.txt qm-vamp-plugins.cat
 # run with `SUDO= make` when installing to a location that doesn't require root
 SUDO		= `which sudo`
 
 SUBDIRS         = xLights
 
 WXWIDGETS_TAG=xlights_2026.11
-ISPC_VERSION=1.30.0
+ISPC_VERSION=1.31.0
 ISPC_ARCH=$(shell uname -m)
 
 ifeq '$(ISPC_ARCH)' 'aarch64'
@@ -43,11 +42,18 @@ endif
 
 .NOTPARALLEL:
 
-all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc makefile subdirs
+all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc klightmapper glslang makefile vulkanshaders subdirs
 
 #############################################################################
 
 subdirs: makefile $(SUBDIRS) share/xLights
+
+# Compile the Vulkan GLSL compute kernels to the SPIR-V headers that
+# src-core/effects/vulkan/ #includes.  Generated (gitignored), not committed —
+# glslc is a build tool here, like ispc.  Runs before subdirs (.NOTPARALLEL
+# keeps it ordered) so the headers exist before the C++ compile.
+vulkanshaders: FORCE
+	@./build_scripts/compile_vulkan_shaders.sh
 
 $(SUBDIRS): FORCE
 	@${MAKE} -C $@ -f `basename $@`.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
@@ -78,6 +84,24 @@ libxlsxwriter: FORCE
 		${MAKE} -s; \
 	fi
 
+# glslang (GLSL -> SPIR-V) for the native Vulkan Shader effect.  Lean static
+# build (no optimizer / binaries / tests — Vulkan consumes SPIR-V directly, so
+# no SPIRV-Tools/spirv-cross needed), installed to a staging prefix whose
+# include/ layout (glslang/Public, glslang/SPIRV, ...) matches macOS so the
+# shared translate code #includes the same paths on both.
+glslang: FORCE
+	@printf "Checking glslang\n"
+	@if test ! -e dependencies/glslang-build/install/lib/libglslang.a; \
+		then printf "Building glslang\n"; \
+		cmake -S dependencies/glslang -B dependencies/glslang-build \
+			-DCMAKE_BUILD_TYPE=Release -DENABLE_OPT=OFF -DGLSLANG_TESTS=OFF \
+			-DENABLE_GLSLANG_BINARIES=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_EXTERNAL=OFF \
+			-DSPIRV-Headers_SOURCE_DIR=$(CURDIR)/dependencies/SPIRV-Headers \
+			-DCMAKE_INSTALL_PREFIX=$(CURDIR)/dependencies/glslang-build/install > /dev/null; \
+		cmake --build dependencies/glslang-build -j$$(nproc) > /dev/null; \
+		cmake --install dependencies/glslang-build > /dev/null; \
+	fi
+
 wxwidgets33: FORCE
 	@printf "Checking wxwidgets\n"
 	@if test -f /etc/wxwidgets_tag && test "$$(cat /etc/wxwidgets_tag)" = "$(WXWIDGETS_TAG)"; \
@@ -92,6 +116,12 @@ wxwidgets33: FORCE
 		$(SUDO) ${MAKE} install DESTDIR=$(DESTDIR); \
 		echo Completed build/install of wxwidgets; \
 		fi
+
+klightmapper: FORCE
+	@printf "Checking KLightMapper desktop scan library\n"
+	@if test ! -e lib/linux/libklightmapper.so; then \
+		bash ci_scripts/fetch_klightmapper.sh; \
+	fi
 
 ispc: FORCE
 	@printf "Checking ispc\n"
@@ -154,13 +184,15 @@ install:
 	install -d -m 755 $(DESTDIR)/${PREFIX}/share/xLights/html
 	cp -r resources/html/* $(DESTDIR)/${PREFIX}/share/xLights/html
 	$(foreach size, $(ICON_SIZES), install -D -m 644 resources/images/xLightsIcons/$(size).png $(DESTDIR)/${PREFIX}/share/icons/hicolor/$(size)/apps/xlights.png ; )
-	install -d -m 755 $(DESTDIR)/${PREFIX}/lib/vamp
-	$(foreach qmvamp, $(QMVAMP_FILES), install -D -m 644 lib/linux/qm-vamp-plugins-1.7/$(qmvamp) $(DESTDIR)/${PREFIX}/lib/vamp/$(share) ;)
-	install -D -m 644 lib/linux/qm-vamp-plugins-1.7/qm-vamp-plugins.so.`uname -m` $(DESTDIR)/${PREFIX}/lib/vamp/qm-vamp-plugins.so
+	@if test -e lib/linux/libklightmapper.so; then \
+		install -d -m 755 $(DESTDIR)/${PREFIX}/lib; \
+		install -m 755 -p lib/linux/libklightmapper.so $(DESTDIR)/${PREFIX}/lib/libklightmapper.so; \
+	fi
 
 uninstall:
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/bin/xLights
 	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/share/applications/xlights.desktop
+	-$(DEL_FILE) $(DESTDIR)/${PREFIX}/lib/libklightmapper.so
 
 #############################################################################
 

@@ -313,11 +313,13 @@ public:
         } while (added > 0);
     }
 
-    std::vector<std::vector<bool>> _startUsed;
+    // uint8_t, not bool: vector<bool> packs bits, so the flood-fill's
+    // parallel row writes would race on shared bytes and drop marks.
+    std::vector<std::vector<uint8_t>> _startUsed;
     std::list<KaleidoscopeEdge> _edges;
 };
 
-bool KaleidoscopeEffect::KaleidoscopeDone(const std::vector<std::vector<bool>>& current)
+bool KaleidoscopeEffect::KaleidoscopeDone(const std::vector<std::vector<uint8_t>>& current)
 {
     for (const auto& xx : current)
     {
@@ -346,7 +348,7 @@ std::pair<int, int> KaleidoscopeEffect::GetSourceLocation(int x, int y, const Ka
             std::round(b * (x - x1) - a * (y - y1) + y1) };
 }
 
-void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int height)
+void DumpUsed(const std::vector<std::vector<uint8_t>>& current, int width, int height)
 {
     
 
@@ -637,13 +639,22 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
         //int set = 0;
 
         //DumpUsed(currentUsed, buffer.BufferWi, buffer.BufferHt);
-        parallel_for(0, buffer.BufferHt, [&currentUsed, this, &buffer, &edge, &setSinceBegin] (int y) {
+        // Read the fill state as it was at the start of this pass. Reading the
+        // live currentUsed grid (and the pixels it points at) while other
+        // threads were writing them made the fill order - and thus the colors -
+        // depend on thread timing, so the effect rendered differently every
+        // time. Sources are always pixels filled in a PRIOR pass (usedSnap ==
+        // true), so their pixels are stable this pass; writes only touch pixels
+        // that were unfilled at pass start, disjoint from any source. Race-free
+        // and reproducible.
+        auto usedSnap = currentUsed;
+        parallel_for(0, buffer.BufferHt, [&usedSnap, &currentUsed, this, &buffer, &edge, &setSinceBegin] (int y) {
             for (int x = 0; x < buffer.BufferWi; x++) {
-                if (!currentUsed[x][y]) {
+                if (!usedSnap[x][y]) {
                     // this pixel needs to be set
                     auto source = GetSourceLocation(x, y, *edge, buffer.BufferWi, buffer.BufferHt);
                     if (source.first >= 0 && source.first < buffer.BufferWi && source.second >= 0 && source.second < buffer.BufferHt) {
-                        if (currentUsed[source.first][source.second]) {
+                        if (usedSnap[source.first][source.second]) {
                             buffer.SetPixel(x, y, buffer.GetPixel(source.first, source.second));
                             currentUsed[x][y] = true;
                             //set++;

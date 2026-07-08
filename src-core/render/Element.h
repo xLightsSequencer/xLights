@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <atomic>
+#include <deque>
 #include <mutex>
 #include <string>
 
@@ -281,9 +282,32 @@ class ModelElement : public Element
         virtual NodeLayer* GetNodeEffectLayer(int index) const override;
 
         std::recursive_timed_mutex &GetRenderLock() { return changeLock; }
+        // Number of live render jobs bound to this row for their whole
+        // lifetime: attached at job construction, detached when the job
+        // completes or is destroyed - independent of queued/parked/suspended/
+        // owning state.  ~ModelElement spins on this, so any job that may
+        // still touch the row in a future slice must be counted.
         int GetWaitCount() const { return waitCount; }
-        void IncWaitCount() { waitCount++; }
-        int DecWaitCount() { return --waitCount; }
+        void AttachRenderJob() { ++waitCount; }
+        void DetachRenderJob() { --waitCount; }
+
+        // Render-row ownership: at most one render job renders this row at a
+        // time.  A job that finds the row busy is parked instead of blocking
+        // a pool thread; the owner's completion returns the next parked job
+        // so the engine can reschedule it.  See plans/render-scheduler.md §4.3.
+        bool TryTakeRenderOwnership(void* job);
+        void* ReleaseRenderOwnership(void* job);
+        // "Is a newer render request waiting?" - exact predicate for the
+        // bail-fast checks (lifetime waitCount would also count jobs that are
+        // merely finishing up and will never re-render).
+        bool HasParkedRenderJobs();
+        // Abort/rescue path: pull a parked job out of the queue so the caller
+        // can reschedule it directly.  Returns false if the job wasn't parked
+        // (already handed the row, or never parked).
+        bool CancelParkedRenderJob(void* job);
+        // Teardown path: forget the job's ownership state without waking
+        // anything - the whole batch is being deleted.
+        void AbandonRenderOwnership(void* job);
 
         StrandElement *GetStrand(int strand, bool create = false);
         StrandElement *GetStrand(int strand) const;
@@ -299,5 +323,9 @@ class ModelElement : public Element
         std::vector<SubModelElement*> mSubModels;
         std::vector<StrandElement*> mStrands;
         std::atomic_int waitCount;
+
+        std::mutex renderOwnerLock;
+        void* activeRenderJob = nullptr;
+        std::deque<void*> pendingRenderJobs;
 };
 

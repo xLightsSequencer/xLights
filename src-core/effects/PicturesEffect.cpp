@@ -774,7 +774,7 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         xlColor color;
         for (int x = 0; x < BufferWi; x++) {
             for (int y = 0; y < BufferHt; y++) {
-                if (rand01() > 0.5) {
+                if (buffer.rand01() > 0.5) {
                     buffer.GetPixel(x, y, color);
                     if (color != xlBLACK) {
                         buffer.ProcessPixel(x, y, c, false);

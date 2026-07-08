@@ -19,6 +19,7 @@
 | Generate timing from Audio Chords | dialog | ✅ | ✅ | parity | P2 | easy | feasible | `RowHeading.cpp:1076,1469` ↔ `AddTimingTrackSheet.swift:143,598` |
 | AI Speech-to-Lyrics (on-device) | dialog | ✅ | ✅ | parity | P1 | medium | feasible | `RowHeading.cpp:636,1083` ↔ `AddTimingTrackSheet.swift:145,623`; both gate on a SPEECH2TEXT service |
 | Search lyrics online (LRCLIB) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | `RowHeading.cpp:641` ↔ `AddTimingTrackSheet.swift:148,283` (integrated search/preview UI) |
+| New sequence seeds a default "New Timing" track | sequence-create | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop `SeqFileUtilities.cpp` `NewSequence()` (commit 4e92aad3b / #6622) always seeds a "New Timing" track when no timing tracks exist. iPad `XLSequenceDocument` new-sequence path is outside this wx file — verify and seed an equivalent default |
 | VAMP Queen-Mary plugin analyzers | dialog | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `RowHeading.cpp:1090-1092`; no VAMP host / FFmpeg on iPad. Built-in detectors cover the common cases |
 | Rename timing track | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | `RowHeading.cpp:621` ↔ `RowHeaderViews.swift:159,271` |
 | Delete timing track | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | `RowHeading.cpp:622` ↔ `RowHeaderViews.swift:266` |
@@ -89,6 +90,7 @@
 | Shift Selected Effects (time offset, selection only) | menu | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1092`, `ShiftSelectedEffectsOnLayer` `:5978` ↔ Edit ▸ Shift Selected Effects… `XLightsCommands.swift:120`, bridge `shiftSelectedEffects(byMS:atRows:effectIndices:)` (sync-on-demand core selection, clash-rejected per desktop) |
 | Audio export / encode | menu | ✅ | ✅ | parity | P3 | medium | feasible | iPad Tools ▸ "Export Audio…" (`ExportAudioSheet.swift`, WAV/M4A picker) → `SequencerViewModel.exportCurrentAudio` → `XLSequenceDocument.exportCurrentAudio` → new core `AudioManager::WriteCurrentAudioToFile` (encodes the displayed buffers via the platform `EncodeToFile`, AudioToolbox on iPad — same encoder desktop's `WriteCurrentAudio` uses). Exports whatever stem/band is shown, like the desktop WAV temp path |
 | Prepare Audio (Reaper/xAudio import) | dialog | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `xLightsMain.cpp:1154`, `OnMenuItem_PrepareAudioSelected`; needs Reaper .rpp automation / FFmpeg — not viable on iOS |
+| Master View — multiple simultaneously-active timing tracks | sequencer | ✅ | n/a | restricted | — | n/a | n/a | Commit 3ec4c23cc (#6624): `RowHeading.cpp` removed `DeactivateAllTimingElements()` from Master View path; all other views already allowed multiple active timing tracks. iPad has no Master View concept — *informational only* |
 
 ## iPad gaps (desktop has, iPad missing)
 
@@ -105,6 +107,7 @@
 - ~~**Per-tag delete & Next/Prior tag navigation**~~ — **landed 2026-06-11**: `goToNextTag()`/`goToPriorTag()` (wrap-around) + a per-tag Delete submenu in `tagsMenuSection`.
 - **Volume named presets** — desktop offers Loud/Medium/Quiet/Very Quiet/Silent radio items (`xLightsMain.cpp:1253-1262`). iPad's continuous slider already covers the range; adding labelled quick-picks is cosmetic. **Ease: easy.**
 - **Small-waveform & alternate-timing-format & exclude-audio-from-package preferences** — three desktop config flags (`xLightsMain.cpp:1684,1989,1871`) with no iPad surface. Each is a one-line `@AppStorage` + a Preferences row (and, for exclude-audio, a checkbox in `PackageSequenceSheet`). **Ease: easy.**
+- **New sequence default "New Timing" track** — `SeqFileUtilities.cpp` `NewSequence()` (commit 4e92aad3b / #6622) now seeds a default empty "New Timing" timing track whenever a new sequence has no existing timing tracks. The iPad new-sequence path lives in `XLSequenceDocument` (bridge layer), outside that wx file — verify whether the iPad path seeds this default; if not, add equivalent seeding. **Ease: easy.**
 - ~~**Audio export / encode**~~ — ✅ **Done.** Tools ▸ "Export Audio…" (`ExportAudioSheet`) offers a WAV / M4A picker and encodes the currently-displayed audio via the new core `AudioManager::WriteCurrentAudioToFile` (which routes through the platform `IAudioDecoder::EncodeToFile` — AudioToolbox on iPad, the same encoder desktop's `WriteCurrentAudio` uses). The encoded file is handed to the system share sheet.
 
 ## Desktop gaps (iPad has, desktop missing)
@@ -121,6 +124,7 @@
 - **Zipped `.mxl` MusicXML container**: the desktop `MusicXML` loader unzips `.mxl` via wx zip streams; the iPad `NoteImporter` handles uncompressed `.musicxml` / `.xml` only (pugixml has no zip reader and the iPad core is wx-free). *Desktop-only* — users can unzip an `.mxl` to `.musicxml` first.
 - **Sound classification on Windows/Linux desktop**: parity with iPad exists only on the Apple desktop build (`Waveform.cpp` is `#ifdef __APPLE__`); this is a *desktop platform* limit, not an iPad one.
 - *No firmware-restricted items in this theme* — FPP Commands/Effects timing tracks are sequence metadata, not controller uploads, so they are fully in-scope and already at parity.
+- **Master View — multiple simultaneously-active timing tracks** (commit 3ec4c23cc / #6624, `RowHeading.cpp`): `DeactivateAllTimingElements()` was removed from the Master View path so Master View now matches all other views in allowing multiple timing tracks active at once. iPad has no Master View concept (`ModelRowHeader` has no per-view active-track state), so there is no direct counterpart. *Informational:* if iPad ever introduces per-track active state, allow multiple tracks active concurrently.
 
 ## Recommended sequencing
 

@@ -94,6 +94,7 @@
 #include "outputs/ZCPP.h"
 #include "models/OutputModelManager.h"
 #include "render/RenderContext.h"
+#include "render/xLightsShowContext.h"
 #include "render/RenderEngine.h"
 #include "render/IRenderProgressSink.h"
 #include "render/UICallbacks.h"
@@ -112,6 +113,7 @@ class wxDebugReport;
 class aiBase;
 class BaseSerializingVisitor;
 class CopyFormat1;
+class Controller;
 class ControllerCaps;
 class Discovery;
 class DiscoveryDelegate;
@@ -315,7 +317,7 @@ private:
     int id;
 };
 
-class xLightsFrame: public xlFrame, public RenderContext, public UICallbacks
+class xLightsFrame: public xlFrame, public xLightsShowContext, public UICallbacks
 {
 public:
 
@@ -356,7 +358,6 @@ public:
     int TxOverflowCnt = 0;
     int TxOverflowTotal = 0;
     std::mutex saveLock;
-    RenderCache _renderCache;
     std::atomic_bool _exiting;
     #ifdef __WXMSW__
     // windows has issues if we create it later
@@ -394,8 +395,10 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
+    void SavePresetsFile(bool backup = false);
     void SaveModelsFile();
     void MarkEffectsFileDirty();
+    void MarkPresetsDirty();
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0) override;
@@ -432,8 +435,6 @@ public:
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
     static wxString xlightsFilename; //expose current path name -DJ
     static SequenceFile* CurrentSeqXmlFile; // global object for currently opened XML file
-    const std::string &GetShowDirectory() const override { return showDirectory; }
-    const std::string &GetFseqDirectory() const override { return fseqDirectory; }
     AudioManager* GetCurrentMediaManager() const override;
     AudioManager* GetPlaybackAudio() const; // Returns active alt track audio if selected, else main media
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
@@ -498,7 +499,6 @@ public:
 	}
     void UpdateReadOnlyState();
 
-    EffectManager &GetEffectManager() override { return effectManager; }
 
     bool ImportLMS(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportLPE(pugi::xml_document &doc, const wxFileName &filename);
@@ -669,6 +669,8 @@ public:
     void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
     void OnMenuItem_TODSelected(wxCommandEvent& event);
     void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
+    void OnMenuItem_EffectSymbolsSelected(wxCommandEvent& event);
+    void OnMenuItem_ConvertSymbolsSelected(wxCommandEvent& event);
     void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
     void OnMenuItem_SuppressDock(wxCommandEvent& event);
     void OnButton_ChangeBaseShowDirClick(wxCommandEvent& event);
@@ -855,6 +857,8 @@ public:
     static const wxWindowID ID_MENUITEM_EFFECT_PRESETS;
     static const wxWindowID ID_MENUITEM_SELECT_EFFECT;
     static const wxWindowID ID_MENUITEM_SEARCH_EFFECTS;
+    static const wxWindowID ID_MNU_EFFECTSYMBOLS;
+    static const wxWindowID ID_MNU_CONVERTSYMBOLS;
     static const wxWindowID ID_MENUITEM_VIDEOPREVIEW;
     static const wxWindowID ID_MNU_JUKEBOX;
     static const wxWindowID ID_MNU_FINDDATA;
@@ -1041,6 +1045,8 @@ public:
     wxMenuItem* MenuItem_QuietVol;
     wxMenuItem* MenuItem_REDO;
     wxMenuItem* MenuItem_RemapCustom;
+    wxMenuItem* MenuItem_EffectSymbols;
+    wxMenuItem* MenuItem_ConvertSymbols;
     wxMenuItem* MenuItem_SD_HP;
     wxMenuItem* MenuItem_SD_MP;
     wxMenuItem* MenuItem_ShowACRamps;
@@ -1119,8 +1125,6 @@ public:
     wxMenu *revertToMenu = nullptr;
     wxMenuItem* revertToMenuItem = nullptr;
 
-    OutputManager _outputManager;
-    OutputModelManager _outputModelManager;
     long DragRowIdx;
     //wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
@@ -1128,7 +1132,6 @@ public:
     unsigned int mLastAutosaveCount = 0;
     wxDateTime starttime;
     ModelPreview* modelPreview = nullptr;
-    EffectManager effectManager{GetEffectMetadataDirectory()};
     EffectPanelManager effectPanelManager{&effectManager};
     int effGridPrevX;
     int effGridPrevY;
@@ -1211,9 +1214,6 @@ public:
     }
     void DoAltBackup(bool prompt = true);
 
-    [[nodiscard]] const std::list<std::string>& GetMediaFolders() const override {
-        return mediaDirectories;
-    }
     void SetMediaFolders(const std::list<std::string> &folders);
     void GetFSEQFolder(bool& useShow, std::string& folder);
     void SetFSEQFolder(bool useShow, const std::string& folder);
@@ -1425,7 +1425,8 @@ public:
     bool DisableOutputs();
     void CycleOutputsIfOn();
 
-    bool ForceEnableOutputs(bool startTimer = true);
+    bool ForceEnableOutputs(bool startTimer = true, bool skipAutoUpload = false);
+    bool UploadControllerForImmediateOutput(Controller* controller);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
     void LogPerspective(const wxString& perspective) const;
@@ -1501,17 +1502,6 @@ public:
 
     void DoPostStartupCommands();
 
-    // Render state is owned by _renderEngine (created in constructor).
-    // These accessors provide backward-compatible access for UI code.
-
-    std::string _permanentShowFolder;
-    std::string mediaFilename;
-    std::string showDirectory;
-    std::list<std::string> mediaDirectories;
-    std::string fseqDirectory;
-    std::string renderCacheDirectory;
-    std::string _backupDirectory;
-    SeqDataType _seqData;
     wxTimer _scrollTimer;
 
     wxArrayString ChannelNames;
@@ -1532,7 +1522,7 @@ public:
     // convert
 public:
     bool UnsavedRgbEffectsChanges;
-    unsigned int modelsChangeCount;
+    bool UnsavedPresetChanges = false;
     bool _renderMode = false;
     bool _checkSequenceMode = false;
 
@@ -1587,8 +1577,6 @@ public:
     void ReadXlightsFile(const wxString& FileName, wxString *mediaFilename = nullptr);
     void ReadFalconFile(const wxString& FileName, ConvertDialog* convertdlg);
     void WriteFalconPiFile(const wxString& filename, bool allowSparse = true); //  Falcon Pi Player *.fseq
-    OutputManager* GetOutputManager() { return &_outputManager; };
-    OutputModelManager* GetOutputModelManager() override { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
     void WriteGIFForPreset(const std::string& preset, EffectPresetManager& manager, const std::string& presetDir);
 
@@ -1605,8 +1593,6 @@ public:
     Model* GetPresetModel() { EnsurePresetModel(); return _presetModel; }
     SequenceData& GetPresetSequenceData() { return _presetSequenceData; }
     SequenceElements& GetPresetSequenceElements() { return _presetSequenceElements; }
-    SequenceData& GetSeqData() { return _seqData; }
-    const SequenceData& GetSeqData() const { return _seqData; }
 
 private:
 
@@ -1636,7 +1622,6 @@ public:
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     Model *GetModel(const std::string& name) const override;
-    unsigned int GetModelGeneration() const override { return AllModels.GetModelGeneration(); }
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
     bool AbortRender(int maxTimeMs, int* numThreadsAborted);
@@ -1644,6 +1629,7 @@ public:
     void UpdateRenderStatus();
     void LogRenderStatus();
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
+    void RequestRenderForModel(const std::string &model, int startms, int endms) override;
     void RenderTimeSlice(int startms, int endms, bool clear);
 
     void RenderRange(RenderCommandEvent &cmd);
@@ -1651,7 +1637,6 @@ public:
     bool IsDrawRamps();
 
     void EnableSequenceControls(bool enable);
-    SequenceElements& GetSequenceElements() override { return _sequenceElements; }
 
     // Song Structure Region export
     std::string DoExportSongRegion(int startMS, int endMS, const std::string& regionLabel, const wxString& outputPath);
@@ -1702,6 +1687,10 @@ protected:
     static constexpr int RENDER_EXIT_ON_DONE = 1;
     static constexpr int RENDER_ALREADY_RETRIED = 2;
     void OpenRenderAndSaveSequencesF(const wxArrayString &filenames, int flags);
+    // Command-line --outputdir override for -r; applied at the top of
+    // OpenRenderAndSaveSequencesF (after the show's fseqDir has loaded).
+    void SetCommandLineFseqDir(const std::string& dir) { _commandLineFseqDir = dir; }
+    std::string _commandLineFseqDir;
     void OpenRenderAndSaveSequences(const wxArrayString& filenames, bool exitOnDone, bool alreadyRetried = false);
     void OpenAndCheckSequence(const wxArrayString& origFilenames, bool exitOnDone);
     std::string OpenAndCheckSequence(const std::string& origFilenames);
@@ -1716,8 +1705,6 @@ protected:
     std::string PackageDebugFiles(bool showDialogs = true);
 
     bool Grid1HasFocus; //cut/copy/paste handled differently with grid vs. other text controls -DJ
-	SequenceViewManager _sequenceViewManager;
-    EffectPresetManager _effectPresetManager;
 public:
     std::vector<Perspective> _perspectives;
     std::string _currentPerspectiveName;
@@ -1776,8 +1763,6 @@ private:
 
     int mAutoSaveInterval;
     int BackupPurgeDays;
-    JobPool jobPool;
-    std::unique_ptr<RenderEngine> _renderEngine;
 
     Model *playModel;
     Model *_lastPlayModel = nullptr;
@@ -1855,7 +1840,7 @@ public:
     bool IsSequencerInitialized() const override { return mSequencerInitialize; }
     void MarkRgbEffectsChanged() override { UnsavedRgbEffectsChanges = true; }
     IModelPreview* GetHousePreview() const override;
-    PreviewCamera* GetNamedCamera3D(const std::string& name) override;
+    void GetRenderPreviewSize(int& w, int& h) const override;
 
     // Discovery helpers — consolidate controller discovery logic
     // Gather start addresses from OutputManager controllers + forced IPs from config
@@ -1897,7 +1882,6 @@ private:
     int _acParm2RampUpDown;
     Perspective* mCurrentPerpective = nullptr;
     std::map<wxString, bool> savedPaneShown;
-    SequenceElements _sequenceElements;
     MainSequencer* mainSequencer = nullptr;
     ModelPreview * _modelPreviewPanel = nullptr;
     HousePreviewPanel *_housePreviewPanel = nullptr;
@@ -1999,7 +1983,7 @@ private:
     void ResizeMainSequencer();
     void LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc);
     void DoLoadPerspective(Perspective* p);
-    void CheckForValidModels();
+    void CheckForValidModels() override;
     void ExportModels(wxString const& filename);
     void ExportEffects(wxString const& filename);
     int ExportElement(wxFile& f, Element* e, std::map<std::string, int>& effectfrequency, std::map<std::string, int>& effectTotalTime, std::list<std::string>& allfiles);
@@ -2054,12 +2038,12 @@ private:
 public:
     FILE* _logfile = nullptr;
     std::vector<Model *> PreviewModels;
+    // AllModels generation PreviewModels was last rebuilt at; a mismatch means a
+    // model was added/deleted since and cached Model* lists may hold freed pointers
+    unsigned int PreviewModelsGeneration = 0;
     std::map<std::string, std::unique_ptr<LayoutGroup>> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
-    ModelManager AllModels;
-    ViewObjectManager AllObjects;
     ColorManager color_mgr;
-    ViewpointMgr viewpoint_mgr;
     EffectTreeDialog *EffectTreeDlg = nullptr;
     bool _effectPresetsInitialized = false;
 

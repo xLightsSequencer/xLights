@@ -1215,6 +1215,17 @@
 					<label>Color Replace</label>
 					<handler function="OnMenuItem_ColorReplaceSelected" entry="EVT_MENU" />
 				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="ID_MNU_EFFECTSYMBOLS" variable="MenuItem_EffectSymbols" member="yes">
+					<label>Effect Symbol Library...</label>
+					<help>Manage reusable effect symbols</help>
+					<handler function="OnMenuItem_EffectSymbolsSelected" entry="EVT_MENU" />
+				</object>
+				<object class="wxMenuItem" name="ID_MNU_CONVERTSYMBOLS" variable="MenuItem_ConvertSymbols" member="yes">
+					<label>Convert All Symbols to Effects</label>
+					<help>Unlink all effects from symbols for compatibility with older xLights versions</help>
+					<handler function="OnMenuItem_ConvertSymbolsSelected" entry="EVT_MENU" />
+				</object>
 			</object>
 			<object class="wxMenu" variable="Menu1" member="yes">
 				<label>&amp;Tools</label>

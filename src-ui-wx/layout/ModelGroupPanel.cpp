@@ -784,7 +784,9 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
 
     if (g == nullptr) return;
 
-    xLightsApp::GetFrame()->AbortRender();
+    // Rebuilding the group's models/buffers (SetModels below) while a render
+    // worker is reading them is a use-after-free; bail if render won't drain.
+    if (!xLightsApp::GetFrame()->AbortRender()) return;
 
     if (centreUpdate) {
         g->SetCentreDefined(false);

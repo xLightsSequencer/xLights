@@ -821,26 +821,33 @@ void Mouse3DManager::sendMotionEvents(const glm::vec3 &t, const glm::vec3 &r) {
     sendEvent(event);
 }
 void Mouse3DManager::sendEvent(wxEvent *event) {
-    if (focusWindow && focusWindow->IsShownOnScreen()) {
-        focusWindow->GetEventHandler()->QueueEvent(event);
-        return;
-    }
-    wxWindow *w = nullptr;
-    if (lastWindow && lastWindow->HasFocus()) {
-        w = lastWindow;
-    } else {
-        wxPoint p = wxGetMousePosition();
-        w = wxFindWindowAtPointer(p);
-        if (w == nullptr) {
+    // sendEvent is invoked on the 3D-mouse HID / Connexion driver callback thread.
+    // Resolving the target window touches wx GUI state (IsShownOnScreen / HasFocus /
+    // wxFindWindowAtPointer) and the cached focusWindow/lastWindow pointers, none of
+    // which are safe to read off the main thread, and the main thread may be
+    // concurrently destroying those windows (crash bucket fa759f9ecc). Marshal the
+    // whole resolution + dispatch onto the main thread; the wxWeakRefs auto-null if a
+    // cached window has since been destroyed.
+    wxTheApp->CallAfter([this, event]() {
+        wxWindow* w = nullptr;
+        if (focusWindow && focusWindow->IsShownOnScreen()) {
+            w = focusWindow;
+        } else if (lastWindow && lastWindow->HasFocus()) {
             w = lastWindow;
+        } else {
+            wxPoint p = wxGetMousePosition();
+            w = wxFindWindowAtPointer(p);
+            if (w == nullptr) {
+                w = lastWindow;
+            }
         }
-    }
-    if (w && w->IsShownOnScreen()) {
-        w->GetEventHandler()->QueueEvent(event);
-        lastWindow = w;
-    } else {
-        delete event;
-    }
+        if (w && w->IsShownOnScreen()) {
+            w->GetEventHandler()->QueueEvent(event);
+            lastWindow = w;
+        } else {
+            delete event;
+        }
+    });
 }
 
 Mouse3DManager Mouse3DManager::INSTANCE;

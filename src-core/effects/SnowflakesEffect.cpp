@@ -151,7 +151,7 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
                     //  randomly move the flake left or right
                     if (moves > 0 || (falling == "Falling" && y == 0)) {
                         int x0;
-                        switch (rand() % 9) {
+                        switch (buffer.randInt(0, 8)) {
                         case 0:
                             if (moves & 1) {
                                 x0 = x - 1;
@@ -182,7 +182,7 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
                             } else if ((moves & 5) == 1) {
                                 x0 = x - 1;
                             } else {
-                                switch (rand() % 2) {
+                                switch (buffer.randInt(0, 1)) {
                                 case 0:
                                     x0 = x + 1;
                                     break;
@@ -230,10 +230,10 @@ void SnowflakesEffect::MoveFlakes(RenderBuffer& buffer, int snowflakeType, const
     int placedFullCount = 0;
     while (effectState < count && check < 20) {
         // find unused space
-        int x = rand() % buffer.BufferWi;
+        int x = buffer.randInt(0, buffer.BufferWi - 1);
         if (buffer.GetTempPixel(x, buffer.BufferHt - 1) == xlBLACK) {
             effectState++;
-            buffer.SetTempPixel(x, buffer.BufferHt - 1, color1, snowflakeType == 0 ? rand() % 9 : snowflakeType - 1);
+            buffer.SetTempPixel(x, buffer.BufferHt - 1, color1, snowflakeType == 0 ? buffer.randInt(0, 8) : snowflakeType - 1);
 
             int nextmoves = possible_downward_moves(buffer, x, buffer.BufferHt - 1);
             if (nextmoves == 0) {
@@ -304,8 +304,8 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             // find unused space
             for (int check = 0; check < 20; check++)
             {
-                x = rand() % buffer.BufferWi;
-                y = y0 + (rand() % delta_y);
+                x = buffer.randInt(0, buffer.BufferWi - 1);
+                y = y0 + buffer.randInt(0, delta_y - 1);
                 if (buffer.GetTempPixel(x, y) == xlBLACK) {
                     effectState++;
                     break;
@@ -313,7 +313,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
             }
 
             // draw flake, SnowflakeType=0 is random type
-            switch (SnowflakeType == 0 ? rand() % 9 : SnowflakeType - 1)
+            switch (SnowflakeType == 0 ? buffer.randInt(0, 8) : SnowflakeType - 1)
             {
             case 0:
                 // single node
@@ -354,7 +354,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                 else
                 {
                     buffer.SetTempPixel(x, y, c1);
-                    if (rand() % 100 > 50)      // % 2 was not so random
+                    if (buffer.randInt(0, 99) > 50)      // % 2 was not so random
                     {
                         buffer.SetTempPixel(x - 1, y, c2);
                         buffer.SetTempPixel(x + 1, y, c2);
@@ -575,7 +575,7 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                                 set_pixel_if_not_color(buffer, x - 1, y, color2, color1, wrapx, false);
                                 set_pixel_if_not_color(buffer, x + 1, y, color2, color1, wrapx, false);
                         } else {
-                                if (rand() % 100 > 50) // % 2 was not so random
+                                if (buffer.randInt(0, 99) > 50) // % 2 was not so random
                                 {
                                     set_pixel_if_not_color(buffer, x - 1, y, color2, color1, wrapx, false);
                                     set_pixel_if_not_color(buffer, x + 1, y, color2, color1, wrapx, false);

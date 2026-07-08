@@ -69,9 +69,16 @@ DmxServo3d::~DmxServo3d()
 
 void DmxServo3d::SetNumServos(int val)
 {
-    num_servos = val;
+    num_servos = std::min(val, SUPPORTED_SERVOS);
     if ((int)servos.size() < num_servos) {
         servos.resize(num_servos);
+    }
+    for (int i = 0; i < num_servos; ++i) {
+        if (servos[i] == nullptr) {
+            auto new_name = "Servo" + std::to_string(i + 1);
+            servos[i] = std::make_unique<Servo>(new_name, true);
+            servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
+        }
     }
 }
 
@@ -81,13 +88,23 @@ void DmxServo3d::SetNumStatic(int val)
     if ((int)static_meshs.size() < num_static) {
         static_meshs.resize(num_static);
     }
+    for (int i = 0; i < num_static; ++i) {
+        if (static_meshs[i] == nullptr) {
+            static_meshs[i] = std::make_unique<Mesh>("StaticMesh" + std::to_string(i + 1));
+        }
+    }
 }
 
 void DmxServo3d::SetNumMotion(int val)
 {
-    num_motion = val;
+    num_motion = std::min(val, std::min(num_servos, SUPPORTED_SERVOS));
     if ((int)motion_meshs.size() < num_motion) {
         motion_meshs.resize(num_motion);
+    }
+    for (int i = 0; i < num_motion; ++i) {
+        if (motion_meshs[i] == nullptr) {
+            motion_meshs[i] = std::make_unique<Mesh>("MotionMesh" + std::to_string(i + 1));
+        }
     }
 }
 

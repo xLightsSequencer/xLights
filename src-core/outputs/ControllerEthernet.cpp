@@ -195,10 +195,31 @@ void ControllerEthernet::PostSetActive()
 }
 std::string ControllerEthernet::GetResolvedIP(bool forceResolve) const {
     std::shared_lock<std::shared_mutex> lock(_resolveMutex);
-    if (_resolvedIp.empty() && !_ip.empty() && forceResolve) {
+    bool unresolved = _resolvedIp.empty() || _resolvedIp == _ip;
+    if (!_ip.empty() && forceResolve && unresolved) {
+        lock.unlock();
         return ip_utils::ResolveIP(_ip);
     }
     return _resolvedIp;
+}
+
+void ControllerEthernet::RefreshResolvedIP() {
+    bool needsRefresh = false;
+    {
+        std::shared_lock<std::shared_mutex> lock(_resolveMutex);
+        needsRefresh = !_ip.empty() && (hasAlpha(_ip) || _resolvedIp.empty() || _resolvedIp == _ip);
+    }
+    if (!needsRefresh) return;
+
+    ip_utils::ResolveIP(_ip, [this](const std::string& r) {
+        std::unique_lock<std::shared_mutex> lock(_resolveMutex);
+        _resolvedIp = r;
+        lock.unlock();
+        std::shared_lock<std::shared_mutex> lock2(_resolveMutex);
+        for (auto& it : GetOutputs()) {
+            it->SetResolvedIP(r);
+        }
+    });
 }
 
 void ControllerEthernet::SetProtocol(const std::string& protocol) {
@@ -668,14 +689,8 @@ void ControllerEthernet::VMVChanged()
 Output::PINGSTATE ControllerEthernet::Ping() {
 
     if (hasAlpha(_resolvedIp)) {
-        for (auto& it : GetOutputs()) { // Get the actual IPOutput object
-            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
-            if (ipOutput) {
-                ipOutput->SetIP(this->GetResolvedIP(), true, true); // Re-resolve IP
-                ip_utils::waitForAllToResolve();
-                _resolvedIp = ipOutput->GetResolvedIP();
-            }
-        }
+        RefreshResolvedIP();
+        ip_utils::waitForAllToResolve();
     }
     if (GetResolvedIP(false) == "MULTICAST") {
         _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE;

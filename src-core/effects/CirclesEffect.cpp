@@ -148,11 +148,11 @@ CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const Settin
             float spd;
             if (ii >= cache->numBalls || buffer.needToInit)
             {
-                start_x = rand() % (buffer.BufferWi);
-                start_y = rand() % (buffer.BufferHt);
+                start_x = buffer.randInt(0, buffer.BufferWi - 1);
+                start_y = buffer.randInt(0, buffer.BufferHt - 1);
                 colorIdx = ii % colorCnt;
-                angle = rand() % 2 ? rand() % 90 : -rand() % 90;
-                spd = rand() % 3 + 1;
+                angle = buffer.randInt(0, 1) ? buffer.randInt(0, 89) : -buffer.randInt(0, 89);
+                spd = buffer.randInt(0, 2) + 1;
             }
             else
             {
@@ -165,7 +165,7 @@ CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const Settin
             effectObjects[ii].Reset((float)start_x, (float)start_y, spd, angle, (float)radius, colorIdx);
             if (bubbles)
             {
-                angle = 90 + rand() % 45 - 22.5f;
+                angle = 90 + buffer.randInt(0, 44) - 22.5f;
                 angle *= 2.0f * (float)M_PI / 180.0f;
                 effectObjects[ii]._dx = spd * cos(angle);
                 effectObjects[ii]._dy = spd * sin(angle);

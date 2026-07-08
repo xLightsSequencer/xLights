@@ -52,6 +52,7 @@ public:
     id<MTLBuffer> getPixelBufferCopy();
     id<MTLBuffer> getIndexBuffer();
     id<MTLBuffer> getBlendBuffer();
+    id<MTLBuffer> getOwnerBuffer();
 
 
     void commit();
@@ -64,7 +65,7 @@ public:
 
     id<MTLBuffer> maskBuffer;
 private:
-    bool callRotoZoomFunction(id<MTLComputePipelineState> f, RotoZoomData &data);
+    bool callRotoZoomFunction(id<MTLComputePipelineState> f, id<MTLComputePipelineState> claimF, RotoZoomData &data);
     
     RenderBuffer *renderBuffer;
     int layer;
@@ -77,15 +78,22 @@ private:
     id<MTLBuffer> indexBuffer;
     int32_t *indexes;
     int indexesSize;
+    // pixel index -> node index that deterministically owns the pixel (the
+    // last node in Nodes order covering it).  PutColorsForNodes gates its
+    // scatter on this so concurrent GPU threads never race for a shared
+    // pixel; rebuilt lazily after any geometry change (see bufferResized).
+    id<MTLBuffer> ownerBuffer;
+    int ownerSize = 0;
+    bool ownerStale = true;
+    // per-dispatch scratch for the rotozoom claim pass (pixel -> winning
+    // source index); refilled to -1 before every rotation, so no staleness
+    // tracking is needed.
+    id<MTLBuffer> rotoOwnerBuffer;
+    int rotoOwnerSize = 0;
     std::pair<uint32_t, uint32_t> pixelTextureSize;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
 
-    // Cached MPSImageTent for blur — recreating per-frame leaks driver-side
-    // metallib parsing state. Keep one alive per buffer, swap when radius changes.
-    id cachedBlurKernel;
-    int cachedBlurRadius;
-    
     static std::atomic<uint32_t> commandBufferCount;
 };
 
@@ -104,6 +112,9 @@ public:
         pg = p;
     }
 
+    // ~Number of GPU cores, for sizing the render pool (0 if Metal unusable).
+    int gpuCoreCount();
+
     id<MTLComputePipelineState> FindComputeFunction(const char *name);
 
 
@@ -119,7 +130,12 @@ public:
     id<MTLComputePipelineState> xrotateFunction;
     id<MTLComputePipelineState> yrotateFunction;
     id<MTLComputePipelineState> zrotateFunction;
+    id<MTLComputePipelineState> xrotateClaimFunction;
+    id<MTLComputePipelineState> yrotateClaimFunction;
+    id<MTLComputePipelineState> zrotateClaimFunction;
     id<MTLComputePipelineState> rotateBlankFunction;
+    id<MTLComputePipelineState> tentBlurHFunction;
+    id<MTLComputePipelineState> tentBlurVFunction;
     
     id<MTLComputePipelineState> getColorsFunction;
     id<MTLComputePipelineState> putColorsFunction;

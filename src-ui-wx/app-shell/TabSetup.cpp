@@ -1066,7 +1066,7 @@ void xLightsFrame::UpdateControllerSave() {
 }
 
 void xLightsFrame::UpdateLayoutSave() {
-    if (UnsavedRgbEffectsChanges || UnsavedNetworkChanges) {
+    if (UnsavedRgbEffectsChanges || UnsavedNetworkChanges || UnsavedPresetChanges) {
 #ifdef __WXOSX__
         SetButtonBackground(layoutPanel->ButtonSavePreview, wxColour(255, 0, 0), 2);
 #else
@@ -1171,6 +1171,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
         OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+        OutputModelManager::WORK_PRESET_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
@@ -1194,6 +1195,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_UPDATE_NETWORK_LIST |
         OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+        OutputModelManager::WORK_PRESET_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
@@ -1220,6 +1222,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |
         OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+        OutputModelManager::WORK_PRESET_CHANGE |
         OutputModelManager::WORK_RELOAD_MODEL_FROM_XML |
         OutputModelManager::WORK_RELOAD_ALLMODELS |
         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
@@ -1236,6 +1239,10 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work->debug("    WORK_RGBEFFECTS_CHANGE.");
         // Mark the rgb effects file as needing to be saved
         MarkEffectsFileDirty();
+    }
+    if (work & OutputModelManager::WORK_PRESET_CHANGE) {
+        logger_work->debug("    WORK_PRESET_CHANGE.");
+        MarkPresetsDirty();
     }
     work = _outputModelManager.ClearWork(type, work,
         OutputModelManager::WORK_UPDATE_PROPERTYGRID |
@@ -2323,7 +2330,7 @@ void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
     auto name = List_Controllers->GetItemText(event.GetItem());
     auto controller = _outputManager.GetController(name);
 
-    if (controller->IsFromBase())
+    if (controller != nullptr && controller->IsFromBase())
     {
         List_Controllers->SetToolTip("From Base Show Directory");
     }

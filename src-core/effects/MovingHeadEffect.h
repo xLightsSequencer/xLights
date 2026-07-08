@@ -24,6 +24,8 @@
 #define MOVING_HEAD_TIME_MAX 1000
 #define MOVING_HEAD_SCALE_MIN -100
 #define MOVING_HEAD_SCALE_MAX 100
+#define MOVING_HEAD_PATTERN_ROTATION_MIN 0
+#define MOVING_HEAD_PATTERN_ROTATION_MAX 360
 
 class DmxMotor;
 class DmxColorAbility;
@@ -116,6 +118,7 @@ protected:
         return false;
     }
     void WriteCmdToPixel(DmxMotor* motor, int value, RenderBuffer& buffer);
+    void WriteDMXValue(int channel, int value, RenderBuffer& buffer);
     std::list<const Model*> GetModels(const Model* model);
     void UpdateFixturePositions(const Model* cls){};//missing function body
     void RenderMovingHeads(const Model* model_info, const SettingsMap& SettingsMap, RenderBuffer& buffer);
@@ -125,6 +128,8 @@ protected:
     void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);
     void CalculatePosition(int location, float& position, std::vector<std::string>& heads, int groupings, float offset, float& delta );
     void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);
+    void CalculatePatternPoint(const std::string& algorithm, float iterator, float x_freq, float y_freq, float x_phase, float y_phase, float& x, float& y);
+    void CalculatePatternPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, const std::string& algorithm, float width, float height, float x_offset, float y_offset, float rotation, float start_offset, float phase_offset, float x_freq, float y_freq, float x_phase, float y_phase, float delta, double eff_pos);
     void CalculateDimmer(double eff_pos, std::vector<std::string>& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer);
     void CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const std::vector<std::string>& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer);
 };

@@ -825,6 +825,12 @@ public:
         @autoreleasepool {
             const uint32_t w = image.GetWidth();
             const uint32_t h = image.GetHeight();
+            if (w == 0 || h == 0) {
+                spdlog::warn("Metal texture '{}' not created: zero-sized image ({}x{}).", name, w, h);
+                texture = nil;
+                textureSize = MTLSizeMake(0, 0, 1);
+                return;
+            }
 
             MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
                                                                                                    width:w
@@ -832,6 +838,15 @@ public:
                                                                                                mipmapped:false];
             description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
             id <MTLTexture> srcTexture = [MetalDeviceManager::instance().getMTLDevice() newTextureWithDescriptor:description];
+            if (srcTexture == nil) {
+                // Device refused the allocation (memory pressure / size limits).
+                // Leave `texture` nil — Finalize and the draw paths skip nil
+                // textures, so this degrades to a missing texture, not a crash.
+                spdlog::warn("Metal texture '{}' ({}x{}) allocation failed.", name, w, h);
+                texture = nil;
+                textureSize = MTLSizeMake(0, 0, 1);
+                return;
+            }
             // xlImage data is already RGBA interleaved - no conversion needed
             int rlen = w * 4;
             MTLRegion region = {0, 0, 0, w, h , 1};
@@ -901,6 +916,12 @@ public:
         // Create a private texture.
         @autoreleasepool {
             id<MTLTexture> srcTexture = texture;
+            if (srcTexture == nil) {
+                // LoadImage failed (zero-sized image or allocation refusal);
+                // encoding a blit from a nil texture raises a Metal validation
+                // exception, so there is nothing to finalize.
+                return;
+            }
             int levels = [srcTexture mipmapLevelCount];
             if (levels == 0) {
                 levels = 1;
@@ -917,6 +938,12 @@ public:
                                                                                                mipmapped:(levels > 1 ? true : false)];
             description.storageMode = MTLStorageModePrivate;
             id <MTLTexture> privateTexture = [MetalDeviceManager::instance().getMTLDevice() newTextureWithDescriptor:description];
+            if (privateTexture == nil) {
+                // Keep the shared-storage texture rather than blitting into nil.
+                spdlog::warn("Metal texture '{}' private copy allocation failed; keeping shared texture.", name);
+                [bltBuffer popDebugGroup];
+                return;
+            }
             [privateTexture setLabel:n];
 
             id <MTLBlitCommandEncoder> blitCommandEncoder = [bltBuffer blitCommandEncoder];
@@ -994,6 +1021,10 @@ xlTexture *xlMetalGraphicsContext::createTexture(const xlImage &image, const std
 xlTexture *xlMetalGraphicsContext::createTextureMipMaps(const std::vector<xlImage> &images, const std::string &name) {
     xlMetalTexture *txt = new xlMetalTexture();
     txt->SetName(name);
+    if (images.empty() || images[0].GetWidth() == 0 || images[0].GetHeight() == 0) {
+        spdlog::warn("Metal mipmap texture '{}' not created: no/zero-sized image.", name);
+        return txt;
+    }
 
     @autoreleasepool {
         MTLTextureDescriptor * desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
@@ -1089,10 +1120,21 @@ public:
         if (ret == 0) {
             ret = input.size();
             MeshVertexInput mvi;
-            mvi.positionX = objects.GetAttrib().vertices[idx.vertex_index * 3];
-            mvi.positionY = objects.GetAttrib().vertices[idx.vertex_index * 3 + 1];
-            mvi.positionZ = objects.GetAttrib().vertices[idx.vertex_index * 3 + 2];
-            if (idx.normal_index == -1) {
+            // tinyobj's fixIndex does not bounds-check positive indices, so a parseable
+            // but malformed OBJ can reference a vertex/normal/texcoord that has no
+            // corresponding v/vn/vt data, leaving the attrib array empty or short. Guard
+            // the array size as well as the -1 "absent" sentinel so we never deref past
+            // the end (mirrors the OpenGL path, crash bucket 7f18c56ac4).
+            if (idx.vertex_index < 0 || (size_t)(idx.vertex_index * 3 + 2) >= objects.GetAttrib().vertices.size()) {
+                mvi.positionX = 0;
+                mvi.positionY = 0;
+                mvi.positionZ = 0;
+            } else {
+                mvi.positionX = objects.GetAttrib().vertices[idx.vertex_index * 3];
+                mvi.positionY = objects.GetAttrib().vertices[idx.vertex_index * 3 + 1];
+                mvi.positionZ = objects.GetAttrib().vertices[idx.vertex_index * 3 + 2];
+            }
+            if (idx.normal_index < 0 || (size_t)(idx.normal_index * 3 + 2) >= objects.GetAttrib().normals.size()) {
                 mvi.normalX = 0;
                 mvi.normalY = 0;
                 mvi.normalZ = 0;
@@ -1101,7 +1143,7 @@ public:
                 mvi.normalY = objects.GetAttrib().normals[idx.normal_index * 3 + 1];
                 mvi.normalZ = objects.GetAttrib().normals[idx.normal_index * 3 + 2];
             }
-            if (idx.texcoord_index == -1) {
+            if (idx.texcoord_index < 0 || (size_t)(idx.texcoord_index * 2 + 1) >= objects.GetAttrib().texcoords.size()) {
                 mvi.texcoordX = 0;
                 mvi.texcoordY = 0;
             } else {
@@ -1626,6 +1668,9 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlTexture *texture,
                                                        float tx, float ty, float tx2, float ty2,
                                                        bool linearScale,
                                                        int brightness, int alpha) {
+    if (texture == nullptr || ((xlMetalTexture*)texture)->texture == nil) {
+        return this;
+    }
     xlMetalVertexAccumulator va;
     va.PreAlloc(6);
     va.AddVertex(x, y, 0);
@@ -1676,7 +1721,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlTexture *texture,
 }
 
 xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, int brightness, uint8_t alpha, int start, int count) {
-    if (vac->getCount() == 0) {
+    if (vac->getCount() == 0 || texture == nullptr || ((xlMetalTexture*)texture)->texture == nil) {
         return this;
     }
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;
@@ -1709,7 +1754,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulato
     return this;
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, const xlColor &c, int start, int count) {
-    if (vac->getCount() == 0) {
+    if (vac->getCount() == 0 || texture == nullptr || ((xlMetalTexture*)texture)->texture == nil) {
         return this;
     }
     xlMetalVertexTextureAccumulator *mva = (xlMetalVertexTextureAccumulator*)vac;

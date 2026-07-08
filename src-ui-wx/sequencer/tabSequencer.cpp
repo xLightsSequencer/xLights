@@ -518,6 +518,13 @@ void xLightsFrame::CheckForValidModels()
 {
     
 
+    // Baseline the "saved" change count here — after AdjustEffectSettingsForVersion
+    // (so migrations don't read as unsaved) but before the remap below (so a remap
+    // does mark the sequence dirty). Same seam as before; now reached from
+    // xLightsShowContext::LoadSequenceElements.
+    mSavedChangeCount = _sequenceElements.GetChangeCount();
+    mLastAutosaveCount = mSavedChangeCount;
+
     bool cancelled = false;
 
     spdlog::debug("CheckForValidModels: building model list.");
@@ -948,37 +955,40 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
     spdlog::debug("Load sequence {}", (const char*)xml_file.GetFullPath().c_str());
 
-    PushTraceContext();
-    SetFrequency(xml_file.GetFrequency());
-    _sequenceElements.SetViewsManager(GetViewsManager()); // This must come first before LoadSequencerFile.
+    // LoadSequencerFile below clears and rebuilds every Element/Effect/SettingsMap.
+    // A background render job spun up between CloseSequence's abort and now (e.g. the
+    // converted-file RenderAll / settings-dialog paths) would still be reading those
+    // objects while we free them -> heap corruption / crash (bucket d7ec0a8bbc).
+    // Drain any in-flight render before touching _sequenceElements. LoadSequencerFile
+    // itself does not pump the event loop, so no new render can start mid-rebuild.
+    AbortRender();
 
+    PushTraceContext();
     AddTraceMessage("loading");
-    _sequenceElements.LoadSequencerFile(xml_file, doc, GetShowDirectory());
+
+    // The shared, wx-free load: frequency, views manager, LoadSequencerFile,
+    // AdjustEffectSettingsForVersion, CheckForValidModels (overridden below for
+    // the interactive remap dialog), PrepareViews / PopulateRowInformation, mark
+    // loaded, ValueCurve wiring — the steps every host runs in this order. See
+    // xLightsShowContext::LoadSequenceElements.
+    if (!LoadSequenceElements(xml_file, doc)) {
+        spdlog::warn("LoadSequencer: failed to load {}", (const char*)xml_file.GetFullPath().c_str());
+        PopTraceContext();
+        return;
+    }
+
+    // Desktop UI on top of the shared load:
+    SetFrequency(xml_file.GetFrequency()); // also refreshes the timeline/waveform panels
 
     // Sync jukebox UI from sequence data
     if (GetJukeboxPanel()) {
         GetJukeboxPanel()->SyncFromData(xml_file.GetJukeboxButtons());
     }
 
-    spdlog::debug("Upgrading sequence");
-    xml_file.AdjustEffectSettingsForVersion(_sequenceElements, this);
-
     Menu_Settings_Sequence->Enable(true);
-
-    mSavedChangeCount = _sequenceElements.GetChangeCount();
-    mLastAutosaveCount = mSavedChangeCount;
-
-    spdlog::debug("Checking for valid models");
-    CheckForValidModels();
 
     spdlog::debug("Loading the audio data");
     LoadAudioData(xml_file);
-
-    spdlog::debug("Preparing views");
-    _sequenceElements.PrepareViews(xml_file);
-
-    spdlog::debug("Populating row information");
-    _sequenceElements.PopulateRowInformation();
 
     mainSequencer->PanelEffectGrid->SetSequenceElements(&_sequenceElements);
     mainSequencer->PanelEffectGrid->SetTimeline(mainSequencer->PanelTimeLine);
@@ -1185,7 +1195,13 @@ void xLightsFrame::ResizeMainSequencer()
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
-    mainSequencer->ScrollBarEffectsHorizontal->Update();
+    if (mainSequencer != nullptr) {
+        mainSequencer->ScrollBarEffectsHorizontal->Update();
+    }
+    // wxAuiManager now Bind()s its own OnPaint on the managed window (PanelSequencer)
+    // instead of PushEventHandler()ing itself ahead of it. Skip so the paint event
+    // still reaches wxAuiManager::OnPaint, which draws the pane captions/borders/buttons.
+    event.Skip();
 }
 
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
@@ -3348,8 +3364,11 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
             std::string name = panes[x].name.ToStdString();
             if (name != "HousePreview" && name != "ModelPreview") continue;
             recoverNames.push_back(name);
-            recoverPos.push_back(panes[x].frame->GetPosition());
-            recoverSize.push_back(panes[x].frame->GetSize());
+            // Use AUI's stored floating_pos/floating_size rather than the live
+            // native frame position, which on macOS may already be shifted by
+            // Cocoa after a Hide()/Show() cycle.
+            recoverPos.push_back(panes[x].floating_pos);
+            recoverSize.push_back(panes[x].floating_size);
         }
         if (!recoverNames.empty()) {
             for (const auto& nm : recoverNames) {

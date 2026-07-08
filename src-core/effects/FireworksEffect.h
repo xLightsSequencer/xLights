@@ -59,5 +59,5 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
-    static std::pair<int, int> GetFireworkLocation(int width, int height, int overridex = -1, int overridey = -1);
+    static std::pair<int, int> GetFireworkLocation(RenderBuffer& buffer, int width, int height, int overridex = -1, int overridey = -1);
 };

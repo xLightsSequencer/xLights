@@ -93,12 +93,12 @@ class LineObject
 {
     std::list<std::list<LinePoint>> _points;
 
-    static LinePoint CreatePoint(int width, int height)
+    static LinePoint CreatePoint(RenderBuffer& buffer, int width, int height)
     {
         LinePoint pt;
-        pt._x = rand01() * width;
-        pt._y = rand01() * height;
-        pt._angle = rand01() * pi2;
+        pt._x = buffer.rand01() * width;
+        pt._y = buffer.rand01() * height;
+        pt._angle = buffer.rand01() * pi2;
         return pt;
     }
 
@@ -120,13 +120,13 @@ class LineObject
     }
 
 public:
-    void CreateFirst(int points, int width, int height)
+    void CreateFirst(RenderBuffer& buffer, int points, int width, int height)
     {
         if (_points.size() != 0) return;
 
         std::list<LinePoint> pts;
         while ((int)pts.size() < points) {
-            pts.push_back(CreatePoint(width, height));
+            pts.push_back(CreatePoint(buffer, width, height));
         }
         _points.push_back(std::move(pts));
     }
@@ -199,13 +199,13 @@ public:
             it.Advance(buffer, speed, trails);
         }
     }
-    void CreateDestroy(int objects, int points, int width, int height) {
+    void CreateDestroy(RenderBuffer& buffer, int objects, int points, int width, int height) {
         while ((int)_lineObjects.size() > objects) {
             _lineObjects.pop_back();
         }
         while ((int)_lineObjects.size() < objects) {
             LineObject line;
-            line.CreateFirst(points, width, height);
+            line.CreateFirst(buffer, points, width, height);
             _lineObjects.push_back(std::move(line));
         }
     }
@@ -227,7 +227,7 @@ void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thic
         buffer.needToInit = false;
 	}
 
-    cache->CreateDestroy(objects, points, buffer.BufferWi, buffer.BufferHt);
+    cache->CreateDestroy(buffer, objects, points, buffer.BufferWi, buffer.BufferHt);
     cache->Advance(buffer, speed, trails);
 
     RenderBuffer temp(buffer);

@@ -320,4 +320,32 @@ void SetResourcesDir(const std::string& dir) {
     _resourcesDir = dir;
 }
 
+std::string GetEffectMetadataDirectory() {
+    static std::string cachedDir;
+    if (!cachedDir.empty()) return cachedDir;
+
+    std::string resDir = GetResourcesDir();
+    if (resDir.empty()) return "";
+
+    std::error_code ec;
+    auto tryDir = [&](const std::string& dir) -> bool {
+        if (std::filesystem::is_directory(std::filesystem::path(dir), ec)) {
+            cachedDir = dir;
+            return true;
+        }
+        return false;
+    };
+
+    // The fallbacks let dev builds find resources/effectmetadata in the source
+    // tree without a post-build copy step.
+    if (tryDir(resDir + "/effectmetadata")) return cachedDir;
+#ifdef _WIN32
+    if (tryDir(resDir + "/../../../resources/effectmetadata")) return cachedDir;
+#endif
+#ifdef __linux__
+    if (tryDir(resDir + "/../resources/effectmetadata")) return cachedDir;
+#endif
+    return "";
+}
+
 };

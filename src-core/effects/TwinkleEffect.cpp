@@ -10,6 +10,8 @@
 
 #include "TwinkleEffect.h"
 
+#include "ispc/TwinkleFunctions.ispc.h"
+
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
@@ -23,12 +25,10 @@
 
 #include "Parallel.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <random>
 #include <cmath>
-
-static std::random_device rd;
-static std::default_random_engine eng{ rd() };
-static std::uniform_int_distribution<> dist(0, INT_MAX);
 
 // Fallback defaults (used until OnMetadataLoaded replaces them with Twinkle.json values).
 int TwinkleEffect::sCountDefault = 3;
@@ -63,17 +63,6 @@ void TwinkleEffect::OnMetadataLoaded()
     sReRandomDefault = GetBoolDefault("Twinkle_ReRandom", sReRandomDefault);
     sStyleDefault = GetStringDefault("Twinkle_Style", sStyleDefault);
 }
-class StrobeClass
-{
-public:
-    
-    int x,y;
-    int duration; // How frames strobe light stays on. Will be decremented each frame
-    int colorindex;
-    int strobing;
-    bool isByNode = false;
-};
-
 class TwinkleRenderCache : public EffectRenderCache {
 public:
     TwinkleRenderCache() {};
@@ -210,13 +199,18 @@ int TwinkleEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2,
 
 static void place_twinkles(int lights_to_place, int &curIndex, std::vector<StrobeClass>& strobe, RenderBuffer& buffer,
                            int max_modulo, size_t colorcnt) {
+    // Placement uses the stateless hash RNG (hashRand01, keyed on the slot being
+    // filled with distinct salts per draw) rather than the serial rand stream, so
+    // the result is reproducible regardless of call order and matches the GPU/ISPC
+    // paths. hashRand01 folds in curPeriod, so the same slot re-randomizes each frame.
     while (lights_to_place > 0 && (curIndex < (int)strobe.size())) {
-        int idx = dist(eng) % (strobe.size() - curIndex) + curIndex;
+        int span = (int)strobe.size() - curIndex;
+        int idx = curIndex + std::min(span - 1, (int)(buffer.hashRand01(0x40000000u + (uint32_t)curIndex) * span));
         if (idx != curIndex) {
             std::swap(strobe[idx], strobe[curIndex]);
         }
-        strobe[curIndex].duration = dist(eng) % max_modulo;
-        strobe[curIndex].colorindex = dist(eng) % colorcnt;
+        strobe[curIndex].duration = std::min(max_modulo - 1, (int)(buffer.hashRand01(0x50000000u + (uint32_t)curIndex) * max_modulo));
+        strobe[curIndex].colorindex = std::min((int)colorcnt - 1, (int)(buffer.hashRand01(0x60000000u + (uint32_t)curIndex) * colorcnt));
         strobe[curIndex].strobing = true;
         curIndex++;
         lights_to_place--;
@@ -224,7 +218,26 @@ static void place_twinkles(int lights_to_place, int &curIndex, std::vector<Strob
 }
 
 void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    
+    TwinkleFrame f = prepareTwinkleFrame(SettingsMap, buffer);
+    if (f.isByNode) {
+        // The node-indirection path (SetNodePixel maps one node to many buffer
+        // coords, and several nodes can share a coord in a group buffer) can't
+        // be a clean per-pixel kernel, so it stays on a serial scalar tail.
+        renderTwinkleByNode(buffer, f);
+        return;
+    }
+    // Per-pixel path: ISPC is the sole CPU implementation. Brightness/color is
+    // baked into a CPU-built double-precision LUT; the kernel is pure integer
+    // state evolution + LUT lookup.
+    xlColorVector lut;
+    buildTwinkleLut(buffer, f, lut);
+    dispatchTwinkleISPC(buffer, f, lut);
+    applyTwinkleFinishCount(f);
+}
+
+// Reads the effect parameters and evolves the persistent per-light state array
+// (init + renewal/compaction). Mutating; must run exactly once per Render call.
+TwinkleFrame TwinkleEffect::prepareTwinkleFrame(const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Count = GetValueCurveInt("Twinkle_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int Steps = GetValueCurveInt("Twinkle_Steps", sStepsDefault, SettingsMap, oset, sStepsVCMin, sStepsVCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -260,11 +273,11 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     if (max_modulo2 < 1) {
         max_modulo2 = 1;
     }
-    
+
     if (step < 1) {
         step = 1;
     }
-    
+
     TwinkleRenderCache *cache = (TwinkleRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new TwinkleRenderCache();
@@ -284,7 +297,12 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     }
     cache->num_lights = lights;
 
-    size_t colorcnt=buffer.GetColorCount();
+    size_t colorcnt = buffer.GetColorCount();
+    if (colorcnt == 0) {
+        // guards the kernel's `% colorcnt` and the placement modulo against an
+        // empty palette (does not happen for a normally-rendered effect)
+        colorcnt = 1;
+    }
 
     int i = 0;
 
@@ -318,7 +336,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             }
             //randomize the locations
             for (int s = 0; s < (int)strobe.size(); ++s) {
-                int r = dist(eng) % strobe.size();
+                int r = std::min((int)strobe.size() - 1, (int)(buffer.hashRand01(0x10000000u + (uint32_t)s) * strobe.size()));
                 if (r != s) {
                     std::swap(strobe[r], strobe[s]);
                 }
@@ -331,13 +349,13 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                     if (i % step == 1 || step == 1) {
                         int s = strobe.size();
                         strobe.resize(s + 1);
-                        strobe[s].duration = dist(eng) % max_modulo;
+                        strobe[s].duration = std::min(max_modulo - 1, (int)(buffer.hashRand01(0x20000000u + (uint32_t)s) * max_modulo));
 
                         strobe[s].x = i;
                         strobe[s].y = 0;
                         strobe[s].isByNode = true;
 
-                        strobe[s].colorindex = dist(eng) % colorcnt;
+                        strobe[s].colorindex = std::min((int)colorcnt - 1, (int)(buffer.hashRand01(0x30000000u + (uint32_t)s) * colorcnt));
                         cache->curNumStrobe++;
                     }
                 }
@@ -348,13 +366,13 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
                         if (i % step == 1 || step == 1) {
                             int s = strobe.size();
                             strobe.resize(s + 1);
-                            strobe[s].duration = dist(eng) % max_modulo;
+                            strobe[s].duration = std::min(max_modulo - 1, (int)(buffer.hashRand01(0x20000000u + (uint32_t)s) * max_modulo));
 
                             strobe[s].x = x;
                             strobe[s].y = y;
                             strobe[s].isByNode = false;
 
-                            strobe[s].colorindex = dist(eng) % colorcnt;
+                            strobe[s].colorindex = std::min((int)colorcnt - 1, (int)(buffer.hashRand01(0x30000000u + (uint32_t)s) * colorcnt));
                             cache->curNumStrobe++;
                         }
                     }
@@ -362,7 +380,7 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             }
         }
     }
-    
+
     if (new_algorithm) {
         if (cache->lights_to_renew > 0) {
             while (cache->curNumStrobe && !strobe[cache->curNumStrobe-1].strobing) {
@@ -384,61 +402,179 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
         }
     }
 
-    parallel_for(0, cache->curNumStrobe, [&strobe, &buffer, max_modulo, max_modulo2, colorcnt, reRandomize, Strobe, new_algorithm, cache](int x) {
+    TwinkleFrame f;
+    f.states = &strobe;
+    f.lightsToRenew = &cache->lights_to_renew;
+    f.curNumStrobe = cache->curNumStrobe;
+    f.max_modulo = max_modulo;
+    f.max_modulo2 = max_modulo2;
+    f.colorcnt = (int)colorcnt;
+    f.frameSeed = buffer.hashRandomFrameSeed();
+    f.width = buffer.BufferWi;
+    f.npix = (int)buffer.GetPixelCount();
+    f.new_algorithm = new_algorithm;
+    f.reRandomize = reRandomize;
+    f.strobe = Strobe;
+    f.isByNode = isByNode;
+    return f;
+}
+
+// Precompute one RGBA per (colorindex, duration) using the exact scalar double
+// math so the integer ISPC/Metal kernels are byte-identical to the historical
+// renderer. Indexed [colorindex * (max_modulo+1) + clamp(i7, 0, max_modulo)].
+void TwinkleEffect::buildTwinkleLut(RenderBuffer &buffer, const TwinkleFrame &f, xlColorVector &lut) {
+    int stride = f.max_modulo + 1;
+    lut.resize((size_t)f.colorcnt * (size_t)stride);
+    bool allowAlpha = buffer.allowAlpha;
+    for (int ci = 0; ci < f.colorcnt; ci++) {
+        xlColor baseColor;
+        HSVValue baseHsv;
+        if (allowAlpha) {
+            buffer.palette.GetColor(ci, baseColor);
+        } else {
+            buffer.palette.GetHSV(ci, baseHsv);
+        }
+        for (int i7 = 0; i7 <= f.max_modulo; i7++) {
+            double v;
+            if (i7 <= f.max_modulo2) {
+                if (f.max_modulo2 > 0) v = (1.0 * i7) / f.max_modulo2;
+                else v = 0;
+            } else {
+                if (f.max_modulo2 > 0) v = (f.max_modulo - i7) * 1.0 / (f.max_modulo2);
+                else v = 0;
+            }
+            if (v < 0.0) v = 0.0;
+            if (f.strobe) {
+                if (i7 == f.max_modulo2) v = 1.0;
+                else v = 0.0;
+            }
+            xlColor out;
+            if (allowAlpha) {
+                out = baseColor;
+                out.alpha = 255.0 * v;
+            } else {
+                HSVValue hsv = baseHsv;
+                hsv.value = v;
+                out = hsv;
+            }
+            lut[(size_t)ci * (size_t)stride + (size_t)i7] = out;
+        }
+    }
+}
+
+// ISPC per-light dispatch (the CPU path). Each lane owns one strobe entry: it
+// advances the state (duration++, renewal/reRandomize) and writes its unique
+// pixel from the LUT. States are read-modify-written in place.
+void TwinkleEffect::dispatchTwinkleISPC(RenderBuffer &buffer, const TwinkleFrame &f, const xlColorVector &lut) {
+    if (f.curNumStrobe <= 0) {
+        return;
+    }
+    ispc::TwinkleISPCData d;
+    d.width = (unsigned int)f.width;
+    d.npix = (unsigned int)f.npix;
+    d.max_modulo = f.max_modulo;
+    d.max_modulo2 = f.max_modulo2;
+    d.colorcnt = f.colorcnt;
+    d.lutStride = f.max_modulo + 1;
+    d.lutSize = (int)lut.size();
+    d.new_algorithm = f.new_algorithm ? 1 : 0;
+    d.reRandomize = f.reRandomize ? 1 : 0;
+    d.frameSeed = f.frameSeed;
+
+    std::vector<StrobeClass> &strobe = *f.states;
+    int32_t *statePtr = reinterpret_cast<int32_t*>(strobe.data());
+    const ispc::uint8_t4 *lutPtr = (const ispc::uint8_t4*)lut.data();
+    ispc::uint8_t4 *pixels = (ispc::uint8_t4*)buffer.GetPixels();
+
+    int total = f.curNumStrobe;
+    constexpr int blockSize = 2048;
+    if (total >= blockSize * 2) {
+        int blocks = (total + blockSize - 1) / blockSize;
+        parallel_for(0, blocks, [&d, statePtr, lutPtr, pixels, total](int block) {
+            int start = block * blockSize;
+            int end = std::min(start + blockSize, total);
+            ispc::TwinkleEffectISPC(&d, start, end, statePtr, lutPtr, pixels);
+        });
+    } else {
+        ispc::TwinkleEffectISPC(&d, 0, total, statePtr, lutPtr, pixels);
+    }
+}
+
+// new_algorithm: count lights that finished this frame (kernel cleared their
+// strobing flag) and schedule them for renewal next frame. Matches the inline
+// lights_to_renew++ the scalar renderer did per finishing light.
+void TwinkleEffect::applyTwinkleFinishCount(const TwinkleFrame &f) {
+    if (!f.new_algorithm) {
+        return;
+    }
+    const std::vector<StrobeClass> &strobe = *f.states;
+    int count = 0;
+    for (int x = 0; x < f.curNumStrobe; x++) {
+        if (strobe[x].strobing == 0) {
+            count++;
+        }
+    }
+    *f.lightsToRenew += count;
+}
+
+// Serial scalar tail for the by-node path (SetNodePixel can't be a clean pixel
+// kernel). Keeps the exact original double math and RNG; the last strobe in
+// index order wins for coords shared between nodes in a group buffer.
+void TwinkleEffect::renderTwinkleByNode(RenderBuffer &buffer, const TwinkleFrame &f) {
+    std::vector<StrobeClass> &strobe = *f.states;
+    int max_modulo = f.max_modulo;
+    int max_modulo2 = f.max_modulo2;
+    int colorcnt = f.colorcnt;
+    bool reRandomize = f.reRandomize;
+    bool Strobe = f.strobe;
+    bool new_algorithm = f.new_algorithm;
+    for (int x = 0; x < f.curNumStrobe; x++) {
         strobe[x].duration++;
         if (new_algorithm) {
             if (!strobe[x].strobing) {
-                return;
+                continue;
             }
         }
         if (strobe[x].duration < 0) {
-            return;
+            continue;
         }
         if (strobe[x].duration == max_modulo) {
             strobe[x].duration = 0;
             if (new_algorithm) {
-                cache->lights_to_renew++;
+                (*f.lightsToRenew)++;
                 strobe[x].strobing = false;
             } else if (reRandomize) {
-                strobe[x].duration -= dist(eng) % max_modulo2;
-                strobe[x].colorindex = dist(eng) % colorcnt;
+                strobe[x].duration -= buffer.hashRandom(uint32_t(x) * 131101u) % max_modulo2;
+                strobe[x].colorindex = buffer.hashRandom(uint32_t(x) * 131101u + 1u) % colorcnt;
             }
         }
         int i7 = strobe[x].duration;
         HSVValue hsv;
         buffer.palette.GetHSV(strobe[x].colorindex, hsv);
         double v;
-        if(i7<=max_modulo2) {
-            if(max_modulo2>0) v = (1.0*i7)/max_modulo2;
-            else v =0;
+        if (i7 <= max_modulo2) {
+            if (max_modulo2 > 0) v = (1.0 * i7) / max_modulo2;
+            else v = 0;
         } else {
-            if(max_modulo2>0)v = (max_modulo-i7)*1.0/(max_modulo2);
+            if (max_modulo2 > 0) v = (max_modulo - i7) * 1.0 / (max_modulo2);
             else v = 0;
         }
-        if (v<0.0) v=0.0;
-        
+        if (v < 0.0) v = 0.0;
+
         if (Strobe) {
-            if (i7==max_modulo2) v = 1.0;
+            if (i7 == max_modulo2) v = 1.0;
             else v = 0.0;
         }
         if (buffer.allowAlpha) {
             xlColor color;
             buffer.palette.GetColor(strobe[x].colorindex, color);
             color.alpha = 255.0 * v;
-            if (strobe[x].isByNode) {
-                buffer.SetNodePixel(strobe[x].x, color); // Turn pixel on
-            } else {
-                buffer.SetPixel(strobe[x].x, strobe[x].y, color); // Turn pixel on
-            }
+            buffer.SetNodePixel(strobe[x].x, color); // Turn pixel on
         } else {
             buffer.palette.GetHSV(strobe[x].colorindex, hsv);
             //  we left the Hue and Saturation alone, we are just modifiying the Brightness Value
             hsv.value = v;
-            if (strobe[x].isByNode) {
-                buffer.SetNodePixel(strobe[x].x, hsv); // Turn pixel on
-            } else {
-                buffer.SetPixel(strobe[x].x, strobe[x].y, hsv); // Turn pixel on
-            }
+            buffer.SetNodePixel(strobe[x].x, hsv); // Turn pixel on
         }
-    }, 500);
+    }
 }

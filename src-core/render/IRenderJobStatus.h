@@ -23,6 +23,16 @@ public:
     // Control
     virtual void AbortRender() = 0;
 
+    // Stall-watchdog hook: reschedule the job if it is suspended waiting for
+    // an upstream frame (a lost wake-up would otherwise hang the batch).
+    // No-op for jobs that are queued, running, or done.
+    virtual void NudgeIfSuspended() {}
+
+    // Stall-watchdog query: true when the job holds no thread (suspended or
+    // parked).  A batch is only considered stalled when every unfinished job
+    // is idle - a job actively rendering a slow frame is not a stall.
+    virtual bool IsIdle() { return false; }
+
     // Progress query (atomic reads, callable from any thread)
     virtual int GetCurrentFrame() const = 0;
     virtual int GetEndFrame() const = 0;

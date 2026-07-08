@@ -57,7 +57,7 @@ xSchedule, xCapture, xFade, xScanner → moved to their own repos under
 | `outputs/` | Protocol handlers + controller connection config (sACN, ArtNet, DDP, USB, etc.) |
 | `controllers/` | Vendor upload handlers (Falcon, FPP, WLED, etc.) |
 | `media/` | Audio decode/encode/playback. `AudioManager` with abstract `IAudioDecoder`/`IAudioOutput`. Apple: AudioToolbox (decode) + AVAudioEngine (playback). Linux/Windows: FFmpeg + SDL2. Also `xLightsVamp` (VAMP analysis), `AudioLoader` (FFmpeg loader). |
-| `render/` | Rendering engine. `SequenceMedia.cpp` manages image cache/embed (`.xsq` base64 or external refs), resolves paths via `FixFile()`. |
+| `render/` | Rendering engine. `SequenceMedia.cpp` manages image cache/embed (`.xsq` base64 or external refs), resolves paths via `FixFile()`. `xLightsShowContext` is the wx-free show-state base (models/outputs/effects/sequence/render engine) that `xLightsFrame`, `iPadRenderContext`, and `HeadlessRenderContext` all derive from; `LoadSequenceElements` is the shared sequence-open path. `HeadlessRenderContext` powers `--headless` render (see §4). |
 | `graphics/` | wx-free GPU abstraction (see below). |
 | `discovery/` | Controller/output discovery data structures + API. |
 | `XmlSerializer/` | XML (de)serialization for models, objects, RGB effects. Includes GDTF parser. Must not depend on wx/UI. |
@@ -247,6 +247,64 @@ the desktop build won't surface iOS-specific breaks (e.g. `#ifdef __APPLE__`
 paths, ObjC++ bridge compilation, Swift interop). iPad deps live at
 `/opt/xLights-macOS-dependencies/lib-ios/`.
 
+### Headless render mode (render regression testing)
+
+`--headless` renders `.xsq` sequences to `.fseq` with **no window** and exits
+(`0` = success, `1` = render/write error, `2` = bad args) — the way to render
+from a script/CI/agent loop. It's driven by `HeadlessRenderContext`
+(`src-core/render/`), a concrete wx-free `xLightsShowContext` (the same
+show-state base the desktop `xLightsFrame` and the iPad derive from), so it
+exercises the real render engine, effects, and the shared `LoadSequenceElements`
+open path — nothing is stubbed.
+
+```bash
+# Render one or more sequences (glob works; quote it so the shell doesn't pre-expand)
+xLights --headless -s <showdir> <seq.xsq> [<seq2.xsq> ...]
+xLights --headless -s <showdir> "<showdir>/*.xsq"
+# --outputdir (-od) sets the output dir (default: the show's configured fseq
+# folder); it also applies to the desktop -r (render-and-exit) mode.
+xLights --headless -s <showdir> --outputdir <dir> "<showdir>/*.xsq"
+```
+
+**Same-binary diff — the core technique.** Build ONE **Release** binary and run
+it both `-r` (desktop render) and `--headless`; compare the two `.fseq` with
+`--fseqcmp`. One binary ⇒ build config isn't a confound, and headless
+run-1-vs-run-2 is the noise floor, so a real bug shows as `hl-vs-desktop` ≫
+`hl-run2run`.
+
+```bash
+xLights --fseqcmp <a.fseq> <b.fseq>              # exit 0 iff identical
+xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq> # + per-model diffs + frame-offset probe
+XL_FSEQCMP_DUMPCH=<ch> xLights --fseqcmp -s <showdir> <a.fseq> <b.fseq>  # dump one 1-based channel's A/B series
+```
+
+**Gotchas:**
+- **Use Release** (`xcodebuild` with no `-configuration`); Debug is ~5–10× slower
+  and skews timing.
+- **Sandbox:** the binary can only read paths it has a bookmark for (the show /
+  fseq dirs opened in the GUI), NOT `/private/tmp`. Headless and `--fseqcmp` call
+  `ObtainAccessToURL`; stage comparison fseqs under the show dir or `~/Documents`.
+- **`-r` overwrites** fseqs in the configured folder — use `--outputdir` to redirect.
+- **Expected (non-bug) diffs vs desktop:** GPU shaders (separate GL context, small
+  per-channel float) and physics effects (LiquidFun/Box2D). Video effects ARE
+  deterministic (the old "decoder variance" was dropped frames + inconsistent
+  frame selection in the AVFoundation bridge, both fixed; `XLDBG_VID=1` logs
+  every served frame's requested time / pts / pixel hash and every null return
+  if it regresses). Random/sparkle effects are deterministic (per-`RenderBuffer`
+  RNG). Headless-to-headless determinism is the regression baseline, not
+  desktop byte-parity.
+
+**Determinism-bisect env vars** (all builds; no cost when unset): `XL_SERIAL=1`
+forces every `parallel_for` serial (isolates CPU thread-order races);
+`XL_NO_GPU_COMPUTE=1` disables GPU compute; `XL_NO_GPU_BLEND`/`_BLUR`/`_ROTO`/`_TRANS`
+disable one Metal stage each; `XL_NO_METAL_FX=ALL` (or `Name,Name`) forces effects
+to CPU; `XL_EFFSUM=1` prints per-stage checksums to stderr (`SUM C`=canvas preload,
+`SUM L`=layer, `SUM O`=post-blend) — sort two runs and diff to name the first
+divergent model/layer/stage; `XL_HEADLESS_NO_GL=1` forces the shader solid-colour
+fallback. The 2×2 matrix (`XL_SERIAL` × `XL_NO_GPU_COMPUTE`) splits a diff into
+CPU-parallel vs GPU sources; serial+noGPU byte-identical ⇒ the scheduler/blend
+chain isn't involved.
+
 ### Linux
 
 ```bash
@@ -321,6 +379,42 @@ Place files in one of:
 
 Windows/Linux builds intentionally don't compile `src-iPad/` — new iPad files
 never need `.cbp`/`.vcxproj` entries.
+
+### ISPC kernels (`src-core/effects/ispc/*.ispc`) — extra steps
+
+A new SIMD kernel `FooFunctions.ispc` is **not** auto-discovered anywhere and is
+**gitignored** (`.gitignore`'s bare `ispc` pattern matches the whole `ispc/`
+dir). Every one of these is required:
+
+| File | What to add |
+|---|---|
+| the `.ispc` + generated `.ispc.h` | `git add -f` both (gitignored). Commit the `.ispc.h` (checked in; build regenerates + overwrites only on change). |
+| `macOS/xLights.xcodeproj/project.pbxproj` | Add `effects/ispc/FooFunctions.ispc,` to the `PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet` for the **`ISPCEffectComputeFunctions`** target. Not auto-discovered; missing it fails the x86_64 link (arm64 / static-lib iPad hide it). **`macOS/` is a git submodule** — commit there + bump the pointer. |
+| `build_scripts/linux/ispc.mak` | Add the `OBJ_LINUX_DEBUG +=` / `OBJ_LINUX_RELEASE += …/FooFunctions.o` pair. |
+| `xLights/xLights.cbp` | `<Unit>` for the `.ispc` (with `<Option link="1"/>`) and the `.ispc.h`. |
+| `xLights/Xlights.vcxproj` (+ `.filters`) | `<CustomBuild>` for the `.ispc` (copy an existing kernel's ispc.exe block) and `<ClInclude>` for the `.ispc.h`. |
+| CMake | Auto-globs `*.ispc` — no edit. |
+
+Generate the committed header with the same flags the build's header step uses:
+`ispc --target-os=macos --target=avx2-i32x16 --target=avx1-i32x16 --arch=x86_64
+-h Foo.ispc.h Foo.ispc`, then `sed -i '' '/.ispc.h/d' Foo.ispc.h`.
+
+### Metal kernels (`src-core/effects/metal/*.metal` + `Metal*Effect.mm`) — Apple only
+
+A GPU effect is a `.metal` shader + a `Metal<Foo>Effect.mm` wrapper that **subclasses**
+the CPU effect and overrides `Render` (fall back to the base `Render` when Metal
+isn't viable — no GPU, buffer < `metalBufferSizeThreshold`, or unsupported options).
+Neither file is gitignored (plain `git add`). Metal is Apple-only — **no** `.cbp`,
+`.vcxproj`, or `ispc.mak` edits.
+
+| Piece | What to do |
+|---|---|
+| `Foo.metal` | Compute kernel `kernel void FooEffect(constant MetalFooData&, device uchar4*, uint index)`. **Auto-compiled** into `EffectComputeFunctions.metallib` by the `EffectComputeFunctions` target (it syncs all of `src-core`, no per-file list). |
+| `MetalEffectDataTypes.h` | Add `MetalFooData` struct (shared by `.mm` and `.metal`). |
+| `MetalEffects.hpp` | Declare `class MetalFooEffect : public FooEffect` + `class MetalFooEffectData;`. |
+| `MetalFooEffect.mm` | Wrapper: `data->fn = FindComputeFunction("FooEffect")`, fill the struct, dispatch one thread/pixel. Auto-discovered by `xLights-core`. |
+| `MetalEffectManager.mm` | Add `case eff_FOO: return new MetalFooEffect(eff);` (the `#ifdef __APPLE__ CreateMetalEffect` factory). |
+| `macOS/.../project.pbxproj` | Add `effects/metal/FooFunctions.metal,` to the **`xLights-core`** target's membership-exception list (so xLights-core doesn't also compile it). Verify the symbol landed: `xcrun metal-nm .../EffectComputeFunctions.metallib \| grep FooEffect`. `macOS/` is a submodule. |
 
 ---
 
