@@ -29,6 +29,9 @@
 #pragma comment(lib, "OSDependentd.lib")
 #pragma comment(lib, "glslang-default-resource-limitsd.lib")
 #pragma comment(lib, "SPIRVd.lib")
+#pragma comment(lib, "SPIRV-Toolsd.lib")
+#pragma comment(lib, "SPIRV-Tools-optd.lib")
+#pragma comment(lib, "glslang-default-resource-limitsd.lib")
 #else
 #pragma comment(lib, "glslang.lib")
 #pragma comment(lib, "MachineIndependent.lib")
@@ -36,6 +39,9 @@
 #pragma comment(lib, "OSDependent.lib")
 #pragma comment(lib, "glslang-default-resource-limits.lib")
 #pragma comment(lib, "SPIRV.lib")
+#pragma comment(lib, "SPIRV-Tools.lib")
+#pragma comment(lib, "SPIRV-Tools-opt.lib")
+#pragma comment(lib, "glslang-default-resource-limits.lib")
 #endif
 #endif
 
