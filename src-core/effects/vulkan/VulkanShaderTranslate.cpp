@@ -25,14 +25,12 @@
 #pragma comment(lib, "MachineIndependentd.lib")
 #pragma comment(lib, "GenericCodeGend.lib")
 #pragma comment(lib, "OSDependentd.lib")
-#pragma comment(lib, "OGLCompilerd.lib")
 #pragma comment(lib, "SPIRVd.lib")
 #else
 #pragma comment(lib, "glslang.lib")
 #pragma comment(lib, "MachineIndependent.lib")
 #pragma comment(lib, "GenericCodeGen.lib")
 #pragma comment(lib, "OSDependent.lib")
-#pragma comment(lib, "OGLCompiler.lib")
 #pragma comment(lib, "SPIRV.lib")
 #endif
 #endif
