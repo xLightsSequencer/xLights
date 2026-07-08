@@ -76,6 +76,10 @@ RandomEffectsSettingsPanel::RandomEffectsSettingsPanel(wxWindow* parent, xLights
     mainSizer->Add(row, 1, wxEXPAND | wxALL, 5);
     SetSizer(mainSizer);
     mainSizer->SetSizeHints(this);
+    // The page lives in a scrolled window that lays the panel out at its own
+    // minimum size, so force a width wide enough for both lists to show full
+    // effect names rather than clipping them with an ellipsis.
+    SetMinSize(wxSize(620, 420));
 
     const wxArrayString& used = frame->RandomEffectsToUse();
     for (int i = 0; i < (int)frame->GetEffectManager().size(); i++) {

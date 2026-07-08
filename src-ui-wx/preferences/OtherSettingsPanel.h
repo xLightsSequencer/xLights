@@ -61,6 +61,12 @@ class OtherSettingsPanel: public wxPanel
         wxSpinCtrlDouble* CtrlPingInterval = nullptr;
         wxTextCtrl* eMailTextControl = nullptr;
 
+        // Description labels for controls that may be hidden per-platform, so
+        // the description can be hidden alongside its control.
+        wxWindow* GPURenderHint = nullptr;
+        wxWindow* ShaderHint = nullptr;
+        wxWindow* IgnoreVendorHint = nullptr;
+
         // Write changes back immediately on platforms where the preferences
         // editor applies as-you-go.
         void ApplyIfImmediate();

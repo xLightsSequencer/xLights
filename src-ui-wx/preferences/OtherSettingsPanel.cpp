@@ -77,11 +77,13 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GPURenderCheckbox = new wxCheckBox(this, wxID_ANY, _("GPU Rendering"));
     GPURenderCheckbox->SetValue(true);
     sizer->Add(GPURenderCheckbox, 0, wxLEFT | wxTOP, 5);
-    sizer->Add(MakePreferenceHint(this, _("Render supported effects on the GPU for better performance.")), 0, wxLEFT | wxBOTTOM, 24);
+    GPURenderHint = MakePreferenceHint(this, _("Render supported effects on the GPU for better performance."));
+    sizer->Add(GPURenderHint, 0, wxLEFT | wxBOTTOM, 24);
 
     ShaderCheckbox = new wxCheckBox(this, wxID_ANY, _("Shaders on Background Threads"));
     sizer->Add(ShaderCheckbox, 0, wxLEFT | wxTOP, 5);
-    sizer->Add(MakePreferenceHint(this, _("Render shader effects off the main thread to keep xLights responsive.")), 0, wxLEFT | wxBOTTOM, 24);
+    ShaderHint = MakePreferenceHint(this, _("Render shader effects off the main thread to keep xLights responsive."));
+    sizer->Add(ShaderHint, 0, wxLEFT | wxBOTTOM, 24);
 
     CheckBox_BatchRenderPromptIssues = new wxCheckBox(this, wxID_ANY, _("Prompt issues during batch render"));
     CheckBox_BatchRenderPromptIssues->SetValue(true);
@@ -94,7 +96,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 
     CheckBox_IgnoreVendorModelRecommendations = new wxCheckBox(this, wxID_ANY, _("Ignore vendor model recommendations"));
     sizer->Add(CheckBox_IgnoreVendorModelRecommendations, 0, wxLEFT | wxTOP, 5);
-    sizer->Add(MakePreferenceHint(this, _("Stop warning when a model differs from the vendor's recommended setup.")), 0, wxLEFT | wxBOTTOM, 24);
+    IgnoreVendorHint = MakePreferenceHint(this, _("Stop warning when a model differs from the vendor's recommended setup."));
+    sizer->Add(IgnoreVendorHint, 0, wxLEFT | wxBOTTOM, 24);
 
     CheckBox_UseCustomColorPicker = new wxCheckBox(this, wxID_ANY, _("Use custom color picker (experimental)"));
     sizer->Add(CheckBox_UseCustomColorPicker, 0, wxLEFT | wxTOP, 5);
@@ -144,16 +147,21 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 
 #ifdef __LINUX__
     ShaderCheckbox->Hide();
+    ShaderHint->Hide();
     GPURenderCheckbox->Hide();
+    GPURenderHint->Hide();
 #endif
 #ifdef __WXOSX__
     if (!isMetalComputeSupported()) {
         GPURenderCheckbox->Hide();
+        GPURenderHint->Hide();
     }
     ShaderCheckbox->Hide();
+    ShaderHint->Hide();
 #endif
 #ifdef __WXMSW__
     GPURenderCheckbox->Hide();
+    GPURenderHint->Hide();
     MSWDisableComposited();
 #endif
 
@@ -223,6 +231,8 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 #ifndef IGNORE_VENDORS
     CheckBox_IgnoreVendorModelRecommendations->SetValue(false);
     CheckBox_IgnoreVendorModelRecommendations->Hide();
+    IgnoreVendorHint->Hide();
+    Layout();
 #endif
 #endif
     return true;
