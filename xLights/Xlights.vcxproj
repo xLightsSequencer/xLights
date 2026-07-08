@@ -535,7 +535,6 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderTranslate.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanShaderEffect.cpp" />
-    <ClCompile Include="..\src-core\effects\vulkan\glslang_resources\ResourceLimits.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanBarsEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanButterflyEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanCandleEffect.cpp" />
@@ -1242,7 +1241,6 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\effects\vulkan\VulkanGraphicsUtilities.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderTranslate.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanShaderEffect.h" />
-    <ClInclude Include="..\src-core\effects\vulkan\glslang_resources\ResourceLimits.h" />
     <ClInclude Include="..\src-core\effects\vulkan\VulkanEffectDataTypes.h" />
     <ClInclude Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\PinwheelFunctions.ispc.h" />
