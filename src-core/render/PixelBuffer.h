@@ -231,6 +231,7 @@ private:
         void createSlideBarsMask(bool end);
 
         friend class MetalPixelBufferComputeData;
+        friend class VulkanPixelBufferComputeData;
     };
 
     PixelBufferClass(const PixelBufferClass& cls);
@@ -325,6 +326,7 @@ public:
     // place for GPU Renderers to attach extra data/objects it needs
     void* gpuRenderData = nullptr;
     friend class MetalPixelBufferComputeData;
+    friend class VulkanPixelBufferComputeData;
     friend class ISPCComputeUtilities;
 };
 

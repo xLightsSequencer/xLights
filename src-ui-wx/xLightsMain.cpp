@@ -711,10 +711,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
             return ctx ? (void*)ctx->GetGLRC() : nullptr;
         };
 #elif defined(__APPLE__)
-        // macOS: tell ANGLE to use the same Metal GPU as the compute effects
-#ifdef USE_GLES
-        glParams.metalDeviceRegistryID = GetMetalComputeDeviceRegistryID();
-#endif
+        // macOS: CGL is self-contained; no callbacks needed.
 #else
         // Linux: GLContextManager creates its own pure GLX+Pbuffer contexts,
         // completely independent of the wx canvas hierarchy.
@@ -1659,6 +1656,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     UnsavedNetworkChanges = false;
 
     UnsavedRgbEffectsChanges = false;
+    UnsavedPresetChanges = false;
     mStoredLayoutGroup = "Default";
 
     modelsChangeCount = 0;
@@ -2422,13 +2420,6 @@ xLightsFrame::~xLightsFrame()
     m_mgr->UnInit();
     MainAuiManager->UnInit();
 
-    for (int x = 0; x < (int)Notebook1->GetPageCount(); x++) {
-        wxWindow* w = Notebook1->GetPage(x);
-        if (w->GetEventHandler() == m_mgr) {
-            w->RemoveEventHandler(m_mgr);
-        }
-    }
-
     // unconnect these as the call to DeleteAllPages will cause pages to change and the page numbers to possibly not match
     Disconnect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Disconnect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);
@@ -3088,7 +3079,25 @@ void xLightsFrame::CycleOutputsIfOn()
     }
 }
 
-bool xLightsFrame::ForceEnableOutputs(bool startTimer)
+bool xLightsFrame::UploadControllerForImmediateOutput(Controller* controller)
+{
+    auto ip = controller->GetResolvedIP();
+    if (ip.empty() || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
+        return false;
+    }
+    BaseController* bc = BaseController::CreateBaseController(controller);
+    bool ok = false;
+    if (bc != nullptr && bc->IsConnected()) {
+        ok = bc->UploadForImmediateOutput(&AllModels, &_outputManager, controller, this);
+        SetStatusText(controller->GetName() + (ok ? " Upload Complete." : " Upload Failed."));
+    } else {
+        SetStatusText(controller->GetName() + " Upload Failed. Unable to connect");
+    }
+    delete bc;
+    return ok;
+}
+
+bool xLightsFrame::ForceEnableOutputs(bool startTimer, bool skipAutoUpload)
 {
     bool outputting = false;
     if (!_outputManager.IsOutputting()) {
@@ -3098,27 +3107,10 @@ bool xLightsFrame::ForceEnableOutputs(bool startTimer)
         if (startTimer) {
             StartOutputTimer();
         }
-        if (outputting) {
+        if (outputting && !skipAutoUpload) {
             for (auto& controller : _outputManager.GetControllers()) {
                 if (controller->IsActive() && controller->IsAutoUpload() && controller->SupportsAutoUpload()) {
-                    auto ip = controller->GetResolvedIP();
-                    if (ip == "" || ip == "MULTICAST" || controller->GetProtocol() == OUTPUT_ZCPP) {
-                        continue;
-                    }
-                    BaseController* bc = BaseController::CreateBaseController(controller);
-                    if (bc != nullptr && bc->IsConnected()) {
-                        if (bc->UploadForImmediateOutput(&AllModels, &_outputManager, controller, this)) {
-                            SetStatusText(controller->GetName() + " Upload Complete.");
-                        } else {
-                            SetStatusText(controller->GetName() + " Upload Failed.");
-                        }
-                    } else {
-                        SetStatusText(controller->GetName() + " Upload Failed. Unable to connect");
-                    }
-                    if (bc) {
-                        delete bc;
-                    }
-                    // upload config
+                    UploadControllerForImmediateOutput(controller);
                 }
             }
         }
@@ -4108,8 +4100,8 @@ void xLightsFrame::CheckUnsavedChanges()
         // to the user what this prompt is for
         Notebook1->SetSelection(LAYOUTTAB);
 
-        if (wxYES == wxMessageBox("Save Models, Views, Perspectives, and Preset changes?",
-                                  "RGB Effects File Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+        if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
+                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SaveEffectsFile();
         } else {
             wxFileName effectsFile;
@@ -4132,15 +4124,38 @@ void xLightsFrame::CheckUnsavedChanges()
             SaveNetworksFile();
         }
     }
+
+    if (UnsavedPresetChanges) {
+        if (wxYES == wxMessageBox("Save Effect Preset changes?",
+                                  "Effect Presets Changes Confirmation",
+                                  wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+            SavePresetsFile();
+        } else {
+            wxFileName presetsFile;
+            presetsFile.AssignDir(CurrentDir);
+            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+            wxFileName fn(presetsFile.GetFullPath());
+            if (FileExists(fn.GetFullPath())) {
+                fn.Touch();
+            }
+        }
+    }
 }
 
 void xLightsFrame::MarkEffectsFileDirty()
 {
     auto logger_work = spdlog::get("work");
     logger_work->debug("        MarkEffectsFileDirty.");
+    spdlog::debug("MarkEffectsFileDirty called - UnsavedRgbEffectsChanges now true");
 
     layoutPanel->SetDirtyHiLight(true);
     UnsavedRgbEffectsChanges = true;
+}
+
+void xLightsFrame::MarkPresetsDirty()
+{
+    UnsavedPresetChanges = true;
+    UpdateLayoutSave();
 }
 
 void xLightsFrame::MarkModelsAsNeedingRender()
@@ -4780,6 +4795,10 @@ void xLightsFrame::OnTimer_AutoSaveTrigger(wxTimerEvent& event)
         if (UnsavedRgbEffectsChanges) {
             spdlog::debug("    Autosaving backup of layout.");
             SaveWorkingLayout();
+        }
+        if (UnsavedPresetChanges) {
+            spdlog::debug("    Autosaving backup of effect presets.");
+            SavePresetsFile(true);
         }
         spdlog::debug("    AutoSave took {} ms.", sw.Time());
 

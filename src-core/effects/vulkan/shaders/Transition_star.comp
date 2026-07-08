@@ -1,0 +1,50 @@
+#version 450
+// Port of starTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float progress = data.progress;
+    if (data.reverse != 0u) {
+        progress = 1.0 - progress;
+    }
+    // want to default to a 6-point star at 50%
+    int numSegments = (data.adjust == 0.0) ? 1 : int(1.0 + data.adjust / 10.0);
+
+    // for this transition, we fudge the progress a bit b/c not much happens at the end
+    progress = interpolate(progress, 0.0, 0.0, 1.0, 0.85);
+
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+
+    vec2 xy = vec2(s, t);
+
+    float angle = atan(xy.y - 0.5, xy.x - 0.5) - 0.5 * XL_PI;
+    float radius = (cos(float(numSegments) * angle) + 4.0) / 4.0;
+    float difference = length(xy - vec2(0.5, 0.5));
+
+    bool useSrc = difference <= radius * progress;
+    if (data.reverse != 0u) {
+        useSrc = !useSrc;
+    }
+    if (useSrc) {
+        result[sidx] = packPx(tex2Dsrc(xy.x, xy.y));
+    } else if (data.hasPrev != 0u) {
+        result[sidx] = packPx(tex2Dprev(xy.x, xy.y));
+    } else {
+        result[sidx] = 0u;
+    }
+}

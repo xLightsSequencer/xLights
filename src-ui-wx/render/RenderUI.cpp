@@ -125,6 +125,17 @@ void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, i
                                         _suspendRender, modelsChangeCount, clear);
 }
 
+void xLightsFrame::RequestRenderForModel(const std::string &model, int startms, int endms) {
+    // Post the render to the event loop instead of running it inline. Callers
+    // such as Effect::IncrementChangeCount (effect-symbol propagation) invoke
+    // this while holding an effect's settingsLock; rendering synchronously there
+    // deadlocks the render workers. EVT_RENDER_RANGE is handled by RenderRange
+    // at the top of the event loop once the lock has been released.
+    if (_suspendRender) return;
+    RenderCommandEvent event(model, startms, endms, false, false);
+    wxPostEvent(this, event);
+}
+
 // ---------------------------------------------------------------------------
 // RenderRange — dispatches RenderCommandEvent to the appropriate engine call
 // ---------------------------------------------------------------------------

@@ -230,6 +230,10 @@ public:
     static ShaderConfig* ParseShaderFromSource(const std::string& filename, const std::string& source, SequenceElements* sequenceElements);
     static bool IsShaderFile(std::string filename);
 
+    // The fixed fullscreen-quad vertex shader (desktop GLSL 330, non-GLES), used
+    // by the native Metal translation path to build a matching vertex stage.
+    static std::string GetNativeVertexShaderSource();
+
     static void SetBackgroundRender(bool b);
     static bool IsBackgroundRender();
 

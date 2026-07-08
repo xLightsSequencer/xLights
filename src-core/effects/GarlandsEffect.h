@@ -46,6 +46,9 @@ public:
     static int sCyclesDivisor;
     static std::string sDirectionDefault;
 
+    // Maps the direction choice string to 0..7 (shared by the CPU and Metal paths).
+    static int GetDirection(const std::string& direction);
+
 protected:
     virtual void OnMetadataLoaded() override;
 };

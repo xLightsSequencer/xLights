@@ -1,0 +1,40 @@
+#version 450
+// Port of RotoZoomRotateXClaim in RotoZoomFunctions.metal.  The rotate
+// kernels scatter: several source pixels can round() to the same
+// destination, and concurrent GPU threads racing for it made the output
+// non-deterministic run to run.  Each rotation therefore runs in two phases:
+// this Claim pass records the highest source index per destination via
+// atomicMax, then the write pass lets only that winner store its color.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "rotozoom_pc.glsl"
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Owner { int owner[]; };
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+
+    float x = float(index.x);
+    float sine = sin((data.xrotation + 90.0) * XL_PI / 180.0);
+    float pivot = float(data.xpivot) * float(data.width) / 100.0;
+    float tox;
+    if (x >= pivot) {
+        tox = sine * (x - pivot) + pivot;
+    } else {
+        tox = -1.0 * sine * (pivot - x) + pivot;
+    }
+    // Bounds-check the ROUNDED index, not the float: round() can push a value
+    // in [width-0.5, width) up to width, which would scatter past the end of
+    // the buffer into the next layer's allocation (a run-to-run determinism
+    // corruption).  Matches the CPU SetPixel bounds drop.
+    int toxi = int(xl_round(tox));
+    if (toxi >= 0 && toxi < int(data.width)) {
+        uint didx = index.y * data.width + uint(toxi);
+        atomicMax(owner[didx], int(sidx));
+    }
+}

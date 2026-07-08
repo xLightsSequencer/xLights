@@ -53,6 +53,12 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #include "settings/XLightsConfigAdapter.h"
 #include "utils/TraceLog.h"
 #include "utils/ExternalHooks.h"
+#include "effects/ShaderEffect.h"  // --shadertranslate spike
+#ifdef __APPLE__
+#include "effects/metal/MetalShaderTranslator.h"
+#endif
+#include <fstream>
+#include <sstream>
 #include "shared/utils/BitmapCache.h"
 #include "utils/CurlManager.h"
 #include "render/SequencePackage.h"
@@ -701,6 +707,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_SWITCH, "r", "render", "render files and exit"},
         { wxCMD_LINE_SWITCH, "hl", "headless", "render sequence(s) to fseq with no window and exit" },
         { wxCMD_LINE_SWITCH, "fc", "fseqcmp", "compare two .fseq files channel-for-channel and exit (0=identical)" },
+        { wxCMD_LINE_SWITCH, "st", "shadertranslate", "assemble every .fs shader in the show dir to GLSL (spike) and exit" },
         { wxCMD_LINE_SWITCH, "cs", "checksequence", "run check sequence and exit" },
         { wxCMD_LINE_OPTION, "m", "media", "specify media directory"},
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
@@ -887,7 +894,7 @@ bool xLightsApp::OnInit()
             sequenceFiles.Clear();
         }
 
-        if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !parser.Found("hl") && !parser.Found("fc") && !info.empty() && readOnlyZipFile == "")
+        if (!parser.Found("cs") && !parser.Found("r") && !parser.Found("o") && !parser.Found("hl") && !parser.Found("fc") && !parser.Found("st") && !info.empty() && readOnlyZipFile == "")
         {
             wxMessageBox(info, "Information", wxICON_INFORMATION | wxOK); // pre-frame: callback not yet registered
         }
@@ -941,6 +948,55 @@ bool xLightsApp::OnInit()
             spdlog::debug("Zip file did not contain sequence.");
             readOnlyZipFile = "";
         }
+    }
+
+    // ---- shader-translation spike: run every .fs in the show dir through the
+    // real ParseShaderFromSource/ShaderConfig assembly and dump the resulting
+    // GLSL to <showdir>/_xlate/<name>.frag, so an external glslang+SPIRV-Cross
+    // pass can measure how much of the corpus translates to SPIR-V/MSL. No window.
+    if (parser.Found("st")) {
+        std::string dir = showDir.ToStdString();
+        ObtainAccessToURL(dir, true);
+        std::string outDir = dir + "/_xlate";
+        std::error_code ec;
+        std::filesystem::create_directories(outDir, ec);
+        wxArrayString files;
+        GetAllFilesInDir(showDir, files, "*.fs");
+        files.Sort();
+        int total = 0, assembled = 0, parseFail = 0, nativeOk = 0, nativeFail = 0;
+        for (const auto& fpath : files) {
+            total++;
+            std::ifstream in(fpath.ToStdString(), std::ios::binary);
+            std::stringstream ss;
+            ss << in.rdbuf();
+            const std::string src = ss.str();
+            const std::string base = wxFileName(fpath).GetName().ToStdString();
+            ShaderConfig* cfg = ShaderEffect::ParseShaderFromSource(fpath.ToStdString(), src, nullptr);
+            if (cfg == nullptr) {
+                parseFail++;
+                printf("PARSEFAIL\t%s\n", base.c_str());
+                continue;
+            }
+            std::ofstream out(outDir + "/" + base + ".frag", std::ios::binary);
+            out << cfg->GetCode();
+            out.close();
+            assembled++;
+#ifdef __APPLE__
+            std::string terr;
+            if (ShaderTranslate::ValidateRenderPipeline(ShaderEffect::GetNativeVertexShaderSource(), cfg->GetCode(), terr)) {
+                nativeOk++;
+            } else {
+                nativeFail++;
+                printf("NATIVEFAIL\t%s\t%s\n", base.c_str(), terr.substr(0, 160).c_str());
+            }
+#endif
+            delete cfg;
+        }
+        printf("shadertranslate: %d .fs found, %d assembled -> %s, %d parse-fail\n",
+               total, assembled, outDir.c_str(), parseFail);
+        printf("native VS+FS -> MTLRenderPipelineState: %d ok, %d fail (of %d assembled)\n",
+               nativeOk, nativeFail, assembled);
+        std::exit(0);
     }
 
     // ---- fseq comparison utility: decode two .fseq files to full-width

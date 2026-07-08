@@ -113,6 +113,7 @@ class wxDebugReport;
 class aiBase;
 class BaseSerializingVisitor;
 class CopyFormat1;
+class Controller;
 class ControllerCaps;
 class Discovery;
 class DiscoveryDelegate;
@@ -394,8 +395,10 @@ public:
     PerspectiveId perspectives[10];
     void OnMenuItemLoadPerspectiveSelected(wxCommandEvent& event);
 	bool SaveEffectsFile(bool backup = false);
+    void SavePresetsFile(bool backup = false);
     void SaveModelsFile();
     void MarkEffectsFileDirty();
+    void MarkPresetsDirty();
     void MarkModelsAsNeedingRender();
     void CheckUnsavedChanges();
     void SetStatusText(const wxString &msg, int filename = 0) override;
@@ -1425,7 +1428,8 @@ public:
     bool DisableOutputs();
     void CycleOutputsIfOn();
 
-    bool ForceEnableOutputs(bool startTimer = true);
+    bool ForceEnableOutputs(bool startTimer = true, bool skipAutoUpload = false);
+    bool UploadControllerForImmediateOutput(Controller* controller);
     void EnableNetworkChanges();
     void InitEffectsPanel(EffectsPanel* panel);
     void LogPerspective(const wxString& perspective) const;
@@ -1521,6 +1525,7 @@ public:
     // convert
 public:
     bool UnsavedRgbEffectsChanges;
+    bool UnsavedPresetChanges = false;
     bool _renderMode = false;
     bool _checkSequenceMode = false;
 
@@ -1627,6 +1632,7 @@ public:
     void UpdateRenderStatus();
     void LogRenderStatus();
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
+    void RequestRenderForModel(const std::string &model, int startms, int endms) override;
     void RenderTimeSlice(int startms, int endms, bool clear);
 
     void RenderRange(RenderCommandEvent &cmd);
@@ -2037,6 +2043,9 @@ private:
 public:
     FILE* _logfile = nullptr;
     std::vector<Model *> PreviewModels;
+    // AllModels generation PreviewModels was last rebuilt at; a mismatch means a
+    // model was added/deleted since and cached Model* lists may hold freed pointers
+    unsigned int PreviewModelsGeneration = 0;
     std::map<std::string, std::unique_ptr<LayoutGroup>> LayoutGroups;
     std::vector<ModelPreview *> PreviewWindows;
     ColorManager color_mgr;

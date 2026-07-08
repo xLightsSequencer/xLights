@@ -1,0 +1,223 @@
+#version 450
+// Port of the Galaxy "New Render Method" gather in GalaxyFunctions.metal
+// (which itself mirrors GalaxyFunctions.ispc). Each thread computes one
+// output pixel by walking its covering spiral arms (one per revolution)
+// plus the head/tail rounded caps in draw order and combining them the same
+// way the CPU path does. Handles blend/hard edges x outward/inward. Every
+// thread writes its own result[index] (either an accumulated color or
+// transparent black), so this is a full-write kernel like ColorWashEffect.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+const float PI = 3.14159265358979323846;
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    float pos_x;
+    float pos_y;
+    float radius1;
+    float radius2;
+    float width1;
+    float width2;
+    float revs;
+    float start_angle;
+    int reverse_dir;
+    int inward;
+    int blend_edges;
+    float head_end_of_tail;
+    float tail_end_of_tail;
+    float color_length;
+    int num_colors;
+    float palR[8];
+    float palG[8];
+    float palB[8];
+} data;
+
+float galChBlend(float c1, float c2, float ratio) {
+    return c1 + floor(ratio * (c2 - c1) + 0.5);
+}
+
+void galaxyColor(float i, out float cr, out float cg, out float cb) {
+    float cv = (data.head_end_of_tail - i) / data.color_length;
+    int ci = int(cv);
+    float cp = cv - float(ci);
+    if (ci < 0) ci = 0;
+    int c2 = min(ci + 1, data.num_colors - 1);
+    if (ci < c2) {
+        cr = galChBlend(data.palR[ci], data.palR[c2], cp);
+        cg = galChBlend(data.palG[ci], data.palG[c2], cp);
+        cb = galChBlend(data.palB[ci], data.palB[c2], cp);
+    } else {
+        cr = data.palR[c2]; cg = data.palG[c2]; cb = data.palB[c2];
+    }
+}
+
+void galaxyEmit(int blend, float cr, float cg, float cb, float alpha,
+                inout float accR, inout float accG, inout float accB, inout bool any_) {
+    if (alpha <= 0.0) return;
+    if (int(cr) == 0 && int(cg) == 0 && int(cb) == 0) return;
+    if (blend != 0) {
+        if (!any_) { accR = galChBlend(0.0, cr, alpha); accG = galChBlend(0.0, cg, alpha); accB = galChBlend(0.0, cb, alpha); }
+        else       { accR = galChBlend(accR, cr, alpha); accG = galChBlend(accG, cg, alpha); accB = galChBlend(accB, cb, alpha); }
+    } else {
+        accR = cr * alpha; accG = cg * alpha; accB = cb * alpha;
+    }
+    any_ = true;
+}
+
+void galaxyEmitArm(int blend, float i, float rho, float invRevs,
+                    inout float accR, inout float accG, inout float accB, inout bool any_) {
+    float pct = i * invRevs;
+    float rc = data.radius2 * pct + data.radius1 * (1.0 - pct);
+    float hw = (data.width2 * pct + data.width1 * (1.0 - pct)) * 0.5;
+    if (hw <= 0.0) return;
+    float dd = abs(rho - rc);
+    if (dd > hw) return;
+    float cr, cg, cb;
+    galaxyColor(i, cr, cg, cb);
+    galaxyEmit(blend, cr, cg, cb, 1.0 - dd / hw, accR, accG, accB, any_);
+}
+
+// Coverage alpha of the arm at parameter i for a pixel at radius rho, or -1 when the arm
+// is out of range / doesn't reach the pixel.
+float galaxyArmAlpha(float i, float i_lo, float i_hi, float rho, float invRevs) {
+    if (i < i_lo || i > i_hi) return -1.0;
+    float pct = i * invRevs;
+    float rc = data.radius2 * pct + data.radius1 * (1.0 - pct);
+    float hw = (data.width2 * pct + data.width1 * (1.0 - pct)) * 0.5;
+    if (hw <= 0.0) return -1.0;
+    return 1.0 - abs(rho - rc) / hw;
+}
+
+// Through-center spill: the scalar arm loop sweeps r from (rc - hw), which goes negative
+// when the width exceeds the radius; negative r plots on the opposite side of the center.
+// So the arm half a revolution away (i differs by 180) bleeds across the center onto this
+// pixel with alpha = 1 - (rho + rc)/hw. Without this the wide-arm-small-radius look (big
+// Start Width, small Start Radius) loses an entire lobe that the old renderer drew.
+float galaxySpillAlpha(float i, float i_lo, float i_hi, float rho, float invRevs) {
+    if (i < i_lo || i > i_hi) return -1.0;
+    float pct = i * invRevs;
+    float rc = data.radius2 * pct + data.radius1 * (1.0 - pct);
+    float hw = (data.width2 * pct + data.width1 * (1.0 - pct)) * 0.5;
+    if (hw <= 0.0) return -1.0;
+    return 1.0 - (rho + rc) / hw;
+}
+
+void galaxyEmitAt(int blend, float i, float alpha,
+                   inout float accR, inout float accG, inout float accB, inout bool any_) {
+    float cr, cg, cb;
+    galaxyColor(i, cr, cg, cb);
+    galaxyEmit(blend, cr, cg, cb, alpha, accR, accG, accB, any_);
+}
+
+void galaxyEmitCap(int blend, float iEnd, float cd_deg, float rho, float invRevs,
+                     inout float accR, inout float accG, inout float accB, inout bool any_) {
+    float pct = iEnd * invRevs;
+    float rc = data.radius2 * pct + data.radius1 * (1.0 - pct);
+    float hw = (data.width2 * pct + data.width1 * (1.0 - pct)) * 0.5;
+    if (rc < hw || hw <= 0.0) return;
+    float cd = 2.0 * PI * rc * cd_deg / 360.0;
+    if (cd >= hw) return;
+    float cw = sqrt(hw * hw - cd * cd);
+    if (cw <= 0.0) return;
+    float dr = abs(rho - rc);
+    if (dr > cw) return;
+    float cr, cg, cb;
+    galaxyColor(iEnd, cr, cg, cb);
+    galaxyEmit(blend, cr, cg, cb, (1.0 - dr / cw) * (1.0 - cd / hw), accR, accG, accB, any_);
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+    uint px = index % data.width;
+    uint py = index / data.width;
+
+    float i_lo = max(0.0, data.tail_end_of_tail);
+    float i_hi = min(data.head_end_of_tail, data.revs);
+    if (i_hi <= i_lo) { result[index] = 0u; return; }
+
+    float dx = float(px) - data.pos_x;
+    float dy = float(py) - data.pos_y;
+    float rho = sqrt(dx * dx + dy * dy);
+    float theta = atan(dx, dy) * 180.0 / PI;
+
+    float base = (data.reverse_dir != 0) ? (-theta - data.start_angle) : (theta - data.start_angle);
+    base = base - floor(base / 360.0) * 360.0;
+    float invRevs = 1.0 / data.revs;
+    int blend = data.blend_edges;
+
+    int   k0     = int(ceil((i_lo - base) / 360.0));
+    int   maxRev = int((i_hi - i_lo) / 360.0) + 2;
+    float icapT  = base + 360.0 * (ceil((i_lo - base) / 360.0) - 1.0);
+    float icapH  = base + 360.0 * (floor((i_hi - base) / 360.0) + 1.0);
+
+    float accR = 0.0, accG = 0.0, accB = 0.0;
+    bool any_ = false;
+
+    // Spill arms sit at i +/- 180 from the pixel's own arms, interleaving between them at
+    // exactly 180-degree spacing. The scalar renderer's deferred blend-down only preserves
+    // a pending write once the sweep has moved 180+ degrees past it, so any contribution
+    // whose 180-later neighbor also covers the pixel gets overwritten, never blended.
+    // Emit in draw order (tail->head, or head->tail for inward), dropping each
+    // contribution whose successor covers the pixel. hw - rc is linear in pct, so its max
+    // over the spiral is at an endpoint; when it never goes positive no spill exists
+    // anywhere and every arm's successor misses (most effects take that path).
+    bool spillOn = max(data.width1 * 0.5 - data.radius1, data.width2 * 0.5 - data.radius2) > 0.0;
+
+    if (!spillOn) {
+        if (data.inward == 0) {                 // tail cap, arms tail->head, head cap
+            if (icapT < i_lo) galaxyEmitCap(blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any_);
+            for (int m = 0; m < maxRev; m++) {
+                float i = base + 360.0 * float(k0 + m);
+                if (i >= i_lo && i <= i_hi) galaxyEmitArm(blend, i, rho, invRevs, accR, accG, accB, any_);
+            }
+            if (icapH > i_hi) galaxyEmitCap(blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any_);
+        } else {                                // head cap, arms head->tail, tail cap
+            if (icapH > i_hi) galaxyEmitCap(blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any_);
+            for (int m = maxRev - 1; m >= 0; m--) {
+                float i = base + 360.0 * float(k0 + m);
+                if (i >= i_lo && i <= i_hi) galaxyEmitArm(blend, i, rho, invRevs, accR, accG, accB, any_);
+            }
+            if (icapT < i_lo) galaxyEmitCap(blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any_);
+        }
+    } else if (data.inward == 0) {              // tail cap, spill/arm tail->head, head cap
+        if (icapT < i_lo) galaxyEmitCap(blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any_);
+        float spI = base + 360.0 * float(k0 - 1) + 180.0;
+        float spA = galaxySpillAlpha(spI, i_lo, i_hi, rho, invRevs);
+        for (int m = 0; m < maxRev; m++) {
+            float i = base + 360.0 * float(k0 + m);
+            float aArm = galaxyArmAlpha(i, i_lo, i_hi, rho, invRevs);
+            if (spA > 0.0 && aArm <= 0.0) galaxyEmitAt(blend, spI, spA, accR, accG, accB, any_);
+            spI = i + 180.0;
+            spA = galaxySpillAlpha(spI, i_lo, i_hi, rho, invRevs);
+            if (aArm > 0.0 && spA <= 0.0) galaxyEmitAt(blend, i, aArm, accR, accG, accB, any_);
+        }
+        if (spA > 0.0) galaxyEmitAt(blend, spI, spA, accR, accG, accB, any_);
+        if (icapH > i_hi) galaxyEmitCap(blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any_);
+    } else {                                    // head cap, spill/arm head->tail, tail cap
+        if (icapH > i_hi) galaxyEmitCap(blend, i_hi, icapH - i_hi, rho, invRevs, accR, accG, accB, any_);
+        float spA = galaxySpillAlpha(base + 360.0 * float(k0 + maxRev - 1) + 180.0, i_lo, i_hi, rho, invRevs);
+        float spI = 0.0;
+        for (int m = maxRev - 1; m >= 0; m--) {
+            float i = base + 360.0 * float(k0 + m);
+            float aArm = galaxyArmAlpha(i, i_lo, i_hi, rho, invRevs);
+            if (spA > 0.0 && aArm <= 0.0) galaxyEmitAt(blend, i + 180.0, spA, accR, accG, accB, any_);
+            spI = i - 180.0;
+            spA = galaxySpillAlpha(spI, i_lo, i_hi, rho, invRevs);
+            if (aArm > 0.0 && spA <= 0.0) galaxyEmitAt(blend, i, aArm, accR, accG, accB, any_);
+        }
+        if (spA > 0.0) galaxyEmitAt(blend, spI, spA, accR, accG, accB, any_);
+        if (icapT < i_lo) galaxyEmitCap(blend, i_lo, i_lo - icapT, rho, invRevs, accR, accG, accB, any_);
+    }
+
+    if (any_) {
+        result[index] = packPx(uvec4(uint(min(255.0, accR)), uint(min(255.0, accG)), uint(min(255.0, accB)), 255u));
+    } else {
+        result[index] = 0u;
+    }
+}

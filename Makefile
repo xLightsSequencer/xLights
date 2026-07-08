@@ -42,11 +42,18 @@ endif
 
 .NOTPARALLEL:
 
-all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc klightmapper makefile subdirs
+all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc klightmapper makefile vulkanshaders subdirs
 
 #############################################################################
 
 subdirs: makefile $(SUBDIRS) share/xLights
+
+# Compile the Vulkan GLSL compute kernels to the SPIR-V headers that
+# src-core/effects/vulkan/ #includes.  Generated (gitignored), not committed —
+# glslc is a build tool here, like ispc.  Runs before subdirs (.NOTPARALLEL
+# keeps it ordered) so the headers exist before the C++ compile.
+vulkanshaders: FORCE
+	@./build_scripts/compile_vulkan_shaders.sh
 
 $(SUBDIRS): FORCE
 	@${MAKE} -C $@ -f `basename $@`.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release

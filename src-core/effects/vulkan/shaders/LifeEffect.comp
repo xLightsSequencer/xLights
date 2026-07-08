@@ -1,0 +1,234 @@
+#version 450
+// GPU port of Conway's Game of Life (mirrors LifeFunctions.metal / the ISPC
+// kernel in LifeFunctions.ispc -- keep the math in lockstep). Each thread owns
+// one pixel/cell: it reads its 8 wrapped neighbours from the PREVIOUS
+// generation (binding 0, a read-only copy of RenderBuffer::GetTempBuf()
+// uploaded fresh every frame), applies the birth/survival rule for the
+// selected ruleset, and writes the new generation into the shared pixel
+// buffer (binding 1). Newly-born cells get their colour from
+// GetMultiColorBlend(hashRand01(index)), replicated bit-identically here.
+//
+// SOURCE-READING: unlike the in-place effects, this kernel's "self" state
+// comes from a SEPARATE buffer (prev), not from `result` -- the CPU copies
+// `result` back into TempBuf after the dispatch completes, so
+// VulkanLifeEffect.cpp commits + waits for completion before returning
+// (mirrors MetalLifeEffectData::Render).
+//
+// Dispatch is sized to `npix` (matching MetalLifeEffect's exact-npix
+// gridSize); npix can be less than width*height for a variable sub-buffer.
+// vkCmdDispatch rounds the workgroup count up to a multiple of 64, so
+// invocations at or beyond npix bounds-check and return without writing --
+// `result` therefore must stay a plain (non-writeonly) buffer, matching every
+// other partial-write kernel in this codebase. Wrapped neighbours whose
+// linear index >= npix read as black (matches the scalar's GetTempPixelRGB
+// bounds guard) and bound the uploaded prev buffer.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) readonly buffer Prev { uint prev[]; };
+layout(std430, set = 0, binding = 1) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Palette { uint palette[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int npix;         // min(GetPixelCount(), width*height); a wrapped neighbour
+                       // whose linear index >= npix counts as black (matches the
+                       // scalar's GetTempPixelRGB bounds guard) and bounds the
+                       // uploaded prev/result buffers.
+    int type;          // ruleset 0..4
+    int numColors;     // palette.Size() (>= 1)
+    // 64-bit RNG frame seed split into two 32-bit halves -- see the u64
+    // emulation below (same technique as ShimmerEffect.comp / CandleEffect.comp).
+    uint frameSeedLo;
+    uint frameSeedHi;
+} data;
+
+// A 64-bit value as a (lo, hi) uint32 pair. Emulates RenderBuffer::rngMix64
+// (the splitmix64 finalizer, mirrored bit-for-bit as lifeMix64 in
+// LifeFunctions.metal / LifeFunctions.ispc) without relying on a native 64-bit
+// GLSL integer type, which is not guaranteed available on every Vulkan
+// implementation. Identical helpers to ShimmerEffect.comp / CandleEffect.comp
+// (local copy, per this codebase's per-effect-kernel convention).
+struct u64 { uint lo; uint hi; };
+
+u64 u64Xor(u64 a, u64 b) { return u64(a.lo ^ b.lo, a.hi ^ b.hi); }
+
+// a >> n, restricted to 0 < n < 32.
+u64 u64Shr(u64 a, uint n) {
+    return u64((a.lo >> n) | (a.hi << (32u - n)), a.hi >> n);
+}
+
+// (a * b) mod 2^64. aHi*bHi is dropped entirely (it only contributes to bits
+// >= 64). The cross terms aHi*bLo + aLo*bHi are multiplied by 2^32 in the
+// full product, so only their low 32 bits (which plain GLSL uint `*`/`+`
+// already wrap to) survive truncation to 64 bits. umulExtended supplies the
+// exact high/low halves of the aLo*bLo term.
+u64 u64Mul(u64 a, u64 b) {
+    uint msb, lsb;
+    umulExtended(a.lo, b.lo, msb, lsb);
+    uint cross = a.hi * b.lo + a.lo * b.hi;
+    return u64(lsb, msb + cross);
+}
+
+// Bit-identical to lifeMix64 (LifeFunctions.metal) / RenderBuffer::rngMix64.
+u64 lifeMix64(u64 z) {
+    z = u64Xor(z, u64Shr(z, 30u));
+    z = u64Mul(z, u64(0x1CE4E5B9u, 0xBF58476Du)); // 0xBF58476D1CE4E5B9
+    z = u64Xor(z, u64Shr(z, 27u));
+    z = u64Mul(z, u64(0x133111EBu, 0x94D049BBu)); // 0x94D049BB133111EB
+    z = u64Xor(z, u64Shr(z, 31u));
+    return z;
+}
+
+// Bit-length (0..53) of a u64 value known to fit in <= 53 bits (our only
+// caller passes mix64(...) >> 11). findMSB returns -1 for a zero input.
+uint life_bitLength64(u64 v) {
+    if (v.hi != 0u) return 32u + uint(findMSB(v.hi)) + 1u;
+    if (v.lo != 0u) return uint(findMSB(v.lo)) + 1u;
+    return 0u;
+}
+
+// Correctly-rounded (round-to-nearest, ties-to-even) conversion of a <=53-bit
+// u64 to float, rescaled by an exact additional power of two (extraExp) --
+// i.e. ldexp(float(v), extraExp) computed without a native 64-bit/double
+// type. float32 keeps only 24 significant bits, so once v's bit-length
+// exceeds 24 the dropped low bits must be rounded into the kept top 24 bits
+// with the same tie-to-even rule hardware int->float conversion uses (same
+// rounding technique as CandleEffect.comp's candleRand255, generalized to a
+// 24-bit mantissa plus an exact power-of-two rescale instead of an 8-bit
+// integer result). This reproduces `(float)r53 * 2^extraExp` (Metal / ISPC,
+// computed there as `(double)r53 * 2^-53` narrowed to float) bit-for-bit,
+// because scaling by an exact power of two commutes with float rounding --
+// only ONE rounding step occurs here, exactly as in the reference's
+// int64->double (exact, since r53 fits in <= 53 significant bits) followed by
+// an exact *2^-53 and a final double->float narrowing (a single rounding of
+// the same 53-bit value to 24 bits).
+float life_u64ToScaledFloat(u64 v, int extraExp) {
+    uint L = life_bitLength64(v);
+    if (L <= 24u) {
+        return ldexp(float(v.lo), extraExp);
+    }
+    uint shift = L - 24u;
+    uint mask = (1u << shift) - 1u;
+    uint rem = v.lo & mask;
+    u64 keep = u64Shr(v, shift);
+    uint top = keep.lo;
+    uint halfBit = 1u << (shift - 1u);
+    if (rem > halfBit || (rem == halfBit && (top & 1u) != 0u)) {
+        top += 1u;
+    }
+    return ldexp(float(top), int(shift) + extraExp);
+}
+
+// RenderBuffer::hashRand01(index) narrowed to float (GetMultiColorBlend's
+// param). hashRand01 = (mix64(frameSeed ^ index*K) >> 11) * 2^-53.
+float lifeHashRand01f(u64 frameSeed, uint index) {
+    u64 idxTerm = u64Mul(u64(index, 0u), u64(0xD192ED03u, 0xD1B54A32u)); // 0xD1B54A32D192ED03
+    u64 z = u64Xor(frameSeed, idxTerm);
+    u64 r53 = u64Shr(lifeMix64(z), 11u);
+    return life_u64ToScaledFloat(r53, -53);
+}
+
+// RenderBuffer::ChannelBlend, bit-identical: a + floor(ratio*(b-a) + 0.5).
+uint lifeChannelBlend(uint a, uint b, float ratio) {
+    float m = ratio * float(int(b) - int(a));
+    float v = m + 0.5;
+    int f = int(floor(v));
+    return uint(int(a) + f);
+}
+
+// RenderBuffer::GetMultiColorBlend(hashRand01(index), circular=false) as
+// packed RGBA (alpha 255).
+uint lifeBirthColor(uint index) {
+    int colorcnt = data.numColors;
+    if (colorcnt <= 1) {
+        // GetMultiColorBlend returns GetColor(0) verbatim (its own alpha) here;
+        // only the 2-colour blend below forces alpha 255.
+        return palette[0];
+    }
+    u64 frameSeed = u64(data.frameSeedLo, data.frameSeedHi);
+    float nf = lifeHashRand01f(frameSeed, index);
+    if (nf >= 1.0) nf = 0.99999;
+    if (nf < 0.0) nf = 0.0;
+    float realidx = nf * float(colorcnt - 1);
+    int idx1 = int(floor(realidx));
+    int idx2 = (idx1 + 1) % colorcnt;
+    float ratio = realidx - float(idx1);
+
+    uvec4 c1 = unpackPx(palette[idx1]);
+    uvec4 c2 = unpackPx(palette[idx2]);
+    uvec4 o;
+    o.x = lifeChannelBlend(c1.x, c2.x, ratio);
+    o.y = lifeChannelBlend(c1.y, c2.y, ratio);
+    o.z = lifeChannelBlend(c1.z, c2.z, ratio);
+    o.w = 255u;
+    return packPx(o);
+}
+
+bool lifeIsLive(uint c) {
+    return (c & 0x00FFFFFFu) != 0u;
+}
+
+void main() {
+    int npix = data.npix;
+    uint index = gl_GlobalInvocationID.x;
+    if (int(index) >= npix) return;
+
+    int width = int(data.width);
+    int height = int(data.height);
+
+    int x0 = int(index) % width;
+    int y0 = int(index) / width;
+
+    // Neighbour offsets (match Life_CountNeighbors):
+    //     2   3   4
+    //     1   X   5
+    //     0   7   6
+    const int n_x[8] = int[8](-1, -1, -1, 0, 1, 1, 1, 0);
+    const int n_y[8] = int[8](-1, 0, 1, 1, 1, 0, -1, -1);
+
+    uint selfc = prev[index];
+    bool live = lifeIsLive(selfc);
+
+    int cnt = 0;
+    for (int i = 0; i < 8; ++i) {
+        int nx = (x0 + n_x[i]) % width;
+        int ny = (y0 + n_y[i]) % height;
+        if (nx < 0) nx += width;
+        if (ny < 0) ny += height;
+        int nidx = ny * width + nx;
+        // Out-of-allocation neighbours read as black (scalar GetTempPixelRGB
+        // bounds guard) and stay within the uploaded previous-generation buffer.
+        if (nidx < npix && lifeIsLive(prev[nidx])) cnt++;
+    }
+
+    int type = data.type;
+    bool survive = false;
+    bool birth = false;
+    if (type == 0) {
+        survive = live && cnt >= 2 && cnt <= 3;
+        birth = !live && cnt == 3;
+    } else if (type == 1) {
+        survive = live && (cnt == 2 || cnt == 3 || cnt == 6);
+        birth = !live && (cnt == 3 || cnt == 5);
+    } else if (type == 2) {
+        survive = live && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8);
+        birth = !live && (cnt == 3 || cnt == 5 || cnt == 7);
+    } else if (type == 3) {
+        survive = live && (cnt == 2 || cnt == 3 || cnt >= 5);
+        birth = !live && (cnt == 3 || cnt == 7 || cnt == 8);
+    } else if (type == 4) {
+        survive = live && (cnt >= 5);
+        birth = !live && (cnt == 2 || cnt >= 5);
+    }
+
+    uint outPixel = 0u;
+    if (survive) {
+        outPixel = selfc;
+    } else if (birth) {
+        outPixel = lifeBirthColor(index);
+    }
+    result[index] = outPixel;
+}

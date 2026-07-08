@@ -1,0 +1,83 @@
+#version 450
+// Port of swapTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+const float swap_reflection = 0.4;
+const vec2 swap_boundMin = vec2(0.0, 0.0);
+const vec2 swap_boundMax = vec2(1.0, 1.0);
+bool swapLessThan(vec2 lhs, vec2 rhs) {
+    return lhs.x < rhs.x && lhs.y < rhs.y;
+}
+bool swapInBounds(vec2 p) {
+    return swapLessThan(swap_boundMin, p) && swapLessThan(p, swap_boundMax);
+}
+vec2 swapProject(vec2 p) {
+    return p * vec2(1.0, -1.2) + vec2(0.0, -0.02);
+}
+uvec4 swapBgColor(vec2 p, vec2 pfr, vec2 pto) {
+    uvec4 c = uvec4(0u, 0u, 0u, 255u);
+
+    vec2 projectedPFR = swapProject(pfr);
+    if (swapInBounds(projectedPFR)) {
+        uvec4 pc = (data.hasPrev == 0u) ? uvec4(0u, 0u, 0u, 255u) : tex2Dprev(projectedPFR.x, projectedPFR.y);
+        c = addWrap(c, xl_lerp4(uvec4(0u, 0u, 0u, 255u), pc, swap_reflection * xl_lerpf(1.0, 0.0, projectedPFR.y)));
+    }
+
+    vec2 projectedPTO = swapProject(pto);
+    if (swapInBounds(projectedPTO)) {
+        c = addWrap(c, xl_lerp4(uvec4(0u, 0u, 0u, 255u), tex2Dsrc(projectedPTO.x, projectedPTO.y), swap_reflection * xl_lerpf(1.0, 0.0, projectedPTO.y)));
+    }
+    return c;
+}
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+
+    const float depth = 3.0;
+    const float perspective = 0.4;
+    float progress = data.progress;
+    float size = xl_lerpf(1.0, depth, progress);
+    float persp = perspective * progress;
+
+    vec2 pfr = (vec2(s, t) + vec2(-0.0, -0.5)) * vec2(size / (1.0 - perspective * progress), size / (1.0 - size * persp * s)) + vec2(0.0, 0.5);
+
+    size = xl_lerpf(1.0, depth, 1.0 - progress);
+    persp = perspective * (1.0 - progress);
+    vec2 pto = (vec2(s, t) + vec2(-1.0, -0.5)) * vec2(size / (1.0 - perspective * (1.0 - progress)), size / (1.0 - size * persp * (0.5 - s))) + vec2(1.0, 0.5);
+
+    uvec4 outColor;
+    bool done = false;
+    if (progress < 0.5) {
+        if (swapInBounds(pfr)) {
+            outColor = (data.hasPrev == 0u) ? uvec4(0u, 0u, 0u, 255u) : tex2Dprev(pfr.x, pfr.y);
+            done = true;
+        } else if (swapInBounds(pto)) {
+            outColor = tex2Dsrc(pto.x, pto.y);
+            done = true;
+        }
+    }
+    if (!done) {
+        if (swapInBounds(pto)) {
+            outColor = tex2Dsrc(pto.x, pto.y);
+        } else if (swapInBounds(pfr)) {
+            outColor = (data.hasPrev == 0u) ? uvec4(0u, 0u, 0u, 255u) : tex2Dprev(pfr.x, pfr.y);
+        } else {
+            outColor = swapBgColor(vec2(s, t), pfr, pto);
+        }
+    }
+    result[sidx] = packPx(outColor);
+}

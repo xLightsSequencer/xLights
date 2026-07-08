@@ -1,0 +1,39 @@
+#version 450
+// Port of dissolveTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+const uint DissolvePatternWidth = 512u;
+const uint DissolvePatternHeight = 512u;
+uvec4 dissolveTex(float s, float t) {
+    s = clamp(s, 0.0, 1.0);
+    t = clamp(t, 0.0, 1.0);
+
+    uint x = uint(s * float(DissolvePatternWidth - 1u));
+    uint y = uint(t * float(DissolvePatternHeight - 1u));
+
+    uint bidx = y * DissolvePatternWidth + x;
+    uint val = (prev[bidx >> 2u] >> ((bidx & 3u) * 8u)) & 0xFFu;
+    return uvec4(val, val, val, 255u);
+}
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+
+    uvec4 dissolveColor = dissolveTex(s, t);
+    uint byteProgress = uint(255.0 * data.progress);
+    result[sidx] = (dissolveColor.r > byteProgress) ? packPx(tex2Dsrc(s, t)) : packPx(uvec4(0u, 0u, 0u, 255u));
+}

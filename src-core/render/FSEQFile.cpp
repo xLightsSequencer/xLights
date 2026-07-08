@@ -126,6 +126,8 @@ inline void AddSlowStorageWarning() {}
 #endif
 #include <zstd.h>
 #include <thread>
+#include <future>
+#include <deque>
 
 #ifdef ZSTD_STATIC_LINKING_ONLY
 class ZSTDThreadPoolHolder {
@@ -1039,6 +1041,15 @@ public:
         m_inBuffer.src = nullptr;
         m_inBuffer.size = 0;
         m_inBuffer.pos = 0;
+        // Each seekable block is an independent zstd frame that is smaller than
+        // zstd's minimum multi-threaded job size, so zstd's own worker pool never
+        // splits a block and writes end up single threaded.  Instead we compress
+        // whole blocks concurrently (each block is independent, using only the
+        // stable one-shot zstd API so this works on every platform) and write them
+        // in order.  Bounded by the number of blocks kept in flight.
+        unsigned int hw = std::thread::hardware_concurrency();
+        m_numWorkers = hw > 1 ? (int)hw : 1;
+        m_maxBlocksInFlight = m_numWorkers > 1 ? m_numWorkers : 0;
         LogDebug(VB_SEQUENCE, "  Prepared to read/write a ZSTD compress fseq file.\n");
     }
     virtual ~V2ZSTDCompressionHandler() {
@@ -1183,7 +1194,112 @@ public:
             count += input.pos;
         }
     }
+    // A single seekable block, buffered uncompressed while it fills, then
+    // compressed on a worker thread and written (in block order) by the caller.
+    struct ParallelBlock {
+        uint32_t startFrame = 0;
+        int level = 3;
+        std::vector<uint8_t> raw;
+        std::vector<uint8_t> comp;
+    };
+    static void compressParallelBlock(ParallelBlock* b) {
+        size_t bound = ZSTD_compressBound(b->raw.size());
+        b->comp.resize(bound);
+        ZSTD_CCtx* cctx = ZSTD_createCCtx();
+        ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, b->level);
+        size_t r = ZSTD_compress2(cctx, b->comp.data(), bound, b->raw.data(), b->raw.size());
+        ZSTD_freeCCtx(cctx);
+        if (ZSTD_isError(r)) {
+            LogErr(VB_SEQUENCE, "ZSTD block compression failed: %s\n", ZSTD_getErrorName(r));
+            b->comp.clear();
+        } else {
+            b->comp.resize(r);
+        }
+    }
+    // Pull the oldest still-pending block, wait for its compression to finish,
+    // record its offset and write it.  Called only on the writing thread.
+    void writeOldestBlock() {
+        std::shared_ptr<ParallelBlock> b = m_pendingBlocks.front().get();
+        m_pendingBlocks.pop_front();
+        m_inFlightBytes -= b->raw.size();
+        uint64_t offset = tell();
+        m_file->m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(b->startFrame, offset));
+        write(b->comp.data(), b->comp.size());
+    }
+    void submitCurrentBlock() {
+        auto b = std::make_shared<ParallelBlock>();
+        b->startFrame = m_curBlockStartFrame;
+        b->level = m_curBlockLevel;
+        b->raw = std::move(m_curRaw);
+        m_curRaw = std::vector<uint8_t>();
+        // Bound the work in flight by both block count (keep the workers fed) and
+        // total buffered bytes (so long sequences with large blocks don't balloon
+        // memory).  Always leave room for at least this block to make progress.
+        size_t blockBytes = b->raw.size();
+        while (!m_pendingBlocks.empty() && ((int)m_pendingBlocks.size() >= m_maxBlocksInFlight || (m_inFlightBytes + blockBytes) > INFLIGHT_BYTE_BUDGET)) {
+            writeOldestBlock();
+        }
+        m_inFlightBytes += blockBytes;
+        try {
+            m_pendingBlocks.push_back(std::async(std::launch::async, [b]() {
+                compressParallelBlock(b.get());
+                return b;
+            }));
+        } catch (...) {
+            // std::async throws if a worker thread can't be started (e.g. heavy
+            // thread pressure when many controller uploads run at once).  Compress
+            // inline instead and hand back an already-satisfied future so ordering
+            // and byte accounting are unchanged.
+            compressParallelBlock(b.get());
+            std::promise<std::shared_ptr<ParallelBlock>> p;
+            p.set_value(b);
+            m_pendingBlocks.push_back(p.get_future());
+        }
+        m_curFrameInBlock = 0;
+    }
+    void addFrameParallel(uint32_t frame, const uint8_t* data) {
+        if (m_curFrameInBlock == 0) {
+            m_curBlockStartFrame = frame;
+            m_blocksStarted++;
+            int clevel = m_file->m_compressionLevel == -99 ? 3 : m_file->m_compressionLevel;
+            if (clevel < -25 || clevel > 25) {
+                clevel = 3;
+            }
+            if (frame == 0 && (ZSTD_versionNumber() > 10305)) {
+                clevel = -5;
+            }
+            if (ZSTD_versionNumber() <= 10305 && clevel < 0) {
+                clevel = 0;
+            }
+            m_curBlockLevel = clevel;
+        }
+        if (m_file->m_sparseRanges.empty()) {
+            m_curRaw.insert(m_curRaw.end(), data, data + m_file->getChannelCount());
+        } else {
+            for (auto& a : m_file->m_sparseRanges) {
+                m_curRaw.insert(m_curRaw.end(), &data[a.first], &data[a.first] + a.second);
+            }
+        }
+        m_curFrameInBlock++;
+        if ((m_blocksStarted == 1 && m_curFrameInBlock == 10) || (m_curFrameInBlock >= m_framesPerBlock && m_blocksStarted < m_maxBlocks)) {
+            submitCurrentBlock();
+        }
+    }
+    void finalizeParallel() {
+        if (m_curFrameInBlock) {
+            submitCurrentBlock();
+        }
+        while (!m_pendingBlocks.empty()) {
+            writeOldestBlock();
+        }
+        V2CompressedHandler::finalize();
+    }
+
     virtual void addFrame(uint32_t frame, const uint8_t* data) override {
+        if (m_maxBlocksInFlight > 0) {
+            addFrameParallel(frame, data);
+            return;
+        }
         if (m_cctx == nullptr) {
             m_cctx = ZSTD_createCStream();
         }
@@ -1191,9 +1307,9 @@ public:
             uint64_t offset = tell();
             //LogDebug(VB_SEQUENCE, "  Preparing to create a compressed block of data starting at frame %d, offset  %" PRIu64 ".\n", frame, offset);
             m_file->m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(frame, offset));
-            int clevel = m_file->m_compressionLevel == -99 ? 2 : m_file->m_compressionLevel;
+            int clevel = m_file->m_compressionLevel == -99 ? 3 : m_file->m_compressionLevel;
             if (clevel < -25 || clevel > 25) {
-                clevel = 2;
+                clevel = 3;
             }
             if (frame == 0 && (ZSTD_versionNumber() > 10305)) {
                 // first frame needs to be grabbed as fast as possible
@@ -1201,7 +1317,7 @@ public:
                 // if using recent zstd, we'll use the negative levels
                 // for the first block so the decompression can
                 // be as fast as possible
-                clevel = -10;
+                clevel = -5;
             }
             if (ZSTD_versionNumber() <= 10305 && clevel < 0) {
                 clevel = 0;
@@ -1262,6 +1378,10 @@ public:
         }
     }
     virtual void finalize() override {
+        if (m_maxBlocksInFlight > 0) {
+            finalizeParallel();
+            return;
+        }
         if (m_curFrameInBlock) {
             ZSTD_inBuffer_s input = {
                 0, 0, 0
@@ -1283,6 +1403,18 @@ public:
     ZSTD_DStream* m_dctx = nullptr;
     ZSTD_outBuffer_s m_outBuffer;
     ZSTD_inBuffer_s m_inBuffer;
+
+    // Block-parallel write state (see constructor).  m_maxBlocksInFlight == 0
+    // selects the serial streaming path (single-core hosts).
+    static constexpr size_t INFLIGHT_BYTE_BUDGET = 512ull * 1024 * 1024;
+    int m_numWorkers = 1;
+    int m_maxBlocksInFlight = 0;
+    uint32_t m_blocksStarted = 0;
+    uint32_t m_curBlockStartFrame = 0;
+    int m_curBlockLevel = 2;
+    size_t m_inFlightBytes = 0;
+    std::vector<uint8_t> m_curRaw;
+    std::deque<std::future<std::shared_ptr<ParallelBlock>>> m_pendingBlocks;
 };
 #endif
 

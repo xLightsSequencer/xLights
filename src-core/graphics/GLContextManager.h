@@ -15,11 +15,12 @@
 // without depending on wx/UI types.
 //
 // macOS (CGL):    Independent contexts in pool, share via shared context.
-// macOS (ANGLE):  Single EGL context (ANGLE Metal serializes anyway).
+// iOS:            No GL — no-op stub (shaders render via native Metal).
 // Windows (WGL):  Hidden HWND + WGL contexts, all GL ops serialized on
 //                 an internal worker thread (see ExecuteOnGLThread).
 // Linux:          Independent GLX or EGL pbuffer contexts.
 
+#include <atomic>
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
@@ -41,12 +42,6 @@ public:
         // Windows: returns the shared HGLRC (cast to void*) from the main GL canvas.
         // Called lazily on first AcquireContext(), so the canvas need not exist at init time.
         std::function<void*()> getSharedGLContext;
-
-        // Apple/ANGLE: Metal device registry ID to force ANGLE onto the same
-        // GPU as the Metal compute effects.  Set to MTLDevice.registryID.
-        // When non-zero, passed to eglGetPlatformDisplay via
-        // EGL_PLATFORM_ANGLE_DEVICE_ID_HIGH/LOW_ANGLE.
-        uint64_t metalDeviceRegistryID = 0;
     };
 
     // Initialize the manager.  Must be called once before AcquireContext().
@@ -91,12 +86,19 @@ public:
     // lambda capturing locals; ExecuteOnGLThread blocks so this is safe).
     void ExecuteOnGLThread(std::function<void()> fn);
 
+    // Monotonic id of the current GL share group.  Bumped whenever the share
+    // root is destroyed and rebuilt (Windows WDDM TDR / device reset kills
+    // every context at once) — at that point ALL GL object ids callers have
+    // cached (programs, buffers, textures, renderbuffers) are dangling, and
+    // because the new share group recycles small ids, a stale id can even
+    // pass glIsProgram and alias a different object.  Callers caching GL ids
+    // across frames must compare this against the generation they cached
+    // under and drop (not glDelete) everything on mismatch.
+    uint64_t ShareGroupGeneration() const { return _shareGroupGeneration.load(std::memory_order_acquire); }
+    void BumpShareGroupGeneration() { _shareGroupGeneration.fetch_add(1, std::memory_order_acq_rel); }
+
     // Destroy all pooled contexts and release resources.
     void Shutdown();
-
-    // Returns the native display handle (EGLDisplay for ANGLE, nullptr otherwise).
-    // Used by MetalShaderEffect for texture sharing.
-    void* GetNativeDisplay() const;
 
     // Platform-specific state lives in the .cpp behind #ifdef guards.
     // Forward-declared here as opaque pointers where needed.
@@ -111,6 +113,7 @@ private:
 
     bool _initialized = false;
     bool _backgroundRenderEnabled = false;
+    std::atomic<uint64_t> _shareGroupGeneration{1};
     InitParams _params;
     PlatformState* _platform = nullptr;
 };

@@ -1429,7 +1429,7 @@ void FileConverter::WriteFalconPiFile(ConvertParameters& params)
 
     const wxUint8 fType = params.xLightsFrm ? params.xLightsFrm->_fseqVersion : 2;
     int vMajor = 2;
-    int clevel = 2;
+    int clevel = 3;
     bool allowSparse = false;
     FSEQFile::CompressionType ctype = FSEQFile::CompressionType::zstd;
 

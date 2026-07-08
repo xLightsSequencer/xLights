@@ -157,7 +157,16 @@ public:
     std::function<void()> m_onPaneStateChanged;
 
     LayoutAuiManager(wxWindow* managed_wnd, unsigned int flags)
-        : wxAuiManager(managed_wnd, flags) {}
+        : wxAuiManager(managed_wnd, flags) {
+        // wxAuiManager::SetManagedWindow (called from the base ctor above) now Bind()s the
+        // base mouse handlers on managed_wnd instead of PushEventHandler()ing the manager,
+        // so our overrides are no longer reached via the class event table. Bind them here:
+        // these are added after the base bindings, so they run first (dynamic handlers are
+        // LIFO), and each ends in event.Skip() so the base wxAuiManager handler still runs.
+        managed_wnd->Bind(wxEVT_LEFT_DOWN, &LayoutAuiManager::OnLeftDown, this);
+        managed_wnd->Bind(wxEVT_MOTION, &LayoutAuiManager::OnMotion, this);
+        managed_wnd->Bind(wxEVT_LEFT_UP, &LayoutAuiManager::OnLeftUp, this);
+    }
 
     wxAuiFloatingFrame* CreateFloatingFrame(wxWindow* parent, const wxAuiPaneInfo& p) override {
         wxAuiFloatingFrame* frame = new wxAuiFloatingFrame(parent, this, p, wxID_ANY,
@@ -305,14 +314,7 @@ public:
         }
     }
 
-    wxDECLARE_EVENT_TABLE();
 };
-
-wxBEGIN_EVENT_TABLE(LayoutAuiManager, wxAuiManager)
-    EVT_LEFT_DOWN(LayoutAuiManager::OnLeftDown)
-    EVT_MOTION(LayoutAuiManager::OnMotion)
-    EVT_LEFT_UP(LayoutAuiManager::OnLeftUp)
-wxEND_EVENT_TABLE()
 
 #define MODELCOLNAME "Model/Group"
 #define STARTCHANCOLNAME "Start Chan"
@@ -5500,6 +5502,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             spdlog::error("Unable to load model from '{}': {}", last_model, e.what());
             DisplayError("Unable to load model file:\n" + std::string(e.what()));
             cancelled = true;
+            // CreateDefaultModelFromSavedModelNode deletes the passed-in model
+            // before deserializing, so on a throw `model` is already freed;
+            // returning it non-null makes FinalizeModel's cancel path delete
+            // it a second time.
+            model = nullptr;
         }
 
         if (!cancelled && model != nullptr) {
@@ -5543,8 +5550,8 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     try {
                         extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
                     } catch (const std::exception& e) {
+                        // the callee already deleted extraModel before throwing
                         spdlog::error("Unable to load additional model: {}", e.what());
-                        delete extraModel;
                         continue;
                     }
                     if (extraCancelled || extraModel == nullptr) continue;
@@ -5814,8 +5821,14 @@ void LayoutPanel::FinalizeModel()
                 // it internally before returning a newly deserialized model. On failure it returns
                 // nullptr having already freed the passed-in pointer, so we must NOT delete
                 // extraModel here (would double-delete). Match the primary model path which also
-                // just returns without manual cleanup.
-                extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                // just returns without manual cleanup. The deserializer throws on a malformed
+                // file (after freeing extraModel), so catch it or it escapes FinalizeModel.
+                try {
+                    extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                } catch (const std::exception& e) {
+                    spdlog::error("Unable to load additional model from '{}': {}", extraModelPath, e.what());
+                    continue;
+                }
 
                 if (extraCancelled || extraModel == nullptr) {
                     continue;

@@ -1,0 +1,107 @@
+#version 450
+// Port of ShimmerEffect in ShimmerFunctions.metal.  All per-frame duty-cycle
+// / color-selection scalar work happens on the CPU (VulkanShimmerEffect.cpp,
+// mirroring MetalShimmerEffect.mm); every "on" frame fills the whole buffer
+// from a CPU-built color LUT.  Purely per-pixel, in-place: the kernel only
+// ever writes result[index] and never reads it (nor any other pixel), so no
+// snapshot copy is needed -- plain writeonly buffer.
+//
+// Metal binds the CPU-built LUT via setBytes as a separate constant buffer;
+// Vulkan has no per-dispatch inline-constant upload, so the LUT rides inside
+// the params SSBO as a fixed-size array (VULKAN_SHIMMER_MAX_LUT mirrors
+// SHIMMER_MAX_LUT in MetalEffectDataTypes.h exactly -- larger spatial-gradient
+// LUTs already fall back to the CPU path before the wrapper populates this
+// struct).
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+// LUT modes -- must match ShimmerEffect::ShimmerLutMode / MetalShimmerData.
+#define SHIMMER_LUT_FLAT 0
+#define SHIMMER_LUT_X 1
+#define SHIMMER_LUT_Y 2
+#define SHIMMER_LUT_RANDOM 3
+
+#define VULKAN_SHIMMER_MAX_LUT 1024
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int lutMode;
+    int colorCount;
+    // 64-bit RNG frame seed split into two 32-bit halves -- see the u64
+    // emulation below.
+    uint frameSeedLo;
+    uint frameSeedHi;
+    uint lut[VULKAN_SHIMMER_MAX_LUT]; // packed uchar4 colors (packPx/unpackPx)
+} data;
+
+// A 64-bit value as a (lo, hi) uint32 pair.  Emulates RenderBuffer::rngMix64
+// (the splitmix64 finalizer, mirrored bit-for-bit as shimmerMix64 in
+// ShimmerFunctions.metal / ShimmerFunctions.ispc) without relying on a native
+// 64-bit GLSL integer type, which is not guaranteed available on every Vulkan
+// implementation.
+struct u64 { uint lo; uint hi; };
+
+u64 u64Xor(u64 a, u64 b) { return u64(a.lo ^ b.lo, a.hi ^ b.hi); }
+
+// a >> n, restricted to 0 < n < 32 -- the only shifts shimmerMix64 needs
+// (27, 30, 31), so a single word boundary crossing suffices.
+u64 u64Shr(u64 a, uint n) {
+    return u64((a.lo >> n) | (a.hi << (32u - n)), a.hi >> n);
+}
+
+// (a * b) mod 2^64. aHi*bHi is dropped entirely (it only contributes to bits
+// >= 64). The cross terms aHi*bLo + aLo*bHi are multiplied by 2^32 in the
+// full product, so only their low 32 bits (which plain GLSL uint `*`/`+`
+// already wrap to) survive truncation to 64 bits. umulExtended supplies the
+// exact high/low halves of the aLo*bLo term.
+u64 u64Mul(u64 a, u64 b) {
+    uint msb, lsb;
+    umulExtended(a.lo, b.lo, msb, lsb);
+    uint cross = a.hi * b.lo + a.lo * b.hi;
+    return u64(lsb, msb + cross);
+}
+
+// Bit-identical to shimmerMix64 (ShimmerFunctions.metal) / RenderBuffer::rngMix64.
+u64 shimmerMix64(u64 z) {
+    z = u64Xor(z, u64Shr(z, 30u));
+    z = u64Mul(z, u64(0x1CE4E5B9u, 0xBF58476Du)); // 0xBF58476D1CE4E5B9
+    z = u64Xor(z, u64Shr(z, 27u));
+    z = u64Mul(z, u64(0x133111EBu, 0x94D049BBu)); // 0x94D049BB133111EB
+    z = u64Xor(z, u64Shr(z, 31u));
+    return z;
+}
+
+// Bit-identical to shimmerHashRandom (ShimmerFunctions.metal).
+uint shimmerHashRandom(u64 seed, uint index) {
+    u64 idxTerm = u64Mul(u64(index, 0u), u64(0xD192ED03u, 0xD1B54A32u)); // 0xD1B54A32D192ED03
+    u64 mixed = shimmerMix64(u64Xor(seed, idxTerm));
+    return mixed.hi; // >> 32
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    int lutIdx = 0;
+    if (data.lutMode == SHIMMER_LUT_RANDOM) {
+        // randInt-style fixed-point mapping of the hash to a palette index:
+        // int((uint64_t(r) * colorCount) >> 32), i.e. the high 32 bits of the
+        // 32x32 product -- exactly what umulExtended's msb output gives.
+        u64 seed = u64(data.frameSeedLo, data.frameSeedHi);
+        uint r = shimmerHashRandom(seed, index);
+        uint msb, lsb;
+        umulExtended(r, uint(data.colorCount), msb, lsb);
+        lutIdx = int(msb);
+    } else if (data.lutMode == SHIMMER_LUT_X) {
+        lutIdx = int(px);
+    } else if (data.lutMode == SHIMMER_LUT_Y) {
+        lutIdx = int(py);
+    }
+    result[index] = data.lut[lutIdx];
+}
