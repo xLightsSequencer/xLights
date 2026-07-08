@@ -24,6 +24,7 @@
 #include "../../render/RenderBuffer.h"
 #include "VulkanComputeUtilities.h"
 #include "VulkanEffects.h"
+#include "VulkanShaderEffect.h"
 
 class VulkanRenderUtils : public GPURenderUtils {
 public:
@@ -164,6 +165,7 @@ static bool vulkanEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_METEORS, "Meteors" },
         { EffectManager::eff_TWINKLE, "Twinkle" },
         { EffectManager::eff_LIFE, "Life" },
+        { EffectManager::eff_SHADER, "Shader" },
     };
     auto it = names.find(eff);
     return it != names.end() && list.find(it->second) != std::string::npos;
@@ -214,6 +216,8 @@ RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new VulkanTwinkleEffect(eff);
         case EffectManager::eff_LIFE:
             return new VulkanLifeEffect(eff);
+        case EffectManager::eff_SHADER:
+            return new VulkanShaderEffect(eff);
         default:
             return nullptr;
         }

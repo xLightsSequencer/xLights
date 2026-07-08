@@ -1081,6 +1081,7 @@
 		<Unit filename="../src-core/effects/vulkan/VulkanMeteorsEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanTwinkleEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanLifeEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShaderEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanCirclesEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanColorWashEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanFanEffect.cpp" />

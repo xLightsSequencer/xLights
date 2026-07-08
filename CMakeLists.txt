@@ -394,6 +394,7 @@ if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
         # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
         src-core/graphics/vulkan/VulkanPipelineCache.cpp
         src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp
+        src-core/effects/vulkan/VulkanShaderEffect.cpp)
     set(XLIGHTS_VULKAN_ENABLED TRUE)
 endif()
 
