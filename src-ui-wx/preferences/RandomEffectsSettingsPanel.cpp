@@ -51,6 +51,7 @@ RandomEffectsSettingsPanel::RandomEffectsSettingsPanel(wxWindow* parent, xLights
     auto* leftCol = new wxBoxSizer(wxVERTICAL);
     leftCol->Add(new wxStaticText(this, wxID_ANY, _("Not used")), 0, wxLEFT | wxBOTTOM, 2);
     _availableList = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(260, 340), 0, nullptr, wxLB_EXTENDED | wxLB_SORT);
+    _availableList->SetMinSize(wxSize(260, 340)); // stop wxEXPAND shrinking it and clipping effect names
     leftCol->Add(_availableList, 1, wxEXPAND);
     row->Add(leftCol, 1, wxEXPAND | wxRIGHT, 6);
 
@@ -68,6 +69,7 @@ RandomEffectsSettingsPanel::RandomEffectsSettingsPanel(wxWindow* parent, xLights
     auto* rightCol = new wxBoxSizer(wxVERTICAL);
     rightCol->Add(new wxStaticText(this, wxID_ANY, _("Used")), 0, wxLEFT | wxBOTTOM, 2);
     _usedList = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(260, 340), 0, nullptr, wxLB_EXTENDED | wxLB_SORT);
+    _usedList->SetMinSize(wxSize(260, 340)); // stop wxEXPAND shrinking it and clipping effect names
     rightCol->Add(_usedList, 1, wxEXPAND);
     row->Add(rightCol, 1, wxEXPAND | wxLEFT, 6);
 

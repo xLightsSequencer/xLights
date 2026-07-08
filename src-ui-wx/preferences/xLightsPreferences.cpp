@@ -8,6 +8,7 @@
 * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
 **************************************************************/
 
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <vector>
@@ -153,6 +154,11 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
                       PrefSvgIcon(R"(<path d="M11 3l1.6 4.4L17 9l-4.4 1.6L11 15l-1.6-4.4L5 9z"/><path d="M18 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/>)", "#A855F7"),
                       [this](wxWindow* p) { return (wxWindow*)(new ServicesPanel(p, _serviceManager.get())); } });
 #endif
+
+    // Show the left-nav pages in alphabetical order.
+    std::sort(pages.begin(), pages.end(), [](const PrefPageDef& a, const PrefPageDef& b) {
+        return a.name.CmpNoCase(b.name) < 0;
+    });
 
     // Modeless so Preferences can stay open while you keep working in xLights.
     // Reuse an already-open instance rather than stacking a second dialog.
