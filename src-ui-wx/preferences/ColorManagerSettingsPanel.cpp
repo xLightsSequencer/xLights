@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ColorManagerSettingsPanel.h"
+#include "PrefPanelUtils.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 
@@ -46,9 +47,6 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxFlexGridSizer* FlexGridSizer7;
-	wxStaticBoxSizer* StaticBoxSizer1;
-	wxStaticBoxSizer* StaticBoxSizer2;
-	wxStaticBoxSizer* StaticBoxSizer3;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -58,18 +56,21 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	FlexGridSizer3->AddGrowableCol(1);
 	FlexGridSizer3->AddGrowableCol(2);
 	FlexGridSizer3->AddGrowableRow(0);
-	StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Timing Tracks"));
+	auto* colTiming = new wxBoxSizer(wxVERTICAL);
+	colTiming->Add(MakePreferenceSectionHeader(this, _("Timing Tracks")), 0, wxLEFT | wxTOP | wxBOTTOM, 4);
 	Sizer_Timing_Tracks = new wxFlexGridSizer(0, 2, 0, 0);
-	StaticBoxSizer1->Add(Sizer_Timing_Tracks, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
-	StaticBoxSizer2 = new wxStaticBoxSizer(wxVERTICAL, this, _("Effect Grid"));
+	colTiming->Add(Sizer_Timing_Tracks, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(colTiming, 1, wxALL|wxEXPAND, 5);
+	auto* colEffect = new wxBoxSizer(wxVERTICAL);
+	colEffect->Add(MakePreferenceSectionHeader(this, _("Effect Grid")), 0, wxLEFT | wxTOP | wxBOTTOM, 4);
 	Sizer_Effect_Grid = new wxFlexGridSizer(0, 4, 0, 0);
-	StaticBoxSizer2->Add(Sizer_Effect_Grid, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
-	StaticBoxSizer3 = new wxStaticBoxSizer(wxVERTICAL, this, _("Layout Tab"));
+	colEffect->Add(Sizer_Effect_Grid, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(colEffect, 1, wxALL|wxEXPAND, 5);
+	auto* colLayout = new wxBoxSizer(wxVERTICAL);
+	colLayout->Add(MakePreferenceSectionHeader(this, _("Layout Tab")), 0, wxLEFT | wxTOP | wxBOTTOM, 4);
 	Sizer_Layout_Tab = new wxFlexGridSizer(0, 2, 0, 0);
-	StaticBoxSizer3->Add(Sizer_Layout_Tab, 1, wxALL|wxEXPAND, 5);
-	FlexGridSizer3->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 5);
+	colLayout->Add(Sizer_Layout_Tab, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(colLayout, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_SuppressDarkMode = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress Dark Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
