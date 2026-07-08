@@ -17,6 +17,11 @@
  #include <wx/sizer.h>
  //*)
 
+#include <wx/srchctrl.h>
+#include <wx/timer.h>
+
+#include <set>
+
 class CheckboxSelectDialog: public wxDialog
 {
     void ValidateWindow();
@@ -59,6 +64,18 @@ class CheckboxSelectDialog: public wxDialog
 
         void SelectAllLayers(bool select = true);
 		void SelectHighLightedLayers(bool select = true);
+
+		void OnFilterText(wxCommandEvent& event);
+		void OnFilterTimer(wxTimerEvent& event);
+		void PopulateList();
+		void SyncCheckedFromList();
+		bool MatchesFilter(const wxString& item) const;
+
+		wxSearchCtrl* _filterCtrl = nullptr;
+		wxTimer _filterTimer;
+		wxString _filter;
+		wxArrayString _allItems;
+		std::set<wxString> _checked;
 
 		DECLARE_EVENT_TABLE()
 };

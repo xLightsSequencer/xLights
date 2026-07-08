@@ -16,6 +16,8 @@
 //*)
 
 #include <wx/menu.h>
+#include <wx/srchctrl.h>
+#include <wx/tokenzr.h>
 
 //(*IdInit(CheckboxSelectDialog)
 const wxWindowID CheckboxSelectDialog::ID_CHECKLISTBOXITEMS = wxNewId();
@@ -64,14 +66,26 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
 
 	Connect(ID_CHECKLISTBOXITEMS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& CheckboxSelectDialog::OnListRClick);
 
-    for (const auto & item : items)
-    {
-        CheckListBox_Items->Append(item);
-        if (std::find(itemsSelected.begin(), itemsSelected.end(), item) != itemsSelected.end()) 
-        {
-            CheckListBox_Items->Check(CheckListBox_Items->GetCount() - 1);
-        }
+    _allItems = items;
+    for (const auto& item : itemsSelected) {
+        _checked.insert(item);
     }
+
+    _filterCtrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    _filterCtrl->ShowCancelButton(true);
+    _filterCtrl->SetDescriptiveText(_("Filter"));
+    FlexGridSizer1->Insert(0, _filterCtrl, 0, wxALL | wxEXPAND, 5);
+    FlexGridSizer1->RemoveGrowableRow(0);
+    FlexGridSizer1->AddGrowableRow(1);
+
+    _filterCtrl->Bind(wxEVT_TEXT, &CheckboxSelectDialog::OnFilterText, this);
+    _filterCtrl->Bind(wxEVT_TEXT_ENTER, &CheckboxSelectDialog::OnFilterText, this);
+    _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &CheckboxSelectDialog::OnFilterText, this);
+
+    _filterTimer.SetOwner(this);
+    Bind(wxEVT_TIMER, &CheckboxSelectDialog::OnFilterTimer, this);
+
+    PopulateList();
 
 	SetTitle(title);
 
@@ -88,12 +102,14 @@ CheckboxSelectDialog::~CheckboxSelectDialog()
 
 wxArrayString CheckboxSelectDialog::GetSelectedItems() const
 {
-    wxArrayString res = wxArrayString();
-    wxArrayInt items;
-    CheckListBox_Items->GetCheckedItems(items);
-    for (const auto& it : items)
+    // _checked is the source of truth so items hidden by an active filter are still returned.
+    wxArrayString res;
+    for (const auto& item : _allItems)
     {
-        res.Add(CheckListBox_Items->GetString(it));
+        if (_checked.find(item) != _checked.end())
+        {
+            res.Add(item);
+        }
     }
 
     return res;
@@ -101,16 +117,87 @@ wxArrayString CheckboxSelectDialog::GetSelectedItems() const
 
 void CheckboxSelectDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    _filterTimer.Stop();
     EndDialog(wxID_CANCEL);
 }
 
 void CheckboxSelectDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    _filterTimer.Stop();
+    SyncCheckedFromList();
     EndDialog(wxID_OK);
 }
 
 void CheckboxSelectDialog::OnCheckListBox_ItemsToggled(wxCommandEvent& event)
 {
+    SyncCheckedFromList();
+    ValidateWindow();
+}
+
+bool CheckboxSelectDialog::MatchesFilter(const wxString& item) const
+{
+    if (_filter.IsEmpty())
+    {
+        return true;
+    }
+
+    const wxString itemLower = item.Lower();
+    wxStringTokenizer tok(_filter.Lower());
+    while (tok.HasMoreTokens())
+    {
+        if (!itemLower.Contains(tok.GetNextToken()))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void CheckboxSelectDialog::SyncCheckedFromList()
+{
+    // Merge visible check state into _checked; filtered-out items keep their prior state.
+    for (size_t i = 0; i < CheckListBox_Items->GetCount(); ++i)
+    {
+        const wxString name = CheckListBox_Items->GetString(i);
+        if (CheckListBox_Items->IsChecked(i))
+        {
+            _checked.insert(name);
+        }
+        else
+        {
+            _checked.erase(name);
+        }
+    }
+}
+
+void CheckboxSelectDialog::PopulateList()
+{
+    CheckListBox_Items->Freeze();
+    CheckListBox_Items->Clear();
+    for (const auto& item : _allItems)
+    {
+        if (MatchesFilter(item))
+        {
+            CheckListBox_Items->Append(item);
+            if (_checked.find(item) != _checked.end())
+            {
+                CheckListBox_Items->Check(CheckListBox_Items->GetCount() - 1);
+            }
+        }
+    }
+    CheckListBox_Items->Thaw();
+}
+
+void CheckboxSelectDialog::OnFilterText(wxCommandEvent& event)
+{
+    _filterTimer.StartOnce(200);
+}
+
+void CheckboxSelectDialog::OnFilterTimer(wxTimerEvent& event)
+{
+    SyncCheckedFromList();
+    _filter = _filterCtrl->GetValue().Trim(true).Trim(false);
+    PopulateList();
     ValidateWindow();
 }
 
@@ -157,6 +244,7 @@ void CheckboxSelectDialog::SelectAllLayers(bool select)
     {
         CheckListBox_Items->Check(i, select);
     }
+    SyncCheckedFromList();
     ValidateWindow();
 }
 
@@ -169,5 +257,6 @@ void CheckboxSelectDialog::SelectHighLightedLayers(bool select)
             CheckListBox_Items->Check(i, select);
         }
 	}
+    SyncCheckedFromList();
     ValidateWindow();
 }
