@@ -24,8 +24,14 @@
 //*)
 
 #include <wx/preferences.h>
+#include "settings/XLightsConfigAdapter.h"
 #include "xLightsMain.h"
 #include "render/GPURenderUtils.h"
+
+namespace {
+constexpr int kNavPresetClassicIndex = 0;
+constexpr int kNavPresetSlicerIndex = 1;
+}
 
 //(*IdInit(OtherSettingsPanel)
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
@@ -54,6 +60,8 @@ const wxWindowID OtherSettingsPanel::ID_CTRLPINGINTERVAL = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX10 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX11 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX_CustomColorPicker = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT_NAVPRESET = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_3DNAVPRESET = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -73,12 +81,14 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticBoxSizer* StaticBoxSizer2;
     wxStaticBoxSizer* StaticBoxSizer3;
     wxStaticBoxSizer* StaticBoxSizer4;
+    wxStaticBoxSizer* StaticBoxSizer5;
     wxStaticText* StaticText1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
@@ -202,6 +212,18 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     CheckBox_UseCustomColorPicker = new wxCheckBox(this, ID_CHECKBOX_CustomColorPicker, _("Use custom color picker (experimental)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CustomColorPicker"));
     CheckBox_UseCustomColorPicker->SetValue(false);
     GridBagSizer1->Add(CheckBox_UseCustomColorPicker, wxGBPosition(13, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticBoxSizer5 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("3D Viewport Navigation"));
+    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+    FlexGridSizer9->AddGrowableCol(1);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT_NAVPRESET, _("3D Navigation Preset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_NAVPRESET"));
+    FlexGridSizer9->Add(StaticText9, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_3DNavigationPreset = new wxChoice(this, ID_CHOICE_3DNAVPRESET, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_3DNAVPRESET"));
+    Choice_3DNavigationPreset->Append(_("xLights Classic (RMB: Menu / Shift+RMB: Pan)"));
+    Choice_3DNavigationPreset->Append(_("3D Slicer / CAD Style (RMB: Pan / Shift+RMB: Menu)"));
+    Choice_3DNavigationPreset->SetSelection(kNavPresetClassicIndex);
+    FlexGridSizer9->Add(Choice_3DNavigationPreset, 1, wxALL|wxEXPAND, 5);
+    StaticBoxSizer5->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 0);
+    GridBagSizer1->Add(StaticBoxSizer5, wxGBPosition(14, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 0);
     SetSizer(GridBagSizer1);
 
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -225,6 +247,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CHECKBOX10, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX11, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX_CustomColorPicker, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_3DNAVPRESET, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
@@ -278,6 +301,10 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
     frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
     xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
+    auto* config = GetXLightsConfig();
+    const std::string navPresetValue =
+        Choice_3DNavigationPreset->GetSelection() == kNavPresetSlicerIndex ? "Slicer" : "Classic";
+    config->Write("/Options/3DNavigationPreset", navPresetValue);
     return true;
 }
 
@@ -305,6 +332,11 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_EnablePositionZones->SetValue(frame->GetEnablePositionZones());
     CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
     CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
+    int navPreset = kNavPresetClassicIndex;
+    auto* config = GetXLightsConfig();
+    const std::string navPresetValue = config->Read("/Options/3DNavigationPreset", "Classic");
+    navPreset = navPresetValue == "Slicer" ? kNavPresetSlicerIndex : kNavPresetClassicIndex;
+    Choice_3DNavigationPreset->SetSelection(navPreset);
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__

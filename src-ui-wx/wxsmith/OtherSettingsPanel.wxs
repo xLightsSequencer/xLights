@@ -419,6 +419,45 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxStaticBoxSizer" variable="StaticBoxSizer5" member="no">
+					<label>3D Viewport Navigation</label>
+					<object class="sizeritem">
+						<object class="wxFlexGridSizer" variable="FlexGridSizer9" member="no">
+							<cols>2</cols>
+							<growablecols>1</growablecols>
+							<object class="sizeritem">
+								<object class="wxStaticText" name="ID_STATICTEXT_NAVPRESET" variable="StaticText9" member="yes">
+									<label>3D Navigation Preset:</label>
+								</object>
+								<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxChoice" name="ID_CHOICE_3DNAVPRESET" variable="Choice_3DNavigationPreset" member="yes">
+									<content>
+										<item>xLights Classic (RMB: Menu / Shift+RMB: Pan)</item>
+										<item>3D Slicer / CAD Style (RMB: Pan / Shift+RMB: Menu)</item>
+									</content>
+									<selection>0</selection>
+									<handler function="OnControlChanged" entry="EVT_CHOICE" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<option>1</option>
+					</object>
+				</object>
+				<colspan>2</colspan>
+				<col>0</col>
+				<row>14</row>
+				<flag>wxALL|wxEXPAND</flag>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

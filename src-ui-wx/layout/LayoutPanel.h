@@ -295,6 +295,7 @@ class LayoutPanel: public wxPanel
 		void OnPreviewLeftDown(wxMouseEvent& event);
 		void OnPreviewLeftDClick(wxMouseEvent& event);
 		void OnPreviewRightDown(wxMouseEvent& event);
+        void OnPreviewRightUp(wxMouseEvent& event);
 		void OnPreviewMouseMove(wxMouseEvent& event);
 		void OnPreviewMouseMove3D(wxMouseEvent& event);
 		void OnPreviewMouseWheel(wxMouseEvent& event);
@@ -526,6 +527,7 @@ class LayoutPanel: public wxPanel
         int m_polyline_create_handle = -1;
         bool m_moving_handle = false;
         bool m_wheel_down = false;
+        bool m_right_pan_drag_active = false;
         bool m_polyline_active = false;
         int m_previous_mouse_x = 0;
         int m_previous_mouse_y = 0;
