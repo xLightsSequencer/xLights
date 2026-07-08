@@ -591,6 +591,9 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\render\GPURenderUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.cpp" />
+    <ClCompile Include="..\src-core\graphics\vulkan\VulkanPipelineCache.cpp" />
+    <ClCompile Include="..\src-core\graphics\vulkan\xlVulkanGraphicsContext.cpp" />
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.cpp" />
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp" />
     <ClCompile Include="..\src-core\graphics\AngleEGL.cpp" />
@@ -1270,6 +1273,11 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.h" />
     <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\IVulkanCanvas.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\VulkanFrameData.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\VulkanPipelineCache.h" />
+    <ClInclude Include="..\src-core\graphics\vulkan\xlVulkanGraphicsContext.h" />
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.h" />
     <ClInclude Include="..\src-core\graphics\tiny_obj_loader.h" />
     <ClInclude Include="..\src-core\graphics\xlFontInfo.h" />
     <ClInclude Include="..\src-core\graphics\xlGraphicsAccumulators.h" />

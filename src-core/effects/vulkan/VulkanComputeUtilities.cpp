@@ -190,6 +190,41 @@ bool VulkanComputeUtilities::createInstance(bool wantValidation) {
         }
     }
 
+    // Surface extensions for the on-screen Vulkan graphics backend.  Optional:
+    // a headless/compute-only ICD still works, the graphics canvas just stays
+    // on its OpenGL fallback.
+    {
+        uint32_t count = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
+        std::vector<VkExtensionProperties> props(count);
+        vkEnumerateInstanceExtensionProperties(nullptr, &count, props.data());
+        auto hasExt = [&props](const char* name) {
+            for (auto& p : props) {
+                if (strcmp(p.extensionName, name) == 0) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        if (hasExt(VK_KHR_SURFACE_EXTENSION_NAME)) {
+            bool platformSurface = false;
+#if defined(_WIN32)
+            for (const char* ext : { "VK_KHR_win32_surface" }) {
+#else
+            for (const char* ext : { "VK_KHR_xlib_surface", "VK_KHR_xcb_surface", "VK_KHR_wayland_surface" }) {
+#endif
+                if (hasExt(ext)) {
+                    extensions.push_back(ext);
+                    platformSurface = true;
+                }
+            }
+            if (platformSurface) {
+                extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+                surfaceExtensionsEnabled = true;
+            }
+        }
+    }
+
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "xLights";
@@ -269,6 +304,22 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
         return anyCompute;
     };
 
+    // For the graphics backend: any graphics-capable family (present support
+    // is verified per-surface at swapchain creation).  Compute-only devices
+    // stay usable for effects; graphics just remains disabled on them.
+    auto graphicsQueueFamily = [](VkPhysicalDevice d) -> int {
+        uint32_t qc = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(d, &qc, nullptr);
+        std::vector<VkQueueFamilyProperties> qf(qc);
+        vkGetPhysicalDeviceQueueFamilyProperties(d, &qc, qf.data());
+        for (uint32_t i = 0; i < qc; i++) {
+            if (qf[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                return (int)i;
+            }
+        }
+        return -1;
+    };
+
     int bestScore = -1;
     for (uint32_t idx = 0; idx < count; idx++) {
         VkPhysicalDeviceProperties props;
@@ -309,6 +360,7 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
             queueFamilyIndex = (uint32_t)qfi;
             deviceType = props.deviceType;
             deviceName = props.deviceName;
+            graphicsFamilyCandidate = graphicsQueueFamily(devices[idx]);
         }
     }
     if (physicalDevice == VK_NULL_HANDLE) {
@@ -323,18 +375,42 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
 
 bool VulkanComputeUtilities::createDeviceAndQueue() {
     float priority = 1.0f;
+    std::vector<VkDeviceQueueCreateInfo> queueInfos;
     VkDeviceQueueCreateInfo qi = {};
     qi.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     qi.queueFamilyIndex = queueFamilyIndex;
     qi.queueCount = 1;
     qi.pQueuePriorities = &priority;
+    queueInfos.push_back(qi);
+    if (graphicsFamilyCandidate >= 0 && (uint32_t)graphicsFamilyCandidate != queueFamilyIndex) {
+        qi.queueFamilyIndex = (uint32_t)graphicsFamilyCandidate;
+        queueInfos.push_back(qi);
+    }
+
+    // VK_KHR_swapchain for the on-screen graphics backend.
+    std::vector<const char*> deviceExtensions;
+    if (surfaceExtensionsEnabled && graphicsFamilyCandidate >= 0) {
+        uint32_t count = 0;
+        vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &count, nullptr);
+        std::vector<VkExtensionProperties> props(count);
+        vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &count, props.data());
+        for (auto& p : props) {
+            if (strcmp(p.extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
+                deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+                swapchainExtensionEnabled = true;
+                break;
+            }
+        }
+    }
 
     VkPhysicalDeviceFeatures features = {};
     VkDeviceCreateInfo ci = {};
     ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    ci.queueCreateInfoCount = 1;
-    ci.pQueueCreateInfos = &qi;
+    ci.queueCreateInfoCount = (uint32_t)queueInfos.size();
+    ci.pQueueCreateInfos = queueInfos.data();
     ci.pEnabledFeatures = &features;
+    ci.enabledExtensionCount = (uint32_t)deviceExtensions.size();
+    ci.ppEnabledExtensionNames = deviceExtensions.data();
 
     VkResult res = vkCreateDevice(physicalDevice, &ci, nullptr, &device);
     if (res != VK_SUCCESS) {
@@ -343,6 +419,10 @@ bool VulkanComputeUtilities::createDeviceAndQueue() {
     }
     volkLoadDevice(device);
     vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
+    if (graphicsFamilyCandidate >= 0) {
+        graphicsQueueFamilyIndex = (uint32_t)graphicsFamilyCandidate;
+        vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
+    }
     return queue != VK_NULL_HANDLE;
 }
 

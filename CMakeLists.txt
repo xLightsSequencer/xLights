@@ -388,7 +388,10 @@ if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
         src-core/effects/vulkan/VulkanFillEffect.cpp
         src-core/effects/vulkan/VulkanMeteorsEffect.cpp
         src-core/effects/vulkan/VulkanTwinkleEffect.cpp
-        src-core/effects/vulkan/VulkanLifeEffect.cpp)
+        src-core/effects/vulkan/VulkanLifeEffect.cpp
+        # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
+        src-core/graphics/vulkan/VulkanPipelineCache.cpp
+        src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp)
     set(XLIGHTS_VULKAN_ENABLED TRUE)
 endif()
 
@@ -490,6 +493,10 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/shared/utils/*.cpp
     src-ui-wx/support/*.cpp
 )
+
+if(XLIGHTS_VULKAN_ENABLED)
+    list(APPEND SRC_UI src-ui-wx/graphics/vulkan/xlVulkanCanvas.cpp)
+endif()
 
 # macOS-only Objective-C++ helper for the command palette (SF Symbols / colors).
 # Must be appended after the glob: file(GLOB) does not evaluate generator
@@ -608,12 +615,15 @@ if(XLIGHTS_VULKAN_ENABLED)
             "Install it (Ubuntu/Debian: apt-get install glslc; or the Vulkan SDK)\n"
             "or reconfigure with -DXLIGHTS_USE_VULKAN=OFF.")
     endif()
-    file(GLOB _vulkan_comp CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp)
+    file(GLOB _vulkan_comp CONFIGURE_DEPENDS
+        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp
+        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.vert
+        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.frag)
     add_custom_target(vulkan_shaders
         COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
                 bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
         SOURCES ${_vulkan_comp}
-        COMMENT "Compiling Vulkan compute shaders to SPIR-V headers")
+        COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
     add_dependencies(xLights vulkan_shaders)
 endif()
 

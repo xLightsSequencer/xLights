@@ -15,6 +15,13 @@
 // dependency on libvulkan).
 #ifdef HAVE_VULKAN
 
+// Platform surface (WSI) entry points for the on-screen graphics backend —
+// volk only defines/loads them when the platform macro is set in the
+// implementation TU.
+#if defined(_WIN32) && !defined(VK_USE_PLATFORM_WIN32_KHR)
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
+
 #define VOLK_IMPLEMENTATION
 #include <volk.h>
 

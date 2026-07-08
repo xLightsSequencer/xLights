@@ -1081,6 +1081,14 @@
 		<Unit filename="../src-core/effects/vulkan/VulkanEffects.h" />
 		<Unit filename="../src-core/effects/vulkan/VulkanEffectManager.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanLibs.cpp" />
+		<Unit filename="../src-core/graphics/vulkan/IVulkanCanvas.h" />
+		<Unit filename="../src-core/graphics/vulkan/VulkanFrameData.h" />
+		<Unit filename="../src-core/graphics/vulkan/VulkanPipelineCache.cpp" />
+		<Unit filename="../src-core/graphics/vulkan/VulkanPipelineCache.h" />
+		<Unit filename="../src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp" />
+		<Unit filename="../src-core/graphics/vulkan/xlVulkanGraphicsContext.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanCanvas.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanCanvas.h" />
 		<Unit filename="../src-ui-wx/graphics/xlGraphicsBase.h" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.h" />

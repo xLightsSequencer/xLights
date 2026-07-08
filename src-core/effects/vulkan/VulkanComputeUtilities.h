@@ -291,6 +291,19 @@ public:
     VkDevice device = VK_NULL_HANDLE;
     VkQueue queue = VK_NULL_HANDLE;
     uint32_t queueFamilyIndex = 0;
+    // Graphics/present queue for the on-screen Vulkan graphics backend.  The
+    // compute queue above deliberately prefers an async-compute family, so
+    // presentation gets its own graphics-capable queue.  On single-family
+    // devices this aliases the compute queue — guard submissions with
+    // graphicsSubmitMutex(), which then maps to queueMutex.  VK_NULL_HANDLE
+    // when the instance lacks surface extensions or the device has no
+    // graphics family (compute-only accelerator).
+    VkQueue graphicsQueue = VK_NULL_HANDLE;
+    uint32_t graphicsQueueFamilyIndex = 0;
+    bool surfaceExtensionsEnabled = false;
+    bool swapchainExtensionEnabled = false;
+    std::mutex graphicsQueueMutex;
+    std::mutex& graphicsSubmitMutex() { return graphicsQueue == queue ? queueMutex : graphicsQueueMutex; }
     VmaAllocator allocator = VK_NULL_HANDLE;
     VkPhysicalDeviceType deviceType = VK_PHYSICAL_DEVICE_TYPE_OTHER;
     std::string deviceName;
@@ -329,6 +342,9 @@ private:
     std::once_flag initFlag;
     VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
     bool validation = false;
+    // Graphics-capable queue family found by pickPhysicalDevice, consumed by
+    // createDeviceAndQueue (-1 = compute-only device).
+    int graphicsFamilyCandidate = -1;
 };
 
 #endif

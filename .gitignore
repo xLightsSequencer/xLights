@@ -68,3 +68,4 @@ share
 plans/private-**
 # Generated Vulkan SPIR-V headers (built by build_scripts/compile_vulkan_shaders.sh)
 src-core/effects/vulkan/shaders/compiled/*.spv.h
+src-core/graphics/vulkan/shaders/compiled/*.spv.h
