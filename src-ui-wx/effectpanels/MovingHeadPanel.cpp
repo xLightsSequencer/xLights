@@ -677,12 +677,16 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
 
     m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
     FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
-    Notebook2->AddPage(PanelColor, _("Color"), true);
     PanelColor->Show();
-    // Delete Colorwheel page
+    // Start with only the Color page shown; ColorWheel is re-added on demand in
+    // UpdateColorPanel(). Do NOT re-add PanelColor here — it is already page 0
+    // (added above), and a duplicate page backed by the same child window makes
+    // the RemovePage() below tear down GTK state shared with page 0, which is a
+    // use-after-free that crashes during startup layout on wx 3.3/GTK.
     while(Notebook2->GetPageCount()>1) {
         Notebook2->RemovePage(1);
     }
+    Notebook2->SetSelection(0);
     UpdateColorPanel();
 
     Connect(ID_VALUECURVE_MHPatternRotation, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnVCButtonClick);

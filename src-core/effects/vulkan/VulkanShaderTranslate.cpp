@@ -15,6 +15,28 @@
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 
+// Windows .sln build links deps via #pragma comment (the CMake build defines
+// XLIGHTS_CMAKE_BUILD and links glslang via target_link_libraries instead).
+// glslang was built from tag sdk-1.3.231.1 into lib/windows64 (reflection-only,
+// SPIRV-Tools optimizer disabled); debug libs carry the 'd' suffix.
+#if defined(_WIN32) && !defined(XLIGHTS_CMAKE_BUILD)
+#ifdef _DEBUG
+#pragma comment(lib, "glslangd.lib")
+#pragma comment(lib, "MachineIndependentd.lib")
+#pragma comment(lib, "GenericCodeGend.lib")
+#pragma comment(lib, "OSDependentd.lib")
+#pragma comment(lib, "OGLCompilerd.lib")
+#pragma comment(lib, "SPIRVd.lib")
+#else
+#pragma comment(lib, "glslang.lib")
+#pragma comment(lib, "MachineIndependent.lib")
+#pragma comment(lib, "GenericCodeGen.lib")
+#pragma comment(lib, "OSDependent.lib")
+#pragma comment(lib, "OGLCompiler.lib")
+#pragma comment(lib, "SPIRV.lib")
+#endif
+#endif
+
 namespace VulkanShaderTranslate {
 
 static void ensureProcess() {

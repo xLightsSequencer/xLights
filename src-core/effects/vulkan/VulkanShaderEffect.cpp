@@ -379,6 +379,27 @@ public:
 
 } // namespace
 
+// Headless corpus validation (no GPU): ISF->Vulkan GLSL transform + glslang
+// GLSL->SPIR-V for both stages.  Used by the --shadertranslate CLI.  Defined
+// outside the anonymous namespace but in the same TU, so it can call the
+// file-local assembleVulkanGLSL helper.
+bool VulkanShaderEffect::ValidateTranslate(const std::string& code, std::string& error) {
+    std::vector<UBOMember> members;
+    std::string fragGLSL, vertGLSL;
+    if (!assembleVulkanGLSL(code, members, fragGLSL, vertGLSL)) {
+        error = "assembleVulkanGLSL failed";
+        return false;
+    }
+    std::vector<uint32_t> vspv, fspv;
+    if (!VulkanShaderTranslate::ToSpirv(vertGLSL, VulkanShaderTranslate::Stage::Vertex, vspv, error)) {
+        return false;
+    }
+    if (!VulkanShaderTranslate::ToSpirv(fragGLSL, VulkanShaderTranslate::Stage::Fragment, fspv, error)) {
+        return false;
+    }
+    return true;
+}
+
 VulkanShaderEffect::VulkanShaderEffect(int i) :
     SPIRVShaderEffect(i) {
 }

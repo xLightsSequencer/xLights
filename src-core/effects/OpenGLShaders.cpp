@@ -19,17 +19,7 @@
 // shader rendering) — this whole translation unit compiles out there.
 #if !TARGET_OS_IPHONE
 
-#ifdef USE_GLES
-// OpenGL ES 3.0 via ANGLE (Windows/Linux).  ES3 exposes the gl* functions as
-// direct prototypes from libGLESv2, so the function-pointer loading the
-// desktop-GL path needs is unnecessary here.
-#define GL_GLES_PROTOTYPES 1
-#include <GLES3/gl3.h>
-
-static bool canUseShaders() { return true; }
-static bool canUseFramebufferObjects() { return true; }
-
-#elif !defined(__APPLE__)
+#if !defined(__APPLE__)
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -323,7 +313,7 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
     return linkSuccess ? program : 0;
 }
 
-#if defined(__APPLE__) && !defined(USE_GLES)
+#ifdef __APPLE__
 // OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
 #pragma clang diagnostic pop
 #endif

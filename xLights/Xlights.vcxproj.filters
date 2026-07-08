@@ -827,7 +827,6 @@
     </ClCompile>
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\ScriptsDialog.cpp" />
-    <ClCompile Include="..\src-core\graphics\AngleEGL.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\graphics\GLBackend.cpp">
@@ -1476,6 +1475,15 @@
       <Filter>graphics\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanX11Surface.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlVulkanWaylandSurface.cpp">
+      <Filter>graphics\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\graphics\vulkan\xlSoftwareGLProbe.cpp">
       <Filter>graphics\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.cpp" />
@@ -3018,7 +3026,6 @@
     <ClInclude Include="..\src-core\outputs\SocketAbstraction.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-core\graphics\AngleEGL.h">
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\graphics\GLBackend.h">
@@ -3067,6 +3074,15 @@
       <Filter>graphics\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanCanvas.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanX11Surface.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlVulkanWaylandSurface.h">
+      <Filter>graphics\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\graphics\vulkan\xlSoftwareGLProbe.h">
       <Filter>graphics\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\color\wxColorCurveButton.h" />

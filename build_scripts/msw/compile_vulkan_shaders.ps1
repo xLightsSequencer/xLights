@@ -71,7 +71,7 @@ function Compile-ShaderDir([string]$dir, [string[]]$patterns) {
 }
 
 try {
-    Compile-ShaderDir $ShaderDir @('*.comp')
+    Compile-ShaderDir $ShaderDir @('*.comp', '*.vert', '*.frag')
     Compile-ShaderDir $GfxShaderDir @('*.vert', '*.frag')
     if ($script:changed -eq 0) { Write-Host "All Vulkan shader headers up to date." }
 } finally {

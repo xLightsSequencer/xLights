@@ -105,6 +105,10 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
         auto* gfxRow = new wxBoxSizer(wxHORIZONTAL);
         gfxRow->Add(new wxStaticText(this, wxID_ANY, _("Preview graphics backend:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
         GraphicsBackendChoice = new wxChoice(this, wxID_ANY);
+        // "Auto" uses Vulkan only when OpenGL would fall back to software
+        // rendering anyway (e.g. llvmpipe in a VM); otherwise it keeps hardware
+        // OpenGL. See xlVulkanCanvas::VulkanSelected.
+        GraphicsBackendChoice->Append(_("Auto"));
         GraphicsBackendChoice->Append(_("OpenGL"));
         GraphicsBackendChoice->Append(_("Vulkan"));
         GraphicsBackendChoice->SetSelection(0);
@@ -244,7 +248,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
 #ifdef HAVE_VULKAN
     if (GraphicsBackendChoice != nullptr) {
-        wxString backend = GetXLightsConfig()->Read("xLightsGraphicsBackend", "OpenGL");
+        wxString backend = GetXLightsConfig()->Read("xLightsGraphicsBackend", "Auto");
         if (!GraphicsBackendChoice->SetStringSelection(backend)) {
             GraphicsBackendChoice->SetSelection(0);
         }

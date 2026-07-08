@@ -19,6 +19,7 @@
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
+					<Add option="`pkg-config --cflags gtk+-3.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -55,10 +56,11 @@
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gtk+-3.0`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
@@ -91,6 +93,7 @@
 					<Add option="-Wall" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
+					<Add option="`pkg-config --cflags gtk+-3.0`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -127,10 +130,11 @@
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gtk+-3.0`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
@@ -1111,6 +1115,12 @@
 		<Unit filename="../src-core/graphics/vulkan/xlVulkanGraphicsContext.h" />
 		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanCanvas.cpp" />
 		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanCanvas.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanX11Surface.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanX11Surface.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanWaylandSurface.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanWaylandSurface.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlSoftwareGLProbe.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlSoftwareGLProbe.h" />
 		<Unit filename="../src-ui-wx/graphics/xlGraphicsBase.h" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.h" />
@@ -1120,8 +1130,6 @@
 		<Unit filename="../src-core/graphics/xlFontInfo.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.cpp" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.h" />
-		<Unit filename="../src-core/graphics/AngleEGL.cpp" />
-		<Unit filename="../src-core/graphics/AngleEGL.h" />
 		<Unit filename="../src-core/graphics/GLBackend.cpp" />
 		<Unit filename="../src-core/graphics/GLBackend.h" />
 		<Unit filename="../src-core/graphics/GLContextManager.cpp" />
