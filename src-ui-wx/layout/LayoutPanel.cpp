@@ -1042,10 +1042,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     PreviewGLPanel->GetSizer()->Add(layoutControlsBar, 0, wxEXPAND | wxALIGN_BOTTOM, 3);
     PreviewGLPanel->Layout();
 
-    TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-    TreeListViewModels->SetColumnWidth(1, TreeListViewModels->WidthFor(CHNUMWIDTH));
-    TreeListViewModels->SetColumnWidth(2, TreeListViewModels->WidthFor(CHNUMWIDTH));
-    TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->SetColumnWidth(Col_Model, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->SetColumnWidth(Col_StartChan, TreeListViewModels->WidthFor(CHNUMWIDTH));
+    TreeListViewModels->SetColumnWidth(Col_EndChan, TreeListViewModels->WidthFor(CHNUMWIDTH));
+    TreeListViewModels->SetColumnWidth(Col_ControllerConnection, wxCOL_WIDTH_AUTOSIZE);
     TreeListViewModels->SetColumnWidth(Col_Info, wxCOL_WIDTH_AUTOSIZE);
 
 }
@@ -1737,8 +1737,8 @@ void LayoutPanel::FreezeTreeListView() {
     TreeListViewModels->Freeze();
 
     //turn off the column width auto-resize.  Makes it REALLY slow to populate the tree
-    TreeListViewModels->SetColumnWidth(0, TreeListViewModels->GetColumnWidth(0));
-    TreeListViewModels->SetColumnWidth(3, TreeListViewModels->GetColumnWidth(3));
+    TreeListViewModels->SetColumnWidth(Col_Model, TreeListViewModels->GetColumnWidth(Col_Model));
+    TreeListViewModels->SetColumnWidth(Col_ControllerConnection, TreeListViewModels->GetColumnWidth(Col_ControllerConnection));
     TreeListViewModels->SetColumnWidth(Col_Info, TreeListViewModels->GetColumnWidth(Col_Info));
     treeSorted = TreeListViewModels->GetSortColumn(&treeSortCol, &treeSortAscending);
     
@@ -1767,19 +1767,19 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
     if (_firstTreeLoad) {
         _firstTreeLoad = false;
 
-        TreeListViewModels->SetColumnWidth(1, wxCOL_WIDTH_AUTOSIZE);
-        int width = TreeListViewModels->GetColumnWidth(1);
+        TreeListViewModels->SetColumnWidth(Col_StartChan, wxCOL_WIDTH_AUTOSIZE);
+        int width = TreeListViewModels->GetColumnWidth(Col_StartChan);
         if (width < 20) {
             width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
         }
-        TreeListViewModels->SetColumnWidth(1, width);
+        TreeListViewModels->SetColumnWidth(Col_StartChan, width);
 
-        TreeListViewModels->SetColumnWidth(2, wxCOL_WIDTH_AUTOSIZE);
-        width = TreeListViewModels->GetColumnWidth(2);
+        TreeListViewModels->SetColumnWidth(Col_EndChan, wxCOL_WIDTH_AUTOSIZE);
+        width = TreeListViewModels->GetColumnWidth(Col_EndChan);
         if (width < 20) {
             width = TreeListViewModels->WidthFor(STARTCHANCOLNAME);
         }
-        TreeListViewModels->SetColumnWidth(2, width);
+        TreeListViewModels->SetColumnWidth(Col_EndChan, width);
     }
     //turn the sorting back on
     TreeListViewModels->SetItemComparator(&comparator);
@@ -1799,27 +1799,27 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
 
-    TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->SetColumnWidth(Col_Model, wxCOL_WIDTH_AUTOSIZE);
     {
-        int w = TreeListViewModels->GetColumnWidth(0);
+        int w = TreeListViewModels->GetColumnWidth(Col_Model);
         if (w < 20) {
             w = TreeListViewModels->GetClientSize().GetWidth() / 3;
         }
         if (w < 20) {
             w = 150;
         }
-        TreeListViewModels->SetColumnWidth(0, w);
+        TreeListViewModels->SetColumnWidth(Col_Model, w);
     }
-    TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->SetColumnWidth(Col_ControllerConnection, wxCOL_WIDTH_AUTOSIZE);
     {
-        int w = TreeListViewModels->GetColumnWidth(3);
+        int w = TreeListViewModels->GetColumnWidth(Col_ControllerConnection);
         if (w < 20) {
             w = TreeListViewModels->WidthFor(CONTCONNCOLNAME);
         }
         if (w < 20) {
             w = 100;
         }
-        TreeListViewModels->SetColumnWidth(3, w);
+        TreeListViewModels->SetColumnWidth(Col_ControllerConnection, w);
     }
     TreeListViewModels->SetColumnWidth(Col_Info, wxCOL_WIDTH_AUTOSIZE);
     {
@@ -1858,10 +1858,7 @@ void LayoutPanel::refreshModelList() {
         Model *model = data != nullptr ? data->GetModel() : nullptr;
 
         if (model != nullptr ) {
-            wxString infoStr = GetModelInfoText(TreeListViewModels, model);
-            if (TreeListViewModels->GetItemText(item, Col_Info) != infoStr) {
-                SetTreeListViewItemText(item, Col_Info, infoStr);
-            }
+            SetTreeListViewItemText(item, Col_Info, GetModelInfoText(TreeListViewModels, model));
 
             if( model->GetDisplayAs() != DisplayAsType::ModelGroup ) {
                 wxString cv = TreeListViewModels->GetItemText(item, Col_StartChan);
