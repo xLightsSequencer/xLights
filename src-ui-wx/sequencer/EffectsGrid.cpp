@@ -8564,8 +8564,17 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                 std::string effect_data;
                 effect_data.reserve(64 * 1024);
 
+                auto effectiveLayerCount = [](Element* elem) -> size_t {
+                    for (int j = (int)elem->GetEffectLayerCount() - 1; j >= 0; --j) {
+                        if (elem->GetEffectLayer(j)->GetEffectCount() > 0)
+                            return (size_t)(j + 1);
+                    }
+                    return 1;
+                };
+
                 // Main model layers
-                for (size_t j = 0; j < me->GetEffectLayerCount(); j++) {
+                size_t mainLayers = effectiveLayerCount(me);
+                for (size_t j = 0; j < mainLayers; j++) {
                     EffectLayer* el = me->GetEffectLayer(j);
                     for (int x = 0; x < el->GetEffectCount(); x++) {
                         Effect* ef = el->GetEffect(x);
@@ -8594,7 +8603,8 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                     SubModelElement* se = me->GetSubModel(s);
                     if (se == nullptr) continue;
                     std::string smTag = "\tSUBMODEL:" + se->GetName();
-                    for (size_t j = 0; j < se->GetEffectLayerCount(); j++) {
+                    size_t smLayers = effectiveLayerCount(se);
+                    for (size_t j = 0; j < smLayers; j++) {
                         EffectLayer* el = se->GetEffectLayer(j);
                         for (int x = 0; x < el->GetEffectCount(); x++) {
                             Effect* ef = el->GetEffect(x);

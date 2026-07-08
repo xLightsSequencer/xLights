@@ -55,6 +55,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  link any number of effects to it. Editing a linked effect updates the symbol and
                                  propagates to every other linked effect. Symbols round-trip through .xsq and have a
                                  "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
+    -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" for submodels with trailing empty layers (#6647)
     -bug (dkulp)                 Windows: fix a crash rendering Shader effects after a GPU device reset (WDDM TDR,
                                  typically under heavy hardware video decode) - cached GL programs/buffers from the
                                  dead context were reused, ending in a NULL vertex fetch inside the driver
