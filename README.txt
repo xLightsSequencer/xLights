@@ -20,6 +20,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  linked effects synchronously while holding the effect's settings lock,
                                  deadlocking the render workers; the re-render is now posted to the event loop
 
+    -bug (dkulp)                 Linux: fix a random startup crash inside wxWidgets (nested notebook layout) -
+                                 the Moving Head effect panel added its Color page to the inner notebook twice,
+                                 and removing the duplicate freed GTK state shared with the real page, a
+                                 use-after-free that wxWidgets 3.3's stricter page handling turned fatal
     -enh (dkulp)                 macOS/iPad: the Shader effect now renders natively on Metal (shaders are
                                  translated GLSL -> SPIR-V -> Metal at load and cached) instead of through
                                  OpenGL/ANGLE - faster, no longer depends on the deprecated OpenGL stack, and
