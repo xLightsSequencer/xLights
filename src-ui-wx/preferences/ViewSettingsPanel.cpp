@@ -9,132 +9,99 @@
  **************************************************************/
 
 #include "ViewSettingsPanel.h"
+#include "PrefPanelUtils.h"
 
-//(*InternalHeaders(ViewSettingsPanel)
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/gbsizer.h>
 #include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
-//*)
 
-#include "../graphics/xlGraphicsBase.h"
 #include "xLightsMain.h"
 #include <wx/preferences.h>
-
-//(*IdInit(ViewSettingsPanel)
-const wxWindowID ViewSettingsPanel::ID_CHOICE3 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHOICE4 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHOICE5 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHECKBOX2 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHECKBOX5 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHECKBOX3 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHOICE_TIMELINEZOOMING = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHECKBOX4 = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHECKBOX_ZoomMethod = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHOICE_CROSSHAIRSIZE = wxNewId();
-const wxWindowID ViewSettingsPanel::ID_CHOICE_PALETTE_SIZE = wxNewId();
-//*)
-
-BEGIN_EVENT_TABLE(ViewSettingsPanel, wxPanel)
-//(*EventTable(ViewSettingsPanel)
-//*)
-END_EVENT_TABLE()
 
 ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindowID id, const wxPoint& pos, const wxSize& size) :
     frame(f)
 {
-    //(*Initialize(ViewSettingsPanel)
-    wxGridBagSizer* GridBagSizer1;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticText3;
-    wxStaticText* StaticText4;
-    wxStaticText* StaticText5;
-    wxStaticText* StaticText6;
-
     Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
-    GridBagSizer1 = new wxGridBagSizer(0, 0);
-    StaticText1 = new wxStaticText(this, wxID_ANY, _("Effect Icon Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText1, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ToolIconSizeChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
+
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* grid = new wxFlexGridSizer(0, 2, 0, 0);
+    grid->AddGrowableCol(1);
+
+    auto addChoiceRow = [&](wxChoice*& choice, const wxString& label, const wxString& hint) {
+        grid->Add(new wxStaticText(this, wxID_ANY, label), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+        choice = new wxChoice(this, wxID_ANY);
+        grid->Add(choice, 0, wxALL, 5);
+        grid->Add(0, 0);
+        grid->Add(MakePreferenceHint(this, hint), 0, wxLEFT | wxBOTTOM, 5);
+    };
+
+    addChoiceRow(ToolIconSizeChoice, _("Effect Icon Size"), _("Size of the effect icons in the sequencer toolbar."));
     ToolIconSizeChoice->Append(_("Small"));
-    ToolIconSizeChoice->SetSelection( ToolIconSizeChoice->Append(_("Medium")) );
+    ToolIconSizeChoice->SetSelection(ToolIconSizeChoice->Append(_("Medium")));
     ToolIconSizeChoice->Append(_("Large"));
     ToolIconSizeChoice->Append(_("Extra Large"));
-    GridBagSizer1->Add(ToolIconSizeChoice, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText4 = new wxStaticText(this, wxID_ANY, _("Model Handle Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText4, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    ModelHandleSizeChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
-    ModelHandleSizeChoice->SetSelection( ModelHandleSizeChoice->Append(_("Normal")) );
+
+    addChoiceRow(ModelHandleSizeChoice, _("Model Handle Size"), _("Size of the drag handles on models in the layout preview."));
+    ModelHandleSizeChoice->SetSelection(ModelHandleSizeChoice->Append(_("Normal")));
     ModelHandleSizeChoice->Append(_("Large"));
     ModelHandleSizeChoice->Append(_("Extra Large"));
     ModelHandleSizeChoice->Append(_("Small"));
-    GridBagSizer1->Add(ModelHandleSizeChoice, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText5 = new wxStaticText(this, wxID_ANY, _("Effect Assist Window"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText5, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    EffectAssistChoice = new wxChoice(this, ID_CHOICE5, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE5"));
+
+    addChoiceRow(EffectAssistChoice, _("Effect Assist Window"), _("When the Effect Assist panel is shown (always on/off, or auto for effects that use it)."));
     EffectAssistChoice->Append(_("Always On"));
     EffectAssistChoice->Append(_("Always Off"));
-    EffectAssistChoice->SetSelection( EffectAssistChoice->Append(_("Auto Toggle")) );
-    GridBagSizer1->Add(EffectAssistChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    PlayControlsCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Show Play Controls on Preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-    PlayControlsCheckBox->SetValue(true);
-    GridBagSizer1->Add(PlayControlsCheckBox, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    HousePreviewCheckBox = new wxCheckBox(this, ID_CHECKBOX2, _("Auto Show House Preview"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
-    HousePreviewCheckBox->SetValue(true);
-    GridBagSizer1->Add(HousePreviewCheckBox, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_DisableKeyAcceleration = new wxCheckBox(this, ID_CHECKBOX5, _("Disable key acceleration when held down"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX5"));
-    CheckBox_DisableKeyAcceleration->SetValue(false);
-    GridBagSizer1->Add(CheckBox_DisableKeyAcceleration, wxGBPosition(9, 0), wxDefaultSpan, wxALL|wxEXPAND, 5);
-    CheckBox_BaseShowFolder = new wxCheckBox(this, ID_CHECKBOX3, _("Enable Base Show Folder Settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
-    CheckBox_BaseShowFolder->SetValue(false);
-    GridBagSizer1->Add(CheckBox_BaseShowFolder, wxGBPosition(5, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText6 = new wxStaticText(this, wxID_ANY, _("Timeline Zooming"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText6, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_TimelineZooming = new wxChoice(this, ID_CHOICE_TIMELINEZOOMING, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_TIMELINEZOOMING"));
-    Choice_TimelineZooming->SetSelection( Choice_TimelineZooming->Append(_("Play Marker Position")) );
+    EffectAssistChoice->SetSelection(EffectAssistChoice->Append(_("Auto Toggle")));
+
+    addChoiceRow(Choice_TimelineZooming, _("Timeline Zooming"), _("Where the timeline zooms toward — the play marker or the mouse position."));
+    Choice_TimelineZooming->SetSelection(Choice_TimelineZooming->Append(_("Play Marker Position")));
     Choice_TimelineZooming->Append(_("Mouse Marker Position"));
-    GridBagSizer1->Add(Choice_TimelineZooming, wxGBPosition(6, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_PresetPreview = new wxCheckBox(this, ID_CHECKBOX4, _("Hide Preset Previews"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
-    CheckBox_PresetPreview->SetValue(false);
-    GridBagSizer1->Add(CheckBox_PresetPreview, wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_ZoomMethod = new wxCheckBox(this, ID_CHECKBOX_ZoomMethod, _("Zoom To Cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_ZoomMethod"));
-    CheckBox_ZoomMethod->SetValue(true);
-    GridBagSizer1->Add(CheckBox_ZoomMethod, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText2 = new wxStaticText(this, wxID_ANY, _("Group Center Crosshair Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText2, wxGBPosition(10, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    CrosshairSizeChoice = new wxChoice(this, ID_CHOICE_CROSSHAIRSIZE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_CROSSHAIRSIZE"));
+
+    addChoiceRow(CrosshairSizeChoice, _("Group Center Crosshair Size"), _("Size of the crosshair marking a group's centre in the layout."));
     CrosshairSizeChoice->Append(_("Large"));
-    CrosshairSizeChoice->SetSelection( CrosshairSizeChoice->Append(_("Normal")) );
+    CrosshairSizeChoice->SetSelection(CrosshairSizeChoice->Append(_("Normal")));
     CrosshairSizeChoice->Append(_("Small"));
     CrosshairSizeChoice->Append(_("Tiny"));
     CrosshairSizeChoice->Append(_("None"));
-    CrosshairSizeChoice->SetToolTip(_("Control the size of the crosshair for group centering"));
-    GridBagSizer1->Add(CrosshairSizeChoice, wxGBPosition(10, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText3 = new wxStaticText(this, wxID_ANY, _("Color Palette Size"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText3, wxGBPosition(11, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Choice_PaletteSize = new wxChoice(this, ID_CHOICE_PALETTE_SIZE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PALETTE_SIZE"));
-    Choice_PaletteSize->SetSelection( Choice_PaletteSize->Append(_("Normal")) );
-    Choice_PaletteSize->Append(_("Large"));
-    GridBagSizer1->Add(Choice_PaletteSize, wxGBPosition(11, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    SetSizer(GridBagSizer1);
-    GridBagSizer1->SetSizeHints(this);
 
-    Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
-    Connect(ID_CHOICE4, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);
-    Connect(ID_CHOICE5, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnEffectAssistChoiceSelect);
-    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPlayControlsCheckBoxClick);
-    Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnHousePreviewCheckBoxClick);
-    Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_BaseShowFolderClick);
-    Connect(ID_CHOICE_TIMELINEZOOMING, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnChoice_TimelineZoomingSelect);
-    Connect(ID_CHECKBOX4, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnPresetPreviewCheckBoxClick);
-    Connect(ID_CHECKBOX_ZoomMethod, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ViewSettingsPanel::OnCheckBox_ZoomMethodClick);
-    Connect(ID_CHOICE_CROSSHAIRSIZE, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnCrosshairSizeChoiceSelect);
-    Connect(ID_CHOICE_PALETTE_SIZE, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnChoice_PaletteSizeSelect);
-    //*)
+    addChoiceRow(Choice_PaletteSize, _("Color Palette Size"), _("Size of the colour swatches in the Colors panel."));
+    Choice_PaletteSize->SetSelection(Choice_PaletteSize->Append(_("Normal")));
+    Choice_PaletteSize->Append(_("Large"));
+
+    sizer->Add(grid, 0, wxEXPAND | wxALL, 5);
+
+    struct Toggle {
+        wxCheckBox** ctrl;
+        wxString label;
+        wxString hint;
+        bool defaultValue;
+    };
+    const Toggle toggles[] = {
+        { &PlayControlsCheckBox, _("Show Play Controls on Preview"), _("Overlay play/pause controls on the preview panels."), true },
+        { &HousePreviewCheckBox, _("Auto Show House Preview"), _("Automatically open the House Preview when a sequence loads."), true },
+        { &CheckBox_BaseShowFolder, _("Enable Base Show Folder Settings"), _("Allow settings to be inherited from a shared base show folder."), false },
+        { &CheckBox_PresetPreview, _("Hide Preset Previews"), _("Don't render thumbnail previews in the preset panel."), false },
+        { &CheckBox_ZoomMethod, _("Zoom To Cursor"), _("Zoom the sequencer toward the mouse cursor instead of the play position."), true },
+        { &CheckBox_DisableKeyAcceleration, _("Disable key acceleration when held down"), _("Stop key repeat from accelerating when a key is held down."), false },
+    };
+    for (const auto& t : toggles) {
+        *t.ctrl = new wxCheckBox(this, wxID_ANY, t.label);
+        (*t.ctrl)->SetValue(t.defaultValue);
+        sizer->Add(*t.ctrl, 0, wxLEFT | wxTOP, 8);
+        sizer->Add(MakePreferenceHint(this, t.hint), 0, wxLEFT | wxBOTTOM, 26);
+        (*t.ctrl)->Bind(wxEVT_CHECKBOX, &ViewSettingsPanel::OnChanged, this);
+    }
+
+    SetSizer(sizer);
+    sizer->SetSizeHints(this);
+
+    for (wxChoice* c : { ToolIconSizeChoice, ModelHandleSizeChoice, EffectAssistChoice,
+                         Choice_TimelineZooming, CrosshairSizeChoice, Choice_PaletteSize }) {
+        c->Bind(wxEVT_CHOICE, &ViewSettingsPanel::OnChanged, this);
+    }
 
 #ifdef _MSC_VER
     MSWDisableComposited();
@@ -143,8 +110,6 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
 
 ViewSettingsPanel::~ViewSettingsPanel()
 {
-    //(*Destroy(ViewSettingsPanel)
-    //*)
 }
 
 bool ViewSettingsPanel::TransferDataToWindow()
@@ -179,6 +144,7 @@ bool ViewSettingsPanel::TransferDataToWindow()
     Choice_TimelineZooming->SetSelection(frame->GetTimelineZooming() & 1);
     CheckBox_PresetPreview->SetValue(frame->HidePresetPreview());
     CheckBox_DisableKeyAcceleration->SetValue(frame->IsDisableKeyAcceleration());
+    CheckBox_ZoomMethod->SetValue(frame->ZoomMethodToCursor());
     Choice_PaletteSize->SetStringSelection(frame->GetPaletteSizeString());
 
     return true;
@@ -215,98 +181,7 @@ bool ViewSettingsPanel::TransferDataFromWindow()
     return true;
 }
 
-void ViewSettingsPanel::OnToolIconSizeChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnHousePreviewCheckBoxClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnPlayControlsCheckBoxClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnPresetPreviewCheckBoxClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnEffectAssistChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnModelHandleSizeChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnOpenGLVersionChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnCheckBox_BaseShowFolderClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnChoice_TimelineZoomingSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnCheckBox_ZoomMethodClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnCheckBox_DisableKeyAccelerationClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnCrosshairSizeChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void ViewSettingsPanel::OnChoice_PaletteSizeSelect(wxCommandEvent& event)
+void ViewSettingsPanel::OnChanged(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
