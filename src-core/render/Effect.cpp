@@ -528,7 +528,11 @@ void Effect::IncrementChangeCount()
                             if (effect != this && effect != nullptr) {
                                 EffectLayer* el = effect->GetParentEffectLayer();
                                 if (el != nullptr && el->GetParentElement() != nullptr) {
-                                    ctx->RenderEffectForModel(
+                                    // Async: must NOT render synchronously here — we hold
+                                    // this effect's settingsLock, and the render workers
+                                    // would deadlock waiting for it (the indefinite hang
+                                    // when changing a linked effect's color to a gradient).
+                                    ctx->RequestRenderForModel(
                                         el->GetParentElement()->GetModelName(),
                                         effect->GetStartTimeMS(),
                                         effect->GetEndTimeMS());
