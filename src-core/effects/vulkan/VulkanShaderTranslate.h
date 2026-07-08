@@ -13,7 +13,7 @@
 // mirrors MetalShaderTranslator's glslToSpirv step and can be unified with it
 // into a shared wx-free ShaderTranslate in the NativeShaderEffect work.
 // Compiled only under HAVE_VULKAN.
-#ifdef HAVE_VULKAN
+#ifdef HAVE_VULKAN_SHADER
 
 #include <cstdint>
 #include <string>

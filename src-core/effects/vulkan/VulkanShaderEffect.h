@@ -18,7 +18,7 @@
 // host-visible UBO, and renders into the RenderBuffer. All lifecycle, uniform
 // value and audio logic lives in SPIRVShaderEffect. Compiled only under
 // HAVE_VULKAN; unavailable Vulkan falls back to the base ShaderEffect (OpenGL).
-#ifdef HAVE_VULKAN
+#ifdef HAVE_VULKAN_SHADER
 
 #include "../SPIRVShaderEffect.h"
 

@@ -608,26 +608,24 @@ if(XLIGHTS_VULKAN_ENABLED)
         ${XL_DEPS}/volk
         ${XL_DEPS}/VulkanMemoryAllocator/include)
 
-    # glslang (GLSL -> SPIR-V) for the native Shader effect's vulkan/ translator
-    # (VulkanShaderTranslate/VulkanShaderEffect).  Vulkan consumes SPIR-V
-    # directly, so no spirv-cross is needed.  Windows CMake uses the Vulkan SDK's
-    # glslang (installed layout: <glslang/Public/...>); non-Apple Unix uses the
-    # vendored static build's install prefix produced by the Makefile `glslang`
-    # target.  Only-if-found so a leaner glslang (ENABLE_OPT=OFF, no SPIRV-Tools)
-    # links cleanly too.
-    if(WIN32)
-        target_include_directories(xLights PRIVATE $ENV{VULKAN_SDK}/Include)
-        set(_glslang_libhint $ENV{VULKAN_SDK}/Lib)
-    else()
+    # The native Vulkan Shader effect (graphics-pipeline path + glslang
+    # GLSL->SPIR-V) is Linux-only for now.  Windows Vulkan is compute-only until
+    # the glslang packaging/link is sorted there (the SDK's glslang lib set
+    # varies by version); HAVE_VULKAN_SHADER gates the shader/graphics sources and
+    # their references so the Windows builds link cleanly without them.
+    if(UNIX AND NOT APPLE)
+        target_compile_definitions(xLights PRIVATE HAVE_VULKAN_SHADER)
+        # glslang from the vendored static build's install prefix (produced by the
+        # Makefile `glslang` target).  Only-if-found so the lean build
+        # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.
         target_include_directories(xLights PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/include)
-        set(_glslang_libhint ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
+        foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent)
+            find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
+            if(GLSLANG_${_gl}_LIB)
+                target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
+            endif()
+        endforeach()
     endif()
-    foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent SPIRV-Tools-opt SPIRV-Tools)
-        find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${_glslang_libhint})
-        if(GLSLANG_${_gl}_LIB)
-            target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
-        endif()
-    endforeach()
 
     # Compile the .comp compute kernels into the SPIR-V headers the vulkan/
     # sources #include.  These are generated (gitignored), not committed —

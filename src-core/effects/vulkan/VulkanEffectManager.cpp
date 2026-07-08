@@ -165,7 +165,9 @@ static bool vulkanEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_METEORS, "Meteors" },
         { EffectManager::eff_TWINKLE, "Twinkle" },
         { EffectManager::eff_LIFE, "Life" },
+#ifdef HAVE_VULKAN_SHADER
         { EffectManager::eff_SHADER, "Shader" },
+#endif
     };
     auto it = names.find(eff);
     return it != names.end() && list.find(it->second) != std::string::npos;
@@ -216,8 +218,10 @@ RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new VulkanTwinkleEffect(eff);
         case EffectManager::eff_LIFE:
             return new VulkanLifeEffect(eff);
+#ifdef HAVE_VULKAN_SHADER
         case EffectManager::eff_SHADER:
             return new VulkanShaderEffect(eff);
+#endif
         default:
             return nullptr;
         }

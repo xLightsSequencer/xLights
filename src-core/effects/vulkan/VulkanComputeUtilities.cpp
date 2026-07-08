@@ -466,12 +466,14 @@ void VulkanComputeUtilities::doInit() {
         return;
     }
     spdlog::info("Vulkan compute enabled: {} (type {}, queue family {})", deviceName, (int)deviceType, queueFamilyIndex);
+#ifdef HAVE_VULKAN_SHADER
     if (getenv("XL_VULKAN_GFXTEST") != nullptr) {
         // Bring up + self-test the graphics-pipeline foundation for headless
         // verification.  initInline (not ensureInit) since we're inside this
         // object's call_once and must not re-enter it.
         VulkanGraphicsUtilities::INSTANCE.initInline();
     }
+#endif
 
     if (envSet("XL_GPU_STATS")) {
         // Proof that GPU paths actually ran: below-threshold test sequences

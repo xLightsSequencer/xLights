@@ -19,7 +19,7 @@
 // RenderBuffer.  Generative shaders work end-to-end today; the input image/audio
 // texture is bound as the foundation's 1x1 dummy for now (texSampler stays
 // declared so image shaders still compile).  Compiled only under HAVE_VULKAN.
-#ifdef HAVE_VULKAN
+#ifdef HAVE_VULKAN_SHADER
 
 #include "VulkanShaderEffect.h"
 

@@ -15,7 +15,7 @@
 // dedicated graphics queue, and renders into its own image + host-visible
 // readback buffer so it never shares queue-family ownership with the compute
 // SSBOs.  Compiled only under HAVE_VULKAN.
-#ifdef HAVE_VULKAN
+#ifdef HAVE_VULKAN_SHADER
 
 #ifndef VK_NO_PROTOTYPES
 #define VK_NO_PROTOTYPES

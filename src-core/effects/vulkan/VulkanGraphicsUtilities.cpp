@@ -5,7 +5,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#ifdef HAVE_VULKAN
+#ifdef HAVE_VULKAN_SHADER
 
 #include "VulkanGraphicsUtilities.h"
 
