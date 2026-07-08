@@ -44,6 +44,7 @@ private:
     // Radius constants
     int m_outerRadius;
     int m_innerRadius;
+    bool m_centerHovered;
 
     DECLARE_EVENT_TABLE()
 };
