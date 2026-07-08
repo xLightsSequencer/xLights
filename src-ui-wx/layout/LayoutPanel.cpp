@@ -157,7 +157,16 @@ public:
     std::function<void()> m_onPaneStateChanged;
 
     LayoutAuiManager(wxWindow* managed_wnd, unsigned int flags)
-        : wxAuiManager(managed_wnd, flags) {}
+        : wxAuiManager(managed_wnd, flags) {
+        // wxAuiManager::SetManagedWindow (called from the base ctor above) now Bind()s the
+        // base mouse handlers on managed_wnd instead of PushEventHandler()ing the manager,
+        // so our overrides are no longer reached via the class event table. Bind them here:
+        // these are added after the base bindings, so they run first (dynamic handlers are
+        // LIFO), and each ends in event.Skip() so the base wxAuiManager handler still runs.
+        managed_wnd->Bind(wxEVT_LEFT_DOWN, &LayoutAuiManager::OnLeftDown, this);
+        managed_wnd->Bind(wxEVT_MOTION, &LayoutAuiManager::OnMotion, this);
+        managed_wnd->Bind(wxEVT_LEFT_UP, &LayoutAuiManager::OnLeftUp, this);
+    }
 
     wxAuiFloatingFrame* CreateFloatingFrame(wxWindow* parent, const wxAuiPaneInfo& p) override {
         wxAuiFloatingFrame* frame = new wxAuiFloatingFrame(parent, this, p, wxID_ANY,
@@ -305,14 +314,7 @@ public:
         }
     }
 
-    wxDECLARE_EVENT_TABLE();
 };
-
-wxBEGIN_EVENT_TABLE(LayoutAuiManager, wxAuiManager)
-    EVT_LEFT_DOWN(LayoutAuiManager::OnLeftDown)
-    EVT_MOTION(LayoutAuiManager::OnMotion)
-    EVT_LEFT_UP(LayoutAuiManager::OnLeftUp)
-wxEND_EVENT_TABLE()
 
 #define MODELCOLNAME "Model/Group"
 #define STARTCHANCOLNAME "Start Chan"

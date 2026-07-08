@@ -2420,13 +2420,6 @@ xLightsFrame::~xLightsFrame()
     m_mgr->UnInit();
     MainAuiManager->UnInit();
 
-    for (int x = 0; x < (int)Notebook1->GetPageCount(); x++) {
-        wxWindow* w = Notebook1->GetPage(x);
-        if (w->GetEventHandler() == m_mgr) {
-            w->RemoveEventHandler(m_mgr);
-        }
-    }
-
     // unconnect these as the call to DeleteAllPages will cause pages to change and the page numbers to possibly not match
     Disconnect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
     Disconnect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGING, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanging);

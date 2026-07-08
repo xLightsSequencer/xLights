@@ -1195,7 +1195,13 @@ void xLightsFrame::ResizeMainSequencer()
 
 void xLightsFrame::OnPanelSequencerPaint(wxPaintEvent& event)
 {
-    mainSequencer->ScrollBarEffectsHorizontal->Update();
+    if (mainSequencer != nullptr) {
+        mainSequencer->ScrollBarEffectsHorizontal->Update();
+    }
+    // wxAuiManager now Bind()s its own OnPaint on the managed window (PanelSequencer)
+    // instead of PushEventHandler()ing itself ahead of it. Skip so the paint event
+    // still reaches wxAuiManager::OnPaint, which draws the pane captions/borders/buttons.
+    event.Skip();
 }
 
 void xLightsFrame::UnselectedEffect(wxCommandEvent& event) {
