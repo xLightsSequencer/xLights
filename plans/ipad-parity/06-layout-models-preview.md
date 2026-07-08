@@ -58,7 +58,7 @@
 | Move/Rotate/Scale tool picker + axis lock | toolbar | 🟡 | ✅ | desktop-missing | P2 | medium | feasible | iPad LayoutEditorToolToolbar (touch idiom). Desktop uses centre-cycle + direct gizmo handles. |
 | 3D transform gizmo with axis tools (move/scale/rotate/elevate) | gesture | ✅ | 🟡 | ipad-weaker | P2 | hard | feasible | iPad ray-cast 3D drag follows gizmo + cycleAxisTool (XLMetalBridge.h:246-247, :276); handle set narrower than desktop's per-axis grab handles. |
 | Model position/size property fields (X/Y/Z/W/H/D/rot) | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad descriptor-driven, branches by ScreenLocation kind (two/three-point endpoints vs boxed). |
-| Model lock / unlock | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad lockedBinding toggle + desktop menu/keybinding. |
+| Model lock / unlock | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad lockedBinding toggle + desktop menu/keybinding. Both roster lists now surface lock state visually: desktop LayoutPanel tree has a dedicated Info column (chain-link + padlock icons, LayoutPanel.cpp); iPad's shared `rosterRow` (LayoutEditorView.swift) shows a `lock.fill` badge next to the existing base-link badge for locked/base-linked Models, Groups, and Objects, reusing the existing `"locked"` summary key (XLSequenceDocument.mm). |
 | Model description / memo | panel | ✅ | ✅ | parity | P2 | easy | feasible | Both editable. |
 | Model rename | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad renameModel + rename sheet. |
 | Model duplicate | toolbar/menu | 🟡 | ✅ | parity | P2 | medium | feasible | iPad explicit Duplicate (XLMetalBridge.duplicateModels, +offset). Desktop has Copy/Paste, no 1-click Duplicate. |

@@ -9841,7 +9841,7 @@ void LayoutPanel::UnlinkSelectedModels()
     }
 
     refreshModelList();
-    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::UnlinkSelectedModels");
 }
 
 void LayoutPanel::LockSelectedModels(bool lock)

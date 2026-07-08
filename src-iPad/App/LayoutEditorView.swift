@@ -1144,8 +1144,10 @@ struct LayoutEditorView: View {
                         let firstCh    = (s["firstChannel"] as? NSNumber)?.uint32Value ?? 0
                         let lastCh     = (s["lastChannel"]  as? NSNumber)?.uint32Value ?? 0
                         let fromBase   = (s["isFromBase"]   as? NSNumber)?.boolValue ?? false
+                        let locked     = (s["locked"]       as? NSNumber)?.boolValue ?? false
                         rosterRow(name: name,
                                   isFromBase: fromBase,
+                                  isLocked: locked,
                                   leadingSystemImage: Self.modelTypeSFSymbol(forDisplayAs: displayAs),
                                   secondary: Self.modelRowSecondary(scString: scString,
                                                                      firstCh: firstCh,
@@ -1178,8 +1180,10 @@ struct LayoutEditorView: View {
                         let style    = (s["layoutStyle"] as? String) ?? ""
                         let gridSize = (s["gridSize"]   as? NSNumber)?.intValue ?? 0
                         let fromBase = (s["isFromBase"] as? NSNumber)?.boolValue ?? false
+                        let locked   = (s["locked"]     as? NSNumber)?.boolValue ?? false
                         rosterRow(name: name,
                                   isFromBase: fromBase,
+                                  isLocked: locked,
                                   leadingSystemImage: "square.stack.3d.up",
                                   secondary: Self.groupRowSecondary(modelCount: count,
                                                                      layoutStyle: style,
@@ -1250,6 +1254,7 @@ struct LayoutEditorView: View {
                         let s = objectSummaries[name] ?? [:]
                         let displayAs = (s["displayAs"] as? String) ?? ""
                         let fromBase  = (s["isFromBase"] as? NSNumber)?.boolValue ?? false
+                        let locked    = (s["locked"]     as? NSNumber)?.boolValue ?? false
                         // 2D Background is a synthetic pseudo-object;
                         // skip the delete swipe so the user can't try
                         // to remove it.
@@ -1262,6 +1267,7 @@ struct LayoutEditorView: View {
                         } else {
                             rosterRow(name: name,
                                       isFromBase: fromBase,
+                                      isLocked: locked,
                                       leadingSystemImage: Self.viewObjectTypeSFSymbol(forDisplayAs: displayAs),
                                       secondary: displayAs)
                                 .tag(name)
@@ -2208,6 +2214,7 @@ struct LayoutEditorView: View {
     @ViewBuilder
     private func rosterRow(name: String,
                             isFromBase: Bool,
+                            isLocked: Bool = false,
                             leadingSystemImage: String? = nil,
                             secondary: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 1) {
@@ -2226,6 +2233,12 @@ struct LayoutEditorView: View {
                         .font(.caption2)
                         .foregroundStyle(.blue)
                         .help("Linked to base show folder — most edits are disabled until Unlink from Base Show Folder.")
+                }
+                if isFromBase || isLocked {
+                    Image(systemName: "lock.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .help(isFromBase ? "Locked (linked to base show folder)" : "Locked")
                 }
             }
             if let s = secondary, !s.isEmpty {
