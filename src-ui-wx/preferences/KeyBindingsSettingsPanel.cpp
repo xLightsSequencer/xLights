@@ -1,6 +1,6 @@
 
 /***************************************************************
- * This source files comes from the xLights project
+ * This source file comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
@@ -204,9 +204,9 @@ KeyBindingsSettingsPanel::KeyBindingsSettingsPanel(wxWindow* parent, xLightsFram
     topSizer->Add(topRow, 0, wxEXPAND);
 
     ListCtrl_Bindings = new wxListCtrl(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 360), wxLC_REPORT | wxLC_SINGLE_SEL);
-    ListCtrl_Bindings->AppendColumn("Action");
-    ListCtrl_Bindings->AppendColumn("Shortcut", wxLIST_FORMAT_CENTRE);
-    ListCtrl_Bindings->AppendColumn("Details");
+    ListCtrl_Bindings->AppendColumn(_("Action"));
+    ListCtrl_Bindings->AppendColumn(_("Shortcut"), wxLIST_FORMAT_CENTRE);
+    ListCtrl_Bindings->AppendColumn(_("Details"));
     topSizer->Add(ListCtrl_Bindings, 1, wxEXPAND | wxALL, 4);
 
     auto* btnRow = new wxBoxSizer(wxHORIZONTAL);
@@ -297,15 +297,18 @@ KeyBindingsSettingsPanel::~KeyBindingsSettingsPanel()
 	//*)
 }
 
-wxString KeyBindingsSettingsPanel::CategoryOf(const std::string& type)
+// Category dropdown index (0 = All): 1 Effects, 2 Presets, 3 Apply Settings,
+// 4 Commands. Compared by index so the filter is locale-independent (the visible
+// labels are translated via _()).
+int KeyBindingsSettingsPanel::CategoryIndexOf(const std::string& type)
 {
-    if (type == "EFFECT") return "Effects / Wheel of Effects";
-    if (type == "PRESET") return "Presets";
-    if (type == "APPLYSETTING") return "Apply Settings";
-    return "Commands";
+    if (type == "EFFECT") return 1;
+    if (type == "PRESET") return 2;
+    if (type == "APPLYSETTING") return 3;
+    return 4;
 }
 
-KBSCOPE EncodeScope(std::string scope)
+static KBSCOPE EncodeScope(const wxString& scope)
 {
 	if (scope == "Controller") return KBSCOPE::Setup;
 	if (scope == "Layout") return KBSCOPE::Layout;
@@ -326,8 +329,7 @@ void KeyBindingsSettingsPanel::LoadList()
 	const wxString scopeSel = Choice_Scope->GetStringSelection();
 	const bool showAll = (scopeSel == "All");
 	const KBSCOPE scope = EncodeScope(scopeSel);
-	const wxString categorySel = Choice_Category->GetStringSelection();
-	const bool allCategories = categorySel.empty() || categorySel == "All";
+	const int categorySel = Choice_Category->GetSelection(); // 0 = All
 
 	// Collect the visible rows first so the Action column can be shown
 	// alphabetically regardless of the bindings' storage order.
@@ -343,7 +345,7 @@ void KeyBindingsSettingsPanel::LoadList()
 	{
 		if (!showAll && !it.InScope(scope))
 			continue;
-		if (!allCategories && CategoryOf(it.GetType()) != categorySel)
+		if (categorySel > 0 && CategoryIndexOf(it.GetType()) != categorySel)
 			continue;
 
 		const wxString friendly = FriendlyName(it.GetType());
@@ -461,7 +463,7 @@ wxString KeyBindingsSettingsPanel::FriendlyName(const std::string& type)
 
 wxString KeyBindingsSettingsPanel::RenderShortcut(const KeyBinding& b)
 {
-    if (b.GetKey() == WXK_NONE) return "(unassigned)";
+    if (b.GetKey() == WXK_NONE) return _("(unassigned)");
     wxString mods;
 #ifdef __WXOSX__
     if (b.RequiresControl()) mods += wxUniChar(0x2318);    // Command
@@ -576,7 +578,6 @@ void KeyBindingsSettingsPanel::OnButtonAddApplySettingClick(wxCommandEvent& even
 
 void KeyBindingsSettingsPanel::OnButtonAddPresetClick(wxCommandEvent& event)
 {
-	std::string empty;
 	int id = _keyBindings->AddKey(KeyBinding(false, _(""), _(""), false, false, false, false));
 	LoadList();
 	SelectKey(id);

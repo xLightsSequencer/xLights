@@ -1,5 +1,5 @@
 /***************************************************************
- * This source files comes from the xLights project
+ * This source file comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing

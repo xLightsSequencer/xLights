@@ -96,9 +96,10 @@ public:
         }
 
         topSizer->Add(book, 1, wxEXPAND | wxALL, 5);
-        // No Cancel: changes apply live (immediate-apply on macOS) so there is
-        // nothing to cancel; the single button just closes the window.
-        topSizer->Add(CreateStdDialogButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+        // OK applies; Cancel/close dismiss without applying. This matters on
+        // Windows/Linux where the framework batches changes until OK (macOS
+        // applies immediately, so Cancel there won't roll back live changes).
+        topSizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
         SetSizer(topSizer);
         topSizer->SetSizeHints(this);
@@ -174,8 +175,11 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 
     // Modeless so Preferences can stay open while you keep working in xLights.
     // Reuse an already-open instance rather than stacking a second dialog.
+    // Reuse an already-open instance rather than stacking a second dialog.
+    // Skip a window that is mid-destruction (Destroy() is deferred) so we don't
+    // Show()/Raise() a dying dialog.
     for (wxWindow* w : wxTopLevelWindows) {
-        if (w->GetName() == "xlPreferencesDialog") {
+        if (w->GetName() == "xlPreferencesDialog" && !w->IsBeingDeleted()) {
             w->Show();
             w->Raise();
             w->SetFocus();
@@ -184,12 +188,12 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
     }
     auto* dlg = new xlPreferencesListDialog(this, pages);
     dlg->SetName("xlPreferencesDialog");
-    // Changes already applied live (immediate-apply); on close just do a final
-    // transfer and the post-change work that used to sit after ShowModal().
-    // Run it whether the window is closed via the button or its close box so
-    // nothing (toolbar labels, row-height resize, low-def reload) is skipped.
-    auto finalize = [this, dlg, ld]() -> bool {
-        if (!dlg->Validate() || !dlg->TransferDataFromWindow()) return false;
+    // OK applies (panels write back in TransferDataFromWindow) and runs the
+    // post-change work that used to sit after ShowModal(). Cancel and the close
+    // box dismiss without applying, so batched changes are discarded on
+    // Windows/Linux (on macOS they were already applied immediately).
+    dlg->Bind(wxEVT_BUTTON, [this, dlg, ld](wxCommandEvent&) {
+        if (!dlg->Validate() || !dlg->TransferDataFromWindow()) return;
         if (mRenderOnSave) {
             MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVE, _("Render All and Save"));
             MainToolBar->SetToolShortHelp(ID_AUITOOLBAR_SAVEAS, _("Render All and Save As"));
@@ -204,10 +208,10 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "Preferences Change");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Preferences Change");
         }
-        return true;
-    };
-    dlg->Bind(wxEVT_BUTTON, [dlg, finalize](wxCommandEvent&) { if (finalize()) dlg->Destroy(); }, wxID_OK);
-    dlg->Bind(wxEVT_CLOSE_WINDOW, [dlg, finalize](wxCloseEvent&) { finalize(); dlg->Destroy(); });
+        dlg->Destroy();
+    }, wxID_OK);
+    dlg->Bind(wxEVT_BUTTON, [dlg](wxCommandEvent&) { dlg->Destroy(); }, wxID_CANCEL);
+    dlg->Bind(wxEVT_CLOSE_WINDOW, [dlg](wxCloseEvent&) { dlg->Destroy(); });
     dlg->Show();
     dlg->Raise();
 }

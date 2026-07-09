@@ -65,7 +65,7 @@ class KeyBindingsSettingsPanel : public wxPanel
 
     // Broad category a binding falls into ("Effects", "Presets",
     // "Apply Settings" or "Commands"), used by the Category dropdown filter.
-    static wxString CategoryOf(const std::string& type);
+    static int CategoryIndexOf(const std::string& type);
 
 public:
     // Public so the popup editor can label a binding with its friendly name.

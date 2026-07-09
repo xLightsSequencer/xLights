@@ -33,7 +33,8 @@ VideoSettingsPanel::VideoSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     sizer->Add(HardwareVideoDecodingCheckBox, 0, wxALL, 5);
 
     auto* renderRow = new wxBoxSizer(wxHORIZONTAL);
-    renderRow->Add(new wxStaticText(this, wxID_ANY, _("Hardware Video Renderer:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+    auto* renderLabel = new wxStaticText(this, wxID_ANY, _("Hardware Video Renderer:"));
+    renderRow->Add(renderLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
     HardwareVideoRenderChoice = new wxChoice(this, wxID_ANY);
     HardwareVideoRenderChoice->Append(_("DirectX11"));
     HardwareVideoRenderChoice->SetSelection(HardwareVideoRenderChoice->Append(_("FFmpeg Auto")));
@@ -68,9 +69,11 @@ VideoSettingsPanel::VideoSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     // platforms decode without the selectable backend (mirrors the prior panel).
 #ifdef __LINUX__
     HardwareVideoDecodingCheckBox->Hide();
+    renderLabel->Hide();
     HardwareVideoRenderChoice->Hide();
 #endif
 #ifdef __WXOSX__
+    renderLabel->Hide();
     HardwareVideoRenderChoice->Hide();
 #endif
 
@@ -115,7 +118,8 @@ void VideoSettingsPanel::OnControlChanged(wxCommandEvent& event) {
         TransferDataFromWindow();
     } else {
 #ifdef __WXMSW__
-        frame->SetHardwareVideoRenderer(HardwareVideoRenderChoice->GetSelection());
+        // Batch-apply mode: only reflect the enable/disable state; don't mutate
+        // the live setting until OK (TransferDataFromWindow).
         HardwareVideoRenderChoice->Enable(HardwareVideoDecodingCheckBox->IsChecked());
 #endif
     }

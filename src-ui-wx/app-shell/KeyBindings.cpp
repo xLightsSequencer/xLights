@@ -120,7 +120,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "CANCEL_RENDER", KBSCOPE::Sequence },
     { "TOGGLE_RENDER", KBSCOPE::Sequence },
     { "PRESETS_TOGGLE", KBSCOPE::Sequence },
-    { "FOCUS_SEQUENCER", KBSCOPE::All }, // This forces focus to the sequencer for situations where keys dont seem to work. It must be mapped to function key
+    { "FOCUS_SEQUENCER", KBSCOPE::All }, // This forces focus to the sequencer for situations where keys don't seem to work. It must be mapped to function key
     { "VALUECURVES_TOGGLE", KBSCOPE::Sequence },
     { "COLOR_DROPPER_TOGGLE", KBSCOPE::Sequence },
     { "AUDIO_FULL_SPEED", KBSCOPE::Sequence },
@@ -253,7 +253,7 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "CANCEL_RENDER", "Cancel any rendering currently in progress." },
     { "TOGGLE_RENDER", "Turn automatic background rendering on or off." },
     { "PRESETS_TOGGLE", "Show or hide the presets panel." },
-    { "FOCUS_SEQUENCER", "Force keyboard focus back to the effects grid when shortcuts stop responding (map this to a function key)." }, // This forces focus to the sequencer for situations where keys dont seem to work. It must be mapped to function key
+    { "FOCUS_SEQUENCER", "Force keyboard focus back to the effects grid when shortcuts stop responding (map this to a function key)." }, // This forces focus to the sequencer for situations where keys don't seem to work. It must be mapped to function key
     { "VALUECURVES_TOGGLE", "Show or hide the Value Curves panel you drag value curves from." },
     { "COLOR_DROPPER_TOGGLE", "Show or hide the Color Dropper panel for picking colors." },
     { "AUDIO_FULL_SPEED", "Play audio back at normal (1x) speed." },
