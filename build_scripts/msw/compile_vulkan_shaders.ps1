@@ -20,7 +20,11 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $glslc = $null
-if ($env:VULKAN_SDK -and (Test-Path (Join-Path $env:VULKAN_SDK 'Bin\glslc.exe'))) {
+# Honor a GLSLC override (the CMake build passes its find_program result); then
+# the Vulkan SDK; then PATH.
+if ($env:GLSLC -and (Test-Path $env:GLSLC)) {
+    $glslc = $env:GLSLC
+} elseif ($env:VULKAN_SDK -and (Test-Path (Join-Path $env:VULKAN_SDK 'Bin\glslc.exe'))) {
     $glslc = Join-Path $env:VULKAN_SDK 'Bin\glslc.exe'
 } else {
     $cmd = Get-Command glslc.exe -ErrorAction SilentlyContinue

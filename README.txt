@@ -41,12 +41,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  fixes several shaders that relied on driver-specific behavior (uninitialized
                                  variables now render consistently).  Set XL_NO_NATIVE_SHADER=1 to fall back
                                  to the OpenGL path on macOS.
-    -enh (dkulp)                 Linux: the Shader effect now renders natively on Vulkan (GLSL -> SPIR-V via
+    -enh (dkulp/scott)           Linux/Windows: the Shader effect now renders natively on Vulkan (GLSL -> SPIR-V via
                                  glslang, no spirv-cross needed since Vulkan consumes SPIR-V directly), on a new
                                  Vulkan graphics-pipeline path atop the existing compute backend.  Generative and
                                  canvas/feedback shaders supported; falls back to OpenGL when Vulkan is
-                                 unavailable.  glslang is now a Linux build dependency (built from the vendored
-                                 submodule).  XL_NO_NATIVE_SHADER=1 forces the OpenGL path.
+                                 unavailable.  glslang is a build dependency (Linux: vendored submodule; Windows:
+                                 prebuilt static libs in lib/windows64).  XL_NO_NATIVE_SHADER=1 forces the OpenGL path.
     -enh (alex)                  Tools - Test: connection and auto-upload configuration (if supported) are deferred
                                  until a model or port is first selected, eliminating startup delay. Controller
                                  hostnames are re-resolved on demand so controllers that were offline at startup work

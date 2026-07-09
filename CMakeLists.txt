@@ -607,28 +607,55 @@ if(XLIGHTS_VULKAN_ENABLED)
     # the glslang packaging/link is sorted there (the SDK's glslang lib set
     # varies by version); HAVE_VULKAN_SHADER gates the shader/graphics sources and
     # their references so the Windows builds link cleanly without them.
-    if(UNIX AND NOT APPLE)
+    if((UNIX AND NOT APPLE) OR WIN32)
         target_compile_definitions(xLights PRIVATE HAVE_VULKAN_SHADER)
-        # The native-Wayland Vulkan surface helper calls into GDK/GTK
-        # (gdk_wayland_* live in libgdk-3); the Xlib helper needs nothing extra.
-        find_package(PkgConfig QUIET)
-        if(PkgConfig_FOUND)
-            pkg_check_modules(GTK3 QUIET gtk+-3.0)
-            if(GTK3_FOUND)
-                target_include_directories(xLights PRIVATE ${GTK3_INCLUDE_DIRS})
-                target_link_libraries(xLights PRIVATE ${GTK3_LIBRARIES})
+        if(WIN32)
+            if(XLIGHTS_USE_VCPKG)
+                # vcpkg-specific modern CMake approach
+                find_package(glslang CONFIG REQUIRED)
+                find_package(SPIRV-Tools CONFIG REQUIRED)
+                target_link_libraries(xLights PRIVATE 
+                    glslang::glslang
+                    glslang::glslang-default-resource-limits
+                    SPIRV-Tools::SPIRV-Tools-opt
+                    SPIRV-Tools::SPIRV-Tools
+                )
+                message(STATUS "Vulkan Toolchain: Found via vcpkg CONFIG packages")
+            else()
+                # Point to local Vulkan SDK
+                target_include_directories(xLights PRIVATE "$ENV{VULKAN_SDK}/include")
+                target_link_directories(xLights PRIVATE "$ENV{VULKAN_SDK}/lib")
+                
+                # Link missing libraries to resolve LNK errors
+                target_link_libraries(xLights PRIVATE 
+                    glslang
+                    glslang-default-resource-limits
+                    SPIRV-Tools-opt
+                    SPIRV-Tools
+                )
             endif()
+        else()
+            # The native-Wayland Vulkan surface helper calls into GDK/GTK
+            # (gdk_wayland_* live in libgdk-3); the Xlib helper needs nothing extra.
+            find_package(PkgConfig QUIET)
+            if(PkgConfig_FOUND)
+                pkg_check_modules(GTK3 QUIET gtk+-3.0)
+                if(GTK3_FOUND)
+                    target_include_directories(xLights PRIVATE ${GTK3_INCLUDE_DIRS})
+                    target_link_libraries(xLights PRIVATE ${GTK3_LIBRARIES})
+                endif()
+            endif()
+            # glslang from the vendored static build's install prefix (produced by the
+            # Makefile `glslang` target).  Only-if-found so the lean build
+            # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.
+            target_include_directories(xLights PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/include)
+            foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent)
+                find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
+                if(GLSLANG_${_gl}_LIB)
+                    target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
+                endif()
+            endforeach()
         endif()
-        # glslang from the vendored static build's install prefix (produced by the
-        # Makefile `glslang` target).  Only-if-found so the lean build
-        # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.
-        target_include_directories(xLights PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/include)
-        foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent)
-            find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
-            if(GLSLANG_${_gl}_LIB)
-                target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
-            endif()
-        endforeach()
     endif()
 
     # Compile the .comp compute kernels into the SPIR-V headers the vulkan/
@@ -643,13 +670,27 @@ if(XLIGHTS_VULKAN_ENABLED)
     endif()
     file(GLOB _vulkan_comp CONFIGURE_DEPENDS
         ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp
+        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.vert
+        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.frag
         ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.vert
         ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.frag)
-    add_custom_target(vulkan_shaders
-        COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
-                bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
-        SOURCES ${_vulkan_comp}
-        COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
+    # Windows has no bash by default — run the PowerShell counterpart there.
+    # Both scripts honor the GLSLC env var (CMake's find_program result) and emit
+    # the same *.spv.h headers.
+    if(WIN32)
+        add_custom_target(vulkan_shaders
+            COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
+                    powershell -NoProfile -ExecutionPolicy Bypass
+                    -File ${CMAKE_SOURCE_DIR}/build_scripts/msw/compile_vulkan_shaders.ps1
+            SOURCES ${_vulkan_comp}
+            COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
+    else()
+        add_custom_target(vulkan_shaders
+            COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
+                    bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
+            SOURCES ${_vulkan_comp}
+            COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
+    endif()
     add_dependencies(xLights vulkan_shaders)
 endif()
 
