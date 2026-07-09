@@ -27,6 +27,7 @@
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
 #include "utils/ip_utils.h"
 #include "render/UICallbacks.h"
 #include <cassert>
@@ -208,6 +209,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
                 _dirty = true;
             }
         }
+
+        _baseControllersSyncedTime = root.attribute("BaseControllersSyncedTime").as_string("");
 
         std::map<std::string, bool> multiip;
         for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
@@ -429,6 +432,25 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
     return changed;
 }
 
+bool OutputManager::NeedsBaseControllersUpdate() const
+{
+    if (_baseShowDir.empty()) return false;
+
+    std::string baseFile = (std::filesystem::path(_baseShowDir) / GetNetworksFileName()).string();
+    return FileUtils::NeedsBaseFileUpdate(baseFile, _baseControllersSyncedTime, "controller merge");
+}
+
+void OutputManager::MarkBaseControllersSynced()
+{
+    if (_baseShowDir.empty()) return;
+
+    std::string baseFile = (std::filesystem::path(_baseShowDir) / GetNetworksFileName()).string();
+    auto baseTicks = FileUtils::GetFileModTimeTicks(baseFile);
+    if (baseTicks) {
+        _baseControllersSyncedTime = std::to_string(*baseTicks);
+    }
+}
+
 void OutputManager::SaveToXML(pugi::xml_document& doc) {
     pugi::xml_node decl = doc.prepend_child(pugi::node_declaration);
     decl.append_attribute("version") = "1.0";
@@ -450,6 +472,7 @@ void OutputManager::SaveToXML(pugi::xml_document& doc) {
         if (!ec) baseRel = rel.generic_string();
     }
     root.append_attribute("BaseShowDirRelative") = baseRel;
+    root.append_attribute("BaseControllersSyncedTime") = _baseControllersSyncedTime;
 
     if (_syncUniverse != 0) {
         pugi::xml_node newNode = root.append_child("e131sync");

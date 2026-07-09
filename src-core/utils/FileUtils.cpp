@@ -18,8 +18,51 @@
 #include <mutex>
 
 #include <filesystem>
+#include <chrono>
+#include <ctime>
 namespace FileUtils
 {
+
+std::optional<long long> GetFileModTimeTicks(const std::string& path)
+{
+    std::error_code ec;
+    auto ftime = std::filesystem::last_write_time(path, ec);
+    if (ec) {
+        return std::nullopt;
+    }
+
+    // Portable file_time_type -> time_t conversion
+    auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+        ftime - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
+    return static_cast<long long>(std::chrono::system_clock::to_time_t(sctp));
+}
+
+bool NeedsBaseFileUpdate(const std::string& path, const std::string& syncedTicks, const std::string& mergeDescription)
+{
+    auto baseTicks = GetFileModTimeTicks(path);
+    if (!baseTicks) {
+        return true;
+    }
+
+    if (syncedTicks.empty()) {
+        return true;
+    }
+
+    long long synced = 0;
+    try {
+        synced = std::stoll(syncedTicks);
+    } catch (const std::exception&) {
+        return true;
+    }
+
+    if (*baseTicks > synced) {
+        return true;
+    }
+
+    spdlog::info("Base folder file '{}' unchanged since last sync (base mtime epoch={}, synced checkpoint epoch={}) -- skipping {}.", path, *baseTicks, synced, mergeDescription);
+    return false;
+}
+
 // ---- FileUtils::FixFile and related functions ----
 
 static std::list<std::string> _fixFileSearchDirs;

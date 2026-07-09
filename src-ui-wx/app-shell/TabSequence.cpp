@@ -672,11 +672,14 @@ void xLightsFrame::LoadEffectsFile()
 
     // Merge base show folder models into the XML nodes before building the objects
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && !_outputManager.GetBaseShowDir().empty()) {
-        bool changed = false;
-        changed |= AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode);
-        changed |= AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode);
-        if (changed) {
-            UnsavedRgbEffectsChanges = true;
+        if (NeedsBaseRgbEffectsUpdate()) {
+            bool changed = false;
+            changed |= AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode);
+            changed |= AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode);
+            if (changed) {
+                UnsavedRgbEffectsChanges = true;
+            }
+            MarkBaseRgbEffectsSynced();
         }
     }
     LoadModels(modelsNode, modelGroupsNode, viewObjectsNode);

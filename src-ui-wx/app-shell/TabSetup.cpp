@@ -490,19 +490,23 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     // Merge controllers from base show folder before loading effects file
     // (model/view object XML merging now happens inside LoadEffectsFile before LoadModels)
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && _outputManager.GetBaseShowDir() != "") {
-        spdlog::debug("Updating from base folder on show folder open.");
         if (!ObtainAccessToURL(_outputManager.GetBaseShowDir(), true)) {
             std::string dstr = _outputManager.GetBaseShowDir();
             PromptForDirectorySelection("Reselect Base Show Directory", dstr);
             _outputManager.SetBaseShowDir(dstr);
         }
-        bool _acceptAll = false, _rejectAll = false;
-        if (_outputManager.MergeFromBase(false, _acceptAll, _rejectAll)) {
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir-controller");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir-controller");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir-controller");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetDir-controller");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SetDir-controller");
+        if (_outputManager.NeedsBaseControllersUpdate()) {
+            spdlog::debug("Updating from base folder on show folder open.");
+            bool _acceptAll = false, _rejectAll = false;
+            bool changed = _outputManager.MergeFromBase(false, _acceptAll, _rejectAll);
+            if (changed) {
+                _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir-controller");
+                _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir-controller");
+                _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir-controller");
+                _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetDir-controller");
+                _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SetDir-controller");
+            }
+            _outputManager.MarkBaseControllersSynced();
         }
     }
 

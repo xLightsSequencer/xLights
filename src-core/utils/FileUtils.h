@@ -12,6 +12,7 @@
 
 #include <string>
 #include <list>
+#include <optional>
 
 namespace FileUtils
 {
@@ -33,4 +34,8 @@ namespace FileUtils
     // or no candidate exists; the empty result is not cached, so it retries
     // once the resources dir has been established.
     std::string GetEffectMetadataDirectory();
+
+    // Returns the file's last-write-time as Unix epoch seconds
+    std::optional<long long> GetFileModTimeTicks(const std::string& path);
+    bool NeedsBaseFileUpdate(const std::string& path, const std::string& syncedTicks, const std::string& mergeDescription);
 };

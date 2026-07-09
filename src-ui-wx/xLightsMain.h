@@ -1675,6 +1675,8 @@ public:
 
     void SetXmlSetting(const std::string& settingName, const std::string& value);
     std::string GetXmlSetting(const std::string& settingName, const std::string& defaultValue) const;
+    bool NeedsBaseRgbEffectsUpdate() const;
+    void MarkBaseRgbEffectsSynced();
     uint32_t GetMaxNumChannels();
 
     void UpdateSequenceVideoPanel( const wxString& path );

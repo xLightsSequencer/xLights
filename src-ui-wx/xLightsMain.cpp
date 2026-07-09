@@ -3563,6 +3563,27 @@ std::string xLightsFrame::GetXmlSetting(const std::string& settingName, const st
     return defaultValue;
 }
 
+bool xLightsFrame::NeedsBaseRgbEffectsUpdate() const
+{
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty()) return false;
+
+    std::string baseFile = baseDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    return FileUtils::NeedsBaseFileUpdate(baseFile, GetXmlSetting("BaseRgbEffectsSyncedTime", ""), "model/view-object merge");
+}
+
+void xLightsFrame::MarkBaseRgbEffectsSynced()
+{
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty()) return;
+
+    std::string baseFile = baseDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    auto baseTicks = FileUtils::GetFileModTimeTicks(baseFile);
+    if (baseTicks) {
+        SetXmlSetting("BaseRgbEffectsSyncedTime", std::to_string(*baseTicks));
+    }
+}
+
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
 {
     SaveAsSequence();
@@ -9334,6 +9355,10 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     }
 
     spdlog::debug("Base show folder update done.");
+
+    // Explicit user-triggered update always runs the merge.
+    _outputManager.MarkBaseControllersSynced();
+    MarkBaseRgbEffectsSynced();
 
     // other things we could bring in
     // - Test presets
