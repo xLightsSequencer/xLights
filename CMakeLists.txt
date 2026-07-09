@@ -783,7 +783,8 @@ target_link_libraries(xLights PRIVATE OpenGL::GL)
 if(WIN32)
     target_link_libraries(xLights PRIVATE glu32)
 elseif(UNIX AND NOT APPLE)
-    target_link_libraries(xLights PRIVATE GL GLU)
+    # EGL is the Wayland pbuffer fallback in GLContextManager (GLX handles X11).
+    target_link_libraries(xLights PRIVATE GL GLU EGL)
 endif()
 
 # vcpkg FFmpeg ships avfilter with vsrc_gfxcapture_winrt compiled against the
