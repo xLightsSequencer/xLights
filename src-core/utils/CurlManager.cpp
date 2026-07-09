@@ -364,6 +364,11 @@ std::string CurlManager::doRequest(const std::string& furl, const SyncRequestOpt
         headerlist = curl_slist_append(headerlist, h.c_str());
     }
 
+    if (options.method == "GET") {
+      curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+      curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+    }
+
     if (options.method == "POST") {
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
     } else if (options.method == "PUT" || options.method == "PATCH" || options.method == "DELETE") {
