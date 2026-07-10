@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
+    -enh (cybercop23)            Show folders now skip the automatic base-show-folder merge (controllers, models,
+                                 view objects) when the base folder has not changed since the last saved sync.
     -bug (daryl)                 Fix #6659 Align To Closest Timing Mark silently doing nothing when both ends of an
                                  effect are closest to the same timing mark - the effect now snaps to the timing
                                  cell it sits in

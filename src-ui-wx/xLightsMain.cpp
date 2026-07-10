@@ -9323,7 +9323,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     bool mergeRejectAll = false;
 
     // bring in any controllers overwriting some of their properties ... but not all of them
-    if (_outputManager.MergeFromBase(prompt, mergeAcceptAll, mergeRejectAll, this)) {
+    bool controllersChanged = false;
+    bool const controllersLoaded = _outputManager.MergeFromBase(prompt, mergeAcceptAll, mergeRejectAll, this, &controllersChanged);
+    if (controllersChanged) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "UpdateFromBaseShowFolder-controller");
@@ -9333,7 +9335,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 
     // bring in any models ... overwriting any with the same name
     // bring in any model groups ... again overwriting any ... the models in the group should be a merge and deduplication
-    if (AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll)) {
+    bool modelsChanged = false;
+    bool const modelsLoaded = AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll, &modelsChanged);
+    if (modelsChanged) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "UpdateFromBaseShowFolder-model");
@@ -9343,7 +9347,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder-model");
     }
 
-    if (AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll))
+    bool objectsChanged = false;
+    bool const objectsLoaded = AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll, &objectsChanged);
+    if (objectsChanged)
     {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-object");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-object");
@@ -9356,9 +9362,14 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 
     spdlog::debug("Base show folder update done.");
 
-    // Explicit user-triggered update always runs the merge.
-    _outputManager.MarkBaseControllersSynced();
-    MarkBaseRgbEffectsSynced();
+    // Only record the checkpoints for the merges whose base file actually loaded; a
+    // failed load leaves its checkpoint unset so the merge is retried on the next open.
+    if (controllersLoaded) {
+        _outputManager.MarkBaseControllersSynced();
+    }
+    if (modelsLoaded && objectsLoaded) {
+        MarkBaseRgbEffectsSynced();
+    }
 
     // other things we could bring in
     // - Test presets

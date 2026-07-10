@@ -126,7 +126,10 @@ public:
             _dirty = true;
         }
     }
-    bool MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui = nullptr);
+    // Returns true if the base networks file loaded and the merge ran (even if nothing changed);
+    // false only if the base file could not be loaded. Optional 'changed' reports whether any
+    // controller content was actually modified.
+    bool MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui = nullptr, bool* changed = nullptr);
     bool NeedsBaseControllersUpdate() const;
     void MarkBaseControllersSynced();
     #pragma endregion

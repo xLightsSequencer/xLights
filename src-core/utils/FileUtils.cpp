@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <chrono>
 #include <ctime>
+#include <cstdlib>
 namespace FileUtils
 {
 
@@ -48,10 +49,9 @@ bool NeedsBaseFileUpdate(const std::string& path, const std::string& syncedTicks
         return true;
     }
 
-    long long synced = 0;
-    try {
-        synced = std::stoll(syncedTicks);
-    } catch (const std::exception&) {
+    char* end = nullptr;
+    long long synced = std::strtoll(syncedTicks.c_str(), &end, 10);
+    if (end == syncedTicks.c_str() || *end != '\0') {
         return true;
     }
 

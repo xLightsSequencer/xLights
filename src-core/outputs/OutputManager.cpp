@@ -360,7 +360,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
-bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui)
+bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui, bool* changedOut)
 {
     bool changed = false;
 
@@ -422,6 +422,7 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
         }
 
     } else {
+        spdlog::warn("MergeFromBase: unable to load base networks file from '{}' - merge skipped.", _baseShowDir);
         return false;
     }
 
@@ -429,7 +430,8 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
         SomethingChanged();
     }
 
-    return changed;
+    if (changedOut != nullptr) *changedOut = changed;
+    return true;
 }
 
 bool OutputManager::NeedsBaseControllersUpdate() const

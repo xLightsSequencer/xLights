@@ -674,12 +674,16 @@ void xLightsFrame::LoadEffectsFile()
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && !_outputManager.GetBaseShowDir().empty()) {
         if (NeedsBaseRgbEffectsUpdate()) {
             bool changed = false;
-            changed |= AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode);
-            changed |= AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode);
+            bool loadedOk = AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode, &changed);
+            loadedOk = AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode, &changed) && loadedOk;
             if (changed) {
                 UnsavedRgbEffectsChanges = true;
             }
-            MarkBaseRgbEffectsSynced();
+            // Only record the checkpoint if the base file actually loaded; a failed
+            // load leaves it unset so the merge is retried on the next open.
+            if (loadedOk) {
+                MarkBaseRgbEffectsSynced();
+            }
         }
     }
     LoadModels(modelsNode, modelGroupsNode, viewObjectsNode);
