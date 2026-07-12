@@ -1771,6 +1771,22 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
     }
 }
 
+wxString xLightsFrame::GetLastSequenceDialogDir() const
+{
+    wxString dir;
+    GetXLightsConfig()->Read("xLightsLastSequenceDir", &dir, "");
+    if (dir.IsEmpty() || !wxDirExists(dir)) {
+        return CurrentDir;
+    }
+    return dir;
+}
+
+void xLightsFrame::SetLastSequenceDialogDir(const wxString& dir)
+{
+    GetXLightsConfig()->Write("xLightsLastSequenceDir", dir);
+    GetXLightsConfig()->Flush();
+}
+
 void xLightsFrame::SaveAsSequence()
 {
     if (readOnlyMode) {
@@ -1782,10 +1798,20 @@ void xLightsFrame::SaveAsSequence()
         DisplayError("You must open a sequence first!", this);
         return;
     }
+    wxString initialDir = GetLastSequenceDialogDir();
+    {
+        wxFileName fnInit(initialDir, "");
+        fnInit.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+        wxFileName fnShow(CurrentDir, "");
+        fnShow.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+        if (!fnInit.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR).StartsWith(fnShow.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR))) {
+            initialDir = CurrentDir;
+        }
+    }
     wxString newFilename;
     wxFileDialog fd(this,
                     "Choose filename to Save Sequence:",
-                    CurrentDir,
+                    initialDir,
                     CurrentSeqXmlFile->GetName(),
                     strSequenceSaveAsFileTypes,
                     wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1819,6 +1845,7 @@ void xLightsFrame::SaveAsSequence()
         }
     } while (!ok);
 
+    SetLastSequenceDialogDir(wxFileName(newFilename).GetPath());
     SaveAsSequence(ToStdString(newFilename));
 }
 

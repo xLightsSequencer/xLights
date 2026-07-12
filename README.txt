@@ -11,11 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
-    -bug (daryl)                 Fix #6659 Align To Closest Timing Mark silently doing nothing when both ends of an
-                                 effect are closest to the same timing mark - the effect now snaps to the timing
-                                 cell it sits in
-    -bug (daryl)                 Fix #6652 Align To Closest Timing Mark creating impossible effect overlaps - the
-                                 collision check missed effects that spanned the alignment range
+    -enh (daryl)                 Recall the last directory used in the Open Sequence and Save Sequence As dialogs (#3107)
     -enh (scott)                 Windows: experimental Vulkan preview rendering backend (model preview, sequencer
                                  grid, waveform and color canvases), runtime-switchable via Preferences > Other >
                                  "Preview graphics" (or XL_GRAPHICS_BACKEND=Vulkan); defaults to OpenGL and falls
@@ -61,6 +57,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 More effects now render on the GPU (Metal on macOS) or with SIMD kernels (ISPC)
                                  for faster full-sequence renders: Tree, Shimmer, Candle (per-node), Wave, Garlands,
                                  Fill, Life, Twinkle, and Meteors
+    -bug (daryl)                 Fix #6659 Align To Closest Timing Mark silently doing nothing when both ends of an
+                                 effect are closest to the same timing mark - the effect now snaps to the timing
+                                 cell it sits in
+    -bug (daryl)                 Fix #6652 Align To Closest Timing Mark creating impossible effect overlaps - the
+                                 collision check missed effects that spanned the alignment range
     -bug (dkulp)                 Fix a crash cancelling (or failing) a model download/import - a malformed .xmodel
                                  made the deserializer throw after it had already freed the in-flight model, and the
                                  cancel cleanup then deleted it a second time
