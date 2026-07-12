@@ -722,7 +722,6 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 font = ComboBox1->GetFont();
                 font.SetPointSize(font.GetPointSize() - 2);
                 ComboBox1->SetFont(font);
-                ComboBox1->SetMinSize(wxSize(ComboBox1->GetBestSize().GetWidth() * 2, -1));
                 playlistWidget = ComboBox1;
                 playlistExpands = true;
             } else {
