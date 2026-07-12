@@ -257,17 +257,17 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     wxPanel *p2 = AddInstanceHeader("HostName/IP Address", "FPP's hostname and current IP Address.");
     p2->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::HostSortMenu, nullptr, this);
     AddInstanceHeader("Mode", "FPP Mode.");
-    wxPanel* p4 = AddInstanceHeader("Media", "Enable to Upload MP3, MP4 and WAV Media Files.\nGenerally only checked on the main player.\n \nSpecial cases for sending videos to VirtualMatrixes.");
+    wxPanel* p4 = AddInstanceHeader("Media", "Enable to upload MP3, MP4 or WAV files to play your show music.*\n \nSuggested to only enable on the FPP device that plays your audio.\n \n* - Special use cases for sending video files to a Virtual Matrix.");
     p4->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&FPPConnectDialog::MediaPopupMenu, nullptr, this);
-    AddInstanceHeader("UDP Out", "'None'- Device is not going to send Pixel data across the network.\n \n'All' This will send pixel data over your Show Network from FPP instance to all controllers marked as 'ACTIVE'.\n \n'Proxied' will set UDP Out only for Controllers with a Proxy IP address set.");
-    AddInstanceHeader("Add Proxies", "Upload Proxy IP Adresses to FPP.");
-    wxPanel *p5 = AddInstanceHeader("Upload Outputs", "Display Hat or Hat Attached to FPP Device, if Found.\n \nWhen this is checked, it will upload Inputs/Outputs before setting up and uploading sequence data.\n \nThis will *RESTART* FPPD and may distrupt a currently running show.");
+    AddInstanceHeader("UDP Out", "'None'- Device is not going to send Pixel data across the network.\n \n'All' This will send pixel data over your Show Network from FPP instance to all controllers marked as 'ACTIVE'.\n \n'Proxied' will send pixel data to only controllers that are set as proxies on this FPP device.");
+    AddInstanceHeader("Add Proxies", "Automatically adds proxy settings to this FPP device");
+    wxPanel *p5 = AddInstanceHeader("Upload Outputs", "When selected will upload latest inputs/outputs from xLights to your FPP device.\n \nThis may Restart FPPD and disrupt a running show.");
     p5->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::CapePopupMenu, nullptr, this);
-    AddInstanceHeader("FSEQ Type", "FSEQ File Version. FPP 2.6 required for V2 formats.");
-    AddInstanceHeader("Models", "Enable to Upload Models for Display Testing.\nNot necessary for FPP V7+ since it creates its own model overlays from the channel data uploaded.");
-    AddInstanceHeader("Playlist","Select Playlist to Add Uploaded Sequences Too.");
-    AddInstanceHeader("Description");
-    AddInstanceHeader("Version", "FPP Software Version.");
+    AddInstanceHeader("FSEQ Type", "FSEQ file version.\n \nV2 Sparse/zstd is recommended - Unless not supported by your controller");
+    AddInstanceHeader("Models", "Upload models for selected controller to FPP for Display Testing.\n \nTypically not required and will Restart FPPD when selected.");
+    AddInstanceHeader("Playlist","Select playlist to add uploaded sequences to.");
+    AddInstanceHeader("Description", "Description of this FPP device from FPP Network settings.");
+    AddInstanceHeader("Version", "FPP software version.");
 
     prgs.Pulse("Populating FPP instance list");
     if (config != nullptr) {
