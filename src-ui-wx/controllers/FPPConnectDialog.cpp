@@ -41,6 +41,7 @@
 #include "controllers/Experience.h"
 #include "controllers/PowerDMX.h"
 #include <algorithm>
+#include <memory>
 
 //(*IdInit(FPPConnectDialog)
 const wxWindowID FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -983,7 +984,7 @@ void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::
     std::string mediaName = media;
     if (FileExists(fseqPath)) {
         try {
-            FSEQFile* sf = FSEQFile::openFSEQFile(ToUTF8(fseqPath));
+            std::unique_ptr<FSEQFile> sf(FSEQFile::openFSEQFile(ToUTF8(fseqPath)));
             if (sf != nullptr) {
                 auto ch = sf->getChannelCount();
                 CheckListBox_Sequences->SetItemText(item, 3, wxString::Format("%llu", static_cast<unsigned long long>(ch)));
@@ -996,7 +997,6 @@ void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::
                         }
                     }
                 }
-                delete sf;
             }
         } catch (...) {
             spdlog::warn("AddSequenceListItem: exception reading FSEQ file: {}", ToUTF8(fseqPath));
