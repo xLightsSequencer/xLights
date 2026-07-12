@@ -986,7 +986,7 @@ void FPPConnectDialog::AddSequenceListItem(const wxString& fseqPath, const std::
             FSEQFile* sf = FSEQFile::openFSEQFile(ToUTF8(fseqPath));
             if (sf != nullptr) {
                 auto ch = sf->getChannelCount();
-                CheckListBox_Sequences->SetItemText(item, 3, wxString::Format("%llu", ch));
+                CheckListBox_Sequences->SetItemText(item, 3, wxString::Format("%llu", static_cast<unsigned long long>(ch)));
                 if (mediaName.empty() && fseqPath.Lower().EndsWith(".fseq")) {
                     std::string m = sf->getMediaFilename();
                     if (!m.empty()) {
