@@ -621,12 +621,7 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
         auto modeLabel = new wxStaticText(FPPInstanceList, wxID_ANY, mode, wxDefaultPosition, wxDefaultSize, 0, "ID_MODE_" + rowStr);
         FPPInstanceSizer->Add(modeLabel, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 1);
 
-        std::string version = inst->fullVersion;
-        auto gitPos = version.rfind("-g");
-        if (gitPos != std::string::npos && gitPos + 2 < version.size() && version.find_first_not_of("0123456789abcdef", gitPos + 2) == std::string::npos) {
-            version = version.substr(0, gitPos);
-        }
-        auto versionLabel = new wxStaticText(FPPInstanceList, wxID_ANY, version, wxDefaultPosition, wxDefaultSize, 0, "ID_VERSION_" + rowStr);
+        auto versionLabel = new wxStaticText(FPPInstanceList, wxID_ANY, inst->fullVersion, wxDefaultPosition, wxDefaultSize, 0, "ID_VERSION_" + rowStr);
 
         wxWindow* fseqWidget = nullptr;
         int fseqBorder = 1;
