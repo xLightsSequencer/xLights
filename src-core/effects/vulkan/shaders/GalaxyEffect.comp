@@ -141,8 +141,8 @@ void main() {
     float i_hi = min(data.head_end_of_tail, data.revs);
     if (i_hi <= i_lo) { result[index] = 0u; return; }
 
-    float dx = float(px) - data.pos_x;
-    float dy = float(py) - data.pos_y;
+    float dx = float(px) + 0.5 - data.pos_x;
+    float dy = float(py) + 0.5 - data.pos_y;
     float rho = sqrt(dx * dx + dy * dy);
     float theta = atan(dx, dy) * 180.0 / PI;
 

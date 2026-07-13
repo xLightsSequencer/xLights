@@ -159,8 +159,8 @@ export void GalaxyEffectISPC(const uniform GalaxyISPCData * uniform d,
     foreach (index = startIdx ... endIdx) {
         int x = index % width;
         int y = index / width;
-        float dx = (float)x - px;
-        float dy = (float)y - py;
+        float dx = (float)x + 0.5f - px;
+        float dy = (float)y + 0.5f - py;
         float rho = sqrt(dx*dx + dy*dy);
         float theta = atan2(dx, dy) * 180.0f / PI;
 
