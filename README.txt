@@ -22,15 +22,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  preference gains an "Auto" default that picks Vulkan only when OpenGL would fall
                                  back to software (llvmpipe) anyway (by env hint or by probing the actual GL
                                  renderer), otherwise keeps hardware OpenGL
-	-bug (charlie)               Fix the app hanging indefinitely when changing a color to a gradient/color
-                                 curve on an effect linked to an Effect Symbol - symbol propagation re-rendered
-                                 linked effects synchronously while holding the effect's settings lock,
-                                 deadlocking the render workers; the re-render is now posted to the event loop
-
-    -bug (dkulp)                 Linux: fix a random startup crash inside wxWidgets (nested notebook layout) -
-                                 the Moving Head effect panel added its Color page to the inner notebook twice,
-                                 and removing the duplicate freed GTK state shared with the real page, a
-                                 use-after-free that wxWidgets 3.3's stricter page handling turned fatal
     -enh (dkulp)                 macOS/iPad: the Shader effect now renders natively on Metal (shaders are
                                  translated GLSL -> SPIR-V -> Metal at load and cached) instead of through
                                  OpenGL/ANGLE - faster, no longer depends on the deprecated OpenGL stack, and
@@ -57,6 +48,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 More effects now render on the GPU (Metal on macOS) or with SIMD kernels (ISPC)
                                  for faster full-sequence renders: Tree, Shimmer, Candle (per-node), Wave, Garlands,
                                  Fill, Life, Twinkle, and Meteors
+    -bug (daryl)                 Mark the layout as needing a save when aliases are added
+    -bug (charlie)               Fix the app hanging indefinitely when changing a color to a gradient/color
+                                 curve on an effect linked to an Effect Symbol - symbol propagation re-rendered
+                                 linked effects synchronously while holding the effect's settings lock,
+                                 deadlocking the render workers; the re-render is now posted to the event loop
+    -bug (dkulp)                 Linux: fix a random startup crash inside wxWidgets (nested notebook layout) -
+                                 the Moving Head effect panel added its Color page to the inner notebook twice,
+                                 and removing the duplicate freed GTK state shared with the real page, a
+                                 use-after-free that wxWidgets 3.3's stricter page handling turned fatal
     -bug (daryl)                 Fix #6659 Align To Closest Timing Mark silently doing nothing when both ends of an
                                  effect are closest to the same timing mark - the effect now snaps to the timing
                                  cell it sits in
