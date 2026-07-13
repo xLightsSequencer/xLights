@@ -1512,9 +1512,12 @@ void ModelGroupPanel::OnButtonAliasesClick(wxCommandEvent& event)
     ModelGroup* g = (ModelGroup*)mModels[mGroup];
     if (g == nullptr)
         return;
+    auto oldAliases = g->GetAliases();
     EditAliasesDialog dlg(this, g);
 
-    dlg.ShowModal();
+    if (dlg.ShowModal() == wxID_OK && g->GetAliases() != oldAliases) {
+        g->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ModelGroupPanel::OnButtonAliasesClick");
+    }
 }
 
 void ModelGroupPanel::OnSpinCtrlTextEnter(wxCommandEvent& evt)

@@ -403,7 +403,7 @@ public:
     void SetModelTagColour(const xlColor& c) { _modelTagColour = c; _modelTagColourValid = true; _modelTagColourString = std::string(c); }
 
     bool IsAlias(const std::string& alias, bool oldnameOnly = false) const;
-    void AddAlias(const std::string& alias);
+    bool AddAlias(const std::string& alias);
     void DeleteAlias(const std::string& alias);
     bool DeleteAllAliases();
     const std::list<std::string> &GetAliases() const;
