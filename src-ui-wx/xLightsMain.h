@@ -86,6 +86,7 @@
 #include "render/SequenceViewManager.h"
 #include "color/ColorManager.h"
 #include "effects/EffectPresetManager.h"
+#include "plugins/XLightsPluginManager.h"
 #include "render/ViewpointMgr.h"
 #include "lyrics/PhonemeDictionary.h"
 #include "render/SequenceFile.h"
@@ -321,7 +322,7 @@ class xLightsFrame: public xlFrame, public xLightsShowContext, public UICallback
 {
 public:
 
-    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1, bool renderOnlyMode = false);
+    xLightsFrame(wxWindow* parent, int ab, wxWindowID id = -1, bool renderOnlyMode = false, bool safeMode = false);
     virtual ~xLightsFrame();
 
     static bool IsCheckSequenceOptionDisabledS(const std::string& option);
@@ -1224,6 +1225,21 @@ public:
     void SetRenderCacheFolder(bool useShow, const std::string& folder);
     void UpdateViewMenu();
 
+    // Lets an xLights Plugin's dockable pane keep its Tools-menu checkmark in
+    // sync via the existing UpdateViewMenu() pass (e.g. if the pane is closed
+    // via its own AUI [x] button rather than the menu item). paneName must
+    // match the name passed to m_mgr->AddPane() for that pane.
+    void RegisterPluginToolsMenuItem(const wxString& paneName, wxMenuItem* item);
+    std::map<wxString, wxMenuItem*> m_pluginPaneMenuItems;
+
+    // Destroys every existing Effects toolbar button and rebuilds it from
+    // exactly this ordered list of effect names (unknown names skipped) -
+    // used by the Effects Toolbar Manager plugin to apply a user's saved
+    // reorder/show-hide choice. Safe to call any time after startup, not
+    // just once (unlike AddEffectToolbarButtons, which only ever runs once
+    // at construction with the full default list).
+    void RebuildEffectsToolbar(const std::vector<std::string>& orderedVisibleNames);
+
     void GetBackupFolder(bool& useShow, std::string& folder);
     void SetBackupFolder(bool useShow, const std::string& folder);
     void GetAltBackupFolder(std::string& folder);
@@ -1528,6 +1544,12 @@ public:
     bool UnsavedPresetChanges = false;
     bool _renderMode = false;
     bool _checkSequenceMode = false;
+    // -sm/--safemode: skip loading effect and xLights plugins entirely, for
+    // isolating "is this a plugin problem or a core problem" troubleshooting.
+    bool _safeMode = false;
+    // Append to every SetTitle() call so the "[SAFE MODE]" marker survives
+    // title resets on file open/save/close, not just the initial constructor title.
+    wxString SafeModeTitleSuffix() const { return _safeMode ? " [SAFE MODE - plugins not loaded]" : ""; }
 
     void SuspendAutoSave(bool dosuspend) override { _suspendAutoSave = dosuspend; }
 
@@ -1715,6 +1737,7 @@ public:
 
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
+    const XLightsPluginManager* GetXLightsPluginManager() const { return _xlightsPluginManager.get(); }
     void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr);
@@ -1910,6 +1933,7 @@ private:
     std::unique_ptr<ScriptsDialog> _scriptsDialog{ nullptr };
     std::unique_ptr<class WxServiceSettingsStore> _serviceSettingsStore;
     std::unique_ptr<ServiceManager> _serviceManager{ nullptr };
+    std::unique_ptr<XLightsPluginManager> _xlightsPluginManager;
     int mMediaLengthMS;
     bool _usedRuler = false;
 

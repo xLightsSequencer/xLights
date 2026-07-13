@@ -15,6 +15,8 @@
 #include <cstdint>
 #include <string>
 
+#include "CoreExport.h"
+
 #if __has_include(<simd/simd.h>)
 #include <simd/simd.h>
 #endif
@@ -48,7 +50,11 @@ public:
     double lightness;
 };
 
-class xlColor {
+// Exported (see CoreExport.h) so plugins (effect and xLights UI plugins
+// alike) can construct/convert xlColor via its non-inline methods
+// (fromHSV/toHSV, SetFromString) resolved against xLights.exe's import
+// library on Windows.
+class XLCORE_API xlColor {
 public:
     uint8_t red;
     uint8_t green;

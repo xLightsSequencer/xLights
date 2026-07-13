@@ -549,6 +549,47 @@ void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBa
     EffectsToolBar->Realize();
 }
 
+void xLightsFrame::RebuildEffectsToolbar(const std::vector<std::string>& orderedVisibleNames)
+{
+    // DestroyToolByIndex (not Clear()/ClearTools(), which only forgets the
+    // tool metadata and leaks the DragEffectBitmapButton windows as orphaned
+    // children) properly destroys each button before removing its slot.
+    while (EffectsToolBar->GetToolCount() > 0) {
+        EffectsToolBar->DestroyToolByIndex(0);
+    }
+
+    // Must match the user's current toolbar icon size (mIconSize, settable
+    // via SetToolIconSize() and persisted as "xLightsIconSize"), not a
+    // hardcoded 16 - otherwise every rebuild silently resets icons back to
+    // the 16px default until the next restart re-applies the saved size.
+    int size = EffectsToolBar->FromDIP(mIconSize);
+    for (const std::string& name : orderedVisibleNames) {
+        RenderableEffect* effect = effectManager.GetEffect(name);
+        if (effect == nullptr) {
+            continue;
+        }
+        DragEffectBitmapButton* bitmapButton = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size),
+                                                                          wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton_%s", name));
+        bitmapButton->SetMinSize(wxSize(size, size));
+        bitmapButton->SetMaxSize(wxSize(size, size));
+        bitmapButton->SetEffect(effect, mIconSize);
+        bitmapButton->SetBitmapMargins(0, 0);
+        EffectsToolBar->AddControl(bitmapButton, bitmapButton->GetToolTipText());
+
+        size_t idx = EffectsToolBar->GetToolCount() - 1;
+        EffectsToolBar->FindToolByIndex(idx)->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetSizeHints(size, size, size, size);
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetMaxSize(wxSize(size, size));
+    }
+    EffectsToolBar->Realize();
+
+    wxSize sz = EffectsToolBar->GetSize();
+    wxAuiPaneInfo& info = MainAuiManager->GetPane("EffectsToolBar");
+    info.BestSize(sz);
+    MainAuiManager->Update();
+}
+
 inline wxBitmapBundle GetToolbarBitmapBundle(const wxString& id)
 {
     return wxArtProvider::GetBitmapBundle(id, wxART_TOOLBAR);
@@ -642,9 +683,10 @@ xLightsFrame *xLightsFrame::GetFrame() {
     return xLightsApp::__frame;
 }
 
-xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode) :
+xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderOnlyMode, bool safeMode) :
     _presetSequenceElements(this),
     _renderMode(renderOnlyMode),
+    _safeMode(safeMode),
     color_mgr(this)
 {
     
@@ -1568,6 +1610,25 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _appProgress->SetRange(100);
     _appProgress->Reset();
 
+    {
+        // Must run before AddEffectToolbarButtons() below (and before
+        // CreateSequencer() further down, which builds the Effects panel
+        // toolbox by iterating EffectManager once) - plugin effects need to
+        // already be registered here or they silently never get a button in
+        // either place. effectPanelManager itself is default-member-initialized
+        // earlier (before this constructor body even starts), so its own panel
+        // registration is deferred to Init() here rather than running in its
+        // constructor - otherwise it would miss plugin effects too.
+        if (_safeMode) {
+            spdlog::info("Safe mode: skipping effect plugin discovery.");
+        } else {
+            wxFileName exePath(wxStandardPaths::Get().GetExecutablePath());
+            std::string effectPluginDir = (exePath.GetPath() + wxFILE_SEP_PATH + "effect_plugins").ToStdString();
+            GetEffectManager().loadEffectPlugins(effectPluginDir);
+        }
+        effectPanelManager.Init();
+    }
+
     AddEffectToolbarButtons(effectManager, EffectsToolBar);
     wxSize sz = EffectsToolBar->GetSize();
     wxAuiPaneInfo& info = MainAuiManager->GetPane("EffectsToolBar");
@@ -1576,7 +1637,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     wxToolTip::SetAutoPop(20000); // globally set tooltips stay on screen for a long time - may not work on all platforms per wxWidgets documentation
 
-    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
+    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date + SafeModeTitleSuffix());
 
     CheckBoxLightOutput = new AUIToolbarButtonWrapper(PlayToolBar, ID_CHECKBOX_LIGHT_OUTPUT);
     ButtonPasteByTime = new AUIToolbarButtonWrapper(EditToolBar, ID_PASTE_BY_TIME);
@@ -1746,6 +1807,21 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     CreateSequencer();
 
     spdlog::debug("xLightsFrame constructor sequencer creation done.");
+
+    {
+        // Must run AFTER CreateSequencer() - the opposite ordering from
+        // effect plugins above. xLights Plugins register dockable AUI panes
+        // and Tools-menu entries, so m_mgr and Menu1 (Tools) must already
+        // exist.
+        _xlightsPluginManager = std::make_unique<XLightsPluginManager>(this);
+        if (_safeMode) {
+            spdlog::info("Safe mode: skipping xLights plugin discovery.");
+        } else {
+            wxFileName exePath(wxStandardPaths::Get().GetExecutablePath());
+            std::string xlightsPluginDir = (exePath.GetPath() + wxFILE_SEP_PATH + "xlights_plugins").ToStdString();
+            _xlightsPluginManager->loadPlugins(xlightsPluginDir);
+        }
+    }
 
     layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
     spdlog::debug("LayoutPanel creation done.");
@@ -9068,9 +9144,18 @@ void xLightsFrame::UpdateViewMenu()
             auto pane = panes.find(info[x].name);
             if (pane != panes.end()) {
                 (*pane).second->Check(m_mgr->GetPane(info[x].name).IsShown());
+                continue;
+            }
+            auto pluginPane = m_pluginPaneMenuItems.find(info[x].name);
+            if (pluginPane != m_pluginPaneMenuItems.end()) {
+                pluginPane->second->Check(m_mgr->GetPane(info[x].name).IsShown());
             }
         }
     }
+}
+
+void xLightsFrame::RegisterPluginToolsMenuItem(const wxString& paneName, wxMenuItem* item) {
+    m_pluginPaneMenuItems[paneName] = item;
 }
 
 void xLightsFrame::OnMenuItem_ColorReplaceSelected(wxCommandEvent& event)

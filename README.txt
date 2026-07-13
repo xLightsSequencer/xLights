@@ -138,6 +138,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Add a headless render mode (--headless -s <showdir> <sequence.xsq> ...): loads the show
                                  and renders sequence(s) to fseq with no window shown, then exits (0 on success). Built on
                                  a new xLightsShowContext base extracted from xLightsFrame
+    -enh (nick)                  Add a plugin architecture: DLL/dylib/so plugins can register new effect types
+                                 (Preferences > Plugins > Effect Plugins), and a companion xLights UI plugin system adds
+                                 dockable panels and Tools menu entries without linking wx directly. New -sm/--safemode
+                                 startup switch skips loading both plugin kinds, for isolating plugin-vs-core issues.
 
 2026.12  July 2, 2026
 

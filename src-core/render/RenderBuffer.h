@@ -24,6 +24,7 @@
 #include "utils/xlSize.h"
 #include "ColorCurve.h"
 #include "models/Node.h"
+#include "utils/CoreExport.h"
 
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
@@ -41,20 +42,6 @@ class AudioManager;
 class RenderContext;
 class DmxModel;
 enum class HEADER_INFO_TYPES;
-
-// eventually this will go in some header..
-// the idea is to define this (currently) for the MS compiler
-// and to switch its value based on creating vs using the dll
-// NCCDLLIMPL is set by the project creating the dll
-#ifdef _MSC_VER
-#ifdef NCCDLLIMPL
-#define NCCDLLEXPORT __declspec(dllexport)
-#else
-#define NCCDLLEXPORT __declspec(dllimport)
-#endif
-#else
-#define NCCDLLEXPORT
-#endif
 
 class Effect;
 class SettingsMap;
@@ -336,13 +323,16 @@ public:
     }
 };
 
-class /*NCCDLLEXPORT*/ EffectRenderCache {
+class EffectRenderCache {
 public:
 	EffectRenderCache();
 	virtual ~EffectRenderCache();
 };
 
-class /*NCCDLLEXPORT*/ RenderBuffer {
+// Exported (see CoreExport.h) so effect plugin DLLs can call non-inline
+// methods (Fill, SetPixel, etc.) against xLights.exe's import library on
+// Windows.
+class XLCORE_API RenderBuffer {
 public:
     RenderBuffer(RenderContext *ctx, PixelBufferClass *pbc, const Model *m);
     ~RenderBuffer();

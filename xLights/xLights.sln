@@ -9,6 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xLights-Test", "..\xLights-Test\Xlights-Test.vcxproj", "{F6E38B1E-E34C-428D-B081-5719BDDCE385}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleXLightsPlugin", "SampleXLightsPlugin.vcxproj", "{9A3E6F1B-4C2D-4A9E-8B5A-2E7C9F1D3A6B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VoronoiCellsPlugin", "VoronoiCellsPlugin.vcxproj", "{3D8B2E71-6F4A-4C9D-9A1E-7B2C5D8F0A3E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EffectsToolbarManagerPlugin", "EffectsToolbarManagerPlugin.vcxproj", "{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64EC = Debug|ARM64EC
@@ -29,6 +35,24 @@ Global
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Debug|x64.ActiveCfg = Debug|x64
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release|ARM64EC.ActiveCfg = Release|ARM64EC
 		{F6E38B1E-E34C-428D-B081-5719BDDCE385}.Release|x64.ActiveCfg = Release|x64
+		{9A3E6F1B-4C2D-4A9E-8B5A-2E7C9F1D3A6B}.Debug|ARM64EC.ActiveCfg = Debug|x64
+		{9A3E6F1B-4C2D-4A9E-8B5A-2E7C9F1D3A6B}.Debug|x64.ActiveCfg = Debug|x64
+		{9A3E6F1B-4C2D-4A9E-8B5A-2E7C9F1D3A6B}.Debug|x64.Build.0 = Debug|x64
+		{9A3E6F1B-4C2D-4A9E-8B5A-2E7C9F1D3A6B}.Release|ARM64EC.ActiveCfg = Release|x64
+		{9A3E6F1B-4C2D-4A9E-8B5A-2E7C9F1D3A6B}.Release|x64.ActiveCfg = Release|x64
+		{9A3E6F1B-4C2D-4A9E-8B5A-2E7C9F1D3A6B}.Release|x64.Build.0 = Release|x64
+		{3D8B2E71-6F4A-4C9D-9A1E-7B2C5D8F0A3E}.Debug|ARM64EC.ActiveCfg = Debug|x64
+		{3D8B2E71-6F4A-4C9D-9A1E-7B2C5D8F0A3E}.Debug|x64.ActiveCfg = Debug|x64
+		{3D8B2E71-6F4A-4C9D-9A1E-7B2C5D8F0A3E}.Debug|x64.Build.0 = Debug|x64
+		{3D8B2E71-6F4A-4C9D-9A1E-7B2C5D8F0A3E}.Release|ARM64EC.ActiveCfg = Release|x64
+		{3D8B2E71-6F4A-4C9D-9A1E-7B2C5D8F0A3E}.Release|x64.ActiveCfg = Release|x64
+		{3D8B2E71-6F4A-4C9D-9A1E-7B2C5D8F0A3E}.Release|x64.Build.0 = Release|x64
+		{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}.Debug|ARM64EC.ActiveCfg = Debug|x64
+		{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}.Debug|x64.ActiveCfg = Debug|x64
+		{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}.Debug|x64.Build.0 = Debug|x64
+		{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}.Release|ARM64EC.ActiveCfg = Release|x64
+		{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}.Release|x64.ActiveCfg = Release|x64
+		{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

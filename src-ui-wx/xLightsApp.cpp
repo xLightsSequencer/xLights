@@ -734,6 +734,7 @@ bool xLightsApp::OnInit()
         { wxCMD_LINE_OPTION, "s", "show", "specify show directory" },
         { wxCMD_LINE_OPTION, "od", "outputdir", "output dir for rendered fseq files (-r / --headless); default: show's configured fseq folder" },
         { wxCMD_LINE_SWITCH, "w", "wipe", "wipe settings clean" },
+        { wxCMD_LINE_SWITCH, "sm", "safemode", "start without loading any effect or xLights plugins (for troubleshooting)" },
         { wxCMD_LINE_SWITCH, "o", "on", "turn on output to lights" },
         { wxCMD_LINE_SWITCH, "a", "aport", "turn on xFade A port" },
         { wxCMD_LINE_SWITCH, "b", "bport", "turn on xFade B port" },
@@ -808,6 +809,7 @@ bool xLightsApp::OnInit()
 
     int ab = 0;
     std::string readOnlyZipFile = "";
+    bool safeMode = false;
 
     wxCmdLineParser parser(cmdLineDesc, argc, argv);
     switch (parser.Parse()) {
@@ -820,6 +822,12 @@ bool xLightsApp::OnInit()
             spdlog::info("-w: Wiping settings");
             info += _("Wiping settings\n");
             WipeSettings();
+        }
+        if (parser.Found("sm"))
+        {
+            spdlog::info("-sm: Safe mode ON - effect and xLights plugins will not be loaded.");
+            info += _("Safe mode: plugins will not be loaded\n");
+            safeMode = true;
         }
         if (parser.Found("s", &showDir)) {
             spdlog::info("-s: Show directory set to {}.", (const char*)showDir.c_str());
@@ -1335,7 +1343,7 @@ bool xLightsApp::OnInit()
     BitmapCache::SetupArtProvider();
     if (wxsOK)
     {
-    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab, -1, renderOnlyMode);
+    	xLightsFrame* Frame = new xLightsFrame(nullptr, ab, -1, renderOnlyMode, safeMode);
         if (Frame->CurrentDir == "") {
             spdlog::info("Show directory not set");
         }

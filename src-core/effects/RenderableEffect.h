@@ -15,6 +15,7 @@
 #include <nlohmann/json.hpp>
 #include "Color.h"
 #include "../graphics/xlGraphicsAccumulators.h"
+#include "utils/CoreExport.h"
 
 class Model;
 class SequenceElements;
@@ -26,7 +27,11 @@ class EffectManager;
 class EffectLayer;
 class RenderContext;
 
-class RenderableEffect
+// Exported (see CoreExport.h) because effect plugin DLLs subclass this
+// directly - their derived vtables reference every non-inline virtual here,
+// and their constructors call RenderableEffect's, so the symbols must be
+// resolvable against xLights.exe's import library on Windows.
+class XLCORE_API RenderableEffect
 {
 public:
     RenderableEffect(int id,

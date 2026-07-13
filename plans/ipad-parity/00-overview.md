@@ -7,7 +7,7 @@
 
 ## How to read this
 
-- **1,187 features** were enumerated across 14 themes (menu items, context-menu
+- **1,188 features** were enumerated across 14 themes (menu items, context-menu
   entries, dialog operations, preferences, keyboard shortcuts, gestures).
 - The **gap** for each feature is *derived from the `desktop`/`iPad` status*
   (✅ present / 🟡 partial / ❌ absent). Categories:
@@ -26,12 +26,12 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,187 |
+| Features audited | 1,189 |
 | **At parity** (both platforms) | 859 (**~72%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 175 |
+| **iPad-missing** (desktop has, iPad doesn't) | 177 |
 | **iPad-weaker** (partial on iPad) | 62 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
-| Infeasible on iPad (platform limits) | 60 |
+| Infeasible on iPad (platform limits) | 62 |
 | Restricted (closed-firmware / IAP) | 23 |
 | Declined — won't build (scope decision) | 5 |
 | Deferred (AC toolbar cluster, P3) | 15 |
@@ -63,7 +63,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 47 | 68% | 12 | 5 | 6 | 4 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 95 | 81% | 10 | 4 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 73 | 88% | 3 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 85 | 77 | 91% | 1 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 86 | 77 | 90% | 2 | 2 | 5 | 1 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 107 | 77% | 12 | 13 | 7 | 3 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 80 | 66 | 82% | 8 | 3 | 3 | 11 |
@@ -72,9 +72,9 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 85 | 67 | 79% | 12 | 5 | 0 | 7 |
 | 11 | [Preferences](11-preferences-settings.md) | 131 | 53 | 40% | 67 | 10 | 1 | 19 |
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
-| 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
+| 13 | [Tools](13-tools-diagnostics-help.md) | 50 | 33 | 66% | 14 | 2 | 1 | 5 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,188** | **858** | **~72%** | **176** | **62** | **≈92** | **82** |
+| — | **Total** | **1,190** | **858** | **~72%** | **178** | **62** | **≈92** | **84** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -500,6 +500,8 @@ reverse parity as "touch idiom").
 | REST API: utility functions | 12 | No HTTP server on iOS. |
 | Command-line / xlDo automation | 12 | No CLI/argv automation surface on iOS. |
 | AI plugin loading (dylib/DLL) | 12 | App Store forbids loading external executable code; iPad passes empty pluginDir. |
+| Effect plugin loading (DLL/dylib/so) | 04 | Same App Store restriction as AI plugin loading, applied to `EffectManager::loadEffectPlugins`'s new `PluginLoader<T,Context>`-based effect DLLs; iPad would pass an empty plugin dir. |
+| xLights UI Plugin loading + widget facade | 13 | `XLightsPluginManager`/`XLightsPluginHost` - same App Store code-loading restriction as AI/effect plugins, plus a second independent blocker: the plugin UI facade (`IPluginPanel` etc.) is implemented by wrapping real wxWidgets objects the host constructs, and there is no wxWidgets on iPad at all to back it. |
 | Tools > Run Scripts | 13 | Executes user automation scripts. iOS forbids arbitrary script/process execution. Infeasible. |
 | Help > Check for Updates | 13 | Desktop item itself is created DISABLED. App Store manages iPad updates; in-app check not allowed. Infeasible. |
 | Map-from-Lights structured-light scan → Custom model | 14 | Desktop has this on macOS via Continuity Camera (DiscoverContinuityCameras + PresentScanWindow); iPad adds on-device camera + LiDAR. |

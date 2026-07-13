@@ -14,6 +14,7 @@
 #include <wx/numdlg.h>
 #include <wx/progdlg.h>
 #include <wx/textdlg.h>
+#include <algorithm>
 #if defined(__WXMAC__)
 #include "OpenGL/gl.h"
 #else
@@ -7549,8 +7550,8 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                                 effectIcons->AddTexture(xl, y - sz, xr, y + sz,
                                                         effectIconLocations[e->GetEffectIndex()][0],
                                                         effectIconLocations[e->GetEffectIndex()][1],
-                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f / 512.0f,
-                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f / 512.0f);
+                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f / effectIconAtlasSize,
+                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f / effectIconAtlasSize);
 
                                 linesLeft->AddVertex(x1, y);
                                 linesLeft->AddVertex((x1 + x2) / 2.0 - sz, y);
@@ -7572,8 +7573,8 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                                 effectIcons->AddTexture(xl, y - sz, xr, y + sz,
                                                         effectIconLocations[e->GetEffectIndex()][0],
                                                         effectIconLocations[e->GetEffectIndex()][1],
-                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f / 512.0f,
-                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f / 512.0f);
+                                                        effectIconLocations[e->GetEffectIndex()][0] + 64.0f / effectIconAtlasSize,
+                                                        effectIconLocations[e->GetEffectIndex()][1] + 64.0f / effectIconAtlasSize);
                                 lines->AddRectAsLines(xl - 0.4, y - sz - 0.4, xr + 0.4, y + sz + 0.4);
                             } else {
                                 linesCenter->AddVertex(x1, y);
@@ -7974,14 +7975,26 @@ void EffectsGrid::DrawSelectedCells(xlGraphicsContext* ctx) {
 }
 
 void EffectsGrid::CreateEffectIconTextures(xlGraphicsContext* ctx) {
+    int count = (int)xlights->GetEffectManager().size();
+    // 8 icons per row, grown to fit the live effect count - previously a
+    // hardcoded 512x512/8 rows (64-icon cap), which silently clipped and
+    // produced blank icons for any effect beyond the 64th (plugin effects
+    // push the count past the ~56 built-ins once a handful are installed).
+    int rows = std::max(1, (count + 7) / 8);
+    int atlasSize = rows * 64;
+    effectIconAtlasSize = (float)atlasSize;
+
     std::vector<wxImage> images;
-    images.emplace_back(512, 512);
-    images.emplace_back(256, 256);
-    images.emplace_back(128, 128);
+    images.emplace_back(atlasSize, atlasSize);
+    images.emplace_back(atlasSize / 2, atlasSize / 2);
+    images.emplace_back(atlasSize / 4, atlasSize / 4);
     images[0].InitAlpha();
     images[1].InitAlpha();
     images[2].InitAlpha();
-    for (int x = 0; x < (int)xlights->GetEffectManager().size(); x++) {
+    // Sized to the live effect count (not EffectManager::eff_LASTEFFECT) so
+    // plugin effects - registered with ids >= eff_LASTEFFECT - get a slot too.
+    effectIconLocations.assign(count, {0.0f, 0.0f});
+    for (int x = 0; x < count; x++) {
         RenderableEffect* eff = xlights->GetEffectManager()[x];
         int xLoc = (x % 8) * 64;
         int yLoc = x / 8 * 64;
@@ -8002,8 +8015,8 @@ void EffectsGrid::CreateEffectIconTextures(xlGraphicsContext* ctx) {
         }
         images[2].Paste(img, xLoc / 4, yLoc / 4);
 
-        effectIconLocations[eff->GetId()][0] = ((float)xLoc) / 512.0f;
-        effectIconLocations[eff->GetId()][1] = ((float)yLoc) / 512.0f;
+        effectIconLocations[eff->GetId()][0] = ((float)xLoc) / effectIconAtlasSize;
+        effectIconLocations[eff->GetId()][1] = ((float)yLoc) / effectIconAtlasSize;
     }
     effectIconTexture = ctx->createTextureMipMaps(wxImagesToXlImages(images), "EffectIcons");
 }

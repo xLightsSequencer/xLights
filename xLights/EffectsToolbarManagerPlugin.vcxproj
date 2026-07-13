@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6B4E9F27-3A1C-4E8D-9F2A-8C5D6E1B7A94}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>EffectsToolbarManagerPlugin</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>false</SpectreMitigation>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <!-- PluginLoader's discovery filter requires "XLightsPlugin" as a substring
+       of the filename (see XLightsPluginManager's fileNameFilter config) -
+       the project/RootNamespace name doesn't need to match, but the built
+       DLL's name does. -->
+  <PropertyGroup>
+    <TargetName>EffectsToolbarManagerXLightsPlugin</TargetName>
+  </PropertyGroup>
+  <!-- Same relative IncludePath as Xlights.vcxproj (this project lives alongside it) so plugin
+       TUs see byte-identical class layouts for anything included from src-core. Deliberately
+       NO wxWidgets include/library paths - this plugin must not touch wx at all (see
+       xLightsPlugin.h's header comment: xLights.exe links wx statically, so a plugin linking
+       its own copy would get a second, non-communicating copy of wx's runtime state). -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <DisableSpecificWarnings>4267;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Xlights.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <!-- XLightsPluginManager scans <exeDir>/xlights_plugins/, not this
+         project's own output dir - without this copy, a rebuilt DLL just
+         sits in x64\Debug\ and xLights keeps loading whatever stale copy
+         was last placed in xlights_plugins\ by hand (this bit the Voronoi
+         Cells effect plugin for several days before being caught). -->
+    <PostBuildEvent>
+      <Command>if not exist "$(OutDir)xlights_plugins" mkdir "$(OutDir)xlights_plugins"
+xcopy /Y "$(TargetPath)" "$(OutDir)xlights_plugins\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS</PreprocessorDefinitions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj</AdditionalOptions>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <DisableSpecificWarnings>4267;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Xlights.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(OutDir)xlights_plugins" mkdir "$(OutDir)xlights_plugins"
+xcopy /Y "$(TargetPath)" "$(OutDir)xlights_plugins\"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="EffectsToolbarManagerPlugin\EffectsToolbarManagerPlugin.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- ProjectReference (rather than a hand-maintained AdditionalDependencies /
+         AdditionalLibraryDirectories) so MSBuild both orders this build after
+         Xlights.vcxproj and automatically links against the Xlights.lib import
+         library it generates (see CoreExport.h / XLIGHTS_EXE_BUILD). -->
+    <ProjectReference Include="Xlights.vcxproj">
+      <Project>{48F219FA-C28E-457B-9A85-DC3A8F949F9B}</Project>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

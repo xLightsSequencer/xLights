@@ -1834,7 +1834,7 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     CurrentSeqXmlFile->SetFullPath(ToStdString(oName.GetFullPath()));
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
-    SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
+    SetTitle(xlights_base_name + xlights_qualifier + " - " + filename + SafeModeTitleSuffix());
     AddToMRU(filename);
     UpdateRecentFilesList(false);
 }

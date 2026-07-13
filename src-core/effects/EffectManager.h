@@ -10,7 +10,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include "effectPlugin.h"
+#include "utils/PluginLoader.h"
+
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -100,6 +104,25 @@ public:
         RenderableEffect *GetEffect(const std::string &str) const;
         int GetLastEffectId() const { return (int)size() - 1; }
 
+        // One entry per plugin file loadEffectPlugins() found, whether or not
+        // it loaded successfully - surfaced to the Plugins Preferences UI so
+        // load failures (missing exports, threw, returned null) are visible
+        // somewhere other than the log file.
+        struct PluginInfo {
+            std::string name;   // effect name (empty if load failed before a name was known)
+            std::string path;   // plugin file path
+            bool loaded = false;
+            std::string error;  // human-readable failure reason; empty if loaded
+        };
+
+        // Scans pluginDir for effect plugin DLLs (exporting xlCreateEffectPlugin /
+        // xlDestroyEffectPlugin) and registers each one, assigning ids starting
+        // right after the last built-in RGB_EFFECTS_e value. Safe to call with
+        // a non-existent directory.
+        void loadEffectPlugins(const std::string& pluginDir);
+
+        const std::vector<PluginInfo>& GetPluginInfo() const { return m_pluginInfo; }
+
         int GetEffectIndex(const std::string &effectName) const;
         const std::string &GetEffectName(int idx) const;
 
@@ -123,4 +146,16 @@ public:
         std::string mMetadataDir;
         mutable std::map<std::string, RenderableEffect *> effectsByName;
         std::vector<RenderableEffect *> effects;
+
+        // Declared before m_pluginEffects so it (and the DLL handles it owns)
+        // is destroyed AFTER m_pluginEffects (reverse declaration order),
+        // guaranteeing the DLLs stay mapped while plugin effect destructors run.
+        PluginLoader<RenderableEffect, int> m_pluginLoader{
+            {"EffectPlugin", "xlCreateEffectPlugin", "xlDestroyEffectPlugin", "EffectManager"}
+        };
+        // Owns effects created by loadEffectPlugins(); raw pointers into these
+        // also live in `effects` (ids >= eff_LASTEFFECT), but ~EffectManager's
+        // delete loop skips those ids since ownership/destruction belongs here.
+        std::vector<std::unique_ptr<RenderableEffect, xlDestroyEffectPluginFn>> m_pluginEffects;
+        std::vector<PluginInfo> m_pluginInfo;
 };

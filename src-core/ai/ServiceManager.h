@@ -11,6 +11,7 @@
  **************************************************************/
 #include "aiType.h"
 #include "aiPlugin.h"
+#include "utils/PluginLoader.h"
 
 #include <functional>
 #include <memory>
@@ -72,26 +73,10 @@ public:
     [[nodiscard]] std::vector<aiBase*> getServices() const;
 
 private:
-    // RAII wrapper for a loaded plugin library handle.
-    // Declared before m_services so it is destroyed AFTER m_services
-    // (reverse construction order), guaranteeing the DLL stays mapped while
-    // service destructors run.
-    struct PluginLibrary {
-        void* handle = nullptr;
-
-        PluginLibrary() = default;
-        explicit PluginLibrary(void* h) : handle(h) {}
-        ~PluginLibrary();
-        PluginLibrary(const PluginLibrary&) = delete;
-        PluginLibrary& operator=(const PluginLibrary&) = delete;
-        PluginLibrary(PluginLibrary&& o) noexcept : handle(o.handle) { o.handle = nullptr; }
-        PluginLibrary& operator=(PluginLibrary&& o) noexcept {
-            if (this != &o) { handle = o.handle; o.handle = nullptr; }
-            return *this;
-        }
-    };
-
     IServiceSettingsStore* m_store = nullptr;
-    std::vector<PluginLibrary> m_pluginLibraries; // must be declared before m_services
+    // Declared before m_services so it (and the DLL handles it owns) is
+    // destroyed AFTER m_services (reverse construction order), guaranteeing
+    // the DLL stays mapped while plugin service destructors run.
+    PluginLoader<aiBase, ServiceManager*> m_pluginLoader;
     std::vector<ServicePtr> m_services;
 };

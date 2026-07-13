@@ -36,6 +36,11 @@ public:
     explicit EffectPanelManager(EffectManager* effectManager);
     ~EffectPanelManager();
 
+    // Must be called once, after EffectManager has finished loading plugin
+    // effects and before anything (e.g. EffectsPanel's Effects toolbox)
+    // iterates GetPanel()/GetPanelCount() - see xLightsFrame's constructor.
+    void Init();
+
     xlEffectPanel* GetPanel(int effectId, wxWindow* parent);
     xlEffectPanel* GetPanel(const std::string& effectName, wxWindow* parent);
 

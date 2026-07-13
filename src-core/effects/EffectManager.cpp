@@ -159,9 +159,30 @@ EffectManager::EffectManager(std::string metadataDir)
 
 EffectManager::~EffectManager()
 {
+    // Plugin effects (id >= eff_LASTEFFECT) are owned by m_pluginEffects and
+    // destroyed via their DLL's xlDestroyEffectPlugin, not `delete` here.
     for (auto it = begin(); it != end(); ++it) {
-        delete *it;
+        if (*it != nullptr && (*it)->GetId() < eff_LASTEFFECT) {
+            delete *it;
+        }
     }
+}
+
+void EffectManager::loadEffectPlugins(const std::string& pluginDir) {
+    int nextId = eff_LASTEFFECT;
+    m_pluginLoader.loadPlugins(
+        pluginDir,
+        [&nextId] { return nextId; },
+        [this, &nextId](RenderableEffect* effect, PluginLoader<RenderableEffect, int>::DestroyFn destroyFn, const std::string& path) {
+            spdlog::info("EffectManager: loaded effect plugin '{}' ({})", effect->Name(), path);
+            m_pluginEffects.emplace_back(effect, destroyFn);
+            add(effect);
+            m_pluginInfo.push_back({effect->Name(), path, true, ""});
+            ++nextId;
+        },
+        [this](const std::string& path, const std::string& reason) {
+            m_pluginInfo.push_back({"", path, false, reason});
+        });
 }
 
 RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {

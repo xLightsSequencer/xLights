@@ -710,6 +710,10 @@
 		<Unit filename="../src-core/ai/ServiceManager.cpp" />
 		<Unit filename="../src-core/ai/ServiceManager.h" />
 		<Unit filename="../src-core/ai/ServiceProperty.h" />
+		<Unit filename="../src-core/utils/CoreExport.h" />
+		<Unit filename="../src-core/utils/PluginLoader.h" />
+		<Unit filename="../src-core/utils/pluginExport.h" />
+		<Unit filename="../src-core/effects/effectPlugin.h" />
 		<Unit filename="../src-ui-wx/ai/AIColorPaletteDialog.cpp" />
 		<Unit filename="../src-ui-wx/ai/AIColorPaletteDialog.h" />
 		<Unit filename="../src-ui-wx/ai/AIImageDialog.cpp" />
@@ -1362,6 +1366,13 @@
 		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/PluginsSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/PluginsSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/plugins/xLightsPlugin.h" />
+		<Unit filename="../src-ui-wx/plugins/XLightsPluginHost.cpp" />
+		<Unit filename="../src-ui-wx/plugins/XLightsPluginHost.h" />
+		<Unit filename="../src-ui-wx/plugins/XLightsPluginManager.cpp" />
+		<Unit filename="../src-ui-wx/plugins/XLightsPluginManager.h" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/RandomEffectsSettingsPanel.cpp" />

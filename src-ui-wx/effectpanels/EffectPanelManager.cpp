@@ -46,6 +46,16 @@
 EffectPanelManager::EffectPanelManager(EffectManager* em)
     : effectManager_(em)
 {
+    // Deliberately NOT calling RegisterPanels() here. effectPanelManager is a
+    // default-member-initialized field on xLightsFrame, constructed before
+    // the frame's own constructor body runs - well before plugin effects are
+    // loaded into EffectManager (which happens early in that body, but still
+    // after this point). Registering here would permanently miss any plugin
+    // effects. The frame calls Init() explicitly, after loading plugins and
+    // before CreateSequencer() builds the Effects toolbox from this list.
+}
+
+void EffectPanelManager::Init() {
     RegisterPanels();
 }
 
@@ -159,6 +169,23 @@ void EffectPanelManager::RegisterPanels() {
     RegisterJsonSubclass<VUMeterPanel>(E::eff_VUMETER, "VU Meter");
     RegisterJsonSubclass<WarpPanel>(E::eff_WARP, "Warp");
     RegisterJsonSubclass<WavePanel>(E::eff_WAVE, "Wave");
+
+    // Plugin effects (ids >= eff_LASTEFFECT) have no hand-written C++ panel
+    // and typically ship no metadata JSON either. Give each one a page in the
+    // effects toolbox anyway - with its own metadata if it has any, otherwise
+    // an empty (no-controls) panel - rather than silently disappearing from
+    // the UI the way a null GetPanel() result does.
+    if (effectManager_ != nullptr) {
+        static const nlohmann::json kEmptyPanelMetadata = nlohmann::json::object();
+        for (RenderableEffect* eff : *effectManager_) {
+            if (eff == nullptr) continue;
+            int id = eff->GetId();
+            if (id < static_cast<int>(panels.size()) && panels[id].factory != nullptr) continue;
+            RegisterPanel(id, eff->Name(), [eff](wxWindow* p) -> xlEffectPanel* {
+                return new JsonEffectPanel(p, eff->HasMetadata() ? eff->GetMetadata() : kEmptyPanelMetadata);
+            });
+        }
+    }
 }
 
 xlEffectPanel* EffectPanelManager::GetPanel(int effectId, wxWindow* parent) {

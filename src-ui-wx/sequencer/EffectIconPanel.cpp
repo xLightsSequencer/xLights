@@ -36,7 +36,10 @@ void AddEffectPanelButtons(const EffectManager& manager, EffectIconPanel* panel,
         BitmapButton->SetMinSize(wxSize(size, size));
         BitmapButton->SetMaxSize(wxSize(size, size));
         BitmapButton->SetEffect(manager[x], 16);
-        sizer->Add(BitmapButton, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, x);
+        // NOTE: this border value used to be the loop index `x` itself,
+        // meaning icon N got an N-pixel border - escalating up to 56px for
+        // the effect at index 56. Use a small constant instead.
+        sizer->Add(BitmapButton, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
     }
 }
 
@@ -77,11 +80,14 @@ void EffectIconPanel::OnResize(wxSizeEvent& event)
         return;
     }
 
-    double cols = wsz.GetWidth() * cnt;
-    cols /= std::max(wsz.GetHeight(), 1);
-    cols = std::sqrt(cols);
-    int i = std::round(cols);
-    GridSizer1->SetCols(i);
+    int size = FromDIP(16) + FromDIP(2); // icon + wxALL border added in AddEffectPanelButtons
+    // Floor (not round) so a full row of icons always fits within the
+    // available width - no fractional-column overflow that would clip the
+    // last icon.
+    int cols = std::max(1, wsz.GetWidth() / size);
+    GridSizer1->SetCols(cols);
     GridSizer1->SetDimension(0, 0, wsz.GetWidth(), wsz.GetHeight());
     GridSizer1->Layout();
+
+    event.Skip();
 }

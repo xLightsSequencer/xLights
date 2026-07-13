@@ -651,6 +651,11 @@
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\PluginsSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\plugins\XLightsPluginHost.cpp" />
+    <ClCompile Include="..\src-ui-wx\plugins\XLightsPluginManager.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -2166,6 +2171,12 @@
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\PluginsSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\plugins\xLightsPlugin.h" />
+    <ClInclude Include="..\src-ui-wx\plugins\XLightsPluginHost.h" />
+    <ClInclude Include="..\src-ui-wx\plugins\XLightsPluginManager.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
@@ -2670,6 +2681,10 @@
     <ClInclude Include="..\src-core\ai\ollama.h">
       <Filter>ai</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\utils\CoreExport.h" />
+    <ClInclude Include="..\src-core\utils\PluginLoader.h" />
+    <ClInclude Include="..\src-core\utils\pluginExport.h" />
+    <ClInclude Include="..\src-core\effects\effectPlugin.h" />
     <ClInclude Include="..\src-core\ai\ServiceManager.h">
       <Filter>ai</Filter>
     </ClInclude>

@@ -19,6 +19,7 @@
 #include "UtilClasses.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Color.h"
+#include "utils/CoreExport.h"
 
 class EffectLayer;
 class ValueCurve;
@@ -37,8 +38,11 @@ class EffectSymbol;
 #define EFFECT_RT_SELECTED      2
 #define EFFECT_SELECTED         3
 
-// An effect represents a generic effect
-class Effect
+// Exported (see CoreExport.h) so xLights Plugins (src-ui-wx/plugins/) can call
+// non-inline methods (GetEffectName, GetSettingsAsString, etc.) on the
+// Effect* IXLightsPluginHost::GetSelectedEffect() / OnSelectionChanged hand
+// them, resolved against xLights.exe's import library on Windows.
+class XLCORE_API Effect
 {
     static bool backgroundDisplayListsEnabled;
     int mID = 0;

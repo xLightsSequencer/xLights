@@ -82,6 +82,7 @@
 | Help → About | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1296`, `OnAbout`; iPad `AboutSheet.swift` / `showingAbout`. |
 | Diagnostics: spdlog rotation | other | ✅ | ✅ | parity | P1 | easy | feasible | Same rotating-file config in core + `XLiPadInit.mm`. |
 | Diagnostics: crash capture + auto-upload | other | ✅ | ✅ | parity | P1 | easy | feasible | Desktop uploads to dankulp.com/crashUpload; iPad `XLDiagnosticUploader.swift` + MetricKit auto-stages & POSTs to the same endpoint, with Settings opt-in (`XLSendCrashReports`). iPad slightly ahead (automatic MetricKit). |
+| Tools → Plugins (xLights UI Plugins - dockable panels/menu entries) | menu | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `XLightsPluginManager`/`XLightsPluginHost` (2026-07 addition) - loads DLLs exporting `IXLightsPlugin` at startup (after `CreateSequencer()`), each registering a dockable AUI pane + a `Tools > Plugins` menu toggle via a curated abstract widget facade (`IPluginPanel`/`IPluginListBox`/etc. - never real wx types, to avoid a second non-communicating copy of wx's statically-linked runtime). Doubly infeasible on iPad: same App Store code-loading restriction as the existing AI/effect plugin rows, **and** there is no wxWidgets on iPad at all to back the widget facade even if code-loading were allowed. |
 
 ## iPad gaps (desktop has, iPad missing)
 
@@ -181,6 +182,13 @@ Logs, Import Effects, all external Help links, About, crash capture).
   disabled by default).
 - **Help → Content (F1)** — no F1 key on iPad keyboards; would need a
   remapped Help sheet instead.
+- **Tools → Plugins (xLights UI Plugins)** — `XLightsPluginManager` loads
+  native DLLs at startup, same App Store restriction as AI/effect plugin
+  loading (theme 04/12). Additionally infeasible independent of that
+  restriction: the plugin UI facade (`IPluginPanel` etc.) is implemented by
+  wrapping real wxWidgets objects the host constructs, and there is no
+  wxWidgets on iPad - the abstraction has nothing to wrap there even
+  setting aside code-loading policy.
 
 ## Recommended sequencing
 

@@ -29,6 +29,7 @@
 #include "OtherSettingsPanel.h"
 #include "CheckSequenceSettingsPanel.h"
 #include "ServicesPanel.h"
+#include "PluginsSettingsPanel.h"
 
 #include "grid_icon.xpm"
 #include "settings_panel_icon.xpm"
@@ -209,6 +210,10 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
                       wxBitmapBundle(settingIcon),
                       scaledBundle(settingsImage, listIconSize),
                       [this](wxWindow* p) { return (wxWindow*)(new OtherSettingsPanel(p, this)); } });
+    pages.push_back({ "Plugins",
+                      wxArtProvider::GetBitmapBundle("xlART_PLUGIN", wxART_BUTTON, iconSize),
+                      wxArtProvider::GetBitmapBundle("xlART_PLUGIN", wxART_BUTTON, listIconSize),
+                      [this](wxWindow* p) { return (wxWindow*)(new PluginsSettingsPanel(p, this)); } });
 #ifdef ENABLE_SERVICES
     pages.push_back({ "Services",
                       wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize),

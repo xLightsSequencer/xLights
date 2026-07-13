@@ -389,6 +389,8 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, id, {zoom_out_16, zoom_out_24, zoom_out_32, zoom_out_48, zoom_out_64});
     } else if ("xlART_SETTINGS" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {settings_16, settings_24, settings_32, settings_48, settings_64});
+    } else if ("xlART_PLUGIN" == id) {
+        return CreateBitmapBundleFromXPMs(sz, id, {plugin_16, plugin_24, plugin_32, plugin_48, plugin_64});
     } else if ("xlART_PLAY" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {play_16_xpm, play_24_xpm, play_32_xpm, play_48_xpm, play_64_xpm});
     } else if ("xlART_PAUSE" == id) {

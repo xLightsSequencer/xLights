@@ -158,7 +158,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;HAVE_ORT;HAVE_VULKAN;VK_NO_PROTOTYPES;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;XLIGHTS_EXE_BUILD;$(DefineConstants);wxUSE_WEBP;HAVE_ORT;HAVE_VULKAN;VK_NO_PROTOTYPES;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj</AdditionalOptions>
@@ -203,7 +203,7 @@ xcopy /Y /I "$(ProjectDir)..\resources\html\*.*" "$(TargetDir)html\"
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;XLIGHTS_EXE_BUILD;$(DefineConstants);wxUSE_WEBP;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX"</AdditionalOptions>
@@ -237,7 +237,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;XLIGHTS_EXE_BUILD;$(DefineConstants);wxUSE_WEBP;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX"</AdditionalOptions>
@@ -272,7 +272,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT;HAVE_VULKAN;HAVE_VULKAN_SHADER;VK_NO_PROTOTYPES;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;XLIGHTS_EXE_BUILD;$(DefineConstants);HAVE_ORT;HAVE_VULKAN;HAVE_VULKAN_SHADER;VK_NO_PROTOTYPES;GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -316,7 +316,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;XLIGHTS_EXE_BUILD;$(DefineConstants);GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" %(AdditionalOptions)</AdditionalOptions>
@@ -360,7 +360,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;XLIGHTS_EXE_BUILD;$(DefineConstants);GLM_ENABLE_EXPERIMENTAL</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" %(AdditionalOptions)</AdditionalOptions>
@@ -953,7 +953,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\PluginsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\plugins\XLightsPluginHost.cpp" />
+    <ClCompile Include="..\src-ui-wx\plugins\XLightsPluginManager.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\ViewSettingsPanel.cpp" />
@@ -1142,6 +1145,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\ai\OpenVINOService.h" />
     <ClInclude Include="..\src-core\ai\ServiceManager.h" />
     <ClInclude Include="..\src-core\ai\ServiceProperty.h" />
+    <ClInclude Include="..\src-core\utils\CoreExport.h" />
+    <ClInclude Include="..\src-core\utils\PluginLoader.h" />
+    <ClInclude Include="..\src-core\utils\pluginExport.h" />
+    <ClInclude Include="..\src-core\effects\effectPlugin.h" />
     <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h" />
     <ClInclude Include="..\src-ui-wx\ai\AIImageDialog.h" />
     <ClInclude Include="..\src-ui-wx\ai\PropertyGridBuilder.h" />
@@ -1602,6 +1609,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\PluginsSettingsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\plugins\xLightsPlugin.h" />
+    <ClInclude Include="..\src-ui-wx\plugins\XLightsPluginHost.h" />
+    <ClInclude Include="..\src-ui-wx\plugins\XLightsPluginManager.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.h" />

@@ -120,6 +120,7 @@
 | Reset panel to defaults (per-effect) | menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop right-click → "Reset panel" clears an effect panel's controls to defaults. iPad: inspector header overflow (`ellipsis.circle`) menu → "Reset to Defaults" → `SequencerViewModel.resetSelectedEffectToDefaults()` (`SequencerViewModel.swift`) clears the whole effect settings string (E_/B_/T_) and resets the palette to a two-colour default via the existing `replaceEffectSettings(_:palette:inRow:atIndex:)` bridge, in one undoable step (captures the prior settings + palette strings for Cmd+Z via `restoreEffectSettingsString`). |
 | Convert selected effects to a different type | context-menu | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop converts a multi-selection of effects to another effect type; no iPad equivalent. |
 | Resize-on-add image dialog | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop ResizeImageDialog (src-ui-wx/media/ResizeImageDialog.cpp) prompts to resize an image when added to a Pictures effect. iPad: after a Pictures image is browsed in (`EffectFilenameBlockView.commitPicked`, Images subdir only), `PicturesResizeOnAddSheet.swift` offers Width/Height steppers seeded from the image's pixel size (optional keep-aspect), writes a resized `<name>_WxH.<ext>` copy via UIGraphicsImageRenderer alongside the original, and repoints the effect filename at it. "Skip" leaves the original untouched. |
+| Effect plugin loading (DLL/dylib/so) | architecture | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `EffectManager::loadEffectPlugins` (2026-07 addition) - a generalized `PluginLoader<T,Context>` (shared with `ServiceManager`'s AI plugins) `dlopen`/`LoadLibrary`s third-party effect DLLs at startup and registers them with ids starting at `eff_LASTEFFECT`. Same App Store restriction as the existing AI plugin row (theme 12): loading external executable code at runtime is prohibited, so iPad would pass an empty plugin dir, same as `ServiceManager` already does. Preferences → Plugins → Effect Plugins (desktop-only) lists what's loaded + an "Add Plugin..." file-copy helper. |
 
 ## iPad gaps (desktop has, iPad missing)
 
@@ -210,6 +211,15 @@
 
 ## Infeasible / restricted on iPad
 
+- **Effect plugin loading (DLL/dylib/so)** — `EffectManager::loadEffectPlugins`
+  scans an `effect_plugins/` folder next to the executable and `dlopen`/
+  `LoadLibrary`s any matching file, calling its exported `xlCreateEffectPlugin`/
+  `xlDestroyEffectPlugin` to register a `RenderableEffect` subclass at runtime.
+  Same restriction as the pre-existing AI plugin loading row (theme 12,
+  `ServiceManager::loadPlugins`): App Store policy forbids loading externally
+  supplied executable code, so iPad cannot scan/load either plugin kind. iPad
+  would pass an empty plugin dir, exactly as it already does for AI plugins.
+  *Infeasible* — not a backlog gap.
 - **Effect Wheel (radial keybinding quick-drop)** — *declined as a touch-idiom
   mismatch* (not platform-blocked). The wheel is a keybinding accelerator that
   surfaces the user's bound EFFECT keys; iPad has no per-user keybinding store

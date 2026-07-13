@@ -20,16 +20,9 @@
 
 #include "utils/string_utils.h"
 
-#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 
 #include <log.h>
 
@@ -49,7 +42,8 @@ static ServiceManager::ServicePtr makeBuiltin(aiBase* p) {
 }
 
 ServiceManager::ServiceManager(IServiceSettingsStore* store, const std::string& pluginDir)
-    : m_store(store)
+    : m_store(store),
+      m_pluginLoader({"AIPlugin", "xlCreateAIService", "xlDestroyAIService", "ServiceManager"})
 {
 #if defined(__APPLE__) && defined(__arm64__)
     // AppleIntelligence's enabled capabilities depend on the OS
@@ -84,123 +78,18 @@ ServiceManager::ServiceManager(IServiceSettingsStore* store, const std::string& 
 }
 
 ServiceManager::~ServiceManager() {
-    // m_services is destroyed before m_pluginLibraries (reverse declaration order),
+    // m_services is destroyed before m_pluginLoader (reverse declaration order),
     // so all service destructors run while their DLLs are still mapped.
 }
 
-// PluginLibrary destructor: close the platform DLL handle
-ServiceManager::PluginLibrary::~PluginLibrary() {
-    if (handle) {
-#ifdef _WIN32
-        FreeLibrary(static_cast<HMODULE>(handle));
-#else
-        dlclose(handle);
-#endif
-    }
-}
-
 void ServiceManager::loadPlugins(const std::string& pluginDir) {
-    std::error_code ec;
-    if (!std::filesystem::exists(pluginDir, ec) || ec) {
-        return;
-    }
-
-#ifdef _WIN32
-    constexpr const char* ext = ".dll";
-#elif defined(__APPLE__)
-    constexpr const char* ext = ".dylib";
-#else
-    constexpr const char* ext = ".so";
-#endif
-
-    for (auto const& entry : std::filesystem::directory_iterator(pluginDir, ec)) {
-        if (ec) break;
-        if (!entry.is_regular_file()) continue;
-        if (entry.path().extension() != ext) continue;
-        if (entry.path().string().find("AIPlugin") == std::string::npos)
-            continue;
-
-        std::string path = entry.path().string();
-
-#ifdef _WIN32
-        // LOAD_WITH_ALTERED_SEARCH_PATH makes Windows search the DLL's own
-        // directory first, so whisper.dll / ggml.dll etc. can live alongside
-        // the plugin without needing to be on the system PATH.
-        void* handle = static_cast<void*>(
-            LoadLibraryExA(path.c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH));
-#else
-        void* handle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
-#endif
-        // Helper: log to both spdlog and the VS Output window
-#ifdef _WIN32
-#define PLUGIN_WARN(msg) do { spdlog::warn(msg); OutputDebugStringA(("xLights plugin: " msg "\n")); } while(0)
-#define PLUGIN_WARNF(ffmt, ...) do { auto _m = fmt::format("xLights plugin: " ffmt "\n", __VA_ARGS__); spdlog::warn(_m); OutputDebugStringA(_m.c_str()); } while(0)
-#else
-#define PLUGIN_WARN(msg)        spdlog::warn(msg)
-#define PLUGIN_WARNF(ffmt, ...)  spdlog::warn(ffmt, __VA_ARGS__)
-#endif
-
-        if (!handle) {
-#ifdef _WIN32
-            PLUGIN_WARNF("failed to load '{}': error {}", path, GetLastError());
-#else
-            PLUGIN_WARNF("failed to load '{}': {}", path, dlerror());
-#endif
-            continue;
-        }
-
-#ifdef _WIN32
-        auto createFn  = reinterpret_cast<xlCreateAIServiceFn> (GetProcAddress(static_cast<HMODULE>(handle), "xlCreateAIService"));
-        auto destroyFn = reinterpret_cast<xlDestroyAIServiceFn>(GetProcAddress(static_cast<HMODULE>(handle), "xlDestroyAIService"));
-#else
-        auto createFn  = reinterpret_cast<xlCreateAIServiceFn> (dlsym(handle, "xlCreateAIService"));
-        auto destroyFn = reinterpret_cast<xlDestroyAIServiceFn>(dlsym(handle, "xlDestroyAIService"));
-#endif
-
-        if (!createFn) {
-            PLUGIN_WARNF("'{}' missing export xlCreateAIService", path);
-#ifdef _WIN32
-            FreeLibrary(static_cast<HMODULE>(handle));
-#else
-            dlclose(handle);
-#endif
-            continue;
-        }
-        if (!destroyFn) {
-            PLUGIN_WARNF("'{}' missing export xlDestroyAIService", path);
-#ifdef _WIN32
-            FreeLibrary(static_cast<HMODULE>(handle));
-#else
-            dlclose(handle);
-#endif
-            continue;
-        }
-
-        aiBase* service = nullptr;
-        try {
-            service = createFn(this);
-        } catch (const std::exception& ex) {
-            PLUGIN_WARNF("'{}' xlCreateAIService threw: {}", path, ex.what());
-        } catch (...) {
-            PLUGIN_WARNF("'{}' xlCreateAIService threw unknown exception", path);
-        }
-        if (!service) {
-            PLUGIN_WARNF("'{}' xlCreateAIService returned null", path);
-#ifdef _WIN32
-            FreeLibrary(static_cast<HMODULE>(handle));
-#else
-            dlclose(handle);
-#endif
-            continue;
-        }
-
-        spdlog::info("ServiceManager: loaded AI plugin '{}' ({})", service->GetLLMName(), path);
-        m_pluginLibraries.emplace_back(handle);
-        m_services.emplace_back(service, [destroyFn](aiBase* s) { destroyFn(s); });
-
-#undef PLUGIN_WARN
-#undef PLUGIN_WARNF
-    }
+    m_pluginLoader.loadPlugins(
+        pluginDir,
+        [this] { return this; },
+        [this](aiBase* service, PluginLoader<aiBase, ServiceManager*>::DestroyFn destroyFn, const std::string& path) {
+            spdlog::info("ServiceManager: loaded AI plugin '{}' ({})", service->GetLLMName(), path);
+            m_services.emplace_back(service, [destroyFn](aiBase* s) { destroyFn(s); });
+        });
 }
 
 std::vector<aiBase*> ServiceManager::getServices() const {

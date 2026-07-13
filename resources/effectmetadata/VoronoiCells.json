@@ -1,0 +1,72 @@
+{
+    "effectName": "Voronoi Cells",
+    "properties": [
+        {
+            "id": "Voronoi_CellCount",
+            "label": "Cell Count",
+            "type": "int",
+            "controlType": "slider",
+            "default": 12,
+            "min": 3,
+            "max": 30,
+            "description": "Number of Voronoi cells. Cell layout is reproducible (seeded) and only regenerates when this value changes."
+        },
+        {
+            "id": "Voronoi_Speed",
+            "label": "Speed",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.30,
+            "min": 0,
+            "max": 100,
+            "divisor": 100,
+            "description": "How fast the cells drift and bounce around the buffer. 0 is stationary."
+        },
+        {
+            "id": "Voronoi_Pulse",
+            "label": "Pulse",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.50,
+            "min": 0,
+            "max": 100,
+            "divisor": 100,
+            "description": "Brightness pulse rate applied per cell. 0 is a steady, non-pulsing brightness."
+        },
+        {
+            "id": "Voronoi_EdgeWidth",
+            "label": "Edge Width",
+            "type": "float",
+            "controlType": "slider",
+            "default": 0.25,
+            "min": 0,
+            "max": 100,
+            "divisor": 100,
+            "description": "Thickness of the border drawn between adjacent cells (when Show Edges is on)."
+        },
+        {
+            "id": "Voronoi_ColorMode",
+            "label": "Color Mode",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Stained Glass",
+                "Cellular / Organic",
+                "Neon Grid",
+                "Ice Crystals",
+                "Lava Lamp",
+                "Color Palette"
+            ],
+            "default": "Stained Glass",
+            "description": "Palette and edge treatment: Stained Glass (saturated hues, dark borders), Cellular / Organic (warm ambers, glowing edges), Neon Grid (dark cells, bright neon borders), Ice Crystals (cool blues/whites, bright crystalline edges), Lava Lamp (slowly morphing warm/cool hues, soft edges), Color Palette (cells blend continuously across this effect's selected color palette instead of a fixed hue scheme)."
+        },
+        {
+            "id": "Voronoi_ShowEdges",
+            "label": "Show Edges",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true,
+            "description": "Draw borders between cells. When off, cells blend directly into each other with no border treatment."
+        }
+    ]
+}

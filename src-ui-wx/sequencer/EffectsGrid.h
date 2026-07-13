@@ -351,9 +351,18 @@ private:
     xlTexture *fontTexture = nullptr;
     int curFontSize = 0;
 
-    std::array<float[2], EffectManager::eff_LASTEFFECT> effectIconLocations;
+    // Sized dynamically (not to EffectManager::eff_LASTEFFECT) because
+    // plugin effects are registered with ids >= eff_LASTEFFECT - see
+    // CreateEffectIconTextures(), which resizes this to
+    // GetEffectManager().size() before populating it.
+    std::vector<std::array<float, 2>> effectIconLocations;
     xlTexture *effectIconTexture;
     xlVertexTextureAccumulator *effectIcons;
+    // Pixel dimension of the (square) effectIconTexture atlas at its base
+    // (64px-per-icon) mip level - grows with effect count (8 icons per row),
+    // so it's no longer hardcoded to the 512x512/64-icon cap. Used as the UV
+    // divisor everywhere effectIconLocations is read.
+    float effectIconAtlasSize = 512.0f;
 
     int mResizingMode;
     int mStartResizeTimeMS;

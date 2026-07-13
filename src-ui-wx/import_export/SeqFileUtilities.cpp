@@ -620,7 +620,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         float elapsedTime = sw.Time() / 1000.0; // msec => sec
         SetStatusText(wxString::Format("'%s' loaded in %4.3f sec.", filename, elapsedTime));
-        SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);
+        SetTitle(xlights_base_name + xlights_qualifier + " - " + filename + SafeModeTitleSuffix());
 
         // Check media compatibility with AVFoundation/AudioToolbox
         if (loaded_xml && !_renderMode && !_checkSequenceMode) {
@@ -1109,7 +1109,7 @@ bool xLightsFrame::CloseSequence()
     if (_housePreviewPanel != nullptr)
         _housePreviewPanel->Refresh();
 
-    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date);
+    SetTitle(xlights_base_name + xlights_qualifier + " (Ver " + GetDisplayVersionString() + ") " + xlights_build_date + SafeModeTitleSuffix());
     return true;
 }
 
