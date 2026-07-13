@@ -431,18 +431,19 @@ bool Model::IsAlias(const std::string& alias, bool oldnameOnly) const
     return false;
 }
 
-void Model::AddAlias(const std::string& alias)
+bool Model::AddAlias(const std::string& alias)
 {
     if (IsAlias(alias))
-        return;
+        return false;
 
     std::string lAlias = ::Lower(alias);
     // a model name cant be its own alias
     if (lAlias == Lower(Name()))
-        return;
+        return false;
 
     aliases.emplace_back(lAlias);
     IncrementChangeCount();
+    return true;
 }
 
 void Model::DeleteAlias(const std::string& alias)
