@@ -1384,20 +1384,37 @@ class SequencerViewModel {
         // queue a re-pick of the parent folder (iOS grants child
         // access transitively). The actual `document.openSequence`
         // call is deferred until the user re-grants.
-        if !XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false) {
-            let parent = (path as NSString).deletingLastPathComponent
-            enqueueAccessReprompt(label: "sequence file",
-                                   originalPath: path,
-                                   pickPath: parent)
-            afterAccessQueueEmpty = { [weak self] in
-                guard let self else { return }
-                guard XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false) else { return }
-                self.performOpenSequence(path: path, forceRender: forceRender)
+        //
+        // `obtainAccess` resolves the bookmark synchronously and can stall
+        // (e.g. right after an iCloud download settles) long enough to trip
+        // the 0x8BADF00D main-thread watchdog, so run the pre-check off the
+        // main actor and branch back on main. Mirrors performOpenSequence's
+        // detach.
+        Task { [weak self] in
+            guard let self else { return }
+            let granted = await Task.detached {
+                XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+            }.value
+            if !granted {
+                let parent = (path as NSString).deletingLastPathComponent
+                self.enqueueAccessReprompt(label: "sequence file",
+                                            originalPath: path,
+                                            pickPath: parent)
+                self.afterAccessQueueEmpty = { [weak self] in
+                    guard let self else { return }
+                    Task {
+                        let ok = await Task.detached {
+                            XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+                        }.value
+                        guard ok else { return }
+                        self.performOpenSequence(path: path, forceRender: forceRender)
+                    }
+                }
+                self.runNextAccessReprompt()
+                return
             }
-            runNextAccessReprompt()
-            return
+            self.performOpenSequence(path: path, forceRender: forceRender)
         }
-        performOpenSequence(path: path, forceRender: forceRender)
     }
 
     private func performOpenSequence(path: String, forceRender: Bool) {
