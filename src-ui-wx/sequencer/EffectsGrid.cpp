@@ -5453,7 +5453,7 @@ void EffectsGrid::AlignSelectedEffectsToTimingMark() {
         for (int k = 0; k < 20; k++) {//crappy recursion
             bool moved{ false };
             for (auto* ef : el->GetEffects()) {
-                if (ef->GetSelected() != EFFECT_NOT_SELECTED) {
+                if (ef->GetSelected() != EFFECT_NOT_SELECTED) && !ef->IsLocked() && !el->IsFixedTimingLayer()) {
                     auto const st = ef->GetStartTimeMS();
                     auto const end = ef->GetEndTimeMS();
                     auto closest_st = GetClosestMark(st);
