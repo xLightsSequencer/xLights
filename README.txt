@@ -57,6 +57,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 More effects now render on the GPU (Metal on macOS) or with SIMD kernels (ISPC)
                                  for faster full-sequence renders: Tree, Shimmer, Candle (per-node), Wave, Garlands,
                                  Fill, Life, Twinkle, and Meteors
+    -bug (daryl)                 Undo of a Model Set move now restores every member of the Set, not just the grabbed prop (#6681)
     -bug (daryl)                 Fix #6659 Align To Closest Timing Mark silently doing nothing when both ends of an
                                  effect are closest to the same timing mark - the effect now snaps to the timing
                                  cell it sits in

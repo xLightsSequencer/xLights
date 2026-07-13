@@ -10183,6 +10183,12 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
     if (type == "SingleModel" && selectedModelCnt > 1) {
         type = "All";
     }
+    // Moving a Set member drags the whole Set along, so a single-model
+    // snapshot would only restore the grabbed member on undo.
+    if (type == "SingleModel" && !model.empty() &&
+        xlights->AllModels.GetSetManager().GetSetContaining(model) != nullptr) {
+        type = "All";
+    }
     if (type == "SingleObject" && selectedViewObjectCnt > 1) {
         type = "All";
     }
