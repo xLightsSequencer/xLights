@@ -76,7 +76,7 @@ void DmxServo3d::SetNumServos(int val)
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
             auto new_name = "Servo" + std::to_string(i + 1);
-            servos[i] = std::make_unique<Servo>(new_name, true);
+            servos[i] = std::make_unique<Servo>(new_name, false);
             servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
@@ -155,7 +155,7 @@ void DmxServo3d::InitModel()
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
             std::string new_name = "Servo" + std::to_string(i + 1);
-            servos[i] = std::make_unique<Servo>(new_name, true);
+            servos[i] = std::make_unique<Servo>(new_name, false);
             servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
