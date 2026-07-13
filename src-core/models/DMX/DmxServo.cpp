@@ -292,7 +292,9 @@ void DmxServo::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraph
         motionMatrix = glm::translate(motionMatrix, glm::vec3(0, 0, 0.2 * float(i)));
         static_images[i]->Draw(this, preview, program, motionMatrix, transparency, brightness, !motion_images[i]->GetExists(), 0, 0, false, false);
         if (servos[i]->GetChannel() > 0 && active) {
-            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
+            int chan = servos[i]->GetChannel() - 1;
+            bool bits16 = servos[i]->Is16Bit();
+            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(chan, bits16), IsChannelDriven(chan, bits16));
         }
         servos[i]->FillMotionMatrix(servo_pos[i], motionMatrix);
         motionMatrix = glm::translate(motionMatrix, glm::vec3(0, 0, 0.2 * float(i) + 0.1));

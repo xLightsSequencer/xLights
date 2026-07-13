@@ -68,6 +68,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         virtual int GetChannelValue( int channel, bool bits16);
         int GetChannelValue(int channel_coarse, int channel_fine);
+        bool IsChannelDriven(int channel, bool bits16) const;
         void SetNodeNames(const std::string& default_names, bool force = false);
 
         int _dmxChannelCount = 1;

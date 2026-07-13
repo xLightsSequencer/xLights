@@ -382,7 +382,9 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
     // Get servo positions and fill motion matrices
     for (int i = 0; i < (int)servos.size(); ++i) {
         if (servos[i]->GetChannel() > 0 && active) {
-            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
+            int chan = servos[i]->GetChannel() - 1;
+            bool bits16 = servos[i]->Is16Bit();
+            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(chan, bits16), IsChannelDriven(chan, bits16));
             if (servos[i]->IsTranslate()) {
                 glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
                 servo_pos[i] /= scale.x;
