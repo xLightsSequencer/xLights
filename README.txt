@@ -11,135 +11,98 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.13  July ??, 2026
-    -enh (daryl)                 Recall the last directory used in the Open Sequence and Save Sequence As dialogs (#3107)
-    -enh (scott)                 Windows: experimental Vulkan preview rendering backend (model preview, sequencer
-                                 grid, waveform and color canvases), runtime-switchable via Preferences > Other >
-                                 "Preview graphics" (or XL_GRAPHICS_BACKEND=Vulkan); defaults to OpenGL and falls
-                                 back automatically when Vulkan is unavailable
-    -enh (dan)                   Linux: wire the Vulkan preview rendering backend, with both X11 (Xlib) and native
-                                 Wayland surfaces so it can eventually present without the forced XWayland/GLX path;
-                                 same runtime switch, same automatic OpenGL fallback.  The "Preview graphics"
-                                 preference gains an "Auto" default that picks Vulkan only when OpenGL would fall
-                                 back to software (llvmpipe) anyway (by env hint or by probing the actual GL
-                                 renderer), otherwise keeps hardware OpenGL
-    -enh (dkulp)                 macOS/iPad: the Shader effect now renders natively on Metal (shaders are
-                                 translated GLSL -> SPIR-V -> Metal at load and cached) instead of through
-                                 OpenGL/ANGLE - faster, no longer depends on the deprecated OpenGL stack, and
-                                 fixes several shaders that relied on driver-specific behavior (uninitialized
-                                 variables now render consistently).  Set XL_NO_NATIVE_SHADER=1 to fall back
-                                 to the OpenGL path on macOS.
-    -enh (dkulp/scott)           Linux/Windows: the Shader effect now renders natively on Vulkan (GLSL -> SPIR-V via
-                                 glslang, no spirv-cross needed since Vulkan consumes SPIR-V directly), on a new
-                                 Vulkan graphics-pipeline path atop the existing compute backend.  Generative and
-                                 canvas/feedback shaders supported; falls back to OpenGL when Vulkan is
-                                 unavailable.  glslang is a build dependency (Linux: vendored submodule; Windows:
-                                 prebuilt static libs in lib/windows64).  XL_NO_NATIVE_SHADER=1 forces the OpenGL path.
-    -enh (alex)                  Tools - Test: connection and auto-upload configuration (if supported) are deferred
-                                 until a model or port is first selected, eliminating startup delay. Controller
-                                 hostnames are re-resolved on demand so controllers that were offline at startup work
-                                 correctly once they come online.
-    -enh (dkulp)                 Much faster saving of large .fseq files - zstd compression now runs across all
-                                 cores by compressing seekable blocks in parallel instead of single threaded
-    -enh (cybercop23)            Effect Presets now track unsaved changes independently from the RGB effects file.
-                                 Preset-only edits no longer mark the RGB effects file dirty.
-    -enh (dkulp)                 Linux/Windows: GPU-accelerated rendering (Vulkan) for blur, rotozoom, transitions,
-                                 layer blending and most effects, mirroring the Metal backend on macOS; falls back
-                                 to CPU when no Vulkan driver is present.  Enable via Preferences > Other > GPU rendering
-    -enh (dkulp)                 More effects now render on the GPU (Metal on macOS) or with SIMD kernels (ISPC)
-                                 for faster full-sequence renders: Tree, Shimmer, Candle (per-node), Wave, Garlands,
-                                 Fill, Life, Twinkle, and Meteors
-    -bug (daryl)                 Undo of a Model Set move now restores every member of the Set, not just the grabbed prop (#6681)
+    -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
+                                 reducing the thread pool to roughly CPU+GPU core count and lowering
+                                 memory use on large sequences
+    -enh (charlie)               Effect Symbols: define a reusable effect once and link any number of
+                                 effects to it; editing one propagates to all linked effects. Symbols
+                                 round-trip through .xsq with a "Convert All Symbols to Effects" escape
+                                 hatch for compatibility export (#2671)
+    -enh (scott)                 Windows: experimental Vulkan preview rendering backend (model preview,
+                                 sequencer grid, waveform, color canvases), switchable via Preferences >
+                                 Other > "Preview graphics"; defaults to OpenGL with automatic fallback
+    -enh (dan)                   Linux: Vulkan preview rendering backend with X11 and native Wayland
+                                 surface support; new "Auto" default picks Vulkan only when OpenGL would
+                                 fall back to software rendering (llvmpipe)
+    -enh (dkulp)                 Linux/Windows: GPU-accelerated rendering (Vulkan) for blur, rotozoom,
+                                 transitions, layer blending and most effects, mirroring the Metal
+                                 backend on macOS; enable via Preferences > Other > GPU rendering
+    -enh (dkulp)                 macOS/iPad: Shader effect now renders natively on Metal (GLSL translated
+                                 to Metal via SPIR-V and cached); set XL_NO_NATIVE_SHADER=1 to force the
+                                 OpenGL fallback
+    -enh (dkulp/scott)           Linux/Windows: Shader effect now renders natively on Vulkan (GLSL ->
+                                 SPIR-V via glslang); falls back to OpenGL when Vulkan is unavailable
+    -enh (dkulp)                 GPU/SIMD rendering for additional effects: Tree, Shimmer, Candle
+                                 (per-node), Wave, Garlands, Fill, Life, Twinkle, and Meteors
+    -enh (dkulp)                 Galaxy effect: new "Render Style" option with a faster per-pixel method
+                                 (ISPC/Metal); existing sequences auto-migrate to "Old Render Method" to
+                                 preserve their look
+    -enh (dkulp)                 Galaxy effect: blend passes now scan only the bounding box instead of the
+                                 whole buffer, up to ~5x faster on large 2D models
+    -enh (dkulp)                 Much faster saving of large .fseq files via multi-threaded zstd
+                                 compression
+    -enh (dkulp)                 Add headless render mode (--headless -s <showdir> <seq.xsq>): renders
+                                 sequences to .fseq with no window, then exits
+    -enh (cybercop23)            Effect Presets track unsaved changes independently; preset-only edits no
+                                 longer mark the RGB effects file dirty
+    -enh (alex)                  Tools - Test: defer controller connection until a model/port is selected,
+                                 eliminating startup delay; re-resolve hostnames on demand for controllers
+                                 that were offline at startup
+    -enh (daryl)                 Recall the last directory used in Open Sequence and Save Sequence As
+                                 dialogs (#3107)
+    -bug (daryl)                 Undo of a Model Set move now restores every member of the Set, not just the grabbed prop (#6681)                                 
     -bug (daryl)                 Mark the layout as needing a save when aliases are added
-    -bug (charlie)               Fix the app hanging indefinitely when changing a color to a gradient/color
-                                 curve on an effect linked to an Effect Symbol - symbol propagation re-rendered
-                                 linked effects synchronously while holding the effect's settings lock,
-                                 deadlocking the render workers; the re-render is now posted to the event loop
-    -bug (dkulp)                 Linux: fix a random startup crash inside wxWidgets (nested notebook layout) -
-                                 the Moving Head effect panel added its Color page to the inner notebook twice,
-                                 and removing the duplicate freed GTK state shared with the real page, a
-                                 use-after-free that wxWidgets 3.3's stricter page handling turned fatal
-    -bug (daryl)                 Fix #6659 Align To Closest Timing Mark silently doing nothing when both ends of an
-                                 effect are closest to the same timing mark - the effect now snaps to the timing
-                                 cell it sits in
-    -bug (daryl)                 Fix #6652 Align To Closest Timing Mark creating impossible effect overlaps - the
-                                 collision check missed effects that spanned the alignment range
-    -bug (dkulp)                 Fix a crash cancelling (or failing) a model download/import - a malformed .xmodel
-                                 made the deserializer throw after it had already freed the in-flight model, and the
-                                 cancel cleanup then deleted it a second time
-    -bug (dkulp)                 Layout: fix a crash moving the mouse in the 3D preview right after a model is
-                                 deleted - the preview's cached model list could briefly hold freed models until the
-                                 deferred rebuild ran; the list is now validated against the model manager generation
-    -bug (dkulp)                 Fix a crash closing the Key Bindings editor with an uncommitted property edit - the
-                                 property grid committed the pending change from its destructor into the
-                                 already-destroyed dialog
-    -bug (dkulp)                 Fix a crash clicking "Render All" while a sequence is closing, and ignore a second
-                                 click that lands before the toolbar disables
-    -bug (dkulp)                 macOS: fix a crash after finalizing/deleting a model while a property-grid combo
-                                 editor popup is being torn down - the retired editor painted an already-freed
-                                 property (wxWidgets fork fix)
-    -bug (dkulp)                 Metal: creating a texture no longer crashes when the GPU refuses the allocation
-                                 (memory pressure / zero-sized image) - the texture is skipped instead
-    -bug (cybercop23)            Fix a crash configuring a 3D Servo model when the servo count is increased via
-                                 the Servo Config dialog (#6663)
-    -enh (charlie)               Effect Symbols: define a reusable effect (name, color, settings, palette) once and
-                                 link any number of effects to it. Editing a linked effect updates the symbol and
-                                 propagates to every other linked effect. Symbols round-trip through .xsq and have a
-                                 "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
-    -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" for submodels with trailing empty layers (#6647)
-    -bug (dkulp)                 Windows: fix a crash rendering Shader effects after a GPU device reset (WDDM TDR,
-                                 typically under heavy hardware video decode) - cached GL programs/buffers from the
-                                 dead context were reused, ending in a NULL vertex fetch inside the driver
-    -bug (dkulp)                 Meteors effect: fix a threading race drawing overlapping meteor trails - output could
-                                 differ from render to render
-    -bug (dkulp)                 Layer blending (macOS GPU): transition masks computed by the CPU fallback (small or
-                                 sub-buffer transitions) were ignored by the GPU blend, which then read out of bounds -
-                                 wrong and non-deterministic transition rendering on affected layers
-    -bug (dkulp)                 Fix a threading race reading effect settings while a "Per Model" buffer style renders
-                                 member models in parallel - an effect parameter could parse as garbage for one model
-                                 for a frame
-    -bug (dkulp)                 Groups that contain a nested group plus that group's members (same channels twice) now
-                                 render deterministically - parallel output writes raced for the shared channels
-    -bug (dkulp)                 "Random" value curves and "Random" color curves now produce the same values every
-                                 render (previously they re-randomized each render, so effects using them - e.g.
-                                 Fireworks with a random palette - rendered differently every time)
-    -bug (dkulp)                 Blur (macOS GPU): replace the MPS tent blur with a deterministic compute kernel -
-                                 the MPS filter's output varied from render to render
-    -bug (dkulp)                 RotoZoom (macOS GPU): fix an out-of-bounds scatter in the X/Y rotate kernels - the
-                                 bounds check was applied to the pre-rounded float, so round() could push the
-                                 destination one row past the buffer end into an adjacent layer's Metal buffer,
-                                 corrupting that layer's render for the frame (run-to-run, allocation-dependent).
-                                 Most visible on "Per Model" group buffers (e.g. mini-tree groups) with an active
-                                 X/Y rotation value curve
-    -bug (dkulp)                 Video effects (macOS): frames were occasionally dropped (rendered black) for a
-                                 stretch after a video effect started mid-file, at positions that varied every
-                                 render; the frame chosen for a timestamp could also differ between the decoder
-                                 and its caches. Video playback is now frame-exact and renders reproducibly
-    -bug (dkulp)                 Canvas layers (macOS GPU): fix non-deterministic output when several nodes of a group
+    -bug (charlie)               Fix app hang when changing a color to a gradient/color curve on an effect
+                                 linked to an Effect Symbol (deadlock in symbol propagation)
+    -bug (daryl)                 Fix Align To Closest Timing Mark doing nothing when both ends of an
+                                 effect are closest to the same mark (#6659)
+    -bug (daryl)                 Fix Align To Closest Timing Mark creating impossible effect overlaps
+                                 (#6652)
+    -bug (cybercop23)            Fix crash configuring a 3D Servo model when servo count is increased
+                                 (#6663)
+    -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" for submodels with trailing empty
+                                 layers (#6647)
+    -bug (dkulp)                 Fix crash cancelling or failing a model download/import with a malformed
+                                 .xmodel (double-free)
+    -bug (dkulp)                 Fix crash in 3D layout preview after deleting a model (stale cached
+                                 model list)
+    -bug (dkulp)                 Fix crash closing the Key Bindings editor with an uncommitted property
+                                 edit
+    -bug (dkulp)                 Fix crash clicking "Render All" while a sequence is closing
+    -bug (dkulp)                 macOS: fix crash after deleting a model while a property-grid combo
+                                 popup is being torn down (wxWidgets fork fix)
+    -bug (dkulp)                 Metal: fix crash when the GPU refuses a texture allocation (memory
+                                 pressure or zero-sized image)
+    -bug (dkulp)                 Windows: fix crash rendering Shader effects after a GPU device reset
+                                 (WDDM TDR)
+    -bug (dkulp)                 Linux: fix random startup crash from Moving Head panel adding its Color
+                                 page to a notebook twice (use-after-free)
+    -bug (dkulp)                 Fix non-deterministic Meteors effect rendering (threading race in
+                                 overlapping trails)
+    -bug (dkulp)                 macOS GPU: fix layer blending ignoring CPU-computed transition masks,
+                                 causing wrong/non-deterministic transitions
+    -bug (dkulp)                 Fix non-deterministic rendering with "Per Model" buffer style (race
+                                 reading effect settings during parallel member renders)
+    -bug (dkulp)                 Fix non-deterministic rendering of groups containing a nested group plus
+                                 its own members (race on shared channels)
+    -bug (dkulp)                 Fix "Random" value/color curves re-randomizing on every render instead
+                                 of producing stable results
+    -bug (dkulp)                 macOS GPU: fix non-deterministic Blur output (replaced MPS tent filter
+                                 with deterministic compute kernel)
+    -bug (dkulp)                 macOS GPU: fix RotoZoom X/Y rotate writing past buffer bounds into
+                                 adjacent layers, causing run-to-run corruption
+    -bug (dkulp)                 macOS: fix Video effect occasionally dropping frames or choosing
+                                 different frames per render; playback is now frame-exact
+    -bug (dkulp)                 macOS GPU: fix non-deterministic Canvas layer output when group nodes
                                  share a buffer pixel
-    -bug (dkulp)                 Rotate/Zoom (macOS GPU): fix non-deterministic output when a rotation or zoom maps
-                                 several source pixels onto the same destination pixel
-    -bug (dkulp)                 Twinkle effect: fix a threading race when twinkling by node on groups where several
-                                 nodes share a buffer pixel - output could differ from render to render
-    -bug (dkulp)                 Kaleidoscope effect (Square/Triangle): fix a threading race in the fill that made the
-                                 rendered output differ from render to render
-    -bug (dkulp)                 Headless render now honors the "Use GPU For Rendering" preference like the desktop
-    -bug (dkulp)                 Galaxy effect: no longer takes a very long time to render on very wide/short buffers
-                                 (e.g. a "Single Line" render style) - the spiral now skips off-buffer work and hoists
-                                 per-angle trig out of the inner loop
-    -enh (dkulp)                 Galaxy effect: blend passes now scan only the galaxy's bounding box instead of the
-                                 whole buffer - up to ~5x faster on large 2D models (e.g. 800x600 groups) at typical
-                                 sizing, with identical output
-    -enh (dkulp)                 Galaxy effect: new "Render Style" option - "New Render Method" (default for new
-                                 effects) computes each pixel independently (ISPC on CPU, Metal on GPU for large
-                                 buffers on macOS/iOS) for much faster rendering on large 2D models and a smoother
-                                 center (no grid gap); existing sequences are migrated to "Old Render Method" so their
-                                 look is unchanged
-    -change (dkulp)              Rendering: render jobs now suspend and reschedule instead of holding a thread while
-                                 waiting on overlapping models, cutting the render pool from hundreds of threads to
-                                 roughly the CPU+GPU core count and reducing memory use on large sequences
-    -enh (dkulp)                 Add a headless render mode (--headless -s <showdir> <sequence.xsq> ...): loads the show
-                                 and renders sequence(s) to fseq with no window shown, then exits (0 on success). Built on
-                                 a new xLightsShowContext base extracted from xLightsFrame
+    -bug (dkulp)                 macOS GPU: fix non-deterministic Rotate/Zoom output when multiple source
+                                 pixels map to the same destination
+    -bug (dkulp)                 Fix non-deterministic Twinkle effect when twinkling by node on groups
+                                 with shared buffer pixels
+    -bug (dkulp)                 Fix non-deterministic Kaleidoscope effect (Square/Triangle) rendering
+    -bug (dkulp)                 Fix headless render not honoring the "Use GPU For Rendering" preference
+    -bug (dkulp)                 Fix Galaxy effect rendering extremely slowly on very wide/short buffers
+                                 (e.g. "Single Line" render style)
 
 2026.12  July 2, 2026
 
