@@ -34,9 +34,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  SPIR-V via glslang); falls back to OpenGL when Vulkan is unavailable
     -enh (dkulp)                 GPU/SIMD rendering for additional effects: Tree, Shimmer, Candle
                                  (per-node), Wave, Garlands, Fill, Life, Twinkle, and Meteors
-    -enh (dkulp)                 Galaxy effect: new "Render Style" option with a faster per-pixel method
-                                 (ISPC/Metal); existing sequences auto-migrate to "Old Render Method" to
-                                 preserve their look
+    -enh (dkulp)                 Galaxy effect: faster per-pixel rendering method (ISPC/Metal/Vulkan)
     -enh (dkulp)                 Galaxy effect: blend passes now scan only the bounding box instead of the
                                  whole buffer, up to ~5x faster on large 2D models
     -enh (dkulp)                 Much faster saving of large .fseq files via multi-threaded zstd

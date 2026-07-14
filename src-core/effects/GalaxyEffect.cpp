@@ -62,7 +62,6 @@ bool GalaxyEffect::sReverseDefault = false;
 bool GalaxyEffect::sBlendEdgesDefault = true;
 bool GalaxyEffect::sInwardDefault = false;
 bool GalaxyEffect::sScaleDefault = true;
-std::string GalaxyEffect::sRenderStyleDefault = "New Render Method";
 
 GalaxyEffect::GalaxyEffect(int id) : RenderableEffect(id, "Galaxy", galaxy_16, galaxy_24, galaxy_32, galaxy_48, galaxy_64)
 {
@@ -117,7 +116,6 @@ void GalaxyEffect::OnMetadataLoaded()
     // at its fallback value of false.
     sInwardDefault = GetBoolDefault("Galaxy_Inward", sInwardDefault);
     sScaleDefault = GetBoolDefault("Galaxy_Scale", sScaleDefault);
-    sRenderStyleDefault = GetStringDefault("Galaxy_RenderStyle", sRenderStyleDefault);
 }
 
 int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
@@ -156,7 +154,7 @@ int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, 
 }
 
 bool GalaxyEffect::needToAdjustSettings(const std::string& version) {
-    return IsVersionOlder("2026.13", version);
+    return IsVersionOlder("2025.04", version);
 }
 
 void GalaxyEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
@@ -169,13 +167,6 @@ void GalaxyEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
     if (IsVersionOlder("2025.04", version)) {
         settings["E_CHECKBOX_Galaxy_Scale"] = "0";
-    }
-    // Preserve the look of sequences that predate the render-style option: keep them on
-    // the original scatter renderer. New effects get the metadata default (New Render Method).
-    if (IsVersionOlder("2026.13", version)) {
-        if (!settings.Contains("E_CHOICE_Galaxy_RenderStyle")) {
-            settings["E_CHOICE_Galaxy_RenderStyle"] = "Old Render Method";
-        }
     }
 }
 
@@ -306,18 +297,8 @@ void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     int blendY0 = std::max(0, (int)std::floor(pos_y - maxR));
     int blendY1 = std::min(buffer.BufferHt, (int)std::ceil(pos_y + maxR));
 
-    // "New Render Method": invert the spiral per-pixel with ISPC (each output pixel computed
-    // independently from its covering arms + rounded caps) instead of scatter-drawing it. Much
-    // faster on large 2D models and smoother (no grid black-hole at the center). The kernel
-    // handles all four blend/hard-edge x outward/inward combos; spatial palettes render flat
-    // (as the scalar path already does via GetColor). Only DMX buffers, palettes over 8 colors,
-    // and undersized sub-buffers fall through to the classic scatter. Existing sequences are
-    // migrated to "Old Render Method" so their look is unchanged. Only the galaxy bounding box
-    // is dispatched; uncovered pixels keep the buffer's cleared value.
-    const std::string& renderStyle = SettingsMap.Get("CHOICE_Galaxy_RenderStyle", sRenderStyleDefault);
     size_t npix = (size_t)buffer.BufferWi * buffer.BufferHt;
-    if (renderStyle != "Old Render Method"
-        && !buffer.IsDmxBuffer()
+    if (!buffer.IsDmxBuffer()
         && num_colors > 0 && num_colors <= MAX_GALAXY_ISPC_COLORS
         && npix <= buffer.GetPixelCount()
         && blendX1 > blendX0 && blendY1 > blendY0) {

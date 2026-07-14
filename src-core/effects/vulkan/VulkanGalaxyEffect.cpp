@@ -50,11 +50,8 @@ void VulkanGalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
         return;
     }
 
-    // Vulkan implements the "New Render Method" gather only. Old style, DMX buffers, and
-    // palettes over the color limit fall back to the CPU path (which itself does ISPC/scalar).
-    const std::string& renderStyle = SettingsMap.Get("CHOICE_Galaxy_RenderStyle", sRenderStyleDefault);
     int num_colors = buffer.palette.Size();
-    if (renderStyle == "Old Render Method" || buffer.IsDmxBuffer()
+    if (buffer.IsDmxBuffer()
         || num_colors <= 0 || num_colors > MAX_VULKAN_GALAXY_COLORS) {
         GalaxyEffect::Render(effect, SettingsMap, buffer);
         return;
