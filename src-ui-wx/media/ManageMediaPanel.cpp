@@ -118,6 +118,28 @@ static wxString BaseFileName(const std::string& path) {
     return wxString(name);
 }
 
+// One-time recursive index of searchDir's files, keyed by basename, so the
+// bulk find/repoint loops below can do a single map lookup per item instead
+// of re-walking the whole folder tree per item - the per-item wxDir::GetAllFiles
+// scan got much more expensive once bulk find started processing every item
+// of a type instead of just the (usually few) broken ones. A top-level file
+// wins over a same-named nested one, matching the previous per-item
+// "exact top-level match first" behavior.
+static std::map<std::string, std::string> BuildBasenameIndex(const std::string& searchDir) {
+    std::map<std::string, std::string> index;
+    wxArrayString allFiles;
+    wxDir::GetAllFiles(wxString(searchDir), &allFiles, wxEmptyString, wxDIR_FILES);
+    for (const auto& f : allFiles) {
+        std::string fullPath = ToStdString(f);
+        std::string basename = ToStdString(BaseFileName(fullPath));
+        bool isTopLevel = (ToStdString(wxFileName(f).GetPath()) == searchDir);
+        if (isTopLevel || index.find(basename) == index.end()) {
+            index[basename] = fullPath;
+        }
+    }
+    return index;
+}
+
 static wxString WildcardForMediaType(std::optional<MediaType> type) {
     if (!type.has_value()) {
         return "All Media Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.tga;*.pcx;*.ico;"
@@ -1427,7 +1449,7 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         if (typeCount > 1) {
             if (menu.GetMenuItemCount() > 0)
                 menu.AppendSeparator();
-            wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "s...");
+            wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "...");
             menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
                 BulkFindMediaByType(mtype);
             }, bulkItem->GetId());
@@ -1619,8 +1641,8 @@ void ManageMediaPanel::OnBulkFindImages()
     // Collect every image path, not just broken ones - lets users bulk-repoint
     // a whole set of already-working images to a new folder, not only fix
     // missing ones.
-    std::vector<std::string> brokenPaths = _sequenceMedia->GetImagePaths();
-    if (brokenPaths.empty()) return;
+    std::vector<std::string> mediaPaths = _sequenceMedia->GetImagePaths();
+    if (mediaPaths.empty()) return;
 
     // Ask user to pick a directory to search in
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
@@ -1631,6 +1653,7 @@ void ManageMediaPanel::OnBulkFindImages()
     std::string searchDir = ToStdString(dlg.GetPath());
     ObtainAccessToURL(searchDir);
     const std::string sep(1, wxFileName::GetPathSeparator());
+    std::map<std::string, std::string> folderIndex = BuildBasenameIndex(searchDir);
 
     // Check if the chosen directory is outside the show/media folders
     bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(searchDir + sep)
@@ -1676,40 +1699,19 @@ void ManageMediaPanel::OnBulkFindImages()
             outsideAction = rawSel + 1;  // no importedMedia slot, copy starts at 2
     }
 
-    // Scan broken images and try to find matches in the selected directory
+    // Scan every image and look it up in the pre-built folder index
     int found = 0;
     int notFound = 0;
     std::string lastFixedPath;
-    for (const auto& oldPath : brokenPaths) {
-        // Extract just the filename from the broken path (handles Windows
+    for (const auto& oldPath : mediaPaths) {
+        // Extract just the filename from the path (handles Windows
         // backslash paths even when running on macOS/Linux)
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        // Look for the file in the search directory (and subdirectories)
-        wxString foundFile;
-        wxDir dir(searchDir);
-        if (dir.IsOpened()) {
-            // Try exact name in the top directory first
-            wxString candidate = searchDir + sep + ToStdString(nameToFind);
-            if (wxFileExists(candidate)) {
-                foundFile = candidate;
-            } else {
-                // Recurse into subdirectories
-                wxString f;
-                if (dir.GetFirst(&f, nameToFind, wxDIR_FILES | wxDIR_DIRS)) {
-                    foundFile = searchDir + sep + ToStdString(f);
-                } else {
-                    // Try a recursive traversal
-                    wxArrayString results;
-                    wxDir::GetAllFiles(searchDir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
-                    if (!results.IsEmpty())
-                        foundFile = results[0];
-                }
-            }
-        }
-
-        if (foundFile.IsEmpty()) { ++notFound; continue; }
+        auto foundIt = folderIndex.find(ToStdString(nameToFind));
+        if (foundIt == folderIndex.end()) { ++notFound; continue; }
+        wxString foundFile(foundIt->second);
 
         std::string pickedPath = ToStdString(foundFile);
         std::string finalPath = pickedPath;
@@ -1950,12 +1952,12 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
     // Collect every path of this type, not just broken ones - lets users
     // bulk-repoint a whole set of already-working files to a new folder, not
     // only fix missing ones.
-    std::vector<std::string> brokenPaths;
+    std::vector<std::string> mediaPaths;
     for (const auto& [path, mtype] : _sequenceMedia->GetAllMediaPaths()) {
         if (mtype != type) continue;
-        brokenPaths.push_back(path);
+        mediaPaths.push_back(path);
     }
-    if (brokenPaths.empty()) return;
+    if (mediaPaths.empty()) return;
 
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
     wxDirDialog dlg(this,
@@ -1965,30 +1967,18 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
 
     std::string searchDir = ToStdString(dlg.GetPath());
     ObtainAccessToURL(searchDir);
-    const std::string sep(1, wxFileName::GetPathSeparator());
+    std::map<std::string, std::string> folderIndex = BuildBasenameIndex(searchDir);
 
     int found = 0;
     int notFound = 0;
     std::string lastFixedPath;
-    for (const auto& oldPath : brokenPaths) {
+    for (const auto& oldPath : mediaPaths) {
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        wxString foundFile;
-        wxDir dir(searchDir);
-        if (dir.IsOpened()) {
-            wxString candidate = searchDir + sep + ToStdString(nameToFind);
-            if (wxFileExists(candidate)) {
-                foundFile = candidate;
-            } else {
-                wxArrayString results;
-                wxDir::GetAllFiles(searchDir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
-                if (!results.IsEmpty())
-                    foundFile = results[0];
-            }
-        }
-
-        if (foundFile.IsEmpty()) { ++notFound; continue; }
+        auto foundIt = folderIndex.find(ToStdString(nameToFind));
+        if (foundIt == folderIndex.end()) { ++notFound; continue; }
+        wxString foundFile(foundIt->second);
 
         // finalAbsPath is the known absolute path; finalPath may be relativized below.
         std::string finalAbsPath = ToStdString(foundFile);
