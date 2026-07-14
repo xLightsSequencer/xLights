@@ -118,6 +118,17 @@ static wxString BaseFileName(const std::string& path) {
     return wxString(name);
 }
 
+// Trim a trailing path separator so top-level-directory comparisons in
+// BuildBasenameIndex aren't thrown off by whether a given path happens to
+// have one (wxDir::GetAllFiles / wxFileName::GetPath aren't guaranteed to
+// agree with the caller's own formatting of searchDir).
+static wxString TrimTrailingSeparator(wxString path) {
+    while (!path.IsEmpty() && (path.Last() == '/' || path.Last() == '\\')) {
+        path.RemoveLast();
+    }
+    return path;
+}
+
 // One-time recursive index of searchDir's files, so the bulk find/repoint
 // loops below can do a map lookup per item instead of re-walking the whole
 // folder tree per item - the per-item wxDir::GetAllFiles scan got much more
@@ -141,12 +152,14 @@ struct BasenameIndex {
 static BasenameIndex BuildBasenameIndex(const std::string& searchDir) {
     BasenameIndex idx;
     wxArrayString allFiles;
-    wxDir::GetAllFiles(ToWXString(searchDir), &allFiles, wxEmptyString, wxDIR_FILES);
+    wxString wxSearchDir = ToWXString(searchDir);
+    wxDir::GetAllFiles(wxSearchDir, &allFiles, wxEmptyString, wxDIR_FILES);
+    wxString normalizedSearchDir = TrimTrailingSeparator(wxSearchDir);
     for (const auto& f : allFiles) {
         std::string fullPath = ToStdString(f);
         std::string basename = ToStdString(BaseFileName(fullPath));
         std::string basenameLower = ToStdString(BaseFileName(fullPath).Lower());
-        bool isTopLevel = (ToStdString(wxFileName(f).GetPath()) == searchDir);
+        bool isTopLevel = (TrimTrailingSeparator(wxFileName(f).GetPath()) == normalizedSearchDir);
         if (isTopLevel || idx.exact.find(basename) == idx.exact.end()) {
             idx.exact[basename] = fullPath;
         }
@@ -1694,10 +1707,11 @@ void ManageMediaPanel::OnBulkFindImages()
         if (e && !e->IsEmbedded()) mediaPaths.push_back(p);
     }
     if (mediaPaths.empty()) {
-        // The context menu offers this whenever there's more than one image
-        // total, including embedded ones, so a sequence with 2+ images that
-        // are all embedded can reach here - explain why nothing happened
-        // rather than silently doing nothing.
+        // Defensive: the context menu only offers this action when there are
+        // 2+ external images (same non-embedded check as above), so this
+        // shouldn't be reachable in practice. Kept as a safety net rather
+        // than a silent no-op in case that gating and this collection ever
+        // drift apart.
         wxMessageBox("No external (on-disk) images to search for - all images in "
                      "this sequence are embedded.",
                      "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
@@ -2033,9 +2047,11 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
         if (entry && !entry->IsEmbedded()) mediaPaths.push_back(path);
     }
     if (mediaPaths.empty()) {
-        // Same reasoning as OnBulkFindImages: the context menu's count
-        // includes embedded entries, so this can be reached with nothing to
-        // do - explain why rather than silently doing nothing.
+        // Defensive: same as OnBulkFindImages - the context menu only offers
+        // this action when there are 2+ external items of this type, so this
+        // shouldn't be reachable in practice. Kept as a safety net rather
+        // than a silent no-op in case that gating and this collection ever
+        // drift apart.
         wxMessageBox("No external (on-disk) " + typeName.Lower() +
                      " to search for - all are embedded.",
                      "Bulk Find " + typeName, wxICON_INFORMATION | wxOK, this);
