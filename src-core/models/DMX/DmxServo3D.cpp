@@ -384,7 +384,9 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
         if (servos[i]->GetChannel() > 0 && active) {
             int chan = servos[i]->GetChannel() - 1;
             bool bits16 = servos[i]->Is16Bit();
-            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(chan, bits16), IsChannelDriven(chan, bits16));
+            bool driven = false;
+            int value = GetChannelValue(chan, bits16, &driven);
+            servo_pos[i] = servos[i]->GetPosition(value, driven);
             if (servos[i]->IsTranslate()) {
                 glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
                 servo_pos[i] /= scale.x;
@@ -397,10 +399,17 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
 
     // apply the servo(s) that actually drive a given mesh index, honoring any
     // custom Servo Linkage remapping -- a mesh's own index only drives it when
-    // no servo has been explicitly redirected to (or away from) it
+    // no servo has been explicitly redirected to (or away from) it. The
+    // mesh's own servo is always applied first, then any others redirected
+    // onto it, matching the original (pre-refactor) composition order --
+    // matrix multiplication is not commutative, so this order matters for
+    // rotate-style servos.
     auto applyMeshServos = [&](glm::mat4& matrix, int meshIdx) {
+        if (servo_links[meshIdx] == -1) {
+            matrix = matrix * servo_matrix[meshIdx];
+        }
         for (int j = 0; j < (int)servos.size(); ++j) {
-            if (servo_links[j] == meshIdx || (servo_links[j] == -1 && j == meshIdx)) {
+            if (j != meshIdx && servo_links[j] == meshIdx) {
                 matrix = matrix * servo_matrix[j];
             }
         }
