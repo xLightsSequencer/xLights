@@ -118,33 +118,53 @@ static wxString BaseFileName(const std::string& path) {
     return wxString(name);
 }
 
-// Lower-cased basename, used as the lookup key for BuildBasenameIndex so
-// matches work on case-insensitive filesystems (Windows, default macOS) even
-// when the media path's casing differs from what's actually on disk.
-static std::string NormalizedBasename(const std::string& path) {
-    return ToStdString(BaseFileName(path).Lower());
-}
+// One-time recursive index of searchDir's files, so the bulk find/repoint
+// loops below can do a map lookup per item instead of re-walking the whole
+// folder tree per item - the per-item wxDir::GetAllFiles scan got much more
+// expensive once bulk find started processing every item of a type instead
+// of just the (usually few) broken ones.
+//
+// Two maps, tried in order (see LookupInIndex): `exact` is keyed by the
+// literal basename, so on a case-sensitive filesystem (typical Linux) two
+// files differing only in case - "foo.png" and "Foo.png" - never collide to
+// the same key and each media path finds its true match. `lower` is a
+// lower-cased fallback so a media path whose casing has drifted from the
+// on-disk file (Windows / default macOS are case-insensitive, so this
+// happens) still matches. Within each map, a top-level file wins over a
+// same-named nested one, matching the previous per-item
+// "exact top-level match first" behavior.
+struct BasenameIndex {
+    std::map<std::string, std::string> exact;
+    std::map<std::string, std::string> lower;
+};
 
-// One-time recursive index of searchDir's files, keyed by lower-cased
-// basename, so the bulk find/repoint loops below can do a single map lookup
-// per item instead of re-walking the whole folder tree per item - the
-// per-item wxDir::GetAllFiles scan got much more expensive once bulk find
-// started processing every item of a type instead of just the (usually few)
-// broken ones. A top-level file wins over a same-named nested one, matching
-// the previous per-item "exact top-level match first" behavior.
-static std::map<std::string, std::string> BuildBasenameIndex(const std::string& searchDir) {
-    std::map<std::string, std::string> index;
+static BasenameIndex BuildBasenameIndex(const std::string& searchDir) {
+    BasenameIndex idx;
     wxArrayString allFiles;
     wxDir::GetAllFiles(wxString(searchDir), &allFiles, wxEmptyString, wxDIR_FILES);
     for (const auto& f : allFiles) {
         std::string fullPath = ToStdString(f);
-        std::string basename = NormalizedBasename(fullPath);
+        std::string basename = ToStdString(BaseFileName(fullPath));
+        std::string basenameLower = ToStdString(BaseFileName(fullPath).Lower());
         bool isTopLevel = (ToStdString(wxFileName(f).GetPath()) == searchDir);
-        if (isTopLevel || index.find(basename) == index.end()) {
-            index[basename] = fullPath;
+        if (isTopLevel || idx.exact.find(basename) == idx.exact.end()) {
+            idx.exact[basename] = fullPath;
+        }
+        if (isTopLevel || idx.lower.find(basenameLower) == idx.lower.end()) {
+            idx.lower[basenameLower] = fullPath;
         }
     }
-    return index;
+    return idx;
+}
+
+// Exact-case match first, falling back to a case-insensitive one. Returns
+// nullptr if neither map has an entry for basename.
+static const std::string* LookupInIndex(const BasenameIndex& idx, const std::string& basename) {
+    auto exactIt = idx.exact.find(basename);
+    if (exactIt != idx.exact.end()) return &exactIt->second;
+    auto lowerIt = idx.lower.find(ToStdString(wxString(basename).Lower()));
+    if (lowerIt != idx.lower.end()) return &lowerIt->second;
+    return nullptr;
 }
 
 static wxString WildcardForMediaType(std::optional<MediaType> type) {
@@ -1655,7 +1675,16 @@ void ManageMediaPanel::OnBulkFindImages()
         auto e = _sequenceMedia->GetImage(p);
         if (e && !e->IsEmbedded()) mediaPaths.push_back(p);
     }
-    if (mediaPaths.empty()) return;
+    if (mediaPaths.empty()) {
+        // The context menu offers this whenever there's more than one image
+        // total, including embedded ones, so a sequence with 2+ images that
+        // are all embedded can reach here - explain why nothing happened
+        // rather than silently doing nothing.
+        wxMessageBox("No external (on-disk) images to search for - all images in "
+                     "this sequence are embedded.",
+                     "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
+        return;
+    }
 
     // Ask user to pick a directory to search in
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
@@ -1666,7 +1695,7 @@ void ManageMediaPanel::OnBulkFindImages()
     std::string searchDir = ToStdString(dlg.GetPath());
     ObtainAccessToURL(searchDir);
     const std::string sep(1, wxFileName::GetPathSeparator());
-    std::map<std::string, std::string> folderIndex = BuildBasenameIndex(searchDir);
+    BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
 
     // Check if the chosen directory is outside the show/media folders
     bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(searchDir + sep)
@@ -1722,9 +1751,9 @@ void ManageMediaPanel::OnBulkFindImages()
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        auto foundIt = folderIndex.find(NormalizedBasename(oldPath));
-        if (foundIt == folderIndex.end()) { ++notFound; continue; }
-        wxString foundFile(foundIt->second);
+        const std::string* foundPath = LookupInIndex(folderIndex, ToStdString(nameToFind));
+        if (foundPath == nullptr) { ++notFound; continue; }
+        wxString foundFile(*foundPath);
 
         std::string pickedPath = ToStdString(foundFile);
         std::string finalPath = pickedPath;
@@ -1982,7 +2011,15 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
         }
         if (entry && !entry->IsEmbedded()) mediaPaths.push_back(path);
     }
-    if (mediaPaths.empty()) return;
+    if (mediaPaths.empty()) {
+        // Same reasoning as OnBulkFindImages: the context menu's count
+        // includes embedded entries, so this can be reached with nothing to
+        // do - explain why rather than silently doing nothing.
+        wxMessageBox("No external (on-disk) " + typeName.Lower() +
+                     " to search for - all are embedded.",
+                     "Bulk Find " + typeName, wxICON_INFORMATION | wxOK, this);
+        return;
+    }
 
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
     wxDirDialog dlg(this,
@@ -1992,7 +2029,7 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
 
     std::string searchDir = ToStdString(dlg.GetPath());
     ObtainAccessToURL(searchDir);
-    std::map<std::string, std::string> folderIndex = BuildBasenameIndex(searchDir);
+    BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
 
     int found = 0;
     int notFound = 0;
@@ -2001,9 +2038,9 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        auto foundIt = folderIndex.find(NormalizedBasename(oldPath));
-        if (foundIt == folderIndex.end()) { ++notFound; continue; }
-        wxString foundFile(foundIt->second);
+        const std::string* foundPath = LookupInIndex(folderIndex, ToStdString(nameToFind));
+        if (foundPath == nullptr) { ++notFound; continue; }
+        wxString foundFile(*foundPath);
 
         // finalAbsPath is the known absolute path; finalPath may be relativized below.
         std::string finalAbsPath = ToStdString(foundFile);
