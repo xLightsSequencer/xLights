@@ -23,16 +23,12 @@ std::vector<std::pair<std::string, bool>> LoadToolbarLayout(XLightsConfigAdapter
 
     std::string raw;
     if (cfg != nullptr && cfg->Read(key, &raw) && !raw.empty()) {
-        try {
-            nlohmann::json j = nlohmann::json::parse(raw);
-            if (j.is_array()) {
-                for (const auto& entry : j) {
-                    if (!entry.is_object()) continue;
-                    saved.emplace_back(entry.value("name", std::string()), entry.value("visible", true));
-                }
+        nlohmann::json j = nlohmann::json::parse(raw, nullptr, false);
+        if (!j.is_discarded() && j.is_array()) {
+            for (const auto& entry : j) {
+                if (!entry.is_object()) continue;
+                saved.emplace_back(entry.value("name", std::string()), entry.value("visible", true));
             }
-        } catch (const nlohmann::json::exception&) {
-            saved.clear();
         }
     }
 
