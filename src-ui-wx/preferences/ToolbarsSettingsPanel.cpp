@@ -32,7 +32,7 @@ ToolbarsSettingsPanel::ToolbarsSettingsPanel(wxWindow* parent, xLightsFrame* f, 
     wxArrayInt order;
     for (size_t i = 0; i < layout.size(); ++i) {
         _effectsToolbarItemNames.push_back(layout[i].first);
-        items.Add(layout[i].first);
+        items.Add(wxString(layout[i].first));
         order.Add(layout[i].second ? static_cast<int>(i) : ~static_cast<int>(i));
     }
 
