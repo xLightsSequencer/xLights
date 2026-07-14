@@ -1365,7 +1365,7 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         }, reloadItem->GetId());
     }
 
-    // Broken image options
+    // Image options
     if (_sequenceMedia->HasImage(path)) {
         auto entry = _sequenceMedia->GetImage(path);
         if (entry && !entry->IsOk()) {
@@ -1376,23 +1376,23 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
                 OnReSelectImage(path);
             }, reselectItem->GetId());
+        }
 
-            // Count total broken images to decide whether to offer bulk find
-            int brokenCount = 0;
-            for (const auto& p : _sequenceMedia->GetImagePaths()) {
-                auto e = _sequenceMedia->GetImage(p);
-                if (e && !e->IsOk()) ++brokenCount;
-            }
-            if (brokenCount > 1) {
-                wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
-                menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-                    OnBulkFindImages();
-                }, bulkItem->GetId());
-            }
+        // Offer bulk repoint whenever there's more than one image, whether or
+        // not any of them are currently broken - lets users redirect a whole
+        // set of already-working files to a new folder (e.g. a show copied
+        // from last year), not just fix missing ones.
+        if (_sequenceMedia->GetImagePaths().size() > 1) {
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+            wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
+            menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+                OnBulkFindImages();
+            }, bulkItem->GetId());
         }
     }
 
-    // Broken non-image media options (Shader, SVG, TextFile, BinaryFile, Video)
+    // Non-image media options (Shader, SVG, TextFile, BinaryFile, Video)
     // Use the node's stored type rather than re-deriving from the extension, so
     // paths with no extension (e.g. comma-truncated) are still handled correctly.
     MediaType mtype = _model->GetMediaType(item);
@@ -1406,8 +1406,9 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
             default: break;
         }
+        wxString typeName = wxString(MediaTypeName(mtype));
+
         if (entry && !entry->IsOk()) {
-            wxString typeName = wxString(MediaTypeName(mtype));
             if (menu.GetMenuItemCount() > 0)
                 menu.AppendSeparator();
 
@@ -1415,27 +1416,21 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             menu.Bind(wxEVT_MENU, [this, path, mtype](wxCommandEvent&) {
                 ReSelectMediaByType(path, mtype);
             }, reselectItem->GetId());
+        }
 
-            int brokenCount = 0;
-            for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
-                if (pt != mtype) continue;
-                std::shared_ptr<MediaCacheEntry> e;
-                switch (mtype) {
-                    case MediaType::Shader:     e = _sequenceMedia->GetShader(p); break;
-                    case MediaType::SVG:        e = _sequenceMedia->GetSVG(p); break;
-                    case MediaType::TextFile:   e = _sequenceMedia->GetTextFile(p); break;
-                    case MediaType::BinaryFile: e = _sequenceMedia->GetBinaryFile(p); break;
-                    case MediaType::Video:      e = _sequenceMedia->GetVideo(p); break;
-                    default: break;
-                }
-                if (e && !e->IsOk()) ++brokenCount;
-            }
-            if (brokenCount > 1) {
-                wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "s...");
-                menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
-                    BulkFindMediaByType(mtype);
-                }, bulkItem->GetId());
-            }
+        // Same as images: offer bulk repoint whenever there's more than one
+        // of this media type, regardless of whether any are broken.
+        int typeCount = 0;
+        for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
+            if (pt == mtype) ++typeCount;
+        }
+        if (typeCount > 1) {
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+            wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "s...");
+            menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
+                BulkFindMediaByType(mtype);
+            }, bulkItem->GetId());
         }
     }
 
@@ -1621,17 +1616,15 @@ void ManageMediaPanel::OnBulkFindImages()
 {
     if (_sequenceMedia == nullptr) return;
 
-    // Collect all broken image paths
-    std::vector<std::string> brokenPaths;
-    for (const auto& p : _sequenceMedia->GetImagePaths()) {
-        auto e = _sequenceMedia->GetImage(p);
-        if (e && !e->IsOk()) brokenPaths.push_back(p);
-    }
+    // Collect every image path, not just broken ones - lets users bulk-repoint
+    // a whole set of already-working images to a new folder, not only fix
+    // missing ones.
+    std::vector<std::string> brokenPaths = _sequenceMedia->GetImagePaths();
     if (brokenPaths.empty()) return;
 
     // Ask user to pick a directory to search in
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
-    wxDirDialog dlg(this, "Select folder containing missing images", defaultDir,
+    wxDirDialog dlg(this, "Select folder to bulk-find images in", defaultDir,
                     wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
     if (dlg.ShowModal() != wxID_OK) return;
 
@@ -1954,27 +1947,19 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
 
     wxString typeName = wxString(MediaTypeName(type));
 
+    // Collect every path of this type, not just broken ones - lets users
+    // bulk-repoint a whole set of already-working files to a new folder, not
+    // only fix missing ones.
     std::vector<std::string> brokenPaths;
     for (const auto& [path, mtype] : _sequenceMedia->GetAllMediaPaths()) {
         if (mtype != type) continue;
-        // Re-use GetAllMediaPaths result: load entry and check IsOk
-        // GetXxx() returns from cache; broken entries have IsOk()==false
-        std::shared_ptr<MediaCacheEntry> entry;
-        switch (type) {
-            case MediaType::Shader:     entry = _sequenceMedia->GetShader(path); break;
-            case MediaType::SVG:        entry = _sequenceMedia->GetSVG(path); break;
-            case MediaType::TextFile:   entry = _sequenceMedia->GetTextFile(path); break;
-            case MediaType::BinaryFile: entry = _sequenceMedia->GetBinaryFile(path); break;
-            case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
-            default: break;
-        }
-        if (entry && !entry->IsOk()) brokenPaths.push_back(path);
+        brokenPaths.push_back(path);
     }
     if (brokenPaths.empty()) return;
 
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
     wxDirDialog dlg(this,
-                    "Select folder containing missing " + typeName.Lower(),
+                    "Select folder to bulk-find " + typeName.Lower() + " in",
                     defaultDir, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
     if (dlg.ShowModal() != wxID_OK) return;
 

@@ -11,7 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
-
+    -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
+                                 working media files to a new folder (e.g. a show copied to a new year),
+                                 not just to fix ones that are currently missing
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
