@@ -50,6 +50,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  that were offline at startup
     -enh (daryl)                 Recall the last directory used in Open Sequence and Save Sequence As
                                  dialogs (#3107)
+    -bug (daryl)                 Undo of a Model Set move now restores every member of the Set, not just the grabbed prop (#6681)                                 
     -bug (daryl)                 Mark the layout as needing a save when aliases are added
     -bug (charlie)               Fix app hang when changing a color to a gradient/color curve on an effect
                                  linked to an Effect Symbol (deadlock in symbol propagation)
