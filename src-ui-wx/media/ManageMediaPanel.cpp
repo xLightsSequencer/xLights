@@ -141,7 +141,7 @@ struct BasenameIndex {
 static BasenameIndex BuildBasenameIndex(const std::string& searchDir) {
     BasenameIndex idx;
     wxArrayString allFiles;
-    wxDir::GetAllFiles(wxString(searchDir), &allFiles, wxEmptyString, wxDIR_FILES);
+    wxDir::GetAllFiles(ToWXString(searchDir), &allFiles, wxEmptyString, wxDIR_FILES);
     for (const auto& f : allFiles) {
         std::string fullPath = ToStdString(f);
         std::string basename = ToStdString(BaseFileName(fullPath));
@@ -162,7 +162,7 @@ static BasenameIndex BuildBasenameIndex(const std::string& searchDir) {
 static const std::string* LookupInIndex(const BasenameIndex& idx, const std::string& basename) {
     auto exactIt = idx.exact.find(basename);
     if (exactIt != idx.exact.end()) return &exactIt->second;
-    auto lowerIt = idx.lower.find(ToStdString(wxString(basename).Lower()));
+    auto lowerIt = idx.lower.find(ToStdString(ToWXString(basename).Lower()));
     if (lowerIt != idx.lower.end()) return &lowerIt->second;
     return nullptr;
 }
@@ -1427,11 +1427,17 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             }, reselectItem->GetId());
         }
 
-        // Offer bulk repoint whenever there's more than one image, whether or
-        // not any of them are currently broken - lets users redirect a whole
-        // set of already-working files to a new folder (e.g. a show copied
-        // from last year), not just fix missing ones.
-        if (_sequenceMedia->GetImagePaths().size() > 1) {
+        // Offer bulk repoint whenever there's more than one external (on-disk)
+        // image, whether or not any of them are currently broken - lets users
+        // redirect a whole set of already-working files to a new folder (e.g.
+        // a show copied from last year), not just fix missing ones. Embedded
+        // images have no on-disk file to repoint, so they don't count.
+        int externalImageCount = 0;
+        for (const auto& p : _sequenceMedia->GetImagePaths()) {
+            auto e = _sequenceMedia->GetImage(p);
+            if (e && !e->IsEmbedded()) ++externalImageCount;
+        }
+        if (externalImageCount > 1) {
             if (menu.GetMenuItemCount() > 0)
                 menu.AppendSeparator();
             wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
@@ -1468,12 +1474,24 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         }
 
         // Same as images: offer bulk repoint whenever there's more than one
-        // of this media type, regardless of whether any are broken.
-        int typeCount = 0;
+        // external (on-disk) item of this media type, regardless of whether
+        // any are broken. Embedded entries have no on-disk file to repoint,
+        // so they don't count.
+        int externalTypeCount = 0;
         for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
-            if (pt == mtype) ++typeCount;
+            if (pt != mtype) continue;
+            std::shared_ptr<MediaCacheEntry> e;
+            switch (mtype) {
+                case MediaType::Shader:     e = _sequenceMedia->GetShader(p); break;
+                case MediaType::SVG:        e = _sequenceMedia->GetSVG(p); break;
+                case MediaType::TextFile:   e = _sequenceMedia->GetTextFile(p); break;
+                case MediaType::BinaryFile: e = _sequenceMedia->GetBinaryFile(p); break;
+                case MediaType::Video:      e = _sequenceMedia->GetVideo(p); break;
+                default: break;
+            }
+            if (e && !e->IsEmbedded()) ++externalTypeCount;
         }
-        if (typeCount > 1) {
+        if (externalTypeCount > 1) {
             if (menu.GetMenuItemCount() > 0)
                 menu.AppendSeparator();
             wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "...");
@@ -1695,7 +1713,6 @@ void ManageMediaPanel::OnBulkFindImages()
     std::string searchDir = ToStdString(dlg.GetPath());
     ObtainAccessToURL(searchDir);
     const std::string sep(1, wxFileName::GetPathSeparator());
-    BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
 
     // Check if the chosen directory is outside the show/media folders
     bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(searchDir + sep)
@@ -1740,6 +1757,10 @@ void ManageMediaPanel::OnBulkFindImages()
         else
             outsideAction = rawSel + 1;  // no importedMedia slot, copy starts at 2
     }
+
+    // Built here, after the outside-folder choice (and its possible cancel),
+    // so a cancelled dialog doesn't pay for a recursive scan that goes unused.
+    BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
 
     // Scan every image and look it up in the pre-built folder index
     int found = 0;
