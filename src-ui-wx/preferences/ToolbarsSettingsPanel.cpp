@@ -21,8 +21,8 @@ ToolbarsSettingsPanel::ToolbarsSettingsPanel(wxWindow* parent, xLightsFrame* f, 
 {
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, "Effects Toolbar"), 0, wxLEFT | wxTOP | wxRIGHT, 6);
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, "Choose which effects appear in the toolbar, and their order:"),
+    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Effects Toolbar")), 0, wxLEFT | wxTOP | wxRIGHT, 6);
+    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Choose which effects appear in the toolbar, and their order:")),
                     0, wxLEFT | wxRIGHT | wxBOTTOM, 6);
 
     static const std::vector<std::pair<std::string, bool>> emptyLayout;

@@ -7,7 +7,7 @@
 
 ## How to read this
 
-- **1,188 features** were enumerated across 14 themes (menu items, context-menu
+- **1,189 features** were enumerated across 14 themes (menu items, context-menu
   entries, dialog operations, preferences, keyboard shortcuts, gestures).
 - The **gap** for each feature is *derived from the `desktop`/`iPad` status*
   (✅ present / 🟡 partial / ❌ absent). Categories:
@@ -15,7 +15,7 @@
   - **iPad-weaker** — desktop ✅, iPad 🟡 → partial; finish it.
   - **Reverse (desktop-missing / desktop-weaker)** — iPad does it and desktop
     doesn't (or does it worse) → candidates to **pull back into desktop**.
-  - **Parity** — both have it (858 features; see the per-theme scorecards).
+  - **Parity** — both have it (859 features; see the per-theme scorecards).
 - **priority** P1/P2/P3, **ease** easy/medium/hard, **feasibility**
   feasible / hard / infeasible / **restricted** (closed-firmware controller
   config/upload — IAP-gated, deliberately low priority) / **declined**
@@ -26,7 +26,7 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,188 |
+| Features audited | 1,189 |
 | **At parity** (both platforms) | 859 (**~72%**) |
 | **iPad-missing** (desktop has, iPad doesn't) | 176 |
 | **iPad-weaker** (partial on iPad) | 62 |
@@ -74,7 +74,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,189** | **858** | **~72%** | **177** | **62** | **≈92** | **82** |
+| — | **Total** | **1,189** | **859** | **~72%** | **176** | **62** | **≈92** | **82** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
