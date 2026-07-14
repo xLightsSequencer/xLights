@@ -11,7 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
-
+    -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
+                                 always-visible Effects toolbar, and reorder them - handy once enough
+                                 effects are registered that the toolbar no longer fits smaller screens
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,

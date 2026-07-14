@@ -28,6 +28,7 @@
 #include "ColorManagerSettingsPanel.h"
 #include "OtherSettingsPanel.h"
 #include "CheckSequenceSettingsPanel.h"
+#include "ToolbarsSettingsPanel.h"
 #include "ServicesPanel.h"
 
 #include "grid_icon.xpm"
@@ -209,6 +210,10 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
                       wxBitmapBundle(settingIcon),
                       scaledBundle(settingsImage, listIconSize),
                       [this](wxWindow* p) { return (wxWindow*)(new OtherSettingsPanel(p, this)); } });
+    pages.push_back({ "Toolbars",
+                      wxArtProvider::GetBitmapBundle(wxART_LIST_VIEW, wxART_BUTTON, iconSize),
+                      wxArtProvider::GetBitmapBundle(wxART_LIST_VIEW, wxART_BUTTON, listIconSize),
+                      [this](wxWindow* p) { return (wxWindow*)(new ToolbarsSettingsPanel(p, this)); } });
 #ifdef ENABLE_SERVICES
     pages.push_back({ "Services",
                       wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize),

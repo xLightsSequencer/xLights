@@ -120,6 +120,7 @@
 | Reset panel to defaults (per-effect) | menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop right-click → "Reset panel" clears an effect panel's controls to defaults. iPad: inspector header overflow (`ellipsis.circle`) menu → "Reset to Defaults" → `SequencerViewModel.resetSelectedEffectToDefaults()` (`SequencerViewModel.swift`) clears the whole effect settings string (E_/B_/T_) and resets the palette to a two-colour default via the existing `replaceEffectSettings(_:palette:inRow:atIndex:)` bridge, in one undoable step (captures the prior settings + palette strings for Cmd+Z via `restoreEffectSettingsString`). |
 | Convert selected effects to a different type | context-menu | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop converts a multi-selection of effects to another effect type; no iPad equivalent. |
 | Resize-on-add image dialog | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop ResizeImageDialog (src-ui-wx/media/ResizeImageDialog.cpp) prompts to resize an image when added to a Pictures effect. iPad: after a Pictures image is browsed in (`EffectFilenameBlockView.commitPicked`, Images subdir only), `PicturesResizeOnAddSheet.swift` offers Width/Height steppers seeded from the image's pixel size (optional keep-aspect), writes a resized `<name>_WxH.<ext>` copy via UIGraphicsImageRenderer alongside the original, and repoints the effect filename at it. "Skip" leaves the original untouched. |
+| Effects toolbar: customizable order/visibility | preference | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop Preferences > Toolbars (`ToolbarsSettingsPanel.cpp`, new) lets the user hide/reorder entries in the always-visible Effects toolbar via a `wxRearrangeCtrl`, persisted through `preferences/ToolbarLayout.h` and applied live via `xLightsFrame::RebuildEffectsToolbar()`. iPad's equivalent picker, `EffectPaletteView.swift`, renders `SequencerViewModel.availableEffects` as a raw, unfilterable, unordered pass-through of `XLSequenceDocument.availableEffectNames()` (`XLSequenceDocument.mm:9982`) — no persisted order/visibility exists there yet. |
 
 ## iPad gaps (desktop has, iPad missing)
 
@@ -191,6 +192,13 @@
 - **Reset-panel-on-effect-change preference.** Intentionally a no-op on iPad
   (inspector shows anchor values). Only relevant if iPad ever adopts sticky
   panel state. Low priority.
+- **Effects toolbar customization.** Desktop Preferences > Toolbars lets users
+  hide/reorder Effects-toolbar entries (`wxRearrangeCtrl`-based, persisted per
+  user). iPad's `EffectPaletteView` shows every effect, unordered, with no
+  hide/reorder. A SwiftUI reorder/hide UI over `availableEffects` would close
+  this; not attempted here since the desktop change was scoped narrowly (a
+  Preferences-only feature, no plugin/DLL loading, per maintainer feedback on
+  PR #6685).
 
 ## Desktop gaps (iPad has, desktop missing)
 
