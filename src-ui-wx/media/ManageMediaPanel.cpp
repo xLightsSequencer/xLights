@@ -1447,8 +1447,10 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         // images have no on-disk file to repoint, so they don't count.
         int externalImageCount = 0;
         for (const auto& p : _sequenceMedia->GetImagePaths()) {
-            auto e = _sequenceMedia->GetImage(p);
-            if (e && !e->IsEmbedded()) ++externalImageCount;
+            // GetMediaEmbedState() is a pure cache lookup, unlike GetImage(),
+            // which loads the file from disk if it isn't cached yet - this
+            // runs on every right-click, so avoid the I/O here.
+            if (!_sequenceMedia->GetMediaEmbedState(p).first) ++externalImageCount;
         }
         if (externalImageCount > 1) {
             if (menu.GetMenuItemCount() > 0)
@@ -1493,16 +1495,11 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         int externalTypeCount = 0;
         for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
             if (pt != mtype) continue;
-            std::shared_ptr<MediaCacheEntry> e;
-            switch (mtype) {
-                case MediaType::Shader:     e = _sequenceMedia->GetShader(p); break;
-                case MediaType::SVG:        e = _sequenceMedia->GetSVG(p); break;
-                case MediaType::TextFile:   e = _sequenceMedia->GetTextFile(p); break;
-                case MediaType::BinaryFile: e = _sequenceMedia->GetBinaryFile(p); break;
-                case MediaType::Video:      e = _sequenceMedia->GetVideo(p); break;
-                default: break;
-            }
-            if (e && !e->IsEmbedded()) ++externalTypeCount;
+            // GetMediaEmbedState() is a pure cache lookup, unlike the
+            // per-type GetShader()/GetSVG()/etc. getters, which load/reload
+            // the file from disk - this runs on every right-click, so avoid
+            // the I/O here.
+            if (!_sequenceMedia->GetMediaEmbedState(p).first) ++externalTypeCount;
         }
         if (externalTypeCount > 1) {
             if (menu.GetMenuItemCount() > 0)
@@ -1703,8 +1700,11 @@ void ManageMediaPanel::OnBulkFindImages()
     // with an external file reference, so they're excluded.
     std::vector<std::string> mediaPaths;
     for (const auto& p : _sequenceMedia->GetImagePaths()) {
-        auto e = _sequenceMedia->GetImage(p);
-        if (e && !e->IsEmbedded()) mediaPaths.push_back(p);
+        // GetMediaEmbedState() is a pure cache lookup, unlike GetImage(),
+        // which loads the file from disk if it isn't cached yet - this would
+        // otherwise front-load I/O for every image before the user has even
+        // chosen a folder to search.
+        if (!_sequenceMedia->GetMediaEmbedState(p).first) mediaPaths.push_back(p);
     }
     if (mediaPaths.empty()) {
         // Defensive: the context menu only offers this action when there are
@@ -2035,16 +2035,11 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
     std::vector<std::string> mediaPaths;
     for (const auto& [path, mtype] : _sequenceMedia->GetAllMediaPaths()) {
         if (mtype != type) continue;
-        std::shared_ptr<MediaCacheEntry> entry;
-        switch (type) {
-            case MediaType::Shader:     entry = _sequenceMedia->GetShader(path); break;
-            case MediaType::SVG:        entry = _sequenceMedia->GetSVG(path); break;
-            case MediaType::TextFile:   entry = _sequenceMedia->GetTextFile(path); break;
-            case MediaType::BinaryFile: entry = _sequenceMedia->GetBinaryFile(path); break;
-            case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
-            default: break;
-        }
-        if (entry && !entry->IsEmbedded()) mediaPaths.push_back(path);
+        // GetMediaEmbedState() is a pure cache lookup, unlike the per-type
+        // GetShader()/GetSVG()/etc. getters, which load/reload the file from
+        // disk - this would otherwise front-load I/O for every entry before
+        // the user has even chosen a folder to search.
+        if (!_sequenceMedia->GetMediaEmbedState(path).first) mediaPaths.push_back(path);
     }
     if (mediaPaths.empty()) {
         // Defensive: same as OnBulkFindImages - the context menu only offers
