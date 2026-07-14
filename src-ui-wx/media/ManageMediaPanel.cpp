@@ -118,20 +118,27 @@ static wxString BaseFileName(const std::string& path) {
     return wxString(name);
 }
 
-// One-time recursive index of searchDir's files, keyed by basename, so the
-// bulk find/repoint loops below can do a single map lookup per item instead
-// of re-walking the whole folder tree per item - the per-item wxDir::GetAllFiles
-// scan got much more expensive once bulk find started processing every item
-// of a type instead of just the (usually few) broken ones. A top-level file
-// wins over a same-named nested one, matching the previous per-item
-// "exact top-level match first" behavior.
+// Lower-cased basename, used as the lookup key for BuildBasenameIndex so
+// matches work on case-insensitive filesystems (Windows, default macOS) even
+// when the media path's casing differs from what's actually on disk.
+static std::string NormalizedBasename(const std::string& path) {
+    return ToStdString(BaseFileName(path).Lower());
+}
+
+// One-time recursive index of searchDir's files, keyed by lower-cased
+// basename, so the bulk find/repoint loops below can do a single map lookup
+// per item instead of re-walking the whole folder tree per item - the
+// per-item wxDir::GetAllFiles scan got much more expensive once bulk find
+// started processing every item of a type instead of just the (usually few)
+// broken ones. A top-level file wins over a same-named nested one, matching
+// the previous per-item "exact top-level match first" behavior.
 static std::map<std::string, std::string> BuildBasenameIndex(const std::string& searchDir) {
     std::map<std::string, std::string> index;
     wxArrayString allFiles;
     wxDir::GetAllFiles(wxString(searchDir), &allFiles, wxEmptyString, wxDIR_FILES);
     for (const auto& f : allFiles) {
         std::string fullPath = ToStdString(f);
-        std::string basename = ToStdString(BaseFileName(fullPath));
+        std::string basename = NormalizedBasename(fullPath);
         bool isTopLevel = (ToStdString(wxFileName(f).GetPath()) == searchDir);
         if (isTopLevel || index.find(basename) == index.end()) {
             index[basename] = fullPath;
@@ -1638,10 +1645,16 @@ void ManageMediaPanel::OnBulkFindImages()
 {
     if (_sequenceMedia == nullptr) return;
 
-    // Collect every image path, not just broken ones - lets users bulk-repoint
-    // a whole set of already-working images to a new folder, not only fix
-    // missing ones.
-    std::vector<std::string> mediaPaths = _sequenceMedia->GetImagePaths();
+    // Collect every external (non-embedded) image path, not just broken ones -
+    // lets users bulk-repoint a whole set of already-working images to a new
+    // folder, not only fix missing ones. Embedded images have no on-disk file
+    // to repoint from/to; relinking one would replace its embedded content
+    // with an external file reference, so they're excluded.
+    std::vector<std::string> mediaPaths;
+    for (const auto& p : _sequenceMedia->GetImagePaths()) {
+        auto e = _sequenceMedia->GetImage(p);
+        if (e && !e->IsEmbedded()) mediaPaths.push_back(p);
+    }
     if (mediaPaths.empty()) return;
 
     // Ask user to pick a directory to search in
@@ -1709,7 +1722,7 @@ void ManageMediaPanel::OnBulkFindImages()
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        auto foundIt = folderIndex.find(ToStdString(nameToFind));
+        auto foundIt = folderIndex.find(NormalizedBasename(oldPath));
         if (foundIt == folderIndex.end()) { ++notFound; continue; }
         wxString foundFile(foundIt->second);
 
@@ -1949,13 +1962,25 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
 
     wxString typeName = wxString(MediaTypeName(type));
 
-    // Collect every path of this type, not just broken ones - lets users
-    // bulk-repoint a whole set of already-working files to a new folder, not
-    // only fix missing ones.
+    // Collect every external (non-embedded) path of this type, not just
+    // broken ones - lets users bulk-repoint a whole set of already-working
+    // files to a new folder, not only fix missing ones. Embedded entries are
+    // excluded: ForceRefreshEntry() below unconditionally repoints to an
+    // on-disk file, which would erase an embedded entry's content and
+    // replace it with an external reference.
     std::vector<std::string> mediaPaths;
     for (const auto& [path, mtype] : _sequenceMedia->GetAllMediaPaths()) {
         if (mtype != type) continue;
-        mediaPaths.push_back(path);
+        std::shared_ptr<MediaCacheEntry> entry;
+        switch (type) {
+            case MediaType::Shader:     entry = _sequenceMedia->GetShader(path); break;
+            case MediaType::SVG:        entry = _sequenceMedia->GetSVG(path); break;
+            case MediaType::TextFile:   entry = _sequenceMedia->GetTextFile(path); break;
+            case MediaType::BinaryFile: entry = _sequenceMedia->GetBinaryFile(path); break;
+            case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
+            default: break;
+        }
+        if (entry && !entry->IsEmbedded()) mediaPaths.push_back(path);
     }
     if (mediaPaths.empty()) return;
 
@@ -1976,7 +2001,7 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        auto foundIt = folderIndex.find(ToStdString(nameToFind));
+        auto foundIt = folderIndex.find(NormalizedBasename(oldPath));
         if (foundIt == folderIndex.end()) { ++notFound; continue; }
         wxString foundFile(foundIt->second);
 
