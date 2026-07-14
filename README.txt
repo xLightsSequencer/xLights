@@ -10,7 +10,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.13  July ??, 2026
+2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
                                  reducing the thread pool to roughly CPU+GPU core count and lowering
                                  memory use on large sequences
