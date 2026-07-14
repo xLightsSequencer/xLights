@@ -106,19 +106,29 @@ void DmxModel::InitModel()
     SetBufferSize(1, _dmxChannelCount);
 }
 
-int DmxModel::GetChannelValue(int channel, bool bits16)
+// RenderBuffer pixels are cleared to alpha=0 each frame and only effects that
+// actually paint a channel raise it (ServoEffect writes opaque, alpha=255)
+// -- so alpha, not the value itself, is the reliable "was this channel
+// actually driven this frame" signal. A raw value of 0 is legitimate real
+// data (e.g. a value curve sweeping through the bottom of its range) and
+// must not be treated as "no effect present". `driven`, if non-null, is set
+// to that signal so callers don't need a second Nodes[] lookup for it.
+int DmxModel::GetChannelValue(int channel, bool bits16, bool* driven)
 {
     xlColor color_angle;
     int lsb = 0;
     int msb = 0;
     int ret_val = 0;
+    bool isDriven = false;
 
     if (bits16) {
         if ((int)Nodes.size() > channel + 1) {
             Nodes[channel]->GetColor(color_angle);
             msb = color_angle.red;
+            isDriven = color_angle.alpha != 0;
             Nodes[channel + 1]->GetColor(color_angle);
             lsb = color_angle.red;
+            isDriven = isDriven || color_angle.alpha != 0;
             ret_val = ((msb << 8) | lsb);
         }
     }
@@ -126,34 +136,11 @@ int DmxModel::GetChannelValue(int channel, bool bits16)
         if ((int)Nodes.size() > channel) {
             Nodes[channel]->GetColor(color_angle);
             ret_val = color_angle.red;
+            isDriven = color_angle.alpha != 0;
         }
     }
+    if (driven) *driven = isDriven;
     return ret_val;
-}
-
-// RenderBuffer pixels are cleared to alpha=0 each frame and only effects that
-// actually paint a channel raise it (ServoEffect writes opaque, alpha=255)
-// -- so alpha, not the value itself, is the reliable "was this channel
-// actually driven this frame" signal. A raw value of 0 is legitimate real
-// data (e.g. a value curve sweeping through the bottom of its range) and
-// must not be treated as "no effect present".
-bool DmxModel::IsChannelDriven(int channel, bool bits16) const
-{
-    xlColor color_angle;
-    if (bits16) {
-        if ((int)Nodes.size() > channel + 1) {
-            Nodes[channel]->GetColor(color_angle);
-            if (color_angle.alpha != 0) return true;
-            Nodes[channel + 1]->GetColor(color_angle);
-            return color_angle.alpha != 0;
-        }
-    } else {
-        if ((int)Nodes.size() > channel) {
-            Nodes[channel]->GetColor(color_angle);
-            return color_angle.alpha != 0;
-        }
-    }
-    return false;
 }
 
 // support for moving heads or devices where coarse and fine channels are not contiguous
