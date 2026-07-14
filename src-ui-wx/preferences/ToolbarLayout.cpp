@@ -38,6 +38,9 @@ std::vector<std::pair<std::string, bool>> LoadToolbarLayout(XLightsConfigAdapter
 
     std::vector<std::pair<std::string, bool>> result;
     for (const auto& entry : saved) {
+        bool alreadyAdded = std::any_of(result.begin(), result.end(),
+                                         [&entry](const auto& e) { return e.first == entry.first; });
+        if (alreadyAdded) continue; // de-dupe a malformed/hand-edited config, keep first occurrence
         if (std::find(currentNames.begin(), currentNames.end(), entry.first) != currentNames.end()) {
             result.push_back(entry);
         }
