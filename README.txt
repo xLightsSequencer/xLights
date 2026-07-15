@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: parallelise the Per Model group buffer merge/unmerge copies
     -enh (dkulp)                 Render: cache the sub-buffer node mapping for animated (value-curve) sub-buffers instead
                                  of rebuilding it every frame
     -enh (dkulp)                 Render: blend layers via a flat dispatch table and skip the per-node dimming-curve

@@ -229,6 +229,47 @@ private:
         std::vector<std::unique_ptr<RenderBuffer>>* modelBuffers = nullptr;
         std::vector<std::unique_ptr<RenderBuffer>> shallowModelBuffers;
         std::vector<std::unique_ptr<RenderBuffer>> deepModelBuffers;
+
+        // Flattened node/coord walks for the "Per Model" group <-> member-model
+        // pixel copies, built once per layer settings change.
+        struct PerModelCopyMap {
+            struct Op {
+                int32_t dst;
+                int32_t src; // < 0 when the source coord falls outside its buffer
+            };
+            struct ModelOps {
+                std::vector<Op> unmerge; // group pixel -> model pixel
+                std::vector<Op> merge;   // model pixel -> group pixel
+                size_t nodeStart = 0;
+                size_t nodeCount = 0;
+                int wi = 0;
+                int ht = 0;
+                bool dmx = false; // model SetPixel() does DMX channel translation, not a plain store
+            };
+            std::vector<ModelOps> models;
+            const std::vector<std::unique_ptr<RenderBuffer>>* builtFor = nullptr;
+            size_t groupNodeCount = 0;
+            int groupWi = 0;
+            int groupHt = 0;
+            // Two member models write the same group-buffer cell, so the merge
+            // result depends on model order (last model wins). Merging across
+            // models in parallel would make that racy, so it stays serial.
+            bool groupOverlap = false;
+            bool valid = false;
+
+            void invalidate() {
+                valid = false;
+            }
+            void clear() {
+                models.clear();
+                builtFor = nullptr;
+                groupNodeCount = 0;
+                groupWi = groupHt = 0;
+                groupOverlap = false;
+                valid = false;
+            }
+        };
+        PerModelCopyMap perModelMap;
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
         xlColor sparklesColour = xlWHITE;
@@ -319,6 +360,11 @@ private:
     void RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::RotoZoomSettings& settings);
 
     void GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer, bool saveToPixels);
+
+    void BuildPerModelCopyMap(LayerInfo* inf);
+    bool PerModelCopyMapUsable(const LayerInfo* inf) const;
+    void UnMergeBuffersForLayerScalar(int layer);
+    void MergeBuffersForLayerScalar(int layer);
 
     std::string modelName;
     std::string lastBufferType;

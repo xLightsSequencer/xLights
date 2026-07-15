@@ -2333,8 +2333,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                     }
                 }
             }
+            BuildPerModelCopyMap(inf);
         } else {
             inf->modelBuffers = nullptr;
+            inf->perModelMap.clear();
         }
     }
 }
@@ -2367,14 +2369,223 @@ uint32_t PixelBufferClass::BufferCountForLayer(int layer) {
     return 1;
 }
 
+namespace {
+    // Mirrors RenderBuffer::GetPixel/SetPixel bounds handling: out of range reads
+    // return the buffer's "no pixel" colour and out of range writes are dropped.
+    inline int32_t FlatPixelIndex(const NodeBaseClass::CoordStruct& coord, int wi, int ht, int pixelCount) {
+        if (coord.bufX >= 0 && coord.bufX < wi && coord.bufY >= 0 && coord.bufY < ht) {
+            const int64_t idx = (int64_t)coord.bufY * wi + coord.bufX;
+            if (idx < pixelCount) {
+                return (int32_t)idx;
+            }
+        }
+        return -1;
+    }
+}
+
+void PixelBufferClass::BuildPerModelCopyMap(LayerInfo* inf) {
+    LayerInfo::PerModelCopyMap& map = inf->perModelMap;
+    map.clear();
+
+    if (inf->modelBuffers == nullptr) {
+        return;
+    }
+
+    RenderBuffer& gb = inf->buffer;
+    if (gb.dmx_buffer) {
+        // group SetPixel() would take the DMX translation path, not a plain store
+        return;
+    }
+
+    const size_t groupNodes = gb.Nodes.size();
+    size_t totalModelNodes = 0;
+    for (const auto& mb : *(inf->modelBuffers)) {
+        totalModelNodes += mb->Nodes.size();
+    }
+    if (totalModelNodes > groupNodes) {
+        // node count mismatch - leave it to the scalar path, which reports it
+        return;
+    }
+
+    const int gw = gb.BufferWi;
+    const int gh = gb.BufferHt;
+    const int gpixels = (int)gb.GetPixelCount();
+
+    // which model last wrote each group cell, so two models targeting the same
+    // cell (order dependent) can be spotted while the map is being built
+    std::vector<int32_t> groupCellOwner(std::max(gpixels, 0), -1);
+
+    map.models.resize(inf->modelBuffers->size());
+
+    size_t nc = 0;
+    int mi = 0;
+    for (const auto& mbp : *(inf->modelBuffers)) {
+        RenderBuffer* mb = mbp.get();
+        auto& ops = map.models[mi];
+        ops.nodeStart = nc;
+        ops.nodeCount = mb->Nodes.size();
+        ops.wi = mb->BufferWi;
+        ops.ht = mb->BufferHt;
+        ops.dmx = mb->dmx_buffer;
+
+        const int mw = mb->BufferWi;
+        const int mh = mb->BufferHt;
+        const int mpixels = (int)mb->GetPixelCount();
+
+        ops.unmerge.reserve(ops.nodeCount);
+        ops.merge.reserve(ops.nodeCount);
+
+        for (const auto& mbnode : mb->Nodes) {
+            const auto& gnode = gb.Nodes[nc];
+            if (gnode->Coords.empty() || mbnode->Coords.empty()) {
+                map.clear();
+                return;
+            }
+
+            const int32_t gsrc = FlatPixelIndex(gnode->Coords[0], gw, gh, gpixels);
+            const int32_t msrc = FlatPixelIndex(mbnode->Coords[0], mw, mh, mpixels);
+
+            for (const auto& coord : mbnode->Coords) {
+                const int32_t dst = FlatPixelIndex(coord, mw, mh, mpixels);
+                if (dst >= 0) {
+                    ops.unmerge.push_back({ dst, gsrc });
+                }
+            }
+            for (const auto& coord : gnode->Coords) {
+                const int32_t dst = FlatPixelIndex(coord, gw, gh, gpixels);
+                if (dst >= 0) {
+                    if (groupCellOwner[dst] >= 0 && groupCellOwner[dst] != mi) {
+                        map.groupOverlap = true;
+                    }
+                    groupCellOwner[dst] = mi;
+                    ops.merge.push_back({ dst, msrc });
+                }
+            }
+            ++nc;
+        }
+        ++mi;
+    }
+
+    map.builtFor = inf->modelBuffers;
+    map.groupNodeCount = groupNodes;
+    map.groupWi = gw;
+    map.groupHt = gh;
+    map.valid = true;
+}
+
+bool PixelBufferClass::PerModelCopyMapUsable(const LayerInfo* inf) const {
+    const LayerInfo::PerModelCopyMap& map = inf->perModelMap;
+    if (!map.valid || inf->modelBuffers == nullptr || map.builtFor != inf->modelBuffers) {
+        return false;
+    }
+    if (map.models.size() != inf->modelBuffers->size()) {
+        return false;
+    }
+    const RenderBuffer& gb = inf->buffer;
+    if (map.groupWi != gb.BufferWi || map.groupHt != gb.BufferHt || map.groupNodeCount != gb.Nodes.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < map.models.size(); ++i) {
+        const RenderBuffer* mb = (*inf->modelBuffers)[i].get();
+        if (map.models[i].wi != mb->BufferWi || map.models[i].ht != mb->BufferHt || map.models[i].nodeCount != mb->Nodes.size()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
-    
+    LayerInfo* inf = layers[layer];
+    if (inf->modelBuffers == nullptr) {
+        return;
+    }
+
+    GPURenderUtils::waitForRenderCompletion(&inf->buffer);
+
+    if (!PerModelCopyMapUsable(inf)) {
+        UnMergeBuffersForLayerScalar(layer);
+        return;
+    }
+
+    RenderBuffer& gb = inf->buffer;
+    const xlColor* gpixels = gb.GetPixels();
+    const xlColor groupOutOfRange = gb.allowAlpha ? xlCLEAR : xlBLACK;
+    auto& modelBuffers = *(inf->modelBuffers);
+    const auto& map = inf->perModelMap;
+
+    // each model writes only its own buffer, so this is safe to fan out
+    // regardless of how the models overlap in the group buffer
+    parallel_for(0, (int)modelBuffers.size(), [&](int m) {
+        RenderBuffer* mb = modelBuffers[m].get();
+        const auto& ops = map.models[m];
+        if (ops.dmx) {
+            // DMX model SetPixel() spreads the colour across the fixture's channels
+            xlColor color;
+            size_t nc = ops.nodeStart;
+            for (const auto& mbnode : mb->Nodes) {
+                const auto& gcoord = gb.Nodes[nc]->Coords[0];
+                gb.GetPixel(gcoord.bufX, gcoord.bufY, color);
+                for (const auto& coord : mbnode->Coords) {
+                    mb->SetPixel(coord.bufX, coord.bufY, color);
+                }
+                ++nc;
+            }
+            return;
+        }
+        xlColor* mpixels = mb->GetPixels();
+        for (const auto& op : ops.unmerge) {
+            mpixels[op.dst] = op.src >= 0 ? gpixels[op.src] : groupOutOfRange;
+        }
+    }, 1);
+}
+
+void PixelBufferClass::MergeBuffersForLayer(int layer) {
+    LayerInfo* inf = layers[layer];
+    if (inf->modelBuffers == nullptr) {
+        return;
+    }
+
+    auto& modelBuffers = *(inf->modelBuffers);
+    for (auto& modelBuffer : modelBuffers) {
+        GPURenderUtils::commitRenderBuffer(modelBuffer.get());
+    }
+    for (auto& modelBuffer : modelBuffers) {
+        GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
+    }
+
+    if (!PerModelCopyMapUsable(inf)) {
+        MergeBuffersForLayerScalar(layer);
+        return;
+    }
+
+    xlColor* gpixels = inf->buffer.GetPixels();
+    const auto& map = inf->perModelMap;
+
+    auto mergeModel = [&](int m) {
+        RenderBuffer* mb = modelBuffers[m].get();
+        const xlColor* mpixels = mb->GetPixels();
+        const xlColor modelOutOfRange = mb->allowAlpha ? xlCLEAR : xlBLACK;
+        for (const auto& op : map.models[m].merge) {
+            gpixels[op.dst] = op.src >= 0 ? mpixels[op.src] : modelOutOfRange;
+        }
+    };
+
+    if (map.groupOverlap) {
+        // models share group cells: the result depends on model order
+        for (int m = 0; m < (int)modelBuffers.size(); ++m) {
+            mergeModel(m);
+        }
+    } else {
+        parallel_for(0, (int)modelBuffers.size(), [&mergeModel](int m) { mergeModel(m); }, 1);
+    }
+}
+
+void PixelBufferClass::UnMergeBuffersForLayerScalar(int layer) {
+
     if (layers[layer]->modelBuffers) {
         // get all the data
         xlColor color;
         int nc = 0;
-
-        GPURenderUtils::waitForRenderCompletion(&layers[layer]->buffer);
 
         for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& mbnode : modelBuffer->Nodes) {
@@ -2405,18 +2616,12 @@ void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
         }
     }
 }
-void PixelBufferClass::MergeBuffersForLayer(int layer) {
-    
+void PixelBufferClass::MergeBuffersForLayerScalar(int layer) {
+
     if (layers[layer]->modelBuffers) {
         // get all the data
         xlColor color;
         int nc = 0;
-        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
-            GPURenderUtils::commitRenderBuffer(modelBuffer.get());
-        }
-        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
-            GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
-        }
         for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& node : modelBuffer->Nodes) {
                 if ((size_t)nc < layers[layer]->buffer.Nodes.size()) {
@@ -2865,6 +3070,14 @@ bool PixelBufferClass::IsCanvasMix(int layer) const {
 void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
     if (!IsVariableSubBuffer(layer))
         return;
+
+    // A rect change below rebuilds the layer's node coords, so any index map
+    // built against them in SetLayerSettings no longer describes the buffer.
+    // Invalidated unconditionally (not just on a rebuild): the map is only
+    // rebuilt by SetLayerSettings, so a variable sub-buffer layer stays on the
+    // scalar merge path for its whole effect - the same behaviour it had before
+    // the rect cache existed.
+    layers[layer]->perModelMap.invalidate();
 
     LayerInfo* inf = layers[layer];
 
