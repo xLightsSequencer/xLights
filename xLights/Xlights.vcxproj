@@ -1825,6 +1825,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\utils\nanosvg_xl.h" />
     <ClInclude Include="..\src-core\utils\CursorType.h" />
     <ClInclude Include="..\src-core\render\UICallbacks.h" />
+    <ClInclude Include="..\src-core\render\RenderProfile.h" />
     <ClInclude Include="..\src-core\render\RenderProgressInfo.h" />
     <ClInclude Include="..\src-core\render\RenderContext.h" />
     <ClInclude Include="..\src-core\render\JukeboxButtonData.h" />

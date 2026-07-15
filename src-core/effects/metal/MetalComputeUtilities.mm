@@ -9,6 +9,8 @@
 #include <IOKit/IOKitLib.h>
 #endif
 
+#include <log.h>
+
 #include "MetalEffectDataTypes.h"
 #include "DissolveTransitionPattern.h"
 
@@ -617,10 +619,12 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::s
         NSString* mn = [NSString stringWithUTF8String:modelName.c_str()];
         [commandBuffer setLabel:mn];
     }
+    cbTag.note(postfix);
     return commandBuffer;
 }
 void MetalRenderBufferComputeData::abortCommandBuffer() {
     @autoreleasepool {
+        cbTag.reset();
         commandBuffer = nil;
         --commandBufferCount;
     }
@@ -873,15 +877,25 @@ void MetalRenderBufferComputeData::waitForCompletion() {
             if (@available(macOS 11.0, *)) {
                 NSError *error = [commandBuffer error];
                 if (error != nil) {
-                    int ec = error.code;
-                    //id info = error.userInfo[MTLCommandBufferEncoderInfoErrorKey];
-                    printf("ERROR!!  ec: %d  \n", ec);
+                    // A GPU fault here silently corrupts the frame, so it has to
+                    // reach the log - it used to only printf to stdout.
+                    spdlog::error("Metal command buffer failed: code {} ({})",
+                                  (int)error.code,
+                                  error.localizedDescription ? error.localizedDescription.UTF8String : "no description");
                 }
             }
             [commandBuffer waitUntilCompleted];
 #else
             [commandBuffer waitUntilCompleted];
 #endif
+            if (cbTag.armed()) {
+                // GPUStartTime/GPUEndTime are only meaningful once the buffer has
+                // completed, which is exactly here.  This is the GPU's execution
+                // window for the work the tagged effect encoded.
+                CFTimeInterval gs = [commandBuffer GPUStartTime];
+                CFTimeInterval ge = [commandBuffer GPUEndTime];
+                cbTag.complete(ge > gs ? (uint64_t)((ge - gs) * 1.0e9) : 0);
+            }
             commandBuffer = nil;
             committed = false;
             --commandBufferCount;

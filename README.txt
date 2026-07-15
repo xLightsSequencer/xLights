@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: XL_RENDER_PROFILE=1 dumps per-model/per-effect render, blend, output, GPU-wait
+                                 and upstream-wait timings at the end of each render batch
     -enh (dkulp)                 Render: edit-triggered renders now jump ahead of a running full render, so the grid
                                  and preview update promptly while a Render All is in progress
     -bug (dkulp)                 Windows: fixed a heap corruption (STATUS_HEAP_CORRUPTION) on process teardown when

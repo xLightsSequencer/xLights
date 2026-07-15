@@ -13,6 +13,8 @@
 #include <functional>
 #include <string>
 
+struct RenderJobProfile;
+
 // Minimum interface for querying / controlling an in-flight render job.
 // RenderJob implements this so that RenderProgressInfo (and any UI code that
 // iterates the job list) does not need the full RenderJob class definition.
@@ -32,6 +34,10 @@ public:
     // parked).  A batch is only considered stalled when every unfinished job
     // is idle - a job actively rendering a slow frame is not a stall.
     virtual bool IsIdle() { return false; }
+
+    // XL_RENDER_PROFILE telemetry.  Valid to read after the job has finished
+    // (the batch keeps every job alive until completion is signaled).
+    virtual const RenderJobProfile* GetRenderProfile() const { return nullptr; }
 
     // Progress query (atomic reads, callable from any thread)
     virtual int GetCurrentFrame() const = 0;

@@ -538,6 +538,7 @@
 		<Unit filename="../src-core/render/RenderCache.cpp" />
 		<Unit filename="../src-core/render/RenderCache.h" />
 		<Unit filename="../src-core/render/RenderContext.h" />
+		<Unit filename="../src-core/render/RenderProfile.h" />
 		<Unit filename="../src-core/render/RenderProgressInfo.h" />
 		<Unit filename="../src-core/render/RenderUtils.h" />
 		<Unit filename="../src-ui-wx/sequencer/RenderCommandEvent.cpp" />

@@ -70,6 +70,7 @@ private:
     RenderBuffer *renderBuffer;
     int layer;
     id<MTLCommandBuffer> commandBuffer;
+    GpuCommandBufferTag cbTag;  // XL_RENDER_PROFILE; inert (null profile) when off
     id<MTLBuffer> blendBuffer;
     id<MTLBuffer> pixelBuffer;
     id<MTLBuffer> pixelBufferCopy;

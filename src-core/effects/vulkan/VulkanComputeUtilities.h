@@ -134,6 +134,9 @@ private:
     bool callRotoZoomFunction(VkPipeline function, VkPipeline claimFunction, struct RotoZoomData& data);
     VkDescriptorSet allocateDescriptorSet();
     void resetDescriptorPools();
+    // XL_RENDER_PROFILE only: bracket the command buffer with timestamp queries
+    // so its GPU execution can be charged back to the effect that opened it.
+    bool ensureTimestampPool();
 
     RenderBuffer* renderBuffer;
     int layer;
@@ -141,6 +144,9 @@ private:
     VkCommandPool commandPool = VK_NULL_HANDLE;
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
     VkFence fence = VK_NULL_HANDLE;
+    VkQueryPool timestampPool = VK_NULL_HANDLE;
+    bool timestamped = false;   // this command buffer carries the query pair
+    GpuCommandBufferTag cbTag;  // inert (null profile) when profiling is off
     std::vector<VkDescriptorPool> descriptorPools;
     size_t activePool = 0;
     VulkanBuffer paramArena;
@@ -310,6 +316,9 @@ public:
     // minStorageBufferOffsetAlignment — arena sub-allocations for effect
     // param structs (bound as SSBOs) must start on this boundary.
     VkDeviceSize storageBufferAlignment = 256;
+    // ns per timestamp tick; 0 when the compute queue cannot timestamp, which
+    // turns off XL_RENDER_PROFILE's per-effect GPU attribution on this device.
+    float timestampPeriod = 0.0f;
 
     // All vkQueueSubmit calls are serialized on this (queues are externally
     // synchronized); command recording happens lock-free in per-RenderBuffer
