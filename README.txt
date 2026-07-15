@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every
+                                 meteor against every pixel (CPU, Metal and Vulkan paths); large-matrix Meteors
+                                 renders are dramatically faster
     -enh (dkulp)                 Render: the per-node output copy (node colours to/from the sequence data) is now
                                  serial instead of fanning out to the shared job pool; the dispatch cost far
                                  exceeded the few bytes copied, and it was also slowing the effects rendering

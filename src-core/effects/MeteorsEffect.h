@@ -82,6 +82,17 @@ protected:
     // to dispatch the GPU kernel and falls back here when Metal isn't viable.
     virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts);
 
+    // A meteor's axis coord is the only line of the buffer it can ever cover (the
+    // column it falls down, or the row it crosses), so bucket the snapshot by line and
+    // a pixel need only scan its own line's meteors instead of all of them. Counting
+    // sort, so a line's meteors stay in ascending snapshot order and the last one still
+    // wins the pixel. lineStart holds lineCount+1 prefix offsets into lineItems, which
+    // holds global indices into parts. Meteors whose line falls outside the buffer are
+    // dropped: no pixel can match their axis coord. Shared by the ISPC, Metal and
+    // Vulkan gathers so all three bucket identically.
+    static void BucketMeteorsByLine(const std::vector<MeteorSnapshot>& parts, int lineCount,
+                                    std::vector<int>& lineStart, std::vector<int>& lineItems);
+
 private:
     void RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
         void VerticalAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);

@@ -3,9 +3,18 @@
 // MeteorsFunctions.ispc). The CPU-side meteor simulation (add/move/remove,
 // swirl folded into the axis coordinate, palette/range HSV precompute) stays
 // entirely in MeteorsEffect.cpp/VulkanMeteorsEffect.cpp -- this kernel only
-// runs the final per-pixel gather: each thread scans every live meteor and
-// the LAST covering meteor in draw order wins (mirrors the CPU's SetPixel
-// overwrite order).
+// runs the final per-pixel gather: each thread scans the meteors bucketed onto
+// its own line and the LAST covering one in draw order wins (mirrors the CPU's
+// SetPixel overwrite order).
+//
+// A meteor's axis coord fixes the only line of the buffer it can ever cover --
+// the column it falls down (vertical/icicle) or the row it crosses
+// (horizontal) -- so the CPU buckets the snapshot by line
+// (MeteorsEffect::BucketMeteorsByLine) and a thread scans just
+// lineItems[lineStart[line] .. lineStart[line+1]) (global indices into parts,
+// ascending). The meteors left out fail the a == x / a == y test anyway, so the
+// same one still wins each pixel; the flat O(pixels x meteors) scan becomes
+// O(pixels x meteors-on-this-line).
 //
 // Partial-write kernel: pixels with no covering meteor (and, for icicle
 // without wantBkg, no dim background) are left untouched, so `result` must
@@ -24,6 +33,11 @@ layout(std430, set = 0, binding = 1) readonly buffer Parts {
     // stride from VulkanMeteorParticle's 24-byte C++ layout.
     uint partsRaw[];
 };
+// Line buckets from MeteorsEffect::BucketMeteorsByLine: lineStart holds
+// lineCount+1 prefix offsets into lineItems, which holds global indices into
+// partsRaw.
+layout(std430, set = 0, binding = 2) readonly buffer Items { int lineItems[]; };
+layout(std430, set = 0, binding = 3) readonly buffer Starts { int lineStart[]; };
 layout(std430, set = 0, binding = 5) readonly buffer Params {
     uint width;
     uint height;
@@ -150,11 +164,16 @@ void main() {
     int dir = data.direction;
     int scheme = data.colorScheme;
     int allowAlpha = data.allowAlpha;
-    int N = data.numMeteors;
+
+    // horizontal meteors cross a row, vertical/icicle ones fall down a column
+    int line = (mode == 1) ? y : x;
+    int itemStart = lineStart[line];
+    int itemEnd = lineStart[line + 1];
 
     int bestN = -1;
     int bestPh = 0;
-    for (int n = 0; n < N; n++) {
+    for (int i = itemStart; i < itemEnd; i++) {
+        int n = lineItems[i];
         int a = partA(n);
         int base = partBase(n);
         bool cover = false;
