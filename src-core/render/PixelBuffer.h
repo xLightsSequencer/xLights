@@ -46,7 +46,8 @@ enum class MixTypes {
     Mix_Max,
     Mix_Min,
     Mix_Highlight,
-    Mix_Highlight_Vibrant
+    Mix_Highlight_Vibrant,
+    Mix_LAST /** not a real mix type -- sentinel/count terminator, must stay last */
 };
 
 class Effect;
@@ -258,6 +259,11 @@ private:
     std::vector<uint32_t> blendDataBuffer;
     uint16_t *sparkles = nullptr;
     int frameTimeInMs = 50;
+    // Set once in reset() from layers[0]'s node/model set -- valid for the
+    // buffer's whole render-job lifetime (models are fixed once assigned;
+    // a model settings edit bumps the model generation and rebuilds the
+    // render tree, which reallocates this buffer via a fresh reset()).
+    bool anyDimmingCurve = false;
 
     // both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
     void mixColors(int x, int y, xlColor& fg, xlColor& bg, int layer);

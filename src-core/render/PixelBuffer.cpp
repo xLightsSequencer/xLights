@@ -983,6 +983,16 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer, x);
     }
+
+    anyDimmingCurve = false;
+    if (numLayers > 0) {
+        for (const auto& n : layers[0]->buffer.Nodes) {
+            if (n != nullptr && n->model != nullptr && n->model->GetDimmingCurve() != nullptr) {
+                anyDimmingCurve = true;
+                break;
+            }
+        }
+    }
 }
 
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, int timing) {
@@ -2484,35 +2494,62 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
         // path (winner = thread timing); the serial loop is last-node-wins.
         if (layers[0]->buffer.Nodes.size() < 1000 || layers[0]->buffer.dupActChans) {
             // smaller model, no sense in setting up the parallel_for
-            for (auto& n : layers[0]->buffer.Nodes) {
-                size_t start = n->ActChan;
-                // Mirror SetColors: never write past fdata. A stale ActChan
-                // (model node count changed / seqData reallocated under a
-                // live render job) would otherwise overrun the channel
-                // buffer in GetForChannels (crash sig 62b47aa9b8).
-                if (start >= numChannels) continue;
-                if (IsInRange(restrictRange, start)) {
-                    if (n->model != nullptr) { // nor this
-                        DimmingCurve* curve = n->model->GetDimmingCurve();
-                        if (curve != nullptr) {
-                            if (n->GetChanCount() == 1) {
-                                uint8_t buf[3] = { 0, 0, 0 };
-                                n->GetForChannels(buf);
-                                xlColor color(buf[0], buf[0], buf[0]);
-                                curve->apply(color);
+            if (!anyDimmingCurve) {
+                // Fast path: no model on this buffer has a dimming curve, so
+                // skip the per-node GetDimmingCurve()/apply() block entirely.
+                for (auto& n : layers[0]->buffer.Nodes) {
+                    size_t start = n->ActChan;
+                    // Mirror SetColors: never write past fdata. A stale ActChan
+                    // (model node count changed / seqData reallocated under a
+                    // live render job) would otherwise overrun the channel
+                    // buffer in GetForChannels (crash sig 62b47aa9b8).
+                    if (start >= numChannels) continue;
+                    if (IsInRange(restrictRange, start)) {
+                        n->GetForChannels(&fdata[start]);
+                    }
+                }
+            } else {
+                for (auto& n : layers[0]->buffer.Nodes) {
+                    size_t start = n->ActChan;
+                    if (start >= numChannels) continue;
+                    if (IsInRange(restrictRange, start)) {
+                        if (n->model != nullptr) { // nor this
+                            DimmingCurve* curve = n->model->GetDimmingCurve();
+                            if (curve != nullptr) {
+                                if (n->GetChanCount() == 1) {
+                                    uint8_t buf[3] = { 0, 0, 0 };
+                                    n->GetForChannels(buf);
+                                    xlColor color(buf[0], buf[0], buf[0]);
+                                    curve->apply(color);
 
-                                n->SetColor(color);
-                            } else {
-                                xlColor color;
-                                n->GetColor(color);
-                                curve->apply(color);
-                                n->SetColor(color);
+                                    n->SetColor(color);
+                                } else {
+                                    xlColor color;
+                                    n->GetColor(color);
+                                    curve->apply(color);
+                                    n->SetColor(color);
+                                }
                             }
                         }
+                        n->GetForChannels(&fdata[start]);
                     }
-                    n->GetForChannels(&fdata[start]);
                 }
             }
+        } else if (!anyDimmingCurve) {
+            parallel_for(
+                0, layers[0]->buffer.Nodes.size(), [&](int i) {
+                    auto& n = layers[0]->buffer.Nodes[i];
+                    // Defensive: skip null node pointers. The sibling SetColors
+                    // function already does this.
+                    if (n == nullptr) return;
+                    size_t start = n->ActChan;
+                    // Mirror SetColors: never write past fdata (see above).
+                    if (start >= numChannels) return;
+                    if (IsInRange(restrictRange, start)) {
+                        n->GetForChannels(&fdata[start]);
+                    }
+                },
+                500);
         } else {
             parallel_for(
                 0, layers[0]->buffer.Nodes.size(), [&](int i) {
@@ -2556,24 +2593,57 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
 
     if (layers[layer]->buffer.Nodes.size() < 1000) {
         xlColor color;
-        for (const auto& n : layers[layer]->buffer.Nodes) {
-            if (n == nullptr) continue;
-            size_t start = n->ActChan;
-            if (start >= numChannels) continue;
+        if (!anyDimmingCurve) {
+            // Fast path: no model on this buffer has a dimming curve, so
+            // skip the per-node GetDimmingCurve()/reverse() block entirely.
+            for (const auto& n : layers[layer]->buffer.Nodes) {
+                if (n == nullptr) continue;
+                size_t start = n->ActChan;
+                if (start >= numChannels) continue;
 
-            n->SetFromChannels(&fdata[start]);
-            n->GetColor(color);
+                n->SetFromChannels(&fdata[start]);
+                n->GetColor(color);
 
-            if (n->model != nullptr) {
-                DimmingCurve* curve = n->model->GetDimmingCurve();
-                if (curve != nullptr) {
-                    curve->reverse(color);
+                for (const auto& a : n->Coords) {
+                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
                 }
             }
-            for (const auto& a : n->Coords) {
-                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+        } else {
+            for (const auto& n : layers[layer]->buffer.Nodes) {
+                if (n == nullptr) continue;
+                size_t start = n->ActChan;
+                if (start >= numChannels) continue;
+
+                n->SetFromChannels(&fdata[start]);
+                n->GetColor(color);
+
+                if (n->model != nullptr) {
+                    DimmingCurve* curve = n->model->GetDimmingCurve();
+                    if (curve != nullptr) {
+                        curve->reverse(color);
+                    }
+                }
+                for (const auto& a : n->Coords) {
+                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+                }
             }
         }
+    } else if (!anyDimmingCurve) {
+        parallel_for(
+            0, layers[layer]->buffer.Nodes.size(), [&](int i) {
+                auto& n = layers[layer]->buffer.Nodes[i];
+                if (n == nullptr) return;
+                xlColor color;
+                size_t start = n->ActChan;
+                if (start >= numChannels) return;
+                n->SetFromChannels(&fdata[start]);
+                n->GetColor(color);
+
+                for (const auto& a : n->Coords) {
+                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+                }
+            },
+            500);
     } else {
         parallel_for(
             0, layers[layer]->buffer.Nodes.size(), [&](int i) {
