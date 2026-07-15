@@ -1025,6 +1025,11 @@ bool xLightsApp::OnInit()
     // any differing channel samples. Used to prove headless renders match the
     // desktop render. No window.
     if (parser.Found("fc")) {
+#ifdef __APPLE__
+        // Run as a background app: no Dock icon, no focus stealing, so a
+        // background render doesn't disrupt the desktop.
+        SetHeadlessNoDock();
+#endif
         if (sequenceFiles.GetCount() != 2) {
             printf("--fseqcmp requires exactly two .fseq file arguments (got %u)\n",
                    (unsigned)sequenceFiles.GetCount());
