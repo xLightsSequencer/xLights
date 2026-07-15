@@ -90,7 +90,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
         [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
         [[nodiscard]] int GetNodePhysicalStringIndex(size_t nodenum) const override {
-            if (nodenum >= Nodes.size()) return 0;
+            if (nodenum >= Nodes.size() || Nodes[nodenum] == nullptr) return 0;
             return GetCustomNodeStringNumber((int)Nodes[nodenum]->StringNum + 1) - 1;
         }
 
