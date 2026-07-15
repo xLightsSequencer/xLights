@@ -12,6 +12,7 @@
 
 #include <wx/panel.h>
 #include <wx/regex.h>
+#include <wx/sizer.h>
 #include <wx/treelist.h>
 
 #include <list>
