@@ -13,6 +13,7 @@
 #include "Parallel.h"
 #include <thread>
 #include <algorithm>
+#include <chrono>
 
 #include "JobPool.h"
 
@@ -49,6 +50,26 @@ int ParallelJobPool::calcSteps(int minStep, int total) {
 }
 
 ParallelJobPool ParallelJobPool::POOL("parallel_tasks");
+
+void ParallelJobPool::signalDone() {
+    // Briefly take poolLock so the increment-of-doneCount that preceded this
+    // call happens-before any waiter's predicate re-check. Without the empty
+    // critical section, notify_all could fire in the window between a waiter's
+    // "doneCount < calcSteps" test and its entry into wait_for, and the wakeup
+    // would be lost (the bug the old 1ms poll papered over).
+    { std::lock_guard<std::mutex> g(poolLock); }
+    poolSignal.notify_all();
+}
+
+void ParallelJobPool::waitForDone(std::atomic_int &doneCount, int calcSteps) {
+    std::unique_lock<std::mutex> lock(poolLock);
+    // The 100ms timeout is belt-and-suspenders only: signalDone() guarantees the
+    // wakeup, so the loop normally blocks until notified. The timeout bounds any
+    // future lost-wakeup regression to a slow render rather than a hung one.
+    while (doneCount.load() < calcSteps) {
+        poolSignal.wait_for(lock, std::chrono::milliseconds(100));
+    }
+}
 
 
 class ParallelJob : public Job {
@@ -89,7 +110,7 @@ public:
         }
         int newDoneCount = ++doneCount;
         if (newDoneCount >= calcSteps) {
-            _pool.poolSignal.notify_all();
+            _pool.signalDone();
         }
     };
     virtual bool DeleteWhenComplete() override { return true; };
@@ -127,10 +148,7 @@ void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep
         }
         pool->PushJobs(jobs);
         ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, *pool).Process();
-        std::unique_lock<std::mutex> lock(pool->poolLock);
-        while (doneCount < calcSteps) {
-            pool->poolSignal.wait_for(lock, std::chrono::nanoseconds(1000000));
-        }
+        pool->waitForDone(doneCount, calcSteps);
     }
 }
 
