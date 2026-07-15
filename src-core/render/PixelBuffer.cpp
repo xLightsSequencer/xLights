@@ -1392,6 +1392,15 @@ void PixelBufferClass::mixColors(int x, int y, xlColor& fg, xlColor& bg, int lay
     }
 }
 
+void PixelBufferClass::PrepareMixedColorParams(const std::vector<bool>& validLayers, int EffectPeriod) {
+    for (int layer = numLayers - 1; layer >= 0; layer--) {
+        if (validLayers[layer]) {
+            layers[layer]->calculateColorAdjust(EffectPeriod, layers[layer]->mixedColorAdjust);
+            layers[layer]->mixedColorAdjustPeriod = EffectPeriod;
+        }
+    }
+}
+
 void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod) {
     
 
@@ -1414,39 +1423,26 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
             if (x >= thelayer->BufferWi || y >= thelayer->BufferHt || x < 0 || y < 0) {
                 // out of bounds
             } else {
-                int effStartPer, effEndPer;
-                thelayer->buffer.GetEffectPeriods(effStartPer, effEndPer);
-                float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
-                offset = std::min(offset, 1.0f);
-
                 if (thelayer->isMasked(x, y) || x < 0 || y < 0 || x >= thelayer->BufferWi || y >= thelayer->BufferHt) {
                     color.Set(0, 0, 0, 0);
                 } else {
                     thelayer->buffer.GetPixel(x, y, color);
                 }
 
-                float ha;
-                if (thelayer->HueAdjustValueCurve.IsActive()) {
-                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                } else {
-                    ha = (float)thelayer->hueadjust / 100.0;
+                LayerInfo::ColorAdjust localAdjust;
+                const LayerInfo::ColorAdjust* adjust = &thelayer->mixedColorAdjust;
+                if (thelayer->mixedColorAdjustPeriod != EffectPeriod) {
+                    // no PrepareMixedColorParams for this period - fall back to a
+                    // local copy so concurrent callers don't write the layer
+                    thelayer->calculateColorAdjust(EffectPeriod, localAdjust);
+                    adjust = &localAdjust;
                 }
-                float sa;
-                if (thelayer->SaturationAdjustValueCurve.IsActive()) {
-                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                } else {
-                    sa = (float)thelayer->saturationadjust / 100.0;
-                }
-
-                float va;
-                if (thelayer->ValueAdjustValueCurve.IsActive()) {
-                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                } else {
-                    va = (float)thelayer->valueadjust / 100.0;
-                }
+                const float ha = adjust->hueAdjust;
+                const float sa = adjust->saturationAdjust;
+                const float va = adjust->valueAdjust;
 
                 // adjust for HSV adjustments
-                if (ha != 0 || sa != 0 || va != 0) {
+                if (adjust->needsHSVAdjust) {
                     HSVValue hsv = color.asHSV();
 
                     if (ha != 0) {
@@ -1481,12 +1477,7 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
                     color.alpha = alpha;
                 }
 
-                int b;
-                if (thelayer->BrightnessValueCurve.IsActive()) {
-                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
-                } else {
-                    b = thelayer->brightness;
-                }
+                const int b = adjust->brightnessAdjust;
                 if (thelayer->contrast != 0) {
                     // contrast is not 0, can handle brightness change at same time
                     HSVValue hsv = color.asHSV();
@@ -2151,6 +2142,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     inf->effectMixThreshold = (float)settingsMap.GetInt(SLIDER_EffectLayerMix, 0) / 100.0;
     inf->effectMixVaries = settingsMap.GetBool(CHECKBOX_LayerMorph);
     inf->canvas = settingsMap.GetBool(CHECKBOX_Canvas, false);
+    inf->mixedColorAdjustPeriod = -1;
 
     inf->type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     inf->camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
@@ -3748,30 +3740,51 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string& type, bool mo
     }
 }
 
-void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
+void PixelBufferClass::LayerInfo::calculateColorAdjust(int EffectPeriod, ColorAdjust& adjust) {
     int effStartPer, effEndPer;
     buffer.GetEffectPeriods(effStartPer, effEndPer);
     float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
     offset = std::min(offset, 1.0f);
 
     if (HueAdjustValueCurve.IsActive()) {
-        outputHueAdjust = HueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+        adjust.hueAdjust = HueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
     } else {
-        outputHueAdjust = (float)hueadjust / 100.0;
+        adjust.hueAdjust = (float)hueadjust / 100.0;
     }
     if (SaturationAdjustValueCurve.IsActive()) {
-        outputSaturationAdjust = SaturationAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+        adjust.saturationAdjust = SaturationAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
     } else {
-        outputSaturationAdjust = (float)saturationadjust / 100.0;
+        adjust.saturationAdjust = (float)saturationadjust / 100.0;
     }
     if (ValueAdjustValueCurve.IsActive()) {
-        outputValueAdjust = ValueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+        adjust.valueAdjust = ValueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
     } else {
-        outputValueAdjust = (float)valueadjust / 100.0;
+        adjust.valueAdjust = (float)valueadjust / 100.0;
     }
 
     // adjust for HSV adjustments
-    needsHSVAdjust = (outputHueAdjust != 0 || outputSaturationAdjust != 0 || outputValueAdjust != 0);
+    adjust.needsHSVAdjust = (adjust.hueAdjust != 0 || adjust.saturationAdjust != 0 || adjust.valueAdjust != 0);
+
+    if (BrightnessValueCurve.IsActive()) {
+        adjust.brightnessAdjust = (int)BrightnessValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    } else {
+        adjust.brightnessAdjust = brightness;
+    }
+}
+
+void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
+    int effStartPer, effEndPer;
+    buffer.GetEffectPeriods(effStartPer, effEndPer);
+    float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
+    offset = std::min(offset, 1.0f);
+
+    ColorAdjust adjust;
+    calculateColorAdjust(EffectPeriod, adjust);
+    outputHueAdjust = adjust.hueAdjust;
+    outputSaturationAdjust = adjust.saturationAdjust;
+    outputValueAdjust = adjust.valueAdjust;
+    needsHSVAdjust = adjust.needsHSVAdjust;
+    outputBrightnessAdjust = adjust.brightnessAdjust;
 
     outputSparkleCount = sparkle_count;
     if (SparklesValueCurve.IsActive()) {
@@ -3779,12 +3792,6 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
     }
     if (use_music_sparkle_count) {
         outputSparkleCount = (int)(music_sparkle_count_factor * (float)outputSparkleCount);
-    }
-
-    if (BrightnessValueCurve.IsActive()) {
-        outputBrightnessAdjust = (int)BrightnessValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    } else {
-        outputBrightnessAdjust = brightness;
     }
 
     outputEffectMixThreshold = effectMixThreshold;

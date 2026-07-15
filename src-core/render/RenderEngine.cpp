@@ -845,6 +845,7 @@ public:
                         }
                     }, 500);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
+                    buffer->PrepareMixedColorParams(vl, frame);
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
                         xlColor c;
                         for (int x = 0; x < rb.BufferWi; x++) {

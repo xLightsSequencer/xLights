@@ -216,6 +216,22 @@ private:
         int outputBrightnessAdjust = 100;
         float outputEffectMixThreshold = 0.0f;
 
+        struct ColorAdjust {
+            float hueAdjust = 0.0f;
+            float saturationAdjust = 0.0f;
+            float valueAdjust = 0.0f;
+            int brightnessAdjust = 100;
+            bool needsHSVAdjust = false;
+        };
+        // The output* members above are only refreshed for layers that get
+        // rendered this frame - a frozen layer (or the canvas layer itself,
+        // which is blended before its own transitions run) keeps stale ones, and
+        // the node blend depends on that. So the pixel-grid path keeps its own
+        // copy rather than sharing them.
+        ColorAdjust mixedColorAdjust;
+        int mixedColorAdjustPeriod = -1;
+
+        void calculateColorAdjust(int effectPeriod, ColorAdjust& adjust);
         void calculateNodeOutputParams(int effectPeriod);
 
     private:
@@ -265,6 +281,10 @@ private:
 
 public:
     static std::vector<std::string> GetMixTypes();
+    // Hoists the per-layer curve/HSV params GetMixedColor(x, y, ...) needs. Call
+    // once (single threaded) for an EffectPeriod before running the pixel loop;
+    // GetMixedColor recomputes them itself for any layer that was missed.
+    void PrepareMixedColorParams(const std::vector<bool>& validLayers, int EffectPeriod);
     void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char* buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char* buf);

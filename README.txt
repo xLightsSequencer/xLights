@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: hoist the per-layer colour/brightness value-curve evaluations out of the canvas
+                                 gap-fill pixel loop
     -enh (dkulp)                 Render: reuse a scratch buffer for the CPU rotate/zoom and small-blur paths instead of
                                  copying the whole render buffer every frame; allocate the effect temp buffer only for
                                  effects that use it
