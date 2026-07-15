@@ -91,7 +91,11 @@ class JobPoolWorker
 #else
     std::thread *thread;
 #endif
-    uint64_t tid;
+    // Written by the ctor after the thread is spawned, but the new thread reads
+    // it immediately in Entry() and GetThreadStatus() reads it from the UI
+    // thread - so it races unless it is atomic.  Logging/status only: a reader
+    // that gets in first simply sees 0.
+    std::atomic<uint64_t> tid;
     std::shared_ptr<spdlog::logger> m_logger{ nullptr };
 
 public:
@@ -143,12 +147,12 @@ JobPoolWorker::JobPoolWorker(JobPool *p) :
     thread = new std::thread(startFunc, this);
     tid = (uint64_t)thread->native_handle();
 #endif
-    m_logger->debug("JobPoolWorker created {:x}", tid);
+    m_logger->debug("JobPoolWorker created {:x}", tid.load());
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
-    m_logger->debug("JobPoolWorker destroyed {:x}", tid);
+    m_logger->debug("JobPoolWorker destroyed {:x}", tid.load());
     status = UNKNOWN;
 #ifdef __APPLE__
     pthread_detach(pThread);
@@ -167,7 +171,7 @@ std::string JobPoolWorker::GetStatus()
     ret << std::showbase // show the 0x prefix
         << std::internal // fill between the prefix and the number
         << std::setfill('0') << std::setw(10)
-        << std::hex << tid
+        << std::hex << tid.load()
         << "    ";
     
     Job *j = currentJob;
@@ -266,7 +270,7 @@ std::string JobPoolWorker::GetThreadName() const
 void JobPoolWorker::Entry()
 {
     std::ostringstream oss;
-    oss << tid;
+    oss << tid.load();
     m_logger->debug("JobPoolWorker started  {}", oss.str());
 
     try {
