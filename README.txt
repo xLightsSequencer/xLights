@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: the per-node output copy (node colours to/from the sequence data) is now
+                                 serial instead of fanning out to the shared job pool; the dispatch cost far
+                                 exceeded the few bytes copied, and it was also slowing the effects rendering
+                                 beside it. Cut the output stage by ~76% and total render CPU by ~30%
     -enh (dkulp)                 Render: reuse cached transition-mask and sparkle GPU buffers across frames instead of
                                  reallocating them every blend (biggest single GPU win); the per-node GPU copy-out
                                  stays serial - parallelising it measured slower
