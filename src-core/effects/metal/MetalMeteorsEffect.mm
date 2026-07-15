@@ -27,7 +27,8 @@ public:
 
     bool canRender() { return fn != nil; }
 
-    bool Render(MetalMeteorsData &mdata, const std::vector<MetalMeteorParticle> &parts, RenderBuffer &buffer) {
+    bool Render(MetalMeteorsData &mdata, const std::vector<MetalMeteorParticle> &parts,
+                const std::vector<int> &lineItems, const std::vector<int> &lineStart, RenderBuffer &buffer) {
         @autoreleasepool {
             MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
             if (!rbcd) return false;
@@ -41,14 +42,26 @@ public:
                 return false;
             }
 
-            // The kernel needs a valid particle buffer even when there are no meteors
-            // (an icicle frame may still draw its background), so allocate at least one.
+            // The kernel needs valid particle and bucket buffers even when there are no
+            // meteors (an icicle frame may still draw its background), so allocate at
+            // least one element of each. lineStart always has lineCount+1 entries.
             MetalMeteorParticle zero {};
             const void *src = parts.empty() ? (const void *)&zero : (const void *)parts.data();
             NSUInteger len = std::max((size_t)1, parts.size()) * sizeof(MetalMeteorParticle);
             id<MTLDevice> device = fn.device;
             id<MTLBuffer> partBuffer = [device newBufferWithBytes:src length:len options:MTLResourceStorageModeShared];
             if (partBuffer == nil) {
+                rbcd->abortCommandBuffer();
+                return false;
+            }
+            int noItems = 0;
+            const void *itemSrc = lineItems.empty() ? (const void *)&noItems : (const void *)lineItems.data();
+            NSUInteger itemLen = std::max((size_t)1, lineItems.size()) * sizeof(int);
+            id<MTLBuffer> itemBuffer = [device newBufferWithBytes:itemSrc length:itemLen options:MTLResourceStorageModeShared];
+            id<MTLBuffer> startBuffer = [device newBufferWithBytes:lineStart.data()
+                                                            length:lineStart.size() * sizeof(int)
+                                                           options:MTLResourceStorageModeShared];
+            if (itemBuffer == nil || startBuffer == nil) {
                 rbcd->abortCommandBuffer();
                 return false;
             }
@@ -64,6 +77,8 @@ public:
             [computeEncoder setBytes:&mdata length:sizeof(mdata) atIndex:0];
             [computeEncoder setBuffer:bufferResult offset:0 atIndex:1];
             [computeEncoder setBuffer:partBuffer offset:0 atIndex:2];
+            [computeEncoder setBuffer:itemBuffer offset:0 atIndex:3];
+            [computeEncoder setBuffer:startBuffer offset:0 atIndex:4];
 
             NSInteger maxThreads = fn.maxTotalThreadsPerThreadgroup;
             NSInteger pixelCount = mdata.width * mdata.height;
@@ -119,7 +134,12 @@ void MetalMeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGather
         mp[i].val = (float)parts[i].val;
     }
 
-    if (!data->Render(mdata, mp, buffer)) {
+    const int lineCount = (params.mode == 1) ? buffer.BufferHt : buffer.BufferWi;
+    std::vector<int> lineStart;
+    std::vector<int> lineItems;
+    BucketMeteorsByLine(parts, lineCount, lineStart, lineItems);
+
+    if (!data->Render(mdata, mp, lineItems, lineStart, buffer)) {
         MeteorsEffect::GatherMeteors(buffer, params, parts);
     }
 }

@@ -375,6 +375,15 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
 
+    // Snapshot the current pixels into a persistent scratch buffer for callers
+    // (rotate/small-blur) that need to read the pre-transform frame while
+    // writing the live buffer in place - avoids a full RenderBuffer copy-ctor
+    // (heap alloc + copy) every frame. Same GetPixel bounds/out-of-range
+    // semantics, backed by the scratch buffer instead of pixels.
+    void SnapshotTransformScratch();
+    const xlColor &GetTransformScratchPixel(int x, int y) const;
+    void GetTransformScratchPixel(int x, int y, xlColor &color) const;
+
     //optimized/direct versions only usable in cases where x/y are known to be within bounds
     void SetPixelDirect(int x, int y, const xlColor &color) {
         pixels[y * BufferWi + x] = color;
@@ -495,6 +504,10 @@ private:
     xlColorVector tempbufVector;
     xlColor *pixels = nullptr;
     xlColor *tempbuf = nullptr;
+    // Scratch for SnapshotTransformScratch()/GetTransformScratchPixel(); resized
+    // (never proactively shrunk in capacity) to pixelVector's size on each snapshot.
+    xlColorVector transformScratch;
+    void ensureTempBuf();
 
     std::vector<uint32_t> blendBuffer;
     std::vector<uint32_t> indexVector;
@@ -506,7 +519,7 @@ private:
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
-    xlColor *GetTempBuf() { return tempbuf; }
+    xlColor *GetTempBuf() { ensureTempBuf(); return tempbuf; }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
     xlSize GetMaxBuffer(const SettingsMap& SettingsMap) const;

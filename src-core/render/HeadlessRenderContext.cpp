@@ -133,6 +133,7 @@ bool HeadlessRenderContext::LoadShowFolder(const std::string& showDir,
 bool HeadlessRenderContext::OpenSequence(const std::string& path) {
     CloseSequence();
 
+    auto openStart = std::chrono::steady_clock::now();
     _sequenceFile = std::make_unique<SequenceFile>(path);
     _sequenceDoc = _sequenceFile->Open(showDirectory, false, path);
     if (!_sequenceDoc) {
@@ -153,9 +154,11 @@ bool HeadlessRenderContext::OpenSequence(const std::string& path) {
 
     EnsureSequenceDataSized();
 
-    spdlog::info("HeadlessRenderContext: opened {} ({} elements, {} ms)",
+    auto openMS = std::chrono::duration_cast<std::chrono::milliseconds>(
+                      std::chrono::steady_clock::now() - openStart).count();
+    spdlog::info("HeadlessRenderContext: opened {} ({} elements, {} ms long) in {} ms",
                  path, _sequenceElements.GetElementCount(),
-                 _sequenceFile->GetSequenceDurationMS());
+                 _sequenceFile->GetSequenceDurationMS(), (long long)openMS);
     return true;
 }
 

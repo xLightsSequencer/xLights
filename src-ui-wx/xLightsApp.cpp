@@ -1317,7 +1317,7 @@ bool xLightsApp::OnInit()
                     // and flush so per-file progress is visible during a batch.
                     printf("%s     Updated in %7.3f seconds\n", outPath.c_str(), elapsed);
                     fflush(stdout);
-                    spdlog::info("--headless: wrote {}", outPath);
+                    spdlog::info("--headless: wrote {} in {:.3f} seconds", outPath, elapsed);
                 } else {
                     allOk = false;
                 }

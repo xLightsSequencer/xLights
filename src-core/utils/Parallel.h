@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
 #include <functional>
 #include <list>
 #include <mutex>
@@ -21,11 +22,18 @@
 class ParallelJobPool : public JobPool {
 public:
     ParallelJobPool(const std::string &name);
-    
+
     static ParallelJobPool POOL;
-    
+
     int calcSteps(int minStep, int size);
-    
+
+    // Completion protocol shared by both parallel_for overloads. A worker calls
+    // signalDone() once the last block has finished; the empty critical section
+    // establishes the happens-before that makes the wakeup impossible to miss
+    // (see waitForDone). Do not notify without going through here.
+    void signalDone();
+    void waitForDone(std::atomic_int &doneCount, int calcSteps);
+
     std::mutex poolLock;
     std::condition_variable poolSignal;
 };
@@ -61,14 +69,16 @@ void parallel_for(std::list<T> &list, std::function<void(T&, int)>& f, int minSt
         std::atomic_int &index;
         typename std::list<T>::iterator &iterator;
         const int max;
+        const int calcSteps;
     public:
         ParallelListJob(std::atomic_int &dc,
                         std::function<void(T&, int)>& f,
                         typename std::list<T>::iterator &it,
                         std::mutex &l,
                         std::atomic_int &idx,
-                        int m)
-            : Job(), doneCount(dc), func(f), lock(l), index(idx), iterator(it), max(m) {}
+                        int m,
+                        int cs)
+            : Job(), doneCount(dc), func(f), lock(l), index(idx), iterator(it), max(m), calcSteps(cs) {}
         bool DeleteWhenComplete() override { return true; }
         bool SetThreadName() override { return false; }
         void Process() override {
@@ -83,17 +93,18 @@ void parallel_for(std::list<T> &list, std::function<void(T&, int)>& f, int minSt
                         func(t, idx);
                     } else {
                         lock.unlock();
-                        doneCount++;
-                        return;
+                        break;
                     }
                 }
             } catch (...) {
                 //nothing
-                doneCount++;
+            }
+            if (++doneCount >= calcSteps) {
+                ParallelJobPool::POOL.signalDone();
             }
         }
     };
-    
+
     int size = list.size();
     int calcSteps = ParallelJobPool::POOL.calcSteps(minStep, size);
     if (calcSteps == 1) {
@@ -107,14 +118,12 @@ void parallel_for(std::list<T> &list, std::function<void(T&, int)>& f, int minSt
         std::mutex lock;
         std::atomic_int idx(0);
         typename std::list<T>::iterator it = list.begin();
-        
+
         for (int x = 0; x < calcSteps-1; x++) {
-            ParallelJobPool::POOL.PushJob(new ParallelListJob(doneCount, f, it, lock, idx, size));
+            ParallelJobPool::POOL.PushJob(new ParallelListJob(doneCount, f, it, lock, idx, size, calcSteps));
         }
-        ParallelListJob(doneCount, f, it, lock, idx, size).Process();
-        while (doneCount < calcSteps) {
-            std::this_thread::yield();
-        }
+        ParallelListJob(doneCount, f, it, lock, idx, size, calcSteps).Process();
+        ParallelJobPool::POOL.waitForDone(doneCount, calcSteps);
     }
 }
 

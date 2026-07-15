@@ -8,8 +8,10 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <spdlog/fmt/fmt.h>
@@ -20,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "utils/AutoReleasePool.h"
 #include "RenderEngine.h"
@@ -41,6 +44,7 @@
 #include "Parallel.h"
 #include "utils/ExternalHooks.h"
 #include "GPURenderUtils.h"
+#include "RenderProfile.h"
 #include "RenderCache.h"
 #include "UtilClasses.h"
 #include "JobPool.h"
@@ -53,6 +57,11 @@
 // (C = canvas preload result, O = post-blend seqData slice) to stderr.  Two
 // runs' sorted outputs diff at the first non-deterministic producer.
 static const bool xldbgEffSum = (getenv("XL_EFFSUM") != nullptr);
+
+// XL_RENDER_PROFILE=1 diagnostic: accumulate per-row / per-effect render timing
+// and dump aggregate tables to stderr when the batch completes.  Checked before
+// any clock call so it costs nothing when unset (see RenderProfile.h).
+static const bool profRender = (getenv("XL_RENDER_PROFILE") != nullptr);
 static uint64_t xldbgFNV(const uint8_t* d, size_t n) {
     uint64_t h = 1469598103934665603ULL;
     for (size_t i = 0; i < n; i++) {
@@ -428,6 +437,7 @@ public:
     int GetCurrentFrame() const override { return currentFrame;}
     int GetEndFrame() const override { return endFrame;}
     int GetStartFrame() const override { return startFrame;}
+    const RenderJobProfile* GetRenderProfile() const override { return &profile; }
 
     const std::string GetName() const override {
         return name;
@@ -803,7 +813,8 @@ public:
                             }
                         }
                         if (doBlendLayer && CanOutputFrame(frame)) {
-                            buffer->SetColors(numLayers, &((*seqData)[frame][0]), seqData->NumChannels());
+                            { StageTimer st(profRender ? &profile.setColorsNs : nullptr);
+                              buffer->SetColors(numLayers, &((*seqData)[frame][0]), seqData->NumChannels()); }
                             vl[numLayers] = true;
                             blend = false;
                         }
@@ -821,7 +832,8 @@ public:
                     RenderBuffer& rb = buffer->BufferForLayer(layer, -1);
 
                     // We have to calc the output here to apply blend, rotozoom and transitions
-                    buffer->CalcOutput(frame, vl, layer, true);
+                    { StageTimer st(profRender ? &profile.blendNs : nullptr);
+                      buffer->CalcOutput(frame, vl, layer, true); }
                     std::vector<uint8_t> done(rb.GetPixelCount());
                     parallel_for(0, rb.GetNodes().size(), [&](int n) {
                         for (auto &a : rb.GetNodes()[n]->Coords) {
@@ -833,6 +845,7 @@ public:
                         }
                     }, 500);
                     // now fill in any spaces in the buffer that don't have nodes mapped to them
+                    buffer->PrepareMixedColorParams(vl, frame);
                     parallel_for(0, rb.BufferHt, [&rb, &buffer, &done, &vl, frame](int y) {
                         xlColor c;
                         for (int x = 0; x < rb.BufferWi; x++) {
@@ -857,8 +870,10 @@ public:
                 if (suppress) {
                     info.validLayers[layer] = false;
                 } else if (info.validLayers[layer]) {
-                    buffer->HandleLayerBlurZoom(frame, layer);
-                    buffer->HandleLayerTransitions(frame, layer);
+                    { StageTimer st(profRender ? &profile.blurZoomNs : nullptr);
+                      buffer->HandleLayerBlurZoom(frame, layer); }
+                    { StageTimer st(profRender ? &profile.transitionNs : nullptr);
+                      buffer->HandleLayerTransitions(frame, layer); }
                 }
 
                 if (xldbgEffSum && info.validLayers[layer]) {
@@ -912,7 +927,8 @@ public:
                 }
             }
             if (blend) {
-                buffer->SetColors(effectiveNumLayers, &((*seqData)[frame][0]), seqData->NumChannels());
+                { StageTimer st(profRender ? &profile.setColorsNs : nullptr);
+                  buffer->SetColors(effectiveNumLayers, &((*seqData)[frame][0]), seqData->NumChannels()); }
                 info.validLayers[effectiveNumLayers] = true;
             }
             if (xldbgEffSum && blend) {
@@ -920,7 +936,8 @@ public:
                 fprintf(stderr, "SUM B f=%d m=%s s=%d pfd=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, (int)GetPreviousFrameDone(),
                         (unsigned long long)xldbgFNV((const uint8_t*)blrb.GetPixels(), blrb.GetPixelCount() * 4));
             }
-            buffer->CalcOutput(frame, info.validLayers);
+            { StageTimer st(profRender ? &profile.blendNs : nullptr);
+              buffer->CalcOutput(frame, info.validLayers); }
             if (xldbgEffSum) {
                 uint64_t h = 1469598103934665603ULL;
                 for (const auto& n : buffer->BufferForLayer(0, -1).GetNodes()) {
@@ -959,7 +976,8 @@ public:
                     }
                 }
             }
-            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
+            { StageTimer st(profRender ? &profile.getColorsNs : nullptr);
+              buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels()); }
 
             if (xldbgEffSum) {
                 // hash only this row's actual node channels — the model span
@@ -1046,7 +1064,38 @@ public:
         if (_rpi) {
             ++_rpi->suspendCount;
         }
+        // The slice effectively ends here: once nextLock releases, a waker may
+        // requeue the job onto another pool thread (or it may complete and be
+        // deleted) while this thread is still unwinding, so this is the last
+        // point that may touch profile/members.  The resume delta is added at
+        // the next ProcessSlice entry; always-on because the batch summary
+        // reports total suspended time.
+        EndSliceProfile();
+        suspendStartTime = std::chrono::steady_clock::now();
+        suspendTimingPending = true;
+        if (profRender) {
+            ++profile.suspends;
+        }
         return true;
+    }
+
+    // Slice-profile segment control (XL_RENDER_PROFILE).  Begin/End must only
+    // run while this thread exclusively owns the job's slice; End is called at
+    // every point after which the job may be rescheduled or deleted
+    // (trySuspendUntil success, park publication, CompleteJob).
+    void BeginSliceProfile() {
+        if (profRender) {
+            sliceStartTime = std::chrono::steady_clock::now();
+            tlsRenderProfile = &profile;
+            sliceProfileArmed = true;
+        }
+    }
+    void EndSliceProfile() {
+        if (sliceProfileArmed) {
+            profile.sliceNs += xlProfNs(sliceStartTime, std::chrono::steady_clock::now());
+            tlsRenderProfile = nullptr;
+            sliceProfileArmed = false;
+        }
     }
 
     // Watchdog/abort rescue.  Covers every threadless-idle state IsIdle()
@@ -1217,6 +1266,9 @@ public:
             SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
 
+        if (profRender) {
+            ++profile.frames;
+        }
         bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
         if (!subModelInfos.empty()) {
             std::string inheritedDuplicateSourceModel;
@@ -1282,13 +1334,18 @@ public:
                 SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
                 if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node])) {
                     SetCalOutputStatus(frame, -1, strand, inode);
-                    buffer->HandleLayerBlurZoom(frame, 0);
-                    buffer->HandleLayerTransitions(frame, 0);
+                    { StageTimer st(profRender ? &profile.blurZoomNs : nullptr);
+                      buffer->HandleLayerBlurZoom(frame, 0); }
+                    { StageTimer st(profRender ? &profile.transitionNs : nullptr);
+                      buffer->HandleLayerTransitions(frame, 0); }
                     //copy to output
                     std::vector<bool> valid(2, true);
-                    buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels());
-                    buffer->CalcOutput(frame, valid);
-                    buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
+                    { StageTimer st(profRender ? &profile.setColorsNs : nullptr);
+                      buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels()); }
+                    { StageTimer st(profRender ? &profile.blendNs : nullptr);
+                      buffer->CalcOutput(frame, valid); }
+                    { StageTimer st(profRender ? &profile.getColorsNs : nullptr);
+                      buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels()); }
                 }
             }
         }
@@ -1336,6 +1393,9 @@ public:
     // the thread that drops jobsRemaining to zero completes the batch and
     // the main thread may delete this job any time after.
     void CompleteJob() {
+        // Final flush of the slice profile: NotifyJobFinished may dump every
+        // job's profile (this one included) and nothing may write it after.
+        EndSliceProfile();
         RenderEngine* engine = _engine;
         RenderProgressInfo* rpi = _rpi;
         void* next = rowToRender->ReleaseRenderOwnership(this);
@@ -1377,6 +1437,24 @@ public:
     }
 
     void ProcessSlice() {
+        // Resuming from a suspension: the gap since trySuspendUntil is this
+        // job's idle-on-upstream time.  Always accounted for the batch summary;
+        // per-row only when profiling.
+        if (suspendTimingPending) {
+            uint64_t d = xlProfNs(suspendStartTime, std::chrono::steady_clock::now());
+            if (_rpi) {
+                _rpi->suspendedNs += (long long)d;
+            }
+            if (profRender) {
+                profile.suspendedNs += d;
+            }
+            suspendTimingPending = false;
+        }
+        BeginSliceProfile();
+        if (profRender) {
+            ++profile.slices;
+        }
+
         // Order matters: parked must clear before inPool does.  The watchdog's
         // parked-rescue only requeues after winning the inPool CAS, so as long
         // as inPool is still true while parked can be stale, a rescue racing
@@ -1411,6 +1489,7 @@ public:
             // instant it publishes us in the row's queue, the owner (or an
             // abort/rescue) can pop, requeue, run, and even complete+delete
             // us - nothing may touch `this` after a false return.
+            EndSliceProfile();
             auto parkLogger = m_logger;
             {
                 std::unique_lock<std::mutex> lock(nextLock);
@@ -1432,6 +1511,7 @@ public:
             if (_rpi) {
                 --_rpi->parkCount;
             }
+            BeginSliceProfile();
             if (rowToRender->HasParkedRenderJobs() && !HasNext()) {
                 // newer jobs for this model are parked, bail fast and let them handle this
                 m_logger->debug("Rendering thread exiting early.");
@@ -1474,12 +1554,10 @@ public:
                 SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
             } catch ( std::exception &ex) {
                 assert(false); // so when we debug we catch them
-                printf("Caught an exception %s", ex.what());
                 m_logger->error("Caught an exception on rendering thread: " + std::string(ex.what()));
                 spdlog::error("Caught an exception on rendering thread: {}", ex.what());
             } catch ( ... ) {
                 assert(false); // so when we debug we catch them
-                printf("Caught an unknown exception");
                 m_logger->error("Caught an unknown exception on rendering thread.");
                 spdlog::error("Caught an unknown exception on rendering thread.");
             }
@@ -1638,6 +1716,17 @@ private:
     std::vector<EffectLayerInfo *> subModelInfos;
 
     std::map<SNPair, PixelBufferClassPtr> nodeBuffers;
+
+    // XL_RENDER_PROFILE telemetry.  Written only by the thread running the
+    // current slice; read after completion in NotifyJobFinished.  The suspend
+    // timestamps are always maintained (cheap, once per suspension) so the
+    // batch summary line can report total suspended time even when profiling
+    // is off.
+    RenderJobProfile profile;
+    std::chrono::steady_clock::time_point suspendStartTime;
+    bool suspendTimingPending = false;
+    std::chrono::steady_clock::time_point sliceStartTime;
+    bool sliceProfileArmed = false;
 };
 
 
@@ -1891,6 +1980,12 @@ void RenderEngine::Render(SequenceElements& seqElements,
 
                     job->setRenderRange(startFrame, endFrame);
                     job->SetRangeRestriction(ranges);
+                    // No progress sink == per-edit micro-batch (RenderEffectForModel);
+                    // jump the JobPool queue ahead of a queued Render All so the
+                    // grid/preview don't wait for its backlog to drain.
+                    if (sink == nullptr) {
+                        job->SetHighPriority(true);
+                    }
                     if (seqElements.SupportsModelBlending()) {
                         job->SetModelBlending();
                     }
@@ -2301,9 +2396,21 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                 logger_render->warn("render on model {} layer {} effect {} from {}ms returned no buffer ... skipping rendering.", (const char*)buffer.GetModelName().c_str(), layer, (const char*)reff->Name().c_str(), effectObj->GetStartTimeMS());
             }
             else {
+                // Time the whole dispatch on the slice thread (parallel_for
+                // blocks it), so per-model group renders that fan out to worker
+                // threads are still attributed to this effect.
+                RenderJobProfile* effProf = profRender ? tlsRenderProfile : nullptr;
+                std::chrono::steady_clock::time_point eff0;
+                // Name is loop-invariant and stable for the app's life; resolve
+                // it once here so the per-buffer lambda costs nothing when off.
+                const char* effName = nullptr;
+                if (effProf != nullptr) {
+                    eff0 = std::chrono::steady_clock::now();
+                    effName = reff->Name().c_str();
+                }
                 {
                     int bufCnt = buffer.BufferCountForLayer(layer);
-                    std::function<void(int)> f([this, &buffer, layer, suppress, effectObj, reff, &SettingsMap, logger_render](int bufn) {
+                    std::function<void(int)> f([this, &buffer, layer, suppress, effectObj, reff, &SettingsMap, logger_render, effProf, effName](int bufn) {
                         RenderBuffer* rb = &buffer.BufferForLayer(layer, bufn);
 
                         if (rb != nullptr) {
@@ -2319,15 +2426,22 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                             }
 
                             auto sw = std::chrono::steady_clock::now();
-                            if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
-                                if (!effectObj->GetFrame(*rb, _renderCache)) {
-                                    reff->Render(effectObj, SettingsMap, *rb);
-                                    GPURenderUtils::waitForRenderCompletion(rb);
-                                    effectObj->AddFrame(*rb, _renderCache);
+                            {
+                                // Any GPU work this effect encodes runs after the
+                                // dispatch returns, so tag the thread and let the
+                                // command buffer carry the attribution to whoever
+                                // ends up waiting on it.
+                                GpuEffectScope gpuScope(effProf, effName);
+                                if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
+                                    if (!effectObj->GetFrame(*rb, _renderCache)) {
+                                        reff->Render(effectObj, SettingsMap, *rb);
+                                        GPURenderUtils::waitForRenderCompletion(rb);
+                                        effectObj->AddFrame(*rb, _renderCache);
+                                    }
                                 }
-                            }
-                            else {
-                                reff->Render(effectObj, SettingsMap, *rb);
+                                else {
+                                    reff->Render(effectObj, SettingsMap, *rb);
+                                }
                             }
 
                             auto swElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
@@ -2360,6 +2474,9 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                         }
                     }
                     buffer.MergeBuffersForLayer(layer);
+                }
+                if (effProf != nullptr) {
+                    effProf->addEffect(reff->Name(), xlProfNs(eff0, std::chrono::steady_clock::now()));
                 }
             }
         }
@@ -2451,6 +2568,139 @@ void RenderEngine::CheckForStalledRender() {
     }
 }
 
+// XL_RENDER_PROFILE dump: walk the batch's (still-alive) jobs, print a per-row
+// table sorted by row wall time, a batch total, and a per-effect table sorted
+// by total time.  Times in ms with one decimal.  Called only from the last
+// job's thread before `completed` flips, so every profile is complete and no
+// other thread is writing it.
+static void DumpRenderProfile(RenderProgressInfo* rpi, long long elapsedMS) {
+    struct Row {
+        std::string name;
+        const RenderJobProfile* p;
+    };
+    std::vector<Row> rows;
+    RenderJobProfile total;
+    for (int i = 0; i < rpi->numRows; ++i) {
+        IRenderJobStatus* j = rpi->jobs[i];
+        if (j == nullptr) {
+            continue;
+        }
+        const RenderJobProfile* p = j->GetRenderProfile();
+        if (p == nullptr || p->slices == 0) {
+            continue;
+        }
+        rows.push_back({ j->GetName(), p });
+        total.merge(*p);
+    }
+    std::sort(rows.begin(), rows.end(), [](const Row& a, const Row& b) {
+        return a.p->wallNs() > b.p->wallNs();
+    });
+
+    auto ms = [](uint64_t ns) { return (double)ns / 1.0e6; };
+    auto pct = [](uint64_t part, uint64_t whole) { return whole ? (100.0 * (double)part / (double)whole) : 0.0; };
+    auto lookup = [](const std::map<std::string, uint64_t>& m, const std::string& k) -> uint64_t {
+        auto it = m.find(k);
+        return it != m.end() ? it->second : 0ULL;
+    };
+    // Per-row effect split, top 3 by cpu+gpu - the cost that actually matters
+    // when picking something to optimise.
+    auto topEffects = [&ms, &lookup](const RenderJobProfile* p) {
+        std::map<std::string, uint64_t> comb;
+        for (const auto& e : p->perEffectNs) {
+            comb[e.first] += e.second;
+        }
+        for (const auto& e : p->perEffectGpuNs) {
+            comb[e.first] += e.second;
+        }
+        std::vector<std::pair<std::string, uint64_t>> v(comb.begin(), comb.end());
+        std::sort(v.begin(), v.end(), [](const std::pair<std::string, uint64_t>& a, const std::pair<std::string, uint64_t>& b) {
+            return a.second > b.second;
+        });
+        std::string s;
+        char buf[96];
+        for (size_t i = 0; i < v.size() && i < 3; i++) {
+            snprintf(buf, sizeof(buf), "%s%s=%.1f", i ? " " : "", v[i].first.c_str(), ms(v[i].second));
+            s += buf;
+        }
+        return s;
+    };
+    const bool gpuOn = GPURenderUtils::IsEnabled();
+    const char* rowFmt = "%-28.28s %6llu %5llu %9.1f %9.1f %8.1f %8.1f %9.1f %9.1f %9.1f %8.1f %9.1f %9.1f %5.1f %5.1f  %s\n";
+
+    fprintf(stderr, "\n=== XL_RENDER_PROFILE  frames %d-%d  wall %lldms  jobs %d  suspends %d  suspended %.1fms ===\n",
+            rpi->startFrame, rpi->endFrame, elapsedMS, rpi->totalJobs,
+            rpi->suspendCount.load(), ms((uint64_t)rpi->suspendedNs.load()));
+
+    // Say plainly what the two cost columns are, because reading `effect` alone
+    // as "what this effect costs" is precisely the mistake this table used to
+    // invite: for a GPU effect it is only the dispatch encode.
+    if (gpuOn) {
+        if (total.gpuBusyNs == 0) {
+            fprintf(stderr, "*** WARNING: GPU rendering is ON but no GPU time could be attributed.  The `effect`\n"
+                            "*** column is CPU-side dispatch encode ONLY and UNDER-REPORTS GPU effects, possibly\n"
+                            "*** by 100x.  Do NOT use it to pick optimisation targets.  (Backend did not report\n"
+                            "*** command-buffer GPU timings - see GpuCommandBufferTag in RenderProfile.h.)\n");
+        } else {
+            fprintf(stderr, "GPU rendering ON.  `effect` = CPU dispatch/encode only.  `gpu` = GPU execution window of the\n"
+                            "command buffers that effect opened (%llu buffers, %.1fms).  Rank by cpu+gpu, not by `effect`.\n"
+                            "Caveat: command buffers from different rows overlap on the GPU, so `gpu` totals can exceed\n"
+                            "the batch wall and inflate under contention - use it to rank, not as an absolute budget.\n",
+                    (unsigned long long)total.gpuCbs, ms(total.gpuBusyNs));
+            if (total.gpuSharedNs > 0) {
+                fprintf(stderr, "Caveat: %.1fms (%.1f%% of gpu) ran on command buffers where GPU blur/rotozoom/transition\n"
+                                "shared the effect's buffer; that time is charged to the effect and cannot be split out.\n",
+                        ms(total.gpuSharedNs), pct(total.gpuSharedNs, total.gpuBusyNs));
+            }
+        }
+    } else {
+        fprintf(stderr, "GPU rendering OFF - `effect` is the whole cost; `gpu`/`gpuWait` are expected to be 0.\n");
+    }
+
+    fprintf(stderr, "%-28s %6s %5s %9s %9s %8s %8s %9s %9s %9s %8s %9s %9s %5s %5s  %s\n",
+            "model", "frames", "slices", "effect", "gpu", "blurZ", "trans", "blend", "getCol", "setCol", "gpuWait", "suspend", "wall", "%gpu", "%sus", "top effects (ms)");
+    for (const auto& r : rows) {
+        const RenderJobProfile* p = r.p;
+        fprintf(stderr, rowFmt,
+                r.name.c_str(), (unsigned long long)p->frames, (unsigned long long)p->slices,
+                ms(p->effectNs), ms(p->gpuBusyNs), ms(p->blurZoomNs), ms(p->transitionNs), ms(p->blendNs), ms(p->getColorsNs), ms(p->setColorsNs),
+                ms(p->gpuWaitNs), ms(p->suspendedNs), ms(p->wallNs()),
+                pct(p->gpuWaitNs, p->wallNs()), pct(p->suspendedNs, p->wallNs()),
+                topEffects(p).c_str());
+    }
+    fprintf(stderr, rowFmt,
+            "TOTAL", (unsigned long long)total.frames, (unsigned long long)total.slices,
+            ms(total.effectNs), ms(total.gpuBusyNs), ms(total.blurZoomNs), ms(total.transitionNs), ms(total.blendNs), ms(total.getColorsNs), ms(total.setColorsNs),
+            ms(total.gpuWaitNs), ms(total.suspendedNs), ms(total.wallNs()),
+            pct(total.gpuWaitNs, total.wallNs()), pct(total.suspendedNs, total.wallNs()), "");
+
+    // Per-effect table, ranked by cpu+gpu.  Keys are the union of the CPU and GPU
+    // maps: GPU-only rows appear for stage work no effect owns ("(gpu blend)" etc).
+    std::map<std::string, uint64_t> combined;
+    for (const auto& e : total.perEffectNs) {
+        combined[e.first] += e.second;
+    }
+    for (const auto& e : total.perEffectGpuNs) {
+        combined[e.first] += e.second;
+    }
+    std::vector<std::pair<std::string, uint64_t>> effs(combined.begin(), combined.end());
+    std::sort(effs.begin(), effs.end(), [](const std::pair<std::string, uint64_t>& a, const std::pair<std::string, uint64_t>& b) {
+        return a.second > b.second;
+    });
+    fprintf(stderr, "--- per-effect (all rows), ranked by cpu+gpu ---\n");
+    fprintf(stderr, "%-28s %9s %11s %11s %9s %11s\n", "effect", "renders", "cpu ms", "gpu ms", "gpu cbs", "cpu+gpu ms");
+    for (const auto& e : effs) {
+        uint64_t cpuNs = lookup(total.perEffectNs, e.first);
+        uint64_t gNs = lookup(total.perEffectGpuNs, e.first);
+        fprintf(stderr, "%-28.28s %9llu %11.1f %11.1f %9llu %11.1f\n",
+                e.first.c_str(),
+                (unsigned long long)lookup(total.perEffectCount, e.first),
+                ms(cpuNs), ms(gNs),
+                (unsigned long long)lookup(total.perEffectGpuCbs, e.first),
+                ms(e.second));
+    }
+    fprintf(stderr, "\n");
+}
+
 void RenderEngine::NotifyJobFinished(RenderProgressInfo* rpi) {
     if (!rpi) return;
     // The thread that decrements the counter to zero is the last one out and
@@ -2470,9 +2720,15 @@ void RenderEngine::NotifyJobFinished(RenderProgressInfo* rpi) {
     auto elapsedMS = std::chrono::duration_cast<std::chrono::milliseconds>(
                          std::chrono::steady_clock::now() - rpi->startTime).count();
     spdlog::log(rpi->progressSink ? spdlog::level::info : spdlog::level::debug,
-                "Render batch complete: {} jobs over frames {}-{}, {} suspensions, {} row parks, {}ms",
+                "Render batch complete: {} jobs over frames {}-{}, {} suspensions ({}ms), {} row parks, {}ms, {}",
                 rpi->totalJobs, rpi->startFrame, rpi->endFrame,
-                rpi->suspendCount.load(), rpi->parkCount.load(), (long long)elapsedMS);
+                rpi->suspendCount.load(), (long long)(rpi->suspendedNs.load() / 1000000),
+                rpi->parkCount.load(), (long long)elapsedMS,
+                rpi->progressSink ? "background" : "interactive");
+
+    if (profRender) {
+        DumpRenderProfile(rpi, (long long)elapsedMS);
+    }
 
     bool expected = false;
     rpi->completed.compare_exchange_strong(expected, true);

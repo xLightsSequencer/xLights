@@ -30,7 +30,8 @@
 // per-frame particle buffer is only alive for this call, so it is still
 // committed and waited on before being destroyed (see the aux-buffer
 // lifetime rule below).
-static bool renderMeteorsGPU(VulkanMeteorsData& mdata, const std::vector<MeteorSnapshot>& parts, RenderBuffer& buffer) {
+static bool renderMeteorsGPU(VulkanMeteorsData& mdata, const std::vector<MeteorSnapshot>& parts,
+                             const std::vector<int>& lineItems, const std::vector<int>& lineStart, RenderBuffer& buffer) {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
     if (!rbcd) {
@@ -42,10 +43,11 @@ static bool renderMeteorsGPU(VulkanMeteorsData& mdata, const std::vector<MeteorS
         return false;
     }
 
-    // The kernel needs a valid particle buffer even when there are no meteors
-    // (an icicle frame may still draw its dim background), so allocate at
-    // least one (mirrors MetalMeteorsEffectData::Render's zero-particle
-    // placeholder buffer).
+    // The kernel needs valid particle and line-bucket buffers even when there
+    // are no meteors (an icicle frame may still draw its dim background), so
+    // allocate at least one element of each (mirrors MetalMeteorsEffectData::
+    // Render's zero-particle placeholder buffer). lineStart always carries its
+    // lineCount+1 prefix offsets.
     size_t numParts = std::max((size_t)1, parts.size());
     VulkanBuffer partsBuf;
     if (!u.createSharedBuffer(partsBuf, numParts * sizeof(VulkanMeteorParticle), "MeteorsParts")) {
@@ -65,25 +67,55 @@ static bool renderMeteorsGPU(VulkanMeteorsData& mdata, const std::vector<MeteorS
         }
     }
 
+    size_t numItems = std::max((size_t)1, lineItems.size());
+    VulkanBuffer itemsBuf;
+    if (!u.createSharedBuffer(itemsBuf, numItems * sizeof(int32_t), "MeteorsLineItems")) {
+        u.destroyBuffer(partsBuf);
+        return false;
+    }
+    int32_t* gpuItems = (int32_t*)itemsBuf.mapped;
+    if (lineItems.empty()) {
+        gpuItems[0] = 0;
+    } else {
+        for (size_t i = 0; i < lineItems.size(); i++) {
+            gpuItems[i] = lineItems[i];
+        }
+    }
+
+    VulkanBuffer startsBuf;
+    if (!u.createSharedBuffer(startsBuf, lineStart.size() * sizeof(int32_t), "MeteorsLineStart")) {
+        u.destroyBuffer(itemsBuf);
+        u.destroyBuffer(partsBuf);
+        return false;
+    }
+    int32_t* gpuStarts = (int32_t*)startsBuf.mapped;
+    for (size_t i = 0; i < lineStart.size(); i++) {
+        gpuStarts[i] = lineStart[i];
+    }
+
     VkCommandBuffer cb = rbcd->getCommandBuffer("-Meteors");
     if (cb == VK_NULL_HANDLE) {
+        u.destroyBuffer(startsBuf);
+        u.destroyBuffer(itemsBuf);
         u.destroyBuffer(partsBuf);
         return false;
     }
 
     uint32_t pixelCount = mdata.width * mdata.height;
     bool ok = rbcd->encodeEffectDispatch(cb, u.meteorsEffectFunction, "MeteorsEffect",
-                                         &mdata, sizeof(mdata), { px.buffer, partsBuf.buffer },
+                                         &mdata, sizeof(mdata), { px.buffer, partsBuf.buffer, itemsBuf.buffer, startsBuf.buffer },
                                          pixelCount, 0);
     if (ok) {
-        // partsBuf is referenced by the command buffer, which submits later;
-        // destroyBuffer is immediate (no deferred-trash list), so it would be
-        // a use-after-free to destroy it before the GPU has actually consumed
-        // it. Commit + wait here, exactly like Candle/Garlands' per-frame aux
-        // buffers.
+        // partsBuf/itemsBuf/startsBuf are referenced by the command buffer,
+        // which submits later; destroyBuffer is immediate (no deferred-trash
+        // list), so it would be a use-after-free to destroy them before the GPU
+        // has actually consumed them. Commit + wait here, exactly like
+        // Candle/Garlands' per-frame aux buffers.
         rbcd->commit();
         rbcd->waitForCompletion();
     }
+    u.destroyBuffer(startsBuf);
+    u.destroyBuffer(itemsBuf);
     u.destroyBuffer(partsBuf);
     return ok;
 }
@@ -114,7 +146,12 @@ void VulkanMeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGathe
     mdata.frameSeedLo = (uint32_t)(params.frameSeed & 0xFFFFFFFFu);
     mdata.frameSeedHi = (uint32_t)(params.frameSeed >> 32);
 
-    if (renderMeteorsGPU(mdata, parts, buffer)) {
+    const int lineCount = (params.mode == 1) ? buffer.BufferHt : buffer.BufferWi;
+    std::vector<int> lineStart;
+    std::vector<int> lineItems;
+    BucketMeteorsByLine(parts, lineCount, lineStart, lineItems);
+
+    if (renderMeteorsGPU(mdata, parts, lineItems, lineStart, buffer)) {
         return;
     }
     MeteorsEffect::GatherMeteors(buffer, params, parts);
