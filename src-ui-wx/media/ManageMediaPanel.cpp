@@ -153,7 +153,7 @@ static BasenameIndex BuildBasenameIndex(const std::string& searchDir) {
     BasenameIndex idx;
     wxArrayString allFiles;
     wxString wxSearchDir = ToWXString(searchDir);
-    wxDir::GetAllFiles(wxSearchDir, &allFiles, wxEmptyString, wxDIR_FILES);
+    GetAllFilesInDir(wxSearchDir, allFiles, wxEmptyString, wxDIR_FILES);
     wxString normalizedSearchDir = TrimTrailingSeparator(wxSearchDir);
     for (const auto& f : allFiles) {
         std::string fullPath = ToStdString(f);
