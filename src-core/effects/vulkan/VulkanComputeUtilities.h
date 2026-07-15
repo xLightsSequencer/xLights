@@ -63,6 +63,7 @@ public:
     bool doTransition(VkPipeline f, struct TransitionData& data, RenderBuffer* buffer, VkBuffer prev);
 
     VulkanBuffer sparkleBuffer;
+    size_t sparkleBufferCount = 0;
     VulkanBuffer tmpBufferBlend;
 
 private:

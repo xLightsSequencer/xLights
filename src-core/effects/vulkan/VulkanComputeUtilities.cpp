@@ -397,6 +397,7 @@ bool VulkanComputeUtilities::createDeviceAndQueue() {
     queueInfos.push_back(qi);
     if (graphicsFamilyCandidate >= 0 && (uint32_t)graphicsFamilyCandidate != queueFamilyIndex) {
         qi.queueFamilyIndex = (uint32_t)graphicsFamilyCandidate;
+        qi.queueCount = 1;
         queueInfos.push_back(qi);
     }
 
@@ -432,6 +433,9 @@ bool VulkanComputeUtilities::createDeviceAndQueue() {
     }
     volkLoadDevice(device);
     vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
+    if (queue == VK_NULL_HANDLE) {
+        return false;
+    }
     if (graphicsFamilyCandidate >= 0) {
         graphicsQueueFamilyIndex = (uint32_t)graphicsFamilyCandidate;
         vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
@@ -1060,8 +1064,11 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
     }
 
     if (!pixelBuffer->sparklesVector.empty()) {
-        if (pixelBuffer->sparkles == &pixelBuffer->sparklesVector[0] && sparkleBuffer) {
-            // buffer was re-initialized; the old GPU copy is stale
+        // sparklesVector only ever grows (PixelBuffer::CalcOutput) and the GPU
+        // kernel mutates this buffer in place every frame, so keep it and only
+        // reallocate when the node count outgrows it.  Keying on element count
+        // (rather than the vector's data pointer) avoids a per-frame realloc.
+        if (sparkleBuffer && sparkleBufferCount < pixelBuffer->sparklesVector.size()) {
             u.destroyBuffer(sparkleBuffer);
         }
         if (!sparkleBuffer) {
@@ -1072,6 +1079,7 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
                 return false;
             }
             memcpy(sparkleBuffer.mapped, &pixelBuffer->sparklesVector[0], pixelBuffer->sparklesVector.size() * sizeof(uint16_t));
+            sparkleBufferCount = pixelBuffer->sparklesVector.size();
             pixelBuffer->sparkles = static_cast<uint16_t*>(sparkleBuffer.mapped);
         }
     }
@@ -1302,8 +1310,11 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
 
     xlColor* colors = (xlColor*)(tmpBufferBlend.mapped);
     int nc = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount();
-    for (int x = 0; x < nc; x++) {
-        pixelBuffer->layers[saveLayer]->buffer.Nodes[x]->SetColor(colors[x]);
+    auto& nodes = pixelBuffer->layers[saveLayer]->buffer.Nodes;
+    // Deliberately serial - see the Metal path: SetColor is a few byte writes,
+    // so a parallel_for costs more in pool dispatch than the copy itself.
+    for (int x = 0; x < nc; ++x) {
+        nodes[x]->SetColor(colors[x]);
     }
     return true;
 }

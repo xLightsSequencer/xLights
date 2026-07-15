@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: reuse cached transition-mask and sparkle GPU buffers across frames instead of
+                                 reallocating them every blend (biggest single GPU win); the per-node GPU copy-out
+                                 stays serial - parallelising it measured slower
     -enh (dkulp)                 Render: parallelise the Per Model group buffer merge/unmerge copies
     -enh (dkulp)                 Render: cache the sub-buffer node mapping for animated (value-curve) sub-buffers instead
                                  of rebuilding it every frame

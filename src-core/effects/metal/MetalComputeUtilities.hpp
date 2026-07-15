@@ -3,6 +3,8 @@
 #include <Metal/Metal.h>
 #include <MetalKit/MetalKit.h>
 
+#include <array>
+#include <atomic>
 
 #include "GPURenderUtils.h"
 #include "MetalEffectDataTypes.h"
@@ -22,8 +24,9 @@ public:
     bool doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB);
     bool doMap(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer);
     bool doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> prev);
-    
+
     id<MTLBuffer> sparkleBuffer;
+    size_t sparkleBufferCount = 0;
     id<MTLBuffer> tmpBufferBlend;
 };
 
@@ -53,6 +56,7 @@ public:
     id<MTLBuffer> getIndexBuffer();
     id<MTLBuffer> getBlendBuffer();
     id<MTLBuffer> getOwnerBuffer();
+    id<MTLBuffer> getCPUMaskBuffer(int sz);
 
 
     void commit();
@@ -91,6 +95,10 @@ private:
     // tracking is needed.
     id<MTLBuffer> rotoOwnerBuffer;
     int rotoOwnerSize = 0;
+    // cached grow-only staging buffer for CPU-built transition masks (the GPU
+    // transition path uses maskBuffer instead); avoids a per-blend allocation.
+    id<MTLBuffer> cpuMaskBuffer = nil;
+    int cpuMaskBufferSize = 0;
     std::pair<uint32_t, uint32_t> pixelTextureSize;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
@@ -118,12 +126,15 @@ public:
 
     id<MTLComputePipelineState> FindComputeFunction(const char *name);
 
-
     bool enabled = true;
-    std::atomic<bool> pg = false;    
-    
+    std::atomic<bool> pg = false;
+
     id<MTLDevice> device;
     id<MTLLibrary> library;
+    // One queue for all effect compute.  A pool of queues sharded per
+    // PixelBuffer was tried and measured no faster on Metal, and no GPU we can
+    // test exposes more than one compute queue on Vulkan, so it was dropped
+    // rather than carry untestable command-ordering risk.
     id<MTLCommandQueue> commandQueue;
     NSUInteger maxTextureSize = 16384;
     NSUInteger metalBufferSizeThreshold = 2048;
