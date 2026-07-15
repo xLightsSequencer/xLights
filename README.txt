@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: edit-triggered renders now jump ahead of a running full render, so the grid
+                                 and preview update promptly while a Render All is in progress
     -bug (dkulp)                 Windows: fixed a heap corruption (STATUS_HEAP_CORRUPTION) on process teardown when
                                  the thread-name map was destroyed by the CRT while detached job-pool workers were
                                  still exiting; the map and its mutex are now immortal so the ordering cannot occur

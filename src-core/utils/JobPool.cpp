@@ -403,14 +403,17 @@ void JobPool::SetMaxThreadCount(int maxThreads)
 JobPool::~JobPool()
 {
     //
-    if ( !queue.empty() ) {
-        std::deque<Job*>::iterator iter = queue.begin();
-        for (; iter != queue.end(); ++iter) {
-            delete (*iter);
+    if ( !queue.empty() || !highPriorityQueue.empty() ) {
+        for (auto* job : queue) {
+            delete job;
+        }
+        for (auto* job : highPriorityQueue) {
+            delete job;
         }
         auto logger = spdlog::get("job") ? spdlog::get("job") : spdlog::default_logger();
         logger->debug("Clearing JobPool queue.");
         queue.clear();
+        highPriorityQueue.clear();
     }
     Stop();
 }
@@ -436,18 +439,24 @@ void JobPool::RemoveWorker(JobPoolWorker *w) {
 Job *JobPool::GetNextJob() {
     std::unique_lock<std::mutex> mutLock(queueLock);
     Job *req = nullptr;
-    if (queue.empty()) {
+    if (queue.empty() && highPriorityQueue.empty()) {
         SetThreadQOS(0);
         ++idleThreads;
         signal.wait_for(mutLock, std::chrono::milliseconds(30000));
         --idleThreads;
     }
-    if ( !queue.empty() ) {
+    // Strict two-level priority, deliberately no aging/fairness: interactive
+    // jobs may starve queued background rows, and the dirty-range machinery
+    // re-renders anything they invalidate.
+    if ( !highPriorityQueue.empty() ) {
+        req = highPriorityQueue.front();
+        highPriorityQueue.pop_front();
+    } else if ( !queue.empty() ) {
         req = queue.front();
         queue.pop_front();
-        if (req) {
-            SetThreadQOS(10);
-        }
+    }
+    if (req) {
+        SetThreadQOS(10);
     }
     return req;
 }
@@ -455,15 +464,19 @@ Job *JobPool::GetNextJob() {
 void JobPool::PushJob(Job *job)
 {
 	std::unique_lock<std::mutex> locker(queueLock);
-    queue.push_back(job);
+    if (job->IsHighPriority()) {
+        highPriorityQueue.push_back(job);
+    } else {
+        queue.push_back(job);
+    }
     ++inFlight;
-    
+
     int count = inFlight;
     count -= idleThreads;
     count -= numThreads;
     count = std::min(count, maxNumThreads - numThreads);
     locker.unlock();
-    
+
     if (count > 0) {
         LockThreads();
         if (numThreads == 0 && count < MIN_JOBPOOLTHREADS && MIN_JOBPOOLTHREADS < maxNumThreads) {
@@ -481,7 +494,11 @@ void JobPool::PushJob(Job *job)
 void JobPool::PushJobs(const std::list<Job *> &jobs) {
     std::unique_lock<std::mutex> locker(queueLock);
     for (auto job : jobs) {
-        queue.push_back(job);
+        if (job->IsHighPriority()) {
+            highPriorityQueue.push_back(job);
+        } else {
+            queue.push_back(job);
+        }
         ++inFlight;
     }
     int count = inFlight;

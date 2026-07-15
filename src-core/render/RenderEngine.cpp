@@ -1891,6 +1891,12 @@ void RenderEngine::Render(SequenceElements& seqElements,
 
                     job->setRenderRange(startFrame, endFrame);
                     job->SetRangeRestriction(ranges);
+                    // No progress sink == per-edit micro-batch (RenderEffectForModel);
+                    // jump the JobPool queue ahead of a queued Render All so the
+                    // grid/preview don't wait for its backlog to drain.
+                    if (sink == nullptr) {
+                        job->SetHighPriority(true);
+                    }
                     if (seqElements.SupportsModelBlending()) {
                         job->SetModelBlending();
                     }
