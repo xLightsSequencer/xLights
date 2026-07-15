@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
+                                 working media files to a new folder (e.g. a show copied to a new year),
+                                 not just to fix ones that are currently missing
     -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
                                  log instead of only stdout; headless now logs each sequence's render time
     -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every

@@ -68,7 +68,7 @@
 | Media Folders configuration | preference/sheet | ✅ | ✅ | parity | P2 | medium | feasible | Desktop has media dirs concept; iPad FolderConfigView media-folder list. |
 | Media Relocation on file pick | gesture/dialog | ❌ | ✅ | desktop-missing | P2 | medium | feasible | iPad enforces "copy under show/media folder"; desktop free path + Cleanup later. |
 | Add media to sequence (multi-file) | manager/sheet | ✅ | ✅ | parity | P1 | medium | feasible | Desktop `ManageMediaPanel.cpp:2004` (`_addButton` "Add", `wxFD_MULTIPLE`); iPad MediaManagerSheet "Add…" toolbar button → multi-select `.fileImporter` → relocate under show folder + `addMedia(atPath:)` bridge (`MediaManagerSheet.swift` `addPickedFiles`; `XLSequenceDocument.mm` `addMediaAtPath:`). |
-| Bulk find missing media | manager/sheet | ✅ | ✅ | parity | P2 | medium | feasible | iPad MediaManagerSheet "Bulk Find Missing…" menu action → folder `.fileImporter` → one-pass basename index → relink each missing entry via `replaceMissingMedia` (`MediaManagerSheet.swift` `bulkFindMissing(in:)`). |
+| Bulk find/repoint media | manager/sheet | ✅ | 🟡 | ipad-weaker | P2 | small | feasible | Desktop `ManageMediaPanel.cpp` (2026-07) generalized "Bulk Find `<Type>`s…" to offer whenever there's more than one item of a media type, and to search/relink *every* item of that type — not just currently-broken ones — so users can bulk-redirect a whole set of already-working files to a new folder (e.g. a show copied to a new year). iPad `MediaManagerSheet`'s "Bulk Find Missing…" is still `.disabled(brokenCount == 0)` and only relinks broken entries (`bulkFindMissing(in:)`). |
 | Media preview (still + animated) | manager/sheet | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad shows a static `MediaThumbnailView` with no animation (`MediaManagerSheet.swift:503-518`); bridge `ensureThumbnailPreviewForPath` (`XLSequenceDocument.h:2055`). |
 | Reload media from disk | manager/sheet | ✅ | ✅ | parity | P3 | easy | feasible | iPad MediaManagerSheet external rows have a "Reload from Disk" swipe action → `reloadMedia(atPath:)` bridge purges the cache entry so the next render re-reads the file (`MediaManagerSheet.swift` `reloadFromDisk`; `XLSequenceDocument.mm` `reloadMediaAtPath:` / `reloadAllMedia`). |
 | Render Cache mode | preference/sheet | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Preferences `RenderCacheChoice` (Enabled/Locked/Disabled); iPad FolderConfigView picker. |
@@ -114,11 +114,15 @@
 
 ### P2
 
-- ✅ **Bulk find missing media** — **landed 2026-06-11.** iPad `MediaManagerSheet`'s overflow menu has
+- 🟡 **Bulk find missing media** — landed on iPad 2026-06-11 (`MediaManagerSheet`'s overflow menu
   "Bulk Find Missing…" → folder `.fileImporter`; one security-scoped pass builds a lowercased-basename
   index of the folder tree, then each missing inventory entry is relinked through the existing
-  `replaceMissingMedia` primitive (`src-iPad/App/MediaManagerSheet.swift` `bulkFindMissing(in:)`).
-  Reports "Relinked N, still missing M".
+  `replaceMissingMedia` primitive, `bulkFindMissing(in:)`; reports "Relinked N, still missing M"), but
+  desktop's `ManageMediaPanel.cpp` moved ahead 2026-07: "Bulk Find `<Type>`s…" now offers whenever
+  there's more than one item of a type (not just broken ones) and relinks by filename match against
+  *every* item, so a whole set of already-working files can be redirected to a new folder in one pass
+  (e.g. a show folder copied to a new year). iPad's version is still `.disabled(brokenCount == 0)` and
+  broken-only. New gap, not yet closed.
 
 - ✅ **Restore Backup dialog** — **landed 2026-06-12.** File menu "Restore Backup…"
   (`src-iPad/App/XLightsCommands.swift`) → `src-iPad/App/RestoreBackupSheet.swift` enumerates the
