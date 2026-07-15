@@ -53,7 +53,6 @@
 #include "outputs/OutputManager.h"
 #include "shared/utils/xlPropertyGrid.h"
 #include "utils/SpecialOptions.h"
-#include "utils/UtilFunctions.h"
 #include "utils/ip_utils.h"
 #include "controllers/FPPConnectDialog.h"
 
@@ -79,12 +78,6 @@ const long ID_CTRL_MNU_SORT_VENDOR = wxNewId();
 const long ID_CTRL_MNU_SORT_PROTOCOL = wxNewId();
 const long ID_CTRL_MNU_EXPAND_ALL = wxNewId();
 const long ID_CTRL_MNU_COLLAPSE_ALL = wxNewId();
-
-// The status indicator is a text circle coloured through the model's GetAttr
-// rather than a wxDataViewCustomRenderer: replacing a wxTreeListCtrl column's
-// renderer requires deleting and re-inserting the column on the underlying
-// wxDataViewCtrl, which is unreliable on the native macOS control.
-const wxString STATUS_DOT(wxUniChar(0x25CF)); // ●
 
 std::string DataViewTopLevelName(const wxDataViewModel* model, wxDataViewItem item) {
     if (!item.IsOk()) return "";
