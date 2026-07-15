@@ -86,10 +86,19 @@ static inline uint8<4> meteorFromHSV(double hue, double saturation, double value
     return out;
 }
 
-export void MeteorsEffectISPC(const uniform MeteorsISPCData * uniform d,
-                              const uniform MeteorParticle * uniform parts,
-                              uniform int startIdx, uniform int endIdx,
-                              uniform uint8<4> * uniform result) {
+// One "line" of the buffer: the column a vertical/icicle meteor falls down, or the
+// row a horizontal meteor crosses. A meteor's axis coord (parts[].a) fixes the only
+// line it can ever cover, so the caller buckets the snapshot by line and passes just
+// that line's meteors here (items[itemStart..itemEnd), global indices into parts, in
+// ascending order). Restricting the scan cannot change which meteor wins a pixel --
+// the ones left out fail the a == x / a == y test anyway -- but it turns the flat
+// O(pixels x meteors) scan into O(pixels x meteors-on-this-line).
+export void MeteorsEffectLineISPC(const uniform MeteorsISPCData * uniform d,
+                                  const uniform MeteorParticle * uniform parts,
+                                  const uniform int * uniform items,
+                                  uniform int itemStart, uniform int itemEnd,
+                                  uniform int line,
+                                  uniform uint8<4> * uniform result) {
     uniform int W = d->width;
     uniform int H = d->height;
     uniform int mode = d->mode;
@@ -97,23 +106,27 @@ export void MeteorsEffectISPC(const uniform MeteorsISPCData * uniform d,
     uniform int TL = d->tailLength < 1 ? 1 : d->tailLength;
     uniform int scheme = d->colorScheme;
     uniform int allowAlpha = d->allowAlpha;
-    uniform int N = d->numMeteors;
     uniform int wantBkg = d->wantBkg;
     uniform unsigned int64 frameSeed = d->frameSeed;
 
     // matches RenderIcicleDrip's ystaggered[] pattern
     const uniform int yStag0 = 0, yStag1 = 5, yStag2 = 1, yStag3 = 2, yStag4 = 4;
 
-    foreach (index = startIdx ... endIdx) {
-        int x = index % W;
-        int y = index / W;
+    // horizontal walks the row "line"; vertical/icicle walk the column "line"
+    uniform int lineLen = (mode == 1) ? W : H;
+
+    foreach (p = 0 ... lineLen) {
+        int x = (mode == 1) ? p : line;
+        int y = (mode == 1) ? line : p;
+        int index = y * W + x;
 
         int bestN = -1;
         int bestPh = 0;
 
-        for (uniform int n = 0; n < N; n++) {
-            int a = parts[n].a;
-            int base = parts[n].base;
+        for (uniform int i = itemStart; i < itemEnd; i++) {
+            uniform int n = items[i];
+            uniform int a = parts[n].a;
+            uniform int base = parts[n].base;
             bool cover = false;
             int ph = 0;
             if (mode == 0) {                 // vertical

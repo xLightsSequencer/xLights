@@ -65,5 +65,6 @@ public:
     int totalJobs = 0;
     std::atomic<int> suspendCount{0};
     std::atomic<int> parkCount{0};
+    std::atomic<long long> suspendedNs{0}; // Σ time jobs sat suspended on upstream
     std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 };

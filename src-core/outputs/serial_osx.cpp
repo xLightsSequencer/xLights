@@ -15,6 +15,8 @@
 
 #include "serial.h"
 
+#include <log.h>
+
 // OS/X version
 #include <IOKit/serial/ioss.h>
 
@@ -165,7 +167,7 @@ int SerialPort::Open(const std::string& devName, int baudRate, const char* proto
         configuredRate = baudRate;
         if ( ioctl(_fd, IOSSIOSPEED, &configuredRate ) == -1 )
         {
-            printf( "Error %d calling ioctl( ..., IOSSIOSPEED, ... )\n", errno );
+            spdlog::error("serial: ioctl(IOSSIOSPEED) failed setting baud rate {}: errno {}", (int)configuredRate, errno);
         }
     }
 

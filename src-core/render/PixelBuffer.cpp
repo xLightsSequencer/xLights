@@ -983,6 +983,16 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
         layers[x]->buffer.InitBuffer(layers[x]->BufferHt, layers[x]->BufferWi, layers[x]->bufferTransform, isNode);
         GPURenderUtils::setupRenderBuffer(this, &layers[x]->buffer, x);
     }
+
+    anyDimmingCurve = false;
+    if (numLayers > 0) {
+        for (const auto& n : layers[0]->buffer.Nodes) {
+            if (n != nullptr && n->model != nullptr && n->model->GetDimmingCurve() != nullptr) {
+                anyDimmingCurve = true;
+                break;
+            }
+        }
+    }
 }
 
 void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, int timing) {
@@ -1392,6 +1402,15 @@ void PixelBufferClass::mixColors(int x, int y, xlColor& fg, xlColor& bg, int lay
     }
 }
 
+void PixelBufferClass::PrepareMixedColorParams(const std::vector<bool>& validLayers, int EffectPeriod) {
+    for (int layer = numLayers - 1; layer >= 0; layer--) {
+        if (validLayers[layer]) {
+            layers[layer]->calculateColorAdjust(EffectPeriod, layers[layer]->mixedColorAdjust);
+            layers[layer]->mixedColorAdjustPeriod = EffectPeriod;
+        }
+    }
+}
+
 void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod) {
     
 
@@ -1414,39 +1433,26 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
             if (x >= thelayer->BufferWi || y >= thelayer->BufferHt || x < 0 || y < 0) {
                 // out of bounds
             } else {
-                int effStartPer, effEndPer;
-                thelayer->buffer.GetEffectPeriods(effStartPer, effEndPer);
-                float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
-                offset = std::min(offset, 1.0f);
-
                 if (thelayer->isMasked(x, y) || x < 0 || y < 0 || x >= thelayer->BufferWi || y >= thelayer->BufferHt) {
                     color.Set(0, 0, 0, 0);
                 } else {
                     thelayer->buffer.GetPixel(x, y, color);
                 }
 
-                float ha;
-                if (thelayer->HueAdjustValueCurve.IsActive()) {
-                    ha = thelayer->HueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                } else {
-                    ha = (float)thelayer->hueadjust / 100.0;
+                LayerInfo::ColorAdjust localAdjust;
+                const LayerInfo::ColorAdjust* adjust = &thelayer->mixedColorAdjust;
+                if (thelayer->mixedColorAdjustPeriod != EffectPeriod) {
+                    // no PrepareMixedColorParams for this period - fall back to a
+                    // local copy so concurrent callers don't write the layer
+                    thelayer->calculateColorAdjust(EffectPeriod, localAdjust);
+                    adjust = &localAdjust;
                 }
-                float sa;
-                if (thelayer->SaturationAdjustValueCurve.IsActive()) {
-                    sa = thelayer->SaturationAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                } else {
-                    sa = (float)thelayer->saturationadjust / 100.0;
-                }
-
-                float va;
-                if (thelayer->ValueAdjustValueCurve.IsActive()) {
-                    va = thelayer->ValueAdjustValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS()) / 100.0;
-                } else {
-                    va = (float)thelayer->valueadjust / 100.0;
-                }
+                const float ha = adjust->hueAdjust;
+                const float sa = adjust->saturationAdjust;
+                const float va = adjust->valueAdjust;
 
                 // adjust for HSV adjustments
-                if (ha != 0 || sa != 0 || va != 0) {
+                if (adjust->needsHSVAdjust) {
                     HSVValue hsv = color.asHSV();
 
                     if (ha != 0) {
@@ -1481,12 +1487,7 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
                     color.alpha = alpha;
                 }
 
-                int b;
-                if (thelayer->BrightnessValueCurve.IsActive()) {
-                    b = (int)thelayer->BrightnessValueCurve.GetOutputValueAt(offset, thelayer->buffer.GetStartTimeMS(), thelayer->buffer.GetEndTimeMS());
-                } else {
-                    b = thelayer->brightness;
-                }
+                const int b = adjust->brightnessAdjust;
                 if (thelayer->contrast != 0) {
                     // contrast is not 0, can handle brightness change at same time
                     HSVValue hsv = color.asHSV();
@@ -1831,7 +1832,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset) {
             d = (b - 1) / 2;
             u = (b - 1) / 2;
         }
-        RenderBuffer orig(layer->buffer);
+        layer->buffer.SnapshotTransformScratch();
         for (int x = 0; x < layer->BufferWi; x++) {
             for (int y = 0; y < layer->BufferHt; y++) {
                 int r = 0;
@@ -1843,7 +1844,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset) {
                     if (i >= 0 && i < layer->BufferWi) {
                         for (int j = y - d; j <= y + u; j++) {
                             if (j >= 0 && j < layer->BufferHt) {
-                                const xlColor& c = orig.GetPixel(i, j);
+                                const xlColor& c = layer->buffer.GetTransformScratchPixel(i, j);
                                 r += c.red;
                                 g += c.green;
                                 b2 += c.blue;
@@ -1965,87 +1966,49 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
     theValueCurve.Deserialise(valueCurve);
 }
 
-void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr>& newNodes,
-                      int& bufferWi, int& bufferHi,
-                      int& buffOffsetX, int& buffOffsetY,
-                      float progress, long startMS, long endMS) {
+void SubBufferSpec::Parse(const std::string& subBuffer) {
+    static constexpr int MINS[6] = { SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MIN, SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MIN, SB_CENTRE_MIN, SB_CENTRE_MIN };
+    static constexpr int MAXS[6] = { SB_LEFT_BOTTOM_MAX, SB_LEFT_BOTTOM_MAX, SB_RIGHT_TOP_MAX, SB_RIGHT_TOP_MAX, SB_CENTRE_MAX, SB_CENTRE_MAX };
+    static constexpr float DEFAULTS[6] = { 0.0f, 0.0f, 100.0f, 100.0f, 0.0f, 0.0f };
+
+    parsed = true;
+    for (int i = 0; i < 6; i++) {
+        hasCurve[i] = false;
+        statics[i] = DEFAULTS[i];
+        curves[i] = ValueCurve();
+    }
     if (subBuffer.empty()) {
         return;
     }
+
     std::string sb = subBuffer;
     Replace(sb, "Max", "yyz");
 
     auto v = Split(sb, 'x');
 
-    bool fx1vc = v.size() > 0 && Contains(v[0], "Active=TRUE");
-    bool fy1vc = v.size() > 1 && Contains(v[1], "Active=TRUE");
-    bool fx2vc = v.size() > 2 && Contains(v[2], "Active=TRUE");
-    bool fy2vc = v.size() > 3 && Contains(v[3], "Active=TRUE");
-    bool fxvc = v.size() > 4 && Contains(v[4], "Active=TRUE"); // X centre
-    bool fyvc = v.size() > 5 && Contains(v[5], "Active=TRUE"); // y centre
-
-    float x = 0.0;
-    if (fxvc) {
-        Replace(v[4], "yyz", "Max");
-        ValueCurve vc(v[4]);
-        vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
-        x = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 4) {
-        x = std::strtod(v[4].c_str(), nullptr);
+    for (int i = 0; i < 6 && (size_t)i < v.size(); i++) {
+        if (Contains(v[i], "Active=TRUE")) {
+            Replace(v[i], "yyz", "Max");
+            curves[i] = ValueCurve(v[i]);
+            curves[i].SetLimits(MINS[i], MAXS[i]);
+            hasCurve[i] = true;
+        } else {
+            statics[i] = std::strtod(v[i].c_str(), nullptr);
+        }
     }
+}
 
-    float y = 0.0;
-    if (fyvc) {
-        Replace(v[5], "yyz", "Max");
-        ValueCurve vc(v[5]);
-        vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
-        y = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 5) {
-        y = std::strtod(v[5].c_str(), nullptr);
-    }
+SubBufferRect SubBufferSpec::ComputeRect(float progress, long startMS, long endMS, int bufferWi, int bufferHi) {
+    float x = hasCurve[4] ? curves[4].GetOutputValueAt(progress, startMS, endMS) : statics[4];
+    float y = hasCurve[5] ? curves[5].GetOutputValueAt(progress, startMS, endMS) : statics[5];
 
-    float x1 = 0.0;
-    if (fx1vc) {
-        Replace(v[0], "yyz", "Max");
-        ValueCurve vc(v[0]);
-        vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-        x1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 0) {
-        x1 = std::strtod(v[0].c_str(), nullptr);
-    }
+    float x1 = hasCurve[0] ? curves[0].GetOutputValueAt(progress, startMS, endMS) : statics[0];
     x1 += x;
-
-    float y1 = 0.0;
-    if (fy1vc) {
-        Replace(v[1], "yyz", "Max");
-        ValueCurve vc(v[1]);
-        vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-        y1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 1) {
-        y1 = std::strtod(v[1].c_str(), nullptr);
-    }
+    float y1 = hasCurve[1] ? curves[1].GetOutputValueAt(progress, startMS, endMS) : statics[1];
     y1 += y;
-
-    float x2 = 100.0;
-    if (fx2vc) {
-        Replace(v[2], "yyz", "Max");
-        ValueCurve vc(v[2]);
-        vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-        x2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 2) {
-        x2 = std::strtod(v[2].c_str(), nullptr);
-    }
+    float x2 = hasCurve[2] ? curves[2].GetOutputValueAt(progress, startMS, endMS) : statics[2];
     x2 += x;
-
-    float y2 = 100.0;
-    if (fy2vc) {
-        Replace(v[3], "yyz", "Max");
-        ValueCurve vc(v[3]);
-        vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-        y2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 3) {
-        y2 = std::strtod(v[3].c_str(), nullptr);
-    }
+    float y2 = hasCurve[3] ? curves[3].GetOutputValueAt(progress, startMS, endMS) : statics[3];
     y2 += y;
 
     if (x1 > x2)
@@ -2062,25 +2025,44 @@ void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr
     y1 /= 100.0;
     y2 /= 100.0;
 
-    int x1Int = std::round(x1);
-    int x2Int = std::round(x2);
-    int y1Int = std::round(y1);
-    int y2Int = std::round(y2);
+    SubBufferRect rect;
+    rect.x1 = std::round(x1);
+    rect.x2 = std::round(x2);
+    rect.y1 = std::round(y1);
+    rect.y2 = std::round(y2);
+    return rect;
+}
 
-    bufferWi = x2Int - x1Int;
-    bufferHi = y2Int - y1Int;
+static void ApplySubBufferRect(const SubBufferRect& rect, std::vector<NodeBaseClassPtr>& newNodes,
+                               int& bufferWi, int& bufferHi,
+                               int& buffOffsetX, int& buffOffsetY) {
+    bufferWi = rect.x2 - rect.x1;
+    bufferHi = rect.y2 - rect.y1;
     if (bufferWi < 1)
         bufferWi = 1;
     if (bufferHi < 1)
         bufferHi = 1;
     for (size_t x = 0; x < newNodes.size(); x++) {
         for (auto& it2 : newNodes[x]->Coords) {
-            it2.bufX -= x1Int;
-            it2.bufY -= y1Int;
+            it2.bufX -= rect.x1;
+            it2.bufY -= rect.y1;
         }
     }
-    buffOffsetX = x1Int;
-    buffOffsetY = y1Int;
+    buffOffsetX = rect.x1;
+    buffOffsetY = rect.y1;
+}
+
+void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr>& newNodes,
+                      int& bufferWi, int& bufferHi,
+                      int& buffOffsetX, int& buffOffsetY,
+                      float progress, long startMS, long endMS) {
+    if (subBuffer.empty()) {
+        return;
+    }
+    SubBufferSpec spec;
+    spec.Parse(subBuffer);
+    SubBufferRect rect = spec.ComputeRect(progress, startMS, endMS, bufferWi, bufferHi);
+    ApplySubBufferRect(rect, newNodes, bufferWi, bufferHi, buffOffsetX, buffOffsetY);
 }
 
 namespace {
@@ -2100,6 +2082,13 @@ namespace {
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMap, bool layerEnabled) {
     LayerInfo* inf = layers[layer];
+
+    // Any settings change can rebuild the layer's nodes (and re-apply the
+    // sub-buffer at progress 0), so the variable sub-buffer cache no longer
+    // describes the node state.
+    inf->subBufferSpec.Invalidate();
+    inf->subBufferRectValid = false;
+
     inf->persistent = settingsMap.GetBool(CHECKBOX_OverlayBkg);
     inf->maskSize = 0;
 
@@ -2151,6 +2140,7 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     inf->effectMixThreshold = (float)settingsMap.GetInt(SLIDER_EffectLayerMix, 0) / 100.0;
     inf->effectMixVaries = settingsMap.GetBool(CHECKBOX_LayerMorph);
     inf->canvas = settingsMap.GetBool(CHECKBOX_Canvas, false);
+    inf->mixedColorAdjustPeriod = -1;
 
     inf->type = settingsMap.Get(CHOICE_BufferStyle, STR_DEFAULT);
     inf->camera = settingsMap.Get(CHOICE_PerPreviewCamera, "2D");
@@ -2343,8 +2333,10 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
                     }
                 }
             }
+            BuildPerModelCopyMap(inf);
         } else {
             inf->modelBuffers = nullptr;
+            inf->perModelMap.clear();
         }
     }
 }
@@ -2377,14 +2369,223 @@ uint32_t PixelBufferClass::BufferCountForLayer(int layer) {
     return 1;
 }
 
+namespace {
+    // Mirrors RenderBuffer::GetPixel/SetPixel bounds handling: out of range reads
+    // return the buffer's "no pixel" colour and out of range writes are dropped.
+    inline int32_t FlatPixelIndex(const NodeBaseClass::CoordStruct& coord, int wi, int ht, int pixelCount) {
+        if (coord.bufX >= 0 && coord.bufX < wi && coord.bufY >= 0 && coord.bufY < ht) {
+            const int64_t idx = (int64_t)coord.bufY * wi + coord.bufX;
+            if (idx < pixelCount) {
+                return (int32_t)idx;
+            }
+        }
+        return -1;
+    }
+}
+
+void PixelBufferClass::BuildPerModelCopyMap(LayerInfo* inf) {
+    LayerInfo::PerModelCopyMap& map = inf->perModelMap;
+    map.clear();
+
+    if (inf->modelBuffers == nullptr) {
+        return;
+    }
+
+    RenderBuffer& gb = inf->buffer;
+    if (gb.dmx_buffer) {
+        // group SetPixel() would take the DMX translation path, not a plain store
+        return;
+    }
+
+    const size_t groupNodes = gb.Nodes.size();
+    size_t totalModelNodes = 0;
+    for (const auto& mb : *(inf->modelBuffers)) {
+        totalModelNodes += mb->Nodes.size();
+    }
+    if (totalModelNodes > groupNodes) {
+        // node count mismatch - leave it to the scalar path, which reports it
+        return;
+    }
+
+    const int gw = gb.BufferWi;
+    const int gh = gb.BufferHt;
+    const int gpixels = (int)gb.GetPixelCount();
+
+    // which model last wrote each group cell, so two models targeting the same
+    // cell (order dependent) can be spotted while the map is being built
+    std::vector<int32_t> groupCellOwner(std::max(gpixels, 0), -1);
+
+    map.models.resize(inf->modelBuffers->size());
+
+    size_t nc = 0;
+    int mi = 0;
+    for (const auto& mbp : *(inf->modelBuffers)) {
+        RenderBuffer* mb = mbp.get();
+        auto& ops = map.models[mi];
+        ops.nodeStart = nc;
+        ops.nodeCount = mb->Nodes.size();
+        ops.wi = mb->BufferWi;
+        ops.ht = mb->BufferHt;
+        ops.dmx = mb->dmx_buffer;
+
+        const int mw = mb->BufferWi;
+        const int mh = mb->BufferHt;
+        const int mpixels = (int)mb->GetPixelCount();
+
+        ops.unmerge.reserve(ops.nodeCount);
+        ops.merge.reserve(ops.nodeCount);
+
+        for (const auto& mbnode : mb->Nodes) {
+            const auto& gnode = gb.Nodes[nc];
+            if (gnode->Coords.empty() || mbnode->Coords.empty()) {
+                map.clear();
+                return;
+            }
+
+            const int32_t gsrc = FlatPixelIndex(gnode->Coords[0], gw, gh, gpixels);
+            const int32_t msrc = FlatPixelIndex(mbnode->Coords[0], mw, mh, mpixels);
+
+            for (const auto& coord : mbnode->Coords) {
+                const int32_t dst = FlatPixelIndex(coord, mw, mh, mpixels);
+                if (dst >= 0) {
+                    ops.unmerge.push_back({ dst, gsrc });
+                }
+            }
+            for (const auto& coord : gnode->Coords) {
+                const int32_t dst = FlatPixelIndex(coord, gw, gh, gpixels);
+                if (dst >= 0) {
+                    if (groupCellOwner[dst] >= 0 && groupCellOwner[dst] != mi) {
+                        map.groupOverlap = true;
+                    }
+                    groupCellOwner[dst] = mi;
+                    ops.merge.push_back({ dst, msrc });
+                }
+            }
+            ++nc;
+        }
+        ++mi;
+    }
+
+    map.builtFor = inf->modelBuffers;
+    map.groupNodeCount = groupNodes;
+    map.groupWi = gw;
+    map.groupHt = gh;
+    map.valid = true;
+}
+
+bool PixelBufferClass::PerModelCopyMapUsable(const LayerInfo* inf) const {
+    const LayerInfo::PerModelCopyMap& map = inf->perModelMap;
+    if (!map.valid || inf->modelBuffers == nullptr || map.builtFor != inf->modelBuffers) {
+        return false;
+    }
+    if (map.models.size() != inf->modelBuffers->size()) {
+        return false;
+    }
+    const RenderBuffer& gb = inf->buffer;
+    if (map.groupWi != gb.BufferWi || map.groupHt != gb.BufferHt || map.groupNodeCount != gb.Nodes.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < map.models.size(); ++i) {
+        const RenderBuffer* mb = (*inf->modelBuffers)[i].get();
+        if (map.models[i].wi != mb->BufferWi || map.models[i].ht != mb->BufferHt || map.models[i].nodeCount != mb->Nodes.size()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
-    
+    LayerInfo* inf = layers[layer];
+    if (inf->modelBuffers == nullptr) {
+        return;
+    }
+
+    GPURenderUtils::waitForRenderCompletion(&inf->buffer);
+
+    if (!PerModelCopyMapUsable(inf)) {
+        UnMergeBuffersForLayerScalar(layer);
+        return;
+    }
+
+    RenderBuffer& gb = inf->buffer;
+    const xlColor* gpixels = gb.GetPixels();
+    const xlColor groupOutOfRange = gb.allowAlpha ? xlCLEAR : xlBLACK;
+    auto& modelBuffers = *(inf->modelBuffers);
+    const auto& map = inf->perModelMap;
+
+    // each model writes only its own buffer, so this is safe to fan out
+    // regardless of how the models overlap in the group buffer
+    parallel_for(0, (int)modelBuffers.size(), [&](int m) {
+        RenderBuffer* mb = modelBuffers[m].get();
+        const auto& ops = map.models[m];
+        if (ops.dmx) {
+            // DMX model SetPixel() spreads the colour across the fixture's channels
+            xlColor color;
+            size_t nc = ops.nodeStart;
+            for (const auto& mbnode : mb->Nodes) {
+                const auto& gcoord = gb.Nodes[nc]->Coords[0];
+                gb.GetPixel(gcoord.bufX, gcoord.bufY, color);
+                for (const auto& coord : mbnode->Coords) {
+                    mb->SetPixel(coord.bufX, coord.bufY, color);
+                }
+                ++nc;
+            }
+            return;
+        }
+        xlColor* mpixels = mb->GetPixels();
+        for (const auto& op : ops.unmerge) {
+            mpixels[op.dst] = op.src >= 0 ? gpixels[op.src] : groupOutOfRange;
+        }
+    }, 1);
+}
+
+void PixelBufferClass::MergeBuffersForLayer(int layer) {
+    LayerInfo* inf = layers[layer];
+    if (inf->modelBuffers == nullptr) {
+        return;
+    }
+
+    auto& modelBuffers = *(inf->modelBuffers);
+    for (auto& modelBuffer : modelBuffers) {
+        GPURenderUtils::commitRenderBuffer(modelBuffer.get());
+    }
+    for (auto& modelBuffer : modelBuffers) {
+        GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
+    }
+
+    if (!PerModelCopyMapUsable(inf)) {
+        MergeBuffersForLayerScalar(layer);
+        return;
+    }
+
+    xlColor* gpixels = inf->buffer.GetPixels();
+    const auto& map = inf->perModelMap;
+
+    auto mergeModel = [&](int m) {
+        RenderBuffer* mb = modelBuffers[m].get();
+        const xlColor* mpixels = mb->GetPixels();
+        const xlColor modelOutOfRange = mb->allowAlpha ? xlCLEAR : xlBLACK;
+        for (const auto& op : map.models[m].merge) {
+            gpixels[op.dst] = op.src >= 0 ? mpixels[op.src] : modelOutOfRange;
+        }
+    };
+
+    if (map.groupOverlap) {
+        // models share group cells: the result depends on model order
+        for (int m = 0; m < (int)modelBuffers.size(); ++m) {
+            mergeModel(m);
+        }
+    } else {
+        parallel_for(0, (int)modelBuffers.size(), [&mergeModel](int m) { mergeModel(m); }, 1);
+    }
+}
+
+void PixelBufferClass::UnMergeBuffersForLayerScalar(int layer) {
+
     if (layers[layer]->modelBuffers) {
         // get all the data
         xlColor color;
         int nc = 0;
-
-        GPURenderUtils::waitForRenderCompletion(&layers[layer]->buffer);
 
         for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& mbnode : modelBuffer->Nodes) {
@@ -2415,18 +2616,12 @@ void PixelBufferClass::UnMergeBuffersForLayer(int layer) {
         }
     }
 }
-void PixelBufferClass::MergeBuffersForLayer(int layer) {
-    
+void PixelBufferClass::MergeBuffersForLayerScalar(int layer) {
+
     if (layers[layer]->modelBuffers) {
         // get all the data
         xlColor color;
         int nc = 0;
-        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
-            GPURenderUtils::commitRenderBuffer(modelBuffer.get());
-        }
-        for (auto& modelBuffer : *(layers[layer]->modelBuffers)) {
-            GPURenderUtils::waitForRenderCompletion(modelBuffer.get());
-        }
         for (const auto& modelBuffer : *(layers[layer]->modelBuffers)) {
             for (const auto& node : modelBuffer->Nodes) {
                 if ((size_t)nc < layers[layer]->buffer.Nodes.size()) {
@@ -2484,20 +2679,39 @@ static inline bool IsInRange(const std::vector<bool>& restrictRange, size_t star
     return restrictRange[start];
 }
 
+// Deliberately serial, like the post-blend node write-back in
+// MetalComputeUtilities.  Fanning the per-node copy out to the parallel pool
+// looks like it should pay on a big model, but it does not: the copy is a
+// handful of bytes per node, while a parallel_for costs a job heap-alloc, the
+// global pool queue lock and a condvar round-trip.  It runs for every model of
+// every frame, and every render job in the show contends for that one shared
+// pool.  Measured on a 65-sequence show: the fan-out was 76% of the whole
+// output stage (369s -> 88s) and 41% of the process's system time.  A threshold
+// sweep was monotonic all the way to "never parallelise" - no model size beat
+// serial.  Being serial also makes the dupActChans case (two nodes sharing an
+// output channel) correct by construction - last node wins, rather than
+// whichever thread got there last.
 void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels) {
-    // KW ... I think this needs to be optimised
-
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
-        // dupActChans: two nodes sharing a channel would race in the parallel
-        // path (winner = thread timing); the serial loop is last-node-wins.
-        if (layers[0]->buffer.Nodes.size() < 1000 || layers[0]->buffer.dupActChans) {
-            // smaller model, no sense in setting up the parallel_for
+        if (!anyDimmingCurve) {
+            // Fast path: no model on this buffer has a dimming curve, so
+            // skip the per-node GetDimmingCurve()/apply() block entirely.
             for (auto& n : layers[0]->buffer.Nodes) {
+                if (n == nullptr) continue;
                 size_t start = n->ActChan;
                 // Mirror SetColors: never write past fdata. A stale ActChan
                 // (model node count changed / seqData reallocated under a
                 // live render job) would otherwise overrun the channel
                 // buffer in GetForChannels (crash sig 62b47aa9b8).
+                if (start >= numChannels) continue;
+                if (IsInRange(restrictRange, start)) {
+                    n->GetForChannels(&fdata[start]);
+                }
+            }
+        } else {
+            for (auto& n : layers[0]->buffer.Nodes) {
+                if (n == nullptr) continue;
+                size_t start = n->ActChan;
                 if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
                     if (n->model != nullptr) { // nor this
@@ -2521,49 +2735,32 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                     n->GetForChannels(&fdata[start]);
                 }
             }
-        } else {
-            parallel_for(
-                0, layers[0]->buffer.Nodes.size(), [&](int i) {
-                    auto& n = layers[0]->buffer.Nodes[i];
-                    // Defensive: skip null node pointers. The sibling SetColors
-                    // function already does this.
-                    if (n == nullptr) return;
-                    size_t start = n->ActChan;
-                    // Mirror SetColors: never write past fdata (see above).
-                    if (start >= numChannels) return;
-                    if (IsInRange(restrictRange, start)) {
-                        if (n->model != nullptr) { // nor this
-                            DimmingCurve* curve = n->model->GetDimmingCurve();
-                            if (curve != nullptr) {
-                                if (n->GetChanCount() == 1) {
-                                    uint8_t buf[3] = { 0, 0, 0 };
-                                    n->GetForChannels(buf);
-                                    xlColor color(buf[0], buf[0], buf[0]);
-                                    curve->apply(color);
-
-                                    n->SetColor(color);
-                                } else {
-                                    xlColor color;
-                                    n->GetColor(color);
-                                    curve->apply(color);
-                                    n->SetColor(color);
-                                }
-                            }
-                        }
-                        n->GetForChannels(&fdata[start]);
-                    }
-                },
-                500);
         }
     }
 }
 
+// Serial for the same reason as GetColors above.
 void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned int numChannels) {
     if ((size_t)layer >= layers.size())
         return;
 
-    if (layers[layer]->buffer.Nodes.size() < 1000) {
-        xlColor color;
+    xlColor color;
+    if (!anyDimmingCurve) {
+        // Fast path: no model on this buffer has a dimming curve, so
+        // skip the per-node GetDimmingCurve()/reverse() block entirely.
+        for (const auto& n : layers[layer]->buffer.Nodes) {
+            if (n == nullptr) continue;
+            size_t start = n->ActChan;
+            if (start >= numChannels) continue;
+
+            n->SetFromChannels(&fdata[start]);
+            n->GetColor(color);
+
+            for (const auto& a : n->Coords) {
+                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+            }
+        }
+    } else {
         for (const auto& n : layers[layer]->buffer.Nodes) {
             if (n == nullptr) continue;
             size_t start = n->ActChan;
@@ -2582,28 +2779,6 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
                 layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
             }
         }
-    } else {
-        parallel_for(
-            0, layers[layer]->buffer.Nodes.size(), [&](int i) {
-                auto& n = layers[layer]->buffer.Nodes[i];
-                if (n == nullptr) return;
-                xlColor color;
-                size_t start = n->ActChan;
-                if (start >= numChannels) return;
-                n->SetFromChannels(&fdata[start]);
-                n->GetColor(color);
-
-                if (n->model != nullptr) {
-                    DimmingCurve* curve = n->model->GetDimmingCurve();
-                    if (curve != nullptr) {
-                        curve->reverse(color);
-                    }
-                }
-                for (const auto& a : n->Coords) {
-                    layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
-                }
-            },
-            500);
     }
 }
 
@@ -2615,7 +2790,7 @@ void PixelBufferClass::RotateX(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         GPURenderUtils::waitForRenderCompletion(&buffer);
         int xpivot = settings.xpivot;
 
-        RenderBuffer orig(buffer);
+        buffer.SnapshotTransformScratch();
         buffer.Clear();
 
         float sine = sin((xrotation + 90) * M_PI / 180);
@@ -2624,14 +2799,14 @@ void PixelBufferClass::RotateX(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         for (int x = pivot; x < buffer.BufferWi; ++x) {
             float tox = sine * (x - pivot) + pivot;
             for (int y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+                buffer.SetPixel(tox, y, buffer.GetTransformScratchPixel(x, y));
             }
         }
 
         for (int x = pivot - 1; x >= 0; --x) {
             float tox = -1 * sine * (pivot - x) + pivot;
             for (int y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+                buffer.SetPixel(tox, y, buffer.GetTransformScratchPixel(x, y));
             }
         }
     }
@@ -2644,7 +2819,7 @@ void PixelBufferClass::RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         GPURenderUtils::waitForRenderCompletion(&buffer);
 
         int ypivot = settings.ypivot;
-        RenderBuffer orig(buffer);
+        buffer.SnapshotTransformScratch();
         buffer.Clear();
 
         float sine = sin((yrotation + 90) * M_PI / 180);
@@ -2653,14 +2828,14 @@ void PixelBufferClass::RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         for (int y = pivot; y < buffer.BufferHt; ++y) {
             float toy = sine * (y - pivot) + pivot;
             for (int x = 0; x < buffer.BufferWi; ++x) {
-                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+                buffer.SetPixel(x, toy, buffer.GetTransformScratchPixel(x, y));
             }
         }
 
         for (int y = pivot - 1; y >= 0; --y) {
             float toy = -1 * sine * (pivot - y) + pivot;
             for (int x = 0; x < buffer.BufferWi; ++x) {
-                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+                buffer.SetPixel(x, toy, buffer.GetTransformScratchPixel(x, y));
             }
         }
     }
@@ -2676,7 +2851,7 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
 
         static const float PI_2 = 6.283185307f;
         xlColor c;
-        RenderBuffer orig(buffer);
+        buffer.SnapshotTransformScratch();
         int q = settings.zoomquality;
         int cx = settings.pivotpointx;
         int cy = settings.pivotpointy;
@@ -2692,7 +2867,7 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
         for (int x = 0; x < buffer.BufferWi; x++) {
             for (int i = 0; i < q; i++) {
                 for (int y = 0; y < buffer.BufferHt; y++) {
-                    orig.GetPixel(x, y, c);
+                    buffer.GetTransformScratchPixel(x, y, c);
                     for (int j = 0; j < q; j++) {
                         float xx = (float)x + ((float)i * inc) - xoff;
                         float yy = (float)y + ((float)j * inc) - yoff;
@@ -2816,35 +2991,61 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
     if (!IsVariableSubBuffer(layer))
         return;
 
-    const std::string& subBuffer = layers[layer]->subBuffer;
+    // A rect change below rebuilds the layer's node coords, so any index map
+    // built against them in SetLayerSettings no longer describes the buffer.
+    // Invalidated unconditionally (not just on a rebuild): the map is only
+    // rebuilt by SetLayerSettings, so a variable sub-buffer layer stays on the
+    // scalar merge path for its whole effect - the same behaviour it had before
+    // the rect cache existed.
+    layers[layer]->perModelMap.invalidate();
+
+    LayerInfo* inf = layers[layer];
 
     int effStartPer, effEndPer;
-    layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+    inf->buffer.GetEffectPeriods(effStartPer, effEndPer);
     float offset = 0.0;
     if (effEndPer != effStartPer) {
         offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
     }
     offset = std::min(offset, 1.0f);
-    const std::string& type = layers[layer]->type;
-    const std::string& camera = layers[layer]->camera;
-    const std::string& transform = layers[layer]->transform;
-    layers[layer]->buffer.Nodes.clear();
-    layers[layer]->BufferOffsetX = 0;
-    layers[layer]->BufferOffsetY = 0;
-    model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, layers[layer]->stagger);
-    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt,
-                     layers[layer]->BufferOffsetX, layers[layer]->BufferOffsetY,
-                     offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
-    layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
-    layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
 
-    if (layers[layer]->buffer.BufferWi == 0)
-        layers[layer]->buffer.BufferWi = 1;
-    if (layers[layer]->buffer.BufferHt == 0)
-        layers[layer]->buffer.BufferHt = 1;
+    if (!inf->subBufferSpec.IsParsed()) {
+        inf->subBufferSpec.Parse(inf->subBuffer);
+    }
 
-    layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, transform);
-    GPURenderUtils::setupRenderBuffer(this, &layers[layer]->buffer, layer);
+    // The node mapping only depends on the sub-buffer through the quantized
+    // rect. A slow sweep resolves to the same cells for many frames in a row,
+    // so the nodes it already holds are exactly what the rebuild would produce.
+    if (inf->subBufferRectValid &&
+        inf->subBufferSpec.ComputeRect(offset, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS(), inf->fullBufferWi, inf->fullBufferHt) == inf->subBufferRect) {
+        return;
+    }
+
+    const std::string& type = inf->type;
+    const std::string& camera = inf->camera;
+    const std::string& transform = inf->transform;
+    inf->buffer.Nodes.clear();
+    inf->BufferOffsetX = 0;
+    inf->BufferOffsetY = 0;
+    model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger);
+
+    inf->fullBufferWi = inf->BufferWi;
+    inf->fullBufferHt = inf->BufferHt;
+    inf->subBufferRect = inf->subBufferSpec.ComputeRect(offset, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS(), inf->BufferWi, inf->BufferHt);
+    inf->subBufferRectValid = true;
+    ApplySubBufferRect(inf->subBufferRect, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt,
+                       inf->BufferOffsetX, inf->BufferOffsetY);
+
+    inf->buffer.BufferWi = inf->BufferWi;
+    inf->buffer.BufferHt = inf->BufferHt;
+
+    if (inf->buffer.BufferWi == 0)
+        inf->buffer.BufferWi = 1;
+    if (inf->buffer.BufferHt == 0)
+        inf->buffer.BufferHt = 1;
+
+    inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, transform);
+    GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 }
 
 void PixelBufferClass::HandleLayerBlurZoom(int EffectPeriod, int layer) {
@@ -3748,30 +3949,51 @@ void PixelBufferClass::LayerInfo::calculateMask(const std::string& type, bool mo
     }
 }
 
-void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
+void PixelBufferClass::LayerInfo::calculateColorAdjust(int EffectPeriod, ColorAdjust& adjust) {
     int effStartPer, effEndPer;
     buffer.GetEffectPeriods(effStartPer, effEndPer);
     float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
     offset = std::min(offset, 1.0f);
 
     if (HueAdjustValueCurve.IsActive()) {
-        outputHueAdjust = HueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+        adjust.hueAdjust = HueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
     } else {
-        outputHueAdjust = (float)hueadjust / 100.0;
+        adjust.hueAdjust = (float)hueadjust / 100.0;
     }
     if (SaturationAdjustValueCurve.IsActive()) {
-        outputSaturationAdjust = SaturationAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+        adjust.saturationAdjust = SaturationAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
     } else {
-        outputSaturationAdjust = (float)saturationadjust / 100.0;
+        adjust.saturationAdjust = (float)saturationadjust / 100.0;
     }
     if (ValueAdjustValueCurve.IsActive()) {
-        outputValueAdjust = ValueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+        adjust.valueAdjust = ValueAdjustValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
     } else {
-        outputValueAdjust = (float)valueadjust / 100.0;
+        adjust.valueAdjust = (float)valueadjust / 100.0;
     }
 
     // adjust for HSV adjustments
-    needsHSVAdjust = (outputHueAdjust != 0 || outputSaturationAdjust != 0 || outputValueAdjust != 0);
+    adjust.needsHSVAdjust = (adjust.hueAdjust != 0 || adjust.saturationAdjust != 0 || adjust.valueAdjust != 0);
+
+    if (BrightnessValueCurve.IsActive()) {
+        adjust.brightnessAdjust = (int)BrightnessValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    } else {
+        adjust.brightnessAdjust = brightness;
+    }
+}
+
+void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
+    int effStartPer, effEndPer;
+    buffer.GetEffectPeriods(effStartPer, effEndPer);
+    float offset = ((float)(EffectPeriod - effStartPer)) / ((float)(effEndPer - effStartPer));
+    offset = std::min(offset, 1.0f);
+
+    ColorAdjust adjust;
+    calculateColorAdjust(EffectPeriod, adjust);
+    outputHueAdjust = adjust.hueAdjust;
+    outputSaturationAdjust = adjust.saturationAdjust;
+    outputValueAdjust = adjust.valueAdjust;
+    needsHSVAdjust = adjust.needsHSVAdjust;
+    outputBrightnessAdjust = adjust.brightnessAdjust;
 
     outputSparkleCount = sparkle_count;
     if (SparklesValueCurve.IsActive()) {
@@ -3779,12 +4001,6 @@ void PixelBufferClass::LayerInfo::calculateNodeOutputParams(int EffectPeriod) {
     }
     if (use_music_sparkle_count) {
         outputSparkleCount = (int)(music_sparkle_count_factor * (float)outputSparkleCount);
-    }
-
-    if (BrightnessValueCurve.IsActive()) {
-        outputBrightnessAdjust = (int)BrightnessValueCurve.GetOutputValueAt(offset, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    } else {
-        outputBrightnessAdjust = brightness;
     }
 
     outputEffectMixThreshold = effectMixThreshold;

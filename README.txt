@@ -14,6 +14,40 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
                                  working media files to a new folder (e.g. a show copied to a new year),
                                  not just to fix ones that are currently missing
+    -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
+                                 log instead of only stdout; headless now logs each sequence's render time
+    -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every
+                                 meteor against every pixel (CPU, Metal and Vulkan paths); large-matrix Meteors
+                                 renders are dramatically faster
+    -enh (dkulp)                 Render: the per-node output copy (node colours to/from the sequence data) is now
+                                 serial instead of fanning out to the shared job pool; the dispatch cost far
+                                 exceeded the few bytes copied, and it was also slowing the effects rendering
+                                 beside it. Cut the output stage by ~76% and total render CPU by ~30%
+    -enh (dkulp)                 Render: reuse cached transition-mask and sparkle GPU buffers across frames instead of
+                                 reallocating them every blend (biggest single GPU win); the per-node GPU copy-out
+                                 stays serial - parallelising it measured slower
+    -enh (dkulp)                 Render: parallelise the Per Model group buffer merge/unmerge copies
+    -enh (dkulp)                 Render: cache the sub-buffer node mapping for animated (value-curve) sub-buffers instead
+                                 of rebuilding it every frame
+    -enh (dkulp)                 Render: blend layers via a flat dispatch table and skip the per-node dimming-curve
+                                 lookup on models that have no dimming curve
+    -enh (dkulp)                 Render: hoist the per-layer colour/brightness value-curve evaluations out of the canvas
+                                 gap-fill pixel loop
+    -enh (dkulp)                 Render: reuse a scratch buffer for the CPU rotate/zoom and small-blur paths instead of
+                                 copying the whole render buffer every frame; allocate the effect temp buffer only for
+                                 effects that use it
+    -enh (dkulp)                 Render: XL_RENDER_PROFILE=1 dumps per-model/per-effect render, blend, output, GPU-wait
+                                 and upstream-wait timings at the end of each render batch
+    -enh (dkulp)                 Render: edit-triggered renders now jump ahead of a running full render, so the grid
+                                 and preview update promptly while a Render All is in progress
+    -bug (dkulp)                 Windows: fixed a heap corruption (STATUS_HEAP_CORRUPTION) on process teardown when
+                                 the thread-name map was destroyed by the CRT while detached job-pool workers were
+                                 still exiting; the map and its mutex are now immortal so the ordering cannot occur
+    -bug (dkulp)                 Fixed a data race on the job-pool worker thread id (logging/status only)
+    -enh (dkulp)                 Render: fixed parallel_for's worker-completion wait (it busy-spun on one path and
+                                 polled around a lost-wakeup race on the other)
+    -bug (dkulp)                 Fix Shader effect rendering vertically flipped on the Vulkan renderer
+                                 (Linux and Windows; Canvas/warp shaders over other layers appeared upside down)
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,

@@ -2992,6 +2992,9 @@
     <ClInclude Include="..\src-core\render\RenderContext.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\RenderProfile.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\RenderProgressInfo.h">
       <Filter>render</Filter>
     </ClInclude>

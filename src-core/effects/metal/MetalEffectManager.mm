@@ -44,11 +44,12 @@ public:
                     (void*)buffer, buffer->GetModelName().c_str(), layer, (int)isEnabled, (void*)this);
         }
         if (isEnabled) {
-            MetalPixelBufferComputeData *pbc = nullptr;
             if (!parent->gpuRenderData) {
-                pbc = new MetalPixelBufferComputeData();
-                parent->gpuRenderData = pbc;
+                parent->gpuRenderData = new MetalPixelBufferComputeData();
             }
+            // every RenderBuffer of this PixelBuffer needs the parent's data —
+            // its command queue is what keeps their command buffers in order
+            MetalPixelBufferComputeData *pbc = static_cast<MetalPixelBufferComputeData*>(parent->gpuRenderData);
             if (!buffer->gpuRenderData) {
                 buffer->gpuRenderData = new MetalRenderBufferComputeData(buffer, pbc, layer);
             }

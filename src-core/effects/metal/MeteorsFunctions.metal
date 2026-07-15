@@ -18,6 +18,15 @@ using namespace metal;
 // into the axis coordinate; each thread inverts the scatter for one output pixel and
 // the last covering meteor in draw order wins (SetPixel overwrite). Float math, so a
 // handful of pixels may differ by +/-1 from the double-precision CPU path.
+//
+// A meteor's axis coord (parts[].a) fixes the only line of the buffer it can ever
+// cover -- the column it falls down (vertical/icicle) or the row it crosses
+// (horizontal) -- so the CPU buckets the snapshot by line (MeteorsEffect::
+// BucketMeteorsByLine) and a thread scans only its own line's meteors:
+// lineItems[lineStart[line] .. lineStart[line+1]), global indices into parts, in
+// ascending order. Restricting the scan cannot change which meteor wins a pixel --
+// the ones left out fail the a == x / a == y test anyway -- but it turns the flat
+// O(pixels x meteors) scan into O(pixels x meteors-on-this-line).
 
 // Bit-identical local copy of RenderBuffer::rngMix64 (RenderBuffer.h). frameSeed is
 // hashRandomFrameSeed(); hashRand01(index) == (mix64(frameSeed ^ index*K) >> 11) * 2^-53.
@@ -68,6 +77,8 @@ static inline uchar4 meteorFromHSV(float hue, float saturation, float value) {
 kernel void MeteorsEffect(constant MetalMeteorsData &d          [[buffer(0)]],
                           device uchar4 *result                 [[buffer(1)]],
                           device const MetalMeteorParticle *parts [[buffer(2)]],
+                          device const int *lineItems           [[buffer(3)]],
+                          device const int *lineStart           [[buffer(4)]],
                           uint index                            [[thread_position_in_grid]]) {
     if (index >= d.width * d.height) return;
     int W = (int)d.width;
@@ -75,11 +86,17 @@ kernel void MeteorsEffect(constant MetalMeteorsData &d          [[buffer(0)]],
     int x = (int)(index % d.width);
     int y = (int)(index / d.width);
     int TL = d.tailLength < 1 ? 1 : d.tailLength;
-    int mode = d.mode, dir = d.direction, scheme = d.colorScheme, allowAlpha = d.allowAlpha, N = d.numMeteors;
+    int mode = d.mode, dir = d.direction, scheme = d.colorScheme, allowAlpha = d.allowAlpha;
+
+    // horizontal meteors cross a row, vertical/icicle ones fall down a column
+    int line = (mode == 1) ? y : x;
+    int itemStart = lineStart[line];
+    int itemEnd = lineStart[line + 1];
 
     int bestN = -1;
     int bestPh = 0;
-    for (int n = 0; n < N; n++) {
+    for (int i = itemStart; i < itemEnd; i++) {
+        int n = lineItems[i];
         int a = parts[n].a;
         int base = parts[n].base;
         bool cover = false;
