@@ -230,29 +230,51 @@ static void SetThreadName(const std::string &name) {
 static void RemoveThreadName() {}
 #else
 //no idea how to do this on Windows or even if there is value in doing so
-static std::map<DWORD, std::string> __threadNames;
-static std::mutex thread_name_mutex;
+//
+// Deliberately immortal (leaked): pool workers are DETACHED, and a worker calls
+// RemoveThreadName() as it winds down.  These used to be namespace-scope statics,
+// so the CRT's onexit table could destroy them while a detached worker was still
+// exiting - erase() then freed already-freed tree nodes and the process died with
+// STATUS_HEAP_CORRUPTION.  Worse, JobPool::~JobPool -> Stop() is itself an onexit
+// destructor sleeping until those very workers finish, so the map was being
+// destroyed at exactly the moment the workers still needed it.  Cross-TU
+// destruction order is unspecified; leaking removes the ordering dependency
+// entirely.  (Windows-only: RemoveThreadName() is a no-op elsewhere, which is why
+// this never fired on macOS/Linux.)
+static std::map<DWORD, std::string>& ThreadNames()
+{
+    static std::map<DWORD, std::string>* names = new std::map<DWORD, std::string>();
+    return *names;
+}
+static std::mutex& ThreadNameMutex()
+{
+    static std::mutex* m = new std::mutex();
+    return *m;
+}
 static std::string OriginalThreadName()
 {
-    std::unique_lock<std::mutex> lock(thread_name_mutex);
-    if (__threadNames.find(::GetCurrentThreadId()) != __threadNames.end()) {
-        return __threadNames[::GetCurrentThreadId()];
+    std::unique_lock<std::mutex> lock(ThreadNameMutex());
+    auto& names = ThreadNames();
+    auto it = names.find(::GetCurrentThreadId());
+    if (it != names.end()) {
+        return it->second;
     }
     return "";
 }
 
 static void SetThreadName(const std::string &name)
 {
-    std::unique_lock<std::mutex> lock(thread_name_mutex);
-    __threadNames[::GetCurrentThreadId()] = name;
+    std::unique_lock<std::mutex> lock(ThreadNameMutex());
+    ThreadNames()[::GetCurrentThreadId()] = name;
 }
 
 static void RemoveThreadName()
 {
-    std::unique_lock<std::mutex> lock(thread_name_mutex);
-    auto it = __threadNames.find(::GetCurrentThreadId());
-    if (it != __threadNames.end())
-        __threadNames.erase(it);
+    std::unique_lock<std::mutex> lock(ThreadNameMutex());
+    auto& names = ThreadNames();
+    auto it = names.find(::GetCurrentThreadId());
+    if (it != names.end())
+        names.erase(it);
 }
 #endif
 

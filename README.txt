@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Windows: fixed a heap corruption (STATUS_HEAP_CORRUPTION) on process teardown when
+                                 the thread-name map was destroyed by the CRT while detached job-pool workers were
+                                 still exiting; the map and its mutex are now immortal so the ordering cannot occur
     -bug (dkulp)                 Fixed a data race on the job-pool worker thread id (logging/status only)
     -enh (dkulp)                 Render: fixed parallel_for's worker-completion wait (it busy-spun on one path and
                                  polled around a lost-wakeup race on the other)
