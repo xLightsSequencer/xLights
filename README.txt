@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
+                                 log instead of only stdout; headless now logs each sequence's render time
     -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every
                                  meteor against every pixel (CPU, Metal and Vulkan paths); large-matrix Meteors
                                  renders are dramatically faster

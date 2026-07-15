@@ -1554,12 +1554,10 @@ public:
                 SetGenericStatus("{}: All done - Completed frame {} ", endFrame, true, false);
             } catch ( std::exception &ex) {
                 assert(false); // so when we debug we catch them
-                printf("Caught an exception %s", ex.what());
                 m_logger->error("Caught an exception on rendering thread: " + std::string(ex.what()));
                 spdlog::error("Caught an exception on rendering thread: {}", ex.what());
             } catch ( ... ) {
                 assert(false); // so when we debug we catch them
-                printf("Caught an unknown exception");
                 m_logger->error("Caught an unknown exception on rendering thread.");
                 spdlog::error("Caught an unknown exception on rendering thread.");
             }
