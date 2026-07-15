@@ -1966,87 +1966,49 @@ void ComputeValueCurve(const std::string& valueCurve, ValueCurve& theValueCurve,
     theValueCurve.Deserialise(valueCurve);
 }
 
-void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr>& newNodes,
-                      int& bufferWi, int& bufferHi,
-                      int& buffOffsetX, int& buffOffsetY,
-                      float progress, long startMS, long endMS) {
+void SubBufferSpec::Parse(const std::string& subBuffer) {
+    static constexpr int MINS[6] = { SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MIN, SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MIN, SB_CENTRE_MIN, SB_CENTRE_MIN };
+    static constexpr int MAXS[6] = { SB_LEFT_BOTTOM_MAX, SB_LEFT_BOTTOM_MAX, SB_RIGHT_TOP_MAX, SB_RIGHT_TOP_MAX, SB_CENTRE_MAX, SB_CENTRE_MAX };
+    static constexpr float DEFAULTS[6] = { 0.0f, 0.0f, 100.0f, 100.0f, 0.0f, 0.0f };
+
+    parsed = true;
+    for (int i = 0; i < 6; i++) {
+        hasCurve[i] = false;
+        statics[i] = DEFAULTS[i];
+        curves[i] = ValueCurve();
+    }
     if (subBuffer.empty()) {
         return;
     }
+
     std::string sb = subBuffer;
     Replace(sb, "Max", "yyz");
 
     auto v = Split(sb, 'x');
 
-    bool fx1vc = v.size() > 0 && Contains(v[0], "Active=TRUE");
-    bool fy1vc = v.size() > 1 && Contains(v[1], "Active=TRUE");
-    bool fx2vc = v.size() > 2 && Contains(v[2], "Active=TRUE");
-    bool fy2vc = v.size() > 3 && Contains(v[3], "Active=TRUE");
-    bool fxvc = v.size() > 4 && Contains(v[4], "Active=TRUE"); // X centre
-    bool fyvc = v.size() > 5 && Contains(v[5], "Active=TRUE"); // y centre
-
-    float x = 0.0;
-    if (fxvc) {
-        Replace(v[4], "yyz", "Max");
-        ValueCurve vc(v[4]);
-        vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
-        x = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 4) {
-        x = std::strtod(v[4].c_str(), nullptr);
+    for (int i = 0; i < 6 && (size_t)i < v.size(); i++) {
+        if (Contains(v[i], "Active=TRUE")) {
+            Replace(v[i], "yyz", "Max");
+            curves[i] = ValueCurve(v[i]);
+            curves[i].SetLimits(MINS[i], MAXS[i]);
+            hasCurve[i] = true;
+        } else {
+            statics[i] = std::strtod(v[i].c_str(), nullptr);
+        }
     }
+}
 
-    float y = 0.0;
-    if (fyvc) {
-        Replace(v[5], "yyz", "Max");
-        ValueCurve vc(v[5]);
-        vc.SetLimits(SB_CENTRE_MIN, SB_CENTRE_MAX);
-        y = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 5) {
-        y = std::strtod(v[5].c_str(), nullptr);
-    }
+SubBufferRect SubBufferSpec::ComputeRect(float progress, long startMS, long endMS, int bufferWi, int bufferHi) {
+    float x = hasCurve[4] ? curves[4].GetOutputValueAt(progress, startMS, endMS) : statics[4];
+    float y = hasCurve[5] ? curves[5].GetOutputValueAt(progress, startMS, endMS) : statics[5];
 
-    float x1 = 0.0;
-    if (fx1vc) {
-        Replace(v[0], "yyz", "Max");
-        ValueCurve vc(v[0]);
-        vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-        x1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 0) {
-        x1 = std::strtod(v[0].c_str(), nullptr);
-    }
+    float x1 = hasCurve[0] ? curves[0].GetOutputValueAt(progress, startMS, endMS) : statics[0];
     x1 += x;
-
-    float y1 = 0.0;
-    if (fy1vc) {
-        Replace(v[1], "yyz", "Max");
-        ValueCurve vc(v[1]);
-        vc.SetLimits(SB_LEFT_BOTTOM_MIN, SB_LEFT_BOTTOM_MAX);
-        y1 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 1) {
-        y1 = std::strtod(v[1].c_str(), nullptr);
-    }
+    float y1 = hasCurve[1] ? curves[1].GetOutputValueAt(progress, startMS, endMS) : statics[1];
     y1 += y;
-
-    float x2 = 100.0;
-    if (fx2vc) {
-        Replace(v[2], "yyz", "Max");
-        ValueCurve vc(v[2]);
-        vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-        x2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 2) {
-        x2 = std::strtod(v[2].c_str(), nullptr);
-    }
+    float x2 = hasCurve[2] ? curves[2].GetOutputValueAt(progress, startMS, endMS) : statics[2];
     x2 += x;
-
-    float y2 = 100.0;
-    if (fy2vc) {
-        Replace(v[3], "yyz", "Max");
-        ValueCurve vc(v[3]);
-        vc.SetLimits(SB_RIGHT_TOP_MIN, SB_RIGHT_TOP_MAX);
-        y2 = vc.GetOutputValueAt(progress, startMS, endMS);
-    } else if (v.size() > 3) {
-        y2 = std::strtod(v[3].c_str(), nullptr);
-    }
+    float y2 = hasCurve[3] ? curves[3].GetOutputValueAt(progress, startMS, endMS) : statics[3];
     y2 += y;
 
     if (x1 > x2)
@@ -2063,25 +2025,44 @@ void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr
     y1 /= 100.0;
     y2 /= 100.0;
 
-    int x1Int = std::round(x1);
-    int x2Int = std::round(x2);
-    int y1Int = std::round(y1);
-    int y2Int = std::round(y2);
+    SubBufferRect rect;
+    rect.x1 = std::round(x1);
+    rect.x2 = std::round(x2);
+    rect.y1 = std::round(y1);
+    rect.y2 = std::round(y2);
+    return rect;
+}
 
-    bufferWi = x2Int - x1Int;
-    bufferHi = y2Int - y1Int;
+static void ApplySubBufferRect(const SubBufferRect& rect, std::vector<NodeBaseClassPtr>& newNodes,
+                               int& bufferWi, int& bufferHi,
+                               int& buffOffsetX, int& buffOffsetY) {
+    bufferWi = rect.x2 - rect.x1;
+    bufferHi = rect.y2 - rect.y1;
     if (bufferWi < 1)
         bufferWi = 1;
     if (bufferHi < 1)
         bufferHi = 1;
     for (size_t x = 0; x < newNodes.size(); x++) {
         for (auto& it2 : newNodes[x]->Coords) {
-            it2.bufX -= x1Int;
-            it2.bufY -= y1Int;
+            it2.bufX -= rect.x1;
+            it2.bufY -= rect.y1;
         }
     }
-    buffOffsetX = x1Int;
-    buffOffsetY = y1Int;
+    buffOffsetX = rect.x1;
+    buffOffsetY = rect.y1;
+}
+
+void ComputeSubBuffer(const std::string& subBuffer, std::vector<NodeBaseClassPtr>& newNodes,
+                      int& bufferWi, int& bufferHi,
+                      int& buffOffsetX, int& buffOffsetY,
+                      float progress, long startMS, long endMS) {
+    if (subBuffer.empty()) {
+        return;
+    }
+    SubBufferSpec spec;
+    spec.Parse(subBuffer);
+    SubBufferRect rect = spec.ComputeRect(progress, startMS, endMS, bufferWi, bufferHi);
+    ApplySubBufferRect(rect, newNodes, bufferWi, bufferHi, buffOffsetX, buffOffsetY);
 }
 
 namespace {
@@ -2101,6 +2082,13 @@ namespace {
 
 void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMap, bool layerEnabled) {
     LayerInfo* inf = layers[layer];
+
+    // Any settings change can rebuild the layer's nodes (and re-apply the
+    // sub-buffer at progress 0), so the variable sub-buffer cache no longer
+    // describes the node state.
+    inf->subBufferSpec.Invalidate();
+    inf->subBufferRectValid = false;
+
     inf->persistent = settingsMap.GetBool(CHECKBOX_OverlayBkg);
     inf->maskSize = 0;
 
@@ -2878,35 +2866,53 @@ void PixelBufferClass::PrepareVariableSubBuffer(int EffectPeriod, int layer) {
     if (!IsVariableSubBuffer(layer))
         return;
 
-    const std::string& subBuffer = layers[layer]->subBuffer;
+    LayerInfo* inf = layers[layer];
 
     int effStartPer, effEndPer;
-    layers[layer]->buffer.GetEffectPeriods(effStartPer, effEndPer);
+    inf->buffer.GetEffectPeriods(effStartPer, effEndPer);
     float offset = 0.0;
     if (effEndPer != effStartPer) {
         offset = ((float)EffectPeriod - (float)effStartPer) / ((float)effEndPer - (float)effStartPer);
     }
     offset = std::min(offset, 1.0f);
-    const std::string& type = layers[layer]->type;
-    const std::string& camera = layers[layer]->camera;
-    const std::string& transform = layers[layer]->transform;
-    layers[layer]->buffer.Nodes.clear();
-    layers[layer]->BufferOffsetX = 0;
-    layers[layer]->BufferOffsetY = 0;
-    model->InitRenderBufferNodes(type, camera, transform, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt, layers[layer]->stagger);
-    ComputeSubBuffer(subBuffer, layers[layer]->buffer.Nodes, layers[layer]->BufferWi, layers[layer]->BufferHt,
-                     layers[layer]->BufferOffsetX, layers[layer]->BufferOffsetY,
-                     offset, layers[layer]->buffer.GetStartTimeMS(), layers[layer]->buffer.GetEndTimeMS());
-    layers[layer]->buffer.BufferWi = layers[layer]->BufferWi;
-    layers[layer]->buffer.BufferHt = layers[layer]->BufferHt;
 
-    if (layers[layer]->buffer.BufferWi == 0)
-        layers[layer]->buffer.BufferWi = 1;
-    if (layers[layer]->buffer.BufferHt == 0)
-        layers[layer]->buffer.BufferHt = 1;
+    if (!inf->subBufferSpec.IsParsed()) {
+        inf->subBufferSpec.Parse(inf->subBuffer);
+    }
 
-    layers[layer]->buffer.InitBuffer(layers[layer]->BufferHt, layers[layer]->BufferWi, transform);
-    GPURenderUtils::setupRenderBuffer(this, &layers[layer]->buffer, layer);
+    // The node mapping only depends on the sub-buffer through the quantized
+    // rect. A slow sweep resolves to the same cells for many frames in a row,
+    // so the nodes it already holds are exactly what the rebuild would produce.
+    if (inf->subBufferRectValid &&
+        inf->subBufferSpec.ComputeRect(offset, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS(), inf->fullBufferWi, inf->fullBufferHt) == inf->subBufferRect) {
+        return;
+    }
+
+    const std::string& type = inf->type;
+    const std::string& camera = inf->camera;
+    const std::string& transform = inf->transform;
+    inf->buffer.Nodes.clear();
+    inf->BufferOffsetX = 0;
+    inf->BufferOffsetY = 0;
+    model->InitRenderBufferNodes(type, camera, transform, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt, inf->stagger);
+
+    inf->fullBufferWi = inf->BufferWi;
+    inf->fullBufferHt = inf->BufferHt;
+    inf->subBufferRect = inf->subBufferSpec.ComputeRect(offset, inf->buffer.GetStartTimeMS(), inf->buffer.GetEndTimeMS(), inf->BufferWi, inf->BufferHt);
+    inf->subBufferRectValid = true;
+    ApplySubBufferRect(inf->subBufferRect, inf->buffer.Nodes, inf->BufferWi, inf->BufferHt,
+                       inf->BufferOffsetX, inf->BufferOffsetY);
+
+    inf->buffer.BufferWi = inf->BufferWi;
+    inf->buffer.BufferHt = inf->BufferHt;
+
+    if (inf->buffer.BufferWi == 0)
+        inf->buffer.BufferWi = 1;
+    if (inf->buffer.BufferHt == 0)
+        inf->buffer.BufferHt = 1;
+
+    inf->buffer.InitBuffer(inf->BufferHt, inf->BufferWi, transform);
+    GPURenderUtils::setupRenderBuffer(this, &inf->buffer, layer);
 }
 
 void PixelBufferClass::HandleLayerBlurZoom(int EffectPeriod, int layer) {

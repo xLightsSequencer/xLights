@@ -57,6 +57,44 @@ class DimmingCurve;
 class ModelGroup;
 class MetalPixelBufferComputeData;
 
+// The sub-buffer resolved for one frame, quantized to buffer cells. Node
+// mapping depends on the sub-buffer definition only through these integers,
+// so an unchanged rect means the node mapping does not need rebuilding.
+struct SubBufferRect {
+    int x1 = 0;
+    int y1 = 0;
+    int x2 = 0;
+    int y2 = 0;
+
+    bool operator==(const SubBufferRect& o) const {
+        return x1 == o.x1 && y1 == o.y1 && x2 == o.x2 && y2 == o.y2;
+    }
+    bool operator!=(const SubBufferRect& o) const {
+        return !(*this == o);
+    }
+};
+
+// A parsed sub-buffer definition string: the six fields (x1, y1, x2, y2 and
+// the x/y centre offsets) as either a static value or a value curve. Parsing
+// is hoisted out of the per-frame path.
+class SubBufferSpec {
+public:
+    void Parse(const std::string& subBuffer);
+    void Invalidate() {
+        parsed = false;
+    }
+    bool IsParsed() const {
+        return parsed;
+    }
+    SubBufferRect ComputeRect(float progress, long startMS, long endMS, int bufferWi, int bufferHi);
+
+private:
+    bool parsed = false;
+    bool hasCurve[6] = { false, false, false, false, false, false };
+    float statics[6] = { 0.0f, 0.0f, 100.0f, 100.0f, 0.0f, 0.0f };
+    ValueCurve curves[6];
+};
+
 class PixelBufferClass {
 private:
     class LayerInfo {
@@ -202,6 +240,12 @@ private:
         uint8_t* mask = nullptr;
         size_t maskSize = 0;
         size_t maskMaxSize = 0;
+
+        SubBufferSpec subBufferSpec;
+        SubBufferRect subBufferRect;
+        bool subBufferRectValid = false;
+        int fullBufferWi = 0;
+        int fullBufferHt = 0;
 
         void renderTransitions(bool isFirstFrame, RenderBuffer* prevRB);
         void calculateMask(const std::string& type, bool mode, bool isFirstFrame);
