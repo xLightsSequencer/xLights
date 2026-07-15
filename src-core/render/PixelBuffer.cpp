@@ -1831,7 +1831,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset) {
             d = (b - 1) / 2;
             u = (b - 1) / 2;
         }
-        RenderBuffer orig(layer->buffer);
+        layer->buffer.SnapshotTransformScratch();
         for (int x = 0; x < layer->BufferWi; x++) {
             for (int y = 0; y < layer->BufferHt; y++) {
                 int r = 0;
@@ -1843,7 +1843,7 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset) {
                     if (i >= 0 && i < layer->BufferWi) {
                         for (int j = y - d; j <= y + u; j++) {
                             if (j >= 0 && j < layer->BufferHt) {
-                                const xlColor& c = orig.GetPixel(i, j);
+                                const xlColor& c = layer->buffer.GetTransformScratchPixel(i, j);
                                 r += c.red;
                                 g += c.green;
                                 b2 += c.blue;
@@ -2615,7 +2615,7 @@ void PixelBufferClass::RotateX(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         GPURenderUtils::waitForRenderCompletion(&buffer);
         int xpivot = settings.xpivot;
 
-        RenderBuffer orig(buffer);
+        buffer.SnapshotTransformScratch();
         buffer.Clear();
 
         float sine = sin((xrotation + 90) * M_PI / 180);
@@ -2624,14 +2624,14 @@ void PixelBufferClass::RotateX(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         for (int x = pivot; x < buffer.BufferWi; ++x) {
             float tox = sine * (x - pivot) + pivot;
             for (int y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+                buffer.SetPixel(tox, y, buffer.GetTransformScratchPixel(x, y));
             }
         }
 
         for (int x = pivot - 1; x >= 0; --x) {
             float tox = -1 * sine * (pivot - x) + pivot;
             for (int y = 0; y < buffer.BufferHt; ++y) {
-                buffer.SetPixel(tox, y, orig.GetPixel(x, y));
+                buffer.SetPixel(tox, y, buffer.GetTransformScratchPixel(x, y));
             }
         }
     }
@@ -2644,7 +2644,7 @@ void PixelBufferClass::RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         GPURenderUtils::waitForRenderCompletion(&buffer);
 
         int ypivot = settings.ypivot;
-        RenderBuffer orig(buffer);
+        buffer.SnapshotTransformScratch();
         buffer.Clear();
 
         float sine = sin((yrotation + 90) * M_PI / 180);
@@ -2653,14 +2653,14 @@ void PixelBufferClass::RotateY(RenderBuffer& buffer, GPURenderUtils::RotoZoomSet
         for (int y = pivot; y < buffer.BufferHt; ++y) {
             float toy = sine * (y - pivot) + pivot;
             for (int x = 0; x < buffer.BufferWi; ++x) {
-                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+                buffer.SetPixel(x, toy, buffer.GetTransformScratchPixel(x, y));
             }
         }
 
         for (int y = pivot - 1; y >= 0; --y) {
             float toy = -1 * sine * (pivot - y) + pivot;
             for (int x = 0; x < buffer.BufferWi; ++x) {
-                buffer.SetPixel(x, toy, orig.GetPixel(x, y));
+                buffer.SetPixel(x, toy, buffer.GetTransformScratchPixel(x, y));
             }
         }
     }
@@ -2676,7 +2676,7 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
 
         static const float PI_2 = 6.283185307f;
         xlColor c;
-        RenderBuffer orig(buffer);
+        buffer.SnapshotTransformScratch();
         int q = settings.zoomquality;
         int cx = settings.pivotpointx;
         int cy = settings.pivotpointy;
@@ -2692,7 +2692,7 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
         for (int x = 0; x < buffer.BufferWi; x++) {
             for (int i = 0; i < q; i++) {
                 for (int y = 0; y < buffer.BufferHt; y++) {
-                    orig.GetPixel(x, y, c);
+                    buffer.GetTransformScratchPixel(x, y, c);
                     for (int j = 0; j < q; j++) {
                         float xx = (float)x + ((float)i * inc) - xoff;
                         float yy = (float)y + ((float)j * inc) - yoff;

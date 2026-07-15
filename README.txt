@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Render: reuse a scratch buffer for the CPU rotate/zoom and small-blur paths instead of
+                                 copying the whole render buffer every frame; allocate the effect temp buffer only for
+                                 effects that use it
     -enh (dkulp)                 Render: XL_RENDER_PROFILE=1 dumps per-model/per-effect render, blend, output, GPU-wait
                                  and upstream-wait timings at the end of each render batch
     -enh (dkulp)                 Render: edit-triggered renders now jump ahead of a running full render, so the grid
