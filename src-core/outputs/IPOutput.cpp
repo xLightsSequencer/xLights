@@ -114,7 +114,7 @@ Output::PINGSTATE IPOutput::Ping(const std::string& ip, const std::string& proxy
             url += (ip_utils::IsIPv6(proxy) ? "[" + proxy + "]" : proxy) + "/proxy/";
         }
         url += ip + "/";
-        if (CurlManager::HTTPSGet(url, "", "", 2) != "") {
+        if (CurlManager::HTTPSGet(url, "", "", 2, {}, nullptr, true) != "") {
             return Output::PINGSTATE::PING_WEBOK;
         } else {
             return Output::PINGSTATE::PING_ALLFAILED;

@@ -457,6 +457,7 @@ public:
     [[nodiscard]] int GetChanCountPerNode() const;
     [[nodiscard]] uint32_t GetCoordCount(size_t nodenum) const;
     [[nodiscard]] int GetNodeStringNumber(size_t nodenum) const;
+    [[nodiscard]] virtual int GetNodePhysicalStringIndex(size_t nodenum) const { return GetNodeStringNumber(nodenum); }
     void SetPosition(double posx, double posy);
     [[nodiscard]] std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
     [[nodiscard]] std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);

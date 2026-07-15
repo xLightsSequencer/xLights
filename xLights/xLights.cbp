@@ -313,6 +313,8 @@
 		<Unit filename="../src-ui-wx/setup/ControllerConnectionDialog.h" />
 		<Unit filename="../src-ui-wx/setup/ControllerModelDialog.cpp" />
 		<Unit filename="../src-ui-wx/setup/ControllerModelDialog.h" />
+		<Unit filename="../src-ui-wx/setup/ShowDirectoriesDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/ShowDirectoriesDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/ConvertDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/ConvertDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/ConvertLogDialog.cpp" />
@@ -1534,6 +1536,14 @@
 		<Unit filename="../src-ui-wx/shared/controls/MediaPickerCtrl.h" />
 		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.cpp" />
 		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.h" />
+		<Unit filename="../src-ui-wx/layout/ControllerListPanel.cpp" />
+		<Unit filename="../src-ui-wx/layout/ControllerListPanel.h" />
+		<Unit filename="../src-ui-wx/layout/ControllerTreeUtils.cpp" />
+		<Unit filename="../src-ui-wx/layout/ControllerTreeUtils.h" />
+		<Unit filename="../src-ui-wx/layout/ControllerFullColumnsDialog.cpp" />
+		<Unit filename="../src-ui-wx/layout/ControllerFullColumnsDialog.h" />
+		<Unit filename="../src-ui-wx/shared/utils/TreeListColumnVisibility.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/TreeListColumnVisibility.h" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.cpp" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.h" />
 		<Unit filename="../src-core/utils/GitUtils.cpp" />

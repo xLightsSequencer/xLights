@@ -230,18 +230,6 @@ const wxWindowID xLightsFrame::ID_AUITOOLBARITEM14 = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_VIEW = wxNewId();
 const wxWindowID xLightsFrame::ID_AUIEFFECTSTOOLBAR = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON3 = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON11 = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON13 = wxNewId();
-const wxWindowID xLightsFrame::ID_STATICTEXT4 = wxNewId();
-const wxWindowID xLightsFrame::ID_STATICTEXT2 = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON14 = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON17 = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON15 = wxNewId();
-const wxWindowID xLightsFrame::ID_STATICTEXT3 = wxNewId();
-const wxWindowID xLightsFrame::ID_CHECKBOX1 = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON16 = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON_SAVE_SETUP = wxNewId();
-const wxWindowID xLightsFrame::ID_BUTTON9 = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON6 = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON10 = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON5 = wxNewId();
@@ -257,7 +245,6 @@ const wxWindowID xLightsFrame::ID_BUTTON8 = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON4 = wxNewId();
 const wxWindowID xLightsFrame::ID_BUTTON12 = wxNewId();
 const wxWindowID xLightsFrame::ID_PANEL3 = wxNewId();
-const wxWindowID xLightsFrame::ID_PANEL_SETUP = wxNewId();
 const wxWindowID xLightsFrame::ID_PANEL_PREVIEW = wxNewId();
 const wxWindowID xLightsFrame::XLIGHTS_SEQUENCER_TAB = wxNewId();
 const wxWindowID xLightsFrame::ID_NOTEBOOK1 = wxNewId();
@@ -877,111 +864,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
     Notebook1 = new wxAuiNotebook(this, ID_NOTEBOOK1, wxDefaultPosition, wxDefaultSize, wxAUI_NB_SCROLL_BUTTONS|wxAUI_NB_TOP|wxBORDER_NONE);
-    PanelSetup = new wxPanel(Notebook1, ID_PANEL_SETUP, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_SETUP"));
-    FlexGridSizerSetup = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizerSetup->AddGrowableCol(0);
-    FlexGridSizerSetup->AddGrowableRow(1);
-    StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, PanelSetup, _("Directories"));
-    GridBagSizer1 = new wxGridBagSizer(0, 0);
-    StaticText38 = new wxStaticText(PanelSetup, wxID_ANY, _("Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-    GridBagSizer1->Add(StaticText38, wxGBPosition(0, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    Button_ChangeShowDirPermanently = new wxButton(PanelSetup, ID_BUTTON3, _("Change Permanently"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
-    GridBagSizer1->Add(Button_ChangeShowDirPermanently, wxGBPosition(0, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_CheckShowFolderTemporarily = new wxButton(PanelSetup, ID_BUTTON11, _("Change Temporarily"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON11"));
-    GridBagSizer1->Add(Button_CheckShowFolderTemporarily, wxGBPosition(0, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_ChangeTemporarilyAgain = new wxButton(PanelSetup, ID_BUTTON13, _("Change Temporarily Again"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON13"));
-    Button_ChangeTemporarilyAgain->Hide();
-    GridBagSizer1->Add(Button_ChangeTemporarilyAgain, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ShowDirectoryLabel = new wxStaticText(PanelSetup, ID_STATICTEXT4, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-    GridBagSizer1->Add(ShowDirectoryLabel, wxGBPosition(0, 4), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_BaseShowDirLabel = new wxStaticText(PanelSetup, ID_STATICTEXT2, _("Base Show Directory:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    GridBagSizer1->Add(StaticText_BaseShowDirLabel, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
-    Button_ChangeBaseShowDir = new wxButton(PanelSetup, ID_BUTTON14, _("Change"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON14"));
-    FlexGridSizer2->Add(Button_ChangeBaseShowDir, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_OpenBaseShowDir = new wxButton(PanelSetup, ID_BUTTON17, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON17"));
-    Button_OpenBaseShowDir->SetToolTip(_("Open the base show folder"));
-    FlexGridSizer2->Add(Button_OpenBaseShowDir, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizer1->Add(FlexGridSizer2, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_ClearBaseShowDir = new wxButton(PanelSetup, ID_BUTTON15, _("Clear"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON15"));
-    GridBagSizer1->Add(Button_ClearBaseShowDir, wxGBPosition(1, 2), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticText_BaseShowDir = new wxStaticText(PanelSetup, ID_STATICTEXT3, _("No base show directory"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    GridBagSizer1->Add(StaticText_BaseShowDir, wxGBPosition(1, 4), wxDefaultSpan, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
-    CheckBox_AutoUpdateBase = new wxCheckBox(PanelSetup, ID_CHECKBOX1, _("Auto Update On Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-    CheckBox_AutoUpdateBase->SetValue(false);
-    FlexGridSizer1->Add(CheckBox_AutoUpdateBase, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_UpdateBase = new wxButton(PanelSetup, ID_BUTTON16, _("Update"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON16"));
-    FlexGridSizer1->Add(Button_UpdateBase, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizer1->Add(FlexGridSizer1, wxGBPosition(1, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizer1->AddGrowableCol(4);
-    StaticBoxSizer1->Add(GridBagSizer1, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizerSetup->Add(StaticBoxSizer1, 1, wxALL|wxEXPAND, 5);
-    StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, PanelSetup, _("Controllers"));
-    FlexGridSizerNetworks = new wxFlexGridSizer(0, 4, 0, 0);
-    FlexGridSizerNetworks->AddGrowableCol(2);
-    FlexGridSizerNetworks->AddGrowableRow(0);
-    BoxSizer1 = new wxBoxSizer(wxVERTICAL);
-    ButtonSaveSetup = new wxButton(PanelSetup, ID_BUTTON_SAVE_SETUP, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_SETUP"));
-    BoxSizer1->Add(ButtonSaveSetup, 1, wxALL|wxEXPAND, 3);
-    BoxSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-    ButtonAddControllerSerial = new wxButton(PanelSetup, ID_BUTTON9, _("Add USB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON9"));
-    BoxSizer1->Add(ButtonAddControllerSerial, 1, wxALL|wxEXPAND, 3);
-    ButtonAddControllerEthernet = new wxButton(PanelSetup, ID_BUTTON6, _("Add Ethernet"), wxDefaultPosition, wxSize(98,28), 0, wxDefaultValidator, _T("ID_BUTTON6"));
-    BoxSizer1->Add(ButtonAddControllerEthernet, 1, wxALL|wxEXPAND, 3);
-    ButtonAddControllerNull = new wxButton(PanelSetup, ID_BUTTON10, _("Add Null"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON10"));
-    BoxSizer1->Add(ButtonAddControllerNull, 1, wxALL|wxEXPAND, 3);
-    BoxSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
-    ButtonDiscover = new wxButton(PanelSetup, ID_BUTTON5, _("Discover"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON5"));
-    BoxSizer1->Add(ButtonDiscover, 1, wxALL|wxEXPAND, 3);
-    ButtonFPPConnect = new wxButton(PanelSetup, ID_BUTTON18, _("FPP Connect"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON18"));
-    BoxSizer1->Add(ButtonFPPConnect, 1, wxALL|wxEXPAND, 3);
-    FlexGridSizerNetworks->Add(BoxSizer1, 1, wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL, 0);
-    FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-    BitmapButtonMoveNetworkUp = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON1, GetButtonBitmapBundle("wxART_GO_UP"), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON1"));
-    BitmapButtonMoveNetworkUp->SetToolTip(_("Move selected item up"));
-    FlexGridSizer9->Add(BitmapButtonMoveNetworkUp, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    BitmapButtonMoveNetworkDown = new wxBitmapButton(PanelSetup, ID_BITMAPBUTTON2, GetButtonBitmapBundle("wxART_GO_DOWN"), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON2"));
-    BitmapButtonMoveNetworkDown->SetToolTip(_("Move selected item down"));
-    FlexGridSizer9->Add(BitmapButtonMoveNetworkDown, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerNetworks->Add(FlexGridSizer9, 1, wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP, 10);
-    Panel2 = new wxPanel(PanelSetup, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
-    FlexGridSizerSetupControllers = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizerSetupControllers->AddGrowableCol(0);
-    FlexGridSizerSetupControllers->AddGrowableRow(0);
-    Panel2->SetSizer(FlexGridSizerSetupControllers);
-    FlexGridSizerNetworks->Add(Panel2, 1, wxALL|wxEXPAND, 2);
-    Panel5 = new wxPanel(PanelSetup, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxALWAYS_SHOW_SB|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL3"));
-    Panel5->SetMinSize(wxSize(200,-1));
-    Panel5->SetMaxSize(wxSize(200,-1));
-    FlexGridSizerSetupRight = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizerSetupRight->AddGrowableCol(0);
-    FlexGridSizerSetupRight->AddGrowableRow(0);
-    FlexGridSizerSetupProperties = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizerSetupProperties->AddGrowableCol(0);
-    FlexGridSizerSetupProperties->AddGrowableRow(0);
-    FlexGridSizerSetupRight->Add(FlexGridSizerSetupProperties, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizerSetupControllerButtons = new wxFlexGridSizer(2, 0, 0, 0);
-    ButtonVisualise = new wxButton(Panel5, ID_BUTTON1, _("Visualise ..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonVisualise, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonUploadInput = new wxButton(Panel5, ID_BUTTON2, _("Upload Input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonUploadInput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonOpen = new wxButton(Panel5, ID_BUTTON7, _("Open"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON7"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonOpen, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    StaticTextDummy = new wxStaticText(Panel5, ID_STATICTEXT1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizerSetupControllerButtons->Add(StaticTextDummy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonControllerDelete = new wxButton(Panel5, ID_BUTTON8, _("Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON8"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonControllerDelete, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    ButtonUploadOutput = new wxButton(Panel5, ID_BUTTON4, _("Upload Output"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizerSetupControllerButtons->Add(ButtonUploadOutput, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    Button_OpenProxy = new wxButton(Panel5, ID_BUTTON12, _("Open Proxy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON12"));
-    FlexGridSizerSetupControllerButtons->Add(Button_OpenProxy, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizerSetupRight->Add(FlexGridSizerSetupControllerButtons, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
-    Panel5->SetSizer(FlexGridSizerSetupRight);
-    FlexGridSizerNetworks->Add(Panel5, 1, wxALL|wxEXPAND, 2);
-    StaticBoxSizer2->Add(FlexGridSizerNetworks, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizerSetup->Add(StaticBoxSizer2, 1, wxALL|wxEXPAND, 5);
-    PanelSetup->SetSizer(FlexGridSizerSetup);
     PanelPreview = new wxPanel(Notebook1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
     FlexGridSizerPreview = new wxFlexGridSizer(1, 1, 0, 0);
     FlexGridSizerPreview->AddGrowableCol(0);
@@ -989,8 +871,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     PanelPreview->SetSizer(FlexGridSizerPreview);
     PanelSequencer = new wxPanel(Notebook1, XLIGHTS_SEQUENCER_TAB, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("XLIGHTS_SEQUENCER_TAB"));
     m_mgr = new wxAuiManager(PanelSequencer, wxAUI_MGR_ALLOW_FLOATING|wxAUI_MGR_DEFAULT);
-    Notebook1->AddPage(PanelSetup, _("Controllers"), true);
-    Notebook1->AddPage(PanelPreview, _("Layout"));
+    Notebook1->AddPage(PanelPreview, _("Layout"), true);
     Notebook1->AddPage(PanelSequencer, _("Sequencer"));
     MainAuiManager->AddPane(Notebook1, wxAuiPaneInfo().Name(_T("MainPain")).CenterPane().Caption(_("Pane caption")).PaneBorder(false));
     AUIStatusBar = new wxPanel(this, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE|wxTAB_TRAVERSAL, _T("ID_PANEL1"));
@@ -1351,27 +1232,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxID_ZOOM_OUT, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_AUITOOLBARITEM14, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
     Connect(ID_BUTTON3, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
-    Connect(ID_BUTTON11, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ChangeShowFolderTemporarily);
-    Connect(ID_BUTTON13, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ChangeTemporarilyAgainClick);
-    Connect(ID_BUTTON14, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ChangeBaseShowDirClick);
-    Connect(ID_BUTTON17, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_OpenBaseShowDirClick);
-    Connect(ID_BUTTON15, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_ClearBaseShowDirClick);
-    Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnCheckBox_AutoUpdateBaseClick);
-    Connect(ID_BUTTON16, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_UpdateBaseClick);
-    Connect(ID_BUTTON_SAVE_SETUP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonSaveSetupClick);
-    Connect(ID_BUTTON9, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerSerialClick);
-    Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerEthernetClick);
-    Connect(ID_BUTTON10, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonAddControllerNullClick);
-    Connect(ID_BUTTON5, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonDiscoverClick);
-    Connect(ID_BUTTON18, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonFPPConnectClick);
-    Connect(ID_BITMAPBUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveUpClick);
-    Connect(ID_BITMAPBUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonNetworkMoveDownClick);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonVisualiseClick);
-    Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonUploadInputClick);
-    Connect(ID_BUTTON7, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonOpenClick);
-    Connect(ID_BUTTON8, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonControllerDeleteClick);
-    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButtonUploadOutputClick);
-    Connect(ID_BUTTON12, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnButton_OpenProxyClick);
     m_mgr->Connect(wxEVT_AUI_PANE_CLOSE, (wxObjectEventFunction)&xLightsFrame::OnPaneClose, NULL, this);
     PanelSequencer->Connect(wxEVT_PAINT, (wxObjectEventFunction)&xLightsFrame::OnPanelSequencerPaint, NULL, this);
     Connect(ID_NOTEBOOK1, wxEVT_COMMAND_AUINOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnNotebook1PageChanged1);
@@ -1548,11 +1408,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxID_CUT, wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_COPY, wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::DoMenuAction);
     Connect(wxID_PASTE, wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::DoMenuAction);
-
-    ShowDirectoryLabel->Bind(wxEVT_LEFT_DCLICK,
-                             [&](wxMouseEvent&) {
-                                 wxLaunchDefaultApplication(showDirectory);
-                             });
 
     SetPanelSequencerLabel("");
 
@@ -1749,6 +1604,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
     spdlog::debug("LayoutPanel creation done.");
+    layoutPanel->LabelDirectoriesFooter->Bind(wxEVT_LEFT_DCLICK,
+                             [&](wxMouseEvent&) {
+                                 wxLaunchDefaultApplication(showDirectory);
+                             });
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
     FlexGridSizerPreview->Fit(PanelPreview);
     FlexGridSizerPreview->SetSizeHints(PanelPreview);
@@ -1772,8 +1631,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     effGridPrevY = 0;
     mSavedChangeCount = 0;
     mLastAutosaveCount = 0;
-
-    _scrollTimer.Connect(wxEVT_TIMER, wxTimerEventHandler(xLightsFrame::OnListItemScrollTimerControllers), nullptr, this);
 
     // get list of most recently used directories
     wxString dirmru;
@@ -2100,7 +1957,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // This is used by xSchedule
     Notebook1->SetLabel("XLIGHTS_NOTEBOOK");
 
-    Notebook1->ChangeSelection(SETUPTAB);
+    Notebook1->ChangeSelection(LAYOUTTAB);
     EnableNetworkChanges();
 
     wxImage::AddHandler(new wxGIFHandler);
@@ -2143,7 +2000,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         config->DeleteEntry("xLightsLocalIP");
     }
 
-    SetControllersProperties();
     UpdateACToolbar();
     ShowACLights();
 
@@ -2275,7 +2131,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     // remove the forum for now until/if Sean restores the forum
     MenuItem_Help_Forum->GetMenu()->Remove(MenuItem_Help_Forum);
@@ -2396,12 +2251,6 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsPlayVolume", playVolume);
     config->Write("xLightsVideoExportCodec", _videoExportCodec);
     config->Write("xLightsVideoExportBitrate", _videoExportBitrate);
-
-    wxString colOrd;
-    for (int c : List_Controllers->GetColumnsOrder()) {
-        colOrd += wxString::Format("%d", c) + ",";
-    }
-    config->Write("ControllerTabColumnOrder", colOrd.RemoveLast());
 
     SaveDockable();
 
@@ -2863,10 +2712,6 @@ void xLightsFrame::OnBitmapButtonTabInfoClick(wxCommandEvent& event)
     wxString caption, msg;
 
     switch (Notebook1->GetSelection()) {
-    case SETUPTAB:
-        caption = _("Setup Tab");
-        msg = _("Show Directory\n\nThe first thing you need to know about xLights is that it expects you to organize all of your sequence files and associated audio or video files into a single directory. For example, you can have a directory called '2012 Show'. Once you have your show directory created and populated with the relevant files, you are ready to proceed. Tell xLights where your new show directory is by clicking the 'Change' button on the Setup tab, navigate to your show directory, then click 'OK'.\n\nLighting Networks\n\nThe next thing you will need to do is define your lighting network(s). xLights ignores most of the information about your lighting network contained in your LOR or Vixen sequence. Thus this step is very important! Add a row in the lower half of the Setup tab for each network used in your display. xLights can drive a mixture of network types (for example, the first network can be DMX, and the second one LOR, and the third one Renard). When you are finished, do not forget to SAVE YOUR CHANGES by clicking the 'Save Setup' button.");
-        break;
     case LAYOUTTAB:
         caption = _("Layout Tab");
         msg = _("Create display elements by clicking on the Models buttons. You can drag your cursor across the preview area to move the element. Don't forget to click the Save button to save your preview!\n\nClick the Open button to select an xLights sequence to be previewed. Note that any xLights sequence can be previewed, not just those created on the Sequencer tab. Click Play to start preview playback. Use the Pause button to stop play, and then the Play button to resume. You can drag the slider that appears across the top of the preview area to move playback to any spot in your sequence. The Stop Now button in the upper left will also stop playback.");
@@ -3016,15 +2861,11 @@ void xLightsFrame::OnNotebook1PageChanging(wxAuiNotebookEvent& event)
     if (event.GetOldSelection() == NEWSEQUENCER) {
         layoutPanel->Set3d(_housePreviewPanel->Is3d());
         ShowHideAllSequencerWindows(false);
-    } else if (event.GetOldSelection() == SETUPTAB) {
-        layoutPanel->UnSelectAllModels();
     } else if (event.GetOldSelection() == LAYOUTTAB) {
         _housePreviewPanel->Set3d(layoutPanel->Is3d());
         layoutPanel->HideFloatingPanes();
     }
-    if (event.GetSelection() == SETUPTAB) {
-        DoSetupWork();
-    } else if (event.GetSelection() == LAYOUTTAB) {
+    if (event.GetSelection() == LAYOUTTAB) {
         DoLayoutWork();
     }
     isChanging = false;
@@ -3054,11 +2895,6 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         EffectSettingsTimer.Start(50, wxTIMER_ONE_SHOT);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
-    } else if (pagenum == SETUPTAB) {
-        MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
-        MenuItem_File_Save->Enable(true);
-        SetStatusText(_(""));
-        SetControllersProperties();
     } else {
         MenuItem_File_Save->SetItemLabel("Save");
         SetStatusText(_(""));
@@ -4114,7 +3950,7 @@ void xLightsFrame::CheckUnsavedChanges()
     if (UnsavedNetworkChanges) {
         // This is not necessary but it shows the user that the save button is red which I am hoping makes it clearer
         // to the user what this prompt is for
-        Notebook1->SetSelection(SETUPTAB);
+        Notebook1->SetSelection(LAYOUTTAB);
 
         if (wxYES == wxMessageBox("Save Network Setup changes?",
                                   "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
@@ -4986,7 +4822,6 @@ void xLightsFrame::SetFSEQFolder(bool useShow, const std::string& folder)
     SetXmlSetting("fseqDir", fseqDirectory);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     spdlog::debug("FSEQ directory set to : {}.", (const char*)fseqDirectory.c_str());
 }
@@ -5019,7 +4854,6 @@ void xLightsFrame::SetRenderCacheFolder(bool useShow, const std::string& folder)
     SetXmlSetting("renderCacheDir", renderCacheDirectory);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     spdlog::debug("Render Cache directory set to : {}.", (const char*)renderCacheDirectory.c_str());
 }
@@ -5052,7 +4886,6 @@ void xLightsFrame::SetBackupFolder(bool useShow, const std::string& folder)
     SetXmlSetting("backupDir", _backupDirectory);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     spdlog::debug("Backup directory set to : {}.", (const char*)_backupDirectory.c_str());
 }
@@ -6627,22 +6460,7 @@ void xLightsFrame::OnMenuItem_CleanupFileLocationsSelected(wxCommandEvent& event
 
 void xLightsFrame::ValidateWindow()
 {
-    if (_outputManager.GetBaseShowDir() == "") {
-        Button_UpdateBase->Disable();
-        Button_ClearBaseShowDir->Disable();
-        CheckBox_AutoUpdateBase->Disable();
-        Button_OpenBaseShowDir->Disable();
-    } else {
-        if (_outputManager.GetBaseShowDir() == this->GetShowDirectory()) {
-            Button_UpdateBase->Disable();
-        } else {
-            Button_UpdateBase->Enable();
-        }
-        Button_ClearBaseShowDir->Enable();
-        CheckBox_AutoUpdateBase->Enable();
-        Button_OpenBaseShowDir->Enable();
-
-    }
+    // Base show folder controls now live in ShowDirectoriesDialog, which manages its own state.
 }
 
 void xLightsFrame::TimerOutput(int period)
@@ -7325,21 +7143,8 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
 {
     bool changed = _showBaseShowFolder != b;
     _showBaseShowFolder = b;
-    Button_UpdateBase->Show(b);
-    Button_ClearBaseShowDir->Show(b);
-    StaticText_BaseShowDir->Show(b);
-    CheckBox_AutoUpdateBase->Show(b);
-    Button_ChangeBaseShowDir->Show(b);
-    Button_OpenBaseShowDir->Show(b);
-    StaticText_BaseShowDirLabel->Show(b);
-    FlexGridSizer1->Layout();
-    GridBagSizer1->Layout();
-    FlexGridSizerSetup->Layout();
-    Layout();
     if (!b) {
         _outputManager.SetBaseShowDir("");
-        StaticText_BaseShowDir->SetLabel("No base show directory");
-        CheckBox_AutoUpdateBase->SetValue(false);
         _outputManager.SetAutoUpdateFromBaseShowDir(false);
         if (changed)
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetShowBaseShowFolder");
@@ -7349,6 +7154,9 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
             EffectTreeDlg->InitItems(_effectPresetManager);
             _effectPresetsInitialized = true;
         }
+    }
+    if (layoutPanel != nullptr) {
+        layoutPanel->UpdateDirectoriesFooter();
     }
     ValidateWindow();
 }
@@ -7686,10 +7494,6 @@ void xLightsFrame::OnMenuItem_LogRenderStateSelected(wxCommandEvent& event)
 void xLightsFrame::SaveCurrentTab()
 {
     switch (Notebook1->GetSelection()) {
-    case SETUPTAB:
-        SaveNetworksFile();
-        layoutPanel->SaveEffects();
-        break;
     case LAYOUTTAB:
         layoutPanel->SaveEffects();
         SaveNetworksFile();
@@ -8136,7 +7940,7 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
             }
         } else if (type == "FPP_CONNECT") {
             wxCommandEvent e;
-            OnButtonFPPConnectClick(e);
+            OnMenuItem_FPP_ConnectSelected(e);
         } else if (type == "COMMAND_PALETTE") {
             wxCommandEvent e;
             OnCommandPalette(e);
@@ -8224,8 +8028,6 @@ void xLightsFrame::OnCharHook(wxKeyEvent& event)
     }
 
     switch (Notebook1->GetSelection()) {
-    case SETUPTAB:
-        break;
     case LAYOUTTAB:
         if (!layoutPanel->HandleLayoutKeyBinding(event)) {
             event.Skip();
@@ -8761,7 +8563,6 @@ void xLightsFrame::SetDefaultSeqView(const wxString& view)
     SetXmlSetting("defaultSeqView", view);
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
 }
 
 std::vector<std::string> xLightsFrame::GetSequenceViews()
@@ -9235,11 +9036,6 @@ bool xLightsFrame::IsDockable(const std::string& panel)
 void xLightsFrame::SetBaseShowDir(const wxString& baseShowDir)
 {
     _outputManager.SetBaseShowDir(ToStdString(baseShowDir));
-    if (baseShowDir == "") {
-        StaticText_BaseShowDir->SetLabel("No base show directory");
-    } else {
-        StaticText_BaseShowDir->SetLabel(baseShowDir);
-    }
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "MoveSelectedControllerRows");
 
     _effectPresetsInitialized = false;
@@ -9247,40 +9043,10 @@ void xLightsFrame::SetBaseShowDir(const wxString& baseShowDir)
         EffectTreeDlg->InitItems(_effectPresetManager);
         _effectPresetsInitialized = true;
     }
-}
 
-void xLightsFrame::OnButton_ChangeBaseShowDirClick(wxCommandEvent& event)
-{
-    // set the base show directory and save it in the networks file
-    wxDirDialog DirDialog1(this, _("Select Base Show Directory"), wxEmptyString, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
-
-    if (DirDialog1.ShowModal() == wxID_OK) {
-        SetBaseShowDir(DirDialog1.GetPath());
-        ValidateWindow();
+    if (layoutPanel != nullptr) {
+        layoutPanel->UpdateDirectoriesFooter();
     }
-}
-
-void xLightsFrame::OnButton_ClearBaseShowDirClick(wxCommandEvent& event)
-{
-    // erase the base show directory and save it in the networks file
-    SetBaseShowDir("");
-    ValidateWindow();
-}
-
-void xLightsFrame::OnCheckBox_AutoUpdateBaseClick(wxCommandEvent& event)
-{
-    // set/reset the auto flag and save it in the networks file
-    _outputManager.SetAutoUpdateFromBaseShowDir(CheckBox_AutoUpdateBase->IsChecked());
-    _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnCheckBox_AutoUpdateBaseClick");
-}
-
-void xLightsFrame::OnButton_UpdateBaseClick(wxCommandEvent& event)
-{
-    // execute the update now
-    SetCursor(wxCURSOR_WAIT);
-    waitForPingsToComplete();
-    UpdateFromBaseShowFolder(true);
-    SetCursor(wxCURSOR_ARROW);
 }
 
 void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
@@ -9347,12 +9113,7 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 void xLightsFrame::UpdateReadOnlyState()
 {
     // disable a bunch of things
-    ButtonSaveSetup->Enable(!readOnlyMode);
     layoutPanel->ButtonSavePreview->Enable(!readOnlyMode);
-    Button_ChangeBaseShowDir->Enable(!readOnlyMode);
-    Button_ChangeTemporarilyAgain->Enable(!readOnlyMode);
-    Button_CheckShowFolderTemporarily->Enable(!readOnlyMode);
-    Button_ChangeShowDirPermanently->Enable(!readOnlyMode);
 }
 
 void xLightsFrame::OnMenuItemFindShowFolderSelected(wxCommandEvent& event)

@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (cybercop23)            Moved the Controllers tab to the Layout tab and separated Models and Groups into
+                                 their own tab, bringing the UI into parity with the iPad; added a controller
+                                 port/model selector to see the model(s)/string selected in the layout; added
+                                 right-click single controller FPPConnect functionality
     -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
                                  log instead of only stdout; headless now logs each sequence's render time
     -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every

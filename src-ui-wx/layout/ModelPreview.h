@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <map>
 #include <memory>
 
 #include <wx/wx.h>
@@ -54,6 +55,8 @@ class ModelPreview : public GRAPHICS_BASE_CLASS, public IModelPreview
     bool _showModelNames = false;
     bool _showModelInfo = false;
     xlTexture* _fontTexture = nullptr;
+    std::map<Model*, int> _portStringHighlight;
+    std::map<Model*, std::pair<uint32_t, uint32_t>> _portChannelHighlight;
 
 public:
     ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
@@ -123,6 +126,10 @@ public:
         Refresh();
     }
     Model* GetAdditionalModel() const { return additionalModel; }
+
+    void SetPortStringHighlight(Model* m, int stringIndex) { _portStringHighlight[m] = stringIndex; }
+    void SetPortChannelHighlight(Model* m, uint32_t firstChan, uint32_t lastChan) { _portChannelHighlight[m] = { firstChan, lastChan }; }
+    void ClearPortStringHighlights() { _portStringHighlight.clear(); _portChannelHighlight.clear(); }
 
     void SetPreviewPane(PreviewPane* pane) {mPreviewPane = pane;}
     void SetActive(bool show);

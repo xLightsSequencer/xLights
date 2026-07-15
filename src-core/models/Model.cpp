@@ -3263,12 +3263,6 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
     for (int n = 0; n < (int)NodeCount; ++n) {
         if (n + 1 == highlightpixel) {
             color = xlMAGENTA;
-        } else if (highlightFirst && Nodes.size() > 1) {
-            if (IsNodeFirst(n)) {
-                color = xlCYAN;
-            } else {
-                color = saveColor;
-            }
         } else if (c == nullptr && Nodes[n]) {
             // Nodes[n] can be a default-constructed (null) slot on a freshly-placed
             // model; keep SetColor(n) below in sync by only guarding the deref here.
@@ -3281,6 +3275,15 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 if (r != 0) {
                     color = xlBLACK;
                 }
+            }
+            if (highlightFirst && Nodes.size() > 1 && IsNodeFirst(n)) {
+                color = xlCYAN;
+            }
+        } else if (highlightFirst && Nodes.size() > 1) {
+            if (IsNodeFirst(n)) {
+                color = xlCYAN;
+            } else {
+                color = saveColor;
             }
         }
         ApplyTransparency(color, transparency, blackTransparency);

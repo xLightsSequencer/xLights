@@ -18,6 +18,7 @@
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"
 #include "ControllerSerial.h"
+#include "DDPOutput.h"
 #include "../models/Model.h"
 
 #include <numeric>
@@ -330,6 +331,17 @@ std::string Controller::DecodeActiveState(Controller::ACTIVESTATE state)
         return "Inactive";
     }
     return "Active";
+}
+
+std::string Controller::GetColumn16Label() const {
+    if (GetOutputCount() == 0) return "";
+    DDPOutput* ddp = dynamic_cast<DDPOutput*>(GetFirstOutput());
+    if (ddp == nullptr) return "";
+    return toStr(ddp->IsKeepChannelNumbers());
+}
+
+std::string Controller::GetColumn17Label() const {
+    return SupportsFullxLightsControl() ? toStr(IsFullxLightsControl()) : "";
 }
 
 Controller* Controller::Create(OutputManager* om, pugi::xml_node node, std::string showDir) {

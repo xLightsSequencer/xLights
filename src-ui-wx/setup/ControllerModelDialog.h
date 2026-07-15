@@ -104,6 +104,8 @@ class ControllerModelDialog: public wxDialog
 		ControllerModelDialog(wxWindow* parent, UDController* cud, ModelManager* mm, Controller* controller, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 		virtual ~ControllerModelDialog();
 
+		static bool IsAnyActive() { return s_activeCount > 0; }
+
 		//(*Declarations(ControllerModelDialog)
 		wxCheckBox* CheckBox_HideOtherControllerModels;
 		wxPanel* Panel3;
@@ -222,6 +224,9 @@ class ControllerModelDialog: public wxDialog
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
         bool MaybeSetSmartRemote(wxKeyEvent& event);
+
+	private:
+		static int s_activeCount;
 
 		DECLARE_EVENT_TABLE()
 };

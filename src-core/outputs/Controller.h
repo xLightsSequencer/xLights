@@ -17,6 +17,7 @@
 
 #include "UtilFunctions.h"
 #include "Output.h"
+#include <spdlog/fmt/fmt.h>
 
 class OutputManager;
 class OutputModelManager;
@@ -280,6 +281,12 @@ public:
     virtual std::string GetColumn9Label() const { return toStr(IsAutoLayout()); }
     virtual std::string GetColumn10Label() const { return toStr(IsAutoSize()); }
     virtual std::string GetColumn11Label() const { return GetDescription(); }
+    virtual std::string GetColumn12Label() const { return toStr(IsAutoUpload()); }
+    virtual std::string GetColumn13Label() const { return std::to_string(GetDefaultBrightnessUnderFullControl()); }
+    virtual std::string GetColumn14Label() const { return fmt::format("{:.1f}", GetDefaultGammaUnderFullControl()); }
+    virtual std::string GetColumn15Label() const { return toStr(!GetFPPProxy().empty()); }
+    virtual std::string GetColumn16Label() const;
+    virtual std::string GetColumn17Label() const;
 
     virtual Output::PINGSTATE Ping() { _lastPingResult = Output::PINGSTATE::PING_UNAVAILABLE; return GetLastPingState(); }
     virtual void AsyncPing() { _lastPingResult = Output::PINGSTATE::PING_UNKNOWN; }

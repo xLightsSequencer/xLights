@@ -24,6 +24,7 @@
 class FPPUploadProgressDialog;
 class OutputManager;
 class wxProgressDialog;
+class xLightsFrame;
 
 
 class FPPConnectDialog: public wxDialog
@@ -34,7 +35,7 @@ class FPPConnectDialog: public wxDialog
 
 	public:
 
-		FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, const std::string& targetIp = "", wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~FPPConnectDialog();
 
 		//(*Declarations(FPPConnectDialog)
@@ -81,6 +82,8 @@ class FPPConnectDialog: public wxDialog
     
         std::list<FPP*> instances;
         OutputManager* _outputManager;
+        std::string _targetIp;
+        xLightsFrame* _frame = nullptr;
 
 	private:
 
