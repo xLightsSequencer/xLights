@@ -106,6 +106,15 @@ public:
     std::vector<SettingsMap> settingsMaps;
     std::vector<bool> effectStates;
     std::vector<bool> validLayers;
+
+    // Produce/output split (ARC phase A).  produce() renders every layer into
+    // `buffer` (row-local) and records here what output() needs to blend into
+    // seqData once the upstream gate clears; they live on the info so they
+    // survive the one-frame suspend that can fall between the two halves.
+    std::vector<bool> partOfCanvas;
+    bool produceEffectsToUpdate = false;
+    bool produceBlend = false;
+    int produceEffectiveNumLayers = 0;
 };
 
 class NextRenderer {
@@ -300,6 +309,12 @@ public:
                                     perModelEffects = true;
                                 }
                             }
+                        }
+                        // A Per-Model buffer style merges dependent per-model
+                        // pixels during produce, so such a row is excluded from
+                        // the ARC phase A produce/output split (see RenderFrame).
+                        if (perModelEffects || perModelEffectsDeep) {
+                            ctorHasPerModelBuffers = true;
                         }
                         if (perModelEffectsDeep) {
                             mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
@@ -653,7 +668,15 @@ public:
         return false;
     }
 
-    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false, const std::string& inheritedDuplicateSourceModel = std::string()) {
+    // Row-local half of the old ProcessFrame (ARC phase A): renders every
+    // layer's effect into `buffer` (effect render + blur/zoom + transitions +
+    // this row's own canvas preload) and records what the seqData-touching
+    // OutputFrame tail needs.  On the split path this stays purely row-local and
+    // can run one frame ahead of the upstream wait; rows whose produce() might
+    // read dependent data (canvas mix, canvas-"Blend", or Per-Model buffers) are
+    // excluded from the split and gate before produce() (rowMustGateBeforeProduce,
+    // see RenderFrame), where the canvas-"Blend" seqData preload below is valid.
+    bool ProduceFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false, const std::string& inheritedDuplicateSourceModel = std::string()) {
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
         // Clamp to the layer count `info` (and the pixel buffer) were sized
@@ -664,7 +687,7 @@ public:
         int numLayers = std::min((int)el->GetEffectLayerCount(), info.numLayers);
         const int effectiveNumLayers = !inheritedDuplicateSourceModel.empty() ? info.numLayers - 1 : numLayers;
 
-        std::vector<bool> partOfCanvas;
+        std::vector<bool>& partOfCanvas = info.partOfCanvas;
         partOfCanvas.resize(info.validLayers.size());
         for (int x = 0; x < (int)info.validLayers.size(); x++) {
             info.validLayers[x] = false;
@@ -917,6 +940,26 @@ public:
             }
         }
 
+        info.produceEffectiveNumLayers = effectiveNumLayers;
+        info.produceBlend = blend;
+        info.produceEffectsToUpdate = effectsToUpdate;
+
+        if (tempEffect != nullptr)
+            delete tempEffect;
+
+        return effectsToUpdate;
+    }
+
+    // seqData-touching half of the old ProcessFrame (ARC phase A): the tail
+    // that blends the produced layers into seqData.  Runs only after the
+    // upstream gate has cleared this frame (CanOutputFrame re-verifies as the
+    // TOCTOU backstop).  Consumes what ProduceFrame stored on `info`.
+    void OutputFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1) {
+        const bool effectsToUpdate = info.produceEffectsToUpdate;
+        const bool blend = info.produceBlend;
+        const int effectiveNumLayers = info.produceEffectiveNumLayers;
+        std::vector<bool>& partOfCanvas = info.partOfCanvas;
+
         if (effectsToUpdate && CanOutputFrame(frame)) {
             SetCalOutputStatus(frame, info.submodel, strand, -1);
             for (int x = 0; x < (int)partOfCanvas.size(); x++) {
@@ -1009,11 +1052,6 @@ public:
                 }
             }
         }
-
-        if (tempEffect != nullptr)
-            delete tempEffect;
-
-        return effectsToUpdate;
     }
 
     // Scheduling state for the suspend/requeue scheduler
@@ -1202,6 +1240,61 @@ public:
         if (endFrame >= (int)seqData->NumFrames()) endFrame = seqData->NumFrames() - 1;
     }
 
+    // True if ANY layer's produce() might read dependent/upstream data mid-loop,
+    // so the row must keep today's synchronous gate-before-everything ordering
+    // (ARC phase A excludes it from the produce/output split).  Three categories
+    // are not row-local: canvas-mix layers (CalcOutput preload), canvas-"Blend"
+    // selections (seqData preload), and Per-Model buffer styles (dependent
+    // per-model merge).  Detected once per job.  The error is asymmetric: a row
+    // wrongly kept synchronous only forgoes the look-ahead (a perf miss), while
+    // a row wrongly split blends against not-yet-ready seqData (silent wrong
+    // output) - so bias hard toward exclusion and scan every effect on the main
+    // model and its submodels.  A mid-render edit that introduces one of these
+    // bumps the row change count, and the per-frame bail re-renders under a
+    // fresh job that re-detects - so a job's flag is valid for its whole life.
+    bool RowMustGateBeforeProduce() const {
+        if (ctorHasPerModelBuffers) {
+            return true;
+        }
+        auto layerNotRowLocal = [](EffectLayer* elayer) -> bool {
+            if (elayer == nullptr) {
+                return false;
+            }
+            std::unique_lock<std::recursive_mutex> elock(elayer->GetLock());
+            for (int e = 0; e < elayer->GetEffectCount(); ++e) {
+                Effect* eff = elayer->GetEffect(e);
+                // Canvas-mix layers run CalcOutput to preload from lower layers
+                // and, with model-blending / a "Blend" selection, from seqData -
+                // i.e. upstream.  A Per-Model buffer style merges dependent
+                // per-model pixels.  Either makes produce() non-row-local, so
+                // the row keeps the synchronous gate-before-produce path.
+                if (eff->GetSetting("B_CHECKBOX_Canvas") == "1"
+                    || EndsWith(eff->GetSetting("T_LayersSelected"), "Blend")
+                    || StartsWith(eff->GetSetting("B_CHOICE_BufferStyle"), "Per Model")) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        for (int l = 0; l < numLayers; ++l) {
+            if (layerNotRowLocal(rowToRender->GetEffectLayer(l))) {
+                return true;
+            }
+        }
+        for (const auto& a : subModelInfos) {
+            Element* se = a->element;
+            if (se == nullptr) {
+                continue;
+            }
+            for (int l = 0; l < se->GetEffectLayerCount(); ++l) {
+                if (layerNotRowLocal(se->GetEffectLayer(l))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     void InitializeRenderStates() {
         mainModelInfo = EffectLayerInfo(numLayers);
         nodeEffects.clear();
@@ -1209,6 +1302,8 @@ public:
         nodeEffectStates.clear();
         nodeEffectIdxs.clear();
         gateEffectIdxs.assign(numLayers, 0);
+        rowMustGateBeforeProduce = RowMustGateBeforeProduce();
+        producedFrame = -1;
 
         //for (int layer = 0; layer < numLayers; ++layer) {
         for (int layer = numLayers - 1; layer >= 0; --layer) {
@@ -1229,11 +1324,179 @@ public:
         }
     }
 
+    // Row-local: source-model name if the main model has a Duplicate effect at
+    // `frame` that includes submodels; else empty.
+    std::string InheritedDuplicateSourceModel(int frame) {
+        std::string inheritedDuplicateSourceModel;
+        for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicateSourceModel.empty(); ++lyr) {
+            EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
+            std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
+            int discard = 0;
+            Effect* eff = findEffectForFrame(elyr, frame, discard);
+            if (eff != nullptr && eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
+                eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
+                inheritedDuplicateSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
+            }
+        }
+        return inheritedDuplicateSourceModel;
+    }
+
+    // Row-local half of one node buffer: effect render + blur/zoom + transitions
+    // into the node buffer.  Records in nodeShouldOutput whether OutputNode
+    // should blend it into seqData.
+    void ProduceNode(int frame, const SNPair& node, PixelBufferClass* buffer, bool cleared) {
+        nodeShouldOutput[node] = false;
+        if (buffer == nullptr) {
+            spdlog::critical("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
+        }
+        int strand = node.strand;
+        int inode = node.node;
+        StrandElement *slayer = rowToRender->GetStrand(strand);
+        if (slayer == nullptr) {
+            //deleted strand
+            return;
+        }
+        EffectLayer *nlayer = slayer->GetNodeLayer(inode, false);
+        if (nlayer == nullptr) {
+            //deleted node
+            return;
+        }
+        std::unique_lock<std::recursive_mutex> nlayerLock(nlayer->GetLock());
+        Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
+        if (el != nodeEffects[node] || frame == startFrame) {
+            nodeEffects[node] = el;
+            SetInializingStatus(frame, -1, -1, strand, inode);
+            initialize(0, frame, el, nodeSettingsMaps[node], buffer);
+            nodeEffectStates[node] = true;
+        }
+        bool persist=buffer->IsPersistent(0);
+        if (!persist || nodeEffects[node] == nullptr || nodeEffects[node]->GetEffectIndex() == -1) {
+            buffer->Clear(0);
+        }
+
+        SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
+        if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node])) {
+            SetCalOutputStatus(frame, -1, strand, inode);
+            { StageTimer st(profRender ? &profile.blurZoomNs : nullptr);
+              buffer->HandleLayerBlurZoom(frame, 0); }
+            { StageTimer st(profRender ? &profile.transitionNs : nullptr);
+              buffer->HandleLayerTransitions(frame, 0); }
+            nodeShouldOutput[node] = true;
+        }
+    }
+
+    // seqData-touching half of one node buffer: blend the produced node buffer
+    // into seqData.  CanOutputFrame re-verifies upstream (the gate guarantees it
+    // for node rows, which always need the upstream frame).
+    void OutputNode(int frame, const SNPair& node, PixelBufferClass* buffer) {
+        auto it = nodeShouldOutput.find(node);
+        if (it == nodeShouldOutput.end() || !it->second) {
+            return;
+        }
+        if (buffer == nullptr || !CanOutputFrame(frame)) {
+            return;
+        }
+        //copy to output
+        std::vector<bool> valid(2, true);
+        { StageTimer st(profRender ? &profile.setColorsNs : nullptr);
+          buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels()); }
+        { StageTimer st(profRender ? &profile.blendNs : nullptr);
+          buffer->CalcOutput(frame, valid); }
+        { StageTimer st(profRender ? &profile.getColorsNs : nullptr);
+          buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels()); }
+    }
+
+    // Split-path produce (ARC phase A): all row-local work for the frame - main
+    // model, submodels, node buffers - writing only the job's own buffers, never
+    // seqData.  Runs before the upstream gate.
+    void ProduceFrameAll(int frame) {
+        ProduceFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
+        const bool cleared = mainModelInfo.produceEffectsToUpdate;
+        if (!subModelInfos.empty()) {
+            const std::string inh = InheritedDuplicateSourceModel(frame);
+            for (const auto& a : subModelInfos) {
+                if (abort) {
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
+                }
+                ProduceFrame(frame, a->element, *a, a->buffer.get(), a->strand, supportsModelBlending ? true : cleared, inh);
+            }
+        }
+        if (!nodeBuffers.empty()) {
+            for (const auto& it : nodeBuffers) {
+                if (abort) {
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
+                }
+                ProduceNode(frame, it.first, it.second.get(), cleared);
+            }
+        }
+    }
+
+    // Split-path output (ARC phase A): blend the produced buffers into seqData in
+    // the old code's order - main model, then submodels, then node buffers - so
+    // overlapping-channel last-writer-wins is preserved.  Runs after the gate.
+    void OutputFrameAll(int frame) {
+        OutputFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1);
+        for (const auto& a : subModelInfos) {
+            if (abort) {
+                rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                break;
+            }
+            OutputFrame(frame, a->element, *a, a->buffer.get(), a->strand);
+        }
+        for (const auto& it : nodeBuffers) {
+            if (abort) {
+                rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                break;
+            }
+            OutputNode(frame, it.first, it.second.get());
+        }
+    }
+
+    // Canvas-"Blend" fallback: produce() then output() per unit, interleaved, so
+    // a later unit's mid-produce seqData read sees this frame's earlier units
+    // already blended in - byte-identical to the pre-split ProcessFrame ordering.
+    void ProduceAndOutputFrameAll(int frame) {
+        ProduceFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
+        OutputFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1);
+        const bool cleared = mainModelInfo.produceEffectsToUpdate;
+        if (!subModelInfos.empty()) {
+            const std::string inh = InheritedDuplicateSourceModel(frame);
+            for (const auto& a : subModelInfos) {
+                if (abort) {
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
+                }
+                ProduceFrame(frame, a->element, *a, a->buffer.get(), a->strand, supportsModelBlending ? true : cleared, inh);
+                OutputFrame(frame, a->element, *a, a->buffer.get(), a->strand);
+            }
+        }
+        if (!nodeBuffers.empty()) {
+            for (const auto& it : nodeBuffers) {
+                if (abort) {
+                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                    break;
+                }
+                ProduceNode(frame, it.first, it.second.get(), cleared);
+                OutputNode(frame, it.first, it.second.get());
+            }
+        }
+    }
+
     // Renders one full frame: main model, submodels, then per-node buffers,
     // and notifies downstream renderers.  Stop = the frame loop must end
     // (aborted, or a newer render request for this row is waiting); Suspend =
     // upstream hasn't produced this frame yet and the job has registered to be
     // requeued when it does - the caller must return the thread to the pool.
+    //
+    // ARC phase A: the frame's work is split into produce() (row-local: effect
+    // render + blur + transitions into the job's own buffers) and output() (the
+    // tail that blends into seqData).  produce() needs nothing from upstream, so
+    // it runs BEFORE the gate and output() after - one frame of look-ahead per
+    // row.  A row whose produce() might read dependent data (canvas mix,
+    // canvas-"Blend", or Per-Model buffers) keeps the old synchronous
+    // gate-before-everything path (rowMustGateBeforeProduce).
     FrameResult RenderFrame(int frame) {
         AutoReleasePool pool;
         currentFrame = frame;
@@ -1244,7 +1507,10 @@ public:
         // effect changes) land while this job is suspended, and rendering on
         // with the pre-edit layer state would index stale per-layer vectors.
         // Bailing sends END downstream (FinishRender) and the dirty range
-        // re-renders the whole overlap chain.
+        // re-renders the whole overlap chain.  On the split path this also
+        // fires on resume, after produce() but before output(), so a frame whose
+        // produced layers are stale (edited during the suspend) is dropped and
+        // its dirty range re-renders it.
         if (abort ||
                 origChangeCount != rowToRender->getChangeCount() ||
                 (!HasNext() && rowToRender->HasParkedRenderJobs())) {
@@ -1253,12 +1519,49 @@ public:
             return FrameResult::Stop;
         }
 
-        // Single upstream gate: every dependency on upstream renderers is
-        // resolved here, before any of the frame's work.  ProcessFrame
-        // re-verifies previousFrameDone at its seqData touch points, because
-        // effect edits can land lock-free between this check and the effect
-        // lookup (and it backstops any gate-coverage gap).
-        if (frame > (int)GetPreviousFrameDone() && frame >= gateSkipUntilFrame && NeedsUpstreamFrame(frame)) {
+        if (rowMustGateBeforeProduce) {
+            // produce() might read dependent data mid-loop for this row, so the
+            // whole frame must gate before any work - today's synchronous
+            // behaviour (byte-identical to the pre-split code).
+            if (frame > (int)GetPreviousFrameDone() && frame >= gateSkipUntilFrame && NeedsUpstreamFrame(frame)) {
+                SetWaitingStatus(frame);
+                if (trySuspendUntil(frame)) {
+                    return FrameResult::Suspend;
+                }
+                SetGenericStatus("{}: Processing frame {} ", frame, true, true);
+            }
+            if (profRender) {
+                ++profile.frames;
+            }
+            ProduceAndOutputFrameAll(frame);
+            //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
+            if (HasNext()) {
+                SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
+                FrameDone(frame);
+            }
+            return FrameResult::Continue;
+        }
+
+        // Split path: produce() is row-local, so it runs BEFORE the upstream
+        // gate - one frame of look-ahead per row.  produce() runs exactly once
+        // per frame (producedFrame guard) so its cross-frame effect state
+        // advances in the same order as the old single pass; a resume after the
+        // suspend skips produce() and goes straight to the gate + output().
+        if (producedFrame != frame) {
+            if (profRender) {
+                ++profile.frames;
+            }
+            ProduceFrameAll(frame);
+            producedFrame = frame;
+        }
+
+        // Gate the seqData-touching output() on upstream.  OutputFrame /
+        // OutputNode re-verify previousFrameDone at their seqData touch points
+        // (CanOutputFrame), backstopping any gate-coverage gap.  The !abort
+        // guard prevents re-suspending after an abort landed during produce()
+        // (nothing would nudge us again); output() then no-ops via CanOutputFrame
+        // and the top-of-frame bail Stops on the next entry.
+        if (!abort && frame > (int)GetPreviousFrameDone() && frame >= gateSkipUntilFrame && NeedsUpstreamFrame(frame)) {
             SetWaitingStatus(frame);
             if (trySuspendUntil(frame)) {
                 return FrameResult::Suspend;
@@ -1266,89 +1569,7 @@ public:
             SetGenericStatus("{}: Processing frame {} ", frame, true, true);
         }
 
-        if (profRender) {
-            ++profile.frames;
-        }
-        bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
-        if (!subModelInfos.empty()) {
-            std::string inheritedDuplicateSourceModel;
-            for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicateSourceModel.empty(); ++lyr) {
-                EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
-                std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
-                int discard = 0;
-                Effect* eff = findEffectForFrame(elyr, frame, discard);
-                if (eff != nullptr && eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
-                    eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
-                    inheritedDuplicateSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
-                }
-            }
-
-            for (const auto& a : subModelInfos) {
-                if (abort) {
-                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                    break;
-                }
-                EffectLayerInfo *info = a;
-                ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared, inheritedDuplicateSourceModel);
-            }
-        }
-
-        if (!nodeBuffers.empty()) {
-            for (const auto& it : nodeBuffers) {
-                if (abort) {
-                    rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
-                    break;
-                }
-                SNPair node = it.first;
-                PixelBufferClass *buffer = it.second.get();
-
-                if (buffer == nullptr) {
-                    spdlog::critical("RenderJob::Process PixelBufferPointer is null ... this is going to crash.");
-                }
-
-                int strand = node.strand;
-                int inode = node.node;
-                StrandElement *slayer = rowToRender->GetStrand(strand);
-                if (slayer == nullptr) {
-                    //deleted strand
-                    continue;
-                }
-                EffectLayer *nlayer = slayer->GetNodeLayer(inode, false);
-                if (nlayer == nullptr) {
-                    //deleted node
-                    continue;
-                }
-                std::unique_lock<std::recursive_mutex> nlayerLock(nlayer->GetLock());
-                Effect *el = findEffectForFrame(nlayer, frame, nodeEffectIdxs[node]);
-                if (el != nodeEffects[node] || frame == startFrame) {
-                    nodeEffects[node] = el;
-                    SetInializingStatus(frame, -1, -1, strand, inode);
-                    initialize(0, frame, el, nodeSettingsMaps[node], buffer);
-                    nodeEffectStates[node] = true;
-                }
-                bool persist=buffer->IsPersistent(0);
-                if (!persist || nodeEffects[node] == nullptr || nodeEffects[node]->GetEffectIndex() == -1) {
-                    buffer->Clear(0);
-                }
-
-                SetRenderingStatus(frame, &nodeSettingsMaps[node], -1, -1, strand, inode, cleared);
-                if (_engine->RenderEffectFromMap(false, el, 0, frame, nodeSettingsMaps[node], *buffer, nodeEffectStates[node])) {
-                    SetCalOutputStatus(frame, -1, strand, inode);
-                    { StageTimer st(profRender ? &profile.blurZoomNs : nullptr);
-                      buffer->HandleLayerBlurZoom(frame, 0); }
-                    { StageTimer st(profRender ? &profile.transitionNs : nullptr);
-                      buffer->HandleLayerTransitions(frame, 0); }
-                    //copy to output
-                    std::vector<bool> valid(2, true);
-                    { StageTimer st(profRender ? &profile.setColorsNs : nullptr);
-                      buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels()); }
-                    { StageTimer st(profRender ? &profile.blendNs : nullptr);
-                      buffer->CalcOutput(frame, valid); }
-                    { StageTimer st(profRender ? &profile.getColorsNs : nullptr);
-                      buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels()); }
-                }
-            }
-        }
+        OutputFrameAll(frame);
         //mainBuffer->ApplyDimmingCurves(&((*seqData)[frame][0]));
         if (HasNext()) {
             SetGenericStatus("{}: Notifying next renderer of frame {} done", frame, true);
@@ -1693,6 +1914,8 @@ private:
     std::map<SNPair, SettingsMap> nodeSettingsMaps;
     std::map<SNPair, bool> nodeEffectStates;
     std::map<SNPair, int> nodeEffectIdxs;
+    // ARC phase A: per-node produce() result - did output() have to blend it?
+    std::map<SNPair, bool> nodeShouldOutput;
     int origChangeCount = 0;
 
     // Scheduling state.  suspended/wantFrame/parked are guarded by nextLock;
@@ -1709,6 +1932,17 @@ private:
     bool endDelivered = false;
     bool gateMissWarned = false;
     int gateSkipUntilFrame = 0;
+    // ARC phase A produce/output split.  rowMustGateBeforeProduce (computed once
+    // at InitializeRenderStates) forces the synchronous gate-before-produce path
+    // for rows whose produce() might read dependent data mid-loop (canvas mix,
+    // canvas-"Blend", or Per-Model buffers).  ctorHasPerModelBuffers is set in
+    // the ctor when any group layer initialised Per-Model buffers (needs the
+    // group default buffer style, only known there).  producedFrame is the frame
+    // whose produce() has run but whose output() may still be pending across a
+    // suspend on the split path.
+    bool rowMustGateBeforeProduce = false;
+    bool ctorHasPerModelBuffers = false;
+    int producedFrame = -1;
     // Per-main-layer cursor into the (time-ordered) effect list for the
     // frame-entry gate; advances with the frame loop (see NeedsUpstreamFrame).
     std::vector<int> gateEffectIdxs;
