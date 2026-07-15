@@ -559,10 +559,12 @@ bool VulkanGraphicsUtilities::renderShader(RenderBuffer& buffer, VkPipeline pipe
 
     if (!renderCore(target, w, h, pipeline, shaderPipelineLayout_, nullptr, 0, target.descSet)) return false;
 
-    const uint8_t* src = (const uint8_t*)target.readback.mapped;
-    for (uint32_t y = 0; y < h; y++) {
-        std::memcpy(dst + (size_t)(h - 1 - y) * w * 4, src + (size_t)y * w * 4, (size_t)w * 4);
-    }
+    // Match the Metal shader path: straight copy (framebuffer row N -> buffer row
+    // N).  The vertex stage maps the framebuffer's top row to tpos.y=0 exactly as
+    // Metal's quad does, and the input texture is uploaded straight, so a row flip
+    // here double-compensates and renders every input-sampling (Canvas/warp)
+    // shader upside down.
+    std::memcpy(dst, target.readback.mapped, (size_t)h * w * 4);
     return true;
 }
 

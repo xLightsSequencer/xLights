@@ -43,7 +43,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fixed a data race on the job-pool worker thread id (logging/status only)
     -enh (dkulp)                 Render: fixed parallel_for's worker-completion wait (it busy-spun on one path and
                                  polled around a lost-wakeup race on the other)
-
+    -bug (dkulp)                 Fix Shader effect rendering vertically flipped on the Vulkan renderer
+                                 (Linux and Windows; Canvas/warp shaders over other layers appeared upside down)
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
