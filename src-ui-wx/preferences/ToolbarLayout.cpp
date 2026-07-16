@@ -27,7 +27,14 @@ std::vector<std::pair<std::string, bool>> LoadToolbarLayout(XLightsConfigAdapter
         if (!j.is_discarded() && j.is_array()) {
             for (const auto& entry : j) {
                 if (!entry.is_object()) continue;
-                saved.emplace_back(entry.value("name", std::string()), entry.value("visible", true));
+                // entry.value<T>() throws on a type mismatch (e.g. hand-edited config with
+                // "visible" as a string) -- only falls back to the default when the key is
+                // absent -- so check the type explicitly rather than relying on that default.
+                auto nameIt = entry.find("name");
+                auto visibleIt = entry.find("visible");
+                std::string name = (nameIt != entry.end() && nameIt->is_string()) ? nameIt->get<std::string>() : std::string();
+                bool visible = (visibleIt != entry.end() && visibleIt->is_boolean()) ? visibleIt->get<bool>() : true;
+                saved.emplace_back(std::move(name), visible);
             }
         }
     }
