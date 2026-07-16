@@ -1718,7 +1718,9 @@ public:
 
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
-    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
+    // skipFseqData: caller is about to re-render every frame, so don't pay to read
+    // the existing fseq. Ignored for canvas-mode sequences, which augment it.
+    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "", bool skipFseqData = false);
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr);
     }

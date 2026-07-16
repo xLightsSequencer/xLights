@@ -14,8 +14,33 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
                                  always-visible Effects toolbar, and reorder them - handy once enough
                                  effects are registered that the toolbar no longer fits smaller screens
+    -enh (dkulp)                 Batch render and -r no longer read the existing fseq that is about to be
+                                 overwritten, speeding up sequence open (canvas mode still loads it)
+    -bug (dkulp)                 Shader effect ignored the "GPU rendering" preference and still built GPU
+                                 pipelines/command buffers with it turned off; turning it off is now a real
+                                 safety net that keeps the effect entirely on the CPU/OpenGL path
+    -bug (derwin12)              Vulkan Shader effect: fix a startup race that let one render thread use the
+                                 shared sampler/dummy image before another had finished creating them
+    -bug (dkulp)                 Vulkan Shader effect: check the allocation results that were being ignored,
+                                 so an out-of-resources driver makes the effect fall back instead of crashing
+    -enh (dkulp)                 Read .fseq files with a parallel block decompressor when the whole
+                                 sequence is being loaded (FPP/HinksPix upload, convert, fseqcmp):
+                                 ~10x faster on a multi-core machine, and faster even on one core
+    -bug (dkulp)                 Stop the last compression block of an .fseq from being reported as
+                                 running to the end of the file, which swept any embedded/extended
+                                 header data written after the channel data into the block
+    -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
+                                 working media files to a new folder (e.g. a show copied to a new year),
+                                 not just to fix ones that are currently missing
     -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
                                  log instead of only stdout; headless now logs each sequence's render time
+    -change (dkulp)              Render: sparkles are now placed by a frame-deterministic phase (per-node hash + frame)
+                                 instead of a running counter advanced each render, so placement is identical
+                                 regardless of render order (full vs partial re-render); slightly changes the exact
+                                 sparkle pattern in existing sequences (same density and look)
+    -enh (dkulp)                 Render: group effects now render several frames concurrently when the effects on
+                                 the group are frame-independent, cutting whole-show render time (~5% on a typical
+                                 show); byte-identical output. Set XL_NO_PARALLEL_FRAMES=1 to force the serial path
     -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every
                                  meteor against every pixel (CPU, Metal and Vulkan paths); large-matrix Meteors
                                  renders are dramatically faster

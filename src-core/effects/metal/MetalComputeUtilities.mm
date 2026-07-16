@@ -54,10 +54,11 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
     }
         
     if (!pixelBuffer->sparklesVector.empty()) {
-        // sparklesVector only ever grows (PixelBuffer::CalcOutput) and the GPU
-        // kernel mutates this buffer in place every frame, so keep it and only
-        // reallocate when the node count outgrows it.  Keying on element count
-        // (rather than the vector's data pointer) avoids a per-frame realloc.
+        // sparklesVector only ever grows (PixelBuffer::CalcOutput) and holds the
+        // stable per-node sparkle phase (the kernel no longer mutates it - it
+        // adds the frame in-kernel), so keep the buffer and only reallocate when
+        // the node count outgrows it.  Keying on element count (rather than the
+        // vector's data pointer) avoids a per-frame realloc.
         if (sparkleBuffer == nil || sparkleBufferCount < pixelBuffer->sparklesVector.size()) {
             sparkleBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
                                              length:pixelBuffer->sparklesVector.size() * sizeof(uint16_t)
@@ -172,7 +173,8 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
                      layer->outputSparkleCount > 0)) {
 
                     data.sparkleColor = layer->sparklesColour.asChar4();
-                    
+                    data.sparkleFrame = effectPeriod - layer->buffer.curEffStartPer;
+
                     id<MTLComputeCommandEncoder> computeEncoder = [commandBuffer computeCommandEncoder];
                     [computeEncoder setComputePipelineState:MetalComputeUtilities::INSTANCE.applySparklesFunction];
                     setLabel(computeEncoder, "ApplySparkles", l);

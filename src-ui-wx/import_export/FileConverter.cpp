@@ -1364,10 +1364,17 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
     std::vector<std::pair<uint32_t, uint32_t>> rng;
     rng.push_back(std::pair<uint32_t, uint32_t>(0, numChannels));
-    file->prepareRead(rng);
+    if (!params.skip_frame_data) {
+        file->setReadPattern(FSEQFile::ReadPattern::Bulk);
+        file->prepareRead(rng);
+    }
     if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ||
         params.read_mode == ConvertParameters::READ_MODE_IMPORT) {
         params.seq_data.init(numChannels, falconPeriods, seqStepTime);
+    }
+    if (params.skip_frame_data) {
+        delete file;
+        return;
     }
 
     int channel_offset = 0;

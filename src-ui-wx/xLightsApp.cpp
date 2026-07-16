@@ -1025,6 +1025,11 @@ bool xLightsApp::OnInit()
     // any differing channel samples. Used to prove headless renders match the
     // desktop render. No window.
     if (parser.Found("fc")) {
+#ifdef __APPLE__
+        // Run as a background app: no Dock icon, no focus stealing, so a
+        // background render doesn't disrupt the desktop.
+        SetHeadlessNoDock();
+#endif
         if (sequenceFiles.GetCount() != 2) {
             printf("--fseqcmp requires exactly two .fseq file arguments (got %u)\n",
                    (unsigned)sequenceFiles.GetCount());
@@ -1042,6 +1047,9 @@ bool xLightsApp::OnInit()
             printf("--fseqcmp: could not open %s\n", (!fa ? pa.c_str() : pb.c_str()));
             std::exit(2);
         }
+        // both files are walked front to back, frame for frame
+        fa->setReadPattern(FSEQFile::ReadPattern::Bulk);
+        fb->setReadPattern(FSEQFile::ReadPattern::Bulk);
         const uint32_t maxCh = std::max((uint32_t)fa->getMaxChannel(), (uint32_t)fb->getMaxChannel());
         const uint32_t frames = (uint32_t)std::min(fa->getNumFrames(), fb->getNumFrames());
         printf("A %s: %llu frames, maxCh %u, step %d\n", pa.c_str(),

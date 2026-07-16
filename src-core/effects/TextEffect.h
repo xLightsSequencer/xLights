@@ -24,6 +24,7 @@ public:
     TextEffect(int id);
     virtual ~TextEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual bool CanBeRandom() override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override;
 

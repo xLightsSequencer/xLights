@@ -198,6 +198,35 @@ static MeteorsRenderCache* GetCache(RenderBuffer &buffer, int id) {
     return cache;
 }
 
+// Tier-2 immutable per-frame draw state: the meteor snapshot + gather params.
+struct MeteorsFrameState : public EffectFrameState {
+    std::vector<MeteorSnapshot> parts;
+    MeteorsGatherParams params;
+};
+
+// Draw the frame, unless the engine asked us to capture the snapshot instead
+// (the serial advance pass of a Snapshottable window - the particle sim has
+// still advanced; we just hand the draw off to a parallel draw pass later).
+void MeteorsEffect::EmitMeteorsFrame(RenderBuffer& buffer, const MeteorsGatherParams& params, std::vector<MeteorSnapshot>& parts) {
+    if (buffer.captureSnapshot != nullptr) {
+        auto fs = std::make_unique<MeteorsFrameState>();
+        fs->parts = std::move(parts);
+        fs->params = params;
+        *buffer.captureSnapshot = std::move(fs);
+    } else {
+        GatherMeteors(buffer, params, parts);
+    }
+}
+
+RenderableEffect::FrameParallelism MeteorsEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    int eff = GetMeteorEffect(settings.Get("CHOICE_Meteors_Effect", sEffectDefault));
+    // Implode/Explode draw through a different (non-snapshot) path; keep serial.
+    if (eff == METEORS_IMPLODE || eff == METEORS_EXPLODE) {
+        return FrameParallelism::Stateful;
+    }
+    return FrameParallelism::Snapshottable;
+}
+
 float MeteorsEffect::calcEffectStateOffset(int mSpeed, RenderBuffer& buffer) {
     if (mSpeed == 0) {
         // at least advance a little bit
@@ -294,6 +323,13 @@ void MeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParam
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
 void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    if (buffer.pendingSnapshot != nullptr) {
+        // Frame-parallel draw pass: rasterise the snapshot the serial capture
+        // pass advanced and stored; no sim advance here.
+        const MeteorsFrameState& fs = static_cast<const MeteorsFrameState&>(*buffer.pendingSnapshot);
+        GatherMeteors(buffer, fs.params, fs.parts);
+        return;
+    }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Count = GetValueCurveInt("Meteors_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -462,7 +498,7 @@ void MeteorsEffect::RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorSchem
         ++n;
     }
     MeteorsGatherParams params{ 1, MeteorsEffect, TailLength, ColorScheme, buffer.allowAlpha ? 1 : 0, 0, buffer.hashRandomFrameSeed() };
-    GatherMeteors(buffer, params, parts);
+    EmitMeteorsFrame(buffer, params, parts);
 
     HorizontalMoveMeteors(buffer, speed);
 
@@ -583,7 +619,7 @@ void MeteorsEffect::RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme,
         ++n;
     }
     MeteorsGatherParams params{ 0, MeteorsEffect, TailLength, ColorScheme, buffer.allowAlpha ? 1 : 0, 0, buffer.hashRandomFrameSeed() };
-    GatherMeteors(buffer, params, parts);
+    EmitMeteorsFrame(buffer, params, parts);
 
     VerticalMoveMeteors(buffer, speed);
 
@@ -703,7 +739,7 @@ void MeteorsEffect::RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int 
         ++n;
     }
     MeteorsGatherParams params{ 2, MeteorsEffect, TailLength, ColorScheme, buffer.allowAlpha ? 1 : 0, want_bkg ? 1 : 0, buffer.hashRandomFrameSeed() };
-    GatherMeteors(buffer, params, parts);
+    EmitMeteorsFrame(buffer, params, parts);
 
     IcicleMoveMeteors(buffer, speed);
 

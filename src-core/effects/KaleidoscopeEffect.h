@@ -44,6 +44,7 @@ class KaleidoscopeEffect : public RenderableEffect
         virtual ~KaleidoscopeEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
         virtual bool SupportsLinearColorCurves(const SettingsMap &SettingsMap) const override { return false; }
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 

@@ -18,6 +18,7 @@ class TreeEffect : public RenderableEffect
         TreeEffect(int id);
         virtual ~TreeEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
         virtual bool AppropriateOnNodes() const override { return false; }
         virtual bool CanRenderPartialTimeInterval() const override { return true; }
 

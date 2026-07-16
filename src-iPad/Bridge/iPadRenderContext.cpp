@@ -2515,6 +2515,9 @@ bool iPadRenderContext::TryLoadFseq(const std::string& fseqPath,
     // bytes that are actually stored. `readFrame` then uses the same range
     // list to scatter each compressed-frame chunk back to its absolute
     // channel offset in `_seqData`.
+    // _seqData is already sized for the whole sequence and every frame is read
+    // in order below, so the reader can decompress blocks ahead in parallel.
+    file->setReadPattern(FSEQFile::ReadPattern::Bulk);
     file->prepareRead(expectedRanges, 0);
 
     const uint32_t maxChan = static_cast<uint32_t>(_seqData.NumChannels());

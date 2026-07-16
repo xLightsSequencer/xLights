@@ -15,7 +15,7 @@
   - **iPad-weaker** — desktop ✅, iPad 🟡 → partial; finish it.
   - **Reverse (desktop-missing / desktop-weaker)** — iPad does it and desktop
     doesn't (or does it worse) → candidates to **pull back into desktop**.
-  - **Parity** — both have it (859 features; see the per-theme scorecards).
+  - **Parity** — both have it (858 features; see the per-theme scorecards).
 - **priority** P1/P2/P3, **ease** easy/medium/hard, **feasibility**
   feasible / hard / infeasible / **restricted** (closed-firmware controller
   config/upload — IAP-gated, deliberately low priority) / **declined**
@@ -27,9 +27,9 @@
 | Metric | Count |
 |---|--:|
 | Features audited | 1,189 |
-| **At parity** (both platforms) | 859 (**~72%**) |
+| **At parity** (both platforms) | 858 (**~72%**) |
 | **iPad-missing** (desktop has, iPad doesn't) | 176 |
-| **iPad-weaker** (partial on iPad) | 62 |
+| **iPad-weaker** (partial on iPad) | 63 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
 | Restricted (closed-firmware / IAP) | 23 |
@@ -60,7 +60,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
-| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 47 | 68% | 12 | 5 | 6 | 4 |
+| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 46 | 66% | 12 | 6 | 6 | 4 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 95 | 81% | 10 | 4 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 73 | 88% | 3 | 3 | 4 | 3 |
 | 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 86 | 77 | 89% | 2 | 2 | 5 | 0 |
@@ -74,7 +74,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,189** | **859** | **~72%** | **176** | **62** | **≈92** | **82** |
+| — | **Total** | **1,189** | **858** | **~72%** | **176** | **63** | **≈92** | **82** |
 
 ## The roadmap — P1 iPad gaps (build first)
 

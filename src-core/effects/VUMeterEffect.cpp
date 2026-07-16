@@ -306,6 +306,38 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
     }
 }
 
+RenderableEffect::FrameParallelism VUMeterEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // These modes derive each frame purely from the current frame's audio /
+    // timing data and never read the cross-frame VUMeterRenderCache (no
+    // peak-hold decay, fade-from-last-mark, running colour/bar index, or history
+    // trail).  Everything else carries state and stays Stateful.  (Spectrogram
+    // and Level Shape are conditionally pure only when SlowDownFalls is off;
+    // left Stateful to keep this a pure function of the type.)  Guarded by
+    // XL_VERIFY_STATELESS.
+    static const char* const pureTypes[] = {
+        "Volume Bars", "Waveform", "Frame Waveform", "On", "Color On", "Note On",
+        "Intensity Wave", "Dominant Frequency Colour", "Dominant Frequency Colour Gradient",
+        "Timing Event Spike", "Timing Event Sweep", "Timing Event Sweep 2",
+        "Timing Event Timed Sweep", "Timing Event Timed Sweep 2",
+        "Timing Event Timed Chase From Middle", "Timing Event Timed Chase To Middle"
+    };
+    const std::string& type = settings.Get("CHOICE_VUMeter_Type", sTypeDefault);
+    for (const char* p : pureTypes) {
+        if (type == p) {
+            return FrameParallelism::Pure;
+        }
+    }
+    // Level Shape drawing an external SVG needs the cache's loaded NSVGimage,
+    // which the frame snapshot does not carry - keep it Stateful.
+    if (type == "Level Shape" && settings.Get("CHOICE_VUMeter_Shape", sShapeDefault) == "SVG") {
+        return FrameParallelism::Stateful;
+    }
+    // Every other mode carries only VUMeterRenderCache scalar/vector/list state,
+    // which VUMeterFrameState snapshots in full, so the serial capture pass can
+    // advance the state and a parallel draw pass reproduce each frame.
+    return FrameParallelism::Snapshottable;
+}
+
 void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     // Resolve alternate audio track override
@@ -409,6 +441,25 @@ public:
     std::string _svgFilename;
     float _svgScaleBase = 1.0f;
     int _lastDirection { 1 };
+};
+
+// Tier-2 immutable per-frame draw state: a copy of every cross-frame field of
+// VUMeterRenderCache, captured BEFORE this frame advances.  A frame-parallel
+// draw pass restores these onto a clone's cache and re-runs the normal dispatch,
+// which advances from this exact pre-frame state and draws - reproducing the
+// serial frame byte-for-byte.  (The SVG resource isn't carried, so SVG-shape
+// Level Shape stays Stateful - see GetFrameParallelism.)
+struct VUMeterFrameState : public EffectFrameState {
+    std::list<int> _timingmarks;
+    int _lasttimingmark = 0;
+    std::vector<float> _lastvalues;
+    std::vector<float> _lastpeaks;
+    std::list<int> _pausepeakfall;
+    std::list<std::vector<xlPoint>> _lineHistory;
+    float _lastsize = 0.0f;
+    int _colourindex = 0;
+    int _nCount = 0;
+    int _lastDirection = 1;
 };
 
 int VUMeterEffect::DecodeType(const std::string& type)
@@ -582,9 +633,26 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
     int & _colourindex = cache->_colourindex;
     std::list<std::vector<xlPoint>>& _lineHistory = cache->_lineHistory;
     int& _lastDirection = cache->_lastDirection;
-	// Check for config changes which require us to reset
-	if (buffer.needToInit)
-	{
+    // Frame-parallel Snapshottable paths (see GetFrameParallelism).  On a draw
+    // pass, restore the pre-advance cache state the serial pass captured and skip
+    // the needToInit reset / render-dependency registration / SVG load (all done
+    // on the serial pass); the dispatch below then advances from this exact state
+    // and draws, reproducing the serial frame.
+    if (buffer.pendingSnapshot != nullptr) {
+        const VUMeterFrameState& fs = static_cast<const VUMeterFrameState&>(*buffer.pendingSnapshot);
+        _timingmarks = fs._timingmarks;
+        _lasttimingmark = fs._lasttimingmark;
+        _lastvalues = fs._lastvalues;
+        _lastpeaks = fs._lastpeaks;
+        _pausepeakfall = fs._pausepeakfall;
+        _lineHistory = fs._lineHistory;
+        _lastsize = fs._lastsize;
+        _colourindex = fs._colourindex;
+        _nCount = fs._nCount;
+        _lastDirection = fs._lastDirection;
+        buffer.needToInit = false;
+    } else if (buffer.needToInit) {
+        // Check for config changes which require us to reset
         buffer.needToInit = false;
         _lineHistory.clear();
         _nCount = 0;
@@ -606,6 +674,23 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             cache->InitialiseSVG(svgFile, buffer);
         }
 	}
+
+    // Serial capture pass: hand the pre-advance state to a later parallel draw
+    // pass (which restores it above and re-runs this dispatch on a clone).
+    if (buffer.captureSnapshot != nullptr) {
+        auto fs = std::make_unique<VUMeterFrameState>();
+        fs->_timingmarks = _timingmarks;
+        fs->_lasttimingmark = _lasttimingmark;
+        fs->_lastvalues = _lastvalues;
+        fs->_lastpeaks = _lastpeaks;
+        fs->_pausepeakfall = _pausepeakfall;
+        fs->_lineHistory = _lineHistory;
+        fs->_lastsize = _lastsize;
+        fs->_colourindex = _colourindex;
+        fs->_nCount = _nCount;
+        fs->_lastDirection = _lastDirection;
+        *buffer.captureSnapshot = std::move(fs);
+    }
 
 	// We limit bars to the width of the model in some effects
 	int usebars = bars;

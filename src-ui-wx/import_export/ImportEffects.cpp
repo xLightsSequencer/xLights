@@ -3745,10 +3745,12 @@ void xLightsFrame::CloneXLightsEffects(EffectLayer* target, EffectLayer* src, bo
         if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS())) {
             std::string settings = ef->GetSettingsAsString();
 
-            // remove lock if it is there
-            Replace(settings, ",X_Effect_Locked=True", "");
-            target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
-                              ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
+            Effect* ne = target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
+                                            ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
+            if (ne != nullptr) {
+                // never carry the source effect's lock status into the clone
+                ne->SetLocked(false);
+            }
         }
     }
 }

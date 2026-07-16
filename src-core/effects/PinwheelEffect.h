@@ -20,6 +20,7 @@ public:
     PinwheelEffect(int id);
     virtual ~PinwheelEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
     {
         return true;

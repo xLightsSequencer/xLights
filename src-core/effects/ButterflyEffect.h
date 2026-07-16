@@ -18,6 +18,7 @@ public:
     ButterflyEffect(int id);
     virtual ~ButterflyEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual bool AppropriateOnNodes() const override
     {
         return false;

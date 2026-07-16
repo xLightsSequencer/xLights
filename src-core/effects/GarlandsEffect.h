@@ -18,6 +18,7 @@ public:
     GarlandsEffect(int id);
     virtual ~GarlandsEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual bool AppropriateOnNodes() const override

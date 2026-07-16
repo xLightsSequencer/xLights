@@ -18,6 +18,10 @@ public:
     FireEffect(int id);
     virtual ~FireEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Left Stateful (the default): Fire's cost is ~86% its serial grid-diffusion
+    // advance, so the tier-2 advance/draw split gives no speedup and measured
+    // net-negative on whole-house buffers.  The advance/draw are still split into
+    // Render + the DrawFire helper below, but frame-parallel does not engage.
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
     // Cached from Fire.json by OnMetadataLoaded(). Exposed as statics so any

@@ -1064,10 +1064,11 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
     }
 
     if (!pixelBuffer->sparklesVector.empty()) {
-        // sparklesVector only ever grows (PixelBuffer::CalcOutput) and the GPU
-        // kernel mutates this buffer in place every frame, so keep it and only
-        // reallocate when the node count outgrows it.  Keying on element count
-        // (rather than the vector's data pointer) avoids a per-frame realloc.
+        // sparklesVector only ever grows (PixelBuffer::CalcOutput) and holds the
+        // stable per-node sparkle phase (the kernel no longer mutates it - it
+        // adds the frame in-kernel), so keep the buffer and only reallocate when
+        // the node count outgrows it.  Keying on element count (rather than the
+        // vector's data pointer) avoids a per-frame realloc.
         if (sparkleBuffer && sparkleBufferCount < pixelBuffer->sparklesVector.size()) {
             u.destroyBuffer(sparkleBuffer);
         }
@@ -1193,6 +1194,7 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
             (layer->use_music_sparkle_count ||
              layer->sparkle_count > 0 ||
              layer->outputSparkleCount > 0)) {
+            data.sparkleFrame = effectPeriod - layer->buffer.curEffStartPer;
             VulkanComputeUtilities::computeBarrier(cb);
             if (!slRMRB->encodeDispatch(cb, u.applySparklesFunction, "ApplySparkles", &data, sizeof(data),
                                         { lb.blend, sparkleBuffer.buffer }, data.nodeCount, 0)) {

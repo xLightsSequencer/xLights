@@ -289,6 +289,7 @@ void ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
                 layer->outputSparkleCount > 0) {
                 
                 data.sparkleColor = layer->sparklesColour.GetRGBA();
+                data.sparkleFrame = effectPeriod - layer->buffer.curEffStartPer;
                 ispc::ApplySparkles(data, result, &pixelBuffer->sparklesVector[0]);
             }
             if (layer->contrast != 0 || layer->outputBrightnessAdjust != 100) {
