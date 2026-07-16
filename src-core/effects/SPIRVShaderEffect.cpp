@@ -15,6 +15,7 @@
 #include "EffectManager.h"
 #include "ShaderSourceTransforms.h"
 #include "UtilClasses.h"
+#include "../render/GPURenderUtils.h"
 #include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h" // EffectLayer/Effect for EVENT parms
 #include "../media/AudioManager.h"      // FFT frame data for audio shaders
@@ -36,7 +37,19 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     // XL_NO_NATIVE_SHADER=1 falls back to the previous path (OpenGL where it
     // still exists) for diagnostics/comparison.
     static const bool nativeEnabled = getenv("XL_NO_NATIVE_SHADER") == nullptr;
-    if (!nativeEnabled || !nativeAvailable()) {
+    // IsEnabled() must be tested BEFORE nativeAvailable(): the latter brings up
+    // the GPU backend as a side effect (device, render pass, pipelines, and the
+    // per-thread command pools/images the render path then allocates).  The GPU
+    // rendering preference is the user's safety net for a misbehaving driver, so
+    // when it is off nothing GPU-side may be created at all.  Testing it is
+    // allocation-free: both backends short-circuit on their own flag before
+    // touching computeEnabled().
+    //
+    // This never strands the iPad on ShaderEffect::Render (a red-fill stub
+    // there, with no GL to fall back to): a MetalShaderEffect only exists at all
+    // when computeEnabled() was already true, so IsEnabled() collapses to the
+    // desktop-only preference flag, which the iPad never clears.
+    if (!nativeEnabled || !GPURenderUtils::IsEnabled() || !nativeAvailable()) {
         ShaderEffect::Render(eff, SettingsMap, buffer);
         return;
     }
