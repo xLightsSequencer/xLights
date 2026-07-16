@@ -420,7 +420,16 @@ bool VulkanGraphicsUtilities::renderToBuffer(RenderBuffer& buffer, VkPipeline pi
 }
 
 void VulkanGraphicsUtilities::ensureShaderInfra() {
-    if (shaderPipelineLayout_ != VK_NULL_HANDLE) return;
+    // Called from renderShader()/prepareInputImage() on every RenderPool worker
+    // thread rendering a Shader effect; a bare "already inited" check here raced
+    // multiple threads into concurrently creating/overwriting the shared
+    // descriptor layout/sampler/dummy image, leaving another thread's in-flight
+    // descriptor write referencing a torn or dangling handle (crash deep in the
+    // driver). call_once makes the lazy init actually one-time.
+    std::call_once(shaderInfraOnce_, [this]() { doInitShaderInfra(); });
+}
+
+void VulkanGraphicsUtilities::doInitShaderInfra() {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
 
     VkDescriptorSetLayoutBinding b[2] = {};
