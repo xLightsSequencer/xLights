@@ -110,7 +110,7 @@ struct LayerBlendingData {
     int32_t chromaSensitivity;
     xlvk::uchar4 chromaColor;
 };
-static_assert(sizeof(LayerBlendingData) == 76, "LayerBlendingData layout drifted from the GLSL push-constant block");
+static_assert(sizeof(LayerBlendingData) == 80, "LayerBlendingData layout drifted from the GLSL push-constant block");
 
 // ---------------------------------------------------------------------------
 // Per-effect parameter structs.  These exceed 128 bytes, so they are bound as
