@@ -98,6 +98,11 @@ void VulkanWaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
     WaveKernelConfig cfg;
     std::vector<int32_t> cols;
     BuildWaveColumns(SettingsMap, buffer, cfg, cols);
+    if (buffer.captureSnapshot != nullptr) {
+        // Frame-parallel serial capture pass: the phase was advanced + handed
+        // off to a later parallel draw; nothing to render now.
+        return;
+    }
 
     // Vulkan implements the None (constant-color) fill only. Rainbow/Palette
     // need a double-precision hue division to stay byte-identical (no double

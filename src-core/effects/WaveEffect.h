@@ -40,6 +40,7 @@ public:
     WaveEffect(int id);
     virtual ~WaveEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual bool AppropriateOnNodes() const override
     {
         return false;
