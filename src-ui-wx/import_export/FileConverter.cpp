@@ -1364,6 +1364,7 @@ void FileConverter::ReadFalconFile(ConvertParameters& params)
 
     std::vector<std::pair<uint32_t, uint32_t>> rng;
     rng.push_back(std::pair<uint32_t, uint32_t>(0, numChannels));
+    file->setReadPattern(FSEQFile::ReadPattern::Bulk);
     file->prepareRead(rng);
     if (params.read_mode == ConvertParameters::READ_MODE_LOAD_MAIN ||
         params.read_mode == ConvertParameters::READ_MODE_IMPORT) {

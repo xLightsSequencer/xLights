@@ -18,6 +18,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  shared sampler/dummy image before another had finished creating them
     -bug (dkulp)                 Vulkan Shader effect: check the allocation results that were being ignored,
                                  so an out-of-resources driver makes the effect fall back instead of crashing
+    -enh (dkulp)                 Read .fseq files with a parallel block decompressor when the whole
+                                 sequence is being loaded (FPP/HinksPix upload, convert, fseqcmp):
+                                 ~10x faster on a multi-core machine, and faster even on one core
+    -bug (dkulp)                 Stop the last compression block of an .fseq from being reported as
+                                 running to the end of the file, which swept any embedded/extended
+                                 header data written after the channel data into the block
     -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
                                  working media files to a new folder (e.g. a show copied to a new year),
                                  not just to fix ones that are currently missing

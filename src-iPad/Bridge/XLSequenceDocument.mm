@@ -17557,6 +17557,8 @@ NSString* fppTypeString(FPP_TYPE t) {
         return @{@"globalError": [NSString stringWithFormat:@"Could not open fseq: %@", fseqPath],
                  @"outcomes": outcomes};
     }
+    // every frame is read in order below to build the upload
+    seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
 
     // Resolve each target to its FPP* and compute the right codec.
     // Targets that don't resolve (deleted between discover and upload?)

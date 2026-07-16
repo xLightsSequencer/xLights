@@ -1047,6 +1047,9 @@ bool xLightsApp::OnInit()
             printf("--fseqcmp: could not open %s\n", (!fa ? pa.c_str() : pb.c_str()));
             std::exit(2);
         }
+        // both files are walked front to back, frame for frame
+        fa->setReadPattern(FSEQFile::ReadPattern::Bulk);
+        fb->setReadPattern(FSEQFile::ReadPattern::Bulk);
         const uint32_t maxCh = std::max((uint32_t)fa->getMaxChannel(), (uint32_t)fb->getMaxChannel());
         const uint32_t frames = (uint32_t)std::min(fa->getNumFrames(), fb->getNumFrames());
         printf("A %s: %llu frames, maxCh %u, step %d\n", pa.c_str(),
