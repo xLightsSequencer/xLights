@@ -62,6 +62,34 @@ static const bool xldbgEffSum = (getenv("XL_EFFSUM") != nullptr);
 // and dump aggregate tables to stderr when the batch completes.  Checked before
 // any clock call so it costs nothing when unset (see RenderProfile.h).
 static const bool profRender = (getenv("XL_RENDER_PROFILE") != nullptr);
+
+// XL_VERIFY_STATELESS=1 diagnostic: for every effect that declares itself Pure
+// (GetEffectiveFrameParallelism == Pure), re-render each frame a second time
+// from a cleared infoCache / needToInit=true and warn if the pixels differ.  A
+// truly frame-independent effect produces identical output; a mismatch means it
+// secretly carried cross-frame state and the Pure declaration is wrong.  Same
+// buffer + same GPU/CPU path both times, so there is no GPU-vs-CPU confound.
+static const bool xldbgVerifyStateless = (getenv("XL_VERIFY_STATELESS") != nullptr);
+static std::atomic<uint64_t> xldbgVerifyChecks{0};
+static std::atomic<uint64_t> xldbgVerifyMismatches{0};
+
+// XL_PARALLEL_WINDOWS=1 diagnostic: per model, classify each frame as
+// parallel-safe / serial / empty from the effects' GetEffectiveFrameParallelism
+// tier and log the contiguous parallel-safe window structure.  Read-only; it
+// quantifies how much of a real show frame-parallel group rendering could apply
+// to, the go/no-go input for the FrameState refactor.
+static const bool xldbgParallelWindows = (getenv("XL_PARALLEL_WINDOWS") != nullptr);
+
+// Frame-parallel group render (default ON): for an eligible group, render a
+// contiguous run of Pure / Snapshottable frames concurrently - each frame
+// produced into its own clone buffer - then output them serially, in frame
+// order, still gated on upstream.  produce() is row-local so it needs nothing
+// from upstream; output() touches only seqData[frame] (a distinct row per
+// frame) so ordered output has no cross-frame conflict.  Byte-identical to the
+// serial path.  Set XL_NO_PARALLEL_FRAMES=1 to force serial (A/B / bisecting).
+static const bool xldbgParallelFrames = (getenv("XL_NO_PARALLEL_FRAMES") == nullptr);
+static const int PAR_FRAME_MAX_CHUNK = 24;
+
 static uint64_t xldbgFNV(const uint8_t* d, size_t n) {
     uint64_t h = 1469598103934665603ULL;
     for (size_t i = 0; i < n; i++) {
@@ -106,6 +134,13 @@ public:
     std::vector<SettingsMap> settingsMaps;
     std::vector<bool> effectStates;
     std::vector<bool> validLayers;
+    // Restricts which layers ProduceFrame renders: layer L is rendered only if
+    // this is empty (the default - render every layer) OR processLayer[L] is true.
+    // The tier-2 capture pre-pass sets it so only Snapshottable layers run (their
+    // sim must advance) while Pure layers - which the parallel pass renders fresh -
+    // are skipped instead of drawn twice.  NOT resized by resize(): stays empty
+    // unless a caller opts in, so every other path is unaffected.
+    std::vector<bool> processLayer;
 
     // Produce/output split (ARC phase A).  produce() renders every layer into
     // `buffer` (row-local) and records here what output() needs to blend into
@@ -696,6 +731,11 @@ public:
 
         // To support canvas mix type we must render them bottom to top
         for (int layer = effectiveNumLayers - 1; layer >= 0; --layer) {
+            // Layer restriction (tier-2 capture pre-pass): skip layers not opted in.
+            // Empty processLayer (the default) renders every layer.
+            if (layer < (int)info.processLayer.size() && !info.processLayer[layer]) {
+                continue;
+            }
             EffectLayer* elayer = (layer < numLayers) ? el->GetEffectLayer(layer) : nullptr;
             //must lock the layer so the Effect* stays valid
             std::unique_lock<std::recursive_mutex> elayerLock;
@@ -1240,6 +1280,222 @@ public:
         if (endFrame >= (int)seqData->NumFrames()) endFrame = seqData->NumFrames() - 1;
     }
 
+    // See xldbgParallelWindows.  Classifies [startFrame,endFrame] into
+    // parallel-safe (every covering effect declares Pure), serial (some covering
+    // effect is Stateful) and empty (no coverage) frames, then measures the
+    // contiguous parallel-safe runs a frame-parallel scheduler could farm out.
+    void AnalyzeParallelWindows() {
+        int sf = startFrame, ef = endFrame;
+        int nframes = ef - sf + 1;
+        if (nframes <= 0) return;
+        std::vector<uint8_t> hasCover(nframes, 0), allPure(nframes, 1);
+        int frameTime = seqData->FrameTime();
+        for (int l = 0; l < numLayers; ++l) {
+            EffectLayer* el = rowToRender->GetEffectLayer(l);
+            if (el == nullptr) continue;
+            std::unique_lock<std::recursive_mutex> lock(el->GetLock());
+            for (int e = 0; e < el->GetEffectCount(); ++e) {
+                Effect* eff = el->GetEffect(e);
+                if (eff == nullptr) continue;
+                RenderableEffect* reff = _ctx->GetEffectManager().GetEffect(eff->GetEffectIndex());
+                bool pure = false;
+                if (reff != nullptr) {
+                    SettingsMap sm;
+                    eff->CopySettingsMap(sm, true);
+                    pure = reff->GetEffectiveFrameParallelism(sm) == RenderableEffect::FrameParallelism::Pure;
+                }
+                int s = std::max((int)(eff->GetStartTimeMS() / frameTime), sf);
+                int en = std::min((int)(eff->GetEndTimeMS() / frameTime), ef);
+                for (int f = s; f <= en; ++f) {
+                    int idx = f - sf;
+                    hasCover[idx] = 1;
+                    if (!pure) allPure[idx] = 0;
+                }
+            }
+        }
+        int parallel = 0, serial = 0, empty = 0, windows = 0, cur = 0, maxw = 0;
+        int inW4 = 0, inW16 = 0, inW64 = 0;
+        std::vector<int> runs;
+        for (int i = 0; i < nframes; ++i) {
+            bool p = hasCover[i] && allPure[i];
+            if (!hasCover[i]) empty++;
+            else if (p) parallel++;
+            else serial++;
+            if (p) {
+                cur++;
+            } else if (cur > 0) {
+                runs.push_back(cur);
+                maxw = std::max(maxw, cur);
+                windows++;
+                cur = 0;
+            }
+        }
+        if (cur > 0) { runs.push_back(cur); maxw = std::max(maxw, cur); windows++; }
+        for (int r : runs) {
+            if (r >= 4) inW4 += r;
+            if (r >= 16) inW16 += r;
+            if (r >= 64) inW64 += r;
+        }
+        const Model* m = mainBuffer != nullptr ? mainBuffer->GetModel() : nullptr;
+        bool isGroup = m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup;
+        fprintf(stderr, "XL_PARALLEL_WINDOWS %s'%s' frames=%d parallel=%d serial=%d empty=%d windows=%d maxwin=%d inWin>=4=%d >=16=%d >=64=%d\n",
+                isGroup ? "[GROUP] " : "", name.c_str(), nframes, parallel, serial, empty, windows, maxw, inW4, inW16, inW64);
+    }
+
+    // See xldbgParallelFrames.  True if EVERY covering effect at `frame` is Pure
+    // (this frame can render out of order); false if any covering effect is
+    // Stateful.  A frame with no coverage returns false - it renders nothing, so
+    // there is nothing to parallelise.
+    // A buffer-continuity effect (OverlayBkg/Freeze/Suppress) does not clear its
+    // buffer between frames - it reads the *serial* mainBuffer's prior content.
+    // Its own frames are already Stateful (GetEffectiveFrameParallelism vetoes
+    // them) and render serially, so the mainBuffer stays continuous WITHIN the
+    // effect.  (Genuinely-stateful effects like Fire re-init at their start and
+    // don't need this.)
+    static bool EffectIsBufferContinuity(Effect* eff) {
+        SettingsMap sm;
+        eff->CopySettingsMap(sm, true);
+        return sm.GetBool("CHECKBOX_OverlayBkg", false)
+            || sm.GetInt("SPINCTRL_FreezeEffectAtFrame", 999999) < 999999
+            || sm.GetInt("SPINCTRL_SuppressEffectUntil", 0) > 0;
+    }
+
+    // A frame is parallel-safe if every covering layer is Pure OR Snapshottable.
+    // hasSnapshot is SET (never cleared - the caller inits it) when any covering
+    // layer is Snapshottable, so the window knows it needs a serial capture pre-pass.
+    bool FrameIsParallelSafe(int frame, bool& hasSnapshot) {
+        bool anyCover = false;
+        for (int l = 0; l < numLayers; ++l) {
+            EffectLayer* el = rowToRender->GetEffectLayer(l);
+            if (el == nullptr) continue;
+            std::unique_lock<std::recursive_mutex> lock(el->GetLock());
+            int idx = 0;
+            Effect* eff = findEffectForFrame(el, frame, idx);
+            // The enter transition into a buffer-continuity effect: if one STARTS
+            // at frame+1, this frame must render serially so the mainBuffer is
+            // advanced/cleared for it (a Pure window would render it on a clone and
+            // leave the mainBuffer stale).  Only a CHANGE of covering effect at
+            // frame+1 is a boundary worth inspecting - the common case (same effect
+            // spans both frames) is a cheap pointer compare that skips the settings
+            // read.
+            int idx2 = 0;
+            Effect* effNext = findEffectForFrame(el, frame + 1, idx2);
+            if (effNext != nullptr && effNext != eff && EffectIsBufferContinuity(effNext)) {
+                return false;
+            }
+            if (eff == nullptr) continue;
+            anyCover = true;
+            RenderableEffect* reff = _ctx->GetEffectManager().GetEffect(eff->GetEffectIndex());
+            if (reff == nullptr) return false;
+            SettingsMap sm;
+            eff->CopySettingsMap(sm, true);
+            RenderableEffect::FrameParallelism fp = reff->GetEffectiveFrameParallelism(sm);
+            if (fp == RenderableEffect::FrameParallelism::Snapshottable) {
+                hasSnapshot = true;
+            } else if (fp != RenderableEffect::FrameParallelism::Pure) {
+                return false; // Stateful
+            }
+        }
+        return anyCover;
+    }
+
+    // The covering effect on `layer` at `frame` is Snapshottable (needs the serial
+    // capture pre-pass).  Used to restrict that pre-pass to just those layers.
+    bool LayerIsSnapshottableAt(int layer, int frame) {
+        EffectLayer* el = rowToRender->GetEffectLayer(layer);
+        if (el == nullptr) return false;
+        std::unique_lock<std::recursive_mutex> lock(el->GetLock());
+        int idx = 0;
+        Effect* eff = findEffectForFrame(el, frame, idx);
+        if (eff == nullptr) return false;
+        RenderableEffect* reff = _ctx->GetEffectManager().GetEffect(eff->GetEffectIndex());
+        if (reff == nullptr) return false;
+        SettingsMap sm;
+        eff->CopySettingsMap(sm, true);
+        return reff->GetEffectiveFrameParallelism(sm) == RenderableEffect::FrameParallelism::Snapshottable;
+    }
+
+    void EnsureParPool(int n) {
+        const Model* mdl = mainBuffer->GetModel();
+        while ((int)parBuffers.size() < n) {
+            auto b = std::make_unique<PixelBufferClass>(_ctx);
+            b->InitBuffer(*mdl, numLayers, seqData->FrameTime());
+            parBuffers.push_back(std::move(b));
+            parInfos.push_back(std::make_unique<EffectLayerInfo>(numLayers));
+        }
+    }
+
+    // Render frames [a,e] FULLY (produce + blur/transitions + blend/CalcOutput +
+    // the seqData write) concurrently, each into its own clone buffer.  Every
+    // frame writes only seqData[frame] - a distinct row - so the whole per-frame
+    // pipeline is independent, not just produce().  The caller must have already
+    // satisfied the upstream gate through `e` (OutputFrame's CanOutputFrame is a
+    // backstop) and emits FrameDone in frame order afterwards, so downstream
+    // still sees monotonic completion.  Each clone's EffectLayerInfo is reset so
+    // ProduceFrame re-initialises from scratch (output-invariant for Pure effects).
+    //
+    // hasSnapshot: the window covers >=1 Snapshottable layer.  A Snapshottable
+    // effect can't be re-simulated independently per clone (its advance carries
+    // frame-to-frame state), so a SERIAL pre-pass first advances the simulation on
+    // the main buffer and captures each frame's immutable draw snapshot (per layer)
+    // without drawing (buffer.captureSnapshot); the parallel pass then draws those
+    // snapshots (buffer.pendingSnapshot) instead of re-advancing.  Pure layers are
+    // untouched by the pre-pass (their Render ignores captureSnapshot) and rendered
+    // fresh in the parallel pass exactly as before.  Only the draw is parallel; the
+    // cheap advance stays serial, so the effect is byte-identical.
+    void RenderParallelWindow(int a, int e, bool hasSnapshot) {
+        int n = e - a + 1;
+        EnsureParPool(n);
+        // snaps[layer][frame-a]: the captured draw snapshot, or null for Pure/empty layers.
+        std::vector<std::vector<std::unique_ptr<EffectFrameState>>> snaps;
+        if (hasSnapshot) {
+            if (xldbgParallelWindows) {
+                fprintf(stderr, "XL_PARALLEL_WINDOWS SNAP-WINDOW m='%s' a=%d e=%d layers=%d\n",
+                        rowToRender->GetModelName().c_str(), a, e, numLayers);
+            }
+            snaps.resize(numLayers);
+            for (auto& lv : snaps) lv.resize(n);
+            for (int f = a; f <= e; ++f) {
+                // Restrict the (serial) pre-pass to Snapshottable layers only: they
+                // advance the sim + capture.  Pure layers are skipped entirely (they
+                // may run expensive parallel_fors) and rendered fresh in the parallel
+                // pass below.
+                mainModelInfo.processLayer.assign(numLayers, false);
+                for (int l = 0; l < numLayers; ++l) {
+                    if (LayerIsSnapshottableAt(l, f)) {
+                        mainModelInfo.processLayer[l] = true;
+                        mainBuffer->BufferForLayer(l, -1).captureSnapshot = &snaps[l][f - a];
+                    }
+                }
+                ProduceFrame(f, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
+                for (int l = 0; l < numLayers; ++l) {
+                    mainBuffer->BufferForLayer(l, -1).captureSnapshot = nullptr;
+                }
+            }
+            // Restore full-layer rendering for any later serial frame on the main buffer.
+            mainModelInfo.processLayer.clear();
+        }
+        for (int i = 0; i < n; ++i) {
+            *parInfos[i] = EffectLayerInfo(numLayers);
+        }
+        static ParallelJobPool PAR_FRAME_POOL("par_frame_pool", PAR_FRAME_MAX_CHUNK);
+        parallel_for(0, n, [this, a, hasSnapshot, &snaps](int i) {
+            int f = a + i;
+            if (hasSnapshot) {
+                for (int l = 0; l < numLayers; ++l) {
+                    if (snaps[l][i]) parBuffers[i]->BufferForLayer(l, -1).pendingSnapshot = snaps[l][i].get();
+                }
+            }
+            ProduceFrame(f, rowToRender, *parInfos[i], parBuffers[i].get(), -1, supportsModelBlending);
+            if (hasSnapshot) {
+                for (int l = 0; l < numLayers; ++l) {
+                    parBuffers[i]->BufferForLayer(l, -1).pendingSnapshot = nullptr;
+                }
+            }
+            OutputFrame(f, rowToRender, *parInfos[i], parBuffers[i].get(), -1);
+        }, 1, &PAR_FRAME_POOL, this->name + " - Frames");
+    }
+
     // True if ANY layer's produce() might read dependent/upstream data mid-loop,
     // so the row must keep today's synchronous gate-before-everything ordering
     // (ARC phase A excludes it from the produce/output split).  Three categories
@@ -1322,6 +1578,23 @@ public:
             initialize(layer, startFrame, mainModelInfo.currentEffects[layer], mainModelInfo.settingsMaps[layer], mainBuffer);
             mainModelInfo.effectStates[layer] = true;
         }
+
+        // Frame-parallel eligibility (XL_PARALLEL_FRAMES).  Restricted to the
+        // clean case the prototype handles: a group rendered through its main
+        // buffer only (no submodels/nodes/per-model buffers), row-local produce
+        // (no canvas-mix / canvas-Blend), and no model blending.  Per-frame Pure
+        // coverage is checked separately (FrameIsParallelSafe).
+        // Model blending is compatible: it blends over seqData[frame] in
+        // output(), which runs after the gate and in frame order, so it reads a
+        // fully-populated row exactly as the serial path does.  produce() stays
+        // row-local. Canvas-mix / canvas-Blend / Per-Model (rowMustGateBeforeProduce)
+        // are the ones that read dependent data mid-produce and stay excluded.
+        parEligible = xldbgParallelFrames
+            && !rowMustGateBeforeProduce
+            && subModelInfos.empty() && nodeBuffers.empty()
+            && !ctorHasPerModelBuffers
+            && mainBuffer != nullptr && mainBuffer->GetModel() != nullptr
+            && mainBuffer->GetModel()->GetDisplayAs() == DisplayAsType::ModelGroup;
     }
 
     // Row-local: source-model name if the main model has a Duplicate effect at
@@ -1747,6 +2020,9 @@ public:
                 ComputeRenderRange();
             }
             resumeFrame = startFrame;
+            if (xldbgParallelWindows) {
+                AnalyzeParallelWindows();
+            }
             schedPhase = SchedPhase::Frames;
         }
 
@@ -1761,7 +2037,74 @@ public:
                     statesInitialized = true;
                 }
                 bool stopped = false;
+                // Resume a gated parallel window that suspended awaiting upstream.
+                if (parWindowPending) {
+                    parWindowPending = false;
+                    int a = parWindowStart, e = parWindowEnd;
+                    if (e > (int)GetPreviousFrameDone() && e >= gateSkipUntilFrame && NeedsUpstreamFrame(e)) {
+                        if (trySuspendUntil(e)) {
+                            parWindowPending = true;
+                            return;
+                        }
+                    }
+                    if (abort || origChangeCount != rowToRender->getChangeCount() ||
+                            (!HasNext() && rowToRender->HasParkedRenderJobs())) {
+                        rowToRender->SetDirtyRange(a * seqData->FrameTime(), endFrame * seqData->FrameTime());
+                        stopped = true;
+                    } else {
+                        RenderParallelWindow(a, e, parWindowHasSnapshot);
+                        currentFrame = e; // advance the UI progress per window (not just per serial frame)
+                        if (HasNext()) {
+                            for (int f = a; f <= e; ++f) {
+                                FrameDone(f);
+                            }
+                        }
+                        resumeFrame = e + 1;
+                    }
+                }
                 while (!stopped && resumeFrame <= endFrame) {
+                    // Frame-parallel fast path: render a contiguous run of frames
+                    // whose every layer is Pure or Snapshottable in parallel clones.
+                    // Snapshottable layers get a serial capture pre-pass first (see
+                    // RenderParallelWindow).  The window gates once on upstream and
+                    // emits FrameDone in order.  Wins when the per-frame work is
+                    // output/scatter-bound (serial per frame); effects whose internal
+                    // parallel_for already saturates cores see no gain.
+                    if (parEligible && !abort &&
+                            origChangeCount == rowToRender->getChangeCount()) {
+                        bool windowHasSnapshot = false;
+                        if (FrameIsParallelSafe(resumeFrame, windowHasSnapshot)) {
+                            int a = resumeFrame;
+                            int cap = std::min((int)endFrame, (int)resumeFrame + PAR_FRAME_MAX_CHUNK - 1);
+                            int e = a;
+                            while (e + 1 <= cap && FrameIsParallelSafe(e + 1, windowHasSnapshot)) {
+                                ++e;
+                            }
+                            if (e > a) {
+                                // Gate the whole window on upstream frame e; monotonic,
+                                // so done(e) implies every frame in [a,e] is available.
+                                if (e > (int)GetPreviousFrameDone() && e >= gateSkipUntilFrame && NeedsUpstreamFrame(e)) {
+                                    SetWaitingStatus(e);
+                                    if (trySuspendUntil(e)) {
+                                        parWindowStart = a;
+                                        parWindowEnd = e;
+                                        parWindowHasSnapshot = windowHasSnapshot;
+                                        parWindowPending = true;
+                                        return;
+                                    }
+                                }
+                                RenderParallelWindow(a, e, windowHasSnapshot);
+                                currentFrame = e; // advance the UI progress per window (not just per serial frame)
+                                if (HasNext()) {
+                                    for (int f = a; f <= e; ++f) {
+                                        FrameDone(f);
+                                    }
+                                }
+                                resumeFrame = e + 1;
+                                continue;
+                            }
+                        }
+                    }
                     FrameResult r = RenderFrame(resumeFrame);
                     if (r == FrameResult::Suspend) {
                         return;
@@ -1917,6 +2260,19 @@ private:
     // ARC phase A: per-node produce() result - did output() have to blend it?
     std::map<SNPair, bool> nodeShouldOutput;
     int origChangeCount = 0;
+
+    // Frame-parallel prototype state (XL_PARALLEL_FRAMES).  parEligible is
+    // computed once at InitializeRenderStates.  The clone pool (parBuffers +
+    // parInfos) is grown on demand and reused across chunks.  parProduced marks a
+    // produced-but-not-fully-output chunk that must survive an upstream suspend;
+    // parOutputCursor is where the ordered output resumes.
+    bool parEligible = false;
+    std::vector<std::unique_ptr<PixelBufferClass>> parBuffers;
+    std::vector<std::unique_ptr<EffectLayerInfo>> parInfos;
+    bool parWindowPending = false;   // a gated window is suspended awaiting upstream
+    bool parWindowHasSnapshot = false;  // pending window has >=1 Snapshottable layer (needs the capture pre-pass)
+    int parWindowStart = 0;
+    int parWindowEnd = -1;
 
     // Scheduling state.  suspended/wantFrame/parked are guarded by nextLock;
     // inPool is its own atomic (see Requeue); the rest is only touched by the
@@ -2566,6 +2922,65 @@ RenderEngine::ExportedModelData RenderEngine::ExportModelData(const std::string&
     return result;
 }
 
+// XL_VERIFY_STATELESS oracle (see xldbgVerifyStateless).  The frame has just
+// been rendered normally into `rb`.  Re-render the same frame from an emptied
+// infoCache + needToInit=true and compare pixel hashes: a genuinely
+// frame-independent (Pure) effect reproduces its output exactly, so a mismatch
+// proves the GetFrameParallelism()==Pure declaration is wrong (the effect reads
+// state carried from a prior frame).  Same buffer and same GPU/CPU path both
+// times -> no GPU-vs-CPU float confound.  Only the second render's pixels are
+// left in `rb`; for a correctly-Pure effect they are identical to the first, so
+// the sequence output is unchanged except on the very effects this flag exists
+// to catch.  The original infoCache is restored so later frames stay correct.
+static void VerifyStatelessRender(RenderableEffect* reff, Effect* effectObj,
+                                  const SettingsMap& settings, RenderBuffer* rb,
+                                  const std::string& modelName, int layer) {
+    GPURenderUtils::waitForRenderCompletion(rb);
+    const size_t nbytes = size_t(rb->GetPixelCount()) * sizeof(xlColor);
+    uint64_t h1 = xldbgFNV(reinterpret_cast<const uint8_t*>(rb->GetPixels()), nbytes);
+
+    std::map<int, EffectRenderCache*> savedCache;
+    savedCache.swap(rb->infoCache);
+    bool savedInit = rb->needToInit;
+
+    rb->needToInit = true;
+    rb->Clear();
+    // Reseed the serial RNG as if this frame were being drawn fresh; otherwise the
+    // second Render() continues the first pass's rand01()/randInt() stream and any
+    // effect that draws from it falsely trips the check (the parallel path reseeds
+    // every frame, so a matching first-time reseed is what "stateless" means here).
+    rb->resetSerialRandomForVerify();
+    reff->Render(effectObj, settings, *rb);
+    GPURenderUtils::waitForRenderCompletion(rb);
+    uint64_t h2 = xldbgFNV(reinterpret_cast<const uint8_t*>(rb->GetPixels()), nbytes);
+
+    for (auto& it : rb->infoCache) {
+        delete it.second;
+    }
+    rb->infoCache.clear();
+    rb->infoCache.swap(savedCache);
+    rb->needToInit = savedInit;
+
+    uint64_t nChecks = xldbgVerifyChecks.fetch_add(1) + 1;
+    if (h1 != h2) {
+        uint64_t nBad = xldbgVerifyMismatches.fetch_add(1) + 1;
+        fprintf(stderr, "XL_VERIFY_STATELESS MISMATCH #%llu: '%s' on model '%s' layer %d frame %d declared Pure but re-render from a clean cache changed output (%016llx vs %016llx) - it carries cross-frame state; the GetFrameParallelism() override is wrong.\n",
+                (unsigned long long)nBad, reff->Name().c_str(), modelName.c_str(), layer, rb->curPeriod,
+                (unsigned long long)h1, (unsigned long long)h2);
+        auto l = spdlog::get("render");
+        if (l) {
+            l->warn("XL_VERIFY_STATELESS: '{}' on model '{}' layer {} frame {} declared Pure but re-render from a clean cache changed output (hash {:016x} vs {:016x}) - it carries cross-frame state and the GetFrameParallelism() override is wrong.",
+                    reff->Name(), modelName, layer, rb->curPeriod, h1, h2);
+        }
+    }
+    // Periodic progress so a clean headless run positively confirms the harness
+    // ran (silence alone can't distinguish "no mismatches" from "never checked").
+    if ((nChecks % 2000) == 0) {
+        fprintf(stderr, "XL_VERIFY_STATELESS: %llu Pure frames checked, %llu mismatches so far.\n",
+                (unsigned long long)nChecks, (unsigned long long)xldbgVerifyMismatches.load());
+    }
+}
+
 bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int layer, int period, SettingsMap& SettingsMap,
     PixelBufferClass& buffer, bool& resetEffectState)
 {
@@ -2666,7 +3081,14 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                 // command buffer carry the attribution to whoever
                                 // ends up waiting on it.
                                 GpuEffectScope gpuScope(effProf, effName);
-                                if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
+                                if (rb->pendingSnapshot != nullptr) {
+                                    // Tier-2 parallel draw: Render() rasterises the
+                                    // snapshot the serial capture pass stored (it
+                                    // checks pendingSnapshot itself and skips the sim
+                                    // advance); no render-cache / verify on this path.
+                                    reff->Render(effectObj, SettingsMap, *rb);
+                                }
+                                else if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
                                     if (!effectObj->GetFrame(*rb, _renderCache)) {
                                         reff->Render(effectObj, SettingsMap, *rb);
                                         GPURenderUtils::waitForRenderCompletion(rb);
@@ -2675,6 +3097,10 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                 }
                                 else {
                                     reff->Render(effectObj, SettingsMap, *rb);
+                                    if (xldbgVerifyStateless && !suppress &&
+                                        reff->GetEffectiveFrameParallelism(SettingsMap) == RenderableEffect::FrameParallelism::Pure) {
+                                        VerifyStatelessRender(reff, effectObj, SettingsMap, rb, buffer.GetModelName(), layer);
+                                    }
                                 }
                             }
 

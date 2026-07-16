@@ -258,6 +258,16 @@ static int TextCountDownIndex(const std::string &st) {
     return 0;
 }
 
+RenderableEffect::FrameParallelism TextEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // "to date" countdown modes read the real wall clock (system_clock::now) and
+    // are not reproducible frame-to-frame; conservatively treat any countdown as
+    // stateful.  Plain / scrolling text is a pure function of the frame.
+    if (TextCountDownIndex(settings.Get("CHOICE_Text_Count", "")) != 0) {
+        return FrameParallelism::Stateful;
+    }
+    return FrameParallelism::Pure;
+}
+
 static int TextEffectsIndex(const std::string &st) {
     if (st == "vert text up") return 1;
     if (st == "vert text down") return 2;

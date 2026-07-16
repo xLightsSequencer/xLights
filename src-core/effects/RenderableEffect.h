@@ -26,6 +26,13 @@ class EffectManager;
 class EffectLayer;
 class RenderContext;
 
+// Immutable per-frame draw state produced by a Snapshottable effect's
+// AdvanceFrame and consumed by the draw pass (tier-2 frame-parallel).  Effects
+// subclass this with whatever their frame's draw needs (e.g. a particle list).
+struct EffectFrameState {
+    virtual ~EffectFrameState() = default;
+};
+
 class RenderableEffect
 {
 public:
@@ -104,6 +111,42 @@ public:
 
     // Methods for rendering the effect
     virtual bool SupportsRenderCache(const SettingsMap& settings) const;
+
+    // Frame-parallelism capability. Describes whether this effect's output at
+    // frame N is a pure function of N and its settings, or depends on state
+    // carried from a prior frame (an infoCache simulation, a tempbuf generation,
+    // a running accumulator, or prior-frame pixels). Conservatively Stateful by
+    // default so any un-audited effect is never reordered; an effect proven to
+    // derive its whole output from curPeriod / GetEffectTimeIntervalPosition()
+    // overrides this to Pure, letting the engine render a run of its frames out
+    // of order or concurrently. Snapshottable is reserved for effects that can
+    // split a cheap serial state-advance from a parallel per-frame draw (tier 2,
+    // not consumed yet).
+    enum class FrameParallelism { Stateful, Snapshottable, Pure };
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const {
+        return FrameParallelism::Stateful;
+    }
+    // What the engine actually consults: combines GetFrameParallelism() with the
+    // buffer-level settings that make ANY effect frame-dependent regardless of
+    // its own algorithm - Persistent (OverlayBkg) keeps the buffer between
+    // frames, Canvas reads lower layers, Freeze/Suppress reuse another frame's
+    // output. Effect overrides only need to describe their own algorithm.
+    FrameParallelism GetEffectiveFrameParallelism(const SettingsMap& settings) const;
+
+    // --- Tier-2 Snapshottable API ------------------------------------------
+    // A Snapshottable effect exposes a cheap serial state-advance separately
+    // from an expensive pure per-frame draw, so the engine can advance the
+    // simulation serially while drawing many frames concurrently.  Both phases
+    // go through the effect's normal Render(), branched on two transient buffer
+    // flags (see RenderBuffer):
+    //   * capture: buffer.captureSnapshot set - advance the simulation
+    //     (buffer.infoCache) as usual, store the frame's immutable draw snapshot
+    //     in *buffer.captureSnapshot, and SKIP the draw.
+    //   * draw: buffer.pendingSnapshot set - SKIP the advance and rasterise the
+    //     previously captured snapshot.  Pure function of the snapshot; runs on
+    //     worker threads.  (Check this first, at the top of Render.)
+    // Both paths are only reached when GetFrameParallelism returns Snapshottable.
+
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) = 0;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {}
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache);

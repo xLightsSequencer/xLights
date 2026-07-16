@@ -43,6 +43,10 @@ public:
     MeteorsEffect(int id);
     virtual ~MeteorsEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: the axis-aligned styles (vertical/horizontal/icicle) split into a
+    // cheap serial particle advance and a pure GatherMeteors draw; Implode /
+    // Explode use a different draw path and stay Stateful.
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -81,6 +85,11 @@ protected:
     // Base implementation runs ISPC (the CPU path); MetalMeteorsEffect overrides
     // to dispatch the GPU kernel and falls back here when Metal isn't viable.
     virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts);
+
+    // Tier-2 split point: draws the frame (GatherMeteors) unless the engine set
+    // buffer.captureSnapshot, in which case the {params, parts} draw-snapshot is
+    // captured for a later parallel draw pass and nothing is drawn here.
+    void EmitMeteorsFrame(RenderBuffer& buffer, const MeteorsGatherParams& params, std::vector<MeteorSnapshot>& parts);
 
     // A meteor's axis coord is the only line of the buffer it can ever cover (the
     // column it falls down, or the row it crosses), so bucket the snapshot by line and

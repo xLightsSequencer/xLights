@@ -37,6 +37,7 @@ public:
         return false;
     }
     void Render( Effect* effect, const SettingsMap& settings, RenderBuffer& buffer ) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
 
     bool needToAdjustSettings( const std::string& version ) override;
     void adjustSettings( const std::string& version, Effect* effect, bool removeDefaults = true ) override;

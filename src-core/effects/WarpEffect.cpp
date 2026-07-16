@@ -371,7 +371,18 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
 }
 
 
-WarpEffect::WarpType WarpEffect::mapWarpType(const std::string &s) {
+RenderableEffect::FrameParallelism WarpEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    WarpType t = mapWarpType(settings.Get("CHOICE_Warp_Type", sTypeDefault));
+    // SPEED accumulates position frame-to-frame; SAMPLE_ON latches a sampled
+    // frame - both carry cross-frame state.  Every other warp is a pure,
+    // time-parameterised distortion.
+    if (t == SPEED || t == SAMPLE_ON) {
+        return FrameParallelism::Stateful;
+    }
+    return FrameParallelism::Pure;
+}
+
+WarpEffect::WarpType WarpEffect::mapWarpType(const std::string &s) const {
     if (s == "water drops") {
         return WarpEffect::WATER_DROPS;
     }

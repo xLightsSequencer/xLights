@@ -306,6 +306,27 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
     return false;
 }
 
+RenderableEffect::FrameParallelism RenderableEffect::GetEffectiveFrameParallelism(const SettingsMap& settings) const
+{
+    FrameParallelism fp = GetFrameParallelism(settings);
+    if (fp == FrameParallelism::Stateful) {
+        return fp;
+    }
+    // Buffer-level features that make any effect's frame depend on another frame,
+    // whatever the effect's own algorithm reports (keys are prefix-stripped in
+    // the render SettingsMap - B_CHECKBOX_OverlayBkg -> CHECKBOX_OverlayBkg):
+    //  - Persistent (OverlayBkg): the buffer is not cleared between frames.
+    //  - Canvas: the effect reads lower layers' blended output.
+    //  - Freeze / Suppress: specific frames reuse an earlier frame's output.
+    if (settings.GetBool("CHECKBOX_OverlayBkg", false) ||
+        settings.GetBool("CHECKBOX_Canvas", false) ||
+        settings.GetInt("SPINCTRL_FreezeEffectAtFrame", 999999) < 999999 ||
+        settings.GetInt("SPINCTRL_SuppressEffectUntil", 0) > 0) {
+        return FrameParallelism::Stateful;
+    }
+    return fp;
+}
+
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
     return IsVersionOlder("2024.05", version);
 }

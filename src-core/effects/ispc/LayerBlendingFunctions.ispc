@@ -148,6 +148,7 @@ export struct LayerBlendingData {
     int mixTypeData;
     
     int outputSparkleCount;
+    int sparkleFrame;
     uint32 sparkleColor;
     
     bool isChromaKey;
@@ -324,8 +325,12 @@ export void ApplySparkles(uniform const LayerBlendingData &data,
         uint32 c = result[index];
         if (c & 0xFFFFFF) {
             int sc = data.outputSparkleCount;
-            uint16 sparkle = sparkles[index];
-            
+            // Frame-keyed phase: sparkles[index] is the stable per-node phase
+            // (set once); the animation advances with the frame, so sparkle
+            // placement is a pure function of (node, frame) and reproduces in
+            // any render order (frame-parallel clones, partial re-renders).
+            uint sparkle = (uint)sparkles[index] + (uint)data.sparkleFrame;
+
             switch (sparkle % (208 - sc)) {
                 case 1:
                 case 7:
@@ -346,7 +351,6 @@ export void ApplySparkles(uniform const LayerBlendingData &data,
                 default:
                     break;
             }
-            sparkles[index] = sparkle + 1;
         }
     }
 }

@@ -16,6 +16,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  not just to fix ones that are currently missing
     -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
                                  log instead of only stdout; headless now logs each sequence's render time
+    -change (dkulp)              Render: sparkles are now placed by a frame-deterministic phase (per-node hash + frame)
+                                 instead of a running counter advanced each render, so placement is identical
+                                 regardless of render order (full vs partial re-render); slightly changes the exact
+                                 sparkle pattern in existing sequences (same density and look)
+    -enh (dkulp)                 Render: group effects now render several frames concurrently when the effects on
+                                 the group are frame-independent, cutting whole-show render time (~5% on a typical
+                                 show); byte-identical output. Set XL_NO_PARALLEL_FRAMES=1 to force the serial path
     -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every
                                  meteor against every pixel (CPU, Metal and Vulkan paths); large-matrix Meteors
                                  renders are dramatically faster

@@ -103,6 +103,7 @@ struct LayerBlendingData {
     int32_t mixTypeData;
 
     int32_t outputSparkleCount;
+    int32_t sparkleFrame;
     xlvk::uchar4 sparkleColor;
 
     uint32_t isChromaKey;

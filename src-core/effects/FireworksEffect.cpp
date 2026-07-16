@@ -276,6 +276,23 @@ public:
     std::vector<int> _firePeriods;
 };
 
+// Tier-2 immutable per-frame draw state: one point+colour per live particle,
+// resolved (palette/alpha baked in) so the draw pass needs nothing but the buffer.
+struct FireworksDrawItem {
+    int x;
+    int y;
+    xlColor c;
+};
+struct FireworksFrameState : public EffectFrameState {
+    std::vector<FireworksDrawItem> items;
+};
+
+static void DrawFireworks(RenderBuffer& buffer, const std::vector<FireworksDrawItem>& items) {
+    for (const auto& it : items) {
+        buffer.SetPixel(it.x, it.y, it.c);
+    }
+}
+
 #define REPEATTRIGGER 20
 
 void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
@@ -318,6 +335,12 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(RenderBuffer& buffer, in
 }
 
 void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    if (buffer.pendingSnapshot != nullptr) {
+        // Frame-parallel draw pass: rasterise the snapshot the serial capture
+        // pass advanced and stored; no sim advance here.
+        DrawFireworks(buffer, static_cast<const FireworksFrameState&>(*buffer.pendingSnapshot).items);
+        return;
+    }
     float offset = buffer.GetEffectTimeIntervalPosition();
 
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", sExplosionsDefault);
@@ -472,16 +495,43 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     }
 
-    for (auto& it: fireworks)
+    // Build this frame's draw snapshot from the current (pre-advance) particle
+    // positions - byte-identical to drawing them, and RNG-free.
+    std::vector<FireworksDrawItem> drawItems;
+    for (auto& it : fireworks)
     {
         if (!it.Done())
         {
             for (auto p : it.GetParticles())
             {
-                buffer.SetPixel(p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha));
+                drawItems.push_back({ p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha) });
             }
+        }
+    }
 
+    // Advance all fireworks for the next frame (no RNG here).
+    for (auto& it : fireworks)
+    {
+        if (!it.Done())
+        {
             it.Advance();
         }
     }
+
+    // Draw the snapshot, or (tier-2) hand it to a parallel draw pass.
+    if (buffer.captureSnapshot != nullptr)
+    {
+        auto fs = std::make_unique<FireworksFrameState>();
+        fs->items = std::move(drawItems);
+        *buffer.captureSnapshot = std::move(fs);
+    }
+    else
+    {
+        DrawFireworks(buffer, drawItems);
+    }
 }
+
+RenderableEffect::FrameParallelism FireworksEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    return FrameParallelism::Snapshottable;
+}
+

@@ -20,6 +20,9 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Only the "FX" (WS2812/WLED) sub-mode carries animation state across frames;
+    // Chase and Skips are pure functions of the frame.
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
     {

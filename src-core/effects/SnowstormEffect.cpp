@@ -127,12 +127,51 @@ class SnowstormRenderCache : public EffectRenderCache {
 public:
     SnowstormRenderCache() {};
     virtual ~SnowstormRenderCache() {};
-    
+
     int LastSnowstormCount;
     std::list<SnowstormClass> SnowstormItems;
 };
 
+// Tier-2 immutable per-frame draw state: a copy of the advanced items + the
+// tail length the fade uses.  The draw is a pure function of these + the
+// buffer's geometry/allowAlpha.
+struct SnowstormFrameState : public EffectFrameState {
+    std::vector<SnowstormClass> items;
+    int tailLength = 1;
+};
+
+// Pure draw of the advanced items.  Templated so it draws the live cache list
+// and a captured snapshot vector with identical code.  Uses no RNG (all RNG is
+// in the advance), so advance-all-then-draw-all is byte-identical to the old
+// interleaved per-item loop.
+template <typename Container>
+static void DrawSnowstormItems(RenderBuffer& buffer, const Container& items, int TailLength) {
+    for (const auto& it : items) {
+        int sz = it.points.size();
+        for (int pt = 0; pt < sz; pt++) {
+            HSVValue hsv = it.hsv;
+            if (buffer.allowAlpha) {
+                xlColor c(hsv);
+                c.alpha = 255.8 * (1.0 - double(sz - pt + it.ssDecay) / TailLength);
+                buffer.SetPixel(it.points[pt].x, it.points[pt].y, c);
+            }
+            else {
+                hsv.value = 1.0 - double(sz - pt + it.ssDecay) / TailLength;
+                if (hsv.value < 0.0) hsv.value = 0.0;
+                buffer.SetPixel(it.points[pt].x, it.points[pt].y, hsv);
+            }
+        }
+    }
+}
+
 void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (buffer.pendingSnapshot != nullptr) {
+        // Frame-parallel draw pass: rasterise the snapshot the serial capture
+        // pass advanced and stored; no sim advance here.
+        const SnowstormFrameState& fs = static_cast<const SnowstormFrameState&>(*buffer.pendingSnapshot);
+        DrawSnowstormItems(buffer, fs.items, fs.tailLength);
+        return;
+    }
 
     int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", sCountDefault);
     int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", sLengthDefault);
@@ -194,9 +233,9 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         }
     }
 
-    // render Snowstorm Items
+    // advance Snowstorm Items (all the per-frame RNG lives here)
     for (auto& it : SnowstormItems) {
-        
+
         if ((int)it.points.size() > TailLength) {
             if (it.ssDecay > TailLength) {
                 it.points.clear();  // start over
@@ -216,20 +255,21 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         else if (buffer.randInt(0, 19) < sSpeed) {
             SnowstormAdvance(buffer, it);
         }
+    }
 
-        int sz = it.points.size();
-        for (int pt = 0; pt < sz; pt++) {
-            HSVValue hsv = it.hsv;
-            if (buffer.allowAlpha) {
-                xlColor c(hsv);
-                c.alpha = 255.8 * (1.0 - double(sz - pt + it.ssDecay) / TailLength);
-                buffer.SetPixel(it.points[pt].x, it.points[pt].y, c);
-            }
-            else {
-                hsv.value = 1.0 - double(sz - pt + it.ssDecay) / TailLength;
-                if (hsv.value < 0.0) hsv.value = 0.0;
-                buffer.SetPixel(it.points[pt].x, it.points[pt].y, hsv);
-            }
-        }
+    // draw the advanced items, or (tier-2) capture them for a parallel draw
+    if (buffer.captureSnapshot != nullptr) {
+        auto fs = std::make_unique<SnowstormFrameState>();
+        fs->items.assign(SnowstormItems.begin(), SnowstormItems.end());
+        fs->tailLength = TailLength;
+        *buffer.captureSnapshot = std::move(fs);
+    }
+    else {
+        DrawSnowstormItems(buffer, SnowstormItems, TailLength);
     }
 }
+
+RenderableEffect::FrameParallelism SnowstormEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    return FrameParallelism::Snapshottable;
+}
+
