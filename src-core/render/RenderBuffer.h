@@ -536,6 +536,13 @@ public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
     xlColor *GetTempBuf() { ensureTempBuf(); return tempbuf; }
+    // Whole temp-buffer snapshot/restore for frame-parallel Snapshottable effects
+    // (e.g. Snowflakes) whose cross-frame state lives in the temp pixel layer.
+    const xlColorVector& GetTempBufVector() { ensureTempBuf(); return tempbufVector; }
+    void SetTempBufVector(const xlColorVector& v) {
+        tempbufVector = v;
+        tempbuf = tempbufVector.empty() ? nullptr : &tempbufVector[0];
+    }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
     xlSize GetMaxBuffer(const SettingsMap& SettingsMap) const;

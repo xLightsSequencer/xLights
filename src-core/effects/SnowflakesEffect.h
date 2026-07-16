@@ -18,6 +18,7 @@ public:
     SnowflakesEffect(int id);
     virtual ~SnowflakesEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
 
     static int sCountDefault;
     static int sCountMin;
