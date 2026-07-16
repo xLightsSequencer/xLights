@@ -70,7 +70,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
             }
             if (ef->GetEffectIndex() == EffectManager::eff_PICTURES) {
                 // if using embedded images, need to copy it over
-                std::string v = ef->GetSettings()["E_TEXTCTRL_Pictures_Filename"];
+                std::string v = settings["E_TEXTCTRL_Pictures_Filename"];
                 auto& sm = ef->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
                 auto& tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
                 if (sm.HasImage(v) && !tm.HasImage(v)) {
@@ -90,7 +90,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                     auto mg = dynamic_cast<const ModelGroup*>(m);
                     if (mg != nullptr) {
                         if (convertRender) {
-                            auto buffer = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                            auto buffer = settings["B_CHOICE_BufferStyle"];
                             if (buffer == "Per Preview" || buffer == "Default" || buffer == "Single Line") {
                                 settings["B_CHOICE_BufferStyle"] = "Per Model " + buffer;
                             } else if (buffer.empty()) {
@@ -98,7 +98,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                             }
                         }
                         // so is it a per preview render buffer
-                        auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                        auto rb = settings["B_CHOICE_BufferStyle"];
                         if (BufferStyles::CanRenderBufferUseCamera(rb)) {
                             if (settings.Contains("B_CHOICE_PerPreviewCamera")) {
                                 // MoC - There isn't a way to just indicate "use group's default", so instead we grab it as
