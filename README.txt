@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Batch render and -r no longer read the existing fseq that is about to be
+                                 overwritten, speeding up sequence open (canvas mode still loads it)
     -bug (dkulp)                 Shader effect ignored the "GPU rendering" preference and still built GPU
                                  pipelines/command buffers with it turned off; turning it off is now a real
                                  safety net that keeps the effect entirely on the CPU/OpenGL path

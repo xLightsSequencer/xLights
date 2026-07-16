@@ -2161,7 +2161,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     if (!xLightsApp::sequenceFiles.IsEmpty()) {
         spdlog::debug("Opening sequence: {}.", (const char*)xLightsApp::sequenceFiles[0].c_str());
-        OpenSequence(xLightsApp::sequenceFiles[0], nullptr);
+        // In -r mode OpenRenderAndSaveSequences reopens and re-renders this same
+        // sequence immediately, so reading its fseq here is wasted.
+        OpenSequence(xLightsApp::sequenceFiles[0], nullptr, "", _renderMode);
     }
 
     SetAudioControls();

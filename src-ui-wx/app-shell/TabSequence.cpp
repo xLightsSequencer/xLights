@@ -1508,7 +1508,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     spdlog::info("=== Batch Render [{} remaining] HWAccel={} File: {}",
                  fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", seq.ToStdString());
     LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
-    OpenSequence(seq, nullptr);
+    OpenSequence(seq, nullptr, "", true);
     EnableSequenceControls(false);
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
