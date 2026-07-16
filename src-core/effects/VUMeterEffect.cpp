@@ -306,6 +306,30 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
     }
 }
 
+RenderableEffect::FrameParallelism VUMeterEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // These modes derive each frame purely from the current frame's audio /
+    // timing data and never read the cross-frame VUMeterRenderCache (no
+    // peak-hold decay, fade-from-last-mark, running colour/bar index, or history
+    // trail).  Everything else carries state and stays Stateful.  (Spectrogram
+    // and Level Shape are conditionally pure only when SlowDownFalls is off;
+    // left Stateful to keep this a pure function of the type.)  Guarded by
+    // XL_VERIFY_STATELESS.
+    static const char* const pureTypes[] = {
+        "Volume Bars", "Waveform", "Frame Waveform", "On", "Color On", "Note On",
+        "Intensity Wave", "Dominant Frequency Colour", "Dominant Frequency Colour Gradient",
+        "Timing Event Spike", "Timing Event Sweep", "Timing Event Sweep 2",
+        "Timing Event Timed Sweep", "Timing Event Timed Sweep 2",
+        "Timing Event Timed Chase From Middle", "Timing Event Timed Chase To Middle"
+    };
+    const std::string& type = settings.Get("CHOICE_VUMeter_Type", sTypeDefault);
+    for (const char* p : pureTypes) {
+        if (type == p) {
+            return FrameParallelism::Pure;
+        }
+    }
+    return FrameParallelism::Stateful;
+}
+
 void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     // Resolve alternate audio track override
