@@ -21,6 +21,7 @@
 #include <condition_variable>
 #include <map>
 #include <memory>
+#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -89,6 +90,109 @@ static const bool xldbgParallelWindows = (getenv("XL_PARALLEL_WINDOWS") != nullp
 // serial path.  Set XL_NO_PARALLEL_FRAMES=1 to force serial (A/B / bisecting).
 static const bool xldbgParallelFrames = (getenv("XL_NO_PARALLEL_FRAMES") == nullptr);
 static const int PAR_FRAME_MAX_CHUNK = 24;
+
+// XL_PARALLEL_BLOCKERS=1: profile-only.  On every structurally-eligible group
+// row, walk each frame and record which effect(s) prevent it from rendering in
+// a parallel window - so a run over a whole show library ranks the effects
+// worth converting next.  A frame is BLOCKED when a covering layer is an
+// inherently-Stateful effect (the conversion target), or a Pure/Snapshottable
+// effect vetoed by a buffer-continuity SETTING (OverlayBkg/Freeze/Suppress -
+// not an effect-conversion target), or a frame+1 continuity boundary.
+// "sole" = the frame's ONLY blocker is that one Stateful effect, so converting
+// it unlocks the frame immediately; "any" = it is a blocker among others.
+// Accumulated process-wide, dumped to stderr at exit.  Zero cost when unset.
+static const bool xldbgParBlockers = (getenv("XL_PARALLEL_BLOCKERS") != nullptr);
+// Plain accumulator (no mutex/destructor) - used both as the per-row local and
+// as the payload of the process-wide tally.
+struct ParBlockerData {
+    std::map<std::string, uint64_t> statefulSole; // effect -> frames it alone blocks
+    std::map<std::string, uint64_t> statefulAny;  // effect -> frames it blocks (with or without co-blockers)
+    std::map<std::string, uint64_t> continuityAny; // Pure/Snap effect vetoed by a continuity setting
+    uint64_t nextBoundaryFrames = 0;              // frames blocked (partly) by a frame+1 continuity boundary
+    uint64_t eligSafe = 0;                        // parallel-safe frames on eligible groups
+    uint64_t eligBlocked = 0;                     // blocked frames on eligible groups
+    uint64_t eligEmpty = 0;                       // frames with no coverage
+    uint64_t rowsEligible = 0;                    // structurally-eligible group rows analyzed
+    uint64_t rowsSingleModel = 0;                 // non-group rows (not parallelizable by design)
+    std::map<std::string, uint64_t> rowsIneligible; // group rows excluded by structure -> reason
+    void merge(const ParBlockerData& o) {
+        for (const auto& [k, v] : o.statefulSole) statefulSole[k] += v;
+        for (const auto& [k, v] : o.statefulAny) statefulAny[k] += v;
+        for (const auto& [k, v] : o.continuityAny) continuityAny[k] += v;
+        for (const auto& [k, v] : o.rowsIneligible) rowsIneligible[k] += v;
+        nextBoundaryFrames += o.nextBoundaryFrames;
+        eligSafe += o.eligSafe;
+        eligBlocked += o.eligBlocked;
+        eligEmpty += o.eligEmpty;
+        rowsEligible += o.rowsEligible;
+        rowsSingleModel += o.rowsSingleModel;
+    }
+};
+// Process-wide tally; the single static instance dumps a ranked table at exit.
+struct ParBlockerStats {
+    std::mutex mtx;
+    ParBlockerData d;
+    ~ParBlockerStats() { Dump(); }
+    void Dump() {
+        std::lock_guard<std::mutex> lg(mtx);
+        uint64_t total = d.eligSafe + d.eligBlocked + d.eligEmpty;
+        if (total == 0 && d.statefulAny.empty()) return;
+        uint64_t nonEmpty = d.eligSafe + d.eligBlocked;
+        fprintf(stderr, "\n========== XL_PARALLEL_BLOCKERS ==========\n");
+        fprintf(stderr, "Eligible group rows analyzed: %llu   (single-model rows skipped: %llu)\n",
+                (unsigned long long)d.rowsEligible, (unsigned long long)d.rowsSingleModel);
+        fprintf(stderr, "Frame-rows on eligible groups: %llu total  |  %llu covered  |  %llu empty\n",
+                (unsigned long long)total, (unsigned long long)nonEmpty, (unsigned long long)d.eligEmpty);
+        if (nonEmpty > 0) {
+            fprintf(stderr, "  parallel-safe: %llu (%.1f%% of covered)   blocked: %llu (%.1f%%)\n",
+                    (unsigned long long)d.eligSafe, 100.0 * d.eligSafe / nonEmpty,
+                    (unsigned long long)d.eligBlocked, 100.0 * d.eligBlocked / nonEmpty);
+        }
+        auto ranked = [](const std::map<std::string, uint64_t>& sole, const std::map<std::string, uint64_t>& any) {
+            std::vector<std::pair<std::string, std::pair<uint64_t, uint64_t>>> v;
+            for (const auto& [k, a] : any) {
+                uint64_t s = 0;
+                auto it = sole.find(k);
+                if (it != sole.end()) s = it->second;
+                v.push_back({k, {s, a}});
+            }
+            std::sort(v.begin(), v.end(), [](const auto& x, const auto& y) {
+                if (x.second.first != y.second.first) return x.second.first > y.second.first;
+                return x.second.second > y.second.second;
+            });
+            return v;
+        };
+        fprintf(stderr, "\n-- Stateful effects blocking eligible-group frames (convert these) --\n");
+        fprintf(stderr, "   %-18s %14s %14s\n", "effect", "sole-blocker", "any-blocker");
+        for (const auto& [name, counts] : ranked(d.statefulSole, d.statefulAny)) {
+            fprintf(stderr, "   %-18s %14llu %14llu\n", name.c_str(),
+                    (unsigned long long)counts.first, (unsigned long long)counts.second);
+        }
+        if (!d.continuityAny.empty()) {
+            fprintf(stderr, "\n-- Pure/Snapshottable effects vetoed by a buffer-continuity SETTING (not conversion targets) --\n");
+            std::vector<std::pair<std::string, uint64_t>> cv(d.continuityAny.begin(), d.continuityAny.end());
+            std::sort(cv.begin(), cv.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
+            for (const auto& [name, c] : cv) {
+                fprintf(stderr, "   %-18s %14llu\n", name.c_str(), (unsigned long long)c);
+            }
+        }
+        fprintf(stderr, "\nFrames blocked (partly) by a frame+1 continuity boundary: %llu\n",
+                (unsigned long long)d.nextBoundaryFrames);
+        if (!d.rowsIneligible.empty()) {
+            fprintf(stderr, "\n-- Group rows excluded by structure (effect conversion cannot help these) --\n");
+            std::vector<std::pair<std::string, uint64_t>> rv(d.rowsIneligible.begin(), d.rowsIneligible.end());
+            std::sort(rv.begin(), rv.end(), [](const auto& a, const auto& b) { return a.second > b.second; });
+            for (const auto& [reason, c] : rv) {
+                fprintf(stderr, "   %-28s %llu rows\n", reason.c_str(), (unsigned long long)c);
+            }
+        }
+        fprintf(stderr, "==========================================\n\n");
+    }
+};
+static ParBlockerStats& parBlockers() {
+    static ParBlockerStats s;
+    return s;
+}
 
 static uint64_t xldbgFNV(const uint8_t* d, size_t n) {
     uint64_t h = 1469598103934665603ULL;
@@ -1415,6 +1519,68 @@ public:
         return reff->GetEffectiveFrameParallelism(sm) == RenderableEffect::FrameParallelism::Snapshottable;
     }
 
+    // XL_PARALLEL_BLOCKERS profiling.  Walk every frame of this (eligible group)
+    // row, attribute each blocked frame to the effect(s) preventing a parallel
+    // window, and merge into the process-wide tally.  Read-only; never perturbs
+    // the render (runs once at row init, only when xldbgParBlockers).
+    void AnalyzeFrameBlockers() {
+        ParBlockerData local;
+        int sf = startFrame, ef = endFrame;
+        for (int frame = sf; frame <= ef; ++frame) {
+            std::set<std::string> statefulB, continuityB;
+            bool nextBoundary = false, anyCover = false;
+            for (int l = 0; l < numLayers; ++l) {
+                EffectLayer* el = rowToRender->GetEffectLayer(l);
+                if (el == nullptr) continue;
+                std::unique_lock<std::recursive_mutex> lock(el->GetLock());
+                int idx = 0;
+                Effect* eff = findEffectForFrame(el, frame, idx);
+                int idx2 = 0;
+                Effect* effNext = findEffectForFrame(el, frame + 1, idx2);
+                if (effNext != nullptr && effNext != eff && EffectIsBufferContinuity(effNext)) {
+                    nextBoundary = true;
+                }
+                if (eff == nullptr) continue;
+                anyCover = true;
+                RenderableEffect* reff = _ctx->GetEffectManager().GetEffect(eff->GetEffectIndex());
+                if (reff == nullptr) {
+                    statefulB.insert("<unknown>");
+                    continue;
+                }
+                SettingsMap sm;
+                eff->CopySettingsMap(sm, true);
+                RenderableEffect::FrameParallelism base = reff->GetFrameParallelism(sm);
+                RenderableEffect::FrameParallelism eff2 = reff->GetEffectiveFrameParallelism(sm);
+                if (base == RenderableEffect::FrameParallelism::Stateful) {
+                    statefulB.insert(reff->Name());
+                } else if (eff2 == RenderableEffect::FrameParallelism::Stateful) {
+                    // base is Pure/Snapshottable but a continuity setting vetoed it
+                    continuityB.insert(reff->Name());
+                }
+            }
+            if (!anyCover) {
+                ++local.eligEmpty;
+                continue;
+            }
+            int blockerCount = (int)statefulB.size() + (int)continuityB.size() + (nextBoundary ? 1 : 0);
+            if (blockerCount == 0) {
+                ++local.eligSafe;
+                continue;
+            }
+            ++local.eligBlocked;
+            for (const auto& n : statefulB) ++local.statefulAny[n];
+            for (const auto& n : continuityB) ++local.continuityAny[n];
+            if (nextBoundary) ++local.nextBoundaryFrames;
+            if (blockerCount == 1 && statefulB.size() == 1) {
+                ++local.statefulSole[*statefulB.begin()];
+            }
+        }
+        local.rowsEligible = 1;
+        ParBlockerStats& g = parBlockers();
+        std::lock_guard<std::mutex> lg(g.mtx);
+        g.d.merge(local);
+    }
+
     void EnsureParPool(int n) {
         const Model* mdl = mainBuffer->GetModel();
         while ((int)parBuffers.size() < n) {
@@ -1589,12 +1755,32 @@ public:
         // fully-populated row exactly as the serial path does.  produce() stays
         // row-local. Canvas-mix / canvas-Blend / Per-Model (rowMustGateBeforeProduce)
         // are the ones that read dependent data mid-produce and stay excluded.
-        parEligible = xldbgParallelFrames
+        bool isGroup = mainBuffer != nullptr && mainBuffer->GetModel() != nullptr
+            && mainBuffer->GetModel()->GetDisplayAs() == DisplayAsType::ModelGroup;
+        bool structurallyEligible = isGroup
             && !rowMustGateBeforeProduce
             && subModelInfos.empty() && nodeBuffers.empty()
-            && !ctorHasPerModelBuffers
-            && mainBuffer != nullptr && mainBuffer->GetModel() != nullptr
-            && mainBuffer->GetModel()->GetDisplayAs() == DisplayAsType::ModelGroup;
+            && !ctorHasPerModelBuffers;
+        parEligible = xldbgParallelFrames && structurallyEligible;
+
+        if (xldbgParBlockers) {
+            if (!isGroup) {
+                ParBlockerStats& g = parBlockers();
+                std::lock_guard<std::mutex> lg(g.mtx);
+                ++g.d.rowsSingleModel;
+            } else if (structurallyEligible) {
+                AnalyzeFrameBlockers();
+            } else {
+                std::string reason = rowMustGateBeforeProduce ? "canvas-mix / per-model gate"
+                    : !subModelInfos.empty()                  ? "has submodels"
+                    : !nodeBuffers.empty()                    ? "has per-node buffers"
+                    : ctorHasPerModelBuffers                  ? "has per-model buffers"
+                                                              : "other";
+                ParBlockerStats& g = parBlockers();
+                std::lock_guard<std::mutex> lg(g.mtx);
+                ++g.d.rowsIneligible[reason];
+            }
+        }
     }
 
     // Row-local: source-model name if the main model has a Duplicate effect at
