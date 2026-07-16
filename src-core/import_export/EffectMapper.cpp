@@ -62,7 +62,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
 
             // If this is a duplicate effect map the duplicate to the model the original model was mapped to
             if (ef->GetEffectIndex() == EffectManager::eff_DUPLICATE && settings.Contains("E_CHOICE_Duplicate_Model")) {
-                auto dupModel = settings["E_CHOICE_Duplicate_Model"];
+                auto dupModel = settings.Get("E_CHOICE_Duplicate_Model", "");
                 auto it = mapping.find(dupModel);
                 if (it != mapping.end()) {
                     settings["E_CHOICE_Duplicate_Model"] = it->second;
@@ -70,7 +70,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
             }
             if (ef->GetEffectIndex() == EffectManager::eff_PICTURES) {
                 // if using embedded images, need to copy it over
-                std::string v = settings["E_TEXTCTRL_Pictures_Filename"];
+                std::string v = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
                 auto& sm = ef->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
                 auto& tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
                 if (sm.HasImage(v) && !tm.HasImage(v)) {
@@ -90,7 +90,7 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                     auto mg = dynamic_cast<const ModelGroup*>(m);
                     if (mg != nullptr) {
                         if (convertRender) {
-                            auto buffer = settings["B_CHOICE_BufferStyle"];
+                            auto buffer = settings.Get("B_CHOICE_BufferStyle", "");
                             if (buffer == "Per Preview" || buffer == "Default" || buffer == "Single Line") {
                                 settings["B_CHOICE_BufferStyle"] = "Per Model " + buffer;
                             } else if (buffer.empty()) {
@@ -98,14 +98,14 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                             }
                         }
                         // so is it a per preview render buffer
-                        auto rb = settings["B_CHOICE_BufferStyle"];
+                        auto rb = settings.Get("B_CHOICE_BufferStyle", "");
                         if (BufferStyles::CanRenderBufferUseCamera(rb)) {
                             if (settings.Contains("B_CHOICE_PerPreviewCamera")) {
                                 // MoC - There isn't a way to just indicate "use group's default", so instead we grab it as
                                 //   a setting for the effect.
                                 // That way if the group default changes, there is no effect on old / mapped effects
                                 auto newCamera = mg->GetDefaultCamera();
-                                auto effCamera = settings["B_CHOICE_PerPreviewCamera"];
+                                auto effCamera = settings.Get("B_CHOICE_PerPreviewCamera", "");
                                 if (effCamera != "2D" && effCamera != "Default" && rc->GetNamedCamera3D(effCamera)) {
                                     newCamera = effCamera;
                                 }
