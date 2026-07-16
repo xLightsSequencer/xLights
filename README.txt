@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Shader effect ignored the "GPU rendering" preference and still built GPU
+                                 pipelines/command buffers with it turned off; turning it off is now a real
+                                 safety net that keeps the effect entirely on the CPU/OpenGL path
+    -bug (derwin12)              Vulkan Shader effect: fix a startup race that let one render thread use the
+                                 shared sampler/dummy image before another had finished creating them
+    -bug (dkulp)                 Vulkan Shader effect: check the allocation results that were being ignored,
+                                 so an out-of-resources driver makes the effect fall back instead of crashing
     -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
                                  working media files to a new folder (e.g. a show copied to a new year),
                                  not just to fix ones that are currently missing
