@@ -66,12 +66,6 @@ MetalCirclesEffect::~MetalCirclesEffect() {
 }
 
 void MetalCirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    if (buffer.captureSnapshot != nullptr) {
-        // Frame-parallel serial capture pass is advance-only (its drawn output
-        // is discarded): take the CPU path, never spend a GPU dispatch + wait.
-        CirclesEffect::Render(effect, SettingsMap, buffer);
-        return;
-    }
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         CirclesEffect::Render(effect, SettingsMap, buffer);
@@ -151,13 +145,23 @@ void MetalCirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, 
         cdata.number      = number;
         cdata.effectState = effectState;
     } else {
-        // Update ball positions via the base class — no pixel drawing
-        CirclesRenderCache *cache = UpdateCacheState(effect, SettingsMap, buffer);
+        // Migrated Snapshottable draw: feed the kernel from the post-advance ball
+        // snapshot AdvanceState produced (the engine sets pendingSnapshot for both
+        // serial and frame-parallel draws) - never re-advance the cache here.  The
+        // defensive branch advances only if some caller invoked Render directly.
+        std::unique_ptr<EffectFrameState> owned;
+        const CirclesFrameState* fs;
+        if (buffer.pendingSnapshot != nullptr) {
+            fs = static_cast<const CirclesFrameState*>(buffer.pendingSnapshot);
+        } else {
+            owned = AdvanceState(effect, SettingsMap, buffer);
+            fs = static_cast<const CirclesFrameState*>(owned.get());
+        }
 
-        int actualBalls = std::min(cache->numBalls, MAX_METAL_CIRCLES_BALLS);
+        int actualBalls = std::min(fs->numBalls, MAX_METAL_CIRCLES_BALLS);
         cdata.numBalls = actualBalls;
 
-        RgbBalls *src = plasma ? (RgbBalls*)cache->metaballs : cache->balls;
+        const RgbBalls *src = plasma ? (const RgbBalls*)fs->metaballs.data() : fs->balls.data();
         for (int i = 0; i < actualBalls; i++) {
             cdata.balls[i].x        = src[i]._x;
             cdata.balls[i].y        = src[i]._y;

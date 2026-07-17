@@ -12,7 +12,9 @@
 
 #include "RenderableEffect.h"
 #include "../render/RenderBuffer.h"
+#include <array>
 #include <cmath>
+#include <memory>
 
 static const int MAX_RGB_BALLS = 20;
 
@@ -84,7 +86,7 @@ public:
 class MetaBall : public RgbBalls
 {
 public:
-    float Equation(float x, float y)
+    float Equation(float x, float y) const
     {
         if ((x == _x) && (y == _y)) return 1;
         return (_radius / (sqrt(pow(x - _x, 2) + pow(y - _y, 2))));
@@ -107,12 +109,27 @@ public:
     MetaBall *metaballs;
 };
 
+// Tier-2 immutable per-frame draw snapshot, produced by AdvanceState AFTER the
+// ball simulation has been advanced for the frame (init, position integration,
+// bounce).  The draw is a pure, RNG-free function of this state, so the serial
+// and frame-parallel draw passes are byte-identical.  Only the Snapshottable
+// (non-radial) modes produce one; radial / radial-3D are Pure (no snapshot).
+struct CirclesFrameState : public EffectFrameState {
+    std::array<RgbBalls, MAX_RGB_BALLS> balls;
+    std::array<MetaBall, MAX_RGB_BALLS> metaballs;
+    int numBalls = 0;
+    bool metaType = false;
+};
+
 class CirclesEffect : public RenderableEffect
 {
 public:
     CirclesEffect(int id);
     virtual ~CirclesEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: advance the ball simulation serially, then draw purely from the
+    // returned snapshot (nullptr for the Pure radial modes - see GetFrameParallelism).
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
@@ -148,11 +165,14 @@ protected:
     // After this call, cache->balls or cache->metaballs have updated positions.
     CirclesRenderCache* UpdateCacheState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer);
 
-    // Draw pixels from the already-updated cache state.
-    void RenderPixels(const SettingsMap& SettingsMap, RenderBuffer& buffer, CirclesRenderCache* cache,
+    // Draw a frame's post-advance ball snapshot: ISPC fast path or CPU fallback.
+    void RenderFromState(const SettingsMap& SettingsMap, RenderBuffer& buffer, const CirclesFrameState& fs);
+
+    // CPU fallback rasteriser for a frame's ball snapshot.
+    void RenderPixels(const SettingsMap& SettingsMap, RenderBuffer& buffer, const CirclesFrameState& fs,
                       bool plasma, bool fade, bool bubbles, bool bounce);
 
-    void RenderMetaBalls(RenderBuffer& buffer, int numBalls, MetaBall* metaballs);
+    void RenderMetaBalls(RenderBuffer& buffer, int numBalls, const MetaBall* metaballs);
     void RenderRadial(RenderBuffer& buffer, int start_x, int start_y, int radius,
                       int colorCnt, int number, bool radial_3D,
                       const int effectState);
