@@ -91,13 +91,14 @@ VulkanCandleEffect::~VulkanCandleEffect() {
 }
 
 void VulkanCandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
-    if (buffer.captureSnapshot != nullptr || buffer.pendingSnapshot != nullptr) {
-        // Both frame-parallel snapshot passes take the CPU base Render: the
-        // serial capture pass is advance-only (its drawn output is discarded),
-        // and the parallel draw pass must go through the base Render's snapshot
-        // restore (cache->_states/maxWid + needToInit). The GPU path would
-        // instead re-init per-node state on the fresh window clone and discard
-        // the captured simulation.
+    if (buffer.pendingSnapshot == nullptr) {
+        // The GPU draw is only ever reached through the engine's AdvanceState +
+        // Render(pendingSnapshot) sequence, which the engine drives in BOTH serial
+        // and frame-parallel rendering - so the GPU now runs inside parallel
+        // windows too (it used to early-out to the CPU there).  Any direct call
+        // without a snapshot (defensive preview path) takes the CPU base Render,
+        // which advances then draws.  The capture pre-pass calls AdvanceState, not
+        // Render, so it never reaches here.
         CandleEffect::Render(effect, SettingsMap, buffer);
         return;
     }
@@ -146,8 +147,12 @@ void VulkanCandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, 
         }
     }
 
+    // Draw pass: restore the captured pre-frame (post-init) state into the cache and
+    // feed THAT to the GPU, which advances the simulation in place and draws.  We
+    // must NOT call getPerNodeStates here - on a parallel clone that would reseed
+    // per-node state via the stream RNG and discard the captured simulation.
     int maxW = 0;
-    std::vector<CandleState>& states = *getPerNodeStates(buffer, SettingsMap, maxW);
+    std::vector<CandleState>& states = *RestoreSnapshotStates(buffer, *buffer.pendingSnapshot, maxW);
     if (states.empty()) {
         CandleEffect::Render(effect, SettingsMap, buffer);
         return;

@@ -209,26 +209,130 @@ RenderableEffect::FrameParallelism CandleEffect::GetFrameParallelism(const Setti
 // 10 <= HeightPct <= 100
 void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    // Frame-parallel Snapshottable paths (see GetFrameParallelism): restore or
-    // capture the pre-frame state, then run the normal advance+draw either way
-    // (the advance is fused into the per-node kernel; the capture pass's pixel
-    // output is discarded).
-    {
-        CandleRenderCache* cache = GetCache(buffer, id);
-        if (buffer.pendingSnapshot != nullptr) {
-            const CandleFrameState& fs = static_cast<const CandleFrameState&>(*buffer.pendingSnapshot);
-            cache->_states = fs.states;
-            cache->maxWid = fs.maxWid;
-            buffer.needToInit = fs.needToInit;
-        } else if (buffer.captureSnapshot != nullptr) {
-            auto fs = std::make_unique<CandleFrameState>();
-            fs->states = cache->_states;
-            fs->maxWid = cache->maxWid;
-            fs->needToInit = buffer.needToInit;
-            *buffer.captureSnapshot = std::move(fs);
+    // Tier-2 draw pass: the engine runs AdvanceState first (serially advancing the
+    // simulation and capturing the pre-frame snapshot) and then calls Render with
+    // buffer.pendingSnapshot set, in BOTH serial and frame-parallel rendering.  We
+    // restore that snapshot and re-run the fused advance+draw from it.
+    std::unique_ptr<EffectFrameState> owned;
+    const EffectFrameState* snap = buffer.pendingSnapshot;
+    if (snap == nullptr) {
+        // Defensive fall-through: a direct caller invoked Render without first going
+        // through AdvanceState (e.g. a preview).  Advance + capture here, then draw
+        // the snapshot - a pure function of it, so this stays byte-identical.
+        owned = AdvanceState(effect, SettingsMap, buffer);
+        snap = owned.get();
+    }
+    int maxW = 0;
+    RestoreSnapshotStates(buffer, *snap, maxW);
+    RenderDraw(effect, SettingsMap, buffer);
+}
+
+std::unique_ptr<EffectFrameState> CandleEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    CandleRenderCache* cache = GetCache(buffer, id);
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int flameAgility = GetValueCurveInt("Candle_FlameAgility", sFlameAgilityDefault, SettingsMap, oset, sFlameAgilityMin, sFlameAgilityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int windCalmness = GetValueCurveInt("Candle_WindCalmness", sWindCalmnessDefault, SettingsMap, oset, sWindCalmnessMin, sWindCalmnessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int windVariability = GetValueCurveInt("Candle_WindVariability", sWindVariabilityDefault, SettingsMap, oset, sWindVariabilityMin, sWindVariabilityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int windBaseline = GetValueCurveInt("Candle_WindBaseline", sWindBaselineDefault, SettingsMap, oset, sWindBaselineMin, sWindBaselineMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", sPerNodeDefault);
+
+    auto fs = std::make_unique<CandleFrameState>();
+
+    if (perNode) {
+        // getPerNodeStates seeds every per-node state (stream RNG via
+        // CandleState::init) on the first frame and clears needToInit.  Seeding MUST
+        // happen here in the serial advance, never in Render, so a parallel draw
+        // clone never touches the stream RNG.
+        int maxW = 0;
+        std::vector<CandleState>& states = *getPerNodeStates(buffer, SettingsMap, maxW);
+
+        // Snapshot the post-init, pre-advance state; Render restores this and draws.
+        fs->states = states;
+        fs->maxWid = maxW;
+        fs->needToInit = false;
+
+        // Advance the live cache exactly as the fused ISPC/Metal/Vulkan kernel does
+        // for state - same node->pixel mapping, same clamped params, same
+        // hashRand01 seeds and call order, minus all colour/pixel work.  The scalar
+        // Update() is the reference the kernels are bit-identical to (see
+        // ispc/CandleFunctions.ispc), so re-running it here reproduces the kernels'
+        // per-node state bit-for-bit.
+        if (!states.empty()) {
+            int wi = buffer.BufferWi;
+            uint32_t numStates = (uint32_t)states.size();
+            int npix = (int)std::min<size_t>((size_t)buffer.BufferWi * buffer.BufferHt, buffer.GetPixelCount());
+            // Match the kernel's clamps (windCalmness feeds a right shift; a value
+            // curve can exceed the slider bounds).
+            size_t cWindVariability = (size_t)std::clamp(windVariability, 0, 255);
+            size_t cFlameAgility = (size_t)std::clamp(flameAgility, 0, 254);
+            size_t cWindCalmness = (size_t)std::clamp(windCalmness, 0, 31);
+            size_t cWindBaseline = (size_t)std::clamp(windBaseline, 0, 255);
+            for (int index = 0; index < npix; index++) {
+                int x = index % wi;
+                int y = index / wi;
+                uint32_t stateIdx = (uint32_t)(y * maxW + x);
+                if (stateIdx < numStates) {
+                    CandleState& st = states[stateIdx];
+                    uint32_t seed = stateIdx * 131101u;
+                    Update(buffer, seed, st.flameprimer, st.flamer, st.wind, cWindVariability, cFlameAgility, cWindCalmness, cWindBaseline);
+                    Update(buffer, seed + 4u, st.flameprimeg, st.flameg, st.wind, cWindVariability, cFlameAgility, cWindCalmness, cWindBaseline);
+                    if (st.flameprimeg > st.flameprimer) {
+                        st.flameprimeg = st.flameprimer;
+                    }
+                    if (st.flameg > st.flamer) {
+                        st.flameprimeg = st.flameprimer;
+                    }
+                }
+            }
+        }
+    } else {
+        std::vector<CandleState>& states = cache->_states;
+        if (buffer.needToInit) {
+            buffer.needToInit = false;
+            if (states.empty()) {
+                states.resize(1);
+            }
+            states[0].init(buffer);
+        }
+
+        // Snapshot the post-init, pre-advance state; Render restores this and draws.
+        fs->states = states;
+        fs->maxWid = cache->maxWid;
+        fs->needToInit = false;
+
+        // Single-flame advance mirrors the scalar draw path, which uses UNCLAMPED
+        // params (this mode never runs on the GPU/ISPC clamped kernel).
+        CandleState* state = &states[0];
+        Update(buffer, 0u, state->flameprimer, state->flamer, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+        Update(buffer, 4u, state->flameprimeg, state->flameg, state->wind, windVariability, flameAgility, windCalmness, windBaseline);
+        if (state->flameprimeg > state->flameprimer) {
+            state->flameprimeg = state->flameprimer;
+        }
+        if (state->flameg > state->flamer) {
+            state->flameprimeg = state->flameprimer;
         }
     }
+    return fs;
+}
 
+std::vector<CandleState>* CandleEffect::RestoreSnapshotStates(RenderBuffer& buffer, const EffectFrameState& snap, int& maxWid)
+{
+    CandleRenderCache* cache = GetCache(buffer, id);
+    const CandleFrameState& fs = static_cast<const CandleFrameState&>(snap);
+    cache->_states = fs.states;
+    cache->maxWid = fs.maxWid;
+    // AdvanceState always seeds before snapshotting, so the draw pass never inits
+    // (which would consume stream RNG on a parallel clone).  Guard the invariant.
+    assert(!fs.needToInit);
+    buffer.needToInit = false;
+    maxWid = cache->maxWid;
+    return &cache->_states;
+}
+
+void CandleEffect::RenderDraw(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
     float oset = buffer.GetEffectTimeIntervalPosition();
     int flameAgility = GetValueCurveInt("Candle_FlameAgility", sFlameAgilityDefault, SettingsMap, oset, sFlameAgilityMin, sFlameAgilityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int windCalmness = GetValueCurveInt("Candle_WindCalmness", sWindCalmnessDefault, SettingsMap, oset, sWindCalmnessMin, sWindCalmnessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
