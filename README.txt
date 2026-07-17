@@ -25,9 +25,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Frame-parallel rendering: Snowflakes could render a wrong first frame
                                  in parallel windows (Random/"3 nodes" type or warmup frames)
     -change (dkulp)              Render: new AdvanceState API separates a Snapshottable effect's state
-                                 advance from its draw (Snowstorm, Fireworks, Strobe, Lines, Snowflakes
-                                 and most VU Meter modes converted); the frame-parallel capture pass no
-                                 longer encodes discarded GPU blur/rotozoom/transition work
+                                 advance from its draw (Snowstorm, Fireworks, Strobe, Lines, Snowflakes,
+                                 most VU Meter modes, and the GPU effects Candle, Circles, Meteors,
+                                 Twinkle and Wave converted); the frame-parallel capture pass no longer
+                                 encodes discarded GPU blur/rotozoom/transition work
+    -enh (dkulp)                 Render: GPU-accelerated Snapshottable effects (Candle, Circles, Twinkle,
+                                 Wave, Meteors) now keep their Metal/Vulkan acceleration inside
+                                 frame-parallel windows instead of falling back to CPU
     -bug (dkulp)                 Normalize bare float settings (e.g. ".2" → "0.2") from old sequences so
                                  float text controls display and edit correctly
     -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a
