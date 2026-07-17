@@ -9038,7 +9038,13 @@ void EffectsGrid::DuplicateSelectedEffects() {
                 long end = mSelectedEffect->GetEndTimeMS();
                 long length = end - start;
 
-                long startCol = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS())->GetID() + 2;
+                // No timing mark covers the selected effect's start (it begins in a
+                // gap), so there is no cell column to duplicate from.
+                Effect* startTiming = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS());
+                if (startTiming == nullptr) {
+                    return;
+                }
+                long startCol = startTiming->GetID() + 2;
                 if (mSelectedEffect->GetStartTimeMS() == 0) { // first timing mark in the zero column, and second timing mark has start column of 0 too
                     startCol--;
                 }
@@ -9059,8 +9065,8 @@ void EffectsGrid::DuplicateSelectedEffects() {
                             Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
                             if (newef != nullptr) {
                                 newef->HandlePastedSymbolLink();
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                             }
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
                     }
                     ++startCol;
@@ -9080,8 +9086,8 @@ void EffectsGrid::DuplicateSelectedEffects() {
                         Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
                         if (newef != nullptr) {
                             newef->HandlePastedSymbolLink();
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                     }
                     newstart = newEnd;
                 }
