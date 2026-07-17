@@ -1069,6 +1069,11 @@ bool xLightsApp::OnInit()
         // Optional: dump A vs B for one channel across frames (env, 1-based).
         const char* dumpEnv = getenv("XL_FSEQCMP_DUMPCH");
         const uint32_t dumpCh = dumpEnv ? (uint32_t)strtoul(dumpEnv, nullptr, 10) : 0;
+        // Optional: report the differing FRAME ranges (env) - the temporal
+        // shape localizes window/state bugs the way per-model localizes rows.
+        const bool dumpFrames = getenv("XL_FSEQCMP_FRAMES") != nullptr;
+        std::vector<uint32_t> frameDiffs;
+        if (dumpFrames) frameDiffs.assign(frames, 0);
         std::vector<std::pair<uint8_t, uint8_t>> series;
         if (dumpCh != 0 && dumpCh <= maxCh) series.reserve(frames);
         for (uint32_t fr = 0; fr < frames; ++fr) {
@@ -1089,9 +1094,19 @@ bool xLightsApp::OnInit()
                     if (firstFrame < 0) { firstFrame = (long)fr; firstCh = c; }
                     ++chDiffFrames[c];
                     if (d > chMaxDiff[c]) chMaxDiff[c] = (uint8_t)std::min(d, 255);
+                    if (dumpFrames) ++frameDiffs[fr];
                 }
             }
             if (dumpCh != 0 && dumpCh <= maxCh) series.emplace_back(ba[dumpCh - 1], bb[dumpCh - 1]);
+        }
+        if (dumpFrames && diffSamples > 0) {
+            printf("\ndiffering frame ranges (frame:samples):\n");
+            long rs = -1; uint64_t rsum = 0;
+            for (uint32_t fr = 0; fr <= frames; ++fr) {
+                bool d = fr < frames && frameDiffs[fr] > 0;
+                if (d) { if (rs < 0) { rs = fr; rsum = 0; } rsum += frameDiffs[fr]; }
+                else if (rs >= 0) { printf("  %ld-%u  (%llu samples)\n", rs, fr - 1, (unsigned long long)rsum); rs = -1; }
+            }
         }
         if (dumpCh != 0 && !series.empty()) {
             printf("\nchannel %u  A vs B (first 80 frames; * = differ):\n", dumpCh);
