@@ -335,12 +335,21 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(RenderBuffer& buffer, in
 }
 
 void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: rasterise the snapshot AdvanceState produced.  Under the tier-2
+    // engine this is the ONLY path reached (AdvanceState runs first and sets
+    // pendingSnapshot in both serial and frame-parallel rendering).
     if (buffer.pendingSnapshot != nullptr) {
-        // Frame-parallel draw pass: rasterise the snapshot the serial capture
-        // pass advanced and stored; no sim advance here.
         DrawFireworks(buffer, static_cast<const FireworksFrameState&>(*buffer.pendingSnapshot).items);
         return;
     }
+    // Defensive fall-through for any caller that invokes Render without first
+    // going through AdvanceState: advance then draw, exactly the legacy body.
+    // The draw is a pure function of the snapshot, so this stays byte-identical.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    DrawFireworks(buffer, static_cast<const FireworksFrameState&>(*fs).items);
+}
+
+std::unique_ptr<EffectFrameState> FireworksEffect::AdvanceState(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", sExplosionsDefault);
@@ -518,17 +527,12 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     }
 
-    // Draw the snapshot, or (tier-2) hand it to a parallel draw pass.
-    if (buffer.captureSnapshot != nullptr)
-    {
-        auto fs = std::make_unique<FireworksFrameState>();
-        fs->items = std::move(drawItems);
-        *buffer.captureSnapshot = std::move(fs);
-    }
-    else
-    {
-        DrawFireworks(buffer, drawItems);
-    }
+    // Capture the pre-advance draw list into this frame's immutable draw
+    // snapshot.  The engine hands it back to Render (via pendingSnapshot) for
+    // the actual draw, in both serial and frame-parallel rendering.
+    auto fs = std::make_unique<FireworksFrameState>();
+    fs->items = std::move(drawItems);
+    return fs;
 }
 
 RenderableEffect::FrameParallelism FireworksEffect::GetFrameParallelism(const SettingsMap& settings) const {

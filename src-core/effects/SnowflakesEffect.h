@@ -18,6 +18,10 @@ public:
     SnowflakesEffect(int id);
     virtual ~SnowflakesEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: AdvanceState runs the whole per-frame state transition (init +
+    // warmup/move + the draw's pre-rolled RNG) and returns the frame's immutable
+    // draw snapshot; Render is then a pure, RNG-free rasterise of that snapshot.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
 
     static int sCountDefault;

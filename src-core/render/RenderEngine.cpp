@@ -1089,7 +1089,14 @@ public:
 
                 if (suppress) {
                     info.validLayers[layer] = false;
-                } else if (info.validLayers[layer]) {
+                } else if (info.validLayers[layer]
+                           && buffer->BufferForLayer(layer, -1).captureSnapshot == nullptr) {
+                    // Skip blur/rotozoom/transitions during the tier-2 capture
+                    // pre-pass (captureSnapshot set): they are per-frame stateless
+                    // and recomputed on the parallel clone buffers in the draw
+                    // pass, so doing them here just encodes GPU work whose pixels
+                    // are discarded (this is what the RenderParallelWindow quiesce
+                    // loop had to clean up - now a no-op).
                     { StageTimer st(profRender ? &profile.blurZoomNs : nullptr);
                       buffer->HandleLayerBlurZoom(frame, layer); }
                     { StageTimer st(profRender ? &profile.transitionNs : nullptr);
@@ -1719,12 +1726,14 @@ public:
             }
             // Restore full-layer rendering for any later serial frame on the main buffer.
             mainModelInfo.processLayer.clear();
-            // Quiesce the main buffer's GPU state: the pre-pass runs produce
-            // WITHOUT the output stage, so nothing here commits GPU work it may
-            // have encoded (blur/rotozoom/transitions on the captured layers).
-            // Left open, that work commits at the NEXT serial frame's first
-            // wait - landing stale blits over pixels the serial frame already
-            // wrote (one wrong frame after every window run, then self-heals).
+            // Quiesce the main buffer's GPU state as a belt-and-suspenders
+            // backstop.  ProduceFrame now SKIPs blur/rotozoom/transitions on
+            // captured layers (captureSnapshot set), so the pre-pass should no
+            // longer encode any GPU work here and this loop is expected to be a
+            // no-op (cheap when there is nothing outstanding).  Kept because if
+            // an effect's capture path ever encodes GPU work, leaving it open
+            // would commit stale blits at the next serial frame's first wait,
+            // corrupting exactly that frame (then self-healing).
             for (int l = 0; l < numLayers; ++l) {
                 GPURenderUtils::waitForRenderCompletion(&mainBuffer->BufferForLayer(l, -1));
             }
@@ -3390,21 +3399,43 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                 // ends up waiting on it.
                                 GpuEffectScope gpuScope(effProf, effName);
                                 if (rb->pendingSnapshot != nullptr) {
-                                    // Tier-2 parallel draw: Render() rasterises the
-                                    // snapshot the serial capture pass stored (it
+                                    // Tier-2 draw pass (serial or parallel): Render()
+                                    // rasterises the snapshot AdvanceState produced (it
                                     // checks pendingSnapshot itself and skips the sim
                                     // advance); no render-cache / verify on this path.
                                     reff->Render(effectObj, SettingsMap, *rb);
                                 }
+                                else if (rb->captureSnapshot != nullptr) {
+                                    // Tier-2 capture pre-pass: advance the sim and store
+                                    // this frame's draw snapshot without drawing.  A
+                                    // migrated effect returns it from AdvanceState; an
+                                    // unmigrated one returns null and falls back to the
+                                    // legacy Render(captureSnapshot) that fills it.
+                                    auto snap = reff->AdvanceState(effectObj, SettingsMap, *rb);
+                                    if (snap != nullptr) {
+                                        *rb->captureSnapshot = std::move(snap);
+                                    } else {
+                                        reff->Render(effectObj, SettingsMap, *rb);
+                                    }
+                                }
                                 else if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
                                     if (!effectObj->GetFrame(*rb, _renderCache)) {
+                                        // Serial advance+draw: a migrated Snapshottable
+                                        // effect advances here, then Render draws the
+                                        // returned snapshot - identical to the draw pass.
+                                        auto snap = reff->AdvanceState(effectObj, SettingsMap, *rb);
+                                        if (snap != nullptr) rb->pendingSnapshot = snap.get();
                                         reff->Render(effectObj, SettingsMap, *rb);
+                                        rb->pendingSnapshot = nullptr;
                                         GPURenderUtils::waitForRenderCompletion(rb);
                                         effectObj->AddFrame(*rb, _renderCache);
                                     }
                                 }
                                 else {
+                                    auto snap = reff->AdvanceState(effectObj, SettingsMap, *rb);
+                                    if (snap != nullptr) rb->pendingSnapshot = snap.get();
                                     reff->Render(effectObj, SettingsMap, *rb);
+                                    rb->pendingSnapshot = nullptr;
                                     if (xldbgVerifyStateless && !suppress &&
                                         reff->GetEffectiveFrameParallelism(SettingsMap) == RenderableEffect::FrameParallelism::Pure) {
                                         VerifyStatelessRender(reff, effectObj, SettingsMap, rb, buffer.GetModelName(), layer);

@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <memory>
 #include <string>
 #include <nlohmann/json.hpp>
 #include "Color.h"
@@ -136,16 +137,30 @@ public:
     // --- Tier-2 Snapshottable API ------------------------------------------
     // A Snapshottable effect exposes a cheap serial state-advance separately
     // from an expensive pure per-frame draw, so the engine can advance the
-    // simulation serially while drawing many frames concurrently.  Both phases
-    // go through the effect's normal Render(), branched on two transient buffer
-    // flags (see RenderBuffer):
-    //   * capture: buffer.captureSnapshot set - advance the simulation
-    //     (buffer.infoCache) as usual, store the frame's immutable draw snapshot
-    //     in *buffer.captureSnapshot, and SKIP the draw.
-    //   * draw: buffer.pendingSnapshot set - SKIP the advance and rasterise the
-    //     previously captured snapshot.  Pure function of the snapshot; runs on
-    //     worker threads.  (Check this first, at the top of Render.)
-    // Both paths are only reached when GetFrameParallelism returns Snapshottable.
+    // simulation serially while drawing many frames concurrently.
+    //
+    // Migrated effects split the two phases across two entry points:
+    //   * AdvanceState() advances the cross-frame simulation (buffer.infoCache)
+    //     for this frame and returns the frame's immutable draw snapshot.
+    //   * Render(), when buffer.pendingSnapshot is set, rasterises that snapshot
+    //     and does NOT advance.  Pure function of the snapshot; runs on worker
+    //     threads.  (Check pendingSnapshot first, at the top of Render.)
+    // The engine advances serially via AdvanceState and then draws through
+    // Render(pendingSnapshot) in BOTH serial and frame-parallel rendering, so the
+    // two paths are byte-identical.
+    //
+    // Unmigrated effects still fuse advance+draw inside Render (AdvanceState
+    // returns the default nullptr).  The engine then falls back to the legacy
+    // capture protocol: with buffer.captureSnapshot set it advances the sim,
+    // stores the snapshot in *buffer.captureSnapshot and SKIPs the draw.  These
+    // paths are only reached when GetFrameParallelism returns Snapshottable.
+
+    // Advances the effect's cross-frame simulation state for this frame and
+    // returns the frame's immutable draw snapshot, or nullptr for effects whose
+    // Render still fuses advance+draw (the default).  When this returns non-null,
+    // the engine sets buffer.pendingSnapshot and Render draws from it - in BOTH
+    // serial and frame-parallel rendering, so the two paths are identical.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) { return nullptr; }
 
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) = 0;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {}

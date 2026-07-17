@@ -20,6 +20,7 @@ public:
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     // Tier-2: cheap serial particle advance + a pure per-particle SetPixel draw.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override

@@ -62,18 +62,6 @@ void LinesEffect::OnMetadataLoaded()
     sFadeTrailsDefault = GetBoolDefault("Lines_FadeTrails", sFadeTrailsDefault);
 }
 
-void LinesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    float oset = buffer.GetEffectTimeIntervalPosition();
-    Render(buffer,
-        SettingsMap.GetInt("SLIDER_Lines_Objects", sObjectsDefault),
-        SettingsMap.GetInt("SLIDER_Lines_Segments", sSegmentsDefault),
-        GetValueCurveInt("Lines_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveDouble("Lines_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sSpeedDivisor),
-        SettingsMap.GetInt("SLIDER_Lines_Trails", sTrailsDefault),
-        SettingsMap.GetBool("CHECKBOX_Lines_FadeTrails", sFadeTrailsDefault)
-    );
-}
-
 #define pi2 6.283185307
 
 struct LinePoint
@@ -214,67 +202,32 @@ public:
     }
 };
 
-// Tier-2 immutable per-frame draw state: the whole line-object list (points,
-// angles, trails) plus the buffer's needToInit flag, captured BEFORE this
-// frame's advance.  A frame-parallel draw pass restores these onto a clone and
-// re-runs the normal render, reproducing the serial frame byte-for-byte.
+// Tier-2 immutable per-frame draw state: the POST-advance line-object list
+// (points, angles, trails) that AdvanceState computed for this frame.  Render
+// draws purely from it, so the serial and frame-parallel paths rasterise the
+// exact same state AdvanceState produced.
 struct LinesFrameState : public EffectFrameState {
     std::list<LineObject> lineObjects;
-    bool needToInit = false;
 };
 
 RenderableEffect::FrameParallelism LinesEffect::GetFrameParallelism(const SettingsMap& settings) const {
     // All cross-frame state is the LinesRenderCache line-object list, which
-    // LinesFrameState snapshots in full; the random draws are per-frame-seeded,
-    // so a draw pass that restores the pre-frame state and re-runs the advance
-    // reproduces the serial frame.
+    // AdvanceState advances and snapshots in full (post-advance).  Render is a
+    // pure function of that snapshot, so a frame-parallel draw pass reproduces
+    // the serial frame.
     return FrameParallelism::Snapshottable;
 }
 
-void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thickness, double speed, int trails, bool fadeTrails)
+// Pure draw of a frame's line objects into the main buffer.  No RNG, no cache
+// access - each object is drawn into a temp buffer and alpha-blended in to
+// minimise over-render artefacts.
+static void DrawLines(RenderBuffer& buffer, const std::list<LineObject>& lines, int thickness, int trails, bool fadeTrails)
 {
-	// Grab our cache
-	LinesRenderCache *cache = static_cast<LinesRenderCache*>(buffer.infoCache[id]);
-	if (cache == nullptr) {
-		cache = new LinesRenderCache();
-		buffer.infoCache[id] = cache;
-	}
-
-    auto& _lines = cache->_lineObjects;
-
-    // Frame-parallel Snapshottable paths (see GetFrameParallelism): restore or
-    // capture the pre-frame state, then run the normal advance either way.
-    if (buffer.pendingSnapshot != nullptr) {
-        const LinesFrameState& fs = static_cast<const LinesFrameState&>(*buffer.pendingSnapshot);
-        cache->_lineObjects = fs.lineObjects;
-        buffer.needToInit = fs.needToInit;
-    } else if (buffer.captureSnapshot != nullptr) {
-        auto fs = std::make_unique<LinesFrameState>();
-        fs->lineObjects = cache->_lineObjects;
-        fs->needToInit = buffer.needToInit;
-        *buffer.captureSnapshot = std::move(fs);
-    }
-
-	// Check for config changes which require us to reset
-	if (buffer.needToInit) {
-        buffer.needToInit = false;
-	}
-
-    cache->CreateDestroy(buffer, objects, points, buffer.BufferWi, buffer.BufferHt);
-    cache->Advance(buffer, speed, trails);
-
-    // Frame-parallel serial capture pass is advance-only: the draw below goes
-    // through a temp buffer + AlphaBlend (raw pixel writes the SetPixel capture
-    // guard cannot suppress) - skip it; the clones draw these frames.
-    if (buffer.captureSnapshot != nullptr) {
-        return;
-    }
-
     RenderBuffer temp(buffer);
     temp.SetAllowAlphaChannel(true);
 
     int color = 0;
-    for (auto line : _lines) {
+    for (auto line : lines) {
         xlColor c = buffer.palette.GetColor(color++ % buffer.GetColorCount());
 
         // Draw into a temp buffer and then alpha blend that into the main buffer
@@ -283,6 +236,62 @@ void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thic
         line.Draw(temp, c, trails, fadeTrails, thickness);
         buffer.AlphaBlend(temp);
     }
+}
+
+std::unique_ptr<EffectFrameState> LinesEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int objects = SettingsMap.GetInt("SLIDER_Lines_Objects", sObjectsDefault);
+    int points = SettingsMap.GetInt("SLIDER_Lines_Segments", sSegmentsDefault);
+    double speed = GetValueCurveDouble("Lines_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sSpeedDivisor);
+    int trails = SettingsMap.GetInt("SLIDER_Lines_Trails", sTrailsDefault);
+
+    // Grab our cache
+    LinesRenderCache* cache = static_cast<LinesRenderCache*>(buffer.infoCache[id]);
+    if (cache == nullptr) {
+        cache = new LinesRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+
+    // Check for config changes which require us to reset
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+    }
+
+    // Advance the simulation (this is where ALL the per-frame RNG lives, in
+    // CreateDestroy -> CreateFirst -> CreatePoint; Advance is RNG-free).
+    cache->CreateDestroy(buffer, objects, points, buffer.BufferWi, buffer.BufferHt);
+    cache->Advance(buffer, speed, trails);
+
+    // Capture the post-advance line objects as this frame's immutable draw
+    // snapshot; the engine hands it back to Render for the actual draw.
+    auto fs = std::make_unique<LinesFrameState>();
+    fs->lineObjects = cache->_lineObjects;
+    return fs;
+}
+
+void LinesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int thickness = GetValueCurveInt("Lines_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int trails = SettingsMap.GetInt("SLIDER_Lines_Trails", sTrailsDefault);
+    bool fadeTrails = SettingsMap.GetBool("CHECKBOX_Lines_FadeTrails", sFadeTrailsDefault);
+
+    // Draw pass: rasterise the snapshot AdvanceState produced.  Under the tier-2
+    // engine this is the ONLY path reached (AdvanceState runs first and sets
+    // pendingSnapshot in both serial and frame-parallel rendering).
+    if (buffer.pendingSnapshot != nullptr) {
+        const LinesFrameState& fs = static_cast<const LinesFrameState&>(*buffer.pendingSnapshot);
+        DrawLines(buffer, fs.lineObjects, thickness, trails, fadeTrails);
+        return;
+    }
+
+    // Defensive fall-through for any caller that invokes Render without first
+    // going through AdvanceState: advance then draw.  The draw is a pure
+    // function of the snapshot, so this stays byte-identical.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    const LinesFrameState& lfs = static_cast<const LinesFrameState&>(*fs);
+    DrawLines(buffer, lfs.lineObjects, thickness, trails, fadeTrails);
 }
 
 bool LinesEffect::needToAdjustSettings(const std::string& version)

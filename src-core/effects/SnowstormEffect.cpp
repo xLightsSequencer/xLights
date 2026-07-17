@@ -165,14 +165,23 @@ static void DrawSnowstormItems(RenderBuffer& buffer, const Container& items, int
 }
 
 void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    // Draw pass: rasterise the snapshot AdvanceState produced.  Under the tier-2
+    // engine this is the ONLY path reached (AdvanceState runs first and sets
+    // pendingSnapshot in both serial and frame-parallel rendering).
     if (buffer.pendingSnapshot != nullptr) {
-        // Frame-parallel draw pass: rasterise the snapshot the serial capture
-        // pass advanced and stored; no sim advance here.
         const SnowstormFrameState& fs = static_cast<const SnowstormFrameState&>(*buffer.pendingSnapshot);
         DrawSnowstormItems(buffer, fs.items, fs.tailLength);
         return;
     }
+    // Defensive fall-through for any caller that invokes Render without first
+    // going through AdvanceState: advance then draw, exactly the legacy body.
+    // The draw is a pure function of the snapshot, so this stays byte-identical.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    const SnowstormFrameState& sfs = static_cast<const SnowstormFrameState&>(*fs);
+    DrawSnowstormItems(buffer, sfs.items, sfs.tailLength);
+}
 
+std::unique_ptr<EffectFrameState> SnowstormEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
     int Count = SettingsMap.GetInt("SLIDER_Snowstorm_Count", sCountDefault);
     int TailLength = SettingsMap.GetInt("SLIDER_Snowstorm_Length", sLengthDefault);
     int sSpeed = SettingsMap.GetInt("SLIDER_Snowstorm_Speed", sSpeedDefault);
@@ -257,16 +266,13 @@ void SnowstormEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         }
     }
 
-    // draw the advanced items, or (tier-2) capture them for a parallel draw
-    if (buffer.captureSnapshot != nullptr) {
-        auto fs = std::make_unique<SnowstormFrameState>();
-        fs->items.assign(SnowstormItems.begin(), SnowstormItems.end());
-        fs->tailLength = TailLength;
-        *buffer.captureSnapshot = std::move(fs);
-    }
-    else {
-        DrawSnowstormItems(buffer, SnowstormItems, TailLength);
-    }
+    // Capture the advanced items into this frame's immutable draw snapshot.  The
+    // engine hands it back to Render (via pendingSnapshot) for the actual draw,
+    // in both serial and frame-parallel rendering.
+    auto fs = std::make_unique<SnowstormFrameState>();
+    fs->items.assign(SnowstormItems.begin(), SnowstormItems.end());
+    fs->tailLength = TailLength;
+    return fs;
 }
 
 RenderableEffect::FrameParallelism SnowstormEffect::GetFrameParallelism(const SettingsMap& settings) const {

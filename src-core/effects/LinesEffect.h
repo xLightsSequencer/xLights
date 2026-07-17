@@ -19,9 +19,9 @@ public:
     LinesEffect(int id);
     virtual ~LinesEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: a cheap serial line-object advance + a pure per-frame draw.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
-    void Render(RenderBuffer& buffer,
-                int objects, int segments, int thickness, double speed, int trails, bool fadeTrails);
 
     // Cached from Lines.json by OnMetadataLoaded().
     static int sObjectsDefault;

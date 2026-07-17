@@ -27,6 +27,11 @@ public:
     VUMeterEffect(int id);
     virtual ~VUMeterEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: migrated modes advance their scalar cache state (and consume the
+    // random-bar RNG) here and return an immutable draw snapshot; Render then
+    // draws purely from it.  Returns nullptr for the still-legacy modes
+    // (spectrogram family, non-SVG Level Shape), which keep the capture/restore path.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
