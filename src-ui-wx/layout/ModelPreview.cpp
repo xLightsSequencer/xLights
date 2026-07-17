@@ -488,13 +488,40 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
     if (!m_wheel_down) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
         if (is3d && event.ShiftDown() && !event.ControlDown()) {
-            float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-            float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
             if (!fromTrackPad) {
-                delta_x /= 4.0f;
-                delta_y /= 4.0f;
+                new_x /= 4.0f;
+                new_y /= 4.0f;
             }
-            SetPan(delta_x, delta_y, 0.0f);
+
+            // account for grid rotation
+            float angleX = glm::radians(GetCameraRotationX());
+            float angleY = glm::radians(GetCameraRotationY());
+            float delta_x = 0.0f;
+            float delta_y = 0.0f;
+            float delta_z = 0.0f;
+            bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+            bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+            bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+            if (top_view) {
+                delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+            } else if (bottom_view) {
+                delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+                delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
+            } else {
+                delta_x = new_x * std::cos(angleY);
+                delta_y = new_y;
+                delta_z = new_x * std::sin(angleY);
+                if (upside_down_view) {
+                    delta_y *= -1.0f;
+                }
+            }
+            delta_x *= GetZoom() * 2.0f;
+            delta_y *= GetZoom() * 2.0f;
+            delta_z *= GetZoom() * 2.0f;
+            SetPan(delta_x, delta_y, delta_z);
         } else if (!fromTrackPad || event.ControlDown()) {
             float delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
             if (fromTrackPad) {
