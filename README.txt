@@ -32,6 +32,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Render: GPU-accelerated Snapshottable effects (Candle, Circles, Twinkle,
                                  Wave, Meteors) now keep their Metal/Vulkan acceleration inside
                                  frame-parallel windows instead of falling back to CPU
+    -change (dkulp)              Render: VU Meter Level Shape converted to AdvanceState; the four
+                                 Spectrogram modes are now classified Stateful (serial render) - their
+                                 line-history advance is fused into the draw. The legacy capture/restore
+                                 snapshot protocol is removed (AdvanceState is the only tier-2 path)
     -bug (dkulp)                 Normalize bare float settings (e.g. ".2" → "0.2") from old sequences so
                                  float text controls display and edit correctly
     -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a
