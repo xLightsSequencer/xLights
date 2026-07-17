@@ -190,6 +190,35 @@ RenderableEffect::FrameParallelism WaveEffect::GetFrameParallelism(const Setting
     return FrameParallelism::Snapshottable;
 }
 
+// Tier-2 advance: integrate this frame's phase accumulator and return it as the
+// immutable draw snapshot.  Only wspeed (a deterministic value-curve read) is
+// consumed here; every other setting read stays in the pure BuildWaveColumns
+// draw.  Fractal/ivy returns nullptr (Stateful - its init-time RNG branch buffer
+// can't be snapshotted); this partition mirrors GetFrameParallelism exactly.
+std::unique_ptr<EffectFrameState> WaveEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (GetWaveType(SettingsMap.Get("CHOICE_Wave_Type", sWaveTypeDefault)) == WAVETYPE_IVYFRACTAL) {
+        return nullptr;
+    }
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    float wspeed = GetValueCurveDouble("Wave_Speed", sWaveSpeedDefault, SettingsMap, oset, sWaveSpeedMin, sWaveSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sWaveSpeedDivisor);
+
+    WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new WaveRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    if (buffer.needToInit) {
+        cache->state = 0.0f;
+        buffer.needToInit = false;
+    }
+    cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
+
+    auto snap = std::make_unique<WaveFrameState>();
+    snap->state = cache->state;
+    return snap;
+}
+
 void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &buffer,
                                   WaveKernelConfig &cfg, std::vector<int32_t> &cols) {
 
@@ -222,12 +251,13 @@ void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &
         NumberWaves = 1;
     }
 
-    // Phase: on a frame-parallel draw pass take the captured accumulator; else
-    // advance the persistent cache (and, when the engine is capturing for a later
-    // parallel draw, hand off the phase and skip the draw).  Fractal/ivy is
-    // Stateful (see GetFrameParallelism), so it never takes the snapshot paths -
-    // WaveBuffer0 stays the cache's branch buffer.  drawWaveBuffer is only a
-    // placeholder for the (non-fractal) draw pass, which never reads it.
+    // Phase: on a draw pass take the accumulator AdvanceState captured (pure, no
+    // advance, no cache write); else fuse advance+draw off the persistent cache.
+    // The migrated (non-fractal) types always reach this via pendingSnapshot
+    // (the engine runs AdvanceState first).  Fractal/ivy is Stateful (see
+    // GetFrameParallelism), so it takes the else branch - WaveBuffer0 stays the
+    // cache's branch buffer.  drawWaveBuffer is only a placeholder for the
+    // (non-fractal) draw pass, which never reads it.
     std::vector<int> drawWaveBuffer;
     std::vector<int>* waveBufferPtr = &drawWaveBuffer;
     float state;
@@ -246,12 +276,6 @@ void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &
         }
         cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
         state = cache->state;
-        if (buffer.captureSnapshot != nullptr) {
-            auto snap = std::make_unique<WaveFrameState>();
-            snap->state = state;
-            *buffer.captureSnapshot = std::move(snap);
-            return;
-        }
     }
     std::vector<int> &WaveBuffer0 = *waveBufferPtr;
 
@@ -421,12 +445,11 @@ void WaveEffect::RenderWaveISPC(const WaveKernelConfig &cfg, const std::vector<i
 }
 
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: BuildWaveColumns reads the phase from pendingSnapshot for the
+    // migrated types (the engine runs AdvanceState first, in both serial and
+    // frame-parallel rendering), or fuses advance+draw for Fractal/ivy (Stateful).
     WaveKernelConfig cfg;
     std::vector<int32_t> cols;
     BuildWaveColumns(SettingsMap, buffer, cfg, cols);
-    if (buffer.captureSnapshot != nullptr) {
-        // Serial capture pass: the phase was advanced + handed off, no draw here.
-        return;
-    }
     RenderWaveISPC(cfg, cols, buffer);
 }
