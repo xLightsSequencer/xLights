@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a
+                                 blur value curve or a migrated legacy EffectBlur setting
+    -bug (dkulp)                 Fix a crash duplicating an effect by cell when the effect starts in a gap
+                                 between timing marks, and a second crash if the duplicate could not be added
+    -bug (dkulp)                 Fix a use-after-free closing a sequence when an in-flight render did not
+                                 drain in time: the sequence data is now kept rather than freed under a
+                                 live render job
+    -bug (dkulp)                 Video export: only use constant-quality encoding when the machine's encoder
+                                 actually supports it (Intel Macs have no constant-quality H.264 and threw an
+                                 Objective-C exception that killed the app); those now use average bitrate
     -enh (dkulp)                 Batch render and -r no longer read the existing fseq that is about to be
                                  overwritten, speeding up sequence open (canvas mode still loads it)
     -bug (dkulp)                 Shader effect ignored the "GPU rendering" preference and still built GPU
