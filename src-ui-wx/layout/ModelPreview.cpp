@@ -487,7 +487,15 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
     }
     if (!m_wheel_down) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
-        if (!fromTrackPad || event.ControlDown()) {
+        if (is3d && event.ShiftDown() && !event.ControlDown()) {
+            float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            if (!fromTrackPad) {
+                delta_x /= 4.0f;
+                delta_y /= 4.0f;
+            }
+            SetPan(delta_x, delta_y, 0.0f);
+        } else if (!fromTrackPad || event.ControlDown()) {
             float delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
             if (fromTrackPad) {
                 float f = event.GetWheelRotation();
@@ -498,12 +506,8 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
             float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
             if (is3d) {
-                if (event.ShiftDown()) {
-                    SetPan(delta_x, delta_y, 0.0f);
-                } else {
-                    SetCameraView(delta_x, delta_y, false);
-                    SetCameraView(0, 0, true);
-                }
+                SetCameraView(delta_x, delta_y, false);
+                SetCameraView(0, 0, true);
             } else {
                 if (!fromTrackPad) {
                     delta_x *= GetZoom() * 2.0f;
