@@ -307,15 +307,71 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
 }
 
 RenderableEffect::FrameParallelism VUMeterEffect::GetFrameParallelism(const SettingsMap& settings) const {
-    // These modes derive each frame purely from the current frame's audio /
-    // timing data and never read the cross-frame VUMeterRenderCache (no
-    // peak-hold decay, fade-from-last-mark, running colour/bar index, or history
-    // trail), so they are Pure.  Everything else carries cross-frame cache state
-    // and is Snapshottable - the serial capture/AdvanceState pass advances the
-    // state and a parallel draw pass reproduces each frame.  The one exception is
-    // external-SVG Level Shape, which also needs the cache's loaded NSVGimage the
-    // frame snapshot cannot carry, so it stays Stateful (below).  Guarded by
-    // XL_VERIFY_STATELESS.
+    return ClassifyMode(settings);
+}
+
+// Single source of truth for the frame-parallel partition (see header).  BOTH
+// GetFrameParallelism and AdvanceState consult this, so classification and
+// implementation can never drift.  Invariant: this returns Snapshottable exactly
+// for the modes AdvanceState fully bakes into a VUMeterDrawSnapshot (so
+// Snapshottable <=> AdvanceState returns non-null).
+RenderableEffect::FrameParallelism VUMeterEffect::ClassifyMode(const SettingsMap& settings) const {
+    const std::string& type = settings.Get("CHOICE_VUMeter_Type", sTypeDefault);
+    switch (DecodeType(type)) {
+        // Snapshottable: AdvanceState runs the whole per-frame transition (scalar
+        // cache advance + random-bar RNG) against the live cache and bakes exactly
+        // what the draw consumes; Render is then a pure function of the snapshot.
+        case RenderType::PULSE:
+        case RenderType::LEVEL_PULSE:
+        case RenderType::LEVEL_JUMP:
+        case RenderType::LEVEL_JUMP100:
+        case RenderType::LEVEL_PULSE_COLOR:
+        case RenderType::LEVEL_COLOR:
+        case RenderType::LEVEL_BAR:
+        case RenderType::LEVEL_RANDOM_BAR:
+        case RenderType::NOTE_LEVEL_BAR:
+        case RenderType::NOTE_LEVEL_RANDOM_BAR:
+        case RenderType::TIMING_EVENT_BAR:
+        case RenderType::TIMING_EVENT_BAR_BOUNCE:
+        case RenderType::TIMING_EVENT_RANDOM_BAR:
+        case RenderType::TIMING_EVENT_BARS:
+        case RenderType::NOTE_LEVEL_PULSE:
+        case RenderType::NOTE_LEVEL_JUMP:
+        case RenderType::NOTE_LEVEL_JUMP100:
+        case RenderType::TIMING_EVENT_JUMP:
+        case RenderType::TIMING_EVENT_JUMP_100:
+        case RenderType::TIMING_EVENT_PULSE:
+        case RenderType::TIMING_EVENT_PULSE_COLOR:
+        case RenderType::TIMING_EVENT_COLOR:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
+            return FrameParallelism::Snapshottable;
+        case RenderType::LEVEL_SHAPE:
+            // The _lastsize slowdown-falls decay is the whole cross-frame state and
+            // AdvanceState bakes the effective size - EXCEPT an external SVG shape,
+            // whose loaded NSVGimage the frame snapshot cannot carry, so that stays
+            // Stateful (its Render reads the cache's rasterised image).
+            if (settings.Get("CHOICE_VUMeter_Shape", sShapeDefault) == "SVG") {
+                return FrameParallelism::Stateful;
+            }
+            return FrameParallelism::Snapshottable;
+        case RenderType::SPECTROGRAM:
+        case RenderType::SPECTROGRAM_PEAK:
+        case RenderType::SPECTROGRAM_LINE:
+        case RenderType::SPECTROGRAM_CIRCLELINE:
+            // The spectrogram family fuses its per-bar decay (lastvalues/lastpeaks/
+            // pausepeakfall) AND its line-history trim/push into the single
+            // RenderSpectrogramFrame draw loop; for Line / Circle Line the history
+            // push is computed interleaved with the per-bar DrawLine calls, so the
+            // advance cannot be split from the draw byte-identically.  Keep the
+            // whole family Stateful (serial) - AdvanceState returns null for it.
+            return FrameParallelism::Stateful;
+        default:
+            break;
+    }
+    // Modes that derive each frame purely from the current frame's audio / timing
+    // and never read the cross-frame VUMeterRenderCache - Pure (reorderable).
+    // Guarded by XL_VERIFY_STATELESS.
     static const char* const pureTypes[] = {
         "Volume Bars", "Waveform", "Frame Waveform", "On", "Color On", "Note On",
         "Intensity Wave", "Dominant Frequency Colour", "Dominant Frequency Colour Gradient",
@@ -323,21 +379,14 @@ RenderableEffect::FrameParallelism VUMeterEffect::GetFrameParallelism(const Sett
         "Timing Event Timed Sweep", "Timing Event Timed Sweep 2",
         "Timing Event Timed Chase From Middle", "Timing Event Timed Chase To Middle"
     };
-    const std::string& type = settings.Get("CHOICE_VUMeter_Type", sTypeDefault);
     for (const char* p : pureTypes) {
         if (type == p) {
             return FrameParallelism::Pure;
         }
     }
-    // Level Shape drawing an external SVG needs the cache's loaded NSVGimage,
-    // which the frame snapshot does not carry - keep it Stateful.
-    if (type == "Level Shape" && settings.Get("CHOICE_VUMeter_Shape", sShapeDefault) == "SVG") {
-        return FrameParallelism::Stateful;
-    }
-    // Every other mode carries only VUMeterRenderCache scalar/vector/list state,
-    // which VUMeterFrameState snapshots in full, so the serial capture pass can
-    // advance the state and a parallel draw pass reproduce each frame.
-    return FrameParallelism::Snapshottable;
+    // Anything else (e.g. the degenerate "unused" type) may carry cross-frame state
+    // the snapshot does not model - Stateful is the safe serial default.
+    return FrameParallelism::Stateful;
 }
 
 void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -480,44 +529,6 @@ struct VUMeterDrawSnapshot : public EffectFrameState {
     int startX = 0;             // Alternate Timed Sweep sweep offset
     bool nCountEven = false;    // Alternate Timed Sweep direction (nCount % 2 == 0)
 };
-
-// The modes AdvanceState drives (advance + draw) instead of the legacy
-// capture/restore path.  Must EXACTLY mirror the migrated-draw dispatch in
-// Render: a mode is on AdvanceState for both phases or on the legacy path for
-// both - never split, or it would see the advance from one and the draw from the
-// other.  Anything not listed (spectrogram family, non-SVG Level Shape, and the
-// Pure/Stateful types) returns nullptr and keeps the legacy behaviour.
-static bool IsAdvanceStateType(int nType) {
-    switch (nType) {
-    case RenderType::PULSE:
-    case RenderType::LEVEL_PULSE:
-    case RenderType::LEVEL_JUMP:
-    case RenderType::LEVEL_JUMP100:
-    case RenderType::LEVEL_PULSE_COLOR:
-    case RenderType::LEVEL_COLOR:
-    case RenderType::LEVEL_BAR:
-    case RenderType::LEVEL_RANDOM_BAR:
-    case RenderType::NOTE_LEVEL_BAR:
-    case RenderType::NOTE_LEVEL_RANDOM_BAR:
-    case RenderType::TIMING_EVENT_BAR:
-    case RenderType::TIMING_EVENT_BAR_BOUNCE:
-    case RenderType::TIMING_EVENT_RANDOM_BAR:
-    case RenderType::TIMING_EVENT_BARS:
-    case RenderType::NOTE_LEVEL_PULSE:
-    case RenderType::NOTE_LEVEL_JUMP:
-    case RenderType::NOTE_LEVEL_JUMP100:
-    case RenderType::TIMING_EVENT_JUMP:
-    case RenderType::TIMING_EVENT_JUMP_100:
-    case RenderType::TIMING_EVENT_PULSE:
-    case RenderType::TIMING_EVENT_PULSE_COLOR:
-    case RenderType::TIMING_EVENT_COLOR:
-    case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
-    case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
-        return true;
-    default:
-        return false;
-    }
-}
 
 int VUMeterEffect::DecodeType(const std::string& type)
 {
@@ -688,15 +699,15 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
         }
     }
 
-    // Tier-2 migrated draw pass: AdvanceState already ran this frame's entire
-    // state transition (and the random-bar RNG) against the live cache and baked
-    // the draw params into the snapshot; here we only rasterise them.  A pure
-    // function of the snapshot + deterministic per-frame reads (palette, buffer
-    // geometry) - no cache access, no RNG, no needToInit.  Reached in BOTH serial
-    // and frame-parallel rendering, so the two are byte-identical.  For a migrated
-    // mode pendingSnapshot is always a VUMeterDrawSnapshot; the legacy
-    // VUMeterFrameState restore further down is only reached by unmigrated modes.
-    if (buffer.pendingSnapshot != nullptr && IsAdvanceStateType(nType)) {
+    // Tier-2 Snapshottable draw pass: AdvanceState already ran this frame's entire
+    // state transition (and the random-bar RNG / Level Shape size decay) against
+    // the live cache and baked the draw params into the snapshot; here we only
+    // rasterise them.  A pure function of the snapshot + deterministic per-frame
+    // reads (palette, buffer geometry) - no cache access, no RNG, no needToInit.
+    // Reached in BOTH serial and frame-parallel rendering, so the two are
+    // byte-identical.  Every Snapshottable mode (see ClassifyMode) produces a
+    // VUMeterDrawSnapshot, so pendingSnapshot != null is a sufficient guard.
+    if (buffer.pendingSnapshot != nullptr) {
         const VUMeterDrawSnapshot& s = static_cast<const VUMeterDrawSnapshot&>(*buffer.pendingSnapshot);
         try {
             switch (nType) {
@@ -828,6 +839,15 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
                             }
                         }
                     }
+                }
+                break;
+            case RenderType::LEVEL_SHAPE:
+                // Non-SVG only (SVG Level Shape is Stateful).  AdvanceState baked the
+                // effective _lastsize into s.f; draw purely from it (advance=false,
+                // no audio read).  svgFile is always null on this path.
+                if (s.draw) {
+                    float ls = s.f;
+                    RenderLevelShapeFrame(buffer, shape, ls, sensitivity, slowdownfalls, xoffset, yoffset, usebars, gain, nullptr, false);
                 }
                 break;
             default:
@@ -1053,19 +1073,20 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 	}
 }
 
-// Tier-2 advance for the migrated modes: run this frame's ENTIRE cross-frame
-// state transition against the live cache - including the random-bar RNG - and
-// bake exactly what the draw consumes into the returned snapshot.  Mirrors the
-// setup of the public Render(effect,...) wrapper + the core Render's cache
-// setup/needToInit, then advances (never draws).  Returns nullptr for the
-// still-legacy modes so the engine falls back to their capture/restore path.
+// Tier-2 advance for the Snapshottable modes: run this frame's ENTIRE cross-frame
+// state transition against the live cache - including the random-bar RNG and the
+// Level Shape size decay - and bake exactly what the draw consumes into the
+// returned snapshot.  Mirrors the setup of the public Render(effect,...) wrapper +
+// the core Render's cache setup/needToInit, then advances (never draws).  Returns
+// nullptr for the Pure/Stateful modes (see ClassifyMode, the shared partition), so
+// the engine renders them through the normal fused advance+draw path.
 std::unique_ptr<EffectFrameState> VUMeterEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
-    std::string type = SettingsMap.Get("CHOICE_VUMeter_Type", sTypeDefault);
-    int nType = DecodeType(type);
-    if (!IsAdvanceStateType(nType)) {
+    if (ClassifyMode(SettingsMap) != FrameParallelism::Snapshottable) {
         return nullptr;
     }
+    std::string type = SettingsMap.Get("CHOICE_VUMeter_Type", sTypeDefault);
+    int nType = DecodeType(type);
 
     // Alternate-audio override, exactly as the Render(effect,...) wrapper.
     std::string audioTrack = SettingsMap.Get("CHOICE_VUMeter_AudioTrack", "");
@@ -1081,6 +1102,7 @@ std::unique_ptr<EffectFrameState> VUMeterEffect::AdvanceState(Effect* effect, co
     int gain = GetValueCurveInt("VUMeter_Gain", sGainDefault, SettingsMap, oset, sGainMin, sGainMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     std::string filter = SettingsMap.Get("TEXTCTRL_Filter", "");
     bool regex = SettingsMap.GetBool("CHECKBOX_Regex", sRegexDefault);
+    bool slowdownfalls = SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", sSlowDownFallsDefault);
     SequenceElements* elements = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
 
     if (startnote > endnote) {
@@ -1479,6 +1501,19 @@ std::unique_ptr<EffectFrameState> VUMeterEffect::AdvanceState(Effect* effect, co
             s->draw = true;
             s->startX = startX;
             s->nCountEven = (_nCount % 2 == 0);
+            break;
+        }
+        case RenderType::LEVEL_SHAPE: {
+            // Non-SVG only (ClassifyMode keeps external-SVG Level Shape Stateful).
+            // The _lastsize slowdown-falls decay is the entire cross-frame state;
+            // bake the effective size.  The ~300-line shape draw stays in
+            // RenderLevelShapeFrame(advance=false), reading s->f as lastsize.
+            if (!AdvanceLevelShapeSize(buffer, sensitivity, slowdownfalls, gain, _lastsize)) {
+                s->draw = false;
+                break;
+            }
+            s->draw = true;
+            s->f = _lastsize;
             break;
         }
         default:
@@ -2872,10 +2907,47 @@ void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double r
 
 #pragma endregion
 
-void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile)
+bool VUMeterEffect::AdvanceLevelShapeSize(RenderBuffer& buffer, int scale, bool slowdownfalls, int gain, float& lastsize) const
 {
-    if (buffer.GetMedia() == nullptr) return;
+    if (buffer.GetMedia() == nullptr) return false;
 
+    float scaling = (float)scale / 100.0 * 7.0;
+
+    float f = 0.0;
+    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    if (pf != nullptr) {
+        f = ApplyGain(pf->max, gain);
+    }
+
+    //old "maxSide" and "maxradius" were the same calculation
+    float maxSize = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+    //old "side" and "radius" were the same calculation
+    float size = maxSize * f;
+
+    if (slowdownfalls)
+    {
+        if (size < lastsize)
+        {
+            lastsize = lastsize - std::min(maxSize, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+            if (lastsize < size)
+            {
+                lastsize = size;
+            }
+        }
+        else
+        {
+            lastsize = size;
+        }
+    }
+    else
+    {
+        lastsize = size;
+    }
+    return true;
+}
+
+void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile, bool advance)
+{
 	int nShape = DecodeShape(shape);
 
     // star points
@@ -2884,41 +2956,18 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 
     int truexoffset = xoffset * buffer.BufferWi / 2 / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
-    float scaling = (float)scale / 100.0 * 7.0;
-
-	float f = 0.0;
-    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
-	if (pf != nullptr) {
-		f = ApplyGain(pf->max, gain);
-	}
 
 	int centerx = (buffer.BufferWi / 2.0) + truexoffset;
 	int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 
-	//old "maxSide" and "maxradius" were the same calculation
-	float maxSize = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
-	//old "side" and "radius" were the same calculation
-	float size = maxSize * f;
-
-	if (slowdownfalls)
-	{
-		if (size < lastsize)
-		{
-			lastsize = lastsize - std::min(maxSize, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
-			if (lastsize < size)
-			{
-				lastsize = size;
-			}
-		}
-		else
-		{
-			lastsize = size;
-		}
-	}
-	else
-	{
-		lastsize = size;
-	}
+    // advance==true: run the cross-frame _lastsize transition (needs audio) here,
+    // as the serial / Stateful (SVG) path does.  advance==false: draw purely from
+    // the caller-supplied lastsize (the AdvanceState snapshot).
+    if (advance) {
+        if (!AdvanceLevelShapeSize(buffer, scale, slowdownfalls, gain, lastsize)) {
+            return;
+        }
+    }
 
 	if (nShape == ShapeType::CIRCLE)
 	{
