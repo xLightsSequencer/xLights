@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <spdlog/fmt/fmt.h>
+#include <array>
 #include <functional>
 #include <mutex>
 #include <thread>
@@ -22,6 +23,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -115,6 +117,9 @@ struct ParBlockerData {
     uint64_t rowsEligible = 0;                    // structurally-eligible group rows analyzed
     uint64_t rowsSingleModel = 0;                 // non-group rows (not parallelizable by design)
     std::map<std::string, uint64_t> rowsIneligible; // group rows excluded by structure -> reason
+    // Per-row detail: name, buffer pixels, safe frames, covered frames.  Sized
+    // for the item-03 economics question (which excluded model rows would pay).
+    std::vector<std::tuple<std::string, uint64_t, uint64_t, uint64_t>> rows;
     void merge(const ParBlockerData& o) {
         for (const auto& [k, v] : o.statefulSole) statefulSole[k] += v;
         for (const auto& [k, v] : o.statefulAny) statefulAny[k] += v;
@@ -126,12 +131,21 @@ struct ParBlockerData {
         eligEmpty += o.eligEmpty;
         rowsEligible += o.rowsEligible;
         rowsSingleModel += o.rowsSingleModel;
+        rows.insert(rows.end(), o.rows.begin(), o.rows.end());
     }
 };
 // Process-wide tally; the single static instance dumps a ranked table at exit.
+// `d` = structurally-eligible group rows (the conversion-priority table).
+// `m` = single-MODEL rows that would qualify except for the groups-only rule -
+// the item-03 population; tallied separately so the two questions ("which
+// effect to convert" vs "is extending to model rows worth it") stay distinct.
 struct ParBlockerStats {
     std::mutex mtx;
     ParBlockerData d;
+    ParBlockerData m;
+    // Rows (group or model) excluded ONLY by submodel/strand/node effects -
+    // the item-03 step-3 population; classified across main + submodel layers.
+    ParBlockerData s;
     ~ParBlockerStats() { Dump(); }
     void Dump() {
         std::lock_guard<std::mutex> lg(mtx);
@@ -186,6 +200,45 @@ struct ParBlockerStats {
                 fprintf(stderr, "   %-28s %llu rows\n", reason.c_str(), (unsigned long long)c);
             }
         }
+        auto rowSection = [&](const ParBlockerData& t, const char* title) {
+            uint64_t covered = t.eligSafe + t.eligBlocked;
+            if (covered + t.eligEmpty == 0) {
+                return;
+            }
+            fprintf(stderr, "\n-- %s --\n", title);
+            fprintf(stderr, "rows: %llu   covered frames: %llu   parallel-safe: %llu (%.1f%%)\n",
+                    (unsigned long long)t.rowsEligible, (unsigned long long)covered,
+                    (unsigned long long)t.eligSafe, covered ? 100.0 * t.eligSafe / covered : 0.0);
+            fprintf(stderr, "   %-18s %14s %14s\n", "blocking effect", "sole-blocker", "any-blocker");
+            for (const auto& [name, counts] : ranked(t.statefulSole, t.statefulAny)) {
+                fprintf(stderr, "   %-18s %14llu %14llu\n", name.c_str(),
+                        (unsigned long long)counts.first, (unsigned long long)counts.second);
+            }
+            // The economics view: aggregate per row across sequences and rank
+            // by safe-frames x buffer-pixels (a produce-work proxy) so size
+            // floors / step-3 priorities can be chosen from data.
+            std::map<std::string, std::array<uint64_t, 3>> byName; // pixels, safe, covered
+            for (const auto& [name, px, safe, cov] : t.rows) {
+                auto& a = byName[name];
+                a[0] = px;
+                a[1] += safe;
+                a[2] += cov;
+            }
+            std::vector<std::pair<std::string, std::array<uint64_t, 3>>> rowsByWeight(byName.begin(), byName.end());
+            std::sort(rowsByWeight.begin(), rowsByWeight.end(), [](const auto& a, const auto& b) {
+                return a.second[0] * a.second[1] > b.second[0] * b.second[1];
+            });
+            fprintf(stderr, "   top rows by safe-frames x buffer-pixels (all sequences):\n");
+            fprintf(stderr, "   %-28s %10s %10s %10s\n", "row", "pixels", "safe", "covered");
+            int shown = 0;
+            for (const auto& [name, a] : rowsByWeight) {
+                if (++shown > 25) break;
+                fprintf(stderr, "   %-28s %10llu %10llu %10llu\n", name.c_str(),
+                        (unsigned long long)a[0], (unsigned long long)a[1], (unsigned long long)a[2]);
+            }
+        };
+        rowSection(m, "SINGLE-MODEL rows that would qualify except for the groups-only rule (item 03)");
+        rowSection(s, "rows excluded ONLY by submodel/strand effects - main+submodel layers classified (item 03 step 3)");
         fprintf(stderr, "==========================================\n\n");
     }
 };
@@ -1523,14 +1576,31 @@ public:
     // row, attribute each blocked frame to the effect(s) preventing a parallel
     // window, and merge into the process-wide tally.  Read-only; never perturbs
     // the render (runs once at row init, only when xldbgParBlockers).
-    void AnalyzeFrameBlockers() {
+    enum class BlockerTally { Group, Model, SubmodelRow };
+    void AnalyzeFrameBlockers(BlockerTally tally = BlockerTally::Group) {
         ParBlockerData local;
+        // The layer set to classify: the main-model layers, plus - for rows
+        // excluded only by their submodel/strand effects (item-03 step 3
+        // sizing) - every submodel layer, since step 3 would have to clone
+        // those buffers too and their effects gate the frame.
+        std::vector<EffectLayer*> layers;
+        for (int l = 0; l < numLayers; ++l) {
+            layers.push_back(rowToRender->GetEffectLayer(l));
+        }
+        if (tally == BlockerTally::SubmodelRow) {
+            for (const auto& smi : subModelInfos) {
+                Element* se = smi->element;
+                if (se == nullptr) continue;
+                for (int l = 0; l < se->GetEffectLayerCount(); ++l) {
+                    layers.push_back(se->GetEffectLayer(l));
+                }
+            }
+        }
         int sf = startFrame, ef = endFrame;
         for (int frame = sf; frame <= ef; ++frame) {
             std::set<std::string> statefulB, continuityB;
             bool nextBoundary = false, anyCover = false;
-            for (int l = 0; l < numLayers; ++l) {
-                EffectLayer* el = rowToRender->GetEffectLayer(l);
+            for (EffectLayer* el : layers) {
                 if (el == nullptr) continue;
                 std::unique_lock<std::recursive_mutex> lock(el->GetLock());
                 int idx = 0;
@@ -1576,9 +1646,18 @@ public:
             }
         }
         local.rowsEligible = 1;
+        if (tally != BlockerTally::Group) {
+            const RenderBuffer& rb = mainBuffer->BufferForLayer(0, -1);
+            local.rows.push_back({ rowToRender->GetModelName(),
+                                   (uint64_t)rb.BufferWi * (uint64_t)rb.BufferHt,
+                                   local.eligSafe, local.eligSafe + local.eligBlocked });
+        }
         ParBlockerStats& g = parBlockers();
         std::lock_guard<std::mutex> lg(g.mtx);
-        g.d.merge(local);
+        ParBlockerData& target = tally == BlockerTally::Group ? g.d
+            : tally == BlockerTally::Model                    ? g.m
+                                                              : g.s;
+        target.merge(local);
     }
 
     void EnsureParPool(int n) {
@@ -1640,6 +1719,15 @@ public:
             }
             // Restore full-layer rendering for any later serial frame on the main buffer.
             mainModelInfo.processLayer.clear();
+            // Quiesce the main buffer's GPU state: the pre-pass runs produce
+            // WITHOUT the output stage, so nothing here commits GPU work it may
+            // have encoded (blur/rotozoom/transitions on the captured layers).
+            // Left open, that work commits at the NEXT serial frame's first
+            // wait - landing stale blits over pixels the serial frame already
+            // wrote (one wrong frame after every window run, then self-heals).
+            for (int l = 0; l < numLayers; ++l) {
+                GPURenderUtils::waitForRenderCompletion(&mainBuffer->BufferForLayer(l, -1));
+            }
         }
         for (int i = 0; i < n; ++i) {
             *parInfos[i] = EffectLayerInfo(numLayers);
@@ -1690,7 +1778,7 @@ public:
                 // i.e. upstream.  A Per-Model buffer style merges dependent
                 // per-model pixels.  Either makes produce() non-row-local, so
                 // the row keeps the synchronous gate-before-produce path.
-                if (eff->GetSetting("B_CHECKBOX_Canvas") == "1"
+                if (eff->GetSetting("T_CHECKBOX_Canvas") == "1"
                     || EndsWith(eff->GetSetting("T_LayersSelected"), "Blend")
                     || StartsWith(eff->GetSetting("B_CHOICE_BufferStyle"), "Per Model")) {
                     return true;
@@ -1757,20 +1845,54 @@ public:
         // are the ones that read dependent data mid-produce and stay excluded.
         bool isGroup = mainBuffer != nullptr && mainBuffer->GetModel() != nullptr
             && mainBuffer->GetModel()->GetDisplayAs() == DisplayAsType::ModelGroup;
-        bool structurallyEligible = isGroup
+        // Item 03: large plain-MODEL rows qualify under the same row-local
+        // requirements - the window machinery is model-agnostic; groups were
+        // just the first population.  The pixel floor keeps hundreds of small
+        // props from paying the clone-pool memory + window overhead for
+        // sub-millisecond frames (tunable: XL_PARALLEL_MODEL_MIN, pixels;
+        // 0 disables model rows entirely).
+        bool isBigModel = false;
+        if (!isGroup && mainBuffer != nullptr && mainBuffer->GetModel() != nullptr) {
+            static const long parModelMinPixels = []() {
+                const char* e = getenv("XL_PARALLEL_MODEL_MIN");
+                return e ? strtol(e, nullptr, 10) : 2048;
+            }();
+            if (parModelMinPixels > 0) {
+                const RenderBuffer& rb0 = mainBuffer->BufferForLayer(0, -1);
+                isBigModel = (long)rb0.BufferWi * (long)rb0.BufferHt >= parModelMinPixels;
+            }
+        }
+        bool structurallyEligible = (isGroup || isBigModel)
             && !rowMustGateBeforeProduce
             && subModelInfos.empty() && nodeBuffers.empty()
             && !ctorHasPerModelBuffers;
         parEligible = xldbgParallelFrames && structurallyEligible;
 
         if (xldbgParBlockers) {
+            // Rows held back ONLY by their submodel/strand effects - the
+            // item-03 step-3 population (either kind of row).
+            bool submodelOnly = !rowMustGateBeforeProduce && !ctorHasPerModelBuffers
+                && (!subModelInfos.empty() || !nodeBuffers.empty());
             if (!isGroup) {
-                ParBlockerStats& g = parBlockers();
-                std::lock_guard<std::mutex> lg(g.mtx);
-                ++g.d.rowsSingleModel;
+                {
+                    ParBlockerStats& g = parBlockers();
+                    std::lock_guard<std::mutex> lg(g.mtx);
+                    ++g.d.rowsSingleModel;
+                }
+                // Item-03 population: model rows that would qualify except for
+                // the groups-only rule.  Tally their coverage separately.
+                if (!rowMustGateBeforeProduce && subModelInfos.empty()
+                    && nodeBuffers.empty() && !ctorHasPerModelBuffers) {
+                    AnalyzeFrameBlockers(BlockerTally::Model);
+                } else if (submodelOnly) {
+                    AnalyzeFrameBlockers(BlockerTally::SubmodelRow);
+                }
             } else if (structurallyEligible) {
                 AnalyzeFrameBlockers();
             } else {
+                if (submodelOnly) {
+                    AnalyzeFrameBlockers(BlockerTally::SubmodelRow);
+                }
                 std::string reason = rowMustGateBeforeProduce ? "canvas-mix / per-model gate"
                     : !subModelInfos.empty()                  ? "has submodels"
                     : !nodeBuffers.empty()                    ? "has per-node buffers"
