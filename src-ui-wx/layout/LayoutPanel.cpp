@@ -6103,7 +6103,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
             if (event.ShiftDown() && !event.ControlDown()) {
                 float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
                 float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
-                if (!fromTrackPad) {
+                if (std::abs(event.GetWheelRotation()) >= event.GetWheelDelta()) {
                     new_x /= 4.0f;
                     new_y /= 4.0f;
                 }
