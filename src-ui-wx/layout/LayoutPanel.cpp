@@ -6102,7 +6102,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
         if (is_3d) {
             if (event.ShiftDown() && !event.ControlDown()) {
                 float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-                float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+                float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? event.GetWheelRotation() : 0;
                 if (std::abs(event.GetWheelRotation()) >= event.GetWheelDelta()) {
                     new_x /= 4.0f;
                     new_y /= 4.0f;
@@ -6127,7 +6127,7 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                     delta_x = new_x * std::cos(angleY);
                     delta_y = new_y;
                     delta_z = new_x * std::sin(angleY);
-                    if( upside_down_view ) {
+                    if( !upside_down_view ) {
                         delta_y *= -1.0f;
                     }
                 }

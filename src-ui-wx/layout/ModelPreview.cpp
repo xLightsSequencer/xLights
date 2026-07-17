@@ -489,7 +489,7 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
         if (is3d && event.ShiftDown() && !event.ControlDown()) {
             float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? event.GetWheelRotation() : 0;
             if (std::abs(event.GetWheelRotation()) >= event.GetWheelDelta()) {
                 new_x /= 4.0f;
                 new_y /= 4.0f;
@@ -507,14 +507,16 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             if (top_view) {
                 delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
                 delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
-            } else if (bottom_view) {
-                delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
-                delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
-            } else {
+            }
+            else if (bottom_view) {
+                delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
+                delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+            }
+            else {
                 delta_x = new_x * std::cos(angleY);
                 delta_y = new_y;
                 delta_z = new_x * std::sin(angleY);
-                if (upside_down_view) {
+                if (!upside_down_view) {
                     delta_y *= -1.0f;
                 }
             }
