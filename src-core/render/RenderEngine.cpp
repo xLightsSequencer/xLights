@@ -3407,15 +3407,18 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                 }
                                 else if (rb->captureSnapshot != nullptr) {
                                     // Tier-2 capture pre-pass: advance the sim and store
-                                    // this frame's draw snapshot without drawing.  A
-                                    // migrated effect returns it from AdvanceState; an
-                                    // unmigrated one returns null and falls back to the
-                                    // legacy Render(captureSnapshot) that fills it.
+                                    // this frame's draw snapshot without drawing.  Every
+                                    // Snapshottable effect now produces it from AdvanceState;
+                                    // a null here means the effect's GetFrameParallelism
+                                    // classified it Snapshottable but AdvanceState returned
+                                    // nothing - a classification bug.  Skip (never draw
+                                    // during capture, which would corrupt the frame), and log.
                                     auto snap = reff->AdvanceState(effectObj, SettingsMap, *rb);
                                     if (snap != nullptr) {
                                         *rb->captureSnapshot = std::move(snap);
                                     } else {
-                                        reff->Render(effectObj, SettingsMap, *rb);
+                                        logger_render->error("Snapshottable effect '{}' produced no AdvanceState snapshot on model {} layer {} frame {} - classification bug (GetFrameParallelism==Snapshottable but AdvanceState==null); capture skipped.",
+                                            (const char*)reff->Name().c_str(), (const char*)buffer.GetModelName().c_str(), layer, rb->curPeriod);
                                     }
                                 }
                                 else if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {

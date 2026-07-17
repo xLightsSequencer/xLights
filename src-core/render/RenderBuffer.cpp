@@ -387,14 +387,6 @@ void RenderBuffer::GetMultiColorBlend(float n, bool circular, xlColor &color, in
 // 0,0 is lower left
 void RenderBuffer::SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha, bool dmx_ignore)
 {
-    // Frame-parallel serial capture pass: the drawn output is discarded (a later
-    // parallel pass re-draws from the captured snapshot), so a Snapshottable
-    // effect that advances by re-running its normal Render can skip the pixel
-    // writes here for free.  Advance-only capture => less serial work, more cores
-    // freed for other rows.
-    if (captureSnapshot != nullptr) {
-        return;
-    }
     if (!dmx_ignore && dmx_buffer) {
         SetPixelDMXModel(x, y, color);
         return;
@@ -472,9 +464,6 @@ void RenderBuffer::ProcessPixel(int x_pos, int y_pos, const xlColor &color, bool
 // 0,0 is lower left
 void RenderBuffer::SetPixel(int x, int y, const HSVValue& hsv, bool wrap)
 {
-    if (captureSnapshot != nullptr) {
-        return; // capture pass draws nothing (see SetPixel(xlColor))
-    }
     if (dmx_buffer) {
         SetPixelDMXModel(x, y, xlColor(hsv));
         return;
@@ -667,9 +656,6 @@ void RenderBuffer::DrawAACircle(const float cx, const float cy, const float radi
 // Bresenham's line algorithm
 void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const int y1_, const xlColor& color, bool useAlpha)
 {
-    if (captureSnapshot != nullptr) {
-        return; // capture pass draws nothing (see SetPixel(xlColor))
-    }
     int x0 = x0_;
     int x1 = x1_;
     int y0 = y0_;

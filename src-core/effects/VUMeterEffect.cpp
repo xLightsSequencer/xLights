@@ -494,32 +494,11 @@ public:
     int _lastDirection { 1 };
 };
 
-// LEGACY tier-2 snapshot for the modes NOT yet migrated to AdvanceState
-// (spectrogram family + non-SVG Level Shape): a copy of every cross-frame field
-// of VUMeterRenderCache captured BEFORE this frame advances.  A frame-parallel
-// draw pass restores these onto a clone's cache and re-runs the normal dispatch,
-// which advances from this exact pre-frame state and draws - reproducing the
-// serial frame byte-for-byte.  (The SVG resource isn't carried, so SVG-shape
-// Level Shape stays Stateful - see GetFrameParallelism.)
-struct VUMeterFrameState : public EffectFrameState {
-    std::list<int> _timingmarks;
-    int _lasttimingmark = 0;
-    std::vector<float> _lastvalues;
-    std::vector<float> _lastpeaks;
-    std::list<int> _pausepeakfall;
-    std::list<std::vector<xlPoint>> _lineHistory;
-    float _lastsize = 0.0f;
-    int _colourindex = 0;
-    int _nCount = 0;
-    int _lastDirection = 1;
-};
-
-// Tier-2 draw state for the MIGRATED modes: the exact, already-advanced values
-// their draw needs.  AdvanceState performs the whole per-frame state transition
-// (including the random-bar RNG) against the live cache and bakes what the draw
-// consumes into this struct; Render then draws purely from it, never
-// re-advancing.  Distinct from VUMeterFrameState (a pre-advance cache copy the
-// legacy re-simulate path restores) - a mode uses exactly one of the two.
+// Tier-2 draw state for the Snapshottable modes: the exact, already-advanced
+// values their draw needs.  AdvanceState performs the whole per-frame state
+// transition (including the random-bar RNG and the Level Shape size decay)
+// against the live cache and bakes what the draw consumes into this struct;
+// Render then draws purely from it, never re-advancing.
 struct VUMeterDrawSnapshot : public EffectFrameState {
     bool draw = false;          // outer guard passed (media / track / pdata present)
     float f = 0.0f;             // fade / level / size magnitude the draw scales by
@@ -875,25 +854,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
     int & _colourindex = cache->_colourindex;
     std::list<std::vector<xlPoint>>& _lineHistory = cache->_lineHistory;
     int& _lastDirection = cache->_lastDirection;
-    // Frame-parallel Snapshottable paths (see GetFrameParallelism).  On a draw
-    // pass, restore the pre-advance cache state the serial pass captured and skip
-    // the needToInit reset / render-dependency registration / SVG load (all done
-    // on the serial pass); the dispatch below then advances from this exact state
-    // and draws, reproducing the serial frame.
-    if (buffer.pendingSnapshot != nullptr) {
-        const VUMeterFrameState& fs = static_cast<const VUMeterFrameState&>(*buffer.pendingSnapshot);
-        _timingmarks = fs._timingmarks;
-        _lasttimingmark = fs._lasttimingmark;
-        _lastvalues = fs._lastvalues;
-        _lastpeaks = fs._lastpeaks;
-        _pausepeakfall = fs._pausepeakfall;
-        _lineHistory = fs._lineHistory;
-        _lastsize = fs._lastsize;
-        _colourindex = fs._colourindex;
-        _nCount = fs._nCount;
-        _lastDirection = fs._lastDirection;
-        buffer.needToInit = false;
-    } else if (buffer.needToInit) {
+    // Only the Pure and Stateful modes reach here (a Snapshottable mode's draw is
+    // handled by the pendingSnapshot branch above, which returns), so this is the
+    // ordinary serial fused advance+draw: reset on config change, then dispatch.
+    if (buffer.needToInit) {
         // Check for config changes which require us to reset
         buffer.needToInit = false;
         _lineHistory.clear();
@@ -916,23 +880,6 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             cache->InitialiseSVG(svgFile, buffer);
         }
 	}
-
-    // Serial capture pass: hand the pre-advance state to a later parallel draw
-    // pass (which restores it above and re-runs this dispatch on a clone).
-    if (buffer.captureSnapshot != nullptr) {
-        auto fs = std::make_unique<VUMeterFrameState>();
-        fs->_timingmarks = _timingmarks;
-        fs->_lasttimingmark = _lasttimingmark;
-        fs->_lastvalues = _lastvalues;
-        fs->_lastpeaks = _lastpeaks;
-        fs->_pausepeakfall = _pausepeakfall;
-        fs->_lineHistory = _lineHistory;
-        fs->_lastsize = _lastsize;
-        fs->_colourindex = _colourindex;
-        fs->_nCount = _nCount;
-        fs->_lastDirection = _lastDirection;
-        *buffer.captureSnapshot = std::move(fs);
-    }
 
 	try
 	{

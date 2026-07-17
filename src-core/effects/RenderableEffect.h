@@ -120,9 +120,9 @@ public:
     // default so any un-audited effect is never reordered; an effect proven to
     // derive its whole output from curPeriod / GetEffectTimeIntervalPosition()
     // overrides this to Pure, letting the engine render a run of its frames out
-    // of order or concurrently. Snapshottable is reserved for effects that can
-    // split a cheap serial state-advance from a parallel per-frame draw (tier 2,
-    // not consumed yet).
+    // of order or concurrently. Snapshottable is reserved for effects that split
+    // a cheap serial state-advance (AdvanceState) from a parallel per-frame draw
+    // (Render from the snapshot) - see the tier-2 API below.
     enum class FrameParallelism { Stateful, Snapshottable, Pure };
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const {
         return FrameParallelism::Stateful;
@@ -137,9 +137,8 @@ public:
     // --- Tier-2 Snapshottable API ------------------------------------------
     // A Snapshottable effect exposes a cheap serial state-advance separately
     // from an expensive pure per-frame draw, so the engine can advance the
-    // simulation serially while drawing many frames concurrently.
-    //
-    // Migrated effects split the two phases across two entry points:
+    // simulation serially while drawing many frames concurrently.  The two
+    // phases live in two entry points:
     //   * AdvanceState() advances the cross-frame simulation (buffer.infoCache)
     //     for this frame and returns the frame's immutable draw snapshot.
     //   * Render(), when buffer.pendingSnapshot is set, rasterises that snapshot
@@ -149,17 +148,19 @@ public:
     // Render(pendingSnapshot) in BOTH serial and frame-parallel rendering, so the
     // two paths are byte-identical.
     //
-    // Unmigrated effects still fuse advance+draw inside Render (AdvanceState
-    // returns the default nullptr).  The engine then falls back to the legacy
-    // capture protocol: with buffer.captureSnapshot set it advances the sim,
-    // stores the snapshot in *buffer.captureSnapshot and SKIPs the draw.  These
-    // paths are only reached when GetFrameParallelism returns Snapshottable.
+    // Contract: an effect returns a non-null snapshot from AdvanceState for
+    // EXACTLY the settings where GetFrameParallelism returns Snapshottable (share
+    // one predicate so the two can never drift).  Pure and Stateful effects leave
+    // AdvanceState at the default nullptr and keep fusing advance+draw in Render;
+    // the engine renders them the ordinary way (Pure may still reorder frames,
+    // Stateful runs serially).
 
     // Advances the effect's cross-frame simulation state for this frame and
-    // returns the frame's immutable draw snapshot, or nullptr for effects whose
-    // Render still fuses advance+draw (the default).  When this returns non-null,
-    // the engine sets buffer.pendingSnapshot and Render draws from it - in BOTH
-    // serial and frame-parallel rendering, so the two paths are identical.
+    // returns the frame's immutable draw snapshot, or nullptr (the default) for a
+    // Pure/Stateful effect whose Render fuses advance+draw.  When this returns
+    // non-null, the engine sets buffer.pendingSnapshot and Render draws from it -
+    // in BOTH serial and frame-parallel rendering, so the two paths are identical.
+    // Must return non-null whenever GetFrameParallelism == Snapshottable.
     virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) { return nullptr; }
 
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) = 0;
