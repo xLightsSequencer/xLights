@@ -96,26 +96,27 @@ VulkanTwinkleEffect::~VulkanTwinkleEffect() {
 }
 
 void VulkanTwinkleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
-    if (buffer.captureSnapshot != nullptr) {
-        // Frame-parallel serial capture pass is advance-only (the CPU path runs
-        // the kernel with npix=0): no pixels are drawn, so never spend a GPU
-        // submit + fence wait on it. Mirrors MetalTwinkleEffect::Render.
-        TwinkleEffect::Render(effect, SettingsMap, buffer);
-        return;
-    }
+    // The engine drives the state advance through the base TwinkleEffect::AdvanceState
+    // (advance-only CPU dispatch); this override only handles the draw. When
+    // buffer.pendingSnapshot is set (the draw pass, serial or parallel), prepareTwinkleFrame
+    // restores the pre-frame cache and the GPU kernel re-advances+draws from it - the GPU
+    // acceleration must stay on this path in the serial draw too. Mirrors
+    // MetalTwinkleEffect::Render.
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || buffer.IsDmxBuffer()
         || (buffer.BufferWi * buffer.BufferHt) < (int)u.bufferSizeThreshold) {
         // Small buffers, DMX (SetPixel channel translation) and the no-GPU
-        // case take the CPU path (ISPC / by-node scalar).
+        // case take the CPU path (ISPC / by-node scalar); the base Render
+        // restores the snapshot itself when buffer.pendingSnapshot is set.
         TwinkleEffect::Render(effect, SettingsMap, buffer);
         return;
     }
 
-    // Setup (renewal/compaction) runs exactly once; a by-node buffer
-    // discovered here goes to the shared serial scalar tail rather than back
-    // through TwinkleEffect::Render (which would re-run the mutating setup).
+    // Setup (renewal/compaction, plus snapshot restore for the draw pass) runs
+    // exactly once; a by-node buffer discovered here goes to the shared serial
+    // scalar tail rather than back through TwinkleEffect::Render (which would
+    // re-run the mutating setup).
     TwinkleFrame f = prepareTwinkleFrame(SettingsMap, buffer);
     if (f.isByNode) {
         renderTwinkleByNode(buffer, f);

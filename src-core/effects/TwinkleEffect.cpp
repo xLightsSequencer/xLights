@@ -75,11 +75,11 @@ public:
 };
 
 // Tier-2 immutable per-frame draw state: the entire TwinkleRenderCache plus the
-// buffer's needToInit flag, captured BEFORE any of this frame's mutation (the
-// renewal bookkeeping, init, placement, and the kernel's in-place advance). A
-// frame-parallel draw pass restores these onto a clone and re-runs the normal
-// render, which advances from this exact pre-frame state and draws -
-// reproducing the serial frame byte-for-byte.
+// buffer's needToInit flag, captured by AdvanceState BEFORE any of this frame's
+// mutation (the renewal bookkeeping, init, placement, and the kernel's in-place
+// advance). The draw pass restores these and re-runs the normal render, which
+// advances from this exact pre-frame state and draws - reproducing the advanced
+// frame byte-for-byte (serial and frame-parallel alike).
 struct TwinkleFrameState : public EffectFrameState {
     std::vector<StrobeClass> strobe;
     int num_lights = 0;
@@ -243,24 +243,19 @@ static void place_twinkles(int lights_to_place, int &curIndex, std::vector<Strob
 }
 
 void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Tier-2 draw pass: when the engine set buffer.pendingSnapshot, prepareTwinkleFrame
+    // restores this frame's pre-frame cache from it and we re-advance+draw from that
+    // exact state. Serially this restore-and-re-advance is idempotent (the stateless
+    // hash RNG plus the same pre-frame state reproduce the post-frame state AdvanceState
+    // already wrote), so it stays byte-identical to a plain advance+draw. When there is
+    // no snapshot (a caller invoked Render directly), prepareTwinkleFrame leaves the live
+    // cache in place and this is the defensive fused advance+draw fall-through.
     TwinkleFrame f = prepareTwinkleFrame(SettingsMap, buffer);
     if (f.isByNode) {
         // The node-indirection path (SetNodePixel maps one node to many buffer
         // coords, and several nodes can share a coord in a group buffer) can't
         // be a clean per-pixel kernel, so it stays on a serial scalar tail.
         renderTwinkleByNode(buffer, f);
-        return;
-    }
-    // Frame-parallel serial capture pass: advance-only. npix=0 makes the kernel
-    // evolve every light's state without touching pixels or the LUT (its only
-    // guarded access), so the expensive draw runs once, on the clones. The
-    // snapshot was already stored by prepareTwinkleFrame.
-    if (buffer.captureSnapshot != nullptr) {
-        TwinkleFrame fc = f;
-        fc.npix = 0;
-        xlColorVector unusedLut(1);
-        dispatchTwinkleISPC(buffer, fc, unusedLut);
-        applyTwinkleFinishCount(fc);
         return;
     }
     // Per-pixel path: ISPC is the sole CPU implementation. Brightness/color is
@@ -272,9 +267,36 @@ void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
     applyTwinkleFinishCount(f);
 }
 
+// Tier-2 state advance: snapshot the PRE-frame cache, then advance the live cache
+// exactly as this frame's draw would, and return the snapshot unconditionally
+// (Twinkle is always Snapshottable). The engine calls this once serially per frame
+// and then draws via Render(pendingSnapshot) in both serial and frame-parallel
+// rendering, so the two paths are byte-identical. This mirrors the old serial
+// capture pre-pass: the ISPC-eligible config advances state-only with npix=0 (no
+// pixels, no LUT touched - the kernel's only guarded access), while the by-node
+// config has no advance-only kernel and so runs the fused advance+draw whose pixels
+// the engine discards (Render redraws them from the restored snapshot).
+std::unique_ptr<EffectFrameState> TwinkleEffect::AdvanceState(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    auto snap = std::make_unique<TwinkleFrameState>();
+    TwinkleFrame f = prepareTwinkleFrame(SettingsMap, buffer, snap.get());
+    if (f.isByNode) {
+        renderTwinkleByNode(buffer, f);
+        return snap;
+    }
+    TwinkleFrame fc = f;
+    fc.npix = 0;
+    xlColorVector unusedLut(1);
+    dispatchTwinkleISPC(buffer, fc, unusedLut);
+    applyTwinkleFinishCount(fc);
+    return snap;
+}
+
 // Reads the effect parameters and evolves the persistent per-light state array
-// (init + renewal/compaction). Mutating; must run exactly once per Render call.
-TwinkleFrame TwinkleEffect::prepareTwinkleFrame(const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+// (init + renewal/compaction). Mutating; must run exactly once per Render/
+// AdvanceState call. captureInto (AdvanceState) receives a deep copy of the
+// pre-frame cache before any mutation; otherwise buffer.pendingSnapshot (the
+// Render draw pass) restores the pre-frame cache before advancing.
+TwinkleFrame TwinkleEffect::prepareTwinkleFrame(const SettingsMap &SettingsMap, RenderBuffer &buffer, TwinkleFrameState *captureInto) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Count = GetValueCurveInt("Twinkle_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int Steps = GetValueCurveInt("Twinkle_Steps", sStepsDefault, SettingsMap, oset, sStepsVCMin, sStepsVCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -325,28 +347,26 @@ TwinkleFrame TwinkleEffect::prepareTwinkleFrame(const SettingsMap &SettingsMap, 
     }
     std::vector<StrobeClass> &strobe = cache->strobe;
 
-    // Frame-parallel Snapshottable paths (see GetFrameParallelism). Draw pass:
-    // restore the pre-frame state the serial capture pass stored (including
-    // needToInit - true only when the serial pass entered this frame needing
-    // init) and fall through to the NORMAL flow below, which re-runs this
-    // frame's advance (bookkeeping/init/renewal + kernel) from that exact state
-    // on the clone, reproducing the serial frame. Capture pass: store the
-    // pre-frame state before anything mutates, then advance as usual.
-    if (buffer.pendingSnapshot != nullptr) {
+    // Tier-2 Snapshottable fork (see GetFrameParallelism / AdvanceState).
+    // AdvanceState (captureInto set): store the pre-frame state before anything
+    // mutates, then advance as usual. Render draw pass (buffer.pendingSnapshot
+    // set): restore the pre-frame state AdvanceState stored (including needToInit -
+    // true only when AdvanceState entered this frame needing init) and fall through
+    // to the NORMAL flow below, which re-runs this frame's advance (bookkeeping/
+    // init/renewal + kernel) from that exact state, reproducing the advanced frame.
+    if (captureInto != nullptr) {
+        captureInto->strobe = strobe;
+        captureInto->num_lights = cache->num_lights;
+        captureInto->curNumStrobe = cache->curNumStrobe;
+        captureInto->lights_to_renew = cache->lights_to_renew.load();
+        captureInto->needToInit = buffer.needToInit;
+    } else if (buffer.pendingSnapshot != nullptr) {
         const TwinkleFrameState &fs = static_cast<const TwinkleFrameState&>(*buffer.pendingSnapshot);
         strobe = fs.strobe;
         cache->num_lights = fs.num_lights;
         cache->curNumStrobe = fs.curNumStrobe;
         cache->lights_to_renew.store(fs.lights_to_renew);
         buffer.needToInit = fs.needToInit;
-    } else if (buffer.captureSnapshot != nullptr) {
-        auto fs = std::make_unique<TwinkleFrameState>();
-        fs->strobe = strobe;
-        fs->num_lights = cache->num_lights;
-        fs->curNumStrobe = cache->curNumStrobe;
-        fs->lights_to_renew = cache->lights_to_renew.load();
-        fs->needToInit = buffer.needToInit;
-        *buffer.captureSnapshot = std::move(fs);
     }
 
     if (new_algorithm) {

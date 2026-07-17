@@ -28,6 +28,10 @@ public:
     int32_t isByNode = 0;
 };
 
+// Immutable pre-frame draw state captured by AdvanceState and restored by the
+// draw pass (defined in TwinkleEffect.cpp).
+struct TwinkleFrameState;
+
 // Output of the shared per-frame setup (parameter read + renewal/compaction),
 // consumed by both the ISPC (CPU) and Metal (GPU) per-light dispatch paths.
 struct TwinkleFrame {
@@ -54,6 +58,11 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: advance the per-light strobe simulation and return this frame's
+    // immutable pre-frame draw snapshot; Render draws from it (see AdvanceState
+    // in the .cpp). Twinkle is unconditionally Snapshottable, so this never
+    // returns nullptr.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
     virtual int GetSettingVCDivisor(const std::string& name) const override
@@ -86,8 +95,11 @@ protected:
 
     // Shared setup + dispatch helpers used by the CPU (ISPC) and Metal paths.
     // prepareTwinkleFrame mutates the persistent state (renewal/compaction) and
-    // must run exactly once per Render call.
-    TwinkleFrame prepareTwinkleFrame(const SettingsMap& settings, RenderBuffer& buffer);
+    // must run exactly once per Render/AdvanceState call. When captureInto is
+    // non-null (AdvanceState) it deep-copies the pre-frame cache into it before
+    // mutating; otherwise, when buffer.pendingSnapshot is set (the Render draw
+    // pass), it first restores the cache from that snapshot.
+    TwinkleFrame prepareTwinkleFrame(const SettingsMap& settings, RenderBuffer& buffer, TwinkleFrameState* captureInto = nullptr);
     // Builds the per-(colorindex,duration) RGBA lookup table with the exact
     // scalar double-precision brightness/color math so the integer kernels are
     // byte-identical to the historical scalar renderer.
