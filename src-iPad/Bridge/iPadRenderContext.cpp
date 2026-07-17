@@ -141,15 +141,12 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     // crash reports as ~ModelManager racing PixelBuffer::SetColors /
     // Node::GetForChannels). Safe to block here: loadShowFolder runs on a
     // detached background task, never the main actor, so the wait can't trip
-    // the watchdog. Mirrors the abort+drain CloseSequence already does.
-    if (_renderEngine) {
-        _renderEngine->SignalAbort();
-        auto deadline = std::chrono::steady_clock::now()
-                      + std::chrono::seconds(5);
-        while (!IsRenderDone()
-               && std::chrono::steady_clock::now() < deadline) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
+    // the watchdog. The abort is best-effort — on timeout the workers still
+    // hold Model* references, so keep the current show loaded rather than free
+    // the models under them.
+    if (!AbortRender(5000)) {
+        spdlog::error("iPadRenderContext: could not abort in-flight render; keeping the current show folder rather than freeing models under a live render job");
+        return false;
     }
 
     showDirectory = showDir;
