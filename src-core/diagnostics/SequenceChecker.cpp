@@ -1348,7 +1348,11 @@ void SequenceChecker::CheckEffect(Effect* ef, CheckSequenceReport& report,
             }
             if (!checkAsNumeric) continue;
 
-            if (!isValidNum(val)) {
+            size_t trimStart = val.find_first_not_of(' ');
+            size_t trimEnd = val.find_last_not_of(' ');
+            std::string trimmedVal = (trimStart == std::string::npos) ? "" : val.substr(trimStart, trimEnd - trimStart + 1);
+
+            if (!isValidNum(trimmedVal)) {
                 std::string msg = fmt::format(
                     "    ERR: Effect has invalid numeric value '{}' for setting '{}'. Effect: {}, Model: {}, Start {}",
                     val, key, ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
