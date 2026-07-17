@@ -23,6 +23,10 @@
 #include "ispc/CirclesFunctions.ispc.h"
 #include "Parallel.h"
 
+#include <algorithm>
+#include <array>
+#include <memory>
+
 
 #define MAX_ISPC_CIRCLES_BALLS  20
 #define MAX_ISPC_CIRCLES_COLORS  8
@@ -112,6 +116,33 @@ void CirclesEffect::adjustSettings(const std::string& version, Effect* effect, b
     }
 }
 
+// Tier-2 immutable per-frame draw state: the entire CirclesRenderCache plus
+// the buffer's needToInit flag, captured BEFORE any of this frame's mutation
+// (init, position integration, bounce).  A frame-parallel draw pass restores
+// these onto a clone and re-runs the normal render, which advances and draws
+// from the exact pre-frame state - reproducing the serial frame byte-for-byte.
+struct CirclesFrameState : public EffectFrameState {
+    std::array<RgbBalls, MAX_RGB_BALLS> balls;
+    std::array<MetaBall, MAX_RGB_BALLS> metaballs;
+    int numBalls = 0;
+    bool metaType = false;
+    bool needToInit = false;
+};
+
+RenderableEffect::FrameParallelism CirclesEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // Radial / Radial 3D derive each frame from (curPeriod - effStart) alone -
+    // no cross-frame state at all.  Every other mode integrates ball positions
+    // frame-to-frame in CirclesRenderCache, which CirclesFrameState snapshots
+    // in full; the random draws are per-frame-seeded, so a draw pass that
+    // restores the pre-frame state and re-runs the advance reproduces the
+    // serial frame.
+    if (settings.GetBool("CHECKBOX_Circles_Radial", sRadialDefault)
+        || settings.GetBool("CHECKBOX_Circles_Radial_3D", sRadial3DDefault)) {
+        return FrameParallelism::Pure;
+    }
+    return FrameParallelism::Snapshottable;
+}
+
 CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
@@ -130,6 +161,28 @@ CirclesRenderCache* CirclesEffect::UpdateCacheState(Effect* effect, const Settin
     if (cache == nullptr) {
         cache = new CirclesRenderCache();
         buffer.infoCache[id] = cache;
+    }
+
+    // Frame-parallel Snapshottable paths (see GetFrameParallelism).  Draw
+    // pass: restore the pre-frame state the serial capture pass stored
+    // (including needToInit) and fall through to the normal advance below,
+    // reproducing the serial frame on the clone.  Capture pass: store the
+    // pre-frame state before anything mutates, then advance as usual.
+    if (buffer.pendingSnapshot != nullptr) {
+        const CirclesFrameState& fs = static_cast<const CirclesFrameState&>(*buffer.pendingSnapshot);
+        std::copy(fs.balls.begin(), fs.balls.end(), cache->balls);
+        std::copy(fs.metaballs.begin(), fs.metaballs.end(), cache->metaballs);
+        cache->numBalls = fs.numBalls;
+        cache->metaType = fs.metaType;
+        buffer.needToInit = fs.needToInit;
+    } else if (buffer.captureSnapshot != nullptr) {
+        auto fs = std::make_unique<CirclesFrameState>();
+        std::copy(cache->balls, cache->balls + MAX_RGB_BALLS, fs->balls.begin());
+        std::copy(cache->metaballs, cache->metaballs + MAX_RGB_BALLS, fs->metaballs.begin());
+        fs->numBalls = cache->numBalls;
+        fs->metaType = cache->metaType;
+        fs->needToInit = buffer.needToInit;
+        *buffer.captureSnapshot = std::move(fs);
     }
 
     size_t colorCnt = buffer.GetColorCount();
@@ -300,6 +353,14 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
     }
 
     CirclesRenderCache* cache = UpdateCacheState(effect, SettingsMap, buffer);
+
+    // Frame-parallel serial capture pass is advance-only: UpdateCacheState did
+    // the whole state advance, and everything below is pure draw (including
+    // the ISPC path's raw pixel writes, which the SetPixel capture guard
+    // cannot suppress) - skip it; the clones draw these frames.
+    if (buffer.captureSnapshot != nullptr) {
+        return;
+    }
 
     do {
         if (bubbles) break;

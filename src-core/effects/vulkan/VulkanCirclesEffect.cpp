@@ -48,6 +48,12 @@ VulkanCirclesEffect::~VulkanCirclesEffect() {
 }
 
 void VulkanCirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (buffer.captureSnapshot != nullptr) {
+        // Frame-parallel serial capture pass is advance-only (its drawn output
+        // is discarded): take the CPU path, never spend a GPU dispatch + wait.
+        CirclesEffect::Render(effect, SettingsMap, buffer);
+        return;
+    }
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || (buffer.BufferWi * buffer.BufferHt) < (int)u.bufferSizeThreshold) {

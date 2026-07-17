@@ -96,6 +96,13 @@ VulkanTwinkleEffect::~VulkanTwinkleEffect() {
 }
 
 void VulkanTwinkleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (buffer.captureSnapshot != nullptr) {
+        // Frame-parallel serial capture pass is advance-only (the CPU path runs
+        // the kernel with npix=0): no pixels are drawn, so never spend a GPU
+        // submit + fence wait on it. Mirrors MetalTwinkleEffect::Render.
+        TwinkleEffect::Render(effect, SettingsMap, buffer);
+        return;
+    }
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || buffer.IsDmxBuffer()

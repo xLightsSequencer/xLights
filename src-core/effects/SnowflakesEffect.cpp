@@ -133,16 +133,21 @@ public:
 
 // Tier-2 immutable per-frame draw state: a copy of every cross-frame field of
 // SnowflakesRenderCache plus the entire temp pixel layer (which holds the
-// falling-snowflake positions), captured BEFORE this frame advances.  A frame-
-// parallel draw pass restores these onto a clone and re-runs the normal render,
-// which advances from this exact pre-frame state and draws - reproducing the
-// serial frame byte-for-byte.
+// falling-snowflake positions) and the needToInit flag, captured at the TOP of
+// Render BEFORE the init check - i.e. the pre-init state.  A frame-parallel draw
+// pass restores these onto a clone and re-runs the normal render (init included
+// when needToInit was set), reproducing the serial frame byte-for-byte: the init
+// block consumes RNG, so re-running it from the identical pre-init state consumes
+// the identical per-frame RNG stream and the flake placement/orientation rolls
+// match.  Capturing post-init instead would let the serial pass consume init RNG
+// the draw pass never replays, desyncing every later per-frame roll.
 struct SnowflakesFrameState : public EffectFrameState {
     xlColorVector tempbuf;
     int LastSnowflakeCount = 0;
     int LastSnowflakeType = 0;
     std::string LastFalling;
     int effectState = 0;
+    bool needToInit = false;
 };
 
 RenderableEffect::FrameParallelism SnowflakesEffect::GetFrameParallelism(const SettingsMap& settings) const {
@@ -300,12 +305,18 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
     buffer.palette.GetColor(0, color1);
     buffer.palette.GetColor(1, color2);
 
-    // Frame-parallel Snapshottable path (see GetFrameParallelism).  On a draw
-    // pass, restore the pre-advance cache scalars + temp pixel layer the serial
-    // pass captured and skip the needToInit reset (already done on the serial
-    // pass).  The restored scalars make the init condition below evaluate false,
-    // so the render advances from this exact state and draws, reproducing the
-    // serial frame.
+    // Frame-parallel Snapshottable path (see GetFrameParallelism).  Both passes
+    // run through here BEFORE the init check so they observe the identical
+    // pre-init state.
+    //
+    // Draw pass (pendingSnapshot): restore the pre-init cache scalars, temp pixel
+    // layer and needToInit flag the serial pass captured.  needToInit is restored
+    // verbatim (NOT forced false): on an init frame the clone re-runs the init
+    // block below from the same pre-init state, consuming the identical per-frame
+    // RNG stream from offset 0 (identical flake placement/orientation rolls); on a
+    // non-init frame the restored scalars make the init condition false exactly as
+    // the serial pass saw it.  Either way the render then advances + draws,
+    // reproducing the serial frame.
     if (buffer.pendingSnapshot != nullptr) {
         const SnowflakesFrameState& fs = static_cast<const SnowflakesFrameState&>(*buffer.pendingSnapshot);
         LastSnowflakeCount = fs.LastSnowflakeCount;
@@ -313,7 +324,23 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
         LastFalling = fs.LastFalling;
         effectState = fs.effectState;
         buffer.SetTempBufVector(fs.tempbuf);
-        buffer.needToInit = false;
+        buffer.needToInit = fs.needToInit;
+    }
+
+    // Serial capture pass: hand the PRE-init cache scalars, temp pixel layer and
+    // needToInit flag to a later parallel draw pass (which restores them above and
+    // re-runs this render on a clone from the same state, init included).
+    // buffer.SetPixel already no-ops while capturing, so the output draw below is
+    // skipped automatically while the init + SetTempPixel advance still run.
+    if (buffer.captureSnapshot != nullptr) {
+        auto fs = std::make_unique<SnowflakesFrameState>();
+        fs->LastSnowflakeCount = LastSnowflakeCount;
+        fs->LastSnowflakeType = LastSnowflakeType;
+        fs->LastFalling = LastFalling;
+        fs->effectState = effectState;
+        fs->tempbuf = buffer.GetTempBufVector();
+        fs->needToInit = buffer.needToInit;
+        *buffer.captureSnapshot = std::move(fs);
     }
 
     if (buffer.needToInit ||
@@ -532,21 +559,6 @@ void SnowflakesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Re
                 break;
             }
         }
-    }
-
-    // Serial capture pass: hand the pre-advance cache scalars + temp pixel layer
-    // to a later parallel draw pass (which restores them above and re-runs this
-    // render on a clone).  buffer.SetPixel already no-ops while capturing, so the
-    // output draw below is skipped automatically while the SetTempPixel advance
-    // still runs.
-    if (buffer.captureSnapshot != nullptr) {
-        auto fs = std::make_unique<SnowflakesFrameState>();
-        fs->LastSnowflakeCount = LastSnowflakeCount;
-        fs->LastSnowflakeType = LastSnowflakeType;
-        fs->LastFalling = LastFalling;
-        fs->effectState = effectState;
-        fs->tempbuf = buffer.GetTempBufVector();
-        *buffer.captureSnapshot = std::move(fs);
     }
 
     // move snowflakes

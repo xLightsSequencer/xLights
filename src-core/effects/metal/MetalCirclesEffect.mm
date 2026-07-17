@@ -66,6 +66,12 @@ MetalCirclesEffect::~MetalCirclesEffect() {
 }
 
 void MetalCirclesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    if (buffer.captureSnapshot != nullptr) {
+        // Frame-parallel serial capture pass is advance-only (its drawn output
+        // is discarded): take the CPU path, never spend a GPU dispatch + wait.
+        CirclesEffect::Render(effect, SettingsMap, buffer);
+        return;
+    }
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         CirclesEffect::Render(effect, SettingsMap, buffer);

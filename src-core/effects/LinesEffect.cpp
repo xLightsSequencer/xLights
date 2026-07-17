@@ -11,6 +11,9 @@
 #include "LinesEffect.h"
 #include "../render/SequenceElements.h"
 
+#include <list>
+#include <memory>
+
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
@@ -211,6 +214,23 @@ public:
     }
 };
 
+// Tier-2 immutable per-frame draw state: the whole line-object list (points,
+// angles, trails) plus the buffer's needToInit flag, captured BEFORE this
+// frame's advance.  A frame-parallel draw pass restores these onto a clone and
+// re-runs the normal render, reproducing the serial frame byte-for-byte.
+struct LinesFrameState : public EffectFrameState {
+    std::list<LineObject> lineObjects;
+    bool needToInit = false;
+};
+
+RenderableEffect::FrameParallelism LinesEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // All cross-frame state is the LinesRenderCache line-object list, which
+    // LinesFrameState snapshots in full; the random draws are per-frame-seeded,
+    // so a draw pass that restores the pre-frame state and re-runs the advance
+    // reproduces the serial frame.
+    return FrameParallelism::Snapshottable;
+}
+
 void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thickness, double speed, int trails, bool fadeTrails)
 {
 	// Grab our cache
@@ -222,6 +242,19 @@ void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thic
 
     auto& _lines = cache->_lineObjects;
 
+    // Frame-parallel Snapshottable paths (see GetFrameParallelism): restore or
+    // capture the pre-frame state, then run the normal advance either way.
+    if (buffer.pendingSnapshot != nullptr) {
+        const LinesFrameState& fs = static_cast<const LinesFrameState&>(*buffer.pendingSnapshot);
+        cache->_lineObjects = fs.lineObjects;
+        buffer.needToInit = fs.needToInit;
+    } else if (buffer.captureSnapshot != nullptr) {
+        auto fs = std::make_unique<LinesFrameState>();
+        fs->lineObjects = cache->_lineObjects;
+        fs->needToInit = buffer.needToInit;
+        *buffer.captureSnapshot = std::move(fs);
+    }
+
 	// Check for config changes which require us to reset
 	if (buffer.needToInit) {
         buffer.needToInit = false;
@@ -229,6 +262,13 @@ void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thic
 
     cache->CreateDestroy(buffer, objects, points, buffer.BufferWi, buffer.BufferHt);
     cache->Advance(buffer, speed, trails);
+
+    // Frame-parallel serial capture pass is advance-only: the draw below goes
+    // through a temp buffer + AlphaBlend (raw pixel writes the SetPixel capture
+    // guard cannot suppress) - skip it; the clones draw these frames.
+    if (buffer.captureSnapshot != nullptr) {
+        return;
+    }
 
     RenderBuffer temp(buffer);
     temp.SetAllowAlphaChannel(true);

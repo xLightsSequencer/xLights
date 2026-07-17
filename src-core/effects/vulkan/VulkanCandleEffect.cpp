@@ -91,6 +91,16 @@ VulkanCandleEffect::~VulkanCandleEffect() {
 }
 
 void VulkanCandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (buffer.captureSnapshot != nullptr || buffer.pendingSnapshot != nullptr) {
+        // Both frame-parallel snapshot passes take the CPU base Render: the
+        // serial capture pass is advance-only (its drawn output is discarded),
+        // and the parallel draw pass must go through the base Render's snapshot
+        // restore (cache->_states/maxWid + needToInit). The GPU path would
+        // instead re-init per-node state on the fresh window clone and discard
+        // the captured simulation.
+        CandleEffect::Render(effect, SettingsMap, buffer);
+        return;
+    }
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || (buffer.BufferWi * buffer.BufferHt) < (int)u.bufferSizeThreshold) {

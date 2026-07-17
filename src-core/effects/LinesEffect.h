@@ -19,6 +19,7 @@ public:
     LinesEffect(int id);
     virtual ~LinesEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     void Render(RenderBuffer& buffer,
                 int objects, int segments, int thickness, double speed, int trails, bool fadeTrails);
 

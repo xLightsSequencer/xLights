@@ -13,8 +13,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
+#include <memory>
 #include <spdlog/fmt/fmt.h>
 #include <map>
+#include <vector>
 
 #include "ispc/CandleFunctions.ispc.h"
 
@@ -185,9 +187,48 @@ std::vector<CandleState>* CandleEffect::getPerNodeStates(RenderBuffer& buffer, c
     return &states;
 }
 
+// Tier-2 immutable per-frame draw state: the whole per-node flame/wind state
+// vector plus the buffer's needToInit flag, captured BEFORE this frame's
+// advance.  A frame-parallel draw pass restores these onto a clone and re-runs
+// the normal render (advance + draw fused, per-frame-seeded hash RNG),
+// reproducing the serial frame byte-for-byte.
+struct CandleFrameState : public EffectFrameState {
+    std::vector<CandleState> states;
+    int maxWid = 0;
+    bool needToInit = false;
+};
+
+RenderableEffect::FrameParallelism CandleEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // All cross-frame state is CandleRenderCache (per-node 5-byte flame/wind
+    // random-walk states), which CandleFrameState snapshots in full; the walk
+    // uses the per-frame-seeded hash RNG, so a draw pass that restores the
+    // pre-frame state and re-runs the advance reproduces the serial frame.
+    return FrameParallelism::Snapshottable;
+}
+
 // 10 <= HeightPct <= 100
 void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    // Frame-parallel Snapshottable paths (see GetFrameParallelism): restore or
+    // capture the pre-frame state, then run the normal advance+draw either way
+    // (the advance is fused into the per-node kernel; the capture pass's pixel
+    // output is discarded).
+    {
+        CandleRenderCache* cache = GetCache(buffer, id);
+        if (buffer.pendingSnapshot != nullptr) {
+            const CandleFrameState& fs = static_cast<const CandleFrameState&>(*buffer.pendingSnapshot);
+            cache->_states = fs.states;
+            cache->maxWid = fs.maxWid;
+            buffer.needToInit = fs.needToInit;
+        } else if (buffer.captureSnapshot != nullptr) {
+            auto fs = std::make_unique<CandleFrameState>();
+            fs->states = cache->_states;
+            fs->maxWid = cache->maxWid;
+            fs->needToInit = buffer.needToInit;
+            *buffer.captureSnapshot = std::move(fs);
+        }
+    }
+
     float oset = buffer.GetEffectTimeIntervalPosition();
     int flameAgility = GetValueCurveInt("Candle_FlameAgility", sFlameAgilityDefault, SettingsMap, oset, sFlameAgilityMin, sFlameAgilityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int windCalmness = GetValueCurveInt("Candle_WindCalmness", sWindCalmnessDefault, SettingsMap, oset, sWindCalmnessMin, sWindCalmnessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

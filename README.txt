@@ -15,6 +15,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  excluded as designed (wrong settings key) and could render incorrectly
     -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
                                  (matrices, megatrees, ...), not just groups
+    -enh (dkulp)                 Render: Twinkle is frame-parallel Snapshottable (both render methods),
+                                 letting group rows with Twinkle render frames concurrently
+    -enh (dkulp)                 Render: Circles, Candle and Lines are frame-parallel Snapshottable
+                                 (Circles radial modes are fully frame-parallel)
+    -bug (dkulp)                 Frame-parallel rendering: Candle (per-node) rendered wrong output in
+                                 parallel windows on Metal/Vulkan (GPU path discarded the captured
+                                 simulation and re-seeded every frame)
+    -bug (dkulp)                 Frame-parallel rendering: Snowflakes could render a wrong first frame
+                                 in parallel windows (Random/"3 nodes" type or warmup frames)
     -bug (dkulp)                 Normalize bare float settings (e.g. ".2" → "0.2") from old sequences so
                                  float text controls display and edit correctly
     -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a

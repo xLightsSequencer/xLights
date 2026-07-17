@@ -101,6 +101,13 @@ MetalTwinkleEffect::~MetalTwinkleEffect() {
 }
 
 void MetalTwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    if (buffer.captureSnapshot != nullptr) {
+        // Frame-parallel serial capture pass is advance-only (the CPU path runs
+        // the kernel with npix=0): no pixels are drawn, so never spend a GPU
+        // command buffer + wait on it.
+        TwinkleEffect::Render(effect, SettingsMap, buffer);
+        return;
+    }
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || !data->canRender() || buffer.IsDmxBuffer()
         || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
