@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Normalize bare float settings (e.g. ".2" → "0.2") from old sequences so
+                                 float text controls display and edit correctly
     -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a
                                  blur value curve or a migrated legacy EffectBlur setting
     -bug (dkulp)                 Fix a crash duplicating an effect by cell when the effect starts in a gap

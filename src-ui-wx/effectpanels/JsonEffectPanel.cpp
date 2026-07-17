@@ -1288,6 +1288,13 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 combo->Append(wxString(item));
             }
             combo->SetValue(wxString(defaultVal));
+            if (type == "float") {
+                switch (divisor) {
+                    case 100: combo->SetBESliderType(BE_FLOAT2); break;
+                    case 360: combo->SetBESliderType(BE_FLOAT360); break;
+                    default: combo->SetBESliderType(BE_FLOAT1); break;
+                }
+            }
             info.comboBox = combo;
             sizer->Add(combo, 1, wxALL | wxEXPAND, 2);
         } else {
