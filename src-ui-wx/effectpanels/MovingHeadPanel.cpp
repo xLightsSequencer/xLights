@@ -1248,6 +1248,7 @@ void MovingHeadPanel::ValidateWindow()
 
     // if single model make sure the effect setting is on correct head...if not move it
     auto model = models.front();
+    bool remapped_fixture = false;
     if (single_model) {
         if( model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
             model->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
@@ -1296,12 +1297,23 @@ void MovingHeadPanel::ValidateWindow()
                                         }
                                     }
                                 }
+                                remapped_fixture = true;
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    // The remap above updates the hidden per-head textctrls, but our wxEVT_TEXT
+    // handler doesn't call FireChangeEvent() for the MH*_Settings fields.
+    // Trigger it explicitly so the effect's SettingsMap is reserialized with the
+    // corrected head assignment (avoids copy/paste propagating a stale fixture).
+    // propagates the stale head number and the status pane starts showing
+    // settings for multiple heads at once.
+    if (remapped_fixture) {
+        FireChangeEvent();
     }
 
     // updates the status panel if its already active and a new effect is selected
