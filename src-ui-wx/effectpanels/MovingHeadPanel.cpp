@@ -1306,11 +1306,10 @@ void MovingHeadPanel::ValidateWindow()
         }
     }
 
-    // The remap above mutates the hidden per-head textctrls directly (not via
-    // user input), so no wxEVT_TEXT ever fires for them. Without an explicit
-    // FireChangeEvent() here, the fixed-up head assignment stays a display-only
-    // artifact: the effect's persisted SettingsMap keeps referencing the old
-    // (wrong) head slot, so copy/pasting this effect to yet another model
+    // The remap above updates the hidden per-head textctrls, but our wxEVT_TEXT
+    // handler doesn't call FireChangeEvent() for the MH*_Settings fields.
+    // Trigger it explicitly so the effect's SettingsMap is reserialized with the
+    // corrected head assignment (avoids copy/paste propagating a stale fixture).
     // propagates the stale head number and the status pane starts showing
     // settings for multiple heads at once.
     if (remapped_fixture) {
