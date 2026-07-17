@@ -1248,6 +1248,7 @@ void MovingHeadPanel::ValidateWindow()
 
     // if single model make sure the effect setting is on correct head...if not move it
     auto model = models.front();
+    bool remapped_fixture = false;
     if (single_model) {
         if( model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
             model->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
@@ -1296,12 +1297,24 @@ void MovingHeadPanel::ValidateWindow()
                                         }
                                     }
                                 }
+                                remapped_fixture = true;
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    // The remap above mutates the hidden per-head textctrls directly (not via
+    // user input), so no wxEVT_TEXT ever fires for them. Without an explicit
+    // FireChangeEvent() here, the fixed-up head assignment stays a display-only
+    // artifact: the effect's persisted SettingsMap keeps referencing the old
+    // (wrong) head slot, so copy/pasting this effect to yet another model
+    // propagates the stale head number and the status pane starts showing
+    // settings for multiple heads at once.
+    if (remapped_fixture) {
+        FireChangeEvent();
     }
 
     // updates the status panel if its already active and a new effect is selected
