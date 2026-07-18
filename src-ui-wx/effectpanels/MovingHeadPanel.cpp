@@ -2904,7 +2904,7 @@ void MovingHeadPanel::SetDefaultParameters()
         m_wheelColorPanel->ResetColours();
     }
     if (m_movingHeadDimmerPanel != nullptr) {
-        m_movingHeadDimmerPanel->SetDimmerCommands("");
+        m_movingHeadDimmerPanel->SetDimmerCommands("0.0,0.0,1.0,0.0");
     }
 
     CheckAllFixtures();
