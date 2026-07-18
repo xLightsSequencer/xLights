@@ -1319,6 +1319,37 @@ void MovingHeadPanel::ValidateWindow()
     // updates the status panel if its already active and a new effect is selected
     UpdateStatusPanel();
 
+    // The color wheel / RGB / dimmer sub-panels are only kept in sync with the
+    // checked fixture(s) via OnCheckBox_MHClick -> RecallSettings. Moving between
+    // effects on the timeline changes the per-head settings textctrls directly
+    // (bypassing that handler), so without this the color wheel/dimmer panels
+    // kept showing whatever the previously selected effect had.
+    UpdateColorPanel();
+    {
+        std::string last_mh = xlEMPTY_STRING;
+        bool all_same = true;
+        for (int i = 1; i <= 8; ++i) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if (checkbox != nullptr && checkbox->IsChecked()) {
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if (mh_textbox != nullptr) {
+                    std::string settings = mh_textbox->GetValue();
+                    if (last_mh == xlEMPTY_STRING) {
+                        last_mh = settings;
+                    } else if (last_mh != settings) {
+                        all_same = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if (last_mh != xlEMPTY_STRING && all_same) {
+            RecallSettings(last_mh);
+        }
+    }
+
     // If the effect already has settings then uncheck the fixtures so the user doesn't accidentally click somewhere
     // and write to all the heads messing up what was there.  We force them to reselect the heads they want to effect.
     // Only new effects start out with all heads checked.
@@ -2862,6 +2893,19 @@ void MovingHeadPanel::SetDefaultParameters()
     CheckBox_MHShutterEnable->SetValue(false);
 
     ResetPatternControls();
+
+    // Newly dropped effects have no settings of their own, so the color/dimmer
+    // sub-panels must be reset here too -- otherwise they keep showing whatever
+    // was last displayed for the previously selected effect.
+    if (m_rgbColorPanel != nullptr) {
+        m_rgbColorPanel->ResetColours();
+    }
+    if (m_wheelColorPanel != nullptr) {
+        m_wheelColorPanel->ResetColours();
+    }
+    if (m_movingHeadDimmerPanel != nullptr) {
+        m_movingHeadDimmerPanel->SetDimmerCommands("");
+    }
 
     CheckAllFixtures();
 
