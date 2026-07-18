@@ -11,8 +11,6 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
-    -bug (dkulp)                 Frame-parallel rendering: rows containing canvas-mode effects were not
-                                 excluded as designed (wrong settings key) and could render incorrectly
     -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
                                  (matrices, megatrees, ...), not just groups
     -enh (dkulp)                 Render: Twinkle is frame-parallel Snapshottable (both render methods),
@@ -36,6 +34,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Spectrogram modes are now classified Stateful (serial render) - their
                                  line-history advance is fused into the draw. The legacy capture/restore
                                  snapshot protocol is removed (AdvanceState is the only tier-2 path)
+    -bug (derwin12)              Sequencer grid: dragging the shared edge between two touching effects
+                                 could move a locked neighboring effect (#6696)
+    -bug (dkulp)                 Frame-parallel rendering: rows containing canvas-mode effects were not
+                                 excluded as designed (wrong settings key) and could render incorrectly
     -bug (dkulp)                 Normalize bare float settings (e.g. ".2" → "0.2") from old sequences so
                                  float text controls display and edit correctly
     -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a
