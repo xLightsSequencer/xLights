@@ -2742,8 +2742,9 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                 size_t start = n->ActChan;
                 if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
-                    // Apply the model's dimming curve, then the per-node curve
-                    // (submodel "shadow" dimming) on top so the two stack.
+                    // Apply the per-node curve (submodel "shadow" dimming)
+                    // first, then the model's dimming curve on top so the
+                    // two stack.
                     DimmingCurve* modelCurve = (n->model != nullptr) ? n->model->GetDimmingCurve() : nullptr;
                     const DimmingCurve* nodeCurve = n->nodeDimmingCurve;
                     if (modelCurve != nullptr || nodeCurve != nullptr) {
@@ -2751,14 +2752,14 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                             uint8_t buf[3] = { 0, 0, 0 };
                             n->GetForChannels(buf);
                             xlColor color(buf[0], buf[0], buf[0]);
-                            if (modelCurve != nullptr) modelCurve->apply(color);
                             if (nodeCurve != nullptr) nodeCurve->apply(color);
+                            if (modelCurve != nullptr) modelCurve->apply(color);
                             n->SetColor(color);
                         } else {
                             xlColor color;
                             n->GetColor(color);
-                            if (modelCurve != nullptr) modelCurve->apply(color);
                             if (nodeCurve != nullptr) nodeCurve->apply(color);
+                            if (modelCurve != nullptr) modelCurve->apply(color);
                             n->SetColor(color);
                         }
                     }
@@ -2829,16 +2830,16 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
                 n->GetColor(color);
             }
 
-            // Reverse in the opposite order of GetColors' apply: per-node
-            // curve first, then the model curve.
-            if (n->nodeDimmingCurve != nullptr) {
-                n->nodeDimmingCurve->reverse(color);
-            }
+            // Reverse in the opposite order of GetColors' apply: model
+            // curve first, then the per-node curve.
             if (n->model != nullptr) {
                 DimmingCurve* curve = n->model->GetDimmingCurve();
                 if (curve != nullptr) {
                     curve->reverse(color);
                 }
+            }
+            if (n->nodeDimmingCurve != nullptr) {
+                n->nodeDimmingCurve->reverse(color);
             }
             if (!dmx) {
                 for (const auto& a : n->Coords) {
