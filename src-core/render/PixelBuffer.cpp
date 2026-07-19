@@ -989,7 +989,7 @@ void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
     anyDimmingCurve = false;
     if (numLayers > 0) {
         for (const auto& n : layers[0]->buffer.Nodes) {
-            if (n != nullptr && n->model != nullptr && n->model->GetDimmingCurve() != nullptr) {
+            if (n != nullptr && ((n->model != nullptr && n->model->GetDimmingCurve() != nullptr) || n->nodeDimmingCurve != nullptr)) {
                 anyDimmingCurve = true;
                 break;
             }
@@ -2742,22 +2742,24 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                 size_t start = n->ActChan;
                 if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
-                    if (n->model != nullptr) { // nor this
-                        DimmingCurve* curve = n->model->GetDimmingCurve();
-                        if (curve != nullptr) {
-                            if (n->GetChanCount() == 1) {
-                                uint8_t buf[3] = { 0, 0, 0 };
-                                n->GetForChannels(buf);
-                                xlColor color(buf[0], buf[0], buf[0]);
-                                curve->apply(color);
-
-                                n->SetColor(color);
-                            } else {
-                                xlColor color;
-                                n->GetColor(color);
-                                curve->apply(color);
-                                n->SetColor(color);
-                            }
+                    // Apply the model's dimming curve, then the per-node curve
+                    // (submodel "shadow" dimming) on top so the two stack.
+                    DimmingCurve* modelCurve = (n->model != nullptr) ? n->model->GetDimmingCurve() : nullptr;
+                    const DimmingCurve* nodeCurve = n->nodeDimmingCurve;
+                    if (modelCurve != nullptr || nodeCurve != nullptr) {
+                        if (n->GetChanCount() == 1) {
+                            uint8_t buf[3] = { 0, 0, 0 };
+                            n->GetForChannels(buf);
+                            xlColor color(buf[0], buf[0], buf[0]);
+                            if (modelCurve != nullptr) modelCurve->apply(color);
+                            if (nodeCurve != nullptr) nodeCurve->apply(color);
+                            n->SetColor(color);
+                        } else {
+                            xlColor color;
+                            n->GetColor(color);
+                            if (modelCurve != nullptr) modelCurve->apply(color);
+                            if (nodeCurve != nullptr) nodeCurve->apply(color);
+                            n->SetColor(color);
                         }
                     }
                     n->GetForChannels(&fdata[start]);
@@ -2827,6 +2829,11 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
                 n->GetColor(color);
             }
 
+            // Reverse in the opposite order of GetColors' apply: per-node
+            // curve first, then the model curve.
+            if (n->nodeDimmingCurve != nullptr) {
+                n->nodeDimmingCurve->reverse(color);
+            }
             if (n->model != nullptr) {
                 DimmingCurve* curve = n->model->GetDimmingCurve();
                 if (curve != nullptr) {

@@ -26,6 +26,7 @@
 #define NODE_SINGLE_COLOR_CHAN_CNT 1
 
 class Model;
+class DimmingCurve;
 
 class NodeBaseClass {
 protected:
@@ -178,6 +179,11 @@ public:
     CoordVec Coords;
     std::string* name = nullptr;
     const Model* model = nullptr;
+    // Optional per-node dimming applied in addition to the owning model's
+    // curve (used for permanent submodel "shadow" dimming). Not owned here;
+    // the owning parent Model holds the curve and keeps it alive. Propagated
+    // by the copy ctor so it rides along every clone into the render buffers.
+    const DimmingCurve* nodeDimmingCurve = nullptr;
 
     NodeBaseClass() {
         chanCnt = NODE_RGB_CHAN_CNT;
@@ -186,7 +192,7 @@ public:
         offsets[2] = 2;
     }
     NodeBaseClass(const NodeBaseClass& c) :
-        chanCnt(c.chanCnt), ActChan(c.ActChan), StringNum(c.StringNum), Coords(c.Coords), name(nullptr), model(c.model) {
+        chanCnt(c.chanCnt), ActChan(c.ActChan), StringNum(c.StringNum), Coords(c.Coords), name(nullptr), model(c.model), nodeDimmingCurve(c.nodeDimmingCurve) {
         if (c.name != nullptr) {
             name = new std::string(*(c.name));
         }

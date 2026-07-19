@@ -126,6 +126,66 @@ void Model::SetDimmingInfo(const std::map<std::string, std::map<std::string, std
     }
 }
 
+void Model::ApplySubModelDimmingToNodes()
+{
+    // Clear any previous stamping first so this is idempotent across rebuilds.
+    _subModelNodeDimmingCurves.clear();
+    for (auto& n : Nodes) {
+        if (n != nullptr) {
+            n->nodeDimmingCurve = nullptr;
+        }
+    }
+    if (subModels.empty() || Nodes.empty()) {
+        return;
+    }
+
+    // Most-negative brightness stamped on each parent node so far; overlapping
+    // submodels resolve to the strongest dim.
+    std::map<int, int> strongestByNode;
+
+    for (auto* m : subModels) {
+        SubModel* sm = dynamic_cast<SubModel*>(m);
+        if (sm == nullptr) {
+            continue;
+        }
+        auto di = sm->GetDimmingInfo();
+        auto itAll = di.find("all");
+        if (itAll == di.end()) {
+            continue;
+        }
+        auto itBrightness = itAll->second.find("brightness");
+        if (itBrightness == itAll->second.end()) {
+            continue;
+        }
+        int brightness = (int)std::strtol(itBrightness->second.c_str(), nullptr, 10);
+        if (brightness == 0) {
+            continue;
+        }
+        DimmingCurve* curve = DimmingCurve::createFromInfo(di);
+        if (curve == nullptr) {
+            continue;
+        }
+        _subModelNodeDimmingCurves.push_back(std::unique_ptr<DimmingCurve>(curve));
+        const DimmingCurve* owned = _subModelNodeDimmingCurves.back().get();
+        for (const auto& [parentIdx, smIdx] : sm->GetNodeIndexMap()) {
+            // Stamp the parent's physical node so parent/group renders of this
+            // channel are dimmed too (strongest dim wins across overlaps).
+            if (parentIdx >= 0 && parentIdx < (int)Nodes.size() && Nodes[parentIdx] != nullptr) {
+                auto it = strongestByNode.find(parentIdx);
+                if (it == strongestByNode.end() || brightness < it->second) {
+                    strongestByNode[parentIdx] = brightness;
+                    Nodes[parentIdx]->nodeDimmingCurve = owned;
+                }
+            }
+            // Stamp the submodel's own render node (cloned during its Setup,
+            // before this pass) so an effect on the submodel itself dims too.
+            if (smIdx >= 0 && smIdx < (int)sm->Nodes.size() && sm->Nodes[smIdx] != nullptr) {
+                sm->Nodes[smIdx]->nodeDimmingCurve = owned;
+            }
+        }
+    }
+}
+
 std::vector<std::string> Model::GetLayoutGroups(const ModelManager& mm)
 {
     std::vector<std::string> lg;
@@ -1061,6 +1121,7 @@ void Model::UpdateChannels()
     for (auto& sm : subModels) {
         sm->Setup();
     }
+    ApplySubModelDimmingToNodes();
 
     IncrementChangeCount();
 }
@@ -1105,6 +1166,7 @@ void Model::Setup()
     for (auto &sm : subModels) {
         sm->Setup();
     }
+    ApplySubModelDimmingToNodes();
 }
 
 std::string Model::GetControllerConnectionString() const

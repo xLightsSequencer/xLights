@@ -93,13 +93,7 @@ public:
 
     virtual void Setup() override;
 
-    void SetDimmingInfo(const std::map<std::string, std::map<std::string, std::string>>& info) override;
-
 private:
-    // Point our render nodes at the submodel when it carries its own dimming
-    // curve so PixelBuffer applies that curve; otherwise leave them owned by
-    // the parent (the node clones' default) so the parent's curve still applies.
-    void ApplyDimmingNodeOwnership();
     void initSubbufferRange(std::string const& range);
     void initDefaultBuffer(std::string const& nodes);
     void initRangeXY(std::string const& nodes);
