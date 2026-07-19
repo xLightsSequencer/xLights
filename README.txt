@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  letting group rows with Twinkle render frames concurrently
     -enh (dkulp)                 Render: Circles, Candle and Lines are frame-parallel Snapshottable
                                  (Circles radial modes are fully frame-parallel)
+    -bug (derwin12)              DMX Moving Head Adv / Servo 3D: editing ScaleX/Y/Z in the property grid no longer snaps it back to 1.0
     -bug (dkulp)                 Frame-parallel rendering: Candle (per-node) rendered wrong output in
                                  parallel windows on Metal/Vulkan (GPU path discarded the captured
                                  simulation and re-seeded every frame)
