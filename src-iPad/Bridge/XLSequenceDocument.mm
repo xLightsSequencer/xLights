@@ -5930,6 +5930,17 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
             // be ranges anyway.)
             d[@"subBuffer"] = [NSString stringWithUTF8String:sm->GetSubModelLines().c_str()];
         }
+        // Dimming curve (brightness only) — mirrors desktop SubModelsDialog.
+        int dimmingBrightness = 0;
+        auto dimmingInfo = sm->GetDimmingInfo();
+        auto itAll = dimmingInfo.find("all");
+        if (itAll != dimmingInfo.end()) {
+            auto itBrightness = itAll->second.find("brightness");
+            if (itBrightness != itAll->second.end()) {
+                dimmingBrightness = (int)std::strtol(itBrightness->second.c_str(), nullptr, 10);
+            }
+        }
+        d[@"dimmingBrightness"] = @(dimmingBrightness);
         [out addObject:d];
     }
     return out;
@@ -5975,6 +5986,14 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
             if ([sub isKindOfClass:[NSString class]]) {
                 sm->AddSubbuffer(sub.UTF8String);
             }
+        }
+        // Dimming curve (brightness only) — mirrors desktop SubModelsDialog.
+        NSNumber* dimmingBrightness = d[@"dimmingBrightness"];
+        if ([dimmingBrightness isKindOfClass:[NSNumber class]] && dimmingBrightness.intValue != 0) {
+            std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
+            dimmingInfo["all"]["gamma"] = "1.0";
+            dimmingInfo["all"]["brightness"] = std::to_string(dimmingBrightness.intValue);
+            sm->SetDimmingInfo(dimmingInfo);
         }
         sm->Setup();
     }

@@ -95,6 +95,20 @@ SubModel::SubModel(Model *newParent, const SubModel* source) :
 
 bool SubModel::IsXYBufferStyle() { return _bufferStyle == KEEP_XY; }
 
+void SubModel::SetDimmingInfo(const std::map<std::string, std::map<std::string, std::string>>& info) {
+    Model::SetDimmingInfo(info);
+    ApplyDimmingNodeOwnership();
+}
+
+void SubModel::ApplyDimmingNodeOwnership() {
+    const Model* owner = (modelDimmingCurve != nullptr) ? static_cast<const Model*>(this) : parent;
+    for (auto& n : Nodes) {
+        if (n != nullptr) {
+            n->model = owner;
+        }
+    }
+}
+
 
 static const std::string VERT_PER_STRAND("Vertical Per Strand");
 static const std::string HORIZ_PER_STRAND("Horizontal Per Strand");
@@ -611,4 +625,5 @@ void SubModel::Setup() {
         // Subbuffer type
         initSubbufferRange(_propertyGridDisplay);
     }
+    ApplyDimmingNodeOwnership();
 }

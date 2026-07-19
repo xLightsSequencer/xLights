@@ -460,12 +460,14 @@ void XmlDeserializingModelFactory::DeserializeSubModel(Model* model, pugi::xml_n
         sm->AddSubbuffer(smData->subBuffer);
     }
 
-    // Load aliases for this submodel (handles both "Aliases" and legacy "aliases")
+    // Load child elements for this submodel: aliases (handles both "Aliases"
+    // and legacy "aliases") and an optional dimming curve.
     for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
         std::string_view childName = child.name();
         if (childName == XmlNodeKeys::AliasesAttribute || childName == "aliases") {
             DeserializeAliases(sm, child);
-            break;
+        } else if (childName == XmlNodeKeys::DimmingCurveName) {
+            DeserializeDimmingCurve(sm, child);
         }
     }
 }

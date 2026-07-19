@@ -144,6 +144,7 @@ const long SubModelsPanel::SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL = wxNewId();
 const long SubModelsPanel::SUBMODEL_DIALOG_BLANKS_AS_ZERO = wxNewId();
 const long SubModelsPanel::SUBMODEL_DIALOG_BLANKS_AS_EMPTY = wxNewId();
 const long SubModelsPanel::SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS = wxNewId();
+const long SubModelsPanel::SUBMODEL_DIALOG_SET_DIMMING = wxNewId();
 
 const long SubModelsPanel::ID_BUTTON_PLAY_ANIM = wxNewId();
 const long SubModelsPanel::ID_SLIDER_ANIM_SPEED = wxNewId();
@@ -708,6 +709,14 @@ void SubModelsPanel::SaveSubModelInfoIntoThisModel(Model *m)
             }
         }
 
+        // transfer dimming curve (brightness only)
+        if ((*a)->dimmingBrightness != 0) {
+            std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
+            dimmingInfo["all"]["gamma"] = "1.0";
+            dimmingInfo["all"]["brightness"] = std::to_string((*a)->dimmingBrightness);
+            sm->SetDimmingInfo(dimmingInfo);
+        }
+
         // If the submodel name has changed ... we need to rename the model
         if ((*a)->oldName != (*a)->name)
         {
@@ -862,6 +871,9 @@ void SubModelsPanel::OnButton_EditClick(wxCommandEvent& event)
     }
     if (ListCtrl_SubModels->GetSelectedItemCount() == 1) {
         mnu.Append(SUBMODEL_DIALOG_SHIFT_SINGLE, "Shift All Nodes in Selected SubModel");
+    }
+    if (ListCtrl_SubModels->GetSelectedItemCount() >= 1) {
+        mnu.Append(SUBMODEL_DIALOG_SET_DIMMING, "Set Dimming Curve");
     }
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)& SubModelsPanel::OnEditBtnPopup, nullptr, this);
     PopupMenu(&mnu);
@@ -1121,6 +1133,9 @@ void SubModelsPanel::OnEditBtnPopup(wxCommandEvent& event)
     }
     else if (event.GetId() == SUBMODEL_DIALOG_REVERSE) {
         Reverse();
+    }
+    else if (event.GetId() == SUBMODEL_DIALOG_SET_DIMMING) {
+        SetDimmingCurve();
     }
     NotifyChange();
 }
@@ -3339,6 +3354,14 @@ void SubModelsPanel::RetrieveSubModelInfo(Model* model)
         } else {
             sm->subBuffer = sub->GetSubModelLines();
         }
+        auto dimmingInfo = sub->GetDimmingInfo();
+        auto itAll = dimmingInfo.find("all");
+        if (itAll != dimmingInfo.end()) {
+            auto itBrightness = itAll->second.find("brightness");
+            if (itBrightness != itAll->second.end()) {
+                sm->dimmingBrightness = (int)std::strtol(itBrightness->second.c_str(), nullptr, 10);
+            }
+        }
         _subModels.push_back(sm);
     }
 
@@ -4065,6 +4088,40 @@ void SubModelsPanel::ShiftSingleSubmodel()
     }
 }
 
+
+void SubModelsPanel::SetDimmingCurve()
+{
+    wxString names = GetSelectedNames();
+    if (names.IsEmpty())
+        return;
+
+    wxArrayString nameList = wxSplit(names, ',');
+    if (nameList.IsEmpty())
+        return;
+
+    long current = 0;
+    SubModelInfo* first = GetSubModelInfo(nameList.front());
+    if (first != nullptr) {
+        current = first->dimmingBrightness;
+    }
+
+    wxNumberEntryDialog dlg(this,
+        "Set a permanent brightness dimming for the selected submodel(s).\n"
+        "Negative values dim the submodel (useful for creating shadows on a prop).\n"
+        "Use 0 to remove the dimming curve.",
+        "Brightness", "Set Dimming Curve", current, -100, 100);
+    if (dlg.ShowModal() == wxID_OK) {
+        int brightness = (int)dlg.GetValue();
+        for (auto const& n : nameList) {
+            SubModelInfo* sm = GetSubModelInfo(n);
+            if (sm != nullptr) {
+                sm->dimmingBrightness = brightness;
+            }
+        }
+        ValidateWindow();
+        Select(nameList.front());
+    }
+}
 
 void SubModelsPanel::FlipHorizontal()
 {

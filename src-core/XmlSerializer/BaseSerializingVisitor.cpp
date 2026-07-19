@@ -529,11 +529,17 @@ void BaseSerializingVisitor::WriteSubmodels(const Model* m) {
         SortAttributes(attrs);
 
         const auto& subAliases = s->GetAliases();
-        if (subAliases.empty()) {
+        const bool hasDimmingCurve = !s->GetDimmingInfo().empty();
+        if (subAliases.empty() && !hasDimmingCurve) {
             WriteOpenTag(XmlNodeKeys::SubModelNodeName, attrs, true);
         } else {
             WriteOpenTag(XmlNodeKeys::SubModelNodeName, attrs, false);
-            WriteAliases(subAliases);
+            if (!subAliases.empty()) {
+                WriteAliases(subAliases);
+            }
+            if (hasDimmingCurve) {
+                WriteDimmingCurve(s);
+            }
             WriteCloseTag();
         }
     }

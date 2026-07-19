@@ -71,12 +71,13 @@ class SubModelsPanel : public wxPanel {
         SubModelInfo(const wxString& n) : name(n), oldName(n) {}
         SubModelInfo(const SubModelInfo& n) : name(n.name), oldName(n.oldName),
             vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer),
-            bufferStyle(n.bufferStyle), strands(n.strands) {}
+            bufferStyle(n.bufferStyle), strands(n.strands), dimmingBrightness(n.dimmingBrightness) {}
 
         bool operator==(const SubModelInfo& n) const {
             return (name == n.name && oldName == n.oldName && vertical == n.vertical &&
                 isRanges == n.isRanges && subBuffer == n.subBuffer &&
-                strands == n.strands && bufferStyle == n.bufferStyle);
+                strands == n.strands && bufferStyle == n.bufferStyle &&
+                dimmingBrightness == n.dimmingBrightness);
         }
         bool operator!=(const SubModelInfo& n) const {
             return !(*this == n);
@@ -89,6 +90,7 @@ class SubModelsPanel : public wxPanel {
         wxString subBuffer;
         wxString bufferStyle{ "Default" };
         std::vector<std::string> strands;
+        int dimmingBrightness{0};
     };
 
     wxTimer timer1;
@@ -273,6 +275,7 @@ private:
     static const long SUBMODEL_DIALOG_BLANKS_AS_ZERO;
     static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
     static const long SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS;
+    static const long SUBMODEL_DIALOG_SET_DIMMING;
 
     static const long ID_BUTTON_PLAY_ANIM;
     static const long ID_SLIDER_ANIM_SPEED;
@@ -327,6 +330,7 @@ private:
     void Aliases();
     void Shift();
     void ShiftSingleSubmodel();
+    void SetDimmingCurve();
     void FlipHorizontal();
     void FlipVertical();
     void Reverse();
