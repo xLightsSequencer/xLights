@@ -3338,6 +3338,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);
             }
+            if (Nodes[n]->nodeDimmingCurve != nullptr) {
+                Nodes[n]->nodeDimmingCurve->reverse(color);
+            }
             if (Nodes[n]->model->StrobeRate) {
                 int r = rand() % 5;
                 if (r != 0) {
@@ -3858,6 +3861,9 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             Nodes[n]->GetColor(color);
             if (Nodes[n]->model->modelDimmingCurve != nullptr) {
                 Nodes[n]->model->modelDimmingCurve->reverse(color);
+            }
+            if (Nodes[n]->nodeDimmingCurve != nullptr) {
+                Nodes[n]->nodeDimmingCurve->reverse(color);
             }
             if (Nodes[n]->model->StrobeRate) {
                 int r = rand() % 5;
