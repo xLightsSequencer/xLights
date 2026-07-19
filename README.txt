@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (derwin12)              DMX Moving Head Adv / Servo 3D: editing ScaleX/Y/Z in the property grid no longer snaps it back to 1.0
     -bug (dkulp)                 Frame-parallel rendering: rows containing canvas-mode effects were not
                                  excluded as designed (wrong settings key) and could render incorrectly
     -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
