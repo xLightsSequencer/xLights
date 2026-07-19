@@ -1731,7 +1731,6 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
 
 bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& filename)
 {
-    static 
     xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true, false);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;
