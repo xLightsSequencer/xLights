@@ -16,6 +16,7 @@
 #include "../ScreenLocationPropertyHelper.h"
 #include "models/SubModel.h"
 #include "models/ModelManager.h"
+#include "models/OutputModelManager.h"
 
 SubModelPropertyAdapter::SubModelPropertyAdapter(SubModel& subModel)
     : ModelPropertyAdapter(subModel), _subModel(subModel) {}
@@ -41,6 +42,21 @@ void SubModelPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, O
     p = grid->Append(new wxStringProperty("SubModel", "SMN", _subModel.GetSubModelLines()));
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->ChangeFlag(wxPGFlags::ReadOnly, true);
+
+    int dimmingBrightness = 0;
+    auto di = _subModel.GetDimmingInfo();
+    auto itAll = di.find("all");
+    if (itAll != di.end()) {
+        auto itBrightness = itAll->second.find("brightness");
+        if (itBrightness != itAll->second.end()) {
+            dimmingBrightness = (int)std::strtol(itBrightness->second.c_str(), nullptr, 10);
+        }
+    }
+    p = grid->Append(new wxIntProperty("Dimming Brightness", "SMDimmingBrightness", dimmingBrightness));
+    p->SetAttribute("Min", -100);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("Permanent brightness dimming applied to this submodel's nodes when the sequence is rendered to the FSEQ. Negative values dim the submodel (useful for creating shadows on a prop). 0 removes the dimming curve. Previews are not dimmed.");
 
     auto modelGroups = _subModel.GetParent()->GetModelManager().GetGroupsContainingModel(&_subModel);
     if (modelGroups.size() > 0) {
@@ -79,7 +95,25 @@ void SubModelPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, O
 }
 
 int SubModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
-    // SubModel properties are all read-only, so nothing to handle
+    if (event.GetPropertyName() == "SMDimmingBrightness") {
+        int brightness = (int)event.GetValue().GetLong();
+        std::map<std::string, std::map<std::string, std::string>> di;
+        if (brightness != 0) {
+            di["all"]["gamma"] = "1.0";
+            di["all"]["brightness"] = std::to_string(brightness);
+        }
+        _subModel.SetDimmingInfo(di);
+        Model* parent = _subModel.GetParent();
+        if (parent != nullptr) {
+            parent->ApplySubModelDimmingToNodes();
+            parent->IncrementChangeCount();
+        }
+        _subModel.IncrementChangeCount();
+        _subModel.AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                              OutputModelManager::WORK_RGBEFFECTS_CHANGE, "SubModel::OnPropertyGridChange::SMDimmingBrightness");
+        return 0;
+    }
+    // Remaining SubModel properties are all read-only, so nothing to handle
     // Fall through to screen location handler
     int i = ScreenLocationPropertyHelper::OnPropertyGridChange(_subModel.GetModelScreenLocation(), grid, event);
     return i;
