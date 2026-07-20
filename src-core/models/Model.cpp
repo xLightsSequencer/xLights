@@ -135,13 +135,22 @@ void Model::ApplySubModelDimmingToNodes()
             n->nodeDimmingCurve = nullptr;
         }
     }
+    for (auto* m : subModels) {
+        if (m != nullptr) {
+            for (auto& n : m->Nodes) {
+                if (n != nullptr) {
+                    n->nodeDimmingCurve = nullptr;
+                }
+            }
+        }
+    }
     if (subModels.empty() || Nodes.empty()) {
         return;
     }
 
-    // Most-negative brightness stamped on each parent node so far; overlapping
-    // submodels resolve to the strongest dim.
-    std::map<int, int> strongestByNode;
+    // Most-negative brightness per parent node; overlapping submodels resolve
+    // to the strongest dim.
+    std::map<int, std::pair<int, const DimmingCurve*>> strongestByNode;
 
     for (auto* m : subModels) {
         SubModel* sm = dynamic_cast<SubModel*>(m);
@@ -168,19 +177,36 @@ void Model::ApplySubModelDimmingToNodes()
         _subModelNodeDimmingCurves.push_back(std::unique_ptr<DimmingCurve>(curve));
         const DimmingCurve* owned = _subModelNodeDimmingCurves.back().get();
         for (const auto& [parentIdx, smIdx] : sm->GetNodeIndexMap()) {
-            // Stamp the parent's physical node so parent/group renders of this
-            // channel are dimmed too (strongest dim wins across overlaps).
             if (parentIdx >= 0 && parentIdx < (int)Nodes.size() && Nodes[parentIdx] != nullptr) {
                 auto it = strongestByNode.find(parentIdx);
-                if (it == strongestByNode.end() || brightness < it->second) {
-                    strongestByNode[parentIdx] = brightness;
-                    Nodes[parentIdx]->nodeDimmingCurve = owned;
+                if (it == strongestByNode.end() || brightness < it->second.first) {
+                    strongestByNode[parentIdx] = { brightness, owned };
                 }
             }
-            // Stamp the submodel's own render node (cloned during its Setup,
-            // before this pass) so an effect on the submodel itself dims too.
-            if (smIdx >= 0 && smIdx < (int)sm->Nodes.size() && sm->Nodes[smIdx] != nullptr) {
-                sm->Nodes[smIdx]->nodeDimmingCurve = owned;
+        }
+    }
+    if (strongestByNode.empty()) {
+        return;
+    }
+
+    // Stamp the parent's physical nodes so parent/strand/group renders of
+    // these channels are dimmed.
+    for (const auto& [parentIdx, entry] : strongestByNode) {
+        Nodes[parentIdx]->nodeDimmingCurve = entry.second;
+    }
+
+    // Stamp every submodel's render-node clones covering those channels — not
+    // just the curve owner's — so an effect on a sibling submodel that shares
+    // the channel is dimmed too.
+    for (auto* m : subModels) {
+        SubModel* sm = dynamic_cast<SubModel*>(m);
+        if (sm == nullptr) {
+            continue;
+        }
+        for (const auto& [parentIdx, smIdx] : sm->GetNodeIndexMap()) {
+            auto it = strongestByNode.find(parentIdx);
+            if (it != strongestByNode.end() && smIdx >= 0 && smIdx < (int)sm->Nodes.size() && sm->Nodes[smIdx] != nullptr) {
+                sm->Nodes[smIdx]->nodeDimmingCurve = it->second.second;
             }
         }
     }
