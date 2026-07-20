@@ -20,6 +20,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  letting group rows with Twinkle render frames concurrently
     -enh (dkulp)                 Render: Circles, Candle and Lines are frame-parallel Snapshottable
                                  (Circles radial modes are fully frame-parallel)
+    -bug (dkulp)                 Circles: crash rendering into a variable/oversized sub-buffer (the SIMD
+                                 kernel wrote past the pixel allocation)
+    -bug (dkulp)                 Sequencer: crash double-clicking an empty/stale row heading
+    -bug (dkulp)                 Layout: crash when the mouse moved over the preview while the vendor
+                                 certified model prompt was open during a model download/import
+    -bug (dkulp)                 Import: crash mapping onto a model whose sequence element could not be
+                                 created (name collision with a timing track, or a comma in the name)
     -bug (derwin12)              Windows/Linux: GPU Rendering preference was not restored on restart (#6712)
     -bug (derwin12)              DMX Moving Head Adv / Servo 3D: editing ScaleX/Y/Z in the property grid no longer snaps it back to 1.0
     -bug (dkulp)                 Frame-parallel rendering: Candle (per-node) rendered wrong output in

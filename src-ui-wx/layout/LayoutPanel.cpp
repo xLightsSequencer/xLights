@@ -5571,6 +5571,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     return model;
 }
 
+// Set for the duration of FinalizeModel. Read by the preview mouse-move
+// handlers, which run on the same state FinalizeModel is mutating whenever one
+// of FinalizeModel's modal pumps dispatches a motion event.
+static bool inFinalize = false;
+
 void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
@@ -5582,7 +5587,6 @@ void LayoutPanel::FinalizeModel()
     // reassigned it, and crashes on the vtable read in SetAxisTool. Windows
     // bucket f6bdc90020 (7 reports, still regressing in dev). Drop the
     // re-entrant call — the outer pass will finish the work.
-    static bool inFinalize = false;
     if (inFinalize) {
         spdlog::warn("LayoutPanel::FinalizeModel called re-entrantly; ignoring inner call.");
         return;
@@ -6230,7 +6234,17 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 {
-    
+    // FinalizeModel pumps the event loop (vendor-model PromptYesNo, download
+    // progress, GetXlightsModel prompts) while it rebuilds the model list and
+    // reassigns _newModel. A motion event delivered during one of those pumps
+    // lands here and calls UnSelectAllModels / touches selectedBaseObject and
+    // highlightedBaseObject, which the outer call is in the middle of
+    // invalidating — routing then faults on a freed handler (macOS bucket
+    // 22dc52ae61). The FinalizeModel guard only blocks re-entry into
+    // FinalizeModel; motion has no useful work to do here either way.
+    if (inFinalize) {
+        return;
+    }
 
     xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D");
 
@@ -6665,6 +6679,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
+    if (inFinalize) {
+        return;
+    }
     if (is_3d) {
         OnPreviewMouseMove3D(event);
         return;
