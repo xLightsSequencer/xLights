@@ -43,6 +43,7 @@
 #include "utils/ExternalHooks.h"
 #include "import_export/ConvertDialog.h"
 #include "media/ManageMediaPanel.h"
+#include "sequencer/SequenceFacesPanel.h"
 #include "render/SequenceElements.h"
 #include "render/SequencePackage.h"
 #include "shared/utils/wxUtilities.h"
@@ -502,6 +503,11 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
                                              xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
                                              xLightsParent);
         Notebook_Seq_Settings->InsertPage(3, Panel_ManageMedia, _("Media"), false);
+        Panel_SequenceFaces = new SequenceFacesPanel(Notebook_Seq_Settings,
+                                             sequenceElements,
+                                             xLightsParent ? xLightsParent->GetShowDirectory() : std::string{},
+                                             xLightsParent);
+        Notebook_Seq_Settings->InsertPage(4, Panel_SequenceFaces, _("Faces"), false);
         GetSizer()->SetSizeHints(this);
     }
 
@@ -1624,6 +1630,9 @@ void SeqSettingsDialog::OnTreeCtrl_Data_LayersSelectionChanged(wxTreeEvent& even
 void SeqSettingsDialog::OnButton_CloseClick(wxCommandEvent& event)
 {
     if (UpdateSequenceTiming()) {
+        if (Panel_SequenceFaces != nullptr) {
+            Panel_SequenceFaces->ApplyPendingRenders();
+        }
         if (needs_render) {
             if (!xLightsParent->IsSequenceDataValid()) {
                 EndModal(NEEDS_RENDER);

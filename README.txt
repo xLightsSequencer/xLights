@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
+                                 defines matrix (image) faces stored in the .xsq, usable by any
+                                 matrix/group/submodel in that sequence (no need to duplicate the face
+                                 on every model); images embeddable via the Media tab; handled by
+                                 Package Sequence, Import Effects and Check Sequence
+    -bug (dkulp)                 Renaming a face definition (model faces dialog or the new sequence
+                                 Faces tab) now updates Faces effects referencing it instead of
+                                 orphaning them
     -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
                                  be embedded, and SuperStar-imported scene animations silently failed to
                                  embed (frames lost on save)

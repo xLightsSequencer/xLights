@@ -60,6 +60,22 @@ public:
     void MarkIsUsed(bool used = true) { _used = used; }
     bool IsUsed() const { return _used; }
 
+    // Referenced by sequence metadata (e.g. sequence-level face definitions)
+    // rather than an effect's settings - the render pipeline never marks these
+    // used, but the data must be retained across unused-media cleanup. The
+    // flag is deliberately never recomputed within a session: deleting or
+    // repointing the referencing metadata leaves the entry pinned until the
+    // next load (conservative - the data may be wanted again), when the marks
+    // are rebuilt from the current definitions.
+    void SetUsedByMetadata(bool used = true) { _usedByMetadata = used; }
+    bool IsUsedByMetadata() const { return _usedByMetadata; }
+
+    // Free decoded/derived data (frames, scaled caches, previews) while
+    // keeping the entry and any embedded source data; reloads lazily on next
+    // access. Used under memory pressure where erasing an embedded entry
+    // would lose document content.
+    virtual void UnloadCachedData() { ClearPreview(); }
+
     void Embed() { if (IsEmbeddable()) _isEmbedded.store(true); }
     void Extract() { _isEmbedded.store(false); }
     bool SaveToFile(const std::string& path) const;
@@ -95,6 +111,7 @@ protected:
     std::string _filePath;
     std::string _embeddedData;      // Base64 encoded data
     std::atomic_bool _used;
+    std::atomic_bool _usedByMetadata{false};
     std::atomic_bool _loadingDone{false};
     std::atomic_bool _isEmbedded{false};
     std::filesystem::file_time_type _fileTimestamp{}; // mtime when loaded from disk
@@ -173,6 +190,7 @@ public:
 
     void Load() override;
     void ReloadIfChanged() override;
+    void UnloadCachedData() override;
 
     // Pre-cache a base64 PNG string for frame i to avoid re-encoding on save.
     void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
@@ -387,6 +405,12 @@ public:
     // === Image-specific API (existing, unchanged) ===
     std::shared_ptr<ImageCacheEntry> GetImage(const std::string& filepath);
     bool HasImage(const std::string& filepath) const;
+    // Create the cache entry without decoding (GetImage loads eagerly)
+    void RegisterImage(const std::string& filepath);
+    // Flag/query an entry as referenced by sequence metadata (see
+    // MediaCacheEntry::SetUsedByMetadata); no-op when the path isn't cached
+    void MarkUsedByMetadata(const std::string& filepath, bool used = true);
+    bool IsUsedByMetadata(const std::string& filepath) const;
     void AddAnimatedImage(const std::string& filepath, int msFrameTime);
     void RemoveImage(const std::string& filepath);
     void EmbedImage(const std::string& filepath);

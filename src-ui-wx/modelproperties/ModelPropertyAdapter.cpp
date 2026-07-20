@@ -85,6 +85,11 @@ public:
         dlg.SetFaceInfo(m_model, m_model->GetFaceInfo());
         if (dlg.ShowModal() == wxID_OK) {
             m_model->SetFaceInfo(dlg.GetFaceInfo());
+            if (xLightsApp::GetFrame() != nullptr) {
+                for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
+                    xLightsApp::GetFrame()->GetSequenceElements().RenameModelFaceReferences(m_model->GetName(), oldName, newName);
+                }
+            }
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;

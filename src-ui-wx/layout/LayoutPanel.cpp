@@ -7692,6 +7692,9 @@ void LayoutPanel::EditFaces()
         auto newFaceInfo = dlg.GetFaceInfo();
         if (newFaceInfo != oldFaceInfo) {
             md->SetFaceInfo(newFaceInfo);
+            for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
+                xlights->GetSequenceElements().RenameModelFaceReferences(md->GetName(), oldName, newName);
+            }
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
             updatePropertyGrid();
