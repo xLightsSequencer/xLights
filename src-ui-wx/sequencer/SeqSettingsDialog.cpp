@@ -959,6 +959,10 @@ void SeqSettingsDialog::OnNotebook_Seq_SettingsPageChanged(wxBookCtrlEvent& even
     // do this during Populate() because GTK's FindNode() asserts if Expand() is
     // called before the widget is shown on screen.
     if (Panel_ManageMedia != nullptr && event.GetSelection() == 3) {
+        // pick up images the Faces tab registered since the last visit
+        if (Panel_SequenceFaces != nullptr && Panel_SequenceFaces->TakeMediaDirty()) {
+            Panel_ManageMedia->Populate();
+        }
         Panel_ManageMedia->RequestExpandGroups();
     }
 }

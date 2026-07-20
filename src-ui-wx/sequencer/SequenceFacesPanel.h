@@ -37,6 +37,14 @@ public:
     // panel. Called on dialog close (and from the destructor as a fallback).
     void ApplyPendingRenders();
 
+    // True once after this panel registered images with SequenceMedia -
+    // the dialog uses it to refresh the Media tab when it becomes visible
+    bool TakeMediaDirty() {
+        bool dirty = _mediaDirty;
+        _mediaDirty = false;
+        return dirty;
+    }
+
 private:
     std::string GetSelectedFace() const;
     void SelectFace(const std::string& name);
@@ -74,4 +82,5 @@ private:
 
     std::set<std::string> _touchedFaces;
     bool _rendersApplied = false;
+    bool _mediaDirty = false;
 };

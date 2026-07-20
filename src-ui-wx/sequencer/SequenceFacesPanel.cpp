@@ -226,6 +226,7 @@ void SequenceFacesPanel::SetFaceImage(const std::string& name, const std::string
             media.RegisterImage(value);
         }
         media.MarkUsedByMetadata(value);
+        _mediaDirty = true;
     }
     TouchFace(name);
     if (r >= 0 && r < FacesGrid->GetNumberRows() && c >= 0 && c < FacesGrid->GetNumberCols()) {
@@ -414,6 +415,7 @@ void SequenceFacesPanel::OnButtonImportFromModelClick(wxCommandEvent& event)
                     media.RegisterImage(value);
                 }
                 media.MarkUsedByMetadata(value);
+                _mediaDirty = true;
             }
         }
         TouchFace(faceName);
