@@ -22,6 +22,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
                                  be embedded, and SuperStar-imported scene animations silently failed to
                                  embed (frames lost on save)
+    -enh (dkulp)                 Render: render cache now saves an effect's cache to disk even when
+                                 frames complete out of order (frame-parallel windows)
+    -bug (dkulp)                 macOS: Video effect on uncompressed (rawvideo) .mov files with a
+                                 non-zero start time rendered blue frames (mid-file positioning
+                                 failed); also fixed transient unscaled/wrong frames under heavy
+                                 load and a shutdown/reopen race in the shared video decoder
     -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
                                  (matrices, megatrees, ...), not just groups
     -enh (dkulp)                 Render: Twinkle is frame-parallel Snapshottable (both render methods),
