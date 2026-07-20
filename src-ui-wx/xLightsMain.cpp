@@ -3237,6 +3237,11 @@ SequenceFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     if (!QuitMenuItem->IsEnabled()) {
+        // Refusing the close, so say so — the veto path below does. Without
+        // this, anything inspecting GetVeto() reads the refusal as success.
+        if (event.CanVeto()) {
+            event.Veto();
+        }
         return;
     }
 
