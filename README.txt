@@ -36,6 +36,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (Circles radial modes are fully frame-parallel)
     -bug (dkulp)                 Circles: crash rendering into a variable/oversized sub-buffer (the SIMD
                                  kernel wrote past the pixel allocation)
+    -bug (dkulp)                 Open Sequence: the remembered last-used dialog directory is now
+                                 ignored (falls back to the show directory) when it is not inside
+                                 the current show folder, e.g. after switching show folders
     -bug (dkulp)                 Sequencer: crash double-clicking an empty/stale row heading
     -bug (dkulp)                 Layout: crash when the mouse moved over the preview while the vendor
                                  certified model prompt was open during a model download/import
