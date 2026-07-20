@@ -1417,6 +1417,7 @@ static std::list<std::string> vcurves_pattern = {"ID_VALUECURVE_MHPatternRotatio
 
 void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
 {
+    if (recall) return;
     EffectPanelUtils::OnVCChanged(event);
 
     BulkEditValueCurveButton* vc_btn = reinterpret_cast<BulkEditValueCurveButton*>(event.GetEventObject());
