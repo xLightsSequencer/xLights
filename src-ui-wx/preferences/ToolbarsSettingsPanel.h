@@ -41,6 +41,12 @@ private:
     void BuildRearrangeCtrl(const std::vector<std::pair<std::string, bool>>& layout);
     std::vector<std::pair<std::string, bool>> DefaultEffectsToolbarLayout() const;
     void OnResetToDefaults(wxCommandEvent& event);
+    // Reorder (Up/Down) and check/uncheck are both consumed internally by
+    // wxRearrangeCtrl/wxRearrangeList before reaching us, so this is bound
+    // directly to the list's check event and the ctrl's Up/Down buttons
+    // (event.Skip()'d through so their own internal state-tracking still
+    // runs) rather than relying on one of those events bubbling up unheard.
+    void OnRearrangeChanged(wxCommandEvent& event);
 
     xLightsFrame* frame;
     wxBoxSizer* _mainSizer = nullptr;

@@ -1248,6 +1248,7 @@ void MovingHeadPanel::ValidateWindow()
 
     // if single model make sure the effect setting is on correct head...if not move it
     auto model = models.front();
+    bool remapped_fixture = false;
     if (single_model) {
         if( model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
             model->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
@@ -1296,6 +1297,7 @@ void MovingHeadPanel::ValidateWindow()
                                         }
                                     }
                                 }
+                                remapped_fixture = true;
                             }
                         }
                     }
@@ -1304,8 +1306,49 @@ void MovingHeadPanel::ValidateWindow()
         }
     }
 
+    // The remap above updates the hidden per-head textctrls, but our wxEVT_TEXT
+    // handler doesn't call FireChangeEvent() for the MH*_Settings fields.
+    // Trigger it explicitly so the effect's SettingsMap is reserialized with the
+    // corrected head assignment (avoids copy/paste propagating a stale fixture).
+    // propagates the stale head number and the status pane starts showing
+    // settings for multiple heads at once.
+    if (remapped_fixture) {
+        FireChangeEvent();
+    }
+
     // updates the status panel if its already active and a new effect is selected
     UpdateStatusPanel();
+
+    // The color wheel / RGB / dimmer sub-panels are only kept in sync with the
+    // checked fixture(s) via OnCheckBox_MHClick -> RecallSettings. Moving between
+    // effects on the timeline changes the per-head settings textctrls directly
+    // (bypassing that handler), so without this the color wheel/dimmer panels
+    // kept showing whatever the previously selected effect had.
+    UpdateColorPanel();
+    {
+        std::string last_mh = xlEMPTY_STRING;
+        bool all_same = true;
+        for (int i = 1; i <= 8; ++i) {
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if (checkbox != nullptr && checkbox->IsChecked()) {
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                if (mh_textbox != nullptr) {
+                    std::string settings = mh_textbox->GetValue();
+                    if (last_mh == xlEMPTY_STRING) {
+                        last_mh = settings;
+                    } else if (last_mh != settings) {
+                        all_same = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if (last_mh != xlEMPTY_STRING && all_same) {
+            RecallSettings(last_mh);
+        }
+    }
 
     // If the effect already has settings then uncheck the fixtures so the user doesn't accidentally click somewhere
     // and write to all the heads messing up what was there.  We force them to reselect the heads they want to effect.
@@ -1374,6 +1417,7 @@ static std::list<std::string> vcurves_pattern = {"ID_VALUECURVE_MHPatternRotatio
 
 void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
 {
+    if (recall) return;
     EffectPanelUtils::OnVCChanged(event);
 
     BulkEditValueCurveButton* vc_btn = reinterpret_cast<BulkEditValueCurveButton*>(event.GetEventObject());
@@ -2850,6 +2894,19 @@ void MovingHeadPanel::SetDefaultParameters()
     CheckBox_MHShutterEnable->SetValue(false);
 
     ResetPatternControls();
+
+    // Newly dropped effects have no settings of their own, so the color/dimmer
+    // sub-panels must be reset here too -- otherwise they keep showing whatever
+    // was last displayed for the previously selected effect.
+    if (m_rgbColorPanel != nullptr) {
+        m_rgbColorPanel->ResetColours();
+    }
+    if (m_wheelColorPanel != nullptr) {
+        m_wheelColorPanel->ResetColours();
+    }
+    if (m_movingHeadDimmerPanel != nullptr) {
+        m_movingHeadDimmerPanel->SetDimmerCommands("0.0,0.0,1.0,0.0");
+    }
 
     CheckAllFixtures();
 

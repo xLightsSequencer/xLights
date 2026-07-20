@@ -4856,7 +4856,10 @@ void EffectsGrid::LockEffects(bool lock) {
         }
 
         if (efs.size() > 0) {
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
             for (auto it = efs.begin(); it != efs.end(); ++it) {
+                EffectLayer* el = (*it)->GetParentEffectLayer();
+                mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), *it);
                 (*it)->SetLocked(lock);
             }
         }
@@ -6700,7 +6703,8 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
     }
 
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
-        int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT, mSequenceElements->GetMinPeriod());
+        bool prevLocked = mResizeEffectIndex > 0 && mEffectLayer->GetEffect(mResizeEffectIndex - 1)->IsLocked();
+        int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT && !prevLocked, mSequenceElements->GetMinPeriod());
         // User has dragged left side to the right side exit
         if (time >= mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS()) {
             return;
@@ -6709,7 +6713,7 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
                 // cannot have a starting time less than 0 or we cannot preview the effect or update the effect
                 time = 0;
             }
-            if (mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_LEFT) {
+            if (mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_LEFT && !prevLocked) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex - 1);
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
@@ -6734,12 +6738,13 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
             }
         }
     } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE) {
-        int maximumTime = mEffectLayer->GetMaximumEndTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_RIGHT, mSequenceElements->GetMinPeriod());
+        bool nextLocked = mResizeEffectIndex + 1 < mEffectLayer->GetEffectCount() && mEffectLayer->GetEffect(mResizeEffectIndex + 1)->IsLocked();
+        int maximumTime = mEffectLayer->GetMaximumEndTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_RIGHT && !nextLocked, mSequenceElements->GetMinPeriod());
         // User has dragged right side to the left side exit
         if (time <= mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS()) {
             return;
         } else if (time <= maximumTime || maximumTime == NO_MIN_MAX_TIME) {
-            if (mEffectLayer->IsEndTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_RIGHT) {
+            if (mEffectLayer->IsEndTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_RIGHT && !nextLocked) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex + 1);
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
@@ -9038,7 +9043,13 @@ void EffectsGrid::DuplicateSelectedEffects() {
                 long end = mSelectedEffect->GetEndTimeMS();
                 long length = end - start;
 
-                long startCol = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS())->GetID() + 2;
+                // No timing mark covers the selected effect's start (it begins in a
+                // gap), so there is no cell column to duplicate from.
+                Effect* startTiming = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS());
+                if (startTiming == nullptr) {
+                    return;
+                }
+                long startCol = startTiming->GetID() + 2;
                 if (mSelectedEffect->GetStartTimeMS() == 0) { // first timing mark in the zero column, and second timing mark has start column of 0 too
                     startCol--;
                 }
@@ -9059,8 +9070,8 @@ void EffectsGrid::DuplicateSelectedEffects() {
                             Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
                             if (newef != nullptr) {
                                 newef->HandlePastedSymbolLink();
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                             }
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
                     }
                     ++startCol;
@@ -9080,8 +9091,8 @@ void EffectsGrid::DuplicateSelectedEffects() {
                         Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
                         if (newef != nullptr) {
                             newef->HandlePastedSymbolLink();
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                     }
                     newstart = newEnd;
                 }

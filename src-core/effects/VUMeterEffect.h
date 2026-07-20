@@ -27,7 +27,17 @@ public:
     VUMeterEffect(int id);
     virtual ~VUMeterEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: Snapshottable modes advance their scalar cache state (and consume the
+    // random-bar RNG / Level Shape size decay) here and return an immutable draw
+    // snapshot; Render then draws purely from it.  Returns nullptr for the
+    // Pure and Stateful modes (spectrogram family, external-SVG Level Shape) - see
+    // ClassifyMode, the single partition shared with GetFrameParallelism.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
+    // Single source of truth for this effect's frame-parallel partition, shared by
+    // GetFrameParallelism and AdvanceState so classification and implementation can
+    // never drift (invariant: Snapshottable <=> AdvanceState returns non-null).
+    FrameParallelism ClassifyMode(const SettingsMap& settings) const;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool needToAdjustSettings(const std::string& version) override;
@@ -76,7 +86,15 @@ protected:
     void RenderLevelJumpFrame(RenderBuffer& buffer, int fadeframes, int sensitivity, int& lasttimingmark, int gain, bool fullJump, float& lastVal);
     void RenderLevelBarFrame(RenderBuffer& buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int gain, bool random);
     void RenderNoteLevelBarFrame(RenderBuffer& buffer, int bars, int sensitivity, float& lastbar, int& colourindex, int startNote, int endNote, int gain, bool random);
-    void RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile);
+    // advance==true (serial / Stateful path) runs the _lastsize slowdown-falls
+    // decay before drawing; advance==false draws purely from the passed-in
+    // lastsize (the AdvanceState snapshot), never touching audio.
+    void RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile, bool advance = true);
+    // The Level Shape cross-frame transition: advance lastsize by the slowdown-
+    // falls decay from this frame's audio level.  Returns false when there is no
+    // media (nothing to draw).  Shared by RenderLevelShapeFrame (advance path) and
+    // AdvanceState so the two stay byte-identical.
+    bool AdvanceLevelShapeSize(RenderBuffer& buffer, int scale, bool slowdownfalls, int gain, float& lastsize) const;
     void RenderTimingEventPulseFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, float& lastsize, const std::string& filter, bool regex);
     void RenderTimingEventPulseColourFrame(RenderBuffer& buffer, int fadeframes, std::string timingtrack, float& lastsize, int& colourindex, const std::string& filter, bool regex);
     void RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex, bool bounce, int& lastDirection);

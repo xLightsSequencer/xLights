@@ -206,7 +206,15 @@ ModelElement* AddModel(Model* m, SequenceElements& se)
 {
     if (m != nullptr) {
         se.AddMissingModelsToSequence(m->GetName(), true);
+        // AddMissingModelsToSequence does not guarantee a ModelElement lands under
+        // this name: it splits on ',' so a name containing one adds nothing, and
+        // ElementExists() matches ignoring type, so an imported timing track of the
+        // same name suppresses the add and leaves a TimingElement here. A submodel
+        // Model* never matches either — GetElement keys on GetFullName().
         ModelElement* model = dynamic_cast<ModelElement*>(se.GetElement(m->GetName()));
+        if (model == nullptr) {
+            return nullptr;
+        }
         model->Init(*m);
         return model;
     }
@@ -1731,7 +1739,6 @@ void MapCCR(const std::vector<std::string>& channelNames, ModelElement* model, x
 
 bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& filename)
 {
-    static 
     xLightsImportChannelMapDialog dlg(this, filename, true, true, true, true, false);
     dlg.mSequenceElements = &_sequenceElements;
     dlg.xlights = this;

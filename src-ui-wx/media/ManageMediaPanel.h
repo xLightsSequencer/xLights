@@ -123,6 +123,9 @@ private:
     void BulkFindMediaByType(MediaType type);
     std::map<std::string, std::pair<int,int>> UpdateEffectPaths(const std::string& oldPath, const std::string& newPath);
     void RenderDirtyModels(const std::map<std::string, std::pair<int,int>>& dirtyModels);
+    // Sequence-level face definitions reference images outside effect
+    // settings - keep them in sync with any rename/embed/extract re-keying
+    void RewriteSequenceFacePaths(const std::string& oldPath, const std::string& newPath);
     void OnAddButtonClick(wxCommandEvent& event);
     void OnAIGenerateButtonClick(wxCommandEvent& event);
     void OnRenameButtonClick(wxCommandEvent& event);

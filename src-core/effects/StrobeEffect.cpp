@@ -155,13 +155,23 @@ static void DrawStrobes(RenderBuffer& buffer, const std::vector<StrobeDrawItem>&
 }
 
 void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: rasterise the snapshot AdvanceState produced.  Under the tier-2
+    // engine this is the ONLY path reached (AdvanceState runs first and sets
+    // pendingSnapshot in both serial and frame-parallel rendering).
     if (buffer.pendingSnapshot != nullptr) {
-        // Frame-parallel draw pass: rasterise the snapshot the serial capture
-        // pass advanced and stored; no sim advance here.
         const StrobeFrameState& fs = static_cast<const StrobeFrameState&>(*buffer.pendingSnapshot);
         DrawStrobes(buffer, fs.items, fs.strobeType);
         return;
     }
+    // Defensive fall-through for any caller that invokes Render without first
+    // going through AdvanceState: advance then draw, exactly the legacy body.
+    // The draw is a pure function of the snapshot, so this stays byte-identical.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    const StrobeFrameState& sfs = static_cast<const StrobeFrameState&>(*fs);
+    DrawStrobes(buffer, sfs.items, sfs.strobeType);
+}
+
+std::unique_ptr<EffectFrameState> StrobeEffect::AdvanceState(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", sNumberStrobesDefault);
     int StrobeDuration = SettingsMap.GetInt("SLIDER_Strobe_Duration", sStrobeDurationDefault);
     int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", sStrobeTypeDefault);
@@ -244,15 +254,13 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         }
     }
 
-    // draw the snapshot, or (tier-2) hand it to a parallel draw pass
-    if (buffer.captureSnapshot != nullptr) {
-        auto fs = std::make_unique<StrobeFrameState>();
-        fs->items = std::move(drawItems);
-        fs->strobeType = Strobe_Type;
-        *buffer.captureSnapshot = std::move(fs);
-    } else {
-        DrawStrobes(buffer, drawItems, Strobe_Type);
-    }
+    // Capture the advanced items into this frame's immutable draw snapshot.  The
+    // engine hands it back to Render (via pendingSnapshot) for the actual draw,
+    // in both serial and frame-parallel rendering.
+    auto fs = std::make_unique<StrobeFrameState>();
+    fs->items = std::move(drawItems);
+    fs->strobeType = Strobe_Type;
+    return fs;
 }
 
 RenderableEffect::FrameParallelism StrobeEffect::GetFrameParallelism(const SettingsMap& settings) const {

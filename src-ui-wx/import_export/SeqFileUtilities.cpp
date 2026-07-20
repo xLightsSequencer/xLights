@@ -1022,6 +1022,22 @@ bool xLightsFrame::CloseSequence()
 {
     spdlog::debug("Closing sequence.");
 
+    // Stem separation runs a worker thread holding raw PCM pointers into the
+    // sequence's AudioManager for the whole run, and its progress dialog pumps
+    // the event queue (wxApp::Yield) — so a close dispatched during that pump
+    // lands here and would delete CurrentSeqXmlFile, and with it the audio the
+    // worker is still reading (crash sig 0b727679d7). Don't rely on
+    // EnableSequenceControls having disabled the close path: QuitMenuItem is
+    // global UI state that any render completion delivered by the same pump can
+    // re-enable. Ask the run to stop and refuse this close; the pump joins the
+    // worker and unlocks the UI, and the user can close again once it winds down.
+    if (mainSequencer != nullptr && mainSequencer->PanelWaveForm != nullptr &&
+        mainSequencer->PanelWaveForm->IsStemSeparationActive()) {
+        spdlog::info("Close refused: stem separation in progress; cancelling it.");
+        mainSequencer->PanelWaveForm->RequestStemSeparationCancel();
+        return false;
+    }
+
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
         // save perspective on this machine so we can restore it next time
         auto* config = GetXLightsConfig();

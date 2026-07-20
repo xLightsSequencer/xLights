@@ -307,13 +307,71 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
 }
 
 RenderableEffect::FrameParallelism VUMeterEffect::GetFrameParallelism(const SettingsMap& settings) const {
-    // These modes derive each frame purely from the current frame's audio /
-    // timing data and never read the cross-frame VUMeterRenderCache (no
-    // peak-hold decay, fade-from-last-mark, running colour/bar index, or history
-    // trail).  Everything else carries state and stays Stateful.  (Spectrogram
-    // and Level Shape are conditionally pure only when SlowDownFalls is off;
-    // left Stateful to keep this a pure function of the type.)  Guarded by
-    // XL_VERIFY_STATELESS.
+    return ClassifyMode(settings);
+}
+
+// Single source of truth for the frame-parallel partition (see header).  BOTH
+// GetFrameParallelism and AdvanceState consult this, so classification and
+// implementation can never drift.  Invariant: this returns Snapshottable exactly
+// for the modes AdvanceState fully bakes into a VUMeterDrawSnapshot (so
+// Snapshottable <=> AdvanceState returns non-null).
+RenderableEffect::FrameParallelism VUMeterEffect::ClassifyMode(const SettingsMap& settings) const {
+    const std::string& type = settings.Get("CHOICE_VUMeter_Type", sTypeDefault);
+    switch (DecodeType(type)) {
+        // Snapshottable: AdvanceState runs the whole per-frame transition (scalar
+        // cache advance + random-bar RNG) against the live cache and bakes exactly
+        // what the draw consumes; Render is then a pure function of the snapshot.
+        case RenderType::PULSE:
+        case RenderType::LEVEL_PULSE:
+        case RenderType::LEVEL_JUMP:
+        case RenderType::LEVEL_JUMP100:
+        case RenderType::LEVEL_PULSE_COLOR:
+        case RenderType::LEVEL_COLOR:
+        case RenderType::LEVEL_BAR:
+        case RenderType::LEVEL_RANDOM_BAR:
+        case RenderType::NOTE_LEVEL_BAR:
+        case RenderType::NOTE_LEVEL_RANDOM_BAR:
+        case RenderType::TIMING_EVENT_BAR:
+        case RenderType::TIMING_EVENT_BAR_BOUNCE:
+        case RenderType::TIMING_EVENT_RANDOM_BAR:
+        case RenderType::TIMING_EVENT_BARS:
+        case RenderType::NOTE_LEVEL_PULSE:
+        case RenderType::NOTE_LEVEL_JUMP:
+        case RenderType::NOTE_LEVEL_JUMP100:
+        case RenderType::TIMING_EVENT_JUMP:
+        case RenderType::TIMING_EVENT_JUMP_100:
+        case RenderType::TIMING_EVENT_PULSE:
+        case RenderType::TIMING_EVENT_PULSE_COLOR:
+        case RenderType::TIMING_EVENT_COLOR:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
+            return FrameParallelism::Snapshottable;
+        case RenderType::LEVEL_SHAPE:
+            // The _lastsize slowdown-falls decay is the whole cross-frame state and
+            // AdvanceState bakes the effective size - EXCEPT an external SVG shape,
+            // whose loaded NSVGimage the frame snapshot cannot carry, so that stays
+            // Stateful (its Render reads the cache's rasterised image).
+            if (settings.Get("CHOICE_VUMeter_Shape", sShapeDefault) == "SVG") {
+                return FrameParallelism::Stateful;
+            }
+            return FrameParallelism::Snapshottable;
+        case RenderType::SPECTROGRAM:
+        case RenderType::SPECTROGRAM_PEAK:
+        case RenderType::SPECTROGRAM_LINE:
+        case RenderType::SPECTROGRAM_CIRCLELINE:
+            // The spectrogram family fuses its per-bar decay (lastvalues/lastpeaks/
+            // pausepeakfall) AND its line-history trim/push into the single
+            // RenderSpectrogramFrame draw loop; for Line / Circle Line the history
+            // push is computed interleaved with the per-bar DrawLine calls, so the
+            // advance cannot be split from the draw byte-identically.  Keep the
+            // whole family Stateful (serial) - AdvanceState returns null for it.
+            return FrameParallelism::Stateful;
+        default:
+            break;
+    }
+    // Modes that derive each frame purely from the current frame's audio / timing
+    // and never read the cross-frame VUMeterRenderCache - Pure (reorderable).
+    // Guarded by XL_VERIFY_STATELESS.
     static const char* const pureTypes[] = {
         "Volume Bars", "Waveform", "Frame Waveform", "On", "Color On", "Note On",
         "Intensity Wave", "Dominant Frequency Colour", "Dominant Frequency Colour Gradient",
@@ -321,21 +379,14 @@ RenderableEffect::FrameParallelism VUMeterEffect::GetFrameParallelism(const Sett
         "Timing Event Timed Sweep", "Timing Event Timed Sweep 2",
         "Timing Event Timed Chase From Middle", "Timing Event Timed Chase To Middle"
     };
-    const std::string& type = settings.Get("CHOICE_VUMeter_Type", sTypeDefault);
     for (const char* p : pureTypes) {
         if (type == p) {
             return FrameParallelism::Pure;
         }
     }
-    // Level Shape drawing an external SVG needs the cache's loaded NSVGimage,
-    // which the frame snapshot does not carry - keep it Stateful.
-    if (type == "Level Shape" && settings.Get("CHOICE_VUMeter_Shape", sShapeDefault) == "SVG") {
-        return FrameParallelism::Stateful;
-    }
-    // Every other mode carries only VUMeterRenderCache scalar/vector/list state,
-    // which VUMeterFrameState snapshots in full, so the serial capture pass can
-    // advance the state and a parallel draw pass reproduce each frame.
-    return FrameParallelism::Snapshottable;
+    // Anything else (e.g. the degenerate "unused" type) may carry cross-frame state
+    // the snapshot does not model - Stateful is the safe serial default.
+    return FrameParallelism::Stateful;
 }
 
 void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -443,23 +494,19 @@ public:
     int _lastDirection { 1 };
 };
 
-// Tier-2 immutable per-frame draw state: a copy of every cross-frame field of
-// VUMeterRenderCache, captured BEFORE this frame advances.  A frame-parallel
-// draw pass restores these onto a clone's cache and re-runs the normal dispatch,
-// which advances from this exact pre-frame state and draws - reproducing the
-// serial frame byte-for-byte.  (The SVG resource isn't carried, so SVG-shape
-// Level Shape stays Stateful - see GetFrameParallelism.)
-struct VUMeterFrameState : public EffectFrameState {
-    std::list<int> _timingmarks;
-    int _lasttimingmark = 0;
-    std::vector<float> _lastvalues;
-    std::vector<float> _lastpeaks;
-    std::list<int> _pausepeakfall;
-    std::list<std::vector<xlPoint>> _lineHistory;
-    float _lastsize = 0.0f;
-    int _colourindex = 0;
-    int _nCount = 0;
-    int _lastDirection = 1;
+// Tier-2 draw state for the Snapshottable modes: the exact, already-advanced
+// values their draw needs.  AdvanceState performs the whole per-frame state
+// transition (including the random-bar RNG and the Level Shape size decay)
+// against the live cache and bakes what the draw consumes into this struct;
+// Render then draws purely from it, never re-advancing.
+struct VUMeterDrawSnapshot : public EffectFrameState {
+    bool draw = false;          // outer guard passed (media / track / pdata present)
+    float f = 0.0f;             // fade / level / size magnitude the draw scales by
+    int colourindex = 0;        // palette index for colour and bar modes
+    int bar = -1;               // bar column (bar modes); < 0 draws no column
+    bool effectPresent = false; // Timing Event Color: eff != null -> full alpha
+    int startX = 0;             // Alternate Timed Sweep sweep offset
+    bool nCountEven = false;    // Alternate Timed Sweep direction (nCount % 2 == 0)
 };
 
 int VUMeterEffect::DecodeType(const std::string& type)
@@ -617,6 +664,180 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 
     int nType = DecodeType(type);
 
+	// We limit bars to the width of the model in some effects
+	int usebars = bars;
+    if (nType == RenderType::TIMING_EVENT_JUMP || nType == RenderType::TIMING_EVENT_PULSE || nType == RenderType::TIMING_EVENT_PULSE_COLOR || nType == RenderType::TIMING_EVENT_JUMP_100)
+    {
+        // dont limit
+    }
+    else
+    {
+        if (usebars > buffer.BufferWi)
+        {
+            usebars = buffer.BufferWi;
+        }
+    }
+
+    // Tier-2 Snapshottable draw pass: AdvanceState already ran this frame's entire
+    // state transition (and the random-bar RNG / Level Shape size decay) against
+    // the live cache and baked the draw params into the snapshot; here we only
+    // rasterise them.  A pure function of the snapshot + deterministic per-frame
+    // reads (palette, buffer geometry) - no cache access, no RNG, no needToInit.
+    // Reached in BOTH serial and frame-parallel rendering, so the two are
+    // byte-identical.  Every Snapshottable mode (see ClassifyMode) produces a
+    // VUMeterDrawSnapshot, so pendingSnapshot != null is a sufficient guard.
+    if (buffer.pendingSnapshot != nullptr) {
+        const VUMeterDrawSnapshot& s = static_cast<const VUMeterDrawSnapshot&>(*buffer.pendingSnapshot);
+        try {
+            switch (nType) {
+            case RenderType::PULSE:
+            case RenderType::LEVEL_PULSE:
+            case RenderType::NOTE_LEVEL_PULSE:
+                if (s.f > 0.0) {
+                    xlColor color1;
+                    buffer.palette.GetColor(0, color1);
+                    color1.alpha = s.f * (float)255;
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                        for (int y = 0; y < buffer.BufferHt; y++)
+                            buffer.SetPixel(x, y, color1);
+                }
+                break;
+            case RenderType::LEVEL_PULSE_COLOR:
+                if (s.f > 0.0) {
+                    xlColor color1;
+                    buffer.palette.GetColor(s.colourindex, color1);
+                    color1.alpha = s.f * (float)255;
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                        for (int y = 0; y < buffer.BufferHt; y++)
+                            buffer.SetPixel(x, y, color1);
+                }
+                break;
+            case RenderType::LEVEL_COLOR:
+                if (s.draw && s.colourindex >= 0) {
+                    xlColor color1;
+                    buffer.palette.GetColor(s.colourindex, color1);
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                        for (int y = 0; y < buffer.BufferHt; y++)
+                            buffer.SetPixel(x, y, color1);
+                }
+                break;
+            case RenderType::TIMING_EVENT_COLOR:
+                if (s.draw) {
+                    xlColor color;
+                    buffer.palette.GetColor(s.colourindex, color);
+                    if (!s.effectPresent) {
+                        color.alpha = (sensitivity * 255) / 100;
+                    }
+                    for (int x = 0; x < buffer.BufferWi; x++)
+                        for (int y = 0; y < buffer.BufferHt; y++)
+                            buffer.SetPixel(x, y, color);
+                }
+                break;
+            case RenderType::LEVEL_JUMP:
+            case RenderType::LEVEL_JUMP100:
+            case RenderType::NOTE_LEVEL_JUMP:
+            case RenderType::NOTE_LEVEL_JUMP100:
+            case RenderType::TIMING_EVENT_JUMP:
+            case RenderType::TIMING_EVENT_JUMP_100:
+                if (s.f > 0.0) {
+                    for (int y = 0; y < s.f * (float)buffer.BufferHt; y++) {
+                        xlColor color1;
+                        buffer.GetMultiColorBlend((float)y / (float)buffer.BufferHt, false, color1);
+                        for (int x = 0; x < buffer.BufferWi; x++)
+                            buffer.SetPixel(x, y, color1);
+                    }
+                }
+                break;
+            case RenderType::TIMING_EVENT_PULSE:
+                if (s.f > 0.0) {
+                    xlColor color;
+                    buffer.palette.GetColor(0, color);
+                    color.alpha = s.f * 255 / usebars;
+                    for (int y = 0; y < buffer.BufferHt * s.f; y++)
+                        for (int x = 0; x < buffer.BufferWi; x++)
+                            buffer.SetPixel(x, y, color);
+                }
+                break;
+            case RenderType::TIMING_EVENT_PULSE_COLOR:
+                if (s.f > 0.0) {
+                    xlColor color;
+                    buffer.palette.GetColor(s.colourindex, color);
+                    color.alpha = s.f * 255 / usebars;
+                    for (int y = 0; y < buffer.BufferHt * s.f; y++)
+                        for (int x = 0; x < buffer.BufferWi; x++)
+                            buffer.SetPixel(x, y, color);
+                }
+                break;
+            case RenderType::LEVEL_BAR:
+            case RenderType::LEVEL_RANDOM_BAR:
+            case RenderType::NOTE_LEVEL_BAR:
+            case RenderType::NOTE_LEVEL_RANDOM_BAR:
+            case RenderType::TIMING_EVENT_BAR:
+            case RenderType::TIMING_EVENT_BAR_BOUNCE:
+            case RenderType::TIMING_EVENT_RANDOM_BAR:
+                if (s.draw && s.bar >= 0) {
+                    xlColor color1;
+                    buffer.palette.GetColor(s.colourindex, color1);
+                    int startx = buffer.BufferWi / usebars * s.bar;
+                    int endx = std::ceil(buffer.BufferWi / usebars) * (s.bar + 1);
+                    if (endx > buffer.BufferWi) endx = buffer.BufferWi;
+                    for (int x = startx; x < endx; x++)
+                        for (int y = 0; y < buffer.BufferHt; ++y)
+                            buffer.SetPixel(x, y, color1);
+                }
+                break;
+            case RenderType::TIMING_EVENT_BARS:
+                if (s.draw) {
+                    int ci = s.colourindex;
+                    xlColor color;
+                    buffer.palette.GetColor(ci, color);
+                    for (int i = 0; i < usebars; i++) {
+                        int startx = buffer.BufferWi / usebars * i;
+                        int endx = std::ceil(buffer.BufferWi / usebars) * (i + 1);
+                        if (endx > buffer.BufferWi) endx = buffer.BufferWi;
+                        for (int x = startx; x < endx; x++)
+                            for (int y = 0; y < buffer.BufferHt; y++)
+                                buffer.SetPixel(x, y, color);
+                        ci++;
+                        if (ci == (int)buffer.GetColorCount()) ci = 0;
+                        buffer.palette.GetColor(ci, color);
+                    }
+                }
+                break;
+            case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
+            case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2:
+                if (s.draw) {
+                    for (int x = 0; x < usebars; x++) {
+                        xlColor color1;
+                        buffer.GetMultiColorBlend((double)x / usebars, false, color1);
+                        for (int y = 0; y < buffer.BufferHt; y++) {
+                            if (s.nCountEven) {
+                                buffer.SetPixel(buffer.BufferWi - (x + s.startX) - 1, y, color1);
+                            } else {
+                                buffer.SetPixel(x + s.startX, y, color1);
+                            }
+                        }
+                    }
+                }
+                break;
+            case RenderType::LEVEL_SHAPE:
+                // Non-SVG only (SVG Level Shape is Stateful).  AdvanceState baked the
+                // effective _lastsize into s.f; draw purely from it (advance=false,
+                // no audio read).  svgFile is always null on this path.
+                if (s.draw) {
+                    float ls = s.f;
+                    RenderLevelShapeFrame(buffer, shape, ls, sensitivity, slowdownfalls, xoffset, yoffset, usebars, gain, nullptr, false);
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        catch (...) {
+        }
+        return;
+    }
+
 	// Grab our cache
 	VUMeterRenderCache *cache = static_cast<VUMeterRenderCache*>(buffer.infoCache[id]);
 	if (cache == nullptr) {
@@ -633,25 +854,10 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
     int & _colourindex = cache->_colourindex;
     std::list<std::vector<xlPoint>>& _lineHistory = cache->_lineHistory;
     int& _lastDirection = cache->_lastDirection;
-    // Frame-parallel Snapshottable paths (see GetFrameParallelism).  On a draw
-    // pass, restore the pre-advance cache state the serial pass captured and skip
-    // the needToInit reset / render-dependency registration / SVG load (all done
-    // on the serial pass); the dispatch below then advances from this exact state
-    // and draws, reproducing the serial frame.
-    if (buffer.pendingSnapshot != nullptr) {
-        const VUMeterFrameState& fs = static_cast<const VUMeterFrameState&>(*buffer.pendingSnapshot);
-        _timingmarks = fs._timingmarks;
-        _lasttimingmark = fs._lasttimingmark;
-        _lastvalues = fs._lastvalues;
-        _lastpeaks = fs._lastpeaks;
-        _pausepeakfall = fs._pausepeakfall;
-        _lineHistory = fs._lineHistory;
-        _lastsize = fs._lastsize;
-        _colourindex = fs._colourindex;
-        _nCount = fs._nCount;
-        _lastDirection = fs._lastDirection;
-        buffer.needToInit = false;
-    } else if (buffer.needToInit) {
+    // Only the Pure and Stateful modes reach here (a Snapshottable mode's draw is
+    // handled by the pendingSnapshot branch above, which returns), so this is the
+    // ordinary serial fused advance+draw: reset on config change, then dispatch.
+    if (buffer.needToInit) {
         // Check for config changes which require us to reset
         buffer.needToInit = false;
         _lineHistory.clear();
@@ -674,37 +880,6 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
             cache->InitialiseSVG(svgFile, buffer);
         }
 	}
-
-    // Serial capture pass: hand the pre-advance state to a later parallel draw
-    // pass (which restores it above and re-runs this dispatch on a clone).
-    if (buffer.captureSnapshot != nullptr) {
-        auto fs = std::make_unique<VUMeterFrameState>();
-        fs->_timingmarks = _timingmarks;
-        fs->_lasttimingmark = _lasttimingmark;
-        fs->_lastvalues = _lastvalues;
-        fs->_lastpeaks = _lastpeaks;
-        fs->_pausepeakfall = _pausepeakfall;
-        fs->_lineHistory = _lineHistory;
-        fs->_lastsize = _lastsize;
-        fs->_colourindex = _colourindex;
-        fs->_nCount = _nCount;
-        fs->_lastDirection = _lastDirection;
-        *buffer.captureSnapshot = std::move(fs);
-    }
-
-	// We limit bars to the width of the model in some effects
-	int usebars = bars;
-    if (nType == RenderType::TIMING_EVENT_JUMP || nType == RenderType::TIMING_EVENT_PULSE || nType == RenderType::TIMING_EVENT_PULSE_COLOR || nType == RenderType::TIMING_EVENT_JUMP_100)
-    {
-        // dont limit
-    }
-    else
-    {
-        if (usebars > buffer.BufferWi)
-        {
-            usebars = buffer.BufferWi;
-        }
-    }
 
 	try
 	{
@@ -843,6 +1018,458 @@ void VUMeterEffect::Render(RenderBuffer &buffer, SequenceElements *elements, int
 		// This is here to let me catch any exceptions and stop the exception causing the render thread to die
 		//int a = 0;
 	}
+}
+
+// Tier-2 advance for the Snapshottable modes: run this frame's ENTIRE cross-frame
+// state transition against the live cache - including the random-bar RNG and the
+// Level Shape size decay - and bake exactly what the draw consumes into the
+// returned snapshot.  Mirrors the setup of the public Render(effect,...) wrapper +
+// the core Render's cache setup/needToInit, then advances (never draws).  Returns
+// nullptr for the Pure/Stateful modes (see ClassifyMode, the shared partition), so
+// the engine renders them through the normal fused advance+draw path.
+std::unique_ptr<EffectFrameState> VUMeterEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    if (ClassifyMode(SettingsMap) != FrameParallelism::Snapshottable) {
+        return nullptr;
+    }
+    std::string type = SettingsMap.Get("CHOICE_VUMeter_Type", sTypeDefault);
+    int nType = DecodeType(type);
+
+    // Alternate-audio override, exactly as the Render(effect,...) wrapper.
+    std::string audioTrack = SettingsMap.Get("CHOICE_VUMeter_AudioTrack", "");
+    if (audioTrack == "Main") audioTrack = "";
+    buffer._mediaOverride = audioTrack.empty() ? nullptr : ValueCurve::GetAltAudio(audioTrack);
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    int bars = SettingsMap.GetInt("SLIDER_VUMeter_Bars", sBarsDefault);
+    std::string timingtrack = SettingsMap.Get("CHOICE_VUMeter_TimingTrack", "");
+    int sensitivity = SettingsMap.GetInt("SLIDER_VUMeter_Sensitivity", sSensitivityDefault);
+    int startnote = SettingsMap.GetInt("SLIDER_VUMeter_StartNote", sStartNoteDefault);
+    int endnote = SettingsMap.GetInt("SLIDER_VUMeter_EndNote", sEndNoteDefault);
+    int gain = GetValueCurveInt("VUMeter_Gain", sGainDefault, SettingsMap, oset, sGainMin, sGainMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    std::string filter = SettingsMap.Get("TEXTCTRL_Filter", "");
+    bool regex = SettingsMap.GetBool("CHECKBOX_Regex", sRegexDefault);
+    bool slowdownfalls = SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", sSlowDownFallsDefault);
+    SequenceElements* elements = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+
+    if (startnote > endnote) {
+        int temp = startnote;
+        startnote = endnote;
+        endnote = temp;
+    }
+
+    VUMeterRenderCache* cache = static_cast<VUMeterRenderCache*>(buffer.infoCache[id]);
+    if (cache == nullptr) {
+        cache = new VUMeterRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    int& _lasttimingmark = cache->_lasttimingmark;
+    float& _lastsize = cache->_lastsize;
+    int& _colourindex = cache->_colourindex;
+    int& _nCount = cache->_nCount;
+    int& _lastDirection = cache->_lastDirection;
+
+    // needToInit reset - identical to the legacy Render path (migrated modes are
+    // never Level Shape/SVG, so there is no SVG load to mirror here).
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+        cache->_lineHistory.clear();
+        _nCount = 0;
+        _colourindex = -1;
+        cache->_timingmarks.clear();
+        _lasttimingmark = -1;
+        cache->_lastvalues.clear();
+        cache->_lastpeaks.clear();
+        cache->_pausepeakfall.clear();
+        _lastsize = 0;
+        _lastDirection = 1;
+        if (timingtrack != "") {
+            elements->AddRenderDependency(timingtrack, buffer.cur_model);
+        }
+    }
+
+    int usebars = bars;
+    if (nType == RenderType::TIMING_EVENT_JUMP || nType == RenderType::TIMING_EVENT_PULSE || nType == RenderType::TIMING_EVENT_PULSE_COLOR || nType == RenderType::TIMING_EVENT_JUMP_100) {
+        // dont limit
+    } else {
+        if (usebars > buffer.BufferWi) usebars = buffer.BufferWi;
+    }
+
+    // Peak level over the [startnote, endnote] VU band (note-based modes).
+    auto noteLevel = [&](const std::vector<float>& vu) {
+        int i = 0;
+        float level = 0.0;
+        for (const auto& it : vu) {
+            if (i > startnote && i <= endnote) level = std::max(it, level);
+            i++;
+        }
+        return level;
+    };
+
+    auto s = std::make_unique<VUMeterDrawSnapshot>();
+    try {
+        switch (nType) {
+        case RenderType::PULSE: {
+            EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
+            if (el == nullptr) { s->draw = false; break; }
+            int ms = buffer.curPeriod * buffer.frameTimeInMs;
+            bool effectPresent = false;
+            for (int j = 0; j < el->GetEffectCount(); j++) {
+                int ems = el->GetEffect(j)->GetStartTimeMS();
+                if (ems == ms) { effectPresent = true; break; }
+                else if (ems > ms) break;
+            }
+            if (effectPresent) _lasttimingmark = buffer.curPeriod;
+            float f = 0.0;
+            if (_lasttimingmark >= 0) {
+                f = 1.0 - (((float)buffer.curPeriod - (float)_lasttimingmark) / (float)usebars);
+                if (f < 0) f = 0;
+            }
+            s->draw = true;
+            s->f = f;
+            break;
+        }
+        case RenderType::LEVEL_PULSE: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            float f = 0.0;
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pf != nullptr) f = ApplyGain(pf->max, gain);
+            if (f > (float)sensitivity / 100.0) _lasttimingmark = buffer.curPeriod;
+            float ff = 0.0;
+            if (usebars > 0 && buffer.curPeriod - _lasttimingmark < usebars) {
+                ff = 1.0 - (((float)buffer.curPeriod - (float)_lasttimingmark) / (float)usebars);
+                if (ff < 0) ff = 0;
+            }
+            s->draw = true;
+            s->f = ff;
+            break;
+        }
+        case RenderType::NOTE_LEVEL_PULSE: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pdata != nullptr && pdata->vu.size() != 0) {
+                float level = ApplyGain(noteLevel(pdata->vu), gain);
+                if (level > (float)sensitivity / 100.0) _lasttimingmark = buffer.curPeriod;
+                float ff = 0.0;
+                if (usebars > 0 && buffer.curPeriod - _lasttimingmark < usebars) {
+                    ff = 1.0 - (((float)buffer.curPeriod - (float)_lasttimingmark) / (float)usebars);
+                    if (ff < 0) ff = 0;
+                }
+                s->draw = true;
+                s->f = ff;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::LEVEL_JUMP:
+        case RenderType::LEVEL_JUMP100: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            bool fullJump = (nType == RenderType::LEVEL_JUMP100);
+            float f = 0.0;
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pf != nullptr) f = ApplyGain(pf->max, gain);
+            if (f > (float)sensitivity / 100.0) {
+                _lasttimingmark = buffer.curPeriod;
+                if (fullJump) _lastsize = 1.0; else _lastsize = f;
+            }
+            float ff = 0.0;
+            if (usebars > 0 && buffer.curPeriod - _lasttimingmark < usebars) {
+                ff = _lastsize - (_lastsize * (((float)buffer.curPeriod - (float)_lasttimingmark)) / (float)usebars);
+                if (ff < 0) ff = 0;
+            }
+            s->draw = true;
+            s->f = ff;
+            break;
+        }
+        case RenderType::NOTE_LEVEL_JUMP:
+        case RenderType::NOTE_LEVEL_JUMP100: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            bool fullJump = (nType == RenderType::NOTE_LEVEL_JUMP100);
+            auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pdata != nullptr && pdata->vu.size() != 0) {
+                float level = ApplyGain(noteLevel(pdata->vu), gain);
+                if (level > (float)sensitivity / 100.0) {
+                    _lasttimingmark = buffer.curPeriod;
+                    if (fullJump) _lastsize = 1; else _lastsize = level;
+                }
+                float ff = 0.0;
+                if (usebars > 0 && buffer.curPeriod - _lasttimingmark < usebars) {
+                    ff = _lastsize - ((_lastsize * ((float)buffer.curPeriod - (float)_lasttimingmark)) / (float)usebars);
+                    if (ff < 0) ff = 0;
+                }
+                s->draw = true;
+                s->f = ff;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::LEVEL_PULSE_COLOR: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            float f = 0.0;
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pf != nullptr) f = ApplyGain(pf->max, gain);
+            if (f > (float)sensitivity / 100.0) {
+                if (_lasttimingmark != buffer.curPeriod - 1) {
+                    _colourindex++;
+                    if (_colourindex >= (int)buffer.GetColorCount()) _colourindex = 0;
+                }
+                _lasttimingmark = buffer.curPeriod;
+            }
+            float ff = 0.0;
+            if (usebars > 0 && buffer.curPeriod - _lasttimingmark < usebars) {
+                ff = 1.0 - (((float)buffer.curPeriod - (float)_lasttimingmark) / (float)usebars);
+                if (ff < 0) ff = 0;
+            }
+            s->draw = true;
+            s->f = ff;
+            s->colourindex = _colourindex;
+            break;
+        }
+        case RenderType::LEVEL_COLOR: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            float f = 0.0;
+            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pf != nullptr) f = ApplyGain(pf->max, gain);
+            if (f > (float)sensitivity / 100.0) {
+                if (_lasttimingmark != buffer.curPeriod - 1) {
+                    _colourindex++;
+                    if (_colourindex >= (int)buffer.GetColorCount()) _colourindex = 0;
+                }
+                _lasttimingmark = buffer.curPeriod;
+            }
+            s->draw = true;
+            s->colourindex = _colourindex;
+            break;
+        }
+        case RenderType::LEVEL_BAR:
+        case RenderType::LEVEL_RANDOM_BAR: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            bool random = (nType == RenderType::LEVEL_RANDOM_BAR);
+            auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pdata != nullptr) {
+                float level = ApplyGain(pdata->max, gain);
+                if (level > (float)sensitivity / 100.0) {
+                    _colourindex++;
+                    if (_colourindex >= (int)buffer.GetColorCount()) _colourindex = 0;
+                    if (random && usebars > 2) {
+                        int lb = (int)_lastsize + 1;
+                        while (lb == (int)_lastsize + 1) {
+                            _lastsize = 1 + static_cast<int>(buffer.rand01() * usebars);
+                        }
+                        if (_lastsize > usebars) _lastsize = 1;
+                    } else {
+                        _lastsize++;
+                        if (_lastsize > usebars) _lastsize = 1;
+                    }
+                }
+                s->draw = true;
+                s->bar = _lastsize - 1;
+                s->colourindex = _colourindex;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::NOTE_LEVEL_BAR:
+        case RenderType::NOTE_LEVEL_RANDOM_BAR: {
+            if (buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            bool random = (nType == RenderType::NOTE_LEVEL_RANDOM_BAR);
+            auto pdata = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+            if (pdata != nullptr && pdata->vu.size() != 0) {
+                float level = ApplyGain(noteLevel(pdata->vu), gain);
+                if (level > (float)sensitivity / 100.0) {
+                    _colourindex++;
+                    if (_colourindex >= (int)buffer.GetColorCount()) _colourindex = 0;
+                    if (random && usebars > 2) {
+                        int lb = (int)_lastsize + 1;
+                        while (lb == (int)_lastsize + 1) {
+                            _lastsize = 1 + static_cast<int>(buffer.rand01() * usebars);
+                        }
+                        if (_lastsize > usebars) _lastsize = 1;
+                    } else {
+                        _lastsize++;
+                        if (_lastsize > usebars) _lastsize = 1;
+                    }
+                }
+                s->draw = true;
+                s->bar = _lastsize - 1;
+                s->colourindex = _colourindex;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::TIMING_EVENT_BAR:
+        case RenderType::TIMING_EVENT_BAR_BOUNCE:
+        case RenderType::TIMING_EVENT_RANDOM_BAR:
+        case RenderType::TIMING_EVENT_BARS: {
+            bool random = (nType == RenderType::TIMING_EVENT_RANDOM_BAR);
+            bool bounce = (nType == RenderType::TIMING_EVENT_BAR_BOUNCE);
+            if (timingtrack != "") {
+                Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+                if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
+                    _colourindex++;
+                    if (_colourindex >= (int)buffer.GetColorCount()) _colourindex = 0;
+                    if (random && usebars > 2) {
+                        int lb = (int)_lastsize + 1;
+                        while (lb == (int)_lastsize + 1) {
+                            _lastsize = 1 + static_cast<int>(buffer.rand01() * usebars);
+                        }
+                        if (_lastsize > usebars) _lastsize = 1;
+                    } else if (bounce) {
+                        _lastsize += _lastDirection;
+                        if (_lastsize > usebars || 0 == _lastsize) {
+                            _lastDirection *= -1;
+                            _lastsize += (_lastDirection * 2);
+                        }
+                    } else {
+                        _lastsize++;
+                        if (_lastsize > usebars) _lastsize = 1;
+                    }
+                }
+                if (_colourindex < 0) _colourindex = 0;
+                s->draw = true;
+                s->bar = _lastsize - 1;
+                s->colourindex = _colourindex;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::TIMING_EVENT_JUMP:
+        case RenderType::TIMING_EVENT_JUMP_100: {
+            bool useAudioLevel = (nType == RenderType::TIMING_EVENT_JUMP);
+            if (useAudioLevel && buffer.GetMedia() == nullptr) { s->draw = false; break; }
+            if (timingtrack != "") {
+                Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+                if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
+                    if (useAudioLevel) {
+                        float f = 0.0;
+                        auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+                        if (pf != nullptr) f = ApplyGain(pf->max, gain);
+                        _lastsize = f;
+                    } else {
+                        _lastsize = 1.0;
+                    }
+                }
+                float drawSize = 0.0;
+                if (_lastsize > 0) {
+                    drawSize = _lastsize;
+                    _lastsize -= 1.0 / (float)usebars;
+                    if (_lastsize < 0) _lastsize = 0;
+                }
+                s->draw = true;
+                s->f = drawSize;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::TIMING_EVENT_PULSE: {
+            if (timingtrack != "") {
+                Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+                if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
+                    _lastsize = usebars;
+                }
+                float drawSize = 0.0;
+                if (_lastsize > 0) {
+                    drawSize = _lastsize;
+                    _lastsize--;
+                }
+                s->draw = true;
+                s->f = drawSize;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::TIMING_EVENT_PULSE_COLOR: {
+            if (timingtrack != "") {
+                Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+                if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
+                    _lastsize = usebars;
+                    _colourindex++;
+                    if (_colourindex >= (int)buffer.GetColorCount()) _colourindex = 0;
+                }
+                float drawSize = 0.0;
+                if (_lastsize > 0) {
+                    drawSize = _lastsize;
+                    _lastsize--;
+                }
+                s->draw = true;
+                s->f = drawSize;
+                s->colourindex = _colourindex;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::TIMING_EVENT_COLOR: {
+            if (timingtrack != "") {
+                Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+                if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
+                    _colourindex++;
+                    if (_colourindex >= (int)buffer.GetColorCount()) _colourindex = 0;
+                }
+                bool effectActuallyPresent = (eff != nullptr);
+                if (_colourindex < 0) _colourindex = 0;
+                s->draw = true;
+                s->colourindex = _colourindex;
+                s->effectPresent = effectActuallyPresent;
+            } else {
+                s->draw = false;
+            }
+            break;
+        }
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP:
+        case RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP2: {
+            Effect* timing = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+            if (timing == nullptr) { s->draw = false; break; }
+            if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS()) {
+                _nCount++;
+            }
+            double lengthOfTiming = timing->GetEndTimeMS() - timing->GetStartTimeMS();
+            double lengthOfTimingFrames = lengthOfTiming / buffer.frameTimeInMs;
+            if (lengthOfTimingFrames < 1) lengthOfTimingFrames = 1;
+            double distanceToTravel = buffer.BufferWi;
+            if (nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP) {
+                distanceToTravel += 2 * usebars;
+            } else {
+                distanceToTravel -= usebars;
+            }
+            double perFrameDistance = distanceToTravel / lengthOfTimingFrames;
+            double posInTiming = (buffer.curPeriod * buffer.frameTimeInMs - timing->GetStartTimeMS()) / buffer.frameTimeInMs;
+            int startX = perFrameDistance * posInTiming;
+            if (nType == RenderType::TIMING_EVENT_ALTERNATE_TIMED_SWEEP) {
+                startX -= usebars;
+            }
+            s->draw = true;
+            s->startX = startX;
+            s->nCountEven = (_nCount % 2 == 0);
+            break;
+        }
+        case RenderType::LEVEL_SHAPE: {
+            // Non-SVG only (ClassifyMode keeps external-SVG Level Shape Stateful).
+            // The _lastsize slowdown-falls decay is the entire cross-frame state;
+            // bake the effective size.  The ~300-line shape draw stays in
+            // RenderLevelShapeFrame(advance=false), reading s->f as lastsize.
+            if (!AdvanceLevelShapeSize(buffer, sensitivity, slowdownfalls, gain, _lastsize)) {
+                s->draw = false;
+                break;
+            }
+            s->draw = true;
+            s->f = _lastsize;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    catch (...) {
+    }
+    return s;
 }
 
 void VUMeterEffect::RenderSpectrogramFrame(RenderBuffer &buffer, int usebars, std::vector<float>& lastvalues, std::vector<float>& lastpeaks, std::list<int>& pauseuntilpeakfall, bool slowdownfalls, int startNote, int endNote, int xoffset, int yoffset, bool peak, int peakhold, bool line, bool logarithmicX, bool circle, int gain, int sensitivity, std::list<std::vector<xlPoint>>& lineHistory) const
@@ -1267,6 +1894,12 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
             Effect* timing = GetTimingEvent(buffer, timingtrack, (start + i) * buffer.frameTimeInMs, filter, regex);
             if (timing != nullptr && timing->GetStartTimeMS() == (start + i) * buffer.frameTimeInMs)
             {
+                // Pin: this cross-frame _timingmarks write is OUTPUT-DEAD for the
+                // types that reach here (Timing Event Spike / Sweep / Sweep 2 - all
+                // classified Pure in GetFrameParallelism).  Its only reader is the
+                // `nType == 5` sweep-trail branch below, and 5 is RenderType::ON,
+                // which never dispatches to this function - so nothing here depends
+                // on prior frames.  Keep it dead (or drop these types from Pure).
                 timingmarks.remove(start + i);
                 timingmarks.push_back(start + i);
                 for (int j = 0; j < cols; j++)
@@ -1356,6 +1989,11 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
 
     if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS())
     {
+        // Pin: _nCount matters ONLY to the Alternate sweep types (read below as
+        // nCount % 2 to flip direction), which are Snapshottable.  For the plain
+        // Timed Sweep / Timed Sweep 2 types (classified Pure) this write is
+        // OUTPUT-DEAD - they never read nCount.  Keep it that way, or those two
+        // types must stop being Pure.
         nCount++;
     }
 
@@ -1405,6 +2043,10 @@ void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int u
         return;
 
     if (buffer.curPeriod * buffer.frameTimeInMs == timing->GetStartTimeMS()) {
+        // Pin: this cross-frame _nCount write is OUTPUT-DEAD - the chase draw
+        // below never reads nCount, and the only chase types (Timed Chase From /
+        // To Middle) are classified Pure.  Keep it dead, or drop those types from
+        // Pure.
         nCount++;
     }
 
@@ -2212,10 +2854,47 @@ void VUMeterEffect::DrawCandycane(RenderBuffer &buffer, int xc, int yc, double r
 
 #pragma endregion
 
-void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile)
+bool VUMeterEffect::AdvanceLevelShapeSize(RenderBuffer& buffer, int scale, bool slowdownfalls, int gain, float& lastsize) const
 {
-    if (buffer.GetMedia() == nullptr) return;
+    if (buffer.GetMedia() == nullptr) return false;
 
+    float scaling = (float)scale / 100.0 * 7.0;
+
+    float f = 0.0;
+    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
+    if (pf != nullptr) {
+        f = ApplyGain(pf->max, gain);
+    }
+
+    //old "maxSide" and "maxradius" were the same calculation
+    float maxSize = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
+    //old "side" and "radius" were the same calculation
+    float size = maxSize * f;
+
+    if (slowdownfalls)
+    {
+        if (size < lastsize)
+        {
+            lastsize = lastsize - std::min(maxSize, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
+            if (lastsize < size)
+            {
+                lastsize = size;
+            }
+        }
+        else
+        {
+            lastsize = size;
+        }
+    }
+    else
+    {
+        lastsize = size;
+    }
+    return true;
+}
+
+void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::string& shape, float& lastsize, int scale, bool slowdownfalls, int xoffset, int yoffset, int usebars, int gain, NSVGimage* svgFile, bool advance)
+{
 	int nShape = DecodeShape(shape);
 
     // star points
@@ -2224,41 +2903,18 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 
     int truexoffset = xoffset * buffer.BufferWi / 2 / 100;
     int trueyoffset = yoffset * buffer.BufferHt / 2 / 100;
-    float scaling = (float)scale / 100.0 * 7.0;
-
-	float f = 0.0;
-    auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
-	if (pf != nullptr) {
-		f = ApplyGain(pf->max, gain);
-	}
 
 	int centerx = (buffer.BufferWi / 2.0) + truexoffset;
 	int centery = (buffer.BufferHt / 2.0) + trueyoffset;
 
-	//old "maxSide" and "maxradius" were the same calculation
-	float maxSize = std::min(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0) * scaling;
-	//old "side" and "radius" were the same calculation
-	float size = maxSize * f;
-
-	if (slowdownfalls)
-	{
-		if (size < lastsize)
-		{
-			lastsize = lastsize - std::min(maxSize, (float)std::max(buffer.BufferHt / 2.0, buffer.BufferWi / 2.0)) / 20.0;
-			if (lastsize < size)
-			{
-				lastsize = size;
-			}
-		}
-		else
-		{
-			lastsize = size;
-		}
-	}
-	else
-	{
-		lastsize = size;
-	}
+    // advance==true: run the cross-frame _lastsize transition (needs audio) here,
+    // as the serial / Stateful (SVG) path does.  advance==false: draw purely from
+    // the caller-supplied lastsize (the AdvanceState snapshot).
+    if (advance) {
+        if (!AdvanceLevelShapeSize(buffer, scale, slowdownfalls, gain, lastsize)) {
+            return;
+        }
+    }
 
 	if (nShape == ShapeType::CIRCLE)
 	{

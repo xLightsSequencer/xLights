@@ -114,6 +114,7 @@
     <ClCompile Include="..\src-ui-wx\import_export\SeqExportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqFileUtilities.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SeqSettingsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SequenceFacesPanel.cpp" />
     <ClCompile Include="..\src-core\render\SequenceData.cpp" />
     <ClCompile Include="..\src-core\render\SequenceViewManager.cpp" />
     <ClCompile Include="..\src-ui-wx\model\SevenSegmentDialog.cpp" />
@@ -315,6 +316,9 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\ModelFaceDialog.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\model\FaceMatrixHelpers.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\ModelDimmingCurveDialog.cpp">
@@ -772,6 +776,9 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SequenceFaces.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp">
@@ -1629,6 +1636,7 @@
     <ClInclude Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\SeqExportDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SeqSettingsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SequenceFacesPanel.h" />
     <ClInclude Include="..\src-core\render\SequenceData.h" />
     <ClInclude Include="..\src-core\render\SequenceViewManager.h" />
     <ClInclude Include="..\src-ui-wx\model\SevenSegmentDialog.h" />
@@ -1826,6 +1834,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\ModelFaceDialog.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\model\FaceMatrixHelpers.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\ModelDimmingCurveDialog.h">
@@ -2293,6 +2304,9 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceMedia.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SequenceFaces.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\TextDrawingContext.h">

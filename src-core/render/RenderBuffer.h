@@ -571,11 +571,18 @@ public:
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;
 
-    // Tier-2 frame-parallel (Snapshottable effects).  The render engine sets one
-    // of these transiently around a single effect render: captureSnapshot => run
-    // the effect's serial AdvanceFrame and store the returned draw-snapshot here
-    // (no draw); pendingSnapshot => draw a previously captured snapshot (no
-    // advance).  Both null for a normal advance+draw Render.  Owned by the engine.
+    // Tier-2 frame-parallel plumbing (Snapshottable effects), set transiently by
+    // the render engine around a single effect render; effects never read
+    // captureSnapshot.
+    //  * captureSnapshot: engine-internal.  Non-null marks the serial capture
+    //    pre-pass - the engine calls the effect's AdvanceState() and stores the
+    //    returned draw-snapshot here (no draw).  The effect's Render() is not
+    //    invoked on this pass.
+    //  * pendingSnapshot: the draw-protocol input.  Non-null means Render() must
+    //    rasterise this previously captured snapshot and NOT advance (check it
+    //    first, at the top of Render).  Set in both serial and parallel drawing.
+    // Both null for the fused advance+draw of a Pure/Stateful effect.  Owned by
+    // the engine.
     std::unique_ptr<EffectFrameState>* captureSnapshot = nullptr;
     const EffectFrameState* pendingSnapshot = nullptr;
 

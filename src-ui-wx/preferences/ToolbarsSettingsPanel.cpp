@@ -11,6 +11,7 @@
 #include "ToolbarsSettingsPanel.h"
 
 #include <wx/button.h>
+#include <wx/preferences.h>
 #include <wx/rearrangectrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -57,6 +58,15 @@ void ToolbarsSettingsPanel::BuildRearrangeCtrl(const std::vector<std::pair<std::
     _effectsToolbarRearrange = new wxRearrangeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, order, items);
     _mainSizer->Insert(2, _effectsToolbarRearrange, 1, wxEXPAND | wxALL, 6);
     _mainSizer->Layout();
+
+    // Both the check-toggle and the Up/Down reorder buttons are fully
+    // consumed inside wxRearrangeList/wxRearrangeCtrl's own event tables
+    // (no event.Skip() call there), so they never bubble up to us on their
+    // own - bind directly to the pieces that generate them and Skip() so
+    // the internal m_order bookkeeping still runs.
+    _effectsToolbarRearrange->GetList()->Bind(wxEVT_CHECKLISTBOX, &ToolbarsSettingsPanel::OnRearrangeChanged, this);
+    _effectsToolbarRearrange->Bind(wxEVT_BUTTON, &ToolbarsSettingsPanel::OnRearrangeChanged, this, wxID_UP);
+    _effectsToolbarRearrange->Bind(wxEVT_BUTTON, &ToolbarsSettingsPanel::OnRearrangeChanged, this, wxID_DOWN);
 }
 
 std::vector<std::pair<std::string, bool>> ToolbarsSettingsPanel::DefaultEffectsToolbarLayout() const
@@ -75,6 +85,24 @@ std::vector<std::pair<std::string, bool>> ToolbarsSettingsPanel::DefaultEffectsT
 void ToolbarsSettingsPanel::OnResetToDefaults(wxCommandEvent& event)
 {
     BuildRearrangeCtrl(DefaultEffectsToolbarLayout());
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void ToolbarsSettingsPanel::OnRearrangeChanged(wxCommandEvent& event)
+{
+    event.Skip();
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        // The internal handler that updates wxRearrangeList's order/checked
+        // bookkeeping for this same event hasn't necessarily run yet at this
+        // point (we're bound directly to the source control, same as that
+        // internal handler, and relative ordering between the two isn't
+        // guaranteed) - CallAfter() defers TransferDataFromWindow() until
+        // after the whole event has finished dispatching, so it always
+        // reads the post-update state.
+        CallAfter([this]() { TransferDataFromWindow(); });
+    }
 }
 
 bool ToolbarsSettingsPanel::TransferDataFromWindow()

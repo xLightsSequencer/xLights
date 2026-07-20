@@ -91,18 +91,15 @@ void VulkanWaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Re
         return;
     }
 
-    // Advances the phase accumulator (and Ivy branch buffer) exactly once.
-    // Both the GPU dispatch and every fallback below reuse the bands from
-    // here, so the accumulator never double-advances (mirrors
-    // MetalWaveEffect::Render).
+    // Builds this frame's bands from the phase.  For the migrated types the
+    // engine runs AdvanceState first and enters here via pendingSnapshot, so
+    // BuildWaveColumns reads the phase from the snapshot (no advance); Fractal/ivy
+    // (Stateful) fuses advance+draw.  Either way the accumulator never
+    // double-advances (mirrors MetalWaveEffect::Render), and the
+    // serial-with-snapshot flow still takes this GPU path.
     WaveKernelConfig cfg;
     std::vector<int32_t> cols;
     BuildWaveColumns(SettingsMap, buffer, cfg, cols);
-    if (buffer.captureSnapshot != nullptr) {
-        // Frame-parallel serial capture pass: the phase was advanced + handed
-        // off to a later parallel draw; nothing to render now.
-        return;
-    }
 
     // Vulkan implements the None (constant-color) fill only. Rainbow/Palette
     // need a double-precision hue division to stay byte-identical (no double
