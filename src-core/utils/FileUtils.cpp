@@ -131,6 +131,21 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     std::string filename = GetFilenameFromPath(file);
     std::string resultPath;
 
+    // Relative paths (saved for portability) resolve against the show dir and
+    // media dirs before any filename-based searching
+    if (!std::filesystem::path(file).is_absolute()) {
+        std::string append;
+        for (const auto& comp : GetPathComponents(file)) {
+            if (!append.empty()) append += std::filesystem::path::preferred_separator;
+            append += comp;
+        }
+        if (doesFileExistInDirs(sd, append, filename, resultPath)) {
+            lock.lock();
+            _fixFileMap[file] = resultPath;
+            return resultPath;
+        }
+    }
+
     // Search show dir and search dirs for the file directly
     if (doesFileExistInDirs(sd, "", filename, resultPath)) {
         lock.lock();

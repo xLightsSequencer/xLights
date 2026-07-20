@@ -1803,13 +1803,14 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
 
             if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
+                MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
                 std::string fn = obj["ObjFile"];
                 if (!fn.empty()) {
                     std::string bn = std::filesystem::path(fn).filename().string();
                     obj["ObjFile"] = bn;
-                    virtualDisplayData[bn] = fn;
+                    // the serialized attribute may be show-relative; upload from the resolved path
+                    virtualDisplayData[bn] = mesh != nullptr ? mesh->GetObjFile() : fn;
                 }
-                MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
                 for (auto &fr : mesh->GetFileReferences()) {
                     std::string bn = std::filesystem::path(fr).filename().string();
                     virtualDisplayData[bn] = fr;

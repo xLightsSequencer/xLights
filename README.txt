@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (wbhartmanii)           Layout: 3D object (mesh) files inside the show/media folders are now
+                                 saved with show-relative paths (forward slashes) instead of absolute
+                                 paths, so layouts survive show folders moved or synced across platforms
     -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
                                  defines matrix (image) faces stored in the .xsq, usable by any
                                  matrix/group/submodel in that sequence (no need to duplicate the face
