@@ -1,7 +1,7 @@
 #pragma once
 
 /***************************************************************
- * This source files comes from the xLights project
+ * This source file comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
@@ -10,15 +10,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-//(*Headers(ViewSettingsPanel)
 #include <wx/panel.h>
+
 class wxCheckBox;
 class wxChoice;
-class wxGridBagSizer;
-class wxStaticText;
-//*)
-
+class wxCommandEvent;
 class xLightsFrame;
+
 class ViewSettingsPanel: public wxPanel
 {
 	public:
@@ -26,60 +24,24 @@ class ViewSettingsPanel: public wxPanel
 		ViewSettingsPanel(wxWindow* parent, xLightsFrame *f, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~ViewSettingsPanel();
 
-		//(*Declarations(ViewSettingsPanel)
-		wxCheckBox* CheckBox_BaseShowFolder;
-		wxCheckBox* CheckBox_DisableKeyAcceleration;
-		wxCheckBox* CheckBox_PresetPreview;
-		wxCheckBox* CheckBox_ZoomMethod;
-		wxCheckBox* HousePreviewCheckBox;
-		wxCheckBox* PlayControlsCheckBox;
-		wxChoice* Choice_PaletteSize;
-		wxChoice* Choice_TimelineZooming;
-		wxChoice* CrosshairSizeChoice;
-		wxChoice* EffectAssistChoice;
-		wxChoice* ModelHandleSizeChoice;
-		wxChoice* ToolIconSizeChoice;
-		//*)
-
         virtual bool TransferDataFromWindow() override;
         virtual bool TransferDataToWindow() override;
-
-	protected:
-
-		//(*Identifiers(ViewSettingsPanel)
-		static const wxWindowID ID_CHOICE3;
-		static const wxWindowID ID_CHOICE4;
-		static const wxWindowID ID_CHOICE5;
-		static const wxWindowID ID_CHECKBOX1;
-		static const wxWindowID ID_CHECKBOX2;
-		static const wxWindowID ID_CHECKBOX5;
-		static const wxWindowID ID_CHECKBOX3;
-		static const wxWindowID ID_CHOICE_TIMELINEZOOMING;
-		static const wxWindowID ID_CHECKBOX4;
-		static const wxWindowID ID_CHECKBOX_ZoomMethod;
-		static const wxWindowID ID_CHOICE_CROSSHAIRSIZE;
-		static const wxWindowID ID_CHOICE_PALETTE_SIZE;
-		//*)
 
 	private:
         xLightsFrame *frame;
 
-		//(*Handlers(ViewSettingsPanel)
-		void OnToolIconSizeChoiceSelect(wxCommandEvent& event);
-		void OnHousePreviewCheckBoxClick(wxCommandEvent& event);
-		void OnPlayControlsCheckBoxClick(wxCommandEvent& event);
-		void OnEffectAssistChoiceSelect(wxCommandEvent& event);
-		void OnModelHandleSizeChoiceSelect(wxCommandEvent& event);
-		void OnOpenGLRenderOrderChoiceSelect(wxCommandEvent& event);
-		void OnOpenGLVersionChoiceSelect(wxCommandEvent& event);
-		void OnCheckBox_BaseShowFolderClick(wxCommandEvent& event);
-		void OnChoice_TimelineZoomingSelect(wxCommandEvent& event);
-		void OnPresetPreviewCheckBoxClick(wxCommandEvent& event);
-		void OnCheckBox_ZoomMethodClick(wxCommandEvent& event);
-		void OnCheckBox_DisableKeyAccelerationClick(wxCommandEvent& event);
-		void OnCrosshairSizeChoiceSelect(wxCommandEvent& event);
-		void OnChoice_PaletteSizeSelect(wxCommandEvent& event);
-		//*)
+        wxCheckBox* CheckBox_BaseShowFolder = nullptr;
+        wxCheckBox* CheckBox_DisableKeyAcceleration = nullptr;
+        wxCheckBox* CheckBox_PresetPreview = nullptr;
+        wxCheckBox* CheckBox_ZoomMethod = nullptr;
+        wxCheckBox* HousePreviewCheckBox = nullptr;
+        wxCheckBox* PlayControlsCheckBox = nullptr;
+        wxChoice* Choice_PaletteSize = nullptr;
+        wxChoice* Choice_TimelineZooming = nullptr;
+        wxChoice* CrosshairSizeChoice = nullptr;
+        wxChoice* EffectAssistChoice = nullptr;
+        wxChoice* ModelHandleSizeChoice = nullptr;
+        wxChoice* ToolIconSizeChoice = nullptr;
 
-		DECLARE_EVENT_TABLE()
+        void OnChanged(wxCommandEvent& event);
 };

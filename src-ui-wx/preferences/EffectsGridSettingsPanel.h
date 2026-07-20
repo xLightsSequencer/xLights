@@ -1,7 +1,7 @@
 #pragma once
 
 /***************************************************************
- * This source files comes from the xLights project
+ * This source file comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
@@ -10,15 +10,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-//(*Headers(EffectsGridSettingsPanel)
 #include <wx/panel.h>
+
 class wxCheckBox;
 class wxChoice;
-class wxFlexGridSizer;
-class wxStaticText;
-//*)
-
+class wxCommandEvent;
 class xLightsFrame;
+
 class EffectsGridSettingsPanel: public wxPanel
 {
 	public:
@@ -26,65 +24,24 @@ class EffectsGridSettingsPanel: public wxPanel
 		EffectsGridSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
 		virtual ~EffectsGridSettingsPanel();
 
-		//(*Declarations(EffectsGridSettingsPanel)
-		wxCheckBox* BellOnRenderCompletion;
-		wxCheckBox* ColorUpdateWarnCheckBox;
-		wxCheckBox* GroupEffectIndicator;
-		wxCheckBox* IconBackgroundsCheckBox;
-		wxCheckBox* NodeValuesCheckBox;
-		wxCheckBox* ShowAlternateTimingFormatCheckBox;
-		wxCheckBox* SmallWaveformCheckBox;
-		wxCheckBox* SnapToTimingCheckBox;
-		wxCheckBox* TransistionMarksCheckBox;
-		wxChoice* DoubleClickChoice;
-		wxChoice* GridSpacingChoice;
-		wxChoice* PasteAsChoice;
-		wxStaticText* StaticText1;
-		wxStaticText* StaticTextPasteAs;
-		//*)
-
         virtual bool TransferDataFromWindow() override;
         virtual bool TransferDataToWindow() override;
-
-	protected:
-
-		//(*Identifiers(EffectsGridSettingsPanel)
-		static const wxWindowID ID_CHOICE1;
-		static const wxWindowID ID_CHECKBOX1;
-		static const wxWindowID ID_CHECKBOX2;
-		static const wxWindowID ID_CHECKBOX7;
-		static const wxWindowID ID_CHECKBOX3;
-		static const wxWindowID ID_STATICTEXT1;
-		static const wxWindowID ID_CHOICE2;
-		static const wxWindowID ID_CHECKBOX4;
-		static const wxWindowID ID_CHECKBOX6;
-		static const wxWindowID ID_CHECKBOX5;
-		static const wxWindowID ID_CHECKBOX8;
-		static const wxWindowID ID_CHECKBOX9;
-		static const wxWindowID ID_STATICTEXT_PASTE_AS;
-		static const wxWindowID ID_CHOICE_PASTE_AS;
-		//*)
 
 	private:
         xLightsFrame *frame;
 
+        wxCheckBox* BellOnRenderCompletion = nullptr;
+        wxCheckBox* ColorUpdateWarnCheckBox = nullptr;
+        wxCheckBox* GroupEffectIndicator = nullptr;
+        wxCheckBox* IconBackgroundsCheckBox = nullptr;
+        wxCheckBox* NodeValuesCheckBox = nullptr;
+        wxCheckBox* ShowAlternateTimingFormatCheckBox = nullptr;
+        wxCheckBox* SmallWaveformCheckBox = nullptr;
+        wxCheckBox* SnapToTimingCheckBox = nullptr;
+        wxCheckBox* TransistionMarksCheckBox = nullptr;
+        wxChoice* DoubleClickChoice = nullptr;
+        wxChoice* GridSpacingChoice = nullptr;
+        wxChoice* PasteAsChoice = nullptr;
 
-		//(*Handlers(EffectsGridSettingsPanel)
-		void OnIconBackgroundsCheckBoxClick(wxCommandEvent& event);
-		void OnNodeValuesCheckBoxClick(wxCommandEvent& event);
-		void OnSnapToTimingCheckBoxClick(wxCommandEvent& event);
-		void OnSmallWaveformCheckBoxClick(wxCommandEvent& event);
-		void OnGridSpacingChoiceSelect(wxCommandEvent& event);
-		void OnTransistionMarksCheckBoxClick(wxCommandEvent& event);
-		void OnDoubleClickChoiceSelect(wxCommandEvent& event);
-		void OnColorUpdateWarnCheckBoxClick(wxCommandEvent& event);
-		void OnGroupEffectIndicatorClick(wxCommandEvent& event);
-		void OnPaint(wxPaintEvent& event);
-		void OnAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
-		void OnShowAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
-		void OnBellOnRenderCompletionClick(wxCommandEvent& event);
-		void OnPasteAsChoiceSelect(wxCommandEvent& event);
-		//*)
-
-		DECLARE_EVENT_TABLE()
+        void OnChanged(wxCommandEvent& event);
 };

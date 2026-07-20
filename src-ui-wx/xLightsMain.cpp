@@ -87,7 +87,6 @@
 #include "layout/HousePreviewPanel.h"
 #include "setup/IPEntryDialog.h"
 #include "media/JukeboxPanel.h"
-#include "app-shell/KeyBindingEditDialog.h"
 #include "layout/LayoutGroup.h"
 #include "layout/LayoutPanel.h"
 #include "sequencer/LyricUserDictDialog.h"
@@ -274,7 +273,6 @@ const wxWindowID xLightsFrame::IS_SAVE_SEQ = wxNewId();
 const wxWindowID xLightsFrame::ID_SAVE_AS_SEQUENCE = wxNewId();
 const wxWindowID xLightsFrame::ID_CLOSE_SEQ = wxNewId();
 const wxWindowID xLightsFrame::ID_SEQ_SETTINGS = wxNewId();
-const wxWindowID xLightsFrame::ID_MNU_KEYBINDINGS = wxNewId();
 const wxWindowID xLightsFrame::ID_EXPORT_VIDEO = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM2 = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM8 = wxNewId();
@@ -1039,8 +1037,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuFile->Append(MenuItem61);
     Menu_Settings_Sequence = new wxMenuItem(MenuFile, ID_SEQ_SETTINGS, _("Sequence Settings"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(Menu_Settings_Sequence);
-    MenuItem_KeyBindings = new wxMenuItem(MenuFile, ID_MNU_KEYBINDINGS, _("Key bindings"), wxEmptyString, wxITEM_NORMAL);
-    MenuFile->Append(MenuItem_KeyBindings);
     MenuFile->AppendSeparator();
     MenuItem_File_Export_Video = new wxMenuItem(MenuFile, ID_EXPORT_VIDEO, _("Export House Preview Video"), wxEmptyString, wxITEM_NORMAL);
     MenuFile->Append(MenuItem_File_Export_Video);
@@ -1383,7 +1379,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_CLOSE_SEQ, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Close_SequenceSelected);
     Connect(wxID_PREFERENCES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemPreferencesSelected);
     Connect(ID_SEQ_SETTINGS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenu_Settings_SequenceSelected);
-    Connect(ID_MNU_KEYBINDINGS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_KeyBindingsSelected);
     Connect(ID_EXPORT_VIDEO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_Export_VideoSelected);
     Connect(ID_MENUITEM2, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuOpenFolderSelected);
     Connect(ID_FILE_BACKUP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemBackupSelected);
@@ -8882,13 +8877,6 @@ void xLightsFrame::SetUseGPURendering(bool b)
 void xLightsFrame::OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event)
 {
     MultiControllerUploadDialog dlg(this);
-    dlg.ShowModal();
-}
-
-void xLightsFrame::OnMenuItem_KeyBindingsSelected(wxCommandEvent& event)
-{
-    KeyBindingEditDialog dlg(this, &GetMainSequencer()->keyBindings, &effectManager);
-
     dlg.ShowModal();
 }
 

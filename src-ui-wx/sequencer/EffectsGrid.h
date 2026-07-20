@@ -134,6 +134,7 @@ public:
     void CutModelEffects(int row_number, bool allLayers);
     void CopyModelEffects(int row_number, bool allLayers, bool incSubModels = false);
     void CopyModelEffectsToModels(int row_number);
+    void CopyModelLayersToModelsForSelection();
     void PasteModelEffects(int row_number, bool allLayers);
     void PasteModelEffectsWithLayers(int row_number);
     void PasteModelEffectsWithSubModelLayers(int row_number);

@@ -655,6 +655,9 @@
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\VideoSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -706,7 +709,9 @@
     <ClCompile Include="..\src-core\outputs\OPCOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\outputs\PixelNetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -2177,6 +2182,12 @@
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\PrefPanelUtils.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\VideoSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
@@ -2225,7 +2236,9 @@
     <ClInclude Include="..\src-core\outputs\OPCOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\outputs\PixelNetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>

@@ -675,7 +675,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\modelproperties\helpers\DmxAbilityPropertyHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\helpers\DmxComponentPropertyHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\media\JukeboxPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LayerSelectDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LayoutUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.cpp" />
@@ -954,6 +954,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\VideoSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.cpp" />
@@ -1323,7 +1324,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\layout\LayoutUtils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LORPreview.h" />
     <ClInclude Include="..\src-ui-wx\media\JukeboxPanel.h" />
-    <ClInclude Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LayerSelectDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.h" />
     <ClInclude Include="..\src-core\import_export\ExportModels.h" />
@@ -1606,6 +1607,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\PrefPanelUtils.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\VideoSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.h" />

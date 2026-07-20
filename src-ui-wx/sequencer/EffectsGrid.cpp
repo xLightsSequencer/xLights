@@ -8702,6 +8702,17 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
     }
 }
 
+void EffectsGrid::CopyModelLayersToModelsForSelection() {
+    // Mirror InsertEffectLayerAbove's row resolution so the keyboard shortcut
+    // acts on the same model the user has selected in the grid.
+    int row = mSelectedRow;
+    if (row == -1 && mRangeStartRow == mRangeEndRow)
+        row = mRangeStartRow;
+    if (row == -1)
+        return;
+    CopyModelEffectsToModels(row);
+}
+
 void EffectsGrid::CopyModelEffectsToModels(int row_number) {
     Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row_number);
     if (ri == nullptr || ri->element == nullptr)

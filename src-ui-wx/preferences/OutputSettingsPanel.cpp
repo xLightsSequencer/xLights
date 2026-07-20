@@ -1,5 +1,5 @@
 /***************************************************************
- * This source files comes from the xLights project
+ * This source file comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
  * See the github commit history for a record of contributing
@@ -9,75 +9,63 @@
  **************************************************************/
 
 #include "OutputSettingsPanel.h"
+#include "PrefPanelUtils.h"
 
-//(*InternalHeaders(OutputSettingsPanel)
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/gbsizer.h>
 #include <wx/intl.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
-//*)
 
 #include <wx/preferences.h>
 #include "xLightsMain.h"
 #include "utils/ip_utils.h"
 
-//(*IdInit(OutputSettingsPanel)
-const long OutputSettingsPanel::ID_CHECKBOX1 = wxNewId();
-const long OutputSettingsPanel::ID_STATICTEXT1 = wxNewId();
-const long OutputSettingsPanel::ID_CHOICE1 = wxNewId();
-const long OutputSettingsPanel::ID_CHOICE2 = wxNewId();
-const long OutputSettingsPanel::ID_CHOICE3 = wxNewId();
-//*)
-
-BEGIN_EVENT_TABLE(OutputSettingsPanel,wxPanel)
-	//(*EventTable(OutputSettingsPanel)
-	//*)
-END_EVENT_TABLE()
-
 OutputSettingsPanel::OutputSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWindowID id,const wxPoint& pos,const wxSize& size) : frame(f)
 {
-	//(*Initialize(OutputSettingsPanel)
-	wxGridBagSizer* GridBagSizer1;
-	wxStaticText* StaticText2;
-	wxStaticText* StaticText3;
+    Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 
-	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
-	GridBagSizer1 = new wxGridBagSizer(0, 0);
-	FrameSyncCheckBox = new wxCheckBox(this, ID_CHECKBOX1, _("Use Frame Sync"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
-	FrameSyncCheckBox->SetValue(false);
-	GridBagSizer1->Add(FrameSyncCheckBox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Force Local IP"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-	GridBagSizer1->Add(StaticText1, wxGBPosition(1, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText2 = new wxStaticText(this, wxID_ANY, _("Duplicate Frames to Suppress"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	GridBagSizer1->Add(StaticText2, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	StaticText3 = new wxStaticText(this, wxID_ANY, _("xFade/xSchedule"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	GridBagSizer1->Add(StaticText3, wxGBPosition(3, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ForceLocalIPChoice = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
-	ForceLocalIPChoice->SetSelection( ForceLocalIPChoice->Append(wxEmptyString) );
-	GridBagSizer1->Add(ForceLocalIPChoice, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	DuplicateSuppressChoice = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-	DuplicateSuppressChoice->SetSelection( DuplicateSuppressChoice->Append(_("None")) );
-	DuplicateSuppressChoice->Append(_("10"));
-	DuplicateSuppressChoice->Append(_("20"));
-	DuplicateSuppressChoice->Append(_("40"));
-	GridBagSizer1->Add(DuplicateSuppressChoice, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	xFadexScheduleChoice = new wxChoice(this, ID_CHOICE3, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE3"));
-	xFadexScheduleChoice->SetSelection( xFadexScheduleChoice->Append(_("Disabled")) );
-	xFadexScheduleChoice->Append(_("Port A"));
-	xFadexScheduleChoice->Append(_("Port B"));
-	GridBagSizer1->Add(xFadexScheduleChoice, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	SetSizer(GridBagSizer1);
-	GridBagSizer1->Fit(this);
-	GridBagSizer1->SetSizeHints(this);
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
 
-	Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&OutputSettingsPanel::OnFrameSyncCheckBoxClick);
-	Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OutputSettingsPanel::OnForceLocalIPChoiceSelect);
-	Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OutputSettingsPanel::OnDuplicateSuppressChoiceSelect);
-	Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&OutputSettingsPanel::OnxFadexScheduleChoiceSelect);
-	//*)
-    
+    FrameSyncCheckBox = new wxCheckBox(this, wxID_ANY, _("Use Frame Sync"));
+    sizer->Add(FrameSyncCheckBox, 0, wxLEFT | wxTOP, 8);
+    sizer->Add(MakePreferenceHint(this, _("Send an E1.31 sync packet each frame so multiple controllers stay in step.")), 0, wxLEFT | wxBOTTOM, 26);
+
+    auto* grid = new wxFlexGridSizer(0, 2, 0, 0);
+    grid->AddGrowableCol(1);
+
+    grid->Add(new wxStaticText(this, wxID_ANY, _("Force Local IP")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    ForceLocalIPChoice = new wxChoice(this, wxID_ANY);
+    ForceLocalIPChoice->SetSelection(ForceLocalIPChoice->Append(wxEmptyString));
+    grid->Add(ForceLocalIPChoice, 1, wxALL | wxEXPAND, 5);
+    grid->Add(0, 0);
+    grid->Add(MakePreferenceHint(this, _("Send all network output from a specific local adapter (leave blank to auto-select).")), 0, wxLEFT | wxBOTTOM, 5);
+
+    grid->Add(new wxStaticText(this, wxID_ANY, _("Duplicate Frames to Suppress")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    DuplicateSuppressChoice = new wxChoice(this, wxID_ANY);
+    DuplicateSuppressChoice->SetSelection(DuplicateSuppressChoice->Append(_("None")));
+    DuplicateSuppressChoice->Append(_("10"));
+    DuplicateSuppressChoice->Append(_("20"));
+    DuplicateSuppressChoice->Append(_("40"));
+    grid->Add(DuplicateSuppressChoice, 1, wxALL | wxEXPAND, 5);
+    grid->Add(0, 0);
+    grid->Add(MakePreferenceHint(this, _("Stop resending unchanged frames after this many duplicates to reduce network traffic.")), 0, wxLEFT | wxBOTTOM, 5);
+
+    grid->Add(new wxStaticText(this, wxID_ANY, _("xFade/xSchedule")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    xFadexScheduleChoice = new wxChoice(this, wxID_ANY);
+    xFadexScheduleChoice->SetSelection(xFadexScheduleChoice->Append(_("Disabled")));
+    xFadexScheduleChoice->Append(_("Port A"));
+    xFadexScheduleChoice->Append(_("Port B"));
+    grid->Add(xFadexScheduleChoice, 1, wxALL | wxEXPAND, 5);
+    grid->Add(0, 0);
+    grid->Add(MakePreferenceHint(this, _("Share this show with xFade/xSchedule on the chosen sync port.")), 0, wxLEFT | wxBOTTOM, 5);
+
+    sizer->Add(grid, 0, wxEXPAND | wxALL, 5);
+
+    SetSizer(sizer);
+    sizer->SetSizeHints(this);
+
     std::string localIP = frame->_outputManager.GetGlobalForceLocalIP();
     auto ips = ip_utils::GetLocalIPs();
 
@@ -102,15 +90,15 @@ OutputSettingsPanel::OutputSettingsPanel(wxWindow* parent,xLightsFrame *f,wxWind
     }
     ForceLocalIPChoice->Set(choices);
     ForceLocalIPChoice->SetSelection(sel);
-    GridBagSizer1->Layout();
-    GridBagSizer1->Fit(this);
-    GridBagSizer1->SetSizeHints(this);
+
+    FrameSyncCheckBox->Bind(wxEVT_CHECKBOX, &OutputSettingsPanel::OnChanged, this);
+    ForceLocalIPChoice->Bind(wxEVT_CHOICE, &OutputSettingsPanel::OnChanged, this);
+    DuplicateSuppressChoice->Bind(wxEVT_CHOICE, &OutputSettingsPanel::OnChanged, this);
+    xFadexScheduleChoice->Bind(wxEVT_CHOICE, &OutputSettingsPanel::OnChanged, this);
 }
 
 OutputSettingsPanel::~OutputSettingsPanel()
 {
-	//(*Destroy(OutputSettingsPanel)
-	//*)
 }
 
 bool OutputSettingsPanel::TransferDataFromWindow() {
@@ -153,28 +141,7 @@ bool OutputSettingsPanel::TransferDataToWindow() {
     return true;
 }
 
-void OutputSettingsPanel::OnFrameSyncCheckBoxClick(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void OutputSettingsPanel::OnForceLocalIPChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void OutputSettingsPanel::OnDuplicateSuppressChoiceSelect(wxCommandEvent& event)
-{
-    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
-        TransferDataFromWindow();
-    }
-}
-
-void OutputSettingsPanel::OnxFadexScheduleChoiceSelect(wxCommandEvent& event)
+void OutputSettingsPanel::OnChanged(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
