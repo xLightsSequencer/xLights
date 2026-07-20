@@ -105,6 +105,11 @@ static int ParChunkEnv(const char* name, int def) {
 }
 static const int PAR_FRAME_MODEL_CHUNK = ParChunkEnv("XL_PARALLEL_CHUNK", PAR_FRAME_MAX_CHUNK);
 static const int PAR_FRAME_GROUP_CHUNK = ParChunkEnv("XL_PARALLEL_GROUP_CHUNK", 8);
+// Submodel rows also default shorter: each clone replicates the main buffer
+// PLUS every submodel/strand buffer, so the pool build is the dominant cost on
+// short sequences (Patriots-Touchdown 2.4s -> 4.4s at 24, 3.0s at 8) while the
+// big wins are pool-size-independent (Baby Shark's Bushes -35% at both).
+static const int PAR_FRAME_SUBMODEL_CHUNK = ParChunkEnv("XL_PARALLEL_SUBMODEL_CHUNK", 8);
 
 // XL_PARALLEL_BLOCKERS=1: profile-only.  On every structurally-eligible group
 // row, walk each frame and record which effect(s) prevent it from rendering in
@@ -292,6 +297,24 @@ public:
         settingsMaps.resize(l);
         effectStates.resize(l);
         validLayers.resize(l + 1); //extra one for the blending layer
+    }
+
+    // Reset every per-window render field (current effects, cursors, settings,
+    // valid flags, produce results) while keeping the identity fields and the
+    // owned buffer.  The frame-parallel clone pool calls this before each
+    // window so every clone re-initialises from scratch (output-invariant for
+    // Pure effects), without reallocating the clone's PixelBufferClass.
+    void resetRenderState() {
+        currentEffects.assign(numLayers, nullptr);
+        currentEffectIdxs.assign(numLayers, 0);
+        settingsMaps.assign(numLayers, SettingsMap());
+        effectStates.assign(numLayers, false);
+        validLayers.assign(numLayers + 1, false);
+        partOfCanvas.clear();
+        processLayer.clear();
+        produceEffectsToUpdate = false;
+        produceBlend = false;
+        produceEffectiveNumLayers = 0;
     }
 
     int numLayers;
@@ -1537,59 +1560,99 @@ public:
             || sm.GetInt("SPINCTRL_SuppressEffectUntil", 0) > 0;
     }
 
-    // A frame is parallel-safe if every covering layer is Pure OR Snapshottable.
+    // Per-effect classification cache for the window-formation scans.  An
+    // effect spans many frames but FrameIsParallelSafe runs per frame, and the
+    // classification needs a full CopySettingsMap (string-map copy) - on
+    // submodel rows that cost is multiplied by every submodel layer.  Any
+    // effect edit bumps the row change count and the frame-loop bail replaces
+    // the job (and this memo with it), so an entry is valid for the job's
+    // life.  Only touched by the job's own slice thread.
+    // Video is exempt: its classification consults a per-file registry primed
+    // when Render first opens the file, so it can legitimately change mid-job.
+    struct ParEffClass {
+        RenderableEffect::FrameParallelism fp;
+        bool continuity;
+    };
+    std::unordered_map<Effect*, ParEffClass> parClassMemo;
+    const ParEffClass& ClassifyEffectForParallel(Effect* eff) {
+        auto it = parClassMemo.find(eff);
+        if (it == parClassMemo.end() || eff->GetEffectIndex() == EffectManager::eff_VIDEO) {
+            ParEffClass c{ RenderableEffect::FrameParallelism::Stateful, false };
+            RenderableEffect* reff = _ctx->GetEffectManager().GetEffect(eff->GetEffectIndex());
+            if (reff != nullptr) {
+                SettingsMap sm;
+                eff->CopySettingsMap(sm, true);
+                c.fp = reff->GetEffectiveFrameParallelism(sm);
+            }
+            c.continuity = EffectIsBufferContinuity(eff);
+            it = parClassMemo.insert_or_assign(eff, c).first;
+        }
+        return it->second;
+    }
+
+    // One layer's contribution to FrameIsParallelSafe: -1 = blocked (Stateful
+    // cover, unknown effect, or a buffer-continuity effect starting at frame+1),
+    // 0 = no cover, 1 = safe cover (Pure or Snapshottable; the latter also sets
+    // hasSnapshot).
+    int LayerParallelSafety(EffectLayer* el, int frame, bool& hasSnapshot) {
+        if (el == nullptr) return 0;
+        std::unique_lock<std::recursive_mutex> lock(el->GetLock());
+        int idx = 0;
+        Effect* eff = findEffectForFrame(el, frame, idx);
+        // The enter transition into a buffer-continuity effect: if one STARTS
+        // at frame+1, this frame must render serially so the serial buffer is
+        // advanced/cleared for it (a Pure window would render it on a clone and
+        // leave the serial buffer stale).  Only a CHANGE of covering effect at
+        // frame+1 is a boundary worth inspecting - the common case (same effect
+        // spans both frames) is a cheap pointer compare that skips the settings
+        // read.
+        int idx2 = 0;
+        Effect* effNext = findEffectForFrame(el, frame + 1, idx2);
+        if (effNext != nullptr && effNext != eff && ClassifyEffectForParallel(effNext).continuity) {
+            return -1;
+        }
+        if (eff == nullptr) return 0;
+        RenderableEffect::FrameParallelism fp = ClassifyEffectForParallel(eff).fp;
+        if (fp == RenderableEffect::FrameParallelism::Snapshottable) {
+            hasSnapshot = true;
+            return 1;
+        }
+        return fp == RenderableEffect::FrameParallelism::Pure ? 1 : -1; // Stateful
+    }
+
+    // A frame is parallel-safe if every covering layer - across the main model
+    // AND every submodel/strand row it carries - is Pure OR Snapshottable.
     // hasSnapshot is SET (never cleared - the caller inits it) when any covering
     // layer is Snapshottable, so the window knows it needs a serial capture pre-pass.
     bool FrameIsParallelSafe(int frame, bool& hasSnapshot) {
         bool anyCover = false;
         for (int l = 0; l < numLayers; ++l) {
-            EffectLayer* el = rowToRender->GetEffectLayer(l);
-            if (el == nullptr) continue;
-            std::unique_lock<std::recursive_mutex> lock(el->GetLock());
-            int idx = 0;
-            Effect* eff = findEffectForFrame(el, frame, idx);
-            // The enter transition into a buffer-continuity effect: if one STARTS
-            // at frame+1, this frame must render serially so the mainBuffer is
-            // advanced/cleared for it (a Pure window would render it on a clone and
-            // leave the mainBuffer stale).  Only a CHANGE of covering effect at
-            // frame+1 is a boundary worth inspecting - the common case (same effect
-            // spans both frames) is a cheap pointer compare that skips the settings
-            // read.
-            int idx2 = 0;
-            Effect* effNext = findEffectForFrame(el, frame + 1, idx2);
-            if (effNext != nullptr && effNext != eff && EffectIsBufferContinuity(effNext)) {
-                return false;
-            }
-            if (eff == nullptr) continue;
-            anyCover = true;
-            RenderableEffect* reff = _ctx->GetEffectManager().GetEffect(eff->GetEffectIndex());
-            if (reff == nullptr) return false;
-            SettingsMap sm;
-            eff->CopySettingsMap(sm, true);
-            RenderableEffect::FrameParallelism fp = reff->GetEffectiveFrameParallelism(sm);
-            if (fp == RenderableEffect::FrameParallelism::Snapshottable) {
-                hasSnapshot = true;
-            } else if (fp != RenderableEffect::FrameParallelism::Pure) {
-                return false; // Stateful
+            int r = LayerParallelSafety(rowToRender->GetEffectLayer(l), frame, hasSnapshot);
+            if (r < 0) return false;
+            anyCover |= (r > 0);
+        }
+        for (const auto& smi : subModelInfos) {
+            Element* se = smi->element;
+            if (se == nullptr) continue;
+            const int subLayers = std::min((int)se->GetEffectLayerCount(), smi->numLayers);
+            for (int l = 0; l < subLayers; ++l) {
+                int r = LayerParallelSafety(se->GetEffectLayer(l), frame, hasSnapshot);
+                if (r < 0) return false;
+                anyCover |= (r > 0);
             }
         }
         return anyCover;
     }
 
-    // The covering effect on `layer` at `frame` is Snapshottable (needs the serial
+    // The covering effect on `el` at `frame` is Snapshottable (needs the serial
     // capture pre-pass).  Used to restrict that pre-pass to just those layers.
-    bool LayerIsSnapshottableAt(int layer, int frame) {
-        EffectLayer* el = rowToRender->GetEffectLayer(layer);
+    bool LayerIsSnapshottableAt(EffectLayer* el, int frame) {
         if (el == nullptr) return false;
         std::unique_lock<std::recursive_mutex> lock(el->GetLock());
         int idx = 0;
         Effect* eff = findEffectForFrame(el, frame, idx);
         if (eff == nullptr) return false;
-        RenderableEffect* reff = _ctx->GetEffectManager().GetEffect(eff->GetEffectIndex());
-        if (reff == nullptr) return false;
-        SettingsMap sm;
-        eff->CopySettingsMap(sm, true);
-        return reff->GetEffectiveFrameParallelism(sm) == RenderableEffect::FrameParallelism::Snapshottable;
+        return ClassifyEffectForParallel(eff).fp == RenderableEffect::FrameParallelism::Snapshottable;
     }
 
     // XL_PARALLEL_BLOCKERS profiling.  Walk every frame of this (eligible group)
@@ -1680,14 +1743,40 @@ public:
         target.merge(local);
     }
 
-    void EnsureParPool(int n) {
+    // Grow the clone pool to n entries.  Each entry is a full per-frame render
+    // context: a main-buffer clone plus - for submodel rows (item 03 step 3) -
+    // one EffectLayerInfo+buffer per subModelInfos entry, mirroring the shapes
+    // the ctor built (submodel InitBuffer / strand InitStrandBuffer, same layer
+    // counts).  Returns false if a submodel lookup fails (the caller falls back
+    // to serial rendering for the window).
+    bool EnsureParPool(int n) {
         const Model* mdl = mainBuffer->GetModel();
         while ((int)parBuffers.size() < n) {
             auto b = std::make_unique<PixelBufferClass>(_ctx);
             b->InitBuffer(*mdl, numLayers, seqData->FrameTime());
+            std::vector<std::unique_ptr<EffectLayerInfo>> subs;
+            for (const auto& smi : subModelInfos) {
+                auto si = std::make_unique<EffectLayerInfo>(smi->numLayers);
+                si->element = smi->element;
+                si->strand = smi->strand;
+                si->submodel = smi->submodel;
+                si->buffer.reset(new PixelBufferClass(_ctx));
+                if (smi->strand >= 0) {
+                    si->buffer->InitStrandBuffer(*mdl, smi->strand, seqData->FrameTime(), smi->numLayers - 1);
+                } else {
+                    Model* subModel = mdl->GetSubModel(smi->element->GetName());
+                    if (subModel == nullptr) {
+                        return false;
+                    }
+                    si->buffer->InitBuffer(*subModel, smi->numLayers, seqData->FrameTime());
+                }
+                subs.push_back(std::move(si));
+            }
             parBuffers.push_back(std::move(b));
             parInfos.push_back(std::make_unique<EffectLayerInfo>(numLayers));
+            parSubInfos.push_back(std::move(subs));
         }
+        return true;
     }
 
     // Render frames [a,e] FULLY (produce + blur/transitions + blend/CalcOutput +
@@ -1713,16 +1802,44 @@ public:
     // cheap advance stays serial, so the effect is byte-identical.
     void RenderParallelWindow(int a, int e, bool hasSnapshot) {
         int n = e - a + 1;
-        EnsureParPool(n);
-        // snaps[layer][frame-a]: the captured draw snapshot, or null for Pure/empty layers.
-        std::vector<std::vector<std::unique_ptr<EffectFrameState>>> snaps;
+        if (!EnsureParPool(n)) {
+            // Clone pool unavailable (a submodel lookup failed - the model
+            // changed under us).  The caller already gated upstream through e,
+            // so render the window serially on the real buffers and never try
+            // to parallelise this row again.
+            parEligible = false;
+            for (int f = a; f <= e; ++f) {
+                ProduceFrameAll(f);
+                producedFrame = f;
+                OutputFrameAll(f);
+                currentFrame = f;
+                if (HasNext()) {
+                    FrameDone(f);
+                }
+            }
+            return;
+        }
+        const int nUnits = 1 + (int)subModelInfos.size();
+        if (xldbgParallelWindows && nUnits > 1) {
+            fprintf(stderr, "XL_PARALLEL_WINDOWS SUB-WINDOW m='%s' a=%d e=%d units=%d snap=%d\n",
+                    rowToRender->GetModelName().c_str(), a, e, nUnits, hasSnapshot ? 1 : 0);
+        }
+        // snaps[unit][layer][frame-a]: the captured draw snapshot, or null for
+        // Pure/empty layers.  Unit 0 is the main model; unit u is subModelInfos[u-1].
+        std::vector<std::vector<std::vector<std::unique_ptr<EffectFrameState>>>> snaps;
         if (hasSnapshot) {
             if (xldbgParallelWindows) {
                 fprintf(stderr, "XL_PARALLEL_WINDOWS SNAP-WINDOW m='%s' a=%d e=%d layers=%d\n",
                         rowToRender->GetModelName().c_str(), a, e, numLayers);
             }
-            snaps.resize(numLayers);
-            for (auto& lv : snaps) lv.resize(n);
+            snaps.resize(nUnits);
+            snaps[0].resize(numLayers);
+            for (int u = 1; u < nUnits; ++u) {
+                snaps[u].resize(subModelInfos[u - 1]->numLayers);
+            }
+            for (auto& uv : snaps) {
+                for (auto& lv : uv) lv.resize(n);
+            }
             for (int f = a; f <= e; ++f) {
                 // Restrict the (serial) pre-pass to Snapshottable layers only: they
                 // advance the sim + capture.  Pure layers are skipped entirely (they
@@ -1730,19 +1847,45 @@ public:
                 // pass below.
                 mainModelInfo.processLayer.assign(numLayers, false);
                 for (int l = 0; l < numLayers; ++l) {
-                    if (LayerIsSnapshottableAt(l, f)) {
+                    if (LayerIsSnapshottableAt(rowToRender->GetEffectLayer(l), f)) {
                         mainModelInfo.processLayer[l] = true;
-                        mainBuffer->BufferForLayer(l, -1).captureSnapshot = &snaps[l][f - a];
+                        mainBuffer->BufferForLayer(l, -1).captureSnapshot = &snaps[0][l][f - a];
                     }
                 }
                 ProduceFrame(f, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 for (int l = 0; l < numLayers; ++l) {
                     mainBuffer->BufferForLayer(l, -1).captureSnapshot = nullptr;
                 }
+                // Same pre-pass over each submodel/strand unit that has a
+                // Snapshottable cover at this frame: advance the sim on the REAL
+                // submodel buffer (so serial state continuity is preserved across
+                // and after the window) and capture the draw snapshot.
+                for (int u = 1; u < nUnits; ++u) {
+                    EffectLayerInfo* smi = subModelInfos[u - 1];
+                    Element* se = smi->element;
+                    if (se == nullptr) continue;
+                    const int subLayers = std::min((int)se->GetEffectLayerCount(), smi->numLayers);
+                    smi->processLayer.assign(smi->numLayers, false);
+                    bool any = false;
+                    for (int l = 0; l < subLayers; ++l) {
+                        if (LayerIsSnapshottableAt(se->GetEffectLayer(l), f)) {
+                            smi->processLayer[l] = true;
+                            smi->buffer->BufferForLayer(l, -1).captureSnapshot = &snaps[u][l][f - a];
+                            any = true;
+                        }
+                    }
+                    if (any) {
+                        ProduceFrame(f, se, *smi, smi->buffer.get(), smi->strand, supportsModelBlending);
+                    }
+                    for (int l = 0; l < subLayers; ++l) {
+                        smi->buffer->BufferForLayer(l, -1).captureSnapshot = nullptr;
+                    }
+                    smi->processLayer.clear();
+                }
             }
             // Restore full-layer rendering for any later serial frame on the main buffer.
             mainModelInfo.processLayer.clear();
-            // Quiesce the main buffer's GPU state as a belt-and-suspenders
+            // Quiesce the serial buffers' GPU state as a belt-and-suspenders
             // backstop.  ProduceFrame now SKIPs blur/rotozoom/transitions on
             // captured layers (captureSnapshot set), so the pre-pass should no
             // longer encode any GPU work here and this loop is expected to be a
@@ -1753,9 +1896,17 @@ public:
             for (int l = 0; l < numLayers; ++l) {
                 GPURenderUtils::waitForRenderCompletion(&mainBuffer->BufferForLayer(l, -1));
             }
+            for (const auto& smi : subModelInfos) {
+                for (int l = 0; l < smi->numLayers; ++l) {
+                    GPURenderUtils::waitForRenderCompletion(&smi->buffer->BufferForLayer(l, -1));
+                }
+            }
         }
         for (int i = 0; i < n; ++i) {
-            *parInfos[i] = EffectLayerInfo(numLayers);
+            parInfos[i]->resetRenderState();
+            for (auto& si : parSubInfos[i]) {
+                si->resetRenderState();
+            }
         }
         // Streamed completion state.  FrameDone must be exact-once per frame
         // (AggregatorRenderer counts one call per upstream per frame) and in
@@ -1774,7 +1925,7 @@ public:
             int f = a + i;
             if (hasSnapshot) {
                 for (int l = 0; l < numLayers; ++l) {
-                    if (snaps[l][i]) parBuffers[i]->BufferForLayer(l, -1).pendingSnapshot = snaps[l][i].get();
+                    if (snaps[0][l][i]) parBuffers[i]->BufferForLayer(l, -1).pendingSnapshot = snaps[0][l][i].get();
                 }
             }
             ProduceFrame(f, rowToRender, *parInfos[i], parBuffers[i].get(), -1, supportsModelBlending);
@@ -1783,7 +1934,30 @@ public:
                     parBuffers[i]->BufferForLayer(l, -1).pendingSnapshot = nullptr;
                 }
             }
+            // Submodel/strand units, in subModelInfos order - the same produce
+            // arguments and ordering as ProduceFrameAll on the serial path.
+            if (!parSubInfos[i].empty()) {
+                const bool cleared = parInfos[i]->produceEffectsToUpdate;
+                const std::string inh = InheritedDuplicateSourceModel(f);
+                for (size_t u = 0; u < parSubInfos[i].size(); ++u) {
+                    EffectLayerInfo* si = parSubInfos[i][u].get();
+                    if (hasSnapshot) {
+                        for (int l = 0; l < si->numLayers; ++l) {
+                            if (snaps[u + 1][l][i]) si->buffer->BufferForLayer(l, -1).pendingSnapshot = snaps[u + 1][l][i].get();
+                        }
+                    }
+                    ProduceFrame(f, si->element, *si, si->buffer.get(), si->strand, supportsModelBlending ? true : cleared, inh);
+                    if (hasSnapshot) {
+                        for (int l = 0; l < si->numLayers; ++l) {
+                            si->buffer->BufferForLayer(l, -1).pendingSnapshot = nullptr;
+                        }
+                    }
+                }
+            }
             OutputFrame(f, rowToRender, *parInfos[i], parBuffers[i].get(), -1);
+            for (auto& si : parSubInfos[i]) {
+                OutputFrame(f, si->element, *si, si->buffer.get(), si->strand);
+            }
             std::unique_lock<std::mutex> dl(doneLock);
             finished[i] = true;
             while (doneCursor < n && finished[doneCursor]) {
@@ -1880,11 +2054,11 @@ public:
             mainModelInfo.effectStates[layer] = true;
         }
 
-        // Frame-parallel eligibility (XL_PARALLEL_FRAMES).  Restricted to the
-        // clean case the prototype handles: a group rendered through its main
-        // buffer only (no submodels/nodes/per-model buffers), row-local produce
-        // (no canvas-mix / canvas-Blend), and no model blending.  Per-frame Pure
-        // coverage is checked separately (FrameIsParallelSafe).
+        // Frame-parallel eligibility (XL_PARALLEL_FRAMES).  Requires row-local
+        // produce (no canvas-mix / canvas-Blend / per-model / per-node buffers);
+        // submodel and strand effect rows are cloned per window (EnsureParPool).
+        // Per-frame Pure coverage - across main AND submodel layers - is checked
+        // separately (FrameIsParallelSafe).
         // Model blending is compatible: it blends over seqData[frame] in
         // output(), which runs after the gate and in frame order, so it reads a
         // fully-populated row exactly as the serial path does.  produce() stays
@@ -1909,12 +2083,25 @@ public:
                 isBigModel = (long)rb0.BufferWi * (long)rb0.BufferHt >= parModelMinPixels;
             }
         }
+        // Item 03 step 3: rows carrying submodel/strand effect rows also qualify
+        // - the clone pool replicates their buffers (EnsureParPool) and the
+        // window produces/outputs every unit per frame.  Per-node buffers stay
+        // excluded (per-node effect state lives on the job, not an
+        // EffectLayerInfo, and the population is tiny).  Kill switch for
+        // bisecting: XL_PARALLEL_SUBMODEL_ROWS=0.
+        static const bool parSubmodelRows = []() {
+            const char* e = getenv("XL_PARALLEL_SUBMODEL_ROWS");
+            return e == nullptr || strtol(e, nullptr, 10) != 0;
+        }();
         bool structurallyEligible = (isGroup || isBigModel)
             && !rowMustGateBeforeProduce
-            && subModelInfos.empty() && nodeBuffers.empty()
+            && (subModelInfos.empty() || parSubmodelRows)
+            && nodeBuffers.empty()
             && !ctorHasPerModelBuffers;
         parEligible = xldbgParallelFrames && structurallyEligible;
-        parChunkFrames = isGroup ? PAR_FRAME_GROUP_CHUNK : PAR_FRAME_MODEL_CHUNK;
+        parChunkFrames = isGroup                 ? PAR_FRAME_GROUP_CHUNK
+                         : !subModelInfos.empty() ? PAR_FRAME_SUBMODEL_CHUNK
+                                                  : PAR_FRAME_MODEL_CHUNK;
 
         if (xldbgParBlockers) {
             // Rows held back ONLY by their submodel/strand effects - the
@@ -2616,6 +2803,9 @@ private:
     int parChunkFrames = PAR_FRAME_MAX_CHUNK;
     std::vector<std::unique_ptr<PixelBufferClass>> parBuffers;
     std::vector<std::unique_ptr<EffectLayerInfo>> parInfos;
+    // parSubInfos[i]: clone i's per-submodel/strand infos (own buffers),
+    // mirroring subModelInfos - empty vectors for rows without submodels.
+    std::vector<std::vector<std::unique_ptr<EffectLayerInfo>>> parSubInfos;
     bool parWindowPending = false;   // a gated window is suspended awaiting upstream
     bool parWindowHasSnapshot = false;  // pending window has >=1 Snapshottable layer (needs the capture pre-pass)
     int parWindowStart = 0;
