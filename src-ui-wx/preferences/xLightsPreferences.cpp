@@ -240,6 +240,11 @@ void xLightsFrame::ShowPreferencesDialog(const wxString& initialPage)
 #endif
 
 #ifdef __WXOSX__
+    // initialPage is intentionally unused here: wxPreferencesEditor (the
+    // native macOS toolbar-style preferences window) exposes no page-select
+    // API, only AddPage()/Show(). Right-clicking the Effects toolbar still
+    // opens Preferences on macOS, just not pre-selected to Toolbars - the
+    // user has one extra click there versus the Windows/Linux list dialog.
     if (!mPreferencesEditor.get()) {
         mPreferencesEditor.reset(new wxPreferencesEditor("Preferences"));
         for (auto& p : pages) {
