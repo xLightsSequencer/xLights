@@ -2244,6 +2244,21 @@ void SubModelsPanel::ValidateWindow()
         _animPlaying ||
         (ListCtrl_SubModels->GetSelectedItemCount() == 1 && TypeNotebook->GetSelection() == 0)
     );
+
+    bool anyDimming = false;
+    for (const auto& sm : _subModels) {
+        if (sm->dimmingBrightness != 0) {
+            anyDimming = true;
+            break;
+        }
+    }
+    if (!anyDimming) {
+        CheckBox_EnableDimming->SetValue(true);
+    }
+    if (CheckBox_EnableDimming->IsShown() != anyDimming) {
+        CheckBox_EnableDimming->Show(anyDimming);
+        Panel2->Layout();
+    }
 }
 
 void SubModelsPanel::UnSelectAll()
