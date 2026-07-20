@@ -106,7 +106,7 @@ private:
 // Windows/Linux; macOS keeps the native preferences window.
 class xlPreferencesListDialog : public wxDialog {
 public:
-    xlPreferencesListDialog(wxWindow* parent, const std::vector<PrefPageDef>& pages)
+    xlPreferencesListDialog(wxWindow* parent, const std::vector<PrefPageDef>& pages, const wxString& initialPage = wxEmptyString)
         : wxDialog(parent, wxID_ANY, _("Preferences"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
         // Ensure every page's TransferDataTo/FromWindow runs on open and OK.
         SetExtraStyle(GetExtraStyle() | wxWS_EX_VALIDATE_RECURSIVELY);
@@ -126,6 +126,7 @@ public:
         int minHeight = std::min((int)(screenSize.GetHeight() * 0.45), 375);
 
         int idx = 0;
+        int selectIdx = 0;
         for (const auto& p : pages) {
             // Wrap each panel in a scrolled window so tall panels stay usable.
             auto* scrolledWindow = new wxScrolledWindow(listbook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxHSCROLL);
@@ -137,9 +138,13 @@ public:
             scrolledWindow->FitInside();
             scrolledWindow->SetMinSize(wxSize(minWidth, minHeight));
 
-            listbook->AddPage(scrolledWindow, p.name, idx == 0, idx);
+            listbook->AddPage(scrolledWindow, p.name, false, idx);
+            if (!initialPage.IsEmpty() && p.name == initialPage) {
+                selectIdx = idx;
+            }
             ++idx;
         }
+        listbook->SetSelection(selectIdx);
 
         topSizer->Add(listbook, 1, wxEXPAND | wxALL, 5);
         topSizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -153,6 +158,19 @@ public:
 #endif
 
 void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
+{
+    ShowPreferencesDialog();
+}
+
+// Right-click on the Effects toolbar jumps straight to Preferences >
+// Toolbars instead of making the user hunt for it in the general
+// Preferences list.
+void xLightsFrame::OnEffectsToolBarContextMenu(wxContextMenuEvent& event)
+{
+    ShowPreferencesDialog("Toolbars");
+}
+
+void xLightsFrame::ShowPreferencesDialog(const wxString& initialPage)
 {
     if (readOnlyMode) {
         wxMessageBox("Preferences are not available in read only mode", "Read Only Mode", wxICON_INFORMATION | wxOK);
@@ -231,7 +249,7 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
     }
     mPreferencesEditor->Show(this);
 #else
-    xlPreferencesListDialog dlg(this, pages);
+    xlPreferencesListDialog dlg(this, pages, initialPage);
     dlg.ShowModal();
 #endif
 

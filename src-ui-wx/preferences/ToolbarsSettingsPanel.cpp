@@ -10,6 +10,7 @@
 
 #include "ToolbarsSettingsPanel.h"
 
+#include <wx/button.h>
 #include <wx/rearrangectrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -19,14 +20,31 @@
 ToolbarsSettingsPanel::ToolbarsSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindowID id, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL), frame(f)
 {
-    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+    _mainSizer = new wxBoxSizer(wxVERTICAL);
 
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Effects Toolbar")), 0, wxLEFT | wxTOP | wxRIGHT, 6);
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Choose which effects appear in the toolbar, and their order:")),
-                    0, wxLEFT | wxRIGHT | wxBOTTOM, 6);
+    _mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Effects Toolbar")), 0, wxLEFT | wxTOP | wxRIGHT, 6);
+    _mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Choose which effects appear in the toolbar, and their order:")),
+                     0, wxLEFT | wxRIGHT | wxBOTTOM, 6);
 
     static const std::vector<std::pair<std::string, bool>> emptyLayout;
     const auto& layout = frame != nullptr ? frame->GetEffectsToolbarLayout() : emptyLayout;
+    BuildRearrangeCtrl(layout);
+
+    wxButton* resetButton = new wxButton(this, wxID_ANY, _("Reset to Defaults"));
+    resetButton->Bind(wxEVT_BUTTON, &ToolbarsSettingsPanel::OnResetToDefaults, this);
+    _mainSizer->Add(resetButton, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxALIGN_LEFT, 6);
+
+    SetSizer(_mainSizer);
+}
+
+void ToolbarsSettingsPanel::BuildRearrangeCtrl(const std::vector<std::pair<std::string, bool>>& layout)
+{
+    if (_effectsToolbarRearrange != nullptr) {
+        _mainSizer->Detach(_effectsToolbarRearrange);
+        _effectsToolbarRearrange->Destroy();
+        _effectsToolbarRearrange = nullptr;
+    }
+    _effectsToolbarItemNames.clear();
 
     wxArrayString items;
     wxArrayInt order;
@@ -37,9 +55,26 @@ ToolbarsSettingsPanel::ToolbarsSettingsPanel(wxWindow* parent, xLightsFrame* f, 
     }
 
     _effectsToolbarRearrange = new wxRearrangeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, order, items);
-    mainSizer->Add(_effectsToolbarRearrange, 1, wxEXPAND | wxALL, 6);
+    _mainSizer->Insert(2, _effectsToolbarRearrange, 1, wxEXPAND | wxALL, 6);
+    _mainSizer->Layout();
+}
 
-    SetSizer(mainSizer);
+std::vector<std::pair<std::string, bool>> ToolbarsSettingsPanel::DefaultEffectsToolbarLayout() const
+{
+    std::vector<std::pair<std::string, bool>> layout;
+    if (frame == nullptr) return layout;
+
+    EffectManager& em = frame->GetEffectManager();
+    layout.reserve(em.size());
+    for (size_t i = 0; i < em.size(); ++i) {
+        layout.emplace_back(em.GetEffectName(static_cast<int>(i)), true);
+    }
+    return layout;
+}
+
+void ToolbarsSettingsPanel::OnResetToDefaults(wxCommandEvent& event)
+{
+    BuildRearrangeCtrl(DefaultEffectsToolbarLayout());
 }
 
 bool ToolbarsSettingsPanel::TransferDataFromWindow()

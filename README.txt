@@ -13,7 +13,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.14  July ??, 2026
     -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
                                  always-visible Effects toolbar, and reorder them - handy once enough
-                                 effects are registered that the toolbar no longer fits smaller screens
+                                 effects are registered that the toolbar no longer fits smaller screens.
+                                 Right-click the toolbar to jump straight to this page, and use
+                                 "Reset to Defaults" to restore every effect in the default order
     -enh (dkulp)                 Batch render and -r no longer read the existing fseq that is about to be
                                  overwritten, speeding up sequence open (canvas mode still loads it)
     -bug (dkulp)                 Shader effect ignored the "GPU rendering" preference and still built GPU

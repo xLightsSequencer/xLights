@@ -1519,6 +1519,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxEVT_CHAR, (wxObjectEventFunction)&xLightsFrame::OnChar);
     //*)
 
+    // Right-click anywhere on the Effects toolbar jumps to Preferences >
+    // Toolbars. wxEVT_CONTEXT_MENU (unlike a raw right-click mouse event)
+    // propagates up from the individual DragEffectBitmapButton children to
+    // this handler when they don't handle it themselves, so one Bind here
+    // covers both the toolbar background and its buttons.
+    EffectsToolBar->Bind(wxEVT_CONTEXT_MENU, &xLightsFrame::OnEffectsToolBarContextMenu, this);
+
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
     auto* config = GetXLightsConfig();

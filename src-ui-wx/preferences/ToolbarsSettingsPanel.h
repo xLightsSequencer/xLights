@@ -13,8 +13,11 @@
 #include <wx/panel.h>
 
 #include <string>
+#include <utility>
 #include <vector>
 
+class wxBoxSizer;
+class wxCommandEvent;
 class wxRearrangeCtrl;
 class xLightsFrame;
 
@@ -32,7 +35,15 @@ public:
     virtual bool TransferDataFromWindow() override;
 
 private:
+    // wxRearrangeList exposes no API to reload its order/checked state in
+    // place (GetCurrentOrder() is the only public read path), so "Reset to
+    // Defaults" recreates the control rather than mutating it.
+    void BuildRearrangeCtrl(const std::vector<std::pair<std::string, bool>>& layout);
+    std::vector<std::pair<std::string, bool>> DefaultEffectsToolbarLayout() const;
+    void OnResetToDefaults(wxCommandEvent& event);
+
     xLightsFrame* frame;
+    wxBoxSizer* _mainSizer = nullptr;
     wxRearrangeCtrl* _effectsToolbarRearrange = nullptr;
     // Items passed to the rearrange control, in their original (construction-
     // time) index order - GetCurrentOrder() returns indices into this array,

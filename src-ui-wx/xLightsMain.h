@@ -646,6 +646,8 @@ public:
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
     void OnMenuItemHinksPixExportSelected(wxCommandEvent& event);
     void OnMenuItemPreferencesSelected(wxCommandEvent& event);
+    void ShowPreferencesDialog(const wxString& initialPage = wxEmptyString);
+    void OnEffectsToolBarContextMenu(wxContextMenuEvent& event);
     void OnButtonDiscoverClick(wxCommandEvent& event);
     void OnButtonDeleteAllControllersClick(wxCommandEvent& event);
     void OnButtonVisualiseClick(wxCommandEvent& event);
