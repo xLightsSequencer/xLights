@@ -52,7 +52,7 @@
 | Settings — Metadata tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | song/artist/album/author/email/website/url/comment. |
 | Settings — Timings tab | dialog tab | ✅ | ✅ | parity | P1 | medium | feasible | iPad fully built (add/rename/delete/export single+multi/import 9 formats incl. multi-track Vixen3/xsq). |
 | Settings — Audio Tracks tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | alt-track add/remove/rename/replace. |
-| Settings — Media tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | per-effect media inventory embed/extract/rename/replace. |
+| Settings — Media tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | per-effect media inventory embed/extract/rename/replace. 2026-07: core fix (`ImageCacheEntry::IsEmbeddable`, shared) makes picture-series animations (`name-1.png..name-N.png`) embeddable on both platforms. |
 | Settings — Render tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | iPad: model blending + frame interval + autosave interval picker. |
 | Settings — Data Layers tab | dialog tab | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop tree importer; absent on iPad. **Impl plan added 2026-06-12 (below).** |
 | Settings — Render Mode selector | dialog | ✅ | ✅ | parity | P3 | medium | feasible | ✅ 2026-06-12. Desktop `RenderModeChoice` (Erase/Canvas) stored on the Nutcracker data layer. iPad: Render tab segmented Erase/Canvas picker (`SequenceSettingsSheet.swift` RenderTab) → bridge `renderMode` / `setRenderMode:` (`XLSequenceDocument.mm`) maps the UI strings ↔ `SequenceFile::GetRenderMode/SetRenderMode`, normalizing the legacy ERASE_MODE/CANVAS_MODE sentinels. |

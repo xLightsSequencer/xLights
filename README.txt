@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
+                                 be embedded, and SuperStar-imported scene animations silently failed to
+                                 embed (frames lost on save)
     -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
                                  (matrices, megatrees, ...), not just groups
     -enh (dkulp)                 Render: Twinkle is frame-parallel Snapshottable (both render methods),

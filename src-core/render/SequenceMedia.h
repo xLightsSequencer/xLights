@@ -140,7 +140,10 @@ public:
     ~ImageCacheEntry() override;
 
     // Image-specific accessors
-    bool IsEmbeddable() const override { return !_embeddedData.empty(); }
+    // Frame-series entries (foo-1.png..foo-N.png, SuperStar scene animations)
+    // have no single source file, so _embeddedData stays empty — but their
+    // frames serialize as <Frame> nodes, making them embeddable too.
+    bool IsEmbeddable() const override { return !_embeddedData.empty() || _framesEmbeddable; }
     int GetImageCount() const { return _imageCount; }
 
     int GetImageWidth() const { return _imageWidth; }
@@ -188,6 +191,7 @@ private:
     mutable std::vector<std::string> _frameData; // Base64 encoded PNG per frame (multi-frame embedded, cached to avoid re-encode)
     int _imageCount = 0;                // Number of frames in image (1 for static, >1 for animated)
     bool _frameBasedAnimation = true;
+    bool _framesEmbeddable = false;     // Frames exist only in memory and can be saved as <Frame> nodes
 
     std::vector<long> _frameTimes;
     std::vector<std::shared_ptr<xlImage>> _frameImages;

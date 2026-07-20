@@ -173,6 +173,7 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<xlIm
     _embeddedData = base64Data;
     invalidImage = std::make_shared<xlImage>();
     _frameBasedAnimation = true;
+    _framesEmbeddable = !imgs.empty();
     _imageCount = (int)imgs.size();
     _frameImages.resize(_imageCount);
     _frameImagesNoBG.resize(_imageCount);
@@ -218,6 +219,7 @@ void ImageCacheEntry::ReloadIfChanged() {
     _frameTimes.clear();
     _frameData.clear();
     _scaledImageCache.clear();
+    _framesEmbeddable = false;
     _imageCount = 0;
     _imageWidth = 0;
     _imageHeight = 0;
@@ -426,6 +428,7 @@ bool ImageCacheEntry::LoadFromXml(const pugi::xml_node& node)
         }
         _frameBasedAnimation = true;
         _imageCount = (int)_frameImages.size();
+        _framesEmbeddable = _imageCount > 0;
         if (_imageCount > 0) {
             _imageWidth = _frameImages[0]->GetWidth();
             _imageHeight = _frameImages[0]->GetHeight();
