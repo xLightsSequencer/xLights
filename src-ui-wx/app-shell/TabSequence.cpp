@@ -2268,6 +2268,7 @@ std::string xLightsFrame::DoExportSongRegion(int startMS, int endMS, const std::
     root->AddAttribute("ChanCtrlColor", "0");
     root->AddAttribute("FixedPointTiming", "1");
     root->AddAttribute("ModelBlending", _sequenceElements.SupportsModelBlending() ? "true" : "false");
+    root->AddAttribute("SubModelDimming", _sequenceElements.SupportsSubModelDimming() ? "true" : "false");
     doc.SetRoot(root);
 
     wxXmlNode* head = AddXmlChild(root, "head");

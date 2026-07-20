@@ -168,6 +168,9 @@ void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCo
     if (model.GetTagColourAsString() != "#000000") {
         attrs.Add(XmlNodeKeys::TagColourAttribute, model.GetTagColourAsString());
     }
+    if (!model.IsSubModelDimmingEnabled()) {
+        attrs.Add(XmlNodeKeys::SubModelDimmingEnabledAttribute, "0");
+    }
     attrs.Add(XmlNodeKeys::StartChannelAttribute, model.GetModelStartChannel());
     if (!model.GetNodeNames().empty()) {
         attrs.Add(XmlNodeKeys::NodeNamesAttribute, model.GetNodeNames());

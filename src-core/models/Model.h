@@ -231,6 +231,10 @@ public:
     // parent owns the curves (see _subModelNodeDimmingCurves) so node pointers
     // stay valid for the parent's node lifetime.
     void ApplySubModelDimmingToNodes();
+    // Per-model master switch: keeps each submodel's dimming curve values but
+    // stops them being stamped onto nodes (and thus applied at render).
+    [[nodiscard]] bool IsSubModelDimmingEnabled() const { return _subModelDimmingEnabled; }
+    void SetSubModelDimmingEnabled(bool enabled);
     [[nodiscard]] virtual std::list<std::string> CheckModelSettings() override;
     [[nodiscard]] virtual const std::vector<std::string>& GetBufferStyles() const {
         return DEFAULT_BUFFER_STYLES;
@@ -369,6 +373,7 @@ protected:
     // "shadow" dimming. Rebuilt by ApplySubModelDimmingToNodes(); owning them
     // here keeps node->nodeDimmingCurve pointers valid for the node lifetime.
     std::vector<std::unique_ptr<DimmingCurve>> _subModelNodeDimmingCurves;
+    bool _subModelDimmingEnabled = true;
 
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;

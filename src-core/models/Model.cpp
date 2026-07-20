@@ -126,6 +126,15 @@ void Model::SetDimmingInfo(const std::map<std::string, std::map<std::string, std
     }
 }
 
+void Model::SetSubModelDimmingEnabled(bool enabled)
+{
+    if (_subModelDimmingEnabled == enabled) {
+        return;
+    }
+    _subModelDimmingEnabled = enabled;
+    ApplySubModelDimmingToNodes();
+}
+
 void Model::ApplySubModelDimmingToNodes()
 {
     // Clear any previous stamping first so this is idempotent across rebuilds.
@@ -144,7 +153,7 @@ void Model::ApplySubModelDimmingToNodes()
             }
         }
     }
-    if (subModels.empty() || Nodes.empty()) {
+    if (!_subModelDimmingEnabled || !modelManager.IsSubModelDimmingEnabled() || subModels.empty() || Nodes.empty()) {
         return;
     }
 

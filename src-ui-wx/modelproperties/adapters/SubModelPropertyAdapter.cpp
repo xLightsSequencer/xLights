@@ -51,7 +51,11 @@ void SubModelPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, O
             dimmingBrightness = (int)std::strtol(itBrightness->second.c_str(), nullptr, 10);
         }
     }
-    p = grid->Append(new wxIntProperty("Dimming Brightness", "SMDimmingBrightness", dimmingBrightness));
+    wxString dimmingValue = wxString::Format("%d", dimmingBrightness);
+    if (dimmingBrightness != 0 && !_subModel.GetParent()->IsSubModelDimmingEnabled()) {
+        dimmingValue += " (disabled)";
+    }
+    p = grid->Append(new wxStringProperty("Dimming Brightness", "SMDimmingBrightness", dimmingValue));
     p->SetHelpString("Permanent brightness dimming applied to this submodel's nodes when the sequence is rendered to the FSEQ. Negative values dim the submodel (useful for creating shadows on a prop). Previews are not dimmed. Set it from the SubModels dialog Action menu.");
     p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
     p->ChangeFlag(wxPGFlags::ReadOnly, true);

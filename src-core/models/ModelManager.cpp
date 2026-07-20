@@ -102,6 +102,20 @@ std::vector<std::string> ModelManager::GetLayoutGroupNames() const {
     return {};
 }
 
+void ModelManager::SetSubModelDimmingEnabled(bool enabled)
+{
+    if (_subModelDimmingEnabled == enabled) {
+        return;
+    }
+    _subModelDimmingEnabled = enabled;
+    std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+    for (const auto& it : models) {
+        if (it.second != nullptr) {
+            it.second->ApplySubModelDimmingToNodes();
+        }
+    }
+}
+
 ModelManager::~ModelManager()
 {
     // Because loading models is async we have to ensure this is done before we destroy anything

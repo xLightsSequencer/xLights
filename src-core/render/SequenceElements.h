@@ -215,6 +215,12 @@ public:
     bool SupportsModelBlending() const { return supportsModelBlending; }
     void SetSupportsModelBlending(bool b) { supportsModelBlending = b; }
 
+    // Sequence-level submodel-dimming switch. The setter propagates to the
+    // ModelManager (via the render context) and re-stamps node dimming curves,
+    // so it takes effect for the next render on desktop, iPad, and headless.
+    bool SupportsSubModelDimming() const { return supportsSubModelDimming; }
+    void SetSupportsSubModelDimming(bool b);
+
     EffectManager &GetEffectManager();
     RenderContext *GetRenderContext() const { return renderContext; };
 
@@ -272,6 +278,7 @@ private:
     bool mHideUnusedSubmodels = false;
     int mSequenceEndMS;
     bool supportsModelBlending;
+    bool supportsSubModelDimming = true;
 
     // mFirstVisibleModelRow=0 is first model row not the row in Row_Information struct.
     int mFirstVisibleModelRow;

@@ -254,6 +254,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)sequenceSupportsModelBlending;
 - (BOOL)setSequenceSupportsModelBlending:(BOOL)enabled;
 
+// Sequence-level submodel-dimming toggle (xsq `SubModelDimming` attr,
+// default enabled). Mirrors the desktop Sequence Settings "Enable
+// SubModel Dimming Curves" checkbox; the core setter re-stamps node
+// dimming curves so it takes effect on the next render.
+- (BOOL)sequenceSupportsSubModelDimming;
+- (BOOL)setSequenceSupportsSubModelDimming:(BOOL)enabled;
+
 // Render mode (desktop SeqSettings `RenderModeChoice`): "Erase" or
 // "Canvas". Stored on the sequence's Nutcracker data layer. "Canvas"
 // preserves prior-frame pixels so layered effects accumulate; "Erase"
@@ -1522,6 +1529,15 @@ NS_ASSUME_NONNULL_BEGIN
 // `AddSubbuffer`. Mirrors desktop SubModelsDialog::Save.
 - (BOOL)replaceSubModelsOnModel:(NSString*)parentName
                     withEntries:(NSArray<NSDictionary*>*)entries;
+
+// Per-model master switch (rgbeffects `SubModelDimmingEnabled` attr,
+// default enabled): keeps each submodel's dimming curve values but
+// stops them being applied when rendering. Mirrors the desktop
+// SubModels dialog "Enable Dimming Curves" checkbox.
+- (BOOL)subModelDimmingEnabledForModel:(NSString*)parentName
+    NS_SWIFT_NAME(subModelDimmingEnabled(forModel:));
+- (BOOL)setSubModelDimmingEnabled:(BOOL)enabled
+                         forModel:(NSString*)parentName;
 
 // J-22 — add a new submodel to a parent. Type defaults to
 // "ranges" (the most common form on desktop); the bridge

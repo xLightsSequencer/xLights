@@ -21,6 +21,8 @@
 #include "../effects/RenderableEffect.h"
 #include "../models/SubModel.h"
 #include "../models/ModelGroup.h"
+#include "../models/ModelManager.h"
+#include "xLightsShowContext.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
@@ -92,10 +94,20 @@ void SequenceElements::Clear() {
     mColorPalettes.clear();
     mCurrentView = 0;
     supportsModelBlending = true;
+    SetSupportsSubModelDimming(true);
     std::vector <Element*> master_view;
     mAllViews.push_back(master_view);
     hasPapagayoTiming = false;
     ClearTags();
+}
+
+void SequenceElements::SetSupportsSubModelDimming(bool b)
+{
+    supportsSubModelDimming = b;
+    xLightsShowContext* ctx = dynamic_cast<xLightsShowContext*>(renderContext);
+    if (ctx != nullptr) {
+        ctx->AllModels.SetSubModelDimmingEnabled(b);
+    }
 }
 
 void SequenceElements::SetSequenceEnd(int ms)
@@ -778,6 +790,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
     Clear();
     TraceLog::AddTraceMessage("   Cleared");
     supportsModelBlending = xml_file.supportsModelBlending();
+    SetSupportsSubModelDimming(xml_file.supportsSubModelDimming());
 
     for (auto e : root.children()) {
         std::string ename = e.name();

@@ -163,6 +163,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     auto root = emptyDoc.append_child("xsequence");
     root.append_attribute("FixedPointTiming") = "1";
     root.append_attribute("ModelBlending") = CurrentSeqXmlFile->supportsModelBlending() ? "true" : "false";
+    root.append_attribute("SubModelDimming") = CurrentSeqXmlFile->supportsSubModelDimming() ? "true" : "false";
     root.append_child("DisplayElements");
     root.append_child("ElementEffects");
 

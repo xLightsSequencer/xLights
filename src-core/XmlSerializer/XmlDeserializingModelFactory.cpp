@@ -267,6 +267,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetBlackTransparency(node.attribute(XmlNodeKeys::BTransparencyAttribute).as_int(0));
     model->SetDescription(node.attribute(XmlNodeKeys::DescriptionAttribute).as_string());
     model->SetModelTagColour(xlColor(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000")));
+    model->SetSubModelDimmingEnabled(node.attribute(XmlNodeKeys::SubModelDimmingEnabledAttribute).as_int(1) != 0);
     model->SetNodeNames(node.attribute(XmlNodeKeys::NodeNamesAttribute).as_string());
     model->SetStrandNames(node.attribute(XmlNodeKeys::StrandNamesAttribute).as_string());
     model->SetCustomColor(node.attribute(XmlNodeKeys::CustomColorAttribute).as_string("#000000"));

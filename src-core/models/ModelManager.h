@@ -74,6 +74,12 @@ class ModelManager : public ObjectManager
 
         std::vector<std::string> GetLayoutGroupNames() const;
 
+        // Sequence-level master switch for submodel dimming curves. Set from the
+        // open sequence's setting; when off, models skip stamping their
+        // submodels' dimming curves onto nodes so nothing is dimmed at render.
+        bool IsSubModelDimmingEnabled() const { return _subModelDimmingEnabled; }
+        void SetSubModelDimmingEnabled(bool enabled);
+
         void clear();
         void clearUIObjects();
 
@@ -137,5 +143,6 @@ class ModelManager : public ObjectManager
     std::atomic<unsigned int> _modelGeneration{ 0 };
     mutable std::string lastGeneratedModelName = "";
     ModelSetManager _setManager;
+    bool _subModelDimmingEnabled = true;
 };
 

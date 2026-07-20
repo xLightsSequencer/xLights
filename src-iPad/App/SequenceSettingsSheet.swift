@@ -1034,6 +1034,7 @@ private struct RenderTab: View {
     @Environment(SequencerViewModel.self) var viewModel
 
     @State private var blendingEnabled: Bool = false
+    @State private var subModelDimmingEnabled: Bool = true
     @State private var frameMS: Int = 50
     @AppStorage("autosaveIntervalMinutes") private var autosaveInterval: Int = 5
     @State private var renderMode: String = "Erase"
@@ -1072,6 +1073,21 @@ private struct RenderTab: View {
             }
             .onChange(of: blendingEnabled) { _, new in
                 _ = viewModel.document.setSequenceSupportsModelBlending(new)
+            }
+
+            Divider()
+
+            Toggle(isOn: $subModelDimmingEnabled) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("SubModel Dimming Curves")
+                        .font(.body)
+                    Text("When disabled, dimming curves set on submodels are not applied when rendering this sequence. The set brightness values are kept.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .onChange(of: subModelDimmingEnabled) { _, new in
+                _ = viewModel.document.setSequenceSupportsSubModelDimming(new)
             }
 
             Divider()
@@ -1127,6 +1143,7 @@ private struct RenderTab: View {
         }
         .onAppear {
             blendingEnabled = viewModel.document.sequenceSupportsModelBlending()
+            subModelDimmingEnabled = viewModel.document.sequenceSupportsSubModelDimming()
             frameMS = viewModel.frameIntervalMS
             autosaveInterval = viewModel.autosaveIntervalMinutes
             renderMode = viewModel.document.renderMode()

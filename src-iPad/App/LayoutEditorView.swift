@@ -6647,6 +6647,7 @@ private struct SubModelListSheet: View {
     @State private var names: [String]
     @State private var entries: [SubModelEntry] = []
     @State private var originalEntries: [SubModelEntry] = []
+    @State private var dimmingEnabled: Bool = true
     @State private var newSubName: String = ""
     @State private var generateSheetVisible: Bool = false
     @State private var aliasesSheetTarget: String? = nil
@@ -6911,6 +6912,14 @@ private struct SubModelListSheet: View {
                         }
                     }
                 }
+                Section(footer: Text("When disabled, dimming curves set on this model's submodels are not applied when rendering. The set brightness values are kept.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)) {
+                    Toggle("Enable Dimming Curves", isOn: $dimmingEnabled)
+                        .onChange(of: dimmingEnabled) { _, newValue in
+                            _ = viewModel.document.setSubModelDimmingEnabled(newValue, forModel: modelName)
+                        }
+                }
             }
             .navigationDestination(for: String.self) { sub in
                 if let idx = entries.firstIndex(where: { $0.name == sub }) {
@@ -6977,6 +6986,7 @@ private struct SubModelListSheet: View {
         .onAppear {
             entries = loadDetails()
             originalEntries = entries
+            dimmingEnabled = viewModel.document.subModelDimmingEnabled(forModel: modelName)
         }
         .sheet(isPresented: $generateSheetVisible) {
             GenerateSubmodelsSheet(

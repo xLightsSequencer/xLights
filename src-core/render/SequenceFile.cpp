@@ -419,6 +419,7 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
     }
 
     supports_model_blending = std::string(root.attribute("ModelBlending").as_string("false")) == "true";
+    supports_submodel_dimming = std::string(root.attribute("SubModelDimming").as_string("true")) == "true";
 
     bool needsTimesCorrection = NeedsTimesCorrected();
 
@@ -1341,6 +1342,7 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
     root.append_attribute("ChanCtrlColor") = "0";
     root.append_attribute("FixedPointTiming") = "1";
     root.append_attribute("ModelBlending") = seq_elements.SupportsModelBlending() ? "true" : "false";
+    root.append_attribute("SubModelDimming") = seq_elements.SupportsSubModelDimming() ? "true" : "false";
 
     // Head
     auto head = root.append_child("head");

@@ -927,6 +927,25 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return YES;
 }
 
+- (BOOL)sequenceSupportsSubModelDimming {
+    if (!_context || !_context->IsSequenceLoaded()) return YES;
+    return _context->GetSequenceElements().SupportsSubModelDimming() ? YES : NO;
+}
+
+- (BOOL)setSequenceSupportsSubModelDimming:(BOOL)enabled {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto& elements = _context->GetSequenceElements();
+    if (elements.SupportsSubModelDimming() == (bool)enabled) return NO;
+    _context->AbortRender(5000);
+    elements.SetSupportsSubModelDimming(enabled ? true : false);
+    auto* sf = _context->GetSequenceFile();
+    if (sf) {
+        sf->setSupportsSubModelDimming(enabled ? true : false);
+    }
+    elements.IncrementChangeCount(nullptr);
+    return YES;
+}
+
 - (NSString*)renderMode {
     if (!_context || !_context->IsSequenceLoaded()) return @"Erase";
     auto* sf = _context->GetSequenceFile();
@@ -5997,6 +6016,26 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
         }
         sm->Setup();
     }
+    parent->IncrementChangeCount();
+    _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
+    return YES;
+}
+
+- (BOOL)subModelDimmingEnabledForModel:(NSString*)parentName {
+    if (!_context || !_context->HasModelManager() || !parentName) return YES;
+    Model* parent = _context->GetModelManager()[std::string(parentName.UTF8String)];
+    if (!parent) return YES;
+    return parent->IsSubModelDimmingEnabled() ? YES : NO;
+}
+
+- (BOOL)setSubModelDimmingEnabled:(BOOL)enabled
+                         forModel:(NSString*)parentName {
+    if (!_context || !_context->HasModelManager() || !parentName) return NO;
+    Model* parent = _context->GetModelManager()[std::string(parentName.UTF8String)];
+    if (!parent) return NO;
+    if (parent->IsSubModelDimmingEnabled() == (bool)enabled) return YES;
+    _context->AbortRender(5000);
+    parent->SetSubModelDimmingEnabled(enabled ? true : false);
     parent->IncrementChangeCount();
     _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
     return YES;

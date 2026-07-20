@@ -493,6 +493,19 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     Connect(ID_BUTTON_Close, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_CloseClick);
     //*)
 
+    CheckBox_SubModelDimming = new wxCheckBox(PanelInfo, wxID_ANY, _("Enable SubModel Dimming Curves"));
+    CheckBox_SubModelDimming->SetValue(true);
+    CheckBox_SubModelDimming->SetToolTip(_("When unchecked, dimming curves set on submodels are not applied when rendering this sequence. The set brightness values are kept."));
+    for (int i = 0; i < 4; ++i) {
+        FlexGridSizer3->Add(-1, -1, 1, wxALL, 5);
+    }
+    FlexGridSizer3->Add(CheckBox_SubModelDimming, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+    CheckBox_SubModelDimming->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        xLightsParent->AbortRender();
+        xml_file->setSupportsSubModelDimming(CheckBox_SubModelDimming->GetValue());
+        xLightsParent->GetSequenceElements().SetSupportsSubModelDimming(CheckBox_SubModelDimming->GetValue());
+    });
+
     StaticText_Warning->SetForegroundColour(RedOrLightRed());
     StaticText_Warn_No_Media->SetForegroundColour(RedOrLightRed());
 
@@ -628,6 +641,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     SetHash();
     TextCtrl_Xml_Seq_Duration->ChangeValue(xml_file->GetSequenceDurationString());
     BlendingCheckBox->SetValue(xml_file->supportsModelBlending());
+    CheckBox_SubModelDimming->SetValue(xml_file->supportsSubModelDimming());
 
     if (xml_file->GetSequenceType() == "Media") {
         TextCtrl_Xml_Seq_Duration->Enable(false);

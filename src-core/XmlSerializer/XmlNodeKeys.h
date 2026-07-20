@@ -123,6 +123,7 @@ namespace XmlNodeKeys {
     constexpr auto AliasesAttribute         = "Aliases";
     constexpr auto AliasNodeName            = "alias";
     constexpr auto StrandsAttribute         = "Strands";
+    constexpr auto SubModelDimmingEnabledAttribute = "SubModelDimmingEnabled";
 
     // Common SubModel Attributes
     constexpr auto SubModelNodeName        = "subModel";

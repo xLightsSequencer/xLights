@@ -118,6 +118,7 @@ class SeqSettingsDialog: public wxDialog
 		//*)
 
 		tmGrid* Grid_Timing;
+		wxCheckBox* CheckBox_SubModelDimming = nullptr;
 		wxPanel* Panel_Wizard;
         wxGridBagSizer* GridBagSizerWizard;
         wxGridSizer* GridSizerWizButtons;

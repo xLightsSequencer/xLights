@@ -198,6 +198,9 @@ public:
     bool supportsModelBlending() const { return supports_model_blending; }
     void setSupportsModelBlending(bool b) { supports_model_blending = b; }
 
+    bool supportsSubModelDimming() const { return supports_submodel_dimming; }
+    void setSupportsSubModelDimming(bool b) { supports_submodel_dimming = b; }
+
     // Jukebox button data (sequence-owned, UI syncs from here)
     JukeboxButtonMap& GetJukeboxButtons() { return _jukeboxButtons; }
     const JukeboxButtonMap& GetJukeboxButtons() const { return _jukeboxButtons; }
@@ -219,6 +222,7 @@ private:
     std::string seq_timing;
     std::string image_dir;
     bool supports_model_blending = false;
+    bool supports_submodel_dimming = true;
     int mLastView = 0;
     bool is_open = false;
     bool was_converted = false;
