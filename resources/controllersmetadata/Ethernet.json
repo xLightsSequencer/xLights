@@ -1,0 +1,93 @@
+{
+    "schemaVersion": 1,
+    "objectType": "controller",
+    "description": "An Ethernet (network) controller: a <Controller Type=\"Ethernet\"> node in xlights_networks.xml. Adds IP/protocol level attributes on top of the shared controller attributes and owns one <network> child element per output (universe/port). Source of truth: src-core/outputs/ControllerEthernet.cpp constructor (@44, reader) and ControllerEthernet::Save (@90, writer), cross-checked against src-ui-wx/controllerproperties/ControllerEthernetPropertyAdapter.cpp AddProperties (@362) / UpdateProperties (@254) / ValidateProperties (@549) for labels, ranges and per-protocol gating.",
+    "extends": ["shared/Controller.json"],
+    "storage": { "file": "xlights_networks.xml", "node": "Controller" },
+    "properties": [
+        {
+            "xmlAttribute": "IP",
+            "label": "IP Address",
+            "gridKey": "IP",
+            "type": "string",
+            "default": "",
+            "description": "Controller IP address or hostname. The sentinel value \"MULTICAST\" (E131 protocol only) means multicast output; in the grid it is represented by a UI-only \"Multicast\" checkbox and the IP row is hidden (ControllerEthernetPropertyAdapter.cpp @271-291) - no separate XML attribute exists for multicast. Written unconditionally. Validation: must be a valid IP or hostname; for ZCPP and DDP it must also be unique across all controllers (ValidateProperties @568)."
+        },
+        {
+            "xmlAttribute": "Protocol",
+            "label": "Protocol",
+            "gridKey": "Protocol",
+            "type": "enum",
+            "enum": ["E131", "ZCPP", "ArtNet", "DDP", "OPC", "KINET", "xxx Ethernet", "Twinkly", "Player Only"],
+            "default": "E131",
+            "description": "Network output protocol; the discriminator the per-protocol documents in protocols/ key on, and it determines the attribute set of the <network> child elements. Exact stored strings verified against the OUTPUT_* constants in src-core/outputs/Output.h @30-49 (note the casings: \"ArtNet\", \"KINET\", \"Twinkly\", \"Player Only\"). \"xxx Ethernet\" is hidden from the grid choices unless the special option \"xxx\" is enabled or the file already uses it (ControllerEthernetPropertyAdapter.cpp @52-56, @82-86) but is a legitimately persisted value. Note: stored on the C++ side as ControllerEthernet::_type / GetProtocol(), distinct from the shared Type=\"Ethernet\" discriminator. Per-protocol relevance of sibling attributes: Priority applies to E131/ZCPP; Version to KINET; FPPProxy to the proxyable set (see each property's appliesWhen)."
+        },
+        {
+            "xmlAttribute": "FPPProxy",
+            "label": "FPP Proxy IP/Hostname",
+            "gridKey": "FPPProxy",
+            "type": "string",
+            "default": "",
+            "appliesWhen": { "attribute": "Protocol", "oneOf": ["E131", "DDP", "Twinkly", "Player Only"] },
+            "description": "IP/hostname of an FPP instance that bridges two networks (typically its WIFI IP); data for this controller is routed via the proxy. Written unconditionally, but only shown/meaningful for proxyable protocols: ControllerEthernet::IsFPPProxyable() is `E131 || DDP || Twinkly || Player Only` (ControllerEthernet.h @76 - Player Only is proxyable because the web UI is). Flagged red in the grid when equal to the controller's own IP or not a valid IP/hostname."
+        },
+        {
+            "xmlAttribute": "ForceLocalIP",
+            "label": "Force Local IP",
+            "gridKey": "ForceLocalIP",
+            "type": "string",
+            "default": "",
+            "appliesWhen": { "attribute": "Protocol", "notEquals": "Player Only" },
+            "description": "Local network-interface IP to send this controller's traffic from; empty means let the OS choose. The grid presents it as a dropdown of the machine's current local IPs plus a blank entry (ControllerEthernetPropertyAdapter.cpp @381-387, @443) but the stored value is a plain IP string, which may reference an interface that no longer exists. Written unconditionally; hidden in the grid for Player Only."
+        },
+        {
+            "xmlAttribute": "Priority",
+            "label": "Priority",
+            "gridKey": "Priority",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "appliesWhen": { "attribute": "Protocol", "oneOf": ["E131", "ZCPP"] },
+            "description": "Data priority for controllers that can receive from more than one source and ignore the lower-priority one. Written unconditionally, but only shown/meaningful for E131 and ZCPP (ControllerEthernetPropertyAdapter.cpp @292-300). Propagated into each E131 <network> output on change."
+        },
+        {
+            "xmlAttribute": "Version",
+            "label": "Version",
+            "gridKey": "Version",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 2,
+            "appliesWhen": { "attribute": "Protocol", "equals": "KINET" },
+            "description": "KiNet protocol version (1 or 2). Written unconditionally for every ethernet controller, but the grid property only exists for the KINET protocol (KinetOutputPropertyAdapter::AddProperties, OutputPropertyAdapters.cpp @581, range 1-2); ControllerEthernet::SetVersion cascades the value into each KinetOutput <network> child (ControllerEthernet.cpp @458)."
+        },
+        {
+            "xmlAttribute": "Expanded",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "default": "FALSE",
+            "description": "UI-only state: whether this controller's row is expanded in the setup-tab controller list. Persisted with the uppercase literals \"TRUE\"/\"FALSE\", both values always written (ControllerEthernet.cpp @52 reader / @99 writer). No property-grid row; toggled via ControllerEthernetPropertyAdapter::HandleExpanded (@686). No effect on output data."
+        },
+        {
+            "xmlAttribute": "UPS",
+            "label": "Universe Per String",
+            "gridKey": "UniversePerString",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "default": "FALSE",
+            "capsGate": "SupportsUniversePerString",
+            "description": "Universe-per-string mode: when true and Auto Size is on, xLights sizes one universe (or run of universes) per physical model string instead of packing channels contiguously. Persisted with the uppercase literals \"TRUE\"/\"FALSE\", both values always written (ControllerEthernet.cpp @53 reader / @100 writer). Verified trap: xmlAttribute (\"UPS\") differs from its wxPropertyGrid key (\"UniversePerString\", label \"Universe Per String\", OutputPropertyAdapters.cpp @213); the grid row is only enabled when the controller is Auto Size and the caps support it."
+        }
+    ],
+    "childElements": [
+        {
+            "name": "network",
+            "description": "One child element per output (E131/ArtNet universe, KiNet port, or the single output of ZCPP/DDP/OPC/Twinkly/Player Only). Read by the base Controller constructor via Output::Create (Controller.cpp @97); each output writes its own attribute set in its Save(). The attribute set depends on this controller's Protocol; the per-protocol documents in protocols/ (e.g. protocols/E131.json) describe them - ref intentionally left unset until those documents exist (next task)."
+        }
+    ],
+    "notes": [
+        "The grid rows \"Multicast\" (checkbox writing IP=\"MULTICAST\"), \"Managed\" (read-only; runtime-derived from whether another controller shares the IP), \"Models\" (read-only model list) and the per-output rows (Universe/Universes/Channels/IndivSizes...) have no XML attribute on the <Controller> node: the first three are UI-only/derived, the rest persist inside the <network> children.",
+        "CORRECTION vs the brief's protocol list: the persisted Protocol vocabulary also includes \"xxx Ethernet\" (OUTPUT_xxxETHERNET, Output.h @45), included in the enum above since files containing it load and re-save it; it is merely hidden from the grid dropdown unless enabled via SpecialOptions \"xxx\"."
+    ]
+}

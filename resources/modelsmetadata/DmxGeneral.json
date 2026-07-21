@@ -1,0 +1,48 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "DmxGeneral",
+    "description": "A generic single-color/RGBW DMX fixture with no moving parts: just a channel count, the optional preset-channel ability, and (usually) an RGBW color ability. Source: src-core/models/DMX/DmxGeneral.{h,cpp} (DisplayAs = DisplayAsType::DmxGeneral; constructor attaches only `color_ability = std::make_unique<DmxColorAbilityRGB>()`, no beam/shutter/dimmer ability). Every attribute this model type persists is already covered by shared/DmxAbilities.json (DmxChannelCount, the DmxColorType/DmxRed-Green-Blue-White-Channel color-ability block, and the DmxPreset* family) - this document adds none of its own, so `properties` is intentionally empty.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json",
+        "shared/DmxAbilities.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions. Round-tripped but disabled in DmxGeneral's property grid (DmxPropertyAdapter::DisableUnusedProperties) - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions. Deliberately left enabled for DMX models (can drive a value range to a color/behaviour)."
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions. Not disabled for DMX models."
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve. Round-tripped but disabled in DmxGeneral's property grid - see shared/DmxAbilities.json notes."
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [],
+    "notes": [
+        "No motor/servo/mesh/image child elements: DmxGeneral has no moving parts and no DmxMovingHeadComm-derived channel (no PanMotor/TiltMotor, no Servo, no Mesh, no DmxImage children).",
+        "Color ability is fixed to RGBW at construction (DmxGeneral::DmxGeneral: `color_ability = std::make_unique<DmxColorAbilityRGB>();`) and never switched at runtime - DmxColorType is written (always \"0\") but inert on read for this document, per shared/DmxAbilities.json's DmxColorType note.",
+        "DmxGeneralPropertyAdapter does not attach a shutter, dimmer or beam ability, and does not add DmxStyle/DmxFixture/HideBody - those are DmxMovingHead(Adv)-only, documented in DmxMovingHead.json."
+    ]
+}

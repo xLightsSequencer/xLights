@@ -1,0 +1,107 @@
+{
+    "schemaVersion": 1,
+    "objectType": "output",
+    "protocol": "ZCPP",
+    "description": "The single <network> child node under an ethernet <Controller Protocol=\"ZCPP\">. ZCPP (Falcon's zero-configuration pixel protocol) controllers are not universe-based - there is exactly one Output/one <network> node per controller; per-port configuration lives in a separate .zcpp model-data file next to the show, not in xlights_networks.xml. Source of truth: src-core/outputs/Output.cpp Output::SaveAttr (@42, base writer) and IPOutput.cpp IPOutput::SaveAttr (@27, IP-output writer) for the attributes shared by every IP-based protocol document in this tree, plus ZCPPOutput.cpp constructor (@103, reader) / Save (@256, writer) for the ZCPP-specific extras. Cross-checked against OutputPropertyAdapters.cpp ZCPPOutputPropertyAdapter::AddProperties (@644) for grid labels and ranges.",
+    "storage": { "file": "xlights_networks.xml", "node": "Controller/network" },
+    "properties": [
+        {
+            "xmlAttribute": "NetworkType",
+            "type": "string",
+            "default": "ZCPP",
+            "description": "Protocol discriminator for this <network> node; always the literal \"ZCPP\" (ZCPPOutput::GetType(), matching the OUTPUT_ZCPP constant in Output.h @32). Written unconditionally by Output::SaveAttr (Output.cpp @44). No property-grid row (fixed by the controller's Protocol selection)."
+        },
+        {
+            "xmlAttribute": "ComPort",
+            "type": "string",
+            "default": "",
+            "description": "IP address/hostname this controller's data is sent to. Verified trap: legacy attribute name \"ComPort\" holds an IP address, not a serial port (IPOutput::SaveAttr, IPOutput.cpp @29-31 writer / @40 reader). Only written when non-empty. No property-grid row of its own: mirrors the parent <Controller>'s IP attribute, cascaded by ControllerEthernet::SetIP (ControllerEthernet.cpp @153-177). ZCPP additionally requires this IP be unique across all controllers (ControllerEthernetPropertyAdapter::ValidateProperties, ControllerEthernetPropertyAdapter.cpp @573-591). Also used, with '.' replaced by '_', to locate this controller's model-data file <ip>.zcpp in the show folder (ZCPPOutput constructor, ZCPPOutput.cpp @126-128)."
+        },
+        {
+            "xmlAttribute": "BaudRate",
+            "type": "int",
+            "default": 1,
+            "description": "Verified trap: for ZCPP this is NOT a universe or channel count - it is an internal id (ZCPPOutput::GetId()/SetId(), ZCPPOutput.h @98-99), assigned OutputManager::UniqueId() when the protocol is switched to ZCPP (ControllerEthernet::SetProtocol, ControllerEthernet.cpp @241-244). There is no \"Universe\" property-grid row for ZCPP (ZCPPOutputPropertyAdapter::AddProperties has no Universe entry, OutputPropertyAdapters.cpp @644-664). New ZCPP outputs default this id to -1 via ZCPPOutput's parameterless constructor (ZCPPOutput.cpp @208), distinct from the base IPOutput read-fallback of 1 used only when the attribute is missing from the file."
+        },
+        {
+            "xmlAttribute": "MaxChannels",
+            "label": "Channels",
+            "gridKey": "Channels",
+            "type": "uint",
+            "min": 1,
+            "max": 16384,
+            "description": "Total channel count for this ZCPP output (Output::SaveAttr, Output.cpp @46 writer / @76 reader). Written unconditionally. Grid range 1 to ZCPPOutput::GetMaxChannels() = ZCPP_MAXCHANNELS = 16*1024 = 16384 (ZCPPOutput.h @24,@94, OutputPropertyAdapters.cpp @661-663). Normally auto-sized from the controller's model-data file: ZCPPOutput::ExtractUsedChannelsFromModelData recomputes and overwrites this from the port configuration in the .zcpp file when the controller is set to Auto Size (ZCPPOutput.cpp @40-80). New outputs default to 1 channel via ZCPPOutput's parameterless constructor (ZCPPOutput.cpp @206)."
+        },
+        {
+            "xmlAttribute": "FPPProxy",
+            "type": "string",
+            "default": "",
+            "description": "IP/hostname of an FPP proxy this output's data is routed through. Written only when non-empty (Output::SaveAttr, Output.cpp @48-51). No property-grid row of its own: mirrors the parent <Controller>'s FPPProxy attribute, cascaded by ControllerEthernet::SetFPPProxy (ControllerEthernet.cpp @407-411). ZCPP is not in ControllerEthernet::IsFPPProxyable()'s list (E131/DDP/Twinkly/Player Only only, ControllerEthernet.h @76), so this attribute is written but not meaningfully usable for ZCPP."
+        },
+        {
+            "xmlAttribute": "Vendor",
+            "type": "int",
+            "default": 65535,
+            "description": "Encoded ZCPP vendor id (ZCPPOutput::EncodeVendor/DecodeVendor, ZCPPOutput.cpp @550-569; e.g. Falcon, FPP, ESP Pixel Stick, or 65535/ZCPP_VENDOR_UNKNOWN). Written unconditionally (ZCPPOutput::Save, ZCPPOutput.cpp @260); read with default 65535 (ZCPPOutput.cpp @116). No property-grid row - not populated by any current discovery or grid code path found; effectively round-trips whatever value was already in the file. Distinct from the parent <Controller>'s Vendor attribute (a plain string, see shared/Controller.json), which IS populated by discovery."
+        },
+        {
+            "xmlAttribute": "Model",
+            "type": "int",
+            "default": 65535,
+            "description": "Encoded ZCPP model id, paired with Vendor above. Written unconditionally (ZCPPOutput::Save, ZCPPOutput.cpp @261); read with default 65535 (ZCPPOutput.cpp @117). No property-grid row; same round-trip-only caveat as Vendor. Distinct from the parent <Controller>'s Model attribute (a plain string)."
+        },
+        {
+            "xmlAttribute": "Priority",
+            "type": "uint",
+            "min": 0,
+            "max": 100,
+            "default": 100,
+            "description": "ZCPP data priority. Written unconditionally (ZCPPOutput::Save, ZCPPOutput.cpp @262) - unlike E1.31's Priority, there is no default-value suppression here. Read with default 100 (ZCPPOutput.cpp @118). No property-grid row on the output itself: set via the parent <Controller>'s Priority property (Ethernet.json, appliesWhen Protocol E131/ZCPP) and cascaded into every ZCPP <network> child by ControllerEthernet::SetPriority (ControllerEthernet.cpp @441-455)."
+        },
+        {
+            "xmlAttribute": "SupportsVirtualStrings",
+            "gridKey": "SupportsVirtualStrings",
+            "label": "Supports Virtual Strings",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "default": "FALSE",
+            "description": "Whether this ZCPP controller supports splitting a physical output into multiple virtual strings. Written unconditionally as \"TRUE\"/\"FALSE\" (ZCPPOutput::Save, ZCPPOutput.cpp @263); read with default \"FALSE\" (ZCPPOutput.cpp @119). Auto-populated from a discovery-response flag bit (ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS) when the controller is discovered (ZCPPOutput.cpp @496-498), also editable directly in the grid (OutputPropertyAdapters.cpp @649-650)."
+        },
+        {
+            "xmlAttribute": "SupportsSmartRemotes",
+            "gridKey": "SupportsSmartRemotes",
+            "label": "Supports Smart Remotes",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "default": "FALSE",
+            "description": "Whether this ZCPP controller supports smart remotes. Written unconditionally as \"TRUE\"/\"FALSE\" (ZCPPOutput::Save, ZCPPOutput.cpp @264); read with default \"FALSE\" (ZCPPOutput.cpp @120). Auto-populated from a discovery-response flag bit (ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES, ZCPPOutput.cpp @500-502), also editable directly in the grid (OutputPropertyAdapters.cpp @652-653)."
+        },
+        {
+            "xmlAttribute": "DontConfigure",
+            "gridKey": "DontSendConfig",
+            "label": "Suppress Sending Configuration",
+            "type": "bool",
+            "boolFormat": "presentOnly",
+            "description": "Verified trap: the property-grid key is \"DontSendConfig\" but the persisted xmlAttribute is \"DontConfigure\". When true, xLights does not push its model-data configuration to this controller (it also skips reading any local .zcpp model-data file at all, ZCPPOutput constructor, ZCPPOutput.cpp @125,@199-201). Written as the literal \"TRUE\" only when true (ZCPPOutput::Save, ZCPPOutput.cpp @265: `if (_dontConfigure) node.append_attribute(\"DontConfigure\") = \"TRUE\";`); absent means false. Read by comparing against \"TRUE\" with default \"FALSE\" (ZCPPOutput.cpp @122). Auto-populated from a discovery-response flag bit (ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED, ZCPPOutput.cpp @504-506)."
+        },
+        {
+            "xmlAttribute": "Multicast",
+            "gridKey": "SendDataMulticast",
+            "label": "Send Data Multicast",
+            "type": "bool",
+            "boolFormat": "presentOnly",
+            "description": "Verified trap: the property-grid key is \"SendDataMulticast\" but the persisted xmlAttribute is \"Multicast\" (distinct from the E1.31/DDP concept of a controller-level \"MULTICAST\" IP sentinel - this is a ZCPP-only per-output flag). When true, pixel data is sent to a multicast address (ZCPP_GetDataMulticastAddress(ip), displayed read-only in the grid as \"Multicast Address\"/\"MulticastAddressDisplay\", OutputPropertyAdapters.cpp @645-647) instead of unicast to ComPort. Written as the literal \"TRUE\" only when true (ZCPPOutput::Save, ZCPPOutput.cpp @266); absent means false. Read by comparing against \"TRUE\" with default \"FALSE\" (ZCPPOutput.cpp @121). Auto-populated from a discovery-response flag bit (ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST, ZCPPOutput.cpp @508-510)."
+        },
+        {
+            "xmlAttribute": "Protocols",
+            "type": "string",
+            "default": "",
+            "encoding": "Pipe-delimited ('|') list of lower-cased protocol names this ZCPP controller advertises support for (ZCPPOutput::SerialiseProtocols/DeserialiseProtocols, ZCPPOutput.cpp @82-99), e.g. \"ws2811|tm18xx\".",
+            "description": "Set of pixel protocols this ZCPP controller supports, used to populate protocol choice lists elsewhere in the UI. Written unconditionally (ZCPPOutput::Save, ZCPPOutput.cpp @267); read via DeserialiseProtocols with default \"\" (ZCPPOutput.cpp @123). Auto-populated bit-by-bit from a discovery response (ZCPPOutput.cpp @514-522). No property-grid row."
+        }
+    ],
+    "notes": [
+        "ZCPP has exactly one <network> child per controller (like DDP/OPC/Twinkly) - there is no per-node universe/port concept, no Universes/UniversesDisplay/IndivSizes/Sizes rows, and BaudRate is repurposed as an internal id rather than a channel-addressing value.",
+        "Per-port configuration (string counts, pixel types, colour order, smart remotes, etc.) lives in a separate <ip>.zcpp binary model-data file in the show folder, not as XML attributes on this <network> node; that file's format is out of scope for this metadata tree."
+    ]
+}

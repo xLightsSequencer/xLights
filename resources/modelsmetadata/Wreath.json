@@ -1,0 +1,73 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Wreath",
+    "description": "A single ring of nodes arranged in a circle, distributed evenly across one or more physical strings (unlike Circle, Wreath has no multi-layer/concentric-ring support).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "WreathStringCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 640,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (WreathModel::_numStrings; WreathPropertyAdapter help text: \"typically the number of connections from the prop to your controller\")."
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "WreathLightCount",
+            "type": "uint",
+            "default": 50,
+            "min": 1,
+            "max": 640,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string (WreathModel::_nodesPerString; total ring lights = NumStrings x NodesPerString). Note the read-time default is 50, not 1 (XmlDeserializingModelFactory::DeserializeWreath: `ReadAttrWithParmFallback(node, NodesPerStringAttribute, Parm2Attribute, \"50\")`), matching SingleLine's NodesPerString default rather than Circle/Icicles' default of 1. Grid label is \"Lights/String\" for SingleNode string types, \"Nodes/String\" otherwise; same xmlAttribute/gridKey either way."
+        }
+    ],
+    "notes": [
+        "Starting Location: the \"WreathStart\" property-grid enum (gridKey \"WreathStart\", 4 values: Top Ctr-CCW/Top Ctr-CW/Bottom Ctr-CW/Bottom Ctr-CCW) decodes into the shared Dir/StartSide attributes (shared/Common.json), not a dedicated Wreath attribute - so no property object for it appears above (WreathPropertyAdapter::OnPropertyGridChange \"WreathStart\" only calls SetDirection/SetStartSide/SetIsLtoR/SetIsBtoT). Unlike Circle's equivalent 8-value picker, Wreath has no InsideOut-style third dimension - it is purely Dir x StartSide.",
+        "Boxed screen-location style (shared/ScreenLocation.json): Wreath is one of the Boxed-style model types (full ScaleX/Y/Z, RotateX/Y/Z; no Angle/Shear/ThreePoint Height, no TwoPoint X2/Y2/Z2)."
+    ]
+}

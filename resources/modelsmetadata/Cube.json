@@ -1,0 +1,204 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Cube",
+    "description": "A 3D grid of nodes forming a solid cube or a cylinder, wired as a stack of 2D panels (front/back or left/right facing) in one of several zig-zag/stacked strand patterns.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "CubeWidth",
+            "label": "Width",
+            "gridKey": "CubeWidth",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Grid width, in nodes (CubeModel::_cubeWidth, GetCubeWidth()/SetCubeWidth()). Property-grid label becomes \"Circumference\" when CubeShape is Cylinder (CubePropertyAdapter::AddTypeProperties); same xmlAttribute either way."
+        },
+        {
+            "xmlAttribute": "CubeHeight",
+            "label": "Height",
+            "gridKey": "CubeHeight",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Grid height, in nodes (CubeModel::_cubeHeight, GetCubeHeight()/SetCubeHeight()). Label is always \"Height\" regardless of CubeShape."
+        },
+        {
+            "xmlAttribute": "CubeDepth",
+            "label": "Depth",
+            "gridKey": "CubeDepth",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Grid depth, in nodes/panels (CubeModel::_cubeDepth, GetCubeDepth()/SetCubeDepth()). Property-grid label becomes \"Layers\" when CubeShape is Cylinder (CubePropertyAdapter::AddTypeProperties); same xmlAttribute either way."
+        },
+        {
+            "xmlAttribute": "CubeShape",
+            "label": "Shape",
+            "gridKey": "CubeShape",
+            "type": "enum",
+            "enum": [
+                "0",
+                "1"
+            ],
+            "labels": {
+                "0": "Cube",
+                "1": "Cylinder"
+            },
+            "default": "0",
+            "description": "Overall form: a rectilinear Cube or a round Cylinder (CubeModel::CubeShape enum class, GetCubeShape()/SetCubeShape(), persisted as its underlying int value via std::to_string - same int-as-string-with-differing-labels pattern as shared/Common.json's Antialias/ModelPixelStyle). Governs which of CubeHollow (Cylinder) or CubeRowOffset (Cube) applies, and relabels CubeWidth/CubeDepth (see those properties)."
+        },
+        {
+            "xmlAttribute": "Start",
+            "label": "Starting Location",
+            "gridKey": "CubeStart",
+            "type": "enum",
+            "enum": [
+                "Front Bottom Left",
+                "Front Bottom Right",
+                "Front Top Left",
+                "Front Top Right",
+                "Back Bottom Left",
+                "Back Bottom Right",
+                "Back Top Left",
+                "Back Top Right"
+            ],
+            "default": "Front Bottom Left",
+            "description": "Which corner of the cube the first node starts from (CubeModel::GetCubeStart()/SetCubeStart(), persisted as the literal enum text itself, not an index - the index used internally/in the grid, GetCubeStartIndex()/SetCubeStartIndex(), is a separate in-memory-only concept). This is Cube's own composite starting-location picker; it does not use the shared Dir/StartSide attributes at all (CubeModel::GetStartLocation() override)."
+        },
+        {
+            "xmlAttribute": "Style",
+            "label": "Direction",
+            "gridKey": "CubeStyle",
+            "type": "enum",
+            "enum": [
+                "Vertical Front/Back",
+                "Vertical Left/Right",
+                "Horizontal Front/Back",
+                "Horizontal Left/Right",
+                "Stacked Front/Back",
+                "Stacked Left/Right"
+            ],
+            "default": "Vertical Front/Back",
+            "description": "Wiring direction/face pattern across the cube's panels (CubeModel::GetCubeStyle()/SetCubeStyle(), persisted as the literal enum text - same pattern as Start). Used by CubeModel::CalcTransformationIndex() (string-matched via Contains() for \"Left\"/\"Horizontal\"/\"Stacked\" substrings) to determine per-panel coordinate transforms."
+        },
+        {
+            "xmlAttribute": "StrandPerLine",
+            "label": "Strand Style",
+            "gridKey": "StrandPerLine",
+            "type": "enum",
+            "enum": [
+                "Zig Zag",
+                "No Zig Zag",
+                "Aternate Pixel"
+            ],
+            "default": "Zig Zag",
+            "description": "Per-panel strand wiring pattern (CubeModel::GetStrandStyle()/SetStrandStyle(), persisted as the literal enum text). Recorded exactly as stored, including the source typo \"Aternate Pixel\" (missing 'l') - CubePropertyAdapter.cpp's STRAND_STYLES_VALUES array, which SetStrandStyle() string-matches against, so this exact misspelling is what ends up on disk when that option is chosen."
+        },
+        {
+            "xmlAttribute": "StrandPerLayer",
+            "label": "Layers All Start in Same Place",
+            "gridKey": "StrandPerLayer",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "default": "FALSE",
+            "description": "When \"TRUE\", every depth layer's strand starts from the same physical corner instead of alternating (CubeModel::IsStrandPerLayer()/SetStrandPerLayer()). Persisted as the UPPERCASE literal TRUE/FALSE; always written."
+        },
+        {
+            "xmlAttribute": "CubeHollow",
+            "label": "Hollow %",
+            "gridKey": "CubeHollow",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 99,
+            "appliesWhen": {
+                "attribute": "CubeShape",
+                "equals": "1"
+            },
+            "description": "Inner hollow radius as a percentage of the outer radius for a Cylinder (0 = solid, 99 = thin shell) (CubeModel::GetHollowPct()/SetHollowPct(), which clamps to [0,99] in the setter itself). Always written regardless of shape, but only shown/editable in the property grid when CubeShape is Cylinder (CubePropertyAdapter::AddTypeProperties)."
+        },
+        {
+            "xmlAttribute": "CubeRowOffset",
+            "label": "Row Offset",
+            "gridKey": "CubeRowOffset",
+            "type": "enum",
+            "enum": [
+                "0",
+                "1",
+                "2"
+            ],
+            "labels": {
+                "0": "None",
+                "1": "Positive",
+                "2": "Negative"
+            },
+            "default": "0",
+            "appliesWhen": {
+                "attribute": "CubeShape",
+                "equals": "0"
+            },
+            "description": "Alternating-row horizontal offset applied when CubeShape is Cube, for a brick-like stagger (CubeModel::RowOffset enum class, GetRowOffset()/SetRowOffset(), persisted as its underlying int value). Always written regardless of shape, but only shown/editable in the property grid when CubeShape is Cube (mutually exclusive with CubeHollow in the UI, which shows instead for Cylinder)."
+        },
+        {
+            "xmlAttribute": "Strings",
+            "label": "# Strings",
+            "gridKey": "CubeStrings",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 1000,
+            "description": "Number of physical connections/strings from the prop to the controller (CubeModel::_cubeStrings, GetCubeStrings()/SetCubeStrings()); CubePropertyAdapter help text: \"typically the number of connections from the prop to your controller.\" Distinct from CubeModel::GetNumStrings(), which is hard-coded to always return 1 (Cube is one of the models where Model::HasOneString() is true, alongside Window Frame) - this Strings attribute is a separate wiring-connection count, not the model's internal string count."
+        }
+    ],
+    "notes": [
+        "CubeWidth/CubeHeight/CubeDepth are Cube-specific grid-dimension attributes (XmlNodeKeys::CubeWidthAttribute etc.), unrelated to the generic Width/Height/Depth constants used elsewhere (e.g. view-object Mesh elements) - no collision since Cube does not extend any fragment that defines those.",
+        "Enum-valued attributes here (CubeShape, Start, Style, StrandPerLine, CubeRowOffset) are recorded with their exact stored forms per the brief's instruction, including the verbatim source typo in StrandPerLine's third option."
+    ]
+}

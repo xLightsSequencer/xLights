@@ -1,0 +1,144 @@
+{
+    "schemaVersion": 1,
+    "objectType": "modelGroup",
+    "description": "A <modelGroup> node: a named collection of other models (and/or nested groups) that can be selected, sequenced and previewed as a single unit, without owning any pixels of its own - it renders by delegating to its member models' own buffers, referencing them purely by name. Standalone document: does not extend shared/Common.json, because ModelGroup is built from BaseObject's minimal AddBaseObjectAttributes rather than Model's fuller AddCommonModelAttributes (see notes). Source of truth: src-core/models/ModelGroup.h/.cpp, src-core/XmlSerializer/BaseSerializingVisitor.cpp BaseSerializingVisitor::Visit(const ModelGroup&) (writer) and src-core/XmlSerializer/XmlDeserializingModelFactory.cpp DeserializeModelGroup (reader); editing UI is src-ui-wx/layout/ModelGroupPanel.cpp.",
+    "storage": { "file": "xlights_rgbeffects.xml", "node": "modelGroups/modelGroup" },
+    "properties": [
+        {
+            "xmlAttribute": "name",
+            "type": "string",
+            "description": "Unique group name (BaseObject::GetName(), the same base-object attribute mechanism used by a <model>'s \"name\"). Members reference their containing group, and groups reference members, purely by name (see \"models\" below)."
+        },
+        {
+            "xmlAttribute": "DisplayAs",
+            "type": "enum",
+            "enum": ["ModelGroup"],
+            "default": "ModelGroup",
+            "description": "Always the fixed literal \"ModelGroup\" (XmlNodeKeys::ModelGroupType) - this is how the loader tells a <modelGroup> element apart from a <model> element, and how ModelManager recognises a group among the flat model list (Model::GetDisplayAs() == DisplayAsType::ModelGroup). Not read back from the XML on the ModelGroup load path (DeserializeModelGroup never inspects it) and not user-editable; written unconditionally. Distinct from the DisplayAs enum documented in shared/Common.json, which only covers <model> nodes."
+        },
+        {
+            "xmlAttribute": "LayoutGroup",
+            "type": "string",
+            "default": "Unassigned",
+            "description": "Name of the layout group / preview this group is assigned to - same semantics as a model's LayoutGroup (shared/Common.json), written/read via the same AddBaseObjectAttributes/DeserializeBaseObjectAttributes helpers used for <model>."
+        },
+        {
+            "xmlAttribute": "Active",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "When false, the group is not rendered/shown. Default (attribute absent) is true; only \"0\" is ever written (BaseSerializingVisitor::AddBaseObjectAttributes), matching the <model> Active attribute."
+        },
+        {
+            "xmlAttribute": "FromBase",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "Read-only provenance flag: true when this group was merged in from a linked base show folder. Only \"1\" is ever written, matching the <model> FromBase attribute."
+        },
+        {
+            "xmlAttribute": "GridSize",
+            "type": "uint",
+            "default": 400,
+            "min": 10,
+            "max": 4000,
+            "description": "Maximum grid cell size (in preview pixels) used by the grid-style layouts when auto-arranging member models (ModelGroup::GetGridSize()/SetGridSize(); the \"Max Grid Size\" spinner in ModelGroupPanel.cpp, range 10-4000). Always written unconditionally, unlike most of the other group attributes below."
+        },
+        {
+            "xmlAttribute": "layout",
+            "type": "string",
+            "default": "minimalGrid",
+            "description": "How member models are arranged for the group's own default render buffer (ModelGroup::SetLayout(), which also derives the internal defaultBufferStyle from this same value). Modeled as a free-form string rather than an enum because its on-disk values are inconsistent - see notes. Always written unconditionally."
+        },
+        {
+            "xmlAttribute": "DefaultCamera",
+            "type": "string",
+            "default": "2D",
+            "description": "Name of the camera/perspective this group renders under by default: the fixed sentinel \"2D\", or the name of one of the user's configured 3D viewpoints (viewpoint_mgr.GetCamera3D(); ModelGroupPanel.cpp Choice_DefaultCamera). Free-form string because 3D camera names are user-defined, not a fixed enum. Always written unconditionally."
+        },
+        {
+            "xmlAttribute": "XCentreOffset",
+            "type": "int",
+            "default": 0,
+            "min": -5000,
+            "max": 5000,
+            "description": "Horizontal pixel offset applied to the group's custom rotate/scale centre point (ModelGroup::GetXCentreOffset()/SetXCentreOffset(); range -5000..5000 per its ModelGroupPanel.cpp spin control). CORRECTION vs the brief's guessed spelling (\"xCentreOffset\"): the persisted xmlAttribute is capitalised \"XCentreOffset\", verified in both the writer (BaseSerializingVisitor::Visit(const ModelGroup&)) and the reader (XmlDeserializingModelFactory::DeserializeModelGroup). Only written when non-zero."
+        },
+        {
+            "xmlAttribute": "YCentreOffset",
+            "type": "int",
+            "default": 0,
+            "min": -5000,
+            "max": 5000,
+            "description": "Vertical pixel offset, matching XCentreOffset (ModelGroup::GetYCentreOffset()/SetYCentreOffset()). Same capitalisation correction applies. Only written when non-zero."
+        },
+        {
+            "xmlAttribute": "models",
+            "type": "string",
+            "encoding": "Comma-separated list of member names, in group order, with no escaping of embedded commas (a member name containing a comma is not supported). Each entry is either a plain model/group name, or \"<Model>/<SubModel>\" for a specific sub-model member, or - transiently, only inside an export/import snapshot, never in a saved show file - an \"EXPORTEDMODEL/<SubModel>\" placeholder that ModelManager::AddModelGroups resolves against the newly-imported model's own name.",
+            "description": "The group's membership list (ModelGroup::ModelNames()/AddModel()/SetModels()). A member that does not currently exist in the model manager is kept in the list (so re-adding the model later restores membership) but excluded from ActiveModels()/rendering. Always written unconditionally (may be an empty string)."
+        },
+        {
+            "xmlAttribute": "centreDefined",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "True when the user has set a custom rotate/scale pivot point for this group in the layout preview (ModelGroup::GetCentreDefined()/SetCentreDefined(); ModelPreview.cpp group-centre drag handling), rather than using the group's auto-computed bounding-box centre. Not exposed in ModelGroupPanel - only ever set interactively in the layout preview. Only written (and only then are centrex/centrey/centreMinx/centreMiny/centreMaxx/centreMaxy present) when true."
+        },
+        {
+            "xmlAttribute": "centrex",
+            "type": "float",
+            "appliesWhen": { "attribute": "centreDefined", "equals": "1" },
+            "description": "Custom pivot point X, in preview pixels (ModelGroup::GetCentreX()/SetCentreX())."
+        },
+        {
+            "xmlAttribute": "centrey",
+            "type": "float",
+            "appliesWhen": { "attribute": "centreDefined", "equals": "1" },
+            "description": "Custom pivot point Y, in preview pixels (ModelGroup::GetCentreY()/SetCentreY())."
+        },
+        {
+            "xmlAttribute": "centreMinx",
+            "type": "int",
+            "appliesWhen": { "attribute": "centreDefined", "equals": "1" },
+            "description": "Left edge of the member models' combined bounding box at the time the custom pivot was set (ModelGroup::GetCentreMinx()/SetCentreMinx()); used to detect when membership/positions have since changed enough to invalidate the custom pivot. The writer always emits centreMinx/centreMiny/centreMaxx/centreMaxy together whenever centreDefined is true, but the reader treats each of the four independently-optional (defaults to 0 if individually absent)."
+        },
+        {
+            "xmlAttribute": "centreMiny",
+            "type": "int",
+            "appliesWhen": { "attribute": "centreDefined", "equals": "1" },
+            "description": "Top edge of the same bounding box, matching centreMinx."
+        },
+        {
+            "xmlAttribute": "centreMaxx",
+            "type": "int",
+            "appliesWhen": { "attribute": "centreDefined", "equals": "1" },
+            "description": "Right edge of the same bounding box, matching centreMinx."
+        },
+        {
+            "xmlAttribute": "centreMaxy",
+            "type": "int",
+            "appliesWhen": { "attribute": "centreDefined", "equals": "1" },
+            "description": "Bottom edge of the same bounding box, matching centreMinx."
+        },
+        {
+            "xmlAttribute": "TagColour",
+            "type": "color",
+            "default": "#000000",
+            "description": "Visual colour tag shown next to the group in the model list, in #RRGGBB - same attribute/semantics as a <model>'s TagColour (shared/Common.json). Only written when different from the default."
+        }
+    ],
+    "childElements": [
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this group (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Same shape as the <Aliases> element written for a <model> or <subModel>; not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "notes": [
+        "CORRECTION vs the brief (which suggested groups live inside <models> alongside <model>, storage.node \"models/modelGroup\"): <modelGroup> elements actually live under their OWN sibling top-level element, <modelGroups> (XmlNodeKeys::GroupsNodeName = \"modelGroups\"), written and read as a completely separate block from <models>. See src-core/XmlSerializer/XmlSerializer.h XmlSerializer::SerializeAllModels, which writes a whole <models>...</models> block for non-group models and then a separate <modelGroups>...</modelGroups> block for models whose DisplayAs is ModelGroup; and, on the read side, e.g. src-ui-wx/app-shell/TabSequence.cpp (modelGroupsNode = root.child(\"modelGroups\")). storage.node here is corrected to \"modelGroups/modelGroup\" accordingly.",
+        "ModelGroup does not extend shared/Common.json: it is built from BaseObject's minimal AddBaseObjectAttributes (name/DisplayAs/LayoutGroup/Active/FromBase) rather than Model's fuller AddCommonModelAttributes, so it has none of Common.json's model-only attributes (Description, StartChannel, Controller, StringType, PixelSize, ...) and no ScreenLocation/ControllerConnection child data of its own.",
+        "CORRECTION vs the brief's attribute list: \"selected\" is NOT part of the canonical modelGroups/modelGroup element - BaseSerializingVisitor::Visit(const ModelGroup&) never writes it and XmlDeserializingModelFactory::DeserializeModelGroup never reads it. ModelGroup::selected (IsSelected()) is hard-coded false in the constructor (ModelGroup.cpp:385) with no setter anywhere in the class, so it is always false at runtime. The literal attribute name \"selected\" (XmlNodeKeys::mgSelectedAttribute) does appear, always written as \"0\", in a completely different, secondary serialization path used only when embedding a group definition inside a <model>'s <shadowmodels>/<associatedmodels> export snapshot (src-core/XmlSerializer/XmlSerializeFunctions.cpp, ~line 501); that embedded snapshot is reconstructed via a different, narrower code path and \"selected\" is never read back from it either. Omitted from properties above as dead/vestigial for the modelGroups/modelGroup element this document describes.",
+        "The \"layout\" attribute's on-disk values are inconsistent, and its own UI round-trip has an apparent mismatch: of the 16 choices in ModelGroupPanel's layout dropdown, 5 persist as short codes (\"grid\", \"minimalGrid\", \"horizontal\", \"vertical\", \"perModelDefault\") while the other 11 persist as the exact display-label text verbatim (e.g. \"Horizontal Stack - Scaled\", \"Overlay - Centered\", \"Single Line Model As A Pixel\"). Additionally, the write path (ModelGroupPanel::SaveGroupChanges, ~lines 817-840) maps choice indices 6/7 (\"Horizontal Per Model\"/\"Vertical Per Model\") to \"horizontal\"/\"vertical\", while the read path (~lines 557-582) maps those same two short codes back to choice indices 2/3 (\"Horizontal Stack\"/\"Vertical Stack\") instead. Documented here as observed behaviour, not corrected, since changing UI round-trip behaviour is outside this metadata task's scope.",
+        "GridSize/layout/DefaultCamera/models are always written unconditionally by the visitor, in that order, immediately after the shared base-object attributes; XCentreOffset/YCentreOffset, the whole centreDefined/centre* group, and TagColour are only written when non-default."
+    ]
+}

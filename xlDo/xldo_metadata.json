@@ -1,0 +1,434 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "xLights xlDo Automation API Metadata",
+    "description": "Specification of the HTTP Automation API server built into xLights and accessed via xlDo or raw HTTP requests.",
+    "server": {
+        "ports": {
+            "defaultA": 49913,
+            "defaultB": 49914,
+            "description": "Enabled by launching xLights with '-a' (Port 49913) or '-b' (Port 49914) command-line flags, or by setting xFadePort preference in settings."
+        },
+        "endpoints": {
+            "version": {
+                "path": "/getVersion",
+                "method": "GET",
+                "description": "Returns the active xLights version string."
+            },
+            "automation": {
+                "path": "/xlDoAutomation",
+                "method": "POST",
+                "contentType": "application/json",
+                "description": "Primary endpoint for executing JSON-formatted automation commands.",
+                "requestFormat": "The POST body is a single FLAT JSON object: {\"cmd\": \"<commandName>\", ...params}. Every command's own parameters (e.g. \"folder\", \"force\") must be TOP-LEVEL keys sibling to \"cmd\" - do NOT nest them under a \"parameters\"/\"params\" wrapper object. Verified 2026-07-18 against xLightsFrame::ProcessxlDoAutomation (src-ui-wx/automation/xLightsAutomations.cpp): it parses the body, requires a top-level \"cmd\" string, and for every OTHER key copies string/int/float/bool/array values into a flat parameter map - an object-typed value (e.g. a nested \"parameters\": {...}) matches none of those branches and is SILENTLY DROPPED, so the command receives that parameter as empty/missing with no error. A misshapen changeShowFolder call with folder nested under \"parameters\" produced 'Folder does not exist.' instead of a shape/validation error, because the handler just saw an empty folder string. Correct example: {\"cmd\":\"changeShowFolder\",\"folder\":\"/path/to/showfolder\",\"force\":true}. Success/failure is signaled by the HTTP status code (200 = success; 503 = command-specific rejection, e.g. unsaved changes; 504 = missing \"cmd\"), with a small JSON body such as {\"msg\":\"...\"} or command-specific fields - curl callers should check the status code (e.g. `curl -i` or `-w '%{http_code}'`), not just whether a body came back, since some successful responses can be entirely absent (e.g. changeShowFolder on success)."
+            }
+        }
+    },
+    "commands": [
+        {
+            "name": "saveLayout",
+            "description": "Saves layout changes (xlights_rgbeffects.xml) and setup network/controller changes (xlights_networks.xml) to disk.",
+            "parameters": []
+        },
+        {
+            "name": "changeShowFolder",
+            "description": "Changes the active show folder and reloads all layout/network configurations from disk.",
+            "parameters": [
+                {
+                    "name": "folder",
+                    "type": "string",
+                    "required": true,
+                    "description": "Absolute path to the new show folder."
+                },
+                {
+                    "name": "force",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Force change folder even if there are unsaved changes."
+                }
+            ]
+        },
+        {
+            "name": "getShowFolder",
+            "description": "Retrieves the active show folder path.",
+            "parameters": []
+        },
+        {
+            "name": "listSequences",
+            "description": "Lists all sequence files (.xsq, .xsqz, .zip, .piz) in a given folder.",
+            "parameters": [
+                {
+                    "name": "folder",
+                    "type": "string",
+                    "required": true,
+                    "description": "Absolute path to the target folder."
+                }
+            ]
+        },
+        {
+            "name": "getSequenceInfo",
+            "description": "Returns metadata about a sequence file.",
+            "parameters": [
+                {
+                    "name": "filename",
+                    "type": "string",
+                    "required": true,
+                    "description": "Path to the sequence file."
+                }
+            ]
+        },
+        {
+            "name": "openSequence",
+            "description": "Opens a sequence in the sequencer.",
+            "parameters": [
+                {
+                    "name": "seq",
+                    "type": "string",
+                    "required": true,
+                    "description": "Path to the sequence file."
+                },
+                {
+                    "name": "promptIssues",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "If true, prompts for warnings/issues on load."
+                },
+                {
+                    "name": "force",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Forces opening even if another sequence has unsaved changes."
+                }
+            ]
+        },
+        {
+            "name": "closeSequence",
+            "description": "Closes the active sequence.",
+            "parameters": [
+                {
+                    "name": "force",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Closes even if there are unsaved changes."
+                },
+                {
+                    "name": "quiet",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Suppress warning if no sequence is open."
+                }
+            ]
+        },
+        {
+            "name": "newSequence",
+            "description": "Creates a new sequence.",
+            "parameters": [
+                {
+                    "name": "mediaFile",
+                    "type": "string",
+                    "required": false,
+                    "description": "Path to the audio/video media file."
+                },
+                {
+                    "name": "durationSecs",
+                    "type": "integer",
+                    "required": false,
+                    "description": "Duration in seconds (required if no media file)."
+                },
+                {
+                    "name": "frameMS",
+                    "type": "integer",
+                    "required": false,
+                    "default": 50,
+                    "description": "Timing interval in milliseconds."
+                },
+                {
+                    "name": "view",
+                    "type": "string",
+                    "required": false,
+                    "description": "Name of the starting grid view."
+                },
+                {
+                    "name": "force",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Forces new creation even if active sequence has unsaved changes."
+                }
+            ]
+        },
+        {
+            "name": "saveSequence",
+            "description": "Saves the open sequence.",
+            "parameters": [
+                {
+                    "name": "seq",
+                    "type": "string",
+                    "required": false,
+                    "description": "Save-as path (optional; overrides active file name)."
+                }
+            ]
+        },
+        {
+            "name": "renderAll",
+            "description": "Renders all effects in the active sequence.",
+            "parameters": [
+                {
+                    "name": "highdef",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Forces high-definition rendering mode."
+                }
+            ]
+        },
+        {
+            "name": "batchRender",
+            "description": "Renders multiple sequences in batch mode.",
+            "parameters": [
+                {
+                    "name": "files",
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "required": true,
+                    "description": "List of sequence file paths to render."
+                },
+                {
+                    "name": "lowdef",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Render in low definition to speed up rendering."
+                }
+            ]
+        },
+        {
+            "name": "uploadController",
+            "description": "Uploads configuration to a controller.",
+            "parameters": [
+                {
+                    "name": "controller",
+                    "type": "string",
+                    "required": true,
+                    "description": "Name of the controller to upload to."
+                },
+                {
+                    "name": "force",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Forces upload regardless of state."
+                }
+            ]
+        },
+        {
+            "name": "uploadFPPConfig",
+            "description": "Uploads network and layout configuration to FPP.",
+            "parameters": []
+        },
+        {
+            "name": "uploadSequence",
+            "description": "Uploads the sequence and media to the controller.",
+            "parameters": [
+                {
+                    "name": "controller",
+                    "type": "string",
+                    "required": true,
+                    "description": "Name of the target controller."
+                }
+            ]
+        },
+        {
+            "name": "checkSequence",
+            "description": "Runs validation checks on a sequence and returns the output log.",
+            "parameters": [
+                {
+                    "name": "seq",
+                    "type": "string",
+                    "required": true,
+                    "description": "Path to the sequence file to check."
+                }
+            ]
+        },
+        {
+            "name": "openController",
+            "description": "Opens the configuration page of a controller in the default browser.",
+            "parameters": [
+                {
+                    "name": "ip",
+                    "type": "string",
+                    "required": true,
+                    "description": "IP address of the controller."
+                }
+            ]
+        },
+        {
+            "name": "exportModelsCSV",
+            "description": "Exports layout models configuration to a CSV file.",
+            "parameters": [
+                {
+                    "name": "filename",
+                    "type": "string",
+                    "required": true,
+                    "description": "Output path of the CSV."
+                }
+            ]
+        },
+        {
+            "name": "exportModel",
+            "description": "Exports a specific model layout to a file.",
+            "parameters": [
+                {
+                    "name": "model",
+                    "type": "string",
+                    "required": true,
+                    "description": "Name of the model."
+                },
+                {
+                    "name": "filename",
+                    "type": "string",
+                    "required": true,
+                    "description": "Target filename."
+                }
+            ]
+        },
+        {
+            "name": "closexLights",
+            "description": "Shuts down the xLights application instance.",
+            "parameters": [
+                {
+                    "name": "force",
+                    "type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "description": "Force shutdown even with unsaved changes."
+                }
+            ]
+        },
+        {
+            "name": "lightsOn",
+            "description": "Enables output to lights.",
+            "parameters": []
+        },
+        {
+            "name": "lightsOff",
+            "description": "Disables output to lights.",
+            "parameters": []
+        },
+        {
+            "name": "playJukebox",
+            "description": "Plays Jukebox item.",
+            "parameters": [
+                {
+                    "name": "index",
+                    "type": "integer",
+                    "required": true,
+                    "description": "0-based index of the jukebox item to trigger."
+                }
+            ]
+        },
+        {
+            "name": "getModels",
+            "description": "Lists all configured models in the active layout.",
+            "parameters": []
+        },
+        {
+            "name": "getModel",
+            "description": "Retrieves configuration details of a specific model.",
+            "parameters": [
+                {
+                    "name": "model",
+                    "type": "string",
+                    "required": true,
+                    "description": "Name of the model."
+                }
+            ]
+        },
+        {
+            "name": "getControllers",
+            "description": "Lists all configured controllers.",
+            "parameters": []
+        },
+        {
+            "name": "getControllerIPs",
+            "description": "Lists IP addresses of all configured controllers.",
+            "parameters": []
+        },
+        {
+            "name": "addEffect",
+            "description": "Adds an effect to the sequence timeline.",
+            "parameters": [
+                {
+                    "name": "model",
+                    "type": "string",
+                    "required": true,
+                    "description": "Name of the target model or group."
+                },
+                {
+                    "name": "layer",
+                    "type": "integer",
+                    "required": true,
+                    "description": "Target layer index."
+                },
+                {
+                    "name": "effectType",
+                    "type": "string",
+                    "required": true,
+                    "description": "Type/name of the effect to add (e.g. 'Fire', 'Bars')."
+                },
+                {
+                    "name": "startMS",
+                    "type": "integer",
+                    "required": true,
+                    "description": "Start time in milliseconds."
+                },
+                {
+                    "name": "endMS",
+                    "type": "integer",
+                    "required": true,
+                    "description": "End time in milliseconds."
+                }
+            ]
+        },
+        {
+            "name": "setModelProperty",
+            "description": "Modifies a setting on a layout model.",
+            "parameters": [
+                {
+                    "name": "model",
+                    "type": "string",
+                    "required": true,
+                    "description": "Name of the model."
+                },
+                {
+                    "name": "property",
+                    "type": "string",
+                    "required": true,
+                    "description": "XML attribute/property key to change."
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "required": true,
+                    "description": "New value."
+                }
+            ]
+        },
+        {
+            "name": "runScript",
+            "description": "Runs a custom script (e.g., Python/Lua).",
+            "parameters": [
+                {
+                    "name": "script",
+                    "type": "string",
+                    "required": true,
+                    "description": "Path to the script file."
+                }
+            ]
+        }
+    ]
+}

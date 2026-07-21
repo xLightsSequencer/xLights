@@ -1,0 +1,58 @@
+{
+    "schemaVersion": 1,
+    "objectType": "output",
+    "protocol": "ArtNet",
+    "description": "One <network> child node per Art-Net universe under an ethernet <Controller Protocol=\"ArtNet\">. Multi-universe controllers have one node per universe. Source of truth: src-core/outputs/Output.cpp Output::SaveAttr (@42, base writer) and IPOutput.cpp IPOutput::SaveAttr (@27, IP-output writer) for the attributes shared by every IP-based protocol document in this tree, plus ArtNetOutput.cpp constructor (@59, reader) / Save (@418, writer) for the Art-Net-specific extra. Cross-checked against OutputPropertyAdapters.cpp ArtNetOutputPropertyAdapter::AddProperties (@353) and ControllerEthernetPropertyAdapter::ValidateProperties (@601, ControllerEthernetPropertyAdapter.cpp) for grid labels, ranges and validation.",
+    "storage": { "file": "xlights_networks.xml", "node": "Controller/network" },
+    "properties": [
+        {
+            "xmlAttribute": "NetworkType",
+            "type": "string",
+            "default": "ArtNet",
+            "description": "Protocol discriminator for this <network> node; always the literal \"ArtNet\" (ArtNetOutput::GetType(), matching the OUTPUT_ARTNET constant in Output.h @33). Written unconditionally by Output::SaveAttr (Output.cpp @44). No property-grid row (fixed by the controller's Protocol selection)."
+        },
+        {
+            "xmlAttribute": "ComPort",
+            "type": "string",
+            "default": "",
+            "description": "IP address/hostname this universe's data is sent to. Verified trap: legacy attribute name \"ComPort\" holds an IP address, not a serial port (IPOutput::SaveAttr, IPOutput.cpp @29-31 writer / @40 reader). Only written when non-empty. No property-grid row of its own: mirrors the parent <Controller>'s IP attribute, cascaded to every output by ControllerEthernet::SetIP (ControllerEthernet.cpp @153-177)."
+        },
+        {
+            "xmlAttribute": "BaudRate",
+            "label": "Start Universe",
+            "gridKey": "Universe",
+            "type": "uint",
+            "min": 0,
+            "max": 32767,
+            "default": 1,
+            "description": "Art-Net universe number (the combined net/subnet/universe value packed by ArtNetOutput::GetArtNetCombinedUniverse, ArtNetOutput.h @70) carried in the legacy BaudRate attribute (IPOutput::SaveAttr, IPOutput.cpp @32 writer / @47 reader, default 1 if absent - though 0 is a valid Art-Net universe). Grid range 0-32767 (OutputPropertyAdapters.cpp @358-361); ValidateProperties flags the grid row red outside that range (ControllerEthernetPropertyAdapter.cpp @606-609). As with E1.31, the universe count is not a per-node attribute - it equals the number of <network> children."
+        },
+        {
+            "xmlAttribute": "MaxChannels",
+            "label": "Channels per Universe",
+            "gridKey": "Channels",
+            "type": "uint",
+            "min": 1,
+            "max": 512,
+            "description": "Channel count for this universe (Output::SaveAttr, Output.cpp @46 writer / @76 reader). Written unconditionally. Grid range 1-512 (ArtNetOutput::GetMaxChannels() is 512; OutputPropertyAdapters.cpp @377-379); also checked against the controller capability max via caps->GetMaxInputUniverseChannels() (ControllerEthernetPropertyAdapter.cpp @636-643). New Art-Net outputs default to 510 channels via ArtNetOutput's parameterless constructor (ArtNetOutput.cpp @73). When outputs are not all the same size the grid hides this row for the per-universe \"Sizes\" collection instead (OutputPropertyAdapters.cpp @300-329) - same underlying MaxChannels attribute on each <network> node."
+        },
+        {
+            "xmlAttribute": "FPPProxy",
+            "type": "string",
+            "default": "",
+            "description": "IP/hostname of an FPP proxy this universe's data is routed through. Written only when non-empty (Output::SaveAttr, Output.cpp @48-51). No property-grid row of its own: mirrors the parent <Controller>'s FPPProxy attribute, cascaded by ControllerEthernet::SetFPPProxy (ControllerEthernet.cpp @407-411)."
+        },
+        {
+            "xmlAttribute": "ForceSourcePort",
+            "gridKey": "ForceSourcePort",
+            "label": "Force source port",
+            "type": "bool",
+            "boolFormat": "presentOnly",
+            "description": "When true, binds the outgoing Art-Net socket to the standard Art-Net port 0x1936 instead of an ephemeral port (ArtNetOutput::OpenDatagram, ArtNetOutput.cpp @48). Verified trap: written as the literal \"TRUE\" only when true (ArtNetOutput::Save, ArtNetOutput.cpp @422-424: `if (_forceSourcePort) node.append_attribute(\"ForceSourcePort\") = \"TRUE\";`); absent means false. Read by comparing against \"TRUE\" with default \"FALSE\" (ArtNetOutput.cpp @68). Grid checkbox labelled \"Force source port\" (OutputPropertyAdapters.cpp @354-356): 'You should only set this option if your ArtNet device is not seeing the ArtNet packets because it strictly requires that packets come from port 0x1936.'"
+        }
+    ],
+    "notes": [
+        "The property-grid keys Universe, Universes, Channels, IndivSizes, UniversesDisplay and the Sizes/Channels/<universe> collection are NOT the persisted attribute names - Universe maps to BaudRate and Channels maps to MaxChannels (both above); Universes/UniversesDisplay/IndivSizes/Sizes have no XML attribute at all and are purely derived from the count and per-node MaxChannels of the controller's <network> children (OutputPropertyAdapters.cpp @353-403).",
+        "UniversePerString (grid key \"UniversePerString\") is a Controller-level attribute (xmlAttribute \"UPS\", see Ethernet.json), not a per-network attribute."
+    ]
+}

@@ -1,0 +1,219 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Tree",
+    "description": "A tree built from vertical matrix strands: either wrapped around a round/conical trunk over a configurable degree sweep (\"Round\"), splayed flat (\"Flat\"), or splayed flat with an extra width-defining ribbon edge (\"Ribbon\"). C++ implementation-wise, TreeModel is a subclass of MatrixModel and reuses its NumStrings/NodesPerString/StrandsPerString/AlternateNodes/NoZig attributes verbatim (repeated below, not inherited, per this tree's house style: sibling documents never extend each other) - but Tree does NOT reuse Matrix's \"Vertical\" orientation attribute; it has its own \"StrandDir\" string attribute instead. Style is carried by the TreeType/TreeDegrees attributes, not by DisplayAs: the current serializer always writes the single literal DisplayAs value \"Tree\" (TreeModel::TreeModel sets DisplayAs = DisplayAsType::Tree; DisplayAsTypeToString always returns \"Tree\"). The compound legacy values \"Tree 360\"/\"Tree Flat\"/\"Tree Ribbon\" (and other \"Tree {degrees}\" forms) are read-only: XmlDeserializingModelFactory::DeserializeTree only parses them when the DisplayAs attribute is present and not exactly \"Tree\", converting them into TreeType/TreeDegrees; the current writer never produces them.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "MatrixStringCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (inherited MatrixModel::_numStrings via GetNumMatrixStrings/SetNumMatrixStrings). Identical attribute/semantics to Matrix.json's NumStrings; repeated here because sibling documents do not extend each other."
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "MatrixLightCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string (inherited MatrixModel::_nodesPerString). Identical attribute/semantics to Matrix.json's NodesPerString."
+        },
+        {
+            "xmlAttribute": "StrandsPerString",
+            "label": "Strands/String",
+            "gridKey": "MatrixStrandCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 2500,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "How many times each #String ZigZags (inherited MatrixModel::_strandsPerString). Identical attribute/semantics to Matrix.json's StrandsPerString."
+        },
+        {
+            "xmlAttribute": "AlternateNodes",
+            "label": "Alternate Nodes",
+            "gridKey": "AlternateNodes",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", interleaves node buffer positions instead of simple sequential order (inherited MatrixModel::_alternateNodes). Persisted as the lowercase literal true/false; always written. Mutually-enabling in the grid with NoZig, same pattern as Matrix.json."
+        },
+        {
+            "xmlAttribute": "NoZig",
+            "label": "Don't Zig Zag",
+            "gridKey": "NoZig",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", suppresses the zig-zag strand pattern (inherited MatrixModel::_noZigZag). Persisted as the lowercase literal true/false; always written."
+        },
+        {
+            "xmlAttribute": "StrandDir",
+            "label": "Strand Direction",
+            "gridKey": "StrandDir",
+            "type": "enum",
+            "enum": [
+                "Horizontal",
+                "Vertical"
+            ],
+            "default": "Vertical",
+            "description": "Strand wiring orientation (TreeModel::isVerticalMatrix()/SetVertical(), read back via TreePropertyAdapter's \"Strand Direction\" enum). CORRECTION vs. treating Tree as a plain Matrix: Tree does NOT write Matrix's boolean \"Vertical\" attribute at all (TreeModel's own BaseSerializingVisitor::Visit override has no VertMatrixAttribute call); orientation is instead carried by this separate string-valued attribute, read with XmlDeserializingModelFactory::DeserializeTree comparing it to the literal \"Vertical\" (default when absent)."
+        },
+        {
+            "xmlAttribute": "exportFirstStrand",
+            "label": "First Strand",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "description": "1-based index of the first strand used when exporting/rendering (TreeModel::GetFirstStrand()+1 is written; TreeModel::_firstStrand, 0-based internally). No dedicated property-grid control was found in TreePropertyAdapter for this attribute. Reader quirk: if absent, XmlDeserializingModelFactory::DeserializeTree computes GetFirstStrand() = as_int(0) - 1 = -1, but TreeModel::InitModel() immediately clamps any negative _firstStrand back to 0 before use."
+        },
+        {
+            "xmlAttribute": "TreeType",
+            "label": "Type",
+            "gridKey": "TreeStyle",
+            "type": "enum",
+            "enum": [
+                "0",
+                "1",
+                "2"
+            ],
+            "labels": {
+                "0": "Round",
+                "1": "Flat",
+                "2": "Ribbon"
+            },
+            "default": "0",
+            "description": "Tree style discriminator (TreeModel::_treeType, GetTreeType()/SetTreeType()), persisted as its underlying int value via std::to_string. Verified trap: xmlAttribute \"TreeType\" differs from its wxPropertyGrid key \"TreeStyle\" (TreePropertyAdapter::AddStyleProperties). \"Round\" renders a full 3D wrap using TreeDegrees/TreeRotation/TreeSpiralRotations/TreeBottomTopRatio/TreePerspective (TreeModel::SetTreeCoord branches on TreeDegrees > 0); \"Flat\"/\"Ribbon\" render a flat splayed shape driven directly by the raw TreeDegrees value being 0 or -1 respectively (see TreeDegrees)."
+        },
+        {
+            "xmlAttribute": "TreeDegrees",
+            "label": "Degrees",
+            "gridKey": "TreeDegrees",
+            "type": "uint",
+            "default": 360,
+            "min": 1,
+            "max": 360,
+            "appliesWhen": {
+                "attribute": "TreeType",
+                "equals": "0"
+            },
+            "description": "Angular sweep of the round tree's trunk wrap, in degrees (TreeModel::_degrees, GetTreeDegrees()/SetTreeDegrees(), stored as a C++ long but written/read as a plain integer). Only shown/editable in the property grid when TreeType == \"0\" (Round; TreePropertyAdapter::AddStyleProperties shows a fixed display of 180 and disables the control otherwise), but the underlying TreeModel::SetTreeCoord() branches directly on this raw value for ALL styles: values > 0 render the round-wrap formula; legacy Flat/Ribbon conversions (see displayAs description) set this to the sentinels 0 (Flat) or -1 (Ribbon) respectively, which TreeModel::SetTreeCoord treats as flat-splay render paths distinguished by degrees == -1 vs. not."
+        },
+        {
+            "xmlAttribute": "TreeRotation",
+            "label": "Rotation",
+            "gridKey": "TreeRotation",
+            "type": "float",
+            "default": 3.0,
+            "min": -360,
+            "max": 360,
+            "step": 0.1,
+            "precision": 2,
+            "appliesWhen": {
+                "attribute": "TreeType",
+                "equals": "0"
+            },
+            "description": "Starting angular offset of the trunk wrap, in degrees (TreeModel::_rotation, GetTreeRotation()/SetTreeRotation()); shifts strands so they don't line up exactly front-to-back. Only shown/editable when TreeType == \"0\" (Round), but always written."
+        },
+        {
+            "xmlAttribute": "TreeSpiralRotations",
+            "label": "Spiral Wraps",
+            "gridKey": "TreeSpiralRotations",
+            "type": "float",
+            "default": 0.0,
+            "min": -200,
+            "max": 200,
+            "precision": 2,
+            "appliesWhen": {
+                "attribute": "TreeType",
+                "equals": "0"
+            },
+            "description": "Number of extra spiral wraps to twist the strands through over the trunk height, 0 = straight vertical strands (TreeModel::_spiralRotations, GetSpiralRotations()/SetTreeSpiralRotations()). Only shown/editable when TreeType == \"0\" (Round), but always written."
+        },
+        {
+            "xmlAttribute": "TreeBottomTopRatio",
+            "label": "Bottom/Top Ratio",
+            "gridKey": "TreeBottomTopRatio",
+            "type": "float",
+            "default": 6.0,
+            "min": -50,
+            "max": 50,
+            "step": 0.5,
+            "precision": 2,
+            "appliesWhen": {
+                "attribute": "TreeType",
+                "equals": "0"
+            },
+            "description": "Ratio of the trunk's bottom radius to its top radius (TreeModel::_botTopRatio, GetBottomTopRatio()/SetTreeBottomTopRatio()); a negative value swaps which end is wider (TreeModel::SetTreeCoord). Only shown/editable when TreeType == \"0\" (Round), but always written."
+        },
+        {
+            "xmlAttribute": "TreePerspective",
+            "label": "Perspective",
+            "gridKey": "TreePerspective",
+            "type": "float",
+            "default": 0.2,
+            "min": 0,
+            "max": 1,
+            "precision": 2,
+            "encoding": "Persisted value = displayed property-grid value / 10. The \"Perspective\" spinner shown in the grid ranges 0-10 (step 0.1, precision 2) and is only shown/editable when TreeType == \"0\"; TreePropertyAdapter::AddStyleProperties multiplies the stored value by 10 for display, and OnPropertyGridChange divides the entered value by 10.0 before calling TreeModel::SetPerspective(). So an on-screen \"2\" is stored/written as \"0.2\".",
+            "appliesWhen": {
+                "attribute": "TreeType",
+                "equals": "0"
+            },
+            "description": "2D perspective foreshortening factor applied to the trunk render (TreeModel::_perspective, GetTreePerspective()/SetPerspective(), ModelScreenLocation::SetPerspective2D). See encoding for the x10 UI/storage relationship called out in the brief."
+        }
+    ],
+    "notes": [
+        "LowDefinition (shared/Common.json) does NOT apply to Tree despite Tree being a MatrixModel subclass in C++: TreeModel explicitly overrides SupportsLowDefinitionRender() to return false (\"we cant do low def on single node matrices\" / TreeModel.h comment), and its own Visit() override never writes the LowDefinition attribute (only MatrixModel's and SphereModel's Visit() do). Common.json's appliesWhen already restricts the property to DisplayAs Matrix/Sphere, so no Tree-specific action was needed, but this is flagged since a naive reading of the C++ class hierarchy could suggest otherwise.",
+        "Starting Location: the \"MatrixStart\" property-grid enum inherited from MatrixPropertyAdapter (TreePropertyAdapter extends it) sets the shared Dir/StartSide attributes (shared/Common.json); no property object for it appears above."
+    ]
+}

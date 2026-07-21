@@ -1,0 +1,166 @@
+{
+    "schemaVersion": 1,
+    "description": "Position/size/rotation attributes on every <model> node in xlights_rgbeffects.xml. Every model uses exactly one of four ModelScreenLocation subclasses (Boxed / TwoPoint / ThreePoint / PolyPoint) selected by its DisplayAs (see shared/Common.json for the DisplayAs enum and notes below for the style mapping); which attributes are actually written depends on that style, not on any attribute defined in this fragment itself.",
+    "storage": { "file": "xlights_rgbeffects.xml", "node": "models/model" },
+    "properties": [
+        {
+            "xmlAttribute": "WorldPosX",
+            "type": "float",
+            "default": 0,
+            "relatedTo": ["WorldPosY", "WorldPosZ"],
+            "description": "World-space X position of the model's reference point (glm::vec3 GetWorldPosition().x), in layout units. Written/read for every style via BaseSerializingVisitor::AddModelScreenLocationAttributes / XmlSerialize::DeserializeModelScreenLocationAttributes. Property-grid key/label differ by style: Boxed exposes it as float property \"X\"/gridKey \"ModelX\"; TwoPoint/ThreePoint expose it as \"WorldX\"/gridKey \"WorldX\" (plus a redundant \"X1\"/gridKey \"ModelX1\" showing the same value, see notes); PolyPoint does not expose WorldPos directly (only per-point X1/Y1/Z1..XN/YN/ZN, each already offset by world position)."
+        },
+        {
+            "xmlAttribute": "WorldPosY",
+            "type": "float",
+            "default": 0,
+            "relatedTo": ["WorldPosX", "WorldPosZ"],
+            "description": "World-space Y position, matching WorldPosX (gridKey \"ModelY\" for Boxed, \"WorldY\"/\"ModelY1\" for TwoPoint/ThreePoint)."
+        },
+        {
+            "xmlAttribute": "WorldPosZ",
+            "type": "float",
+            "default": 0,
+            "relatedTo": ["WorldPosX", "WorldPosY"],
+            "description": "World-space Z position, matching WorldPosX (gridKey \"ModelZ\" for Boxed, \"WorldZ\"/\"ModelZ1\" for TwoPoint/ThreePoint)."
+        },
+        {
+            "xmlAttribute": "Locked",
+            "gridKey": "Locked",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "When true, the model's position/size handles are locked against accidental drag/resize in the layout preview. Only the value \"1\" is ever written (BaseSerializingVisitor::AddModelScreenLocationAttributes writes it only when IsLocked() is true); absence means unlocked. Applies to all four location styles identically."
+        },
+        {
+            "xmlAttribute": "ScaleX",
+            "gridKey": "ScaleX",
+            "type": "float",
+            "default": 1.0,
+            "relatedTo": ["ScaleY", "ScaleZ"],
+            "description": "Bounding-box scale factor on X. Written for Boxed style (all Boxed-using DisplayAs types, plus every Dmx* model) and for PolyLine's PolyPoint style (AddPolyPointScreenLocationAttributes); NOT written for TwoPoint or ThreePoint styles (ChannelBlock, SingleLine, Arches, CandyCanes, Icicles) even though it is still read on load with default 1.0 for every style (XmlSerialize::DeserializeModelScreenLocationAttributes runs unconditionally). PolyLine's UI does not expose ScaleX/Y/Z directly (no property-grid entry); only Boxed models expose it as the \"ScaleX\" float property."
+        },
+        {
+            "xmlAttribute": "ScaleY",
+            "gridKey": "ScaleY",
+            "type": "float",
+            "default": 1.0,
+            "relatedTo": ["ScaleX", "ScaleZ"],
+            "description": "Bounding-box scale factor on Y; see ScaleX for which styles write/read/expose it."
+        },
+        {
+            "xmlAttribute": "ScaleZ",
+            "gridKey": "ScaleZ",
+            "type": "float",
+            "default": 1.0,
+            "relatedTo": ["ScaleX", "ScaleY"],
+            "description": "Bounding-box scale factor on Z; see ScaleX for which styles write/read/expose it. Boxed style only shows this property when the location supports Z scaling (BoxedScreenLocation::GetSupportsZScaling())."
+        },
+        {
+            "xmlAttribute": "RotateX",
+            "gridKey": "RotateX",
+            "type": "float",
+            "default": 0,
+            "min": -180,
+            "max": 180,
+            "relatedTo": ["RotateY", "RotateZ"],
+            "description": "Rotation around X, in degrees. Written for Boxed style (all 3 axes) and for ThreePoint style (X axis only - see BaseSerializingVisitor::AddThreePointScreenLocationAttributes, which writes RotateX but not RotateY/RotateZ); not written for TwoPoint or PolyPoint styles. Read unconditionally for every style with default 0."
+        },
+        {
+            "xmlAttribute": "RotateY",
+            "gridKey": "RotateY",
+            "type": "float",
+            "default": 0,
+            "min": -180,
+            "max": 180,
+            "relatedTo": ["RotateX", "RotateZ"],
+            "description": "Rotation around Y, in degrees. Written only for Boxed style; ThreePoint/TwoPoint/PolyPoint do not write this axis (ThreePoint models still rotate visually via RotateX + Angle + Shear)."
+        },
+        {
+            "xmlAttribute": "RotateZ",
+            "gridKey": "RotateZ",
+            "type": "float",
+            "default": 0,
+            "min": -180,
+            "max": 180,
+            "relatedTo": ["RotateX", "RotateY"],
+            "description": "Rotation around Z, in degrees. Written only for Boxed style; see RotateY."
+        },
+        {
+            "xmlAttribute": "X2",
+            "gridKey": "ModelX2",
+            "type": "float",
+            "default": 0,
+            "relatedTo": ["Y2", "Z2"],
+            "description": "TwoPoint/ThreePoint style only (ChannelBlock, SingleLine, Arches, CandyCanes, Icicles): X offset of the model's second point from WorldPosX (TwoPointScreenLocation::GetX2()/SetX2()). Verified trap: property-grid key \"ModelX2\" differs from the xmlAttribute \"X2\"; the grid additionally shows an absolute \"X2\" display value (GetX2() + GetWorldPos_X()) under the same key. Not present for Boxed or PolyPoint styles."
+        },
+        {
+            "xmlAttribute": "Y2",
+            "gridKey": "ModelY2",
+            "type": "float",
+            "default": 0,
+            "relatedTo": ["X2", "Z2"],
+            "description": "TwoPoint/ThreePoint style only: Y offset of the second point from WorldPosY; see X2."
+        },
+        {
+            "xmlAttribute": "Z2",
+            "gridKey": "ModelZ2",
+            "type": "float",
+            "default": 0,
+            "relatedTo": ["X2", "Y2"],
+            "description": "TwoPoint/ThreePoint style only: Z offset of the second point from WorldPosZ; see X2."
+        },
+        {
+            "xmlAttribute": "Angle",
+            "type": "int",
+            "default": 0,
+            "min": -180,
+            "max": 180,
+            "relatedTo": ["Shear", "Height"],
+            "description": "ThreePoint style only (Arches, CandyCanes, Icicles): integer tilt/skew angle in degrees around the model's own axis (ThreePointScreenLocation::GetAngle()/SetAngle(), gated by SetSupportsAngle(true) in each of those three model constructors). CORRECTION vs a naive reading of the C++: this is a distinct attribute from Shear, not an alias for it - both are always written together by AddThreePointScreenLocationAttributes. There is no single generic property-grid entry for it; each model type exposes it with its own label/gridKey over the SAME xmlAttribute and underlying value: ArchesPropertyAdapter exposes it as \"Arch Tilt\"/gridKey \"ArchesSkew\" (min/max -180..180), CandyCanePropertyAdapter as \"Cane Rotation\"/gridKey \"CandyCaneSkew\". Icicles does not expose a UI control for it (always 0)."
+        },
+        {
+            "xmlAttribute": "Shear",
+            "gridKey": "ModelShear",
+            "type": "float",
+            "default": 0.0,
+            "relatedTo": ["Angle", "Height"],
+            "description": "ThreePoint style only: Y-shear factor (ThreePointScreenLocation::GetYShear()/SetYShear(), backed by member GetShear()/SetShear()). Effective only when the model's screen location was constructed with SetSupportsShear(true) (GetYShear() forces 0.0 otherwise), but the attribute is always written regardless. Exposed as a \"Shear\" float property only when ScreenLocationPropertyHelper detects GetSupportsShear()."
+        },
+        {
+            "xmlAttribute": "Height",
+            "gridKey": "ModelHeight",
+            "type": "float",
+            "default": 1.0,
+            "relatedTo": ["Angle", "Shear"],
+            "description": "ThreePoint style only: relative model height factor (ThreePointScreenLocation::GetMHeight()/SetMHeight(), aliased by GetHeight()/SetHeight()). NOTE: this shares the generic xmlAttribute name \"Height\" (XmlNodeKeys::HeightAttribute) also used for unrelated Width/Height/Depth-style attributes elsewhere (e.g. the Mesh view-object child element) - those live on different XML elements so there is no collision, but do not confuse this ThreePoint Height with a Boxed model's rendered dimensions (which are NOT persisted directly - see notes)."
+        },
+        {
+            "xmlAttribute": "NumPoints",
+            "type": "uint",
+            "default": 2,
+            "min": 2,
+            "description": "PolyPoint style only (PolyLine; also used more sparingly by MultiPoint via the lighter AddMultiPointScreenLocationAttributes): number of vertices in PointData (PolyPointScreenLocation::GetNumPoints()/SetNumPoints()). Drives how many comma-separated triples PointData/cPointData contain."
+        },
+        {
+            "xmlAttribute": "PointData",
+            "type": "string",
+            "default": "0.0, 0.0, 0.0, 0.0, 0.0, 0.0",
+            "encoding": "Comma-separated flat list of floats, 3 per point (x,y,z), NumPoints triples total, in point order: \"x0,y0,z0,x1,y1,z1,...,x{N-1},y{N-1},z{N-1}\". Coordinates are relative to the model's world position/scale. Produced/parsed by PolyPointScreenLocation::GetPointDataAsString()/SetDataFromString().",
+            "description": "PolyPoint style only: the raw vertex coordinates of every point in the poly-line/multi-point path."
+        },
+        {
+            "xmlAttribute": "cPointData",
+            "type": "string",
+            "default": "",
+            "encoding": "Comma-separated repeating groups of 7 fields, one group per curved segment: \"segIndex,cp0x,cp0y,cp0z,cp1x,cp1y,cp1z,\" (trailing comma after each group; segments without a curve are omitted entirely, not zero-filled). segIndex is the 0-based index of the segment's start point; cp0/cp1 are the cubic Bezier control points for that segment. Produced/parsed by PolyPointScreenLocation::GetCurveDataAsString()/SetCurveDataFromString().",
+            "description": "PolyPoint style only, PolyLine specifically (not written by MultiPoint's lighter AddMultiPointScreenLocationAttributes): optional per-segment cubic-Bezier curve data overlaid on top of the straight-line PointData path. Empty string / absent means no segments are curved."
+        }
+    ],
+    "notes": [
+        "Style-to-DisplayAs mapping (verified against BaseSerializingVisitor.cpp Visit() overloads): Boxed = Circle, Cube, Custom, Image, Label, Matrix, Sphere, Spinner, Star, Tree, Window Frame, Wreath, and every Dmx* type (DmxFloodArea, DmxFloodlight, DmxGeneral, DmxMovingHead, DmxMovingHeadAdv, DmxServo, DmxServo3d, DmxSkull) via AddDmxModelAttributes. TwoPoint = Channel Block, Single Line. ThreePoint = Arches, Candy Canes, Icicles (all three call SetSupportsAngle(true) in their constructors; only CandyCanes/Arches expose Angle in their property grid). PolyPoint (full, with ScaleX/Y/Z + cPointData) = Poly Line. PolyPoint (light, NumPoints + PointData only, no scale/curve) = MultiPoint.",
+        "RealWidth, RealHeight, RealDepth and RealLength are NOT persisted XML attributes - they are derived, on-the-fly computed property-grid display values (BoxedScreenLocation::GetRealWidth/GetRealHeight/GetRealDepth for Boxed; RulerObject::Measure(point1, point2) for TwoPoint/ThreePoint/PolyPoint) shown in real-world units via ScreenLocationPropertyHelper::AddDimensionProperties. Editing them in the UI back-solves ScaleX/Y/Z (Boxed) or the X2/Y2/Z2 offsets (TwoPoint) - it does not add a new XML attribute. This corrects the survey's open question about whether they persist: they do not.",
+        "A separate, unrelated <dimensions> child element (XmlNodeKeys::DimNodeName, attributes units/width/height/depth) is written only during export (forExport flag, BaseSerializingVisitor::WriteDimensionsElement) from the same Real* getters, in the ruler's configured display units (mm/inches/feet/yards/cm/m). It is informational/export-only and is not modeled in this fragment; see childElements in a future task if needed.",
+        "PolyLine additionally persists auxiliary per-point/per-segment data on the <model> element itself (outside ScreenLocation): dynamic-indexed \"CornerN\", \"SegN\" and per-node \"StartNodeN\" attributes (see PolyLineModel::CornerAttrName/SegAttrName/StartNodeAttrName) plus \"SegsExpanded\" (bool, TRUE/FALSE). These are PolyLine-specific, not shared ScreenLocation concepts, and are left to models/PolyLine.json."
+    ]
+}
