@@ -67,15 +67,15 @@ static std::vector<std::string> GetPathComponents(const std::string& path) {
     return components;
 }
 
-// A Windows drive-letter path ("H:\...") or UNC path ("\\server\...") is
-// absolute on Windows but not per POSIX path rules — never treat one as a
-// portable relative path
-static bool IsWindowsAbsolutePath(const std::string& path) {
-    if (path.size() >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/') &&
-        ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'))) {
-        return true;
-    }
-    return path.size() >= 2 && path[0] == '\\' && path[1] == '\\';
+// Only bare relative paths ("Models3D/House.obj") are portable across
+// platforms. Anything rooted — POSIX "/..." (not fs-absolute on Windows),
+// Windows drive-rooted "\..." or "H:\...", or UNC "\\server\..." — must not
+// be resolved as if it were show-relative
+static bool IsRootedOrAbsolutePath(const std::string& path) {
+    if (path.empty()) return false;
+    if (path[0] == '/' || path[0] == '\\') return true;
+    return path.size() >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/') &&
+           ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'));
 }
 
 // Check if a file exists in a directory with the given filename
@@ -144,7 +144,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
 
     // Relative paths (saved for portability) resolve against the show dir and
     // media dirs before any filename-based searching
-    if (!std::filesystem::path(file).is_absolute() && !IsWindowsAbsolutePath(file) && !sd.empty()) {
+    if (!std::filesystem::path(file).is_absolute() && !IsRootedOrAbsolutePath(file) && !sd.empty()) {
         std::string append;
         for (const auto& comp : GetPathComponents(file)) {
             if (!append.empty()) append += std::filesystem::path::preferred_separator;
