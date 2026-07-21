@@ -489,8 +489,10 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
         targetMediaFolder = _importOptions.GetDir(MediaTargetDir::GLEDIATORS_DIR);
     } else if (effName == "Faces") {
         std::string faceName = settings["E_CHOICE_Faces_FaceDefinition"];
-        if (!faceName.empty()) {
-            ImportFaceInfo(mappedEffect, target, faceName);
+        if (!ImportSequenceFaceInfo(mappedEffect, target, faceName)) {
+            if (!faceName.empty()) {
+                ImportFaceInfo(mappedEffect, target, faceName);
+            }
         }
     } else if (effName == "Shape") {
         std::string shapePath = settings["E_FILEPICKERCTRL_SVG"];
@@ -617,6 +619,105 @@ void SequencePackage::ImportFaceInfo(Effect* mappedEffect, EffectLayer* target, 
             }
         }
     }
+}
+
+bool SequencePackage::SourceModelHasFace(const std::string& srcModelName, const std::string& faceName)
+{
+    if (!_hasRGBEffects) {
+        return false;
+    }
+    for (pugi::xml_node node = _rgbEffects.document_element().first_child(); node; node = node.next_sibling()) {
+        if (std::string_view(node.name()) != "models") {
+            continue;
+        }
+        for (pugi::xml_node model = node.first_child(); model; model = model.next_sibling()) {
+            if (std::string_view(model.attribute("name").as_string()) != srcModelName) {
+                continue;
+            }
+            for (pugi::xml_node child = model.first_child(); child; child = child.next_sibling()) {
+                if (std::string_view(child.name()) == "faceInfo" &&
+                    (faceName.empty() || std::string_view(child.attribute("Name").as_string()) == faceName)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    return false;
+}
+
+bool SequencePackage::ImportSequenceFaceInfo(Effect* mappedEffect, EffectLayer* target, const std::string& faceName)
+{
+    auto* srcSE = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+    auto* tgtSE = target->GetParentElement()->GetSequenceElements();
+    if (srcSE == nullptr || tgtSE == nullptr) {
+        return false;
+    }
+
+    // Resolve the way the renderer does: model definitions win, sequence
+    // definitions are the fallback; "Default"/empty means the first model
+    // face, else the first sequence face.
+    auto srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
+    std::string resolved = faceName;
+    if (faceName == "Default" || faceName.empty()) {
+        if (SourceModelHasFace(srcModelName, "")) {
+            return false; // source rendered a model face - model path handles it
+        }
+        const auto& seqFaces = srcSE->GetSequenceFaces().GetFaces();
+        if (seqFaces.empty()) {
+            return false;
+        }
+        resolved = seqFaces.begin()->first;
+    } else if (SourceModelHasFace(srcModelName, faceName)) {
+        return false; // model definition shadowed the sequence one at the source
+    }
+
+    const auto* srcDef = srcSE->GetSequenceFaces().GetFace(resolved);
+    if (srcDef == nullptr) {
+        return false; // not a sequence-level definition in the source
+    }
+
+    // model-level definitions win on the target - don't shadow one
+    if (_modelManager != nullptr) {
+        Model* targetModel = (*_modelManager)[target->GetParentElement()->GetModelName()];
+        if (targetModel != nullptr && targetModel->GetFaceInfo().find(resolved) != targetModel->GetFaceInfo().end()) {
+            return true;
+        }
+    }
+    if (tgtSE->GetSequenceFaces().GetFace(resolved) != nullptr) {
+        return true; // already imported (e.g. by an earlier effect)
+    }
+
+    auto& srcMedia = srcSE->GetSequenceMedia();
+    auto& tgtMedia = tgtSE->GetSequenceMedia();
+    std::map<std::string, std::string> def = *srcDef;
+    for (auto& [key, value] : def) {
+        if (!SequenceFaces::IsImageKey(key) || value.empty()) {
+            continue;
+        }
+        if (srcMedia.HasImage(value)) {
+            auto img = srcMedia.GetImage(value);
+            if (img != nullptr && img->IsEmbedded()) {
+                if (!tgtMedia.HasImage(value)) {
+                    tgtMedia.AddEmbeddedImage(value, img->GetEmbeddedData());
+                }
+                tgtMedia.MarkUsedByMetadata(value);
+                continue;
+            }
+        }
+        // external image - copy the packaged file into the faces folder
+        std::string faceFileName = ExtractFilename(value);
+        auto it = _media.find(faceFileName);
+        std::filesystem::path fileToCopy = (it != _media.end()) ? it->second : std::filesystem::path();
+        if (!fileToCopy.empty() && FileExists(fileToCopy.string())) {
+            value = CopyMediaToTarget(_importOptions.GetDir(MediaTargetDir::FACES_DIR), fileToCopy).string();
+        } else if (!faceFileName.empty()) {
+            _missingMedia.push_back(faceFileName);
+        }
+    }
+
+    tgtSE->GetSequenceFaces().SetFace(resolved, def);
+    return true;
 }
 
 std::filesystem::path SequencePackage::CopyMediaToTarget(const std::string& targetFolder, const std::filesystem::path& mediaToCopy)
@@ -1369,6 +1470,64 @@ static std::map<std::string, std::list<std::string>> collectFacesUsedInSequence(
     return result;
 }
 
+// Queue one face image for packing. Places under its show-relative path when
+// inside showDir, otherwise Faces/<parentBasename>/<filename> so e.g.
+// Faces/Woody/Woody_AI.png stays grouped.
+void queueFaceImage(const std::string& raw, const std::string& refDesc,
+                    const std::string& showDir, const std::filesystem::path& canonShowDir,
+                    std::map<std::string, std::string>& outRewrites,
+                    std::map<std::string, std::string>& outToPack,
+                    std::set<std::string>& claimed,
+                    std::vector<std::string>& outWarnings)
+{
+    if (raw.empty()) return;
+    std::string abs = resolveToAbsolute(showDir, raw);
+    if (abs.empty()) {
+        std::string msg = "Could not locate face image '" + raw + "' referenced by " + refDesc + " — not included in package";
+        spdlog::warn("Pack: {}", msg);
+        outWarnings.push_back(msg);
+        return;
+    }
+    if (outToPack.count(abs)) return;
+    std::string zipPath;
+    if (isUnderCanonDir(std::filesystem::path(abs), canonShowDir)) {
+        std::error_code ec;
+        auto rel = std::filesystem::relative(abs, showDir, ec);
+        if (!ec && !rel.empty()) {
+            zipPath = rel.generic_string();
+            claimed.insert(zipPath);
+        }
+    }
+    if (zipPath.empty()) {
+        auto absPath = std::filesystem::path(abs);
+        std::string parentName = absPath.parent_path().filename().string();
+        if (parentName.empty()) parentName = "Faces";
+        std::string subdir = "Faces/" + parentName;
+        zipPath = claimUniqueZipPath(claimed, subdir, absPath.filename().string());
+    }
+    outToPack[abs] = zipPath;
+    if (raw != zipPath) outRewrites[raw] = zipPath;
+    if (abs != raw && abs != zipPath) outRewrites[abs] = zipPath;
+}
+
+// Sequence-level face definitions live inside the .xsq; their external
+// images pack exactly like model face images. Embedded images are skipped —
+// they're already inside the .xsq. The <FaceDefinitions> paths are rewritten
+// by the whole-document rewrite pass like every other reference.
+void collectFromSequenceFaces(const SequenceFaces& faces, SequenceMedia& media,
+                              const std::string& showDir, const std::filesystem::path& canonShowDir,
+                              std::map<std::string, std::string>& outRewrites,
+                              std::map<std::string, std::string>& outToPack,
+                              std::set<std::string>& claimed,
+                              std::vector<std::string>& outWarnings)
+{
+    for (const auto& path : faces.GetImagePaths()) {
+        if (media.GetMediaEmbedState(path).first /*isEmbedded*/) continue;
+        queueFaceImage(path, "sequence face definitions", showDir, canonShowDir,
+                       outRewrites, outToPack, claimed, outWarnings);
+    }
+}
+
 // Enumerate file references from every model (or view-object). We
 // use the iterator pair exposed by `ModelManager::begin/end` /
 // `ViewObjectManager::begin/end` — BaseObject itself doesn't
@@ -1520,36 +1679,8 @@ void collectFromObjectManager(ManagerT& mgr,
         // logic above. They always land under "Faces/" when external, preserving
         // their parent directory name so e.g. Faces/Woody/Woody_AI.png stays grouped.
         for (const auto& raw : faceRefs) {
-            if (raw.empty()) continue;
-            std::string abs = resolveToAbsolute(showDir, raw);
-            if (abs.empty()) {
-                std::string msg = "Could not locate face image '" + raw + "' referenced by model '" + it->first + "' — not included in package";
-                spdlog::warn("Pack: {}", msg);
-                outWarnings.push_back(msg);
-                continue;
-            }
-            if (outToPack.count(abs)) continue;
-            // Place under show-relative path if inside showDir, otherwise
-            // use Faces/<parentBasename>/<filename> to preserve grouping.
-            std::string zipPath;
-            if (isUnderCanonDir(std::filesystem::path(abs), canonShowDir)) {
-                std::error_code ec;
-                auto rel = std::filesystem::relative(abs, showDir, ec);
-                if (!ec && !rel.empty()) {
-                    zipPath = rel.generic_string();
-                    claimed.insert(zipPath);
-                }
-            }
-            if (zipPath.empty()) {
-                auto absPath = std::filesystem::path(abs);
-                std::string parentName = absPath.parent_path().filename().string();
-                if (parentName.empty()) parentName = "Faces";
-                std::string subdir = "Faces/" + parentName;
-                zipPath = claimUniqueZipPath(claimed, subdir, absPath.filename().string());
-            }
-            outToPack[abs] = zipPath;
-            if (raw != zipPath) outRewrites[raw] = zipPath;
-            if (abs != raw && abs != zipPath) outRewrites[abs] = zipPath;
+            queueFaceImage(raw, "model '" + it->first + "'", showDir, canonShowDir,
+                           outRewrites, outToPack, claimed, outWarnings);
         }
     }
 }
@@ -1626,6 +1757,9 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
     }
 
     collectFromSequenceMedia(media, showDir, canonShowDir, options.excludeVideos,
+                             rewrites, absToZip, claimedZipPaths, warnings);
+
+    collectFromSequenceFaces(seqElements.GetSequenceFaces(), media, showDir, canonShowDir,
                              rewrites, absToZip, claimedZipPaths, warnings);
     tick(20);
 

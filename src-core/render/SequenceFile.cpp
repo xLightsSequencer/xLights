@@ -1376,6 +1376,10 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
     // SequenceMedia
     seq_elements.GetSequenceMedia().SaveToXml(root);
 
+    // Sequence-level face definitions — must follow SequenceMedia so embedded
+    // image names are registered before face image paths are resolved on load
+    seq_elements.GetSequenceFaces().SaveToXml(root);
+
     // SongStructure regions (only if any view has regions)
     if (seq_elements.GetSongStructureManager().AnyViewHasRegions()) {
         seq_elements.GetSongStructureManager().SaveToXml(root);

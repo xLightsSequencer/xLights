@@ -13,6 +13,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.14  July ??, 2026
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
+    -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
+                                 defines matrix (image) faces stored in the .xsq, usable by any
+                                 matrix/group/submodel in that sequence (no need to duplicate the face
+                                 on every model); images embeddable via the Media tab; handled by
+                                 Package Sequence, Import Effects and Check Sequence
+    -bug (dkulp)                 Renaming a face definition (model faces dialog or the new sequence
+                                 Faces tab) now updates Faces effects referencing it instead of
+                                 orphaning them
+    -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
+                                 be embedded, and SuperStar-imported scene animations silently failed to
+                                 embed (frames lost on save)
+    -enh (dkulp)                 Render: render cache now saves an effect's cache to disk even when
+                                 frames complete out of order (frame-parallel windows)
+    -bug (dkulp)                 macOS: Video effect on uncompressed (rawvideo) .mov files with a
+                                 non-zero start time rendered blue frames (mid-file positioning
+                                 failed); also fixed transient unscaled/wrong frames under heavy
+                                 load and a shutdown/reopen race in the shared video decoder
     -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
                                  (matrices, megatrees, ...), not just groups
     -enh (dkulp)                 Render: Twinkle is frame-parallel Snapshottable (both render methods),
@@ -26,6 +43,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  embed (frames lost on save)
     -bug (dkulp)                 Circles: crash rendering into a variable/oversized sub-buffer (the SIMD
                                  kernel wrote past the pixel allocation)
+    -bug (dkulp)                 Open Sequence: the remembered last-used dialog directory is now
+                                 ignored (falls back to the show directory) when it is not inside
+                                 the current show folder, e.g. after switching show folders
     -bug (dkulp)                 Sequencer: crash double-clicking an empty/stale row heading
     -bug (dkulp)                 Layout: crash when the mouse moved over the preview while the vendor
                                  certified model prompt was open during a model download/import

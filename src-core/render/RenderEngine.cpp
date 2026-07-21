@@ -93,6 +93,19 @@ static const bool xldbgParallelWindows = (getenv("XL_PARALLEL_WINDOWS") != nullp
 static const bool xldbgParallelFrames = (getenv("XL_NO_PARALLEL_FRAMES") == nullptr);
 static const int PAR_FRAME_MAX_CHUNK = 24;
 
+// Window length per row kind, clamped to [2, PAR_FRAME_MAX_CHUNK].  Groups
+// default shorter: their clone buffers are the big whole-house ones (window
+// length × full PixelBufferClass each), and since FrameDone streams per frame
+// a longer window no longer buys downstream latency - it only costs memory
+// and a longer straggler barrier for the row itself.
+static int ParChunkEnv(const char* name, int def) {
+    const char* e = getenv(name);
+    int v = e != nullptr ? (int)strtol(e, nullptr, 10) : def;
+    return std::min(std::max(v, 2), PAR_FRAME_MAX_CHUNK);
+}
+static const int PAR_FRAME_MODEL_CHUNK = ParChunkEnv("XL_PARALLEL_CHUNK", PAR_FRAME_MAX_CHUNK);
+static const int PAR_FRAME_GROUP_CHUNK = ParChunkEnv("XL_PARALLEL_GROUP_CHUNK", 8);
+
 // XL_PARALLEL_BLOCKERS=1: profile-only.  On every structurally-eligible group
 // row, walk each frame and record which effect(s) prevent it from rendering in
 // a parallel window - so a run over a whole show library ranks the effects
@@ -1682,9 +1695,12 @@ public:
     // frame writes only seqData[frame] - a distinct row - so the whole per-frame
     // pipeline is independent, not just produce().  The caller must have already
     // satisfied the upstream gate through `e` (OutputFrame's CanOutputFrame is a
-    // backstop) and emits FrameDone in frame order afterwards, so downstream
-    // still sees monotonic completion.  Each clone's EffectLayerInfo is reset so
-    // ProduceFrame re-initialises from scratch (output-invariant for Pure effects).
+    // backstop).  FrameDone / currentFrame are emitted HERE, streamed per frame:
+    // frames finish out of order, so a cursor advances over the contiguous
+    // finished prefix and emits in frame order - downstream rows gated on frame
+    // f start as soon as f lands instead of waiting for the whole window.
+    // Each clone's EffectLayerInfo is reset so ProduceFrame re-initialises from
+    // scratch (output-invariant for Pure effects).
     //
     // hasSnapshot: the window covers >=1 Snapshottable layer.  A Snapshottable
     // effect can't be re-simulated independently per clone (its advance carries
@@ -1741,8 +1757,20 @@ public:
         for (int i = 0; i < n; ++i) {
             *parInfos[i] = EffectLayerInfo(numLayers);
         }
+        // Streamed completion state.  FrameDone must be exact-once per frame
+        // (AggregatorRenderer counts one call per upstream per frame) and in
+        // increasing order (done(N) promises every frame <= N is in seqData),
+        // hence the contiguous-prefix cursor under a lock rather than emitting
+        // from each worker directly.  parallel_for claims indices in order, so
+        // the prefix advances close behind the workers.  A worker exception
+        // (swallowed by parallel_for) stalls the tail emissions; the next
+        // serial FrameDone / END is monotonic and recovers the watermark.
+        std::vector<bool> finished(n, false);
+        int doneCursor = 0;
+        std::mutex doneLock;
+        const bool relay = HasNext();
         static ParallelJobPool PAR_FRAME_POOL("par_frame_pool", PAR_FRAME_MAX_CHUNK);
-        parallel_for(0, n, [this, a, hasSnapshot, &snaps](int i) {
+        parallel_for(0, n, [this, a, n, hasSnapshot, relay, &snaps, &finished, &doneCursor, &doneLock](int i) {
             int f = a + i;
             if (hasSnapshot) {
                 for (int l = 0; l < numLayers; ++l) {
@@ -1756,6 +1784,16 @@ public:
                 }
             }
             OutputFrame(f, rowToRender, *parInfos[i], parBuffers[i].get(), -1);
+            std::unique_lock<std::mutex> dl(doneLock);
+            finished[i] = true;
+            while (doneCursor < n && finished[doneCursor]) {
+                int df = a + doneCursor;
+                currentFrame = df; // UI progress advances per frame, not per window
+                if (relay) {
+                    FrameDone(df);
+                }
+                ++doneCursor;
+            }
         }, 1, &PAR_FRAME_POOL, this->name + " - Frames");
     }
 
@@ -1876,6 +1914,7 @@ public:
             && subModelInfos.empty() && nodeBuffers.empty()
             && !ctorHasPerModelBuffers;
         parEligible = xldbgParallelFrames && structurallyEligible;
+        parChunkFrames = isGroup ? PAR_FRAME_GROUP_CHUNK : PAR_FRAME_MODEL_CHUNK;
 
         if (xldbgParBlockers) {
             // Rows held back ONLY by their submodel/strand effects - the
@@ -2369,13 +2408,7 @@ public:
                         rowToRender->SetDirtyRange(a * seqData->FrameTime(), endFrame * seqData->FrameTime());
                         stopped = true;
                     } else {
-                        RenderParallelWindow(a, e, parWindowHasSnapshot);
-                        currentFrame = e; // advance the UI progress per window (not just per serial frame)
-                        if (HasNext()) {
-                            for (int f = a; f <= e; ++f) {
-                                FrameDone(f);
-                            }
-                        }
+                        RenderParallelWindow(a, e, parWindowHasSnapshot); // streams FrameDone + currentFrame per frame
                         resumeFrame = e + 1;
                     }
                 }
@@ -2384,15 +2417,17 @@ public:
                     // whose every layer is Pure or Snapshottable in parallel clones.
                     // Snapshottable layers get a serial capture pre-pass first (see
                     // RenderParallelWindow).  The window gates once on upstream and
-                    // emits FrameDone in order.  Wins when the per-frame work is
-                    // output/scatter-bound (serial per frame); effects whose internal
-                    // parallel_for already saturates cores see no gain.
+                    // streams FrameDone in frame order as frames complete, so
+                    // downstream rows start before the window finishes.  Wins when
+                    // the per-frame work is output/scatter-bound (serial per frame);
+                    // effects whose internal parallel_for already saturates cores
+                    // see no gain.
                     if (parEligible && !abort &&
                             origChangeCount == rowToRender->getChangeCount()) {
                         bool windowHasSnapshot = false;
                         if (FrameIsParallelSafe(resumeFrame, windowHasSnapshot)) {
                             int a = resumeFrame;
-                            int cap = std::min((int)endFrame, (int)resumeFrame + PAR_FRAME_MAX_CHUNK - 1);
+                            int cap = std::min((int)endFrame, (int)resumeFrame + parChunkFrames - 1);
                             int e = a;
                             while (e + 1 <= cap && FrameIsParallelSafe(e + 1, windowHasSnapshot)) {
                                 ++e;
@@ -2410,13 +2445,7 @@ public:
                                         return;
                                     }
                                 }
-                                RenderParallelWindow(a, e, windowHasSnapshot);
-                                currentFrame = e; // advance the UI progress per window (not just per serial frame)
-                                if (HasNext()) {
-                                    for (int f = a; f <= e; ++f) {
-                                        FrameDone(f);
-                                    }
-                                }
+                                RenderParallelWindow(a, e, windowHasSnapshot); // streams FrameDone + currentFrame per frame
                                 resumeFrame = e + 1;
                                 continue;
                             }
@@ -2578,12 +2607,13 @@ private:
     std::map<SNPair, bool> nodeShouldOutput;
     int origChangeCount = 0;
 
-    // Frame-parallel prototype state (XL_PARALLEL_FRAMES).  parEligible is
-    // computed once at InitializeRenderStates.  The clone pool (parBuffers +
-    // parInfos) is grown on demand and reused across chunks.  parProduced marks a
-    // produced-but-not-fully-output chunk that must survive an upstream suspend;
-    // parOutputCursor is where the ordered output resumes.
+    // Frame-parallel window state (see RenderParallelWindow).  parEligible and
+    // parChunkFrames are computed once at InitializeRenderStates.  The clone
+    // pool (parBuffers + parInfos) is grown on demand (up to parChunkFrames)
+    // and reused across windows.  parWindow* preserve a gated window across an
+    // upstream suspend.
     bool parEligible = false;
+    int parChunkFrames = PAR_FRAME_MAX_CHUNK;
     std::vector<std::unique_ptr<PixelBufferClass>> parBuffers;
     std::vector<std::unique_ptr<EffectLayerInfo>> parInfos;
     bool parWindowPending = false;   // a gated window is suspended awaiting upstream

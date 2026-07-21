@@ -14,7 +14,11 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
+#include <cstdlib>
 #include <filesystem>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
 #include <spdlog/fmt/fmt.h>
 
 #include "VideoEffect.h"
@@ -57,6 +61,91 @@ int VideoEffect::sSampleSpacingDefault = 0;
 bool VideoEffect::sSyncAudioDefault = false;
 bool VideoEffect::sAspectRatioDefault = false;
 std::string VideoEffect::sDurationTreatmentDefault = "Normal";
+
+// Frame-parallel classification support. A Video frame is a pure function of
+// curPeriod for the stateless duration treatments, but only when the reader
+// serves frames position-independently (AVFoundation: shared per-file decoder
+// + pts-indexed frame cache). FFmpeg readers decode forward from their current
+// position, so cloned per-frame readers would each re-decode the stream and
+// aren't provably order-independent. Which impl a file gets is only known once
+// a reader is opened, so classification is per-file: unknown files stay
+// Stateful, Render() records the impl type on open (keyed on the raw settings
+// filename — the only name classification can see), and later frames of the
+// effect classify Pure. The record is sticky-false so a file that ever fell
+// back to FFmpeg never windows.
+namespace {
+std::mutex sFrameIndependentLock;
+std::unordered_map<std::string, bool> sFrameIndependentFiles;
+
+void NoteVideoFileFrameIndependence(const std::string& settingsFilename, bool independent) {
+    if (settingsFilename.empty()) {
+        return;
+    }
+    std::lock_guard<std::mutex> lk(sFrameIndependentLock);
+    auto it = sFrameIndependentFiles.find(settingsFilename);
+    if (it == sFrameIndependentFiles.end()) {
+        sFrameIndependentFiles.emplace(settingsFilename, independent);
+    } else {
+        it->second = it->second && independent;
+    }
+}
+
+bool IsVideoFileFrameIndependent(const std::string& settingsFilename) {
+    std::lock_guard<std::mutex> lk(sFrameIndependentLock);
+    auto it = sFrameIndependentFiles.find(settingsFilename);
+    return it != sFrameIndependentFiles.end() && it->second;
+}
+} // namespace
+
+RenderableEffect::FrameParallelism VideoEffect::GetFrameParallelism(const SettingsMap& settings) const
+{
+    // Opt-in (XL_VIDEO_PARALLEL=1) until the AVFoundation bridge handles the
+    // window access pattern efficiently. Windowed video is byte-identical
+    // (gated 56/56 both axes 2026-07-20) but measured SLOWER wall-clock on
+    // every video sequence: a cache-miss decode holds the SharedDecoder's
+    // unique lock, stalling all cache-hit clones of that file (and the shared
+    // window pool with them); two rows on one file sit at the eviction
+    // boundary of the 64-frame cache, and each evicted-frame miss re-decodes
+    // from the previous H.264 keyframe; and the per-handle repeated-frame
+    // fast path never hits when consecutive frames land on different clones.
+    // Decode-outside-the-mutex + corridor-aware eviction are the follow-up
+    // (plans/render-perf/02, ENGINE.md §9); flip the default when they land.
+    static const bool sParallelVideo = []() {
+        const char* e = getenv("XL_VIDEO_PARALLEL");
+        return e != nullptr && *e != '0';
+    }();
+    if (!sParallelVideo) {
+        return FrameParallelism::Stateful;
+    }
+    if (settings.GetBool("CHECKBOX_SynchroniseWithAudio", sSyncAudioDefault)) {
+        // Reads the sequence's media file, not the filename setting the
+        // registry is keyed on.
+        return FrameParallelism::Stateful;
+    }
+    std::string dt = settings.Get("CHOICE_Video_DurationTreatment", sDurationTreatmentDefault);
+    if (dt != "Normal" && dt != "Slow/Accelerate") {
+        // Loop counts end-of-video wraps across frames; Manual/Manual and
+        // Loop integrate the (value-curvable) speed frame by frame.
+        return FrameParallelism::Stateful;
+    }
+    if (settings.GetBool("CHECKBOX_Video_AspectRatio", sAspectRatioDefault)) {
+        // With animated crops the serial path retargets via Resize(), which
+        // sets exact dimensions (dropping the aspect fit), while a fresh
+        // clone reader re-applies the fit — different scaled output.
+        static const char* const cropVCs[] = {
+            "VALUECURVE_Video_CropLeft", "VALUECURVE_Video_CropRight",
+            "VALUECURVE_Video_CropTop", "VALUECURVE_Video_CropBottom"
+        };
+        for (const char* vc : cropVCs) {
+            if (settings.Get(vc, "").find("Active=TRUE") != std::string::npos) {
+                return FrameParallelism::Stateful;
+            }
+        }
+    }
+    return IsVideoFileFrameIndependent(settings.Get("FILEPICKERCTRL_Video_Filename", ""))
+               ? FrameParallelism::Pure
+               : FrameParallelism::Stateful;
+}
 
 VideoEffect::VideoEffect(int id) : RenderableEffect(id, "Video", video_16, video_24, video_32, video_48, video_64)
 {
@@ -290,6 +379,8 @@ public:
     int _nextManualMS = 0;
     int _openedWidth = 0;
     int _openedHeight = 0;
+    bool _openedAspect = false;
+    bool _openedNative = false;
 };
 
 void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
@@ -341,6 +432,11 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     int& _frameMS = cache->_frameMS;
     int& _nextManualMS = cache->_nextManualMS;
 
+    // The raw settings filename — the key GetFrameParallelism classifies on
+    // (classification can't resolve paths); recorded once the reader impl is
+    // known below.
+    const std::string settingsFilename = filename;
+
     if (synchroniseAudio)
     {
         starttime = 0;
@@ -360,10 +456,14 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         _loops = 0;
         _nextManualMS = 0;
         _frameMS = buffer.frameTimeInMs;
-        if (_videoreader != nullptr) {
-            delete _videoreader;
-            _videoreader = nullptr;
-        }
+        // Held aside rather than deleted: readers with frame-independent
+        // access can be reused if this init targets the same file with the
+        // same open parameters. Frame-parallel clone buffers re-init on every
+        // window, so without reuse each 24-frame window would recreate the
+        // reader and re-prime it. Anything left in oldReader is deleted on
+        // every exit path from this block.
+        std::unique_ptr<VideoReader> oldReader(_videoreader);
+        _videoreader = nullptr;
 
         if (buffer.BufferHt == 1) {
             spdlog::warn("VideoEffect::Cannot render video onto a 1 pixel high model. Have you set it to single line?");
@@ -384,9 +484,26 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
 
                     bool useNativeResolution = (sampleSpacing > 0);
 
-                    _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
-                    cache->_openedWidth = width;
-                    cache->_openedHeight = height;
+                    if (oldReader != nullptr && oldReader->SupportsFrameIndependentAccess() &&
+                        oldReader->GetFilename() == resolved &&
+                        cache->_openedAspect == aspectratio && cache->_openedNative == useNativeResolution &&
+                        cache->_openedWidth == width && cache->_openedHeight == height) {
+                        if (oldReader->AtEnd()) {
+                            // AtEnd is sticky once a request ran past the video
+                            // end and the Loop treatment consults it — clear it
+                            // rather than carrying it into this effect (a
+                            // frame-independent reader needs no reposition).
+                            oldReader->Seek(0, false);
+                        }
+                        _videoreader = oldReader.release();
+                    } else {
+                        oldReader.reset();
+                        _videoreader = new VideoReader(filename, width, height, aspectratio, useNativeResolution, true);
+                        cache->_openedWidth = width;
+                        cache->_openedHeight = height;
+                        cache->_openedAspect = aspectratio;
+                        cache->_openedNative = useNativeResolution;
+                    }
 
                     if (_videoreader == nullptr)
                     {
@@ -402,14 +519,24 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                             spdlog::warn("VideoEffect: Video {} was read as 0 length.", (const char *)filename.c_str());
                         }
 
-                        // read the first frame ... if i dont it thinks the first frame i read is the first frame
-                        _videoreader->GetNextFrame(0);
+                        if (!_videoreader->SupportsFrameIndependentAccess()) {
+                            // Positional (FFmpeg) readers need their position
+                            // established: read the first frame ... if i dont it
+                            // thinks the first frame i read is the first frame.
+                            // Frame-independent readers serve any timestamp
+                            // identically without priming, so skip the frame-0
+                            // decode and the seek.
+                            _videoreader->GetNextFrame(0);
 
+                            if (starttime != 0)
+                            {
+                                spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
+                                _videoreader->Seek(starttime * 1000);
+                            }
+                        }
 
-                        if (starttime != 0)
-                        {
-                            spdlog::debug("Video effect initialising ... seeking to start location for the video {}.", (float)starttime);
-                            _videoreader->Seek(starttime * 1000);
+                        if (!synchroniseAudio) {
+                            NoteVideoFileFrameIndependence(settingsFilename, _videoreader->SupportsFrameIndependentAccess());
                         }
 
                         if (durationTreatment == "Slow/Accelerate")
@@ -452,6 +579,17 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
             cache->_openedWidth = width;
             cache->_openedHeight = height;
         }
+    }
+
+    if (_videoreader != nullptr) {
+        // Corridor identity: every clone of one row+effect shares it, so the
+        // shared decoder keeps one forward decode chain per corridor instead
+        // of stealing chains between corridors (each steal that repositions
+        // re-decodes a GOP prefix).
+        _videoreader->SetStreamGroup(
+            (std::hash<std::string>{}(buffer.cur_model) ^
+             ((uint64_t)(uint32_t)buffer.curEffStartPer * 0x9E3779B97F4A7C15ULL)) |
+            1ULL);
     }
 
     if (_videoreader != nullptr && _videoreader->GetLengthMS() > 0)

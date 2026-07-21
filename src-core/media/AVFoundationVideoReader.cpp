@@ -95,6 +95,14 @@ bool AVFoundationVideoReader::Resize(int width, int height) {
     return AppleAVFoundationVideoBridge::Resize(_bridge, width, height);
 }
 
+void AVFoundationVideoReader::SetStreamGroup(uint64_t group) {
+    AppleAVFoundationVideoBridge::SetStreamGroup(_bridge, group);
+}
+
+bool AVFoundationVideoReader::SupportsFrameIndependentAccess() const {
+    return AppleAVFoundationVideoBridge::IsFrameIndependent(_bridge);
+}
+
 void AVFoundationVideoReader::SetScaleAlgorithm(VideoScaleAlgorithm algorithm) {
     AppleAVFoundationVideoBridge::SetScaleAlgorithm(_bridge, ToBridgeScaleAlgorithm(algorithm));
 }
