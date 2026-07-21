@@ -252,8 +252,8 @@ namespace {
     }
 
     // code for fold transition
-    xlColor foldIn(const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse) {
-        const double CAMERA_DIST = 2.;
+    xlColor foldIn(const ColorBuffer& cb0, const RenderBuffer* rb1, float s, float t, float progress, bool isReverse) {
+        const float CAMERA_DIST = 2.f;
         Vec3D ray(s * 2 - 1, t * 2 - 1, CAMERA_DIST);
         float phi = progress * PI; // rotation angle
 
@@ -284,8 +284,8 @@ namespace {
         }
         return xlBLACK;
     }
-    xlColor foldOut(const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress, bool isReverse) {
-        const double CAMERA_DIST = 2.;
+    xlColor foldOut(const ColorBuffer& cb0, const RenderBuffer* rb1, float s, float t, float progress, bool isReverse) {
+        const float CAMERA_DIST = 2.f;
         Vec3D ray(s * 2 - 1, t * 2 - 1, CAMERA_DIST);
         float phi = progress * PI; // rotation angle
 
@@ -315,27 +315,27 @@ namespace {
         }
         return xlBLACK;
     }
-    void foldIn(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse) {
+    void foldIn(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, bool isReverse) {
         if (progress < 0. || progress > 1.)
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, isReverse](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, foldIn(cb0, rb1, s, t, progress, isReverse));
                 }
             },
             25);
     }
-    void foldOut(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, bool isReverse) {
+    void foldOut(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, bool isReverse) {
         if (progress < 0. || progress > 1.)
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, isReverse](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, foldOut(cb0, rb1, s, t, progress, isReverse));
                 }
             },
@@ -343,10 +343,10 @@ namespace {
     }
 
     // code for dissolve transition
-    xlColor dissolveTex(double s, double t) {
+    xlColor dissolveTex(float s, float t) {
         const unsigned char* data = DissolveTransitonPattern;
-        s = CLAMP(0., s, 1.);
-        t = CLAMP(0., t, 1.);
+        s = CLAMP(0.f, s, 1.f);
+        t = CLAMP(0.f, t, 1.f);
 
         int x = int(s * (DissolvePatternWidth - 1));
         int y = int(t * (DissolvePatternHeight - 1));
@@ -354,37 +354,37 @@ namespace {
         const unsigned char* val = data + y * DissolvePatternWidth + x;
         return xlColor(*val, *val, *val);
     }
-    xlColor dissolveIn(const ColorBuffer& cb, double s, double t, float progress) {
+    xlColor dissolveIn(const ColorBuffer& cb, float s, float t, float progress) {
         xlColor dissolveColor = dissolveTex(s, t);
         unsigned char byteProgress = (unsigned char)(255 * progress);
         return (dissolveColor.red <= byteProgress) ? tex2D(cb, s, t) : xlBLACK;
     }
-    void dissolveIn(RenderBuffer& rb0, const ColorBuffer& cb0, double progress) {
+    void dissolveIn(RenderBuffer& rb0, const ColorBuffer& cb0, float progress) {
         if (progress < 0. || progress > 1.)
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, dissolveIn(cb0, s, t, progress));
                 }
             },
             25);
     }
-    xlColor dissolveOut(const ColorBuffer& cb, double s, double t, float progress) {
+    xlColor dissolveOut(const ColorBuffer& cb, float s, float t, float progress) {
         xlColor dissolveColor = dissolveTex(s, t);
         unsigned char byteProgress = (unsigned char)(255 * progress);
         return (dissolveColor.red > byteProgress) ? tex2D(cb, s, t) : xlBLACK;
     }
-    void dissolveOut(RenderBuffer& rb0, const ColorBuffer& cb0, double progress) {
+    void dissolveOut(RenderBuffer& rb0, const ColorBuffer& cb0, float progress) {
         if (progress < 0. || progress > 1.)
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, dissolveOut(cb0, s, t, progress));
                 }
             },
@@ -392,12 +392,12 @@ namespace {
     }
 
     // code for circular-swirl transition
-    xlColor circularSwirl(const ColorBuffer& cb, const Vec2D& xy, float speed, double s, double t, float progress) {
+    xlColor circularSwirl(const ColorBuffer& cb, const Vec2D& xy, float speed, float s, float t, float progress) {
         Vec2D uv(s, t);
         Vec2D dir(uv - xy);
-        double len = dir.Len();
+        float len = dir.Len();
 
-        double radius = (1. - progress) * 0.70710678;
+        float radius = (1.f - progress) * 0.70710678f;
         if (len < radius) {
             Vec2D rotated(dir.Rotate(-speed * len * progress * PI));
             Vec2D scaled(rotated * (1. - progress) + xy);
@@ -409,14 +409,14 @@ namespace {
 
         return xlBLACK;
     }
-    void circularSwirl(RenderBuffer& rb0, const ColorBuffer& cb0, const Vec2D& xy, float speed, double progress) {
+    void circularSwirl(RenderBuffer& rb0, const ColorBuffer& cb0, const Vec2D& xy, float speed, float progress) {
         if (progress < 0. || progress > 1.)
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, xy, speed, progress](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, circularSwirl(cb0, xy, speed, s, t, progress));
                 }
             },
@@ -434,7 +434,7 @@ namespace {
         return b1 == b2 && b2 == b3;
     }
     const double bowTieHeight = 0.5;
-    xlColor bowTie_firstHalf(const ColorBuffer& cb, const RenderBuffer* rb1, const Vec2D& uv, double progress, double adjust) {
+    xlColor bowTie_firstHalf(const ColorBuffer& cb, const RenderBuffer* rb1, const Vec2D& uv, float progress, float adjust) {
         if (uv.y < 0.5) {
             Vec2D botLeft(0., progress - bowTieHeight);
             Vec2D botRight(1., progress - bowTieHeight);
@@ -450,7 +450,7 @@ namespace {
         }
         return (rb1 == nullptr) ? xlBLACK : tex2D(*rb1, uv.x, uv.y);
     }
-    xlColor bowTie_secondHalf(const ColorBuffer& cb, const RenderBuffer* rb1, const Vec2D& uv, double progress, double adjust) {
+    xlColor bowTie_secondHalf(const ColorBuffer& cb, const RenderBuffer* rb1, const Vec2D& uv, float progress, float adjust) {
         if (uv.x > adjust) {
             Vec2D top(progress + bowTieHeight, 1.);
             Vec2D bot(progress + bowTieHeight, 0.);
@@ -466,22 +466,22 @@ namespace {
         }
         return tex2D(cb, uv);
     }
-    xlColor bowTie(const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, double adjust, bool isReversed) {
+    xlColor bowTie(const ColorBuffer& cb, const RenderBuffer* rb1, float s, float t, float progress, float adjust, bool isReversed) {
         Vec2D xy(s, t);
         if (isReversed)
             return (progress < 0.5) ? bowTie_secondHalf(cb, rb1, xy, 1. - progress, adjust) : bowTie_firstHalf(cb, rb1, xy, 1. - progress, adjust);
         else
             return (progress < 0.5) ? bowTie_firstHalf(cb, rb1, xy, progress, adjust) : bowTie_secondHalf(cb, rb1, xy, progress, adjust);
     }
-    void bowTie(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjust, bool isReversed) {
+    void bowTie(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, int adjust, bool isReversed) {
         if (progress < 0. || progress > 1.)
             return;
         double bowTieAdjust = 0.01 * adjust;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, bowTieAdjust, isReversed](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, bowTie(cb0, rb1, s, t, progress, bowTieAdjust, isReversed));
                 }
             },
@@ -492,17 +492,17 @@ namespace {
     Vec2D zoom(const Vec2D& uv, float amount) {
         return ((uv - 0.5) * (1.0 - amount)) + 0.5;
     }
-    xlColor zoomTransition(const ColorBuffer& cb, double s, double t, float progress) {
+    xlColor zoomTransition(const ColorBuffer& cb, float s, float t, float progress) {
         return tex2D(cb, zoom(Vec2D(s, t), 1.f - progress));
     }
-    void zoomTransition(RenderBuffer& rb0, const ColorBuffer& cb0, double progress) {
+    void zoomTransition(RenderBuffer& rb0, const ColorBuffer& cb0, float progress) {
         if (progress < 0. || progress > 1.)
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, progress](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, zoomTransition(cb0, s, t, progress));
                 }
             },
@@ -530,19 +530,19 @@ namespace {
         }
         return c;
     }
-    xlColor doorway(const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, float progress) {
+    xlColor doorway(const ColorBuffer& cb0, const RenderBuffer* rb1, float s, float t, float progress) {
         Vec2D pfr(-1.);
         Vec2D pto(-1.);
         Vec2D p(s, t);
-        double middleSlit = 2.0 * fabs(p.x - 0.5) - progress;
+        float middleSlit = 2.0f * fabs(p.x - 0.5) - progress;
         if (middleSlit > 0.0) {
             pfr = p + (p.x > 0.5 ? -1.0 : 1.0) * Vec2D(0.5 * progress, 0.0);
-            double d = 1.0 / (1.0 + perspective * progress * (1.0 - middleSlit));
+            float d = 1.0f / (1.0f + perspective * progress * (1.0f - middleSlit));
             pfr.y -= d / 2.;
             pfr.y *= d;
             pfr.y += d / 2.;
         }
-        double size = lerp(1.0, depth, 1. - progress);
+        float size = lerp(1.0, depth, 1. - progress);
         pto = (p + Vec2D(-0.5, -0.5)) * Vec2D(size, size) + Vec2D(0.5, 0.5);
 
         if (inBounds(pfr)) // sliding left/right
@@ -552,14 +552,14 @@ namespace {
         // reflection part
         return bgColor(p, pto, cb0);
     }
-    void doorway(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress) {
+    void doorway(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress) {
         if (progress < 0. || progress > 1.)
             return;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, doorway(cb0, rb1, s, t, progress));
                 }
             },
@@ -600,7 +600,7 @@ namespace {
                (c - a) * u.y * (1.0 - u.x) +
                (d - b) * u.x * u.y;
     }
-    xlColor blobs(const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double scale, float smoothness) {
+    xlColor blobs(const ColorBuffer& cb0, const RenderBuffer* rb1, float s, float t, float progress, float scale, float smoothness) {
         xlColor fromColor((rb1 == nullptr) ? xlBLACK : tex2D(*rb1, s, t));
         xlColor toColor(tex2D(cb0, s, t));
         float n = blobsNoise(scale * Vec2D(s, t));
@@ -613,16 +613,16 @@ namespace {
 
         return lerp(fromColor, toColor, 1.f - q);
     }
-    void blobs(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjust, int blur = 0) {
+    void blobs(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, int adjust, int blur = 0) {
         if (progress < 0. || progress > 1.)
             return;
         double scale = interpolate(double(adjust), 0., 4., 100., 14., LinearInterpolater());
         float smoothness = blobsSmoothness + (blur / 25.0f) * 0.49f;
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, scale, smoothness](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, blobs(cb0, rb1, s, t, progress, scale, smoothness));
                 }
             },
@@ -630,29 +630,29 @@ namespace {
     }
 
     // code for pinwheel transition
-    xlColor pinwheelTransition(const ColorBuffer& cb0, const RenderBuffer* rb1, double s, double t, double progress, double wheelAdjust) {
-        double x = s - 0.5;
-        double y = t - 0.5;
+    xlColor pinwheelTransition(const ColorBuffer& cb0, const RenderBuffer* rb1, float s, float t, float progress, float wheelAdjust) {
+        float x = s - 0.5f;
+        float y = t - 0.5f;
         if (t < 0.5) // this seems needed due to differences between GLSL and C++ versions of atan2()
         {
             y = -y;
             x = -x;
         }
-        double arcTangent = std::atan2(y, x);
-        double dummy;
-        double toProgress = std::modf(arcTangent / M_PI * wheelAdjust, &dummy);
+        float arcTangent = std::atan2(y, x);
+        float dummy;
+        float toProgress = std::modf(arcTangent / (float)M_PI * wheelAdjust, &dummy);
         return (toProgress > progress) ? (tex2D(cb0, s, t)) : ((rb1 == nullptr) ? xlBLACK : tex2D(*rb1, s, t));
     }
-    void pinwheelTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int wheelAdjust) {
+    void pinwheelTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, int wheelAdjust) {
         if (progress < 0. || progress > 1.)
             return;
         double adjust = std::floor(interpolate(wheelAdjust, 0., 3.0, 100., 10.0, LinearInterpolater()));
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, adjust](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, pinwheelTransition(cb0, rb1, s, t, progress, adjust));
                 }
             },
@@ -660,12 +660,12 @@ namespace {
     }
 
     // code for star transition
-    xlColor starTransition(const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, int numSegments, bool shouldReverse) {
+    xlColor starTransition(const ColorBuffer& cb, const RenderBuffer* rb1, float s, float t, float progress, int numSegments, bool shouldReverse) {
         Vec2D xy(s, t);
 
-        double angle = std::atan2(xy.y - 0.5, xy.x - 0.5) - 0.5 * PI;
-        double radius = (cos(numSegments * angle) + 4.0) / 4.0;
-        double difference = Vec2D(xy - Vec2D(0.5, 0.5)).Len();
+        float angle = std::atan2(xy.y - 0.5, xy.x - 0.5) - 0.5 * PI;
+        float radius = (cos(numSegments * angle) + 4.0f) / 4.0f;
+        float difference = Vec2D(xy - Vec2D(0.5, 0.5)).Len();
 
         if (shouldReverse) {
             if (difference > radius * progress)
@@ -679,7 +679,7 @@ namespace {
                 return tex2D(cb, xy);
         }
     }
-    void starTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue, bool shouldReverse) {
+    void starTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, int adjustValue, bool shouldReverse) {
         if (progress < 0. || progress > 1.)
             return;
 
@@ -693,9 +693,9 @@ namespace {
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, numSegments, shouldReverse](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, starTransition(cb0, rb1, s, t, progress, numSegments, shouldReverse));
                 }
             },
@@ -732,9 +732,9 @@ namespace {
             return c;
         }
     }
-    xlColor swapTransition(const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress) {
-        double size = lerp(1.0, depth, progress);
-        double persp = perspective * progress;
+    xlColor swapTransition(const ColorBuffer& cb, const RenderBuffer* rb1, float s, float t, float progress) {
+        float size = lerp(1.0, depth, progress);
+        float persp = perspective * progress;
 
         Vec2D pto(-1.0, -1.0);
         Vec2D pfr((Vec2D(s, t) + Vec2D(-0.0, -0.5)) * Vec2D(size / (1.0 - perspective * progress), size / (1.0 - size * persp * s)) + Vec2D(0.0, 0.5));
@@ -757,15 +757,15 @@ namespace {
         return SwapTransitionCode::bgColor(Vec2D(s, t), pfr, pto, cb, rb1);
     }
 
-    void swapTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress) {
+    void swapTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress) {
         if (progress < 0. || progress > 1.)
             return;
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, swapTransition(cb0, rb1, s, t, progress));
                 }
             },
@@ -805,13 +805,13 @@ namespace {
         }
     }
 
-    xlColor shatterTransition(const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress) {
-        double num = 8.;
+    xlColor shatterTransition(const ColorBuffer& cb, const RenderBuffer* rb1, float s, float t, float progress) {
+        float num = 8.f;
 
         Vec2D texCentered(Vec2D(s, t) - Vec2D(0.5, 0.5));
-        double ang = std::atan2(texCentered.y, texCentered.x);
-        double a = progress * 8;
-        double originalLength = (-1. + std::sqrt(1. + 4. * a * texCentered.Len())) / (2. * a);
+        float ang = std::atan2(texCentered.y, texCentered.x);
+        float a = progress * 8;
+        float originalLength = (-1. + std::sqrt(1. + 4. * a * texCentered.Len())) / (2. * a);
         if (a == 0.)
             originalLength = texCentered.Len();
 
@@ -819,14 +819,14 @@ namespace {
         // Vec2D ol( texCentered / (progress + 1. ) + Vec2D( 0.5, 0.5 ) );
         Vec2D originalShard(ShatterTransitionCode::voronoi(num * originalLocation));
         Vec2D originalCenter(originalShard.x / num, originalShard.y / num);
-        double ca = std::atan2(originalCenter.y - 0.5, originalCenter.x - 0.5);
-        double originalCenterLength = Vec2D(originalCenter - Vec2D(0.5, 0.5)).Len();
-        double currentCenterLength = originalCenterLength + originalCenterLength * originalCenterLength * a;
+        float ca = std::atan2(originalCenter.y - 0.5, originalCenter.x - 0.5);
+        float originalCenterLength = Vec2D(originalCenter - Vec2D(0.5, 0.5)).Len();
+        float currentCenterLength = originalCenterLength + originalCenterLength * originalCenterLength * a;
         Vec2D currentCenter(Vec2D(0.5, 0.5) + currentCenterLength * Vec2D(RenderBuffer::cos(ca), RenderBuffer::sin(ca)));
         Vec2D c4((Vec2D(s, t) - currentCenter) / (1. + 0.6 * progress) + originalCenter);
         Vec2D currentShard(ShatterTransitionCode::voronoi(num * c4));
 
-        double transition = 1.;
+        float transition = 1.f;
         if (originalShard.Dist(currentShard) < 0.0001)
             transition = SmoothStep(0.70, 1.0, progress);
 
@@ -835,15 +835,15 @@ namespace {
         return lerp(toColor, fromColor, transition);
     }
 
-    void shatterTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress) {
+    void shatterTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress) {
         if (progress < 0. || progress > 1.)
             return;
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, shatterTransition(cb0, rb1, s, t, progress));
                 }
             },
@@ -851,35 +851,35 @@ namespace {
     }
 
     // code for circles transition
-    xlColor circlesTransition(const ColorBuffer& cb, const RenderBuffer* rb1, double s, double t, double progress, double n) {
+    xlColor circlesTransition(const ColorBuffer& cb, const RenderBuffer* rb1, float s, float t, float progress, float n) {
         const int NumCircles = 3;
 
-        double dummy1, dummy2;
+        float dummy1, dummy2;
         Vec2D cell(std::modf(s * n, &dummy1), std::modf(t * n, &dummy2));
 
-        double m = 0.;
+        float m = 0.f;
 
-        double alphaPerCircle = 1. / double(NumCircles) + 0.01;
+        float alphaPerCircle = 1.f / float(NumCircles) + 0.01f;
         for (int i = 0; i < NumCircles; ++i) {
-            double delay = i * /*0.3*/ 0.5 / (NumCircles - 1);
-            double p = std::max(0., progress - delay);
-            m += alphaPerCircle * (1. - SmoothStep(p * 1.40, p * 1.45, Vec2D(cell - Vec2D(0.5, 0.5)).Len()));
+            float delay = i * /*0.3*/ 0.5f / (NumCircles - 1);
+            float p = std::max(0.f, progress - delay);
+            m += alphaPerCircle * (1.f - SmoothStep(p * 1.40, p * 1.45, Vec2D(cell - Vec2D(0.5, 0.5)).Len()));
         }
 
-        m = std::min(1., m);
+        m = std::min(1.f, m);
         return lerp(tex2D(cb, s, t), (rb1 == nullptr) ? xlBLACK : tex2D(*rb1, s, t), m);
     }
 
-    void circlesTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, double progress, int adjustValue) {
+    void circlesTransition(RenderBuffer& rb0, const ColorBuffer& cb0, const RenderBuffer* rb1, float progress, int adjustValue) {
         if (progress < 0. || progress > 1.)
             return;
         double n = std::floor(interpolate(double(adjustValue), 0., 2., 100., 8., LinearInterpolater()));
 
         parallel_for(
             0, rb0.BufferHt, [&rb0, &cb0, &rb1, progress, n](int y) {
-                double t = double(y) / (rb0.BufferHt - 1);
+                float t = float(y) / (rb0.BufferHt - 1);
                 for (int x = 0; x < rb0.BufferWi; ++x) {
-                    double s = double(x) / (rb0.BufferWi - 1);
+                    float s = float(x) / (rb0.BufferWi - 1);
                     rb0.SetPixel(x, y, circlesTransition(cb0, rb1, s, t, progress, n));
                 }
             },
