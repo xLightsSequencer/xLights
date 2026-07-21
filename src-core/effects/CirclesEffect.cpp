@@ -329,7 +329,6 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
                 return;
             }
 
-            int total = buffer.BufferWi * buffer.BufferHt;
             // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
             // for a variable/oversized sub-buffer, and the kernel writes result[index]
             // with no bounds check.
@@ -421,7 +420,6 @@ void CirclesEffect::RenderFromState(const SettingsMap& SettingsMap, RenderBuffer
             return;
         }
 
-        int total = buffer.BufferWi * buffer.BufferHt;
         // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
         // for a variable/oversized sub-buffer, and the kernel writes result[index]
         // with no bounds check.
