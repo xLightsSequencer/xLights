@@ -474,7 +474,7 @@ reverse parity as "touch idiom").
 | View - Disable Key Acceleration when held | 11 | Desktop key-repeat concept; n/a to touch. |
 | View - Zoom To Cursor | 11 | Mouse-only behavior. |
 | Effects Grid - Double Click Mode | 11 | Edit Text / Play Timing. No double-click on touch. |
-| Output - xFade/xSchedule port | 11 | Companion-app integration; not on iPad. |
+| Output - API Port (xFade/xSchedule) | 11 | Companion-app integration; not on iPad. |
 | Other - Hardware Video Decoding + renderer | 11 | iPad uses AVFoundation/VideoToolbox automatically. |
 | Other - GPU Rendering (Metal compute) | 11 | iPad always uses Metal. |
 | Other - Shaders on Background Threads | 11 | Hidden on macOS/Linux already; Windows-only. |
