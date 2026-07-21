@@ -1778,6 +1778,15 @@ wxString xLightsFrame::GetLastSequenceDialogDir() const
     if (dir.IsEmpty() || !wxDirExists(dir)) {
         return CurrentDir;
     }
+    // The remembered dir may be left over from a previous show folder. If it is
+    // not within the current show directory, fall back to the show directory.
+    wxFileName fnDir(dir, "");
+    fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    wxFileName fnShow(CurrentDir, "");
+    fnShow.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    if (!fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR).StartsWith(fnShow.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR))) {
+        return CurrentDir;
+    }
     return dir;
 }
 
