@@ -283,6 +283,14 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
                 sdata.colorsV[i] = (float)hsv.value;
             }
 
+            if (buffer.dmx_buffer) {
+                // DMX fixtures need the colour routed through SetPixel()
+                ispc::uint8_t4 single;
+                ispc::CirclesEffectISPC(&sdata, 0, 1, &single);
+                buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+                return;
+            }
+
             int total = buffer.BufferWi * buffer.BufferHt;
             constexpr int bfBlockSize = 4096;
             int blocks = total / bfBlockSize + 1;
@@ -339,6 +347,14 @@ void CirclesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
             sdata.colorsH[i] = (float)hsv.hue;
             sdata.colorsS[i] = (float)hsv.saturation;
             sdata.colorsV[i] = (float)hsv.value;
+        }
+
+        if (buffer.dmx_buffer) {
+            // DMX fixtures need the colour routed through SetPixel()
+            ispc::uint8_t4 single;
+            ispc::CirclesEffectISPC(&sdata, 0, 1, &single);
+            buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+            return;
         }
 
         int total = buffer.BufferWi * buffer.BufferHt;

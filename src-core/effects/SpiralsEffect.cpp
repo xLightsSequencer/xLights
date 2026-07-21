@@ -152,6 +152,14 @@ void SpiralsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rende
             sdata.colorsV[i] = (float)hsv.value;
         }
 
+        if (buffer.dmx_buffer) {
+            // DMX fixtures need the colour routed through SetPixel()
+            ispc::uint8_t4 single;
+            ispc::SpiralsEffectISPC(&sdata, 0, 1, &single);
+            buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+            return;
+        }
+
         // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
         // for a variable sub-buffer, and the ISPC kernel writes unguarded.
         int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
