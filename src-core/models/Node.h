@@ -247,7 +247,10 @@ public:
         c[2] = color.blue;
     }
 
-    virtual void SetFromChannels(const unsigned char* buf) {
+    // Non-virtual base implementations, callable directly by hot loops that
+    // have proven (via exact typeid) the node is a plain NodeBaseClass -
+    // skips the per-node indirect call in the seqData copy paths.
+    void SetFromChannelsBase(const unsigned char* buf) {
         for (int x = 0; x < 3; x++) {
             // Guard against a corrupted/mismatched offsets[x] writing past the
             // caller's chanCnt-sized buffer. 255 is the explicit "no channel"
@@ -260,12 +263,24 @@ public:
         }
     }
 
-    virtual void GetForChannels(unsigned char* buf) const {
+    void GetForChannelsBase(unsigned char* buf) const {
         for (int x = 0; x < 3; x++) {
             if (offsets[x] != 255 && offsets[x] < chanCnt) {
                 buf[offsets[x]] = c[x];
             }
         }
+    }
+
+    void GetColorBase(xlColor& color) const {
+        color.Set(c[0], c[1], c[2]);
+    }
+
+    virtual void SetFromChannels(const unsigned char* buf) {
+        SetFromChannelsBase(buf);
+    }
+
+    virtual void GetForChannels(unsigned char* buf) const {
+        GetForChannelsBase(buf);
     }
 
     virtual const std::string& GetNodeType() const;
@@ -296,7 +311,7 @@ public:
     }
 
     virtual void GetColor(xlColor& color) const {
-        color.Set(c[0], c[1], c[2]);
+        GetColorBase(color);
     }
 
     virtual const xlColor& GetMaskColor() const {
