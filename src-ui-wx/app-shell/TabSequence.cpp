@@ -1732,6 +1732,16 @@ void xLightsFrame::SaveSequence()
             mSavedChangeCount = _sequenceElements.GetChangeCount();
             mLastAutosaveCount = mSavedChangeCount;
         } );
+
+        // RenderGridToSeqData is async (finishes via the callback above once the
+        // render engine drains). Callers that just want "SaveSequence() returned
+        // means it's saved" (Ctrl+S, the toolbar Save button, CloseSequence's own
+        // save-and-close path) would otherwise race the callback and see
+        // mSavedChangeCount still stale, spuriously re-prompting to save on close.
+        while (!_renderEngine->IsRenderDone()) {
+            wxMilliSleep(10);
+            wxYield();
+        }
         return;
     }
     wxString display_name;
