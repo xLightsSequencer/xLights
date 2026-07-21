@@ -41,6 +41,8 @@
 #include <wx/listbox.h>
 #include <wx/choice.h>
 
+#include <vector>
+
 class Model;
 class MHPresetBitmapButton;
 class MHPathPresetBitmapButton;
@@ -99,6 +101,7 @@ public:
     wxButton* Button_Odds;
     wxButton* Button_ResetToDefault;
     wxCheckBox* CheckBoxAutoShutter;
+    wxCheckBox* CheckBox_MHLinkToNext;
     wxCheckBox* CheckBox_MHShutterEnable;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
@@ -112,6 +115,7 @@ public:
     wxFlexGridSizer* FlexGridSizerColorWheel;
     wxFlexGridSizer* FlexGridSizerDimmerCanvas;
     wxWrapSizer* FlexGridSizerDimmerPresets;
+    wxFlexGridSizer* FlexGridSizerLink;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxWrapSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
@@ -125,6 +129,7 @@ public:
     wxScrolledWindow* PanelColorWheel;
     wxPanel* PanelControl;
     wxScrolledWindow* PanelDimmer;
+    wxScrolledWindow* PanelLink;
     wxScrolledWindow* PanelPathing;
     wxScrolledWindow* PanelPosition;
     wxPanel* PanelStatus;
@@ -136,6 +141,7 @@ public:
     wxStaticText* Label_TimeOffset;
     wxStaticText* StaticTextFixtures;
     wxStaticText* StaticText_Groupings;
+    wxStaticText* StaticText_MHLinkPreview;
     wxStaticText* StaticText_MHCycles;
     wxTextCtrl* TextCtrl_MH1_Settings;
     wxTextCtrl* TextCtrl_MH2_Settings;
@@ -305,6 +311,9 @@ protected:
     static const wxWindowID ID_PANEL_ColorWheel;
     static const wxWindowID ID_NOTEBOOK2;
     static const wxWindowID ID_PANEL_Control;
+    static const wxWindowID ID_CHECKBOX_MHLinkToNext;
+    static const wxWindowID ID_STATICTEXT_MHLinkPreview;
+    static const wxWindowID ID_PANEL_Link;
     static const wxWindowID IDD_TEXTCTRL_Status;
     static const wxWindowID ID_BUTTON_ResetToDefault;
     static const wxWindowID ID_PANEL1;
@@ -349,6 +358,7 @@ private:
     void OnCheckBox_MHShutterEnableClick(wxCommandEvent& event);
     void OnChoice_MHPatternSelect(wxCommandEvent& event);
     void OnCheckBox_MHPatternEnableClick(wxCommandEvent& event);
+    void OnCheckBox_MHLinkToNextClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
@@ -377,6 +387,9 @@ private:
     void RecallSettings(const std::string mh_settings);
     bool IsHeadActive(int num);
     void GetFixturesGroups();
+    void SyncLinkToNext();
+    void UpdateLinkTabState();
+    void ApplyLinkedHeadPosition(int headNum, float pan, float tilt);
     
     // Preset Functions
     void PopulatePresets();

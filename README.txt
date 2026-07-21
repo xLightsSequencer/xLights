@@ -11,15 +11,19 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
-    -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
-                                 be embedded, and SuperStar-imported scene animations silently failed to
-                                 embed (frames lost on save)
+    -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
+                                 next Moving Head effect's start
     -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
                                  (matrices, megatrees, ...), not just groups
     -enh (dkulp)                 Render: Twinkle is frame-parallel Snapshottable (both render methods),
                                  letting group rows with Twinkle render frames concurrently
     -enh (dkulp)                 Render: Circles, Candle and Lines are frame-parallel Snapshottable
                                  (Circles radial modes are fully frame-parallel)
+    -enh (dkulp)                 Stem separation: the progress dialog's Cancel now stops the run at the
+                                 next chunk instead of waiting for the whole track (all backends)
+    -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
+                                 be embedded, and SuperStar-imported scene animations silently failed to
+                                 embed (frames lost on save)
     -bug (dkulp)                 Circles: crash rendering into a variable/oversized sub-buffer (the SIMD
                                  kernel wrote past the pixel allocation)
     -bug (dkulp)                 Sequencer: crash double-clicking an empty/stale row heading
@@ -29,8 +33,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  created (name collision with a timing track, or a comma in the name)
     -bug (dkulp)                 Stem separation: crash if the sequence was closed or the app quit while
                                  separation was still running
-    -enh (dkulp)                 Stem separation: the progress dialog's Cancel now stops the run at the
-                                 next chunk instead of waiting for the whole track (all backends)
     -bug (derwin12)              Windows/Linux: GPU Rendering preference was not restored on restart (#6712)
     -bug (derwin12)              DMX Moving Head Adv / Servo 3D: editing ScaleX/Y/Z in the property grid no longer snaps it back to 1.0
     -bug (dkulp)                 Frame-parallel rendering: Candle (per-node) rendered wrong output in

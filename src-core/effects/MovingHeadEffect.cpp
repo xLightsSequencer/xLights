@@ -172,19 +172,19 @@ void MovingHeadEffect::RenderMovingHead(std::string mh_settings, int loc, const 
             tilt_pos = atof(settings.c_str());
             has_position = true;
         } else if ( cmd_type == "Pan VC" ) {
-            GetValueCurvePosition(pan_pos, settings, eff_pos, buffer);
+            GetValueCurvePosition(pan_pos, settings, eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
             has_position = true;
         } else if ( cmd_type == "Tilt VC" ) {
-            GetValueCurvePosition(tilt_pos, settings, eff_pos, buffer);
+            GetValueCurvePosition(tilt_pos, settings, eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
             has_position = true;
         } else if( cmd_type == "PanOffset" ) {
             pan_offset = atof(settings.c_str());
         } else if( cmd_type == "TiltOffset" ) {
             tilt_offset = atof(settings.c_str());
         } else if( cmd_type == ("PanOffset VC") ) {
-            GetValueCurvePosition(pan_offset, settings, eff_pos, buffer);
+            GetValueCurvePosition(pan_offset, settings, eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
         } else if( cmd_type == ("TiltOffset VC") ) {
-            GetValueCurvePosition(tilt_offset, settings, eff_pos, buffer);
+            GetValueCurvePosition(tilt_offset, settings, eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
         } else if ( cmd_type == "IgnorePan" ) {
             pan_path_active = false;
         } else if ( cmd_type == "IgnoreTilt" ) {
@@ -424,12 +424,164 @@ void MovingHeadEffect::CalculateDimmer(double eff_pos, std::vector<std::string>&
     buffer.SetPixel(dimmer_channel - 1, 0, msb_c, false, false, true);
 }
 
-void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer)
+void MovingHeadEffect::GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, long startMS, long endMS)
 {
     ValueCurve vc( settings );
     vc.SetLimits(MOVING_HEAD_MIN, MOVING_HEAD_MAX);
     vc.SetDivisor(MOVING_HEAD_DIVISOR);
-    position = vc.GetOutputValueAtDivided(eff_pos, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    position = vc.GetOutputValueAtDivided(eff_pos, startMS, endMS);
+}
+
+bool MovingHeadEffect::GetHeadStartPosition(const std::string& mh_settings, int loc, long effStartMS, long effEndMS, float& pan, float& tilt)
+{
+    // Mirrors RenderMovingHead's parsing/position-calculation, but kept as an independent
+    // pass (rather than factored into RenderMovingHead) so this panel-time-only helper can
+    // never accidentally change the render-critical path. eff_pos is always 0 at the very
+    // start of an effect regardless of Cycles, so unlike RenderMovingHead we don't need the
+    // separate "find Cycles first" pass.
+    const double eff_pos = 0.0;
+
+    float pan_pos = 0.0f;
+    float tilt_pos = 0.0f;
+    float pan_offset = 0.0f;
+    float tilt_offset = 0.0f;
+    float time_offset = 0.0f;
+    float path_scale = 0.0f;
+    float delta = 0.0f;
+    bool path_parsed = false;
+    bool pan_path_active = true;
+    bool tilt_path_active = true;
+    bool pattern_parsed = false;
+    std::string pattern_algorithm = "Circle";
+    float pattern_width = 90.0f;
+    float pattern_height = 45.0f;
+    float pattern_xoffset = 0.0f;
+    float pattern_yoffset = 0.0f;
+    float pattern_rotation = 0.0f;
+    float pattern_start_offset = 0.0f;
+    float pattern_phase_offset = 0.0f;
+    float pattern_xfreq = 2.0f;
+    float pattern_yfreq = 3.0f;
+    float pattern_xphase = 90.0f;
+    float pattern_yphase = 0.0f;
+    bool has_position = false;
+    std::string path_setting;
+    std::vector<std::string> heads;
+    int groupings = 1;
+
+    auto all_cmds = Split(mh_settings, ';');
+    for (size_t j = 0; j < all_cmds.size(); ++j) {
+        std::string cmd = all_cmds[j];
+        if (cmd == xlEMPTY_STRING) continue;
+        int pos = cmd.find(":");
+        std::string cmd_type = cmd.substr(0, pos);
+        std::string settings = cmd.substr(pos + 2, cmd.length());
+        std::replace(settings.begin(), settings.end(), '@', ';');
+
+        if (cmd_type == "Pan") {
+            pan_pos = atof(settings.c_str());
+            has_position = true;
+        } else if (cmd_type == "Tilt") {
+            tilt_pos = atof(settings.c_str());
+            has_position = true;
+        } else if (cmd_type == "Pan VC") {
+            GetValueCurvePosition(pan_pos, settings, eff_pos, effStartMS, effEndMS);
+            has_position = true;
+        } else if (cmd_type == "Tilt VC") {
+            GetValueCurvePosition(tilt_pos, settings, eff_pos, effStartMS, effEndMS);
+            has_position = true;
+        } else if (cmd_type == "PanOffset") {
+            pan_offset = atof(settings.c_str());
+        } else if (cmd_type == "TiltOffset") {
+            tilt_offset = atof(settings.c_str());
+        } else if (cmd_type == ("PanOffset VC")) {
+            GetValueCurvePosition(pan_offset, settings, eff_pos, effStartMS, effEndMS);
+        } else if (cmd_type == ("TiltOffset VC")) {
+            GetValueCurvePosition(tilt_offset, settings, eff_pos, effStartMS, effEndMS);
+        } else if (cmd_type == "IgnorePan") {
+            pan_path_active = false;
+        } else if (cmd_type == "IgnoreTilt") {
+            tilt_path_active = false;
+        } else if (cmd_type == "Path") {
+            path_setting = settings;
+            path_parsed = true;
+        } else if (cmd_type == "Pattern") {
+            pattern_algorithm = settings;
+            pattern_parsed = true;
+        } else if (cmd_type == "PatternWidth") {
+            pattern_width = atof(settings.c_str());
+        } else if (cmd_type == "PatternHeight") {
+            pattern_height = atof(settings.c_str());
+        } else if (cmd_type == "PatternXOffset") {
+            pattern_xoffset = atof(settings.c_str());
+        } else if (cmd_type == "PatternYOffset") {
+            pattern_yoffset = atof(settings.c_str());
+        } else if (cmd_type == "PatternRotation") {
+            pattern_rotation = atof(settings.c_str());
+        } else if (cmd_type == "PatternRotation VC") {
+            ValueCurve vc(settings);
+            vc.SetLimits(MOVING_HEAD_PATTERN_ROTATION_MIN, MOVING_HEAD_PATTERN_ROTATION_MAX);
+            pattern_rotation = vc.GetOutputValueAtDivided(eff_pos, effStartMS, effEndMS);
+        } else if (cmd_type == "PatternStartOffset") {
+            pattern_start_offset = atof(settings.c_str());
+        } else if (cmd_type == "PatternPhaseOffset") {
+            pattern_phase_offset = atof(settings.c_str());
+        } else if (cmd_type == "PatternXFreq") {
+            pattern_xfreq = atof(settings.c_str());
+        } else if (cmd_type == "PatternYFreq") {
+            pattern_yfreq = atof(settings.c_str());
+        } else if (cmd_type == "PatternXPhase") {
+            pattern_xphase = atof(settings.c_str());
+        } else if (cmd_type == "PatternYPhase") {
+            pattern_yphase = atof(settings.c_str());
+        } else if (cmd_type == "Heads") {
+            heads = Split(settings, ',');
+        } else if (cmd_type == "Groupings") {
+            groupings = atoi(settings.c_str());
+        } else if (cmd_type == "Groupings VC") {
+            ValueCurve vc(settings);
+            vc.SetLimits(MOVING_HEAD_GROUP_MIN, MOVING_HEAD_GROUP_MAX);
+            groupings = vc.GetOutputValueAtDivided(eff_pos, effStartMS, effEndMS);
+        } else if (cmd_type == "TimeOffset") {
+            time_offset = atof(settings.c_str());
+        } else if (cmd_type == "PathScale") {
+            path_scale = atof(settings.c_str());
+        } else if (cmd_type == "TimeOffset VC") {
+            ValueCurve vc(settings);
+            vc.SetLimits(MOVING_HEAD_TIME_MIN, MOVING_HEAD_TIME_MAX);
+            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+            time_offset = vc.GetOutputValueAtDivided(eff_pos, effStartMS, effEndMS);
+        } else if (cmd_type == "PathScale VC") {
+            ValueCurve vc(settings);
+            vc.SetLimits(MOVING_HEAD_SCALE_MIN, MOVING_HEAD_SCALE_MAX);
+            vc.SetDivisor(MOVING_HEAD_DIVISOR);
+            path_scale = vc.GetOutputValueAtDivided(eff_pos, effStartMS, effEndMS);
+        }
+        // Color/Wheel/Dimmer/AutoShutter/Shutter commands don't affect Pan/Tilt; skipped.
+    }
+
+    CalculatePosition(loc, pan_pos, heads, groupings, pan_offset, delta);
+    CalculatePosition(loc, tilt_pos, heads, groupings, tilt_offset, delta);
+
+    if (path_parsed) {
+        CalculatePathPositions(pan_path_active, tilt_path_active, pan_pos, tilt_pos, time_offset, path_scale, delta, eff_pos, path_setting);
+    }
+
+    if (pattern_parsed) {
+        CalculatePatternPositions(pan_path_active, tilt_path_active, pan_pos, tilt_pos, pattern_algorithm,
+                                   pattern_width, pattern_height, pattern_xoffset, pattern_yoffset,
+                                   pattern_rotation, pattern_start_offset, pattern_phase_offset,
+                                   pattern_xfreq, pattern_yfreq, pattern_xphase, pattern_yphase, delta, eff_pos);
+        has_position = true;
+    }
+
+    if (!has_position) {
+        return false;
+    }
+
+    pan = pan_pos;
+    tilt = tilt_pos;
+    return true;
 }
 
 void MovingHeadEffect::CalculatePosition(int location, float& position, std::vector<std::string>& heads, int groupings, float offset, float& delta )

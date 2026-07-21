@@ -63,7 +63,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 46 | 66% | 12 | 6 | 6 | 4 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 95 | 81% | 10 | 4 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 73 | 88% | 3 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 85 | 77 | 91% | 1 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 86 | 77 | 90% | 2 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 107 | 77% | 12 | 13 | 7 | 3 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 80 | 66 | 82% | 8 | 3 | 3 | 11 |
@@ -295,6 +295,7 @@ evidence lives in each theme doc's scorecard.
 | Feature | Theme | Pri | Gap | Ease |
 |---|---|---|---|---|
 | Convert selected effects to a different type | 04 | P2 | ipad-missing | hard |
+| Moving Head: "Link" tab (snap end Pan/Tilt to next effect + force Dimmer to 0) | 04 | P2 | ipad-missing | medium |
 | SubModel import: from Model / File / Layout / Downloads | 06 | P2 | ipad-missing | hard |
 | SubModels: output-to-lights live test toggle | 06 | P2 | ipad-missing | medium |
 | Real-world dimension readouts (ruler-calibrated) | 06 | P2 | ipad-missing | medium |
