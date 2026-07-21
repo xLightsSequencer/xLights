@@ -40,6 +40,13 @@ public:
     WaveEffect(int id);
     virtual ~WaveEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: the non-fractal types advance a single phase float (AdvanceState)
+    // and draw purely from it (BuildWaveColumns reads the phase from the
+    // snapshot); Fractal/ivy carries an init-time RNG branch buffer the snapshot
+    // can't hold, so it returns nullptr and stays Stateful (mirrors
+    // GetFrameParallelism).
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual bool AppropriateOnNodes() const override
     {
         return false;

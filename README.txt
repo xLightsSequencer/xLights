@@ -15,8 +15,105 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (floodlights, moving heads, etc.); the ISPC-accelerated render path wrote raw pixel data
                                  instead of routing through SetPixel(), which is what spreads a colour across a DMX
                                  fixture's channels (#6719)
+    -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
+                                 defines matrix (image) faces stored in the .xsq, usable by any
+                                 matrix/group/submodel in that sequence (no need to duplicate the face
+                                 on every model); images embeddable via the Media tab; handled by
+                                 Package Sequence, Import Effects and Check Sequence
+    -bug (dkulp)                 Renaming a face definition (model faces dialog or the new sequence
+                                 Faces tab) now updates Faces effects referencing it instead of
+                                 orphaning them
+    -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
+                                 be embedded, and SuperStar-imported scene animations silently failed to
+                                 embed (frames lost on save)
+    -enh (dkulp)                 Render: render cache now saves an effect's cache to disk even when
+                                 frames complete out of order (frame-parallel windows)
+    -bug (dkulp)                 macOS: Video effect on uncompressed (rawvideo) .mov files with a
+                                 non-zero start time rendered blue frames (mid-file positioning
+                                 failed); also fixed transient unscaled/wrong frames under heavy
+                                 load and a shutdown/reopen race in the shared video decoder
+    -enh (dkulp)                 Render: frame-parallel windows now cover large single-model rows
+                                 (matrices, megatrees, ...), not just groups
+    -enh (dkulp)                 Render: Twinkle is frame-parallel Snapshottable (both render methods),
+                                 letting group rows with Twinkle render frames concurrently
+    -enh (dkulp)                 Render: Circles, Candle and Lines are frame-parallel Snapshottable
+                                 (Circles radial modes are fully frame-parallel)
+    -bug (dkulp)                 Circles: crash rendering into a variable/oversized sub-buffer (the SIMD
+                                 kernel wrote past the pixel allocation)
+    -bug (dkulp)                 Open Sequence: the remembered last-used dialog directory is now
+                                 ignored (falls back to the show directory) when it is not inside
+                                 the current show folder, e.g. after switching show folders
+    -bug (dkulp)                 Sequencer: crash double-clicking an empty/stale row heading
+    -bug (dkulp)                 Layout: crash when the mouse moved over the preview while the vendor
+                                 certified model prompt was open during a model download/import
+    -bug (dkulp)                 Import: crash mapping onto a model whose sequence element could not be
+                                 created (name collision with a timing track, or a comma in the name)
+    -bug (dkulp)                 Stem separation: crash if the sequence was closed or the app quit while
+                                 separation was still running
+    -enh (dkulp)                 Stem separation: the progress dialog's Cancel now stops the run at the
+                                 next chunk instead of waiting for the whole track (all backends)
+    -bug (derwin12)              Windows/Linux: GPU Rendering preference was not restored on restart (#6712)
+    -bug (derwin12)              DMX Moving Head Adv / Servo 3D: editing ScaleX/Y/Z in the property grid no longer snaps it back to 1.0
+    -bug (dkulp)                 Frame-parallel rendering: Candle (per-node) rendered wrong output in
+                                 parallel windows on Metal/Vulkan (GPU path discarded the captured
+                                 simulation and re-seeded every frame)
+    -bug (dkulp)                 Frame-parallel rendering: Snowflakes could render a wrong first frame
+                                 in parallel windows (Random/"3 nodes" type or warmup frames)
+    -change (dkulp)              Render: new AdvanceState API separates a Snapshottable effect's state
+                                 advance from its draw (Snowstorm, Fireworks, Strobe, Lines, Snowflakes,
+                                 most VU Meter modes, and the GPU effects Candle, Circles, Meteors,
+                                 Twinkle and Wave converted); the frame-parallel capture pass no longer
+                                 encodes discarded GPU blur/rotozoom/transition work
+    -enh (dkulp)                 Render: GPU-accelerated Snapshottable effects (Candle, Circles, Twinkle,
+                                 Wave, Meteors) now keep their Metal/Vulkan acceleration inside
+                                 frame-parallel windows instead of falling back to CPU
+    -change (dkulp)              Render: VU Meter Level Shape converted to AdvanceState; the four
+                                 Spectrogram modes are now classified Stateful (serial render) - their
+                                 line-history advance is fused into the draw. The legacy capture/restore
+                                 snapshot protocol is removed (AdvanceState is the only tier-2 path)
+    -bug (derwin12)              Sequencer grid: dragging the shared edge between two touching effects
+                                 could move a locked neighboring effect (#6696)
+    -bug (dkulp)                 Frame-parallel rendering: rows containing canvas-mode effects were not
+                                 excluded as designed (wrong settings key) and could render incorrectly
+    -bug (dkulp)                 Normalize bare float settings (e.g. ".2" → "0.2") from old sequences so
+                                 float text controls display and edit correctly
+    -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a
+                                 blur value curve or a migrated legacy EffectBlur setting
+    -bug (dkulp)                 Fix a crash duplicating an effect by cell when the effect starts in a gap
+                                 between timing marks, and a second crash if the duplicate could not be added
+    -bug (dkulp)                 Fix a use-after-free closing a sequence when an in-flight render did not
+                                 drain in time: the sequence data is now kept rather than freed under a
+                                 live render job
+    -bug (dkulp)                 Video export: only use constant-quality encoding when the machine's encoder
+                                 actually supports it (Intel Macs have no constant-quality H.264 and threw an
+                                 Objective-C exception that killed the app); those now use average bitrate
+    -enh (dkulp)                 Batch render and -r no longer read the existing fseq that is about to be
+                                 overwritten, speeding up sequence open (canvas mode still loads it)
+    -bug (dkulp)                 Shader effect ignored the "GPU rendering" preference and still built GPU
+                                 pipelines/command buffers with it turned off; turning it off is now a real
+                                 safety net that keeps the effect entirely on the CPU/OpenGL path
+    -bug (derwin12)              Vulkan Shader effect: fix a startup race that let one render thread use the
+                                 shared sampler/dummy image before another had finished creating them
+    -bug (dkulp)                 Vulkan Shader effect: check the allocation results that were being ignored,
+                                 so an out-of-resources driver makes the effect fall back instead of crashing
+    -enh (dkulp)                 Read .fseq files with a parallel block decompressor when the whole
+                                 sequence is being loaded (FPP/HinksPix upload, convert, fseqcmp):
+                                 ~10x faster on a multi-core machine, and faster even on one core
+    -bug (dkulp)                 Stop the last compression block of an .fseq from being reported as
+                                 running to the end of the file, which swept any embedded/extended
+                                 header data written after the channel data into the block
+    -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
+                                 working media files to a new folder (e.g. a show copied to a new year),
+                                 not just to fix ones that are currently missing
     -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
                                  log instead of only stdout; headless now logs each sequence's render time
+    -change (dkulp)              Render: sparkles are now placed by a frame-deterministic phase (per-node hash + frame)
+                                 instead of a running counter advanced each render, so placement is identical
+                                 regardless of render order (full vs partial re-render); slightly changes the exact
+                                 sparkle pattern in existing sequences (same density and look)
+    -enh (dkulp)                 Render: group effects now render several frames concurrently when the effects on
+                                 the group are frame-independent, cutting whole-show render time (~5% on a typical
+                                 show); byte-identical output. Set XL_NO_PARALLEL_FRAMES=1 to force the serial path
     -enh (dkulp)                 Render: Meteors now buckets its particles by buffer line instead of testing every
                                  meteor against every pixel (CPU, Metal and Vulkan paths); large-matrix Meteors
                                  renders are dramatically faster

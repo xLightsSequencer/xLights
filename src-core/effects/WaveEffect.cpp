@@ -147,6 +147,13 @@ public:
     float state = 0.0f;
 };
 
+// Tier-2 immutable per-frame draw state: just the phase accumulator.  The rest
+// of the column math is recomputed from settings + the current frame, so only
+// the integrated phase needs carrying to a parallel draw pass.
+struct WaveFrameState : public EffectFrameState {
+    float state = 0.0f;
+};
+
 static inline int GetWaveType(const std::string & WaveType) {
     if (WaveType == "Sine") {
         return WAVETYPE_SINE;
@@ -168,6 +175,48 @@ static inline int GetWaveFillColor(const std::string &color) {
         return 2;
     }
     return 0; //None
+}
+
+RenderableEffect::FrameParallelism WaveEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // Every wave type animates via cache->state, an integrated phase accumulator,
+    // so none is Pure.  But the advance is a single float add and the draw is the
+    // whole per-column band computation + ISPC fill, so the non-fractal types
+    // split cleanly into a cheap serial advance and a parallel per-frame draw
+    // (Snapshottable).  Fractal/ivy also builds an init-time RNG branch buffer
+    // that isn't snapshotted, so it stays Stateful.
+    if (GetWaveType(settings.Get("CHOICE_Wave_Type", sWaveTypeDefault)) == WAVETYPE_IVYFRACTAL) {
+        return FrameParallelism::Stateful;
+    }
+    return FrameParallelism::Snapshottable;
+}
+
+// Tier-2 advance: integrate this frame's phase accumulator and return it as the
+// immutable draw snapshot.  Only wspeed (a deterministic value-curve read) is
+// consumed here; every other setting read stays in the pure BuildWaveColumns
+// draw.  Fractal/ivy returns nullptr (Stateful - its init-time RNG branch buffer
+// can't be snapshotted); this partition mirrors GetFrameParallelism exactly.
+std::unique_ptr<EffectFrameState> WaveEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (GetWaveType(SettingsMap.Get("CHOICE_Wave_Type", sWaveTypeDefault)) == WAVETYPE_IVYFRACTAL) {
+        return nullptr;
+    }
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    float wspeed = GetValueCurveDouble("Wave_Speed", sWaveSpeedDefault, SettingsMap, oset, sWaveSpeedMin, sWaveSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sWaveSpeedDivisor);
+
+    WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new WaveRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    if (buffer.needToInit) {
+        cache->state = 0.0f;
+        buffer.needToInit = false;
+    }
+    cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
+
+    auto snap = std::make_unique<WaveFrameState>();
+    snap->state = cache->state;
+    return snap;
 }
 
 void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &buffer,
@@ -193,13 +242,6 @@ void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &
     double WaveYOffset = (buffer.BufferHt / 2.0) * (yoffset * 0.01);
     int roundedWaveYOffset = std::round(WaveYOffset);
 
-    WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
-    if (cache == nullptr) {
-        cache = new WaveRenderCache();
-        buffer.infoCache[id] = cache;
-    }
-    std::vector<int> &WaveBuffer0 = cache->WaveBuffer;
-
     int ystart;
     static const double pi_180 = 0.01745329;
     HSVValue hsv0;
@@ -208,12 +250,34 @@ void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
-    if (buffer.needToInit) {
-        cache->state = 0.0f;
-        buffer.needToInit = false;
+
+    // Phase: on a draw pass take the accumulator AdvanceState captured (pure, no
+    // advance, no cache write); else fuse advance+draw off the persistent cache.
+    // The migrated (non-fractal) types always reach this via pendingSnapshot
+    // (the engine runs AdvanceState first).  Fractal/ivy is Stateful (see
+    // GetFrameParallelism), so it takes the else branch - WaveBuffer0 stays the
+    // cache's branch buffer.  drawWaveBuffer is only a placeholder for the
+    // (non-fractal) draw pass, which never reads it.
+    std::vector<int> drawWaveBuffer;
+    std::vector<int>* waveBufferPtr = &drawWaveBuffer;
+    float state;
+    if (buffer.pendingSnapshot != nullptr) {
+        state = static_cast<const WaveFrameState&>(*buffer.pendingSnapshot).state;
+    } else {
+        WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
+        if (cache == nullptr) {
+            cache = new WaveRenderCache();
+            buffer.infoCache[id] = cache;
+        }
+        waveBufferPtr = &cache->WaveBuffer;
+        if (buffer.needToInit) {
+            cache->state = 0.0f;
+            buffer.needToInit = false;
+        }
+        cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
+        state = cache->state;
     }
-    cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
-    float state = cache->state;
+    std::vector<int> &WaveBuffer0 = *waveBufferPtr;
 
     double yc = buffer.BufferHt / 2.0;
     double r = yc;
@@ -381,6 +445,9 @@ void WaveEffect::RenderWaveISPC(const WaveKernelConfig &cfg, const std::vector<i
 }
 
 void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: BuildWaveColumns reads the phase from pendingSnapshot for the
+    // migrated types (the engine runs AdvanceState first, in both serial and
+    // frame-parallel rendering), or fuses advance+draw for Fractal/ivy (Stateful).
     WaveKernelConfig cfg;
     std::vector<int32_t> cols;
     BuildWaveColumns(SettingsMap, buffer, cfg, cols);

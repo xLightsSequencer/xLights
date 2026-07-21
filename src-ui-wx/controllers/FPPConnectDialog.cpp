@@ -1349,6 +1349,8 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
 
             FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
             if (seq) {
+                // every frame is read in order below to build the upload
+                seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
                 prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
                 row = 0;
                 int uploadCount = 0;

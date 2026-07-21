@@ -18,6 +18,10 @@ class StrobeEffect : public RenderableEffect
         StrobeEffect(int id);
         virtual ~StrobeEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        // Tier-2: cheap serial strobe advance + a pure per-strobe draw (the
+        // type-2/4 orientation coin-flip is precomputed in the advance).
+        virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+        virtual FrameParallelism GetFrameParallelism(const SettingsMap &settings) const override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
         // Cached from Strobe.json by OnMetadataLoaded().

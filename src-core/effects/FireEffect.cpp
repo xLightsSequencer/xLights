@@ -133,7 +133,7 @@ void SetFireBuffer(int x, int y, int PaletteIdx, std::vector<int>& FireBuffer, i
 
 // 0 <= x < BufferWi
 // 0 <= y < BufferHt
-int GetFireBuffer(int x, int y, std::vector<int>& FireBuffer, int maxWi, int maxHi)
+int GetFireBuffer(int x, int y, const std::vector<int>& FireBuffer, int maxWi, int maxHi)
 {
     if (x >= 0 && x < maxWi && y >= 0 && y < maxHi) {
         return FireBuffer[y * maxWi + x];
@@ -172,6 +172,43 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
         buffer.infoCache[id] = cache;
     }
     return cache;
+}
+
+// Advance/draw split of the fire grid render: Render rebuilds the grid, DrawFire
+// rasterises it.  (Kept separate for clarity; frame-parallel does not engage -
+// see FireEffect.h - because the advance dominates Fire's cost.)
+static void DrawFire(RenderBuffer& buffer, const std::vector<int>& fireBuffer, int maxMWi, int maxMHt, int curWi, int curHt, int loc, int HueShift) {
+    for (int y = 0; y < curHt; ++y) {
+        for (int x = 0; x < curWi; ++x) {
+            int xp = x;
+            int yp = y;
+            if (loc == 1 || loc == 3) {
+                yp = curHt - y - 1;
+            }
+            if (loc == 2 || loc == 3) {
+                std::swap(xp, yp);
+            }
+            if (HueShift > 0) {
+                HSVValue hsv = FirePalette[GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)];
+                hsv.hue = hsv.hue + (HueShift / 100.0);
+                if (hsv.hue > 1.0)
+                    hsv.hue = 1.0;
+                if (buffer.allowAlpha) {
+                    xlColor c(hsv);
+                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)).Alpha();
+                    buffer.SetPixel(xp, yp, c);
+                } else {
+                    buffer.SetPixel(xp, yp, hsv);
+                }
+            } else {
+                if (buffer.allowAlpha) {
+                    buffer.SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)));
+                } else {
+                    buffer.SetPixel(xp, yp, FirePalette.asColor(GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)));
+                }
+            }
+        }
+    }
 }
 
 // 10 <= HeightPct <= 100
@@ -286,35 +323,5 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     }
 
     //  Now play fire
-    for (int y = 0; y < curHt; ++y) {
-        for (int x = 0; x < curWi; ++x) {
-            int xp = x;
-            int yp = y;
-            if (loc == 1 || loc == 3) {
-                yp = curHt - y - 1;
-            }
-            if (loc == 2 || loc == 3) {
-                std::swap(xp, yp);
-            }
-            if (HueShift > 0) {
-                HSVValue hsv = FirePalette[GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)];
-                hsv.hue = hsv.hue + (HueShift / 100.0);
-                if (hsv.hue > 1.0)
-                    hsv.hue = 1.0;
-                if (buffer.allowAlpha) {
-                    xlColor c(hsv);
-                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)).Alpha();
-                    buffer.SetPixel(xp, yp, c);
-                } else {
-                    buffer.SetPixel(xp, yp, hsv);
-                }
-            } else {
-                if (buffer.allowAlpha) {
-                    buffer.SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)));
-                } else {
-                    buffer.SetPixel(xp, yp, FirePalette.asColor(GetFireBuffer(x, y, cache->FireBuffer, maxMWi, maxMHt)));
-                }
-            }
-        }
-    }
+    DrawFire(buffer, cache->FireBuffer, maxMWi, maxMHt, curWi, curHt, loc, HueShift);
 }

@@ -18,6 +18,10 @@ public:
     SpirographEffect(int id);
     virtual ~SpirographEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Pure: buffer.randInt()/rand01() reseed per frame from a stable hash of
+    // (model, layer, effect-start, period), so the serial RNG reproduces in
+    // strided/parallel render order - a pure function of the frame.
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual bool AppropriateOnNodes() const override
     {
         return false;

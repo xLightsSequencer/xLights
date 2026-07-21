@@ -276,6 +276,23 @@ public:
     std::vector<int> _firePeriods;
 };
 
+// Tier-2 immutable per-frame draw state: one point+colour per live particle,
+// resolved (palette/alpha baked in) so the draw pass needs nothing but the buffer.
+struct FireworksDrawItem {
+    int x;
+    int y;
+    xlColor c;
+};
+struct FireworksFrameState : public EffectFrameState {
+    std::vector<FireworksDrawItem> items;
+};
+
+static void DrawFireworks(RenderBuffer& buffer, const std::vector<FireworksDrawItem>& items) {
+    for (const auto& it : items) {
+        buffer.SetPixel(it.x, it.y, it.c);
+    }
+}
+
 #define REPEATTRIGGER 20
 
 void FireworksEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
@@ -318,6 +335,21 @@ std::pair<int,int> FireworksEffect::GetFireworkLocation(RenderBuffer& buffer, in
 }
 
 void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: rasterise the snapshot AdvanceState produced.  Under the tier-2
+    // engine this is the ONLY path reached (AdvanceState runs first and sets
+    // pendingSnapshot in both serial and frame-parallel rendering).
+    if (buffer.pendingSnapshot != nullptr) {
+        DrawFireworks(buffer, static_cast<const FireworksFrameState&>(*buffer.pendingSnapshot).items);
+        return;
+    }
+    // Defensive fall-through for any caller that invokes Render without first
+    // going through AdvanceState: advance then draw, exactly the legacy body.
+    // The draw is a pure function of the snapshot, so this stays byte-identical.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    DrawFireworks(buffer, static_cast<const FireworksFrameState&>(*fs).items);
+}
+
+std::unique_ptr<EffectFrameState> FireworksEffect::AdvanceState(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float offset = buffer.GetEffectTimeIntervalPosition();
 
     int numberOfExplosions = SettingsMap.GetInt("SLIDER_Fireworks_Explosions", sExplosionsDefault);
@@ -472,16 +504,38 @@ void FireworksEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     }
 
-    for (auto& it: fireworks)
+    // Build this frame's draw snapshot from the current (pre-advance) particle
+    // positions - byte-identical to drawing them, and RNG-free.
+    std::vector<FireworksDrawItem> drawItems;
+    for (auto& it : fireworks)
     {
         if (!it.Done())
         {
             for (auto p : it.GetParticles())
             {
-                buffer.SetPixel(p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha));
+                drawItems.push_back({ p.GetX(), p.GetY(), p.GetColour(buffer.palette, buffer.allowAlpha) });
             }
+        }
+    }
 
+    // Advance all fireworks for the next frame (no RNG here).
+    for (auto& it : fireworks)
+    {
+        if (!it.Done())
+        {
             it.Advance();
         }
     }
+
+    // Capture the pre-advance draw list into this frame's immutable draw
+    // snapshot.  The engine hands it back to Render (via pendingSnapshot) for
+    // the actual draw, in both serial and frame-parallel rendering.
+    auto fs = std::make_unique<FireworksFrameState>();
+    fs->items = std::move(drawItems);
+    return fs;
 }
+
+RenderableEffect::FrameParallelism FireworksEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    return FrameParallelism::Snapshottable;
+}
+

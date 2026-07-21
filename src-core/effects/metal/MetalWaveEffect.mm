@@ -97,9 +97,12 @@ void MetalWaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         return;
     }
 
-    // Advances the phase accumulator (and Ivy branch buffer) exactly once. Both
-    // the Metal dispatch and every fallback below reuse the bands from here, so
-    // the accumulator never double-advances.
+    // Builds this frame's bands from the phase.  For the migrated types the
+    // engine runs AdvanceState first and enters here via pendingSnapshot, so
+    // BuildWaveColumns reads the phase from the snapshot (no advance); Fractal/ivy
+    // (Stateful) fuses advance+draw.  Either way the accumulator never
+    // double-advances, and the serial-with-snapshot flow still takes this GPU
+    // path.
     WaveKernelConfig cfg;
     std::vector<int32_t> cols;
     BuildWaveColumns(SettingsMap, buffer, cfg, cols);

@@ -34,6 +34,7 @@ class RenderCacheItem
     std::map<std::string, long> _frameSize;
     bool _purged = false;
     bool _dirty = false;
+    bool _sawEndFrame = false;
     static std::string GetModelName(RenderBuffer* buffer);
 
     

@@ -173,6 +173,7 @@ ImageCacheEntry::ImageCacheEntry(const std::string &path, const std::vector<xlIm
     _embeddedData = base64Data;
     invalidImage = std::make_shared<xlImage>();
     _frameBasedAnimation = true;
+    _framesEmbeddable = !imgs.empty();
     _imageCount = (int)imgs.size();
     _frameImages.resize(_imageCount);
     _frameImagesNoBG.resize(_imageCount);
@@ -218,6 +219,7 @@ void ImageCacheEntry::ReloadIfChanged() {
     _frameTimes.clear();
     _frameData.clear();
     _scaledImageCache.clear();
+    _framesEmbeddable = false;
     _imageCount = 0;
     _imageWidth = 0;
     _imageHeight = 0;
@@ -426,6 +428,7 @@ bool ImageCacheEntry::LoadFromXml(const pugi::xml_node& node)
         }
         _frameBasedAnimation = true;
         _imageCount = (int)_frameImages.size();
+        _framesEmbeddable = _imageCount > 0;
         if (_imageCount > 0) {
             _imageWidth = _frameImages[0]->GetWidth();
             _imageHeight = _frameImages[0]->GetHeight();
@@ -527,6 +530,20 @@ void ImageCacheEntry::ClearScaledImageCache() {
     _scaledImageCache.clear();
 }
 
+void ImageCacheEntry::UnloadCachedData() {
+    std::scoped_lock lock(_cacheMutex);
+    _scaledImageCache.clear();
+    ClearPreview();
+    // Frame-only entries (SuperStar scenes, picture series) have no source
+    // data to re-decode from - their frames ARE the document content.
+    if (_embeddedData.empty()) {
+        return;
+    }
+    _frameImages.clear();
+    _frameImagesNoBG.clear();
+    _loadingDone = false; // next GetImage() re-decodes from _embeddedData or disk
+}
+
 void ImageCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
     std::scoped_lock lock(_cacheMutex);
     if (_previewWidth == maxWidth && _previewHeight == maxHeight && !_previewFrames.empty()) return;
@@ -618,6 +635,53 @@ bool SequenceMedia::HasImage(const std::string& filepath) const
 {
     std::scoped_lock lock(_cacheMutex);
     return _imageCache.find(filepath) != _imageCache.end();
+}
+
+void SequenceMedia::RegisterImage(const std::string& filepath)
+{
+    if (filepath.empty()) return;
+    std::scoped_lock lock(_cacheMutex);
+    if (_imageCache.find(filepath) != _imageCache.end()) return;
+    std::string loadPath = ResolvePath(filepath);
+    for (auto& [key, entry] : _imageCache) {
+        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
+            return;
+        }
+    }
+    // unlike GetImage this does NOT Load() - decode happens on first access
+    _imageCache.emplace(filepath, std::make_shared<ImageCacheEntry>(loadPath));
+}
+
+void SequenceMedia::MarkUsedByMetadata(const std::string& filepath, bool used)
+{
+    std::scoped_lock lock(_cacheMutex);
+    auto mark = [&](auto& cache) {
+        auto it = cache.find(filepath);
+        if (it != cache.end()) {
+            it->second->SetUsedByMetadata(used);
+            return true;
+        }
+        return false;
+    };
+    if (mark(_imageCache)) return;
+    if (mark(_svgCache)) return;
+    if (mark(_textCache)) return;
+    if (mark(_shaderCache)) return;
+    if (mark(_binaryCache)) return;
+    if (mark(_videoCache)) return;
+    mark(_audioCache);
+}
+
+bool SequenceMedia::IsUsedByMetadata(const std::string& filepath) const
+{
+    std::scoped_lock lock(_cacheMutex);
+    auto check = [&](const auto& cache) {
+        auto it = cache.find(filepath);
+        return it != cache.end() && it->second->IsUsedByMetadata();
+    };
+    return check(_imageCache) || check(_svgCache) || check(_textCache) ||
+           check(_shaderCache) || check(_binaryCache) || check(_videoCache) ||
+           check(_audioCache);
 }
 
 void SequenceMedia::RemoveImage(const std::string& filepath)
@@ -1949,7 +2013,17 @@ void SequenceMedia::RemoveUnusedMedia() {
     auto removeUnused = [](auto& cache, const char* typeName) {
         std::vector<std::string> toRemove;
         for (const auto& pair : cache) {
-            if (!pair.second->IsUsed()) {
+            if (pair.second->IsUsed()) {
+                continue;
+            }
+            // Embedded entries are document content, not cache - erasing one
+            // that simply hasn't rendered yet would lose the data at next
+            // save. Metadata-referenced entries (sequence face images) are
+            // never marked used by the render pipeline at all. For both,
+            // reclaim the decoded data but keep the entry.
+            if (pair.second->IsEmbedded() || pair.second->IsUsedByMetadata()) {
+                pair.second->UnloadCachedData();
+            } else {
                 toRemove.push_back(pair.first);
             }
         }

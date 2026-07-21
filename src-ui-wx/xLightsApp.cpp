@@ -1025,6 +1025,11 @@ bool xLightsApp::OnInit()
     // any differing channel samples. Used to prove headless renders match the
     // desktop render. No window.
     if (parser.Found("fc")) {
+#ifdef __APPLE__
+        // Run as a background app: no Dock icon, no focus stealing, so a
+        // background render doesn't disrupt the desktop.
+        SetHeadlessNoDock();
+#endif
         if (sequenceFiles.GetCount() != 2) {
             printf("--fseqcmp requires exactly two .fseq file arguments (got %u)\n",
                    (unsigned)sequenceFiles.GetCount());
@@ -1042,6 +1047,9 @@ bool xLightsApp::OnInit()
             printf("--fseqcmp: could not open %s\n", (!fa ? pa.c_str() : pb.c_str()));
             std::exit(2);
         }
+        // both files are walked front to back, frame for frame
+        fa->setReadPattern(FSEQFile::ReadPattern::Bulk);
+        fb->setReadPattern(FSEQFile::ReadPattern::Bulk);
         const uint32_t maxCh = std::max((uint32_t)fa->getMaxChannel(), (uint32_t)fb->getMaxChannel());
         const uint32_t frames = (uint32_t)std::min(fa->getNumFrames(), fb->getNumFrames());
         printf("A %s: %llu frames, maxCh %u, step %d\n", pa.c_str(),
@@ -1061,6 +1069,11 @@ bool xLightsApp::OnInit()
         // Optional: dump A vs B for one channel across frames (env, 1-based).
         const char* dumpEnv = getenv("XL_FSEQCMP_DUMPCH");
         const uint32_t dumpCh = dumpEnv ? (uint32_t)strtoul(dumpEnv, nullptr, 10) : 0;
+        // Optional: report the differing FRAME ranges (env) - the temporal
+        // shape localizes window/state bugs the way per-model localizes rows.
+        const bool dumpFrames = getenv("XL_FSEQCMP_FRAMES") != nullptr;
+        std::vector<uint32_t> frameDiffs;
+        if (dumpFrames) frameDiffs.assign(frames, 0);
         std::vector<std::pair<uint8_t, uint8_t>> series;
         if (dumpCh != 0 && dumpCh <= maxCh) series.reserve(frames);
         for (uint32_t fr = 0; fr < frames; ++fr) {
@@ -1081,9 +1094,19 @@ bool xLightsApp::OnInit()
                     if (firstFrame < 0) { firstFrame = (long)fr; firstCh = c; }
                     ++chDiffFrames[c];
                     if (d > chMaxDiff[c]) chMaxDiff[c] = (uint8_t)std::min(d, 255);
+                    if (dumpFrames) ++frameDiffs[fr];
                 }
             }
             if (dumpCh != 0 && dumpCh <= maxCh) series.emplace_back(ba[dumpCh - 1], bb[dumpCh - 1]);
+        }
+        if (dumpFrames && diffSamples > 0) {
+            printf("\ndiffering frame ranges (frame:samples):\n");
+            long rs = -1; uint64_t rsum = 0;
+            for (uint32_t fr = 0; fr <= frames; ++fr) {
+                bool d = fr < frames && frameDiffs[fr] > 0;
+                if (d) { if (rs < 0) { rs = fr; rsum = 0; } rsum += frameDiffs[fr]; }
+                else if (rs >= 0) { printf("  %ld-%u  (%llu samples)\n", rs, fr - 1, (unsigned long long)rsum); rs = -1; }
+            }
         }
         if (dumpCh != 0 && !series.empty()) {
             printf("\nchannel %u  A vs B (first 80 frames; * = differ):\n", dumpCh);

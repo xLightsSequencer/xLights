@@ -1544,6 +1544,13 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
 // http://blog.ivank.net/fastest-gaussian-blur.html
 static void boxesForGauss(int d, int n, std::vector<float>& boxes) // standard deviation, number of boxes
 {
+    // Only d = 2..15 is tabulated below. A larger radius reaches here from a blur
+    // value curve or a migrated legacy EffectBlur setting (neither is clamped, and
+    // there is no UI slider bounding SLIDER_Blur), and would leave boxes empty for
+    // the back() below.
+    if (d > 15) {
+        d = 15;
+    }
     switch (d) {
     case 2:
     case 3:
@@ -3165,9 +3172,12 @@ void PixelBufferClass::CalcOutput(int EffectPeriod, const std::vector<bool>& val
         while (sz < nc) {
             // Deterministic per-node sparkle phase (was global rand(), which
             // made sparkle placement non-reproducible and mode-dependent).
-            // hashRandomStable is frame-independent and keyed on model/layer/
-            // node index, so headless and desktop produce identical sparkles.
-            sparklesVector[sz] = layers[0]->buffer.hashRandomStable((uint32_t)sz) % 10000;
+            // hashModelStable is keyed ONLY on (model, node) - NOT the current
+            // effect - so this lazy init gives the same phase no matter which
+            // frame/effect first triggers it. That matters because the serial
+            // main buffer and the frame-parallel clones initialize on different
+            // frames; an effect-dependent seed (hashRandomStable) would diverge.
+            sparklesVector[sz] = layers[0]->buffer.hashModelStable((uint32_t)sz) % 10000;
             sz++;
         }
         sparkles = &sparklesVector[0];

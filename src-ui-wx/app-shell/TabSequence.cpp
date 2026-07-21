@@ -1508,7 +1508,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     spdlog::info("=== Batch Render [{} remaining] HWAccel={} File: {}",
                  fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", seq.ToStdString());
     LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
-    OpenSequence(seq, nullptr);
+    OpenSequence(seq, nullptr, "", true);
     EnableSequenceControls(false);
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
@@ -1776,6 +1776,15 @@ wxString xLightsFrame::GetLastSequenceDialogDir() const
     wxString dir;
     GetXLightsConfig()->Read("xLightsLastSequenceDir", &dir, "");
     if (dir.IsEmpty() || !wxDirExists(dir)) {
+        return CurrentDir;
+    }
+    // The remembered dir may be left over from a previous show folder. If it is
+    // not within the current show directory, fall back to the show directory.
+    wxFileName fnDir(dir, "");
+    fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    wxFileName fnShow(CurrentDir, "");
+    fnShow.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    if (!fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR).StartsWith(fnShow.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR))) {
         return CurrentDir;
     }
     return dir;

@@ -18,6 +18,9 @@ public:
     SnowstormEffect(int id);
     virtual ~SnowstormEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: a cheap serial particle advance + a pure serial-per-frame draw.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual bool AppropriateOnNodes() const override
     {
         return false;

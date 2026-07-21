@@ -1,8 +1,9 @@
 #version 450
-// Port of ApplySparkles in LayerBlendingFunctions.metal.  The sparkle
-// counters are uint16 values packed two per word; each thread owns exactly
-// one half-word, so the And/Or atomic pair updates it without disturbing
-// the neighbor.
+// Port of ApplySparkles in LayerBlendingFunctions.metal.  The sparkles buffer
+// holds a stable per-node phase (uint16, packed two per word); the animation
+// advances with the frame via data.sparkleFrame, so placement is a pure
+// function of (node, frame) and reproduces in any render order (frame-parallel
+// clones, partial re-renders).  Read-only - no write-back.
 
 layout(local_size_x = 64) in;
 
@@ -20,7 +21,7 @@ void main() {
         int sc = data.outputSparkleCount;
         uint word = index >> 1u;
         uint shift = (index & 1u) * 16u;
-        uint sparkle = (sparkles[word] >> shift) & 0xFFFFu;
+        uint sparkle = ((sparkles[word] >> shift) & 0xFFFFu) + uint(data.sparkleFrame);
 
         switch (int(sparkle) % (208 - sc)) {
             case 1:
@@ -41,7 +42,5 @@ void main() {
             default:
                 break;
         }
-        atomicAnd(sparkles[word], ~(0xFFFFu << shift));
-        atomicOr(sparkles[word], ((sparkle + 1u) & 0xFFFFu) << shift);
     }
 }
