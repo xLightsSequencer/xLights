@@ -93,7 +93,7 @@
             "label": "Full xLights Control",
             "gridKey": "FullxLightsControl",
             "type": "bool",
-            "boolFormat": "presentOnly",
+            "boolFormat": "TRUEFALSE",
             "capsGate": "SupportsFullxLightsControl",
             "description": "When set, uploading erases the configuration of all unused ports on the controller. Written as the literal \"TRUE\" and only when true (Controller::Save @180: `if (_fullxLightsControl) ... = \"TRUE\"`); absent means false. The reader compares the value against \"TRUE\" with default \"FALSE\" (Controller.cpp @116), so presence with any other value also reads as false. Besides the caps gate, ControllerEthernet::SupportsFullxLightsControl hard-returns false for the ZCPP protocol (ControllerEthernet.cpp @588)."
         },

@@ -81,7 +81,7 @@
             "gridKey": "DontSendConfig",
             "label": "Suppress Sending Configuration",
             "type": "bool",
-            "boolFormat": "presentOnly",
+            "boolFormat": "TRUEFALSE",
             "description": "Verified trap: the property-grid key is \"DontSendConfig\" but the persisted xmlAttribute is \"DontConfigure\". When true, xLights does not push its model-data configuration to this controller (it also skips reading any local .zcpp model-data file at all, ZCPPOutput constructor, ZCPPOutput.cpp @125,@199-201). Written as the literal \"TRUE\" only when true (ZCPPOutput::Save, ZCPPOutput.cpp @265: `if (_dontConfigure) node.append_attribute(\"DontConfigure\") = \"TRUE\";`); absent means false. Read by comparing against \"TRUE\" with default \"FALSE\" (ZCPPOutput.cpp @122). Auto-populated from a discovery-response flag bit (ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED, ZCPPOutput.cpp @504-506)."
         },
         {
@@ -89,7 +89,7 @@
             "gridKey": "SendDataMulticast",
             "label": "Send Data Multicast",
             "type": "bool",
-            "boolFormat": "presentOnly",
+            "boolFormat": "TRUEFALSE",
             "description": "Verified trap: the property-grid key is \"SendDataMulticast\" but the persisted xmlAttribute is \"Multicast\" (distinct from the E1.31/DDP concept of a controller-level \"MULTICAST\" IP sentinel - this is a ZCPP-only per-output flag). When true, pixel data is sent to a multicast address (ZCPP_GetDataMulticastAddress(ip), displayed read-only in the grid as \"Multicast Address\"/\"MulticastAddressDisplay\", OutputPropertyAdapters.cpp @645-647) instead of unicast to ComPort. Written as the literal \"TRUE\" only when true (ZCPPOutput::Save, ZCPPOutput.cpp @266); absent means false. Read by comparing against \"TRUE\" with default \"FALSE\" (ZCPPOutput.cpp @121). Auto-populated from a discovery-response flag bit (ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST, ZCPPOutput.cpp @508-510)."
         },
         {

@@ -72,7 +72,7 @@
             "type": "bool",
             "boolFormat": "truefalse",
             "default": "false",
-            "description": "When \"true\", interleaves buffer Y-positions within each drop (staggered wiring) instead of assigning them top-to-bottom in simple sequential order (IciclesModel::_alternateNodes; IciclesModel::InitModel). Persisted as the lowercase literal true/false. json - see Arches.json's matching note for the full rationale (same pattern recurs on CandyCanes.json's Reverse/Sticks/AlternateNodes). Always written (unconditional, both values)."
+            "description": "When \"true\", interleaves buffer Y-positions within each drop (staggered wiring) instead of assigning them top-to-bottom in simple sequential order (IciclesModel::_alternateNodes; IciclesModel::InitModel). Persisted as the lowercase literal true/false. See Arches.json's matching note for the full rationale (same pattern recurs on CandyCanes.json's Reverse/Sticks/AlternateNodes). Always written (unconditional, both values)."
         },
         {
             "xmlAttribute": "DropPattern",

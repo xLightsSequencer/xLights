@@ -47,7 +47,7 @@
             "gridKey": "ForceSourcePort",
             "label": "Force source port",
             "type": "bool",
-            "boolFormat": "presentOnly",
+            "boolFormat": "TRUEFALSE",
             "description": "When true, binds the outgoing Art-Net socket to the standard Art-Net port 0x1936 instead of an ephemeral port (ArtNetOutput::OpenDatagram, ArtNetOutput.cpp @48). Verified trap: written as the literal \"TRUE\" only when true (ArtNetOutput::Save, ArtNetOutput.cpp @422-424: `if (_forceSourcePort) node.append_attribute(\"ForceSourcePort\") = \"TRUE\";`); absent means false. Read by comparing against \"TRUE\" with default \"FALSE\" (ArtNetOutput.cpp @68). Grid checkbox labelled \"Force source port\" (OutputPropertyAdapters.cpp @354-356): 'You should only set this option if your ArtNet device is not seeing the ArtNet packets because it strictly requires that packets come from port 0x1936.'"
         }
     ],
