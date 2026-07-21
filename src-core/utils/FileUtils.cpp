@@ -133,7 +133,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
 
     // Relative paths (saved for portability) resolve against the show dir and
     // media dirs before any filename-based searching
-    if (!std::filesystem::path(file).is_absolute()) {
+    if (!std::filesystem::path(file).is_absolute() && !sd.empty()) {
         std::string append;
         for (const auto& comp : GetPathComponents(file)) {
             if (!append.empty()) append += std::filesystem::path::preferred_separator;
