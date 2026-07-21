@@ -83,7 +83,7 @@
     "childElements": [
         {
             "name": "network",
-            "description": "One child element per output (E131/ArtNet universe, KiNet port, or the single output of ZCPP/DDP/OPC/Twinkly/Player Only). Read by the base Controller constructor via Output::Create (Controller.cpp @97); each output writes its own attribute set in its Save(). The attribute set depends on this controller's Protocol; the per-protocol documents in protocols/ (e.g. protocols/E131.json) describe them - ref intentionally left unset until those documents exist (next task)."
+            "description": "One child element per output (E131/ArtNet universe, KiNet port, or the single output of ZCPP/DDP/OPC/Twinkly/Player Only). Read by the base Controller constructor via Output::Create (Controller.cpp @97); each output writes its own attribute set in its Save(). The attribute set depends on this controller's Protocol, so it is described by whichever sibling document in protocols/ matches (ArtNet.json, DDP.json, E131.json, KiNet.json, OPC.json, Twinkly.json, ZCPP.json) rather than a single fixed target - ref is intentionally left unset since this schema's ref field only holds one path, not a per-Protocol set."
         }
     ],
     "notes": [

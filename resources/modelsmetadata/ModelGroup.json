@@ -1,6 +1,7 @@
 {
     "schemaVersion": 1,
     "objectType": "modelGroup",
+    "displayAs": "ModelGroup",
     "description": "A <modelGroup> node: a named collection of other models (and/or nested groups) that can be selected, sequenced and previewed as a single unit, without owning any pixels of its own - it renders by delegating to its member models' own buffers, referencing them purely by name. Standalone document: does not extend shared/Common.json, because ModelGroup is built from BaseObject's minimal AddBaseObjectAttributes rather than Model's fuller AddCommonModelAttributes (see notes). Source of truth: src-core/models/ModelGroup.h/.cpp, src-core/XmlSerializer/BaseSerializingVisitor.cpp BaseSerializingVisitor::Visit(const ModelGroup&) (writer) and src-core/XmlSerializer/XmlDeserializingModelFactory.cpp DeserializeModelGroup (reader); editing UI is src-ui-wx/layout/ModelGroupPanel.cpp.",
     "storage": { "file": "xlights_rgbeffects.xml", "node": "modelGroups/modelGroup" },
     "properties": [
