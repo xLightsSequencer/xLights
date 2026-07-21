@@ -1332,6 +1332,34 @@
 						<label>Control</label>
 					</object>
 					<object class="notebookpage">
+						<object class="wxScrolledWindow" name="ID_PANEL_Link" variable="PanelLink" member="yes">
+							<style>wxTAB_TRAVERSAL|wxVSCROLL</style>
+							<object class="wxFlexGridSizer" variable="FlexGridSizerLink" member="no">
+								<cols>1</cols>
+								<growablecols>0</growablecols>
+								<object class="sizeritem">
+									<object class="wxCheckBox" name="ID_CHECKBOX_MHLinkToNext" variable="CheckBox_MHLinkToNext" member="yes">
+										<label>Link end position to next Moving Head effect\n(forces Dimmer to 0 at end)</label>
+										<checked>0</checked>
+										<handler function="OnCheckBox_MHLinkToNextClick" entry="EVT_CHECKBOX" />
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxStaticText" name="ID_STATICTEXT_MHLinkPreview" variable="StaticText_MHLinkPreview" member="yes">
+										<label></label>
+									</object>
+									<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+							</object>
+						</object>
+						<label>Link</label>
+					</object>
+					<object class="notebookpage">
 						<object class="wxPanel" name="ID_PANEL1" variable="PanelStatus" member="yes">
 							<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 								<cols>1</cols>

@@ -10,6 +10,7 @@
 
 #include "MovingHeadPanel.h"
 #include "effects/MovingHeadEffect.h"
+#include "effects/EffectManager.h"
 #include "MovingHeadPanels/MHPresetBitmapButton.h"
 #include "MovingHeadPanels/MHPathPresetBitmapButton.h"
 #include "MovingHeadPanels/MHDimmerPresetBitmapButton.h"
@@ -32,6 +33,10 @@
 #include <wx/stdpaths.h>
 
 #include "utils/ExternalHooks.h"
+
+#include <algorithm>
+#include <cmath>
+#include <vector>
 
 #include <log.h>
 
@@ -146,6 +151,9 @@ const wxWindowID MovingHeadPanel::ID_CHECKBOX_MHShutterEnable = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_ColorWheel = wxNewId();
 const wxWindowID MovingHeadPanel::ID_NOTEBOOK2 = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Control = wxNewId();
+const wxWindowID MovingHeadPanel::ID_CHECKBOX_MHLinkToNext = wxNewId();
+const wxWindowID MovingHeadPanel::ID_STATICTEXT_MHLinkPreview = wxNewId();
+const wxWindowID MovingHeadPanel::ID_PANEL_Link = wxNewId();
 const wxWindowID MovingHeadPanel::IDD_TEXTCTRL_Status = wxNewId();
 const wxWindowID MovingHeadPanel::ID_BUTTON_ResetToDefault = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL1 = wxNewId();
@@ -583,6 +591,17 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     PanelControl->SetSizer(FlexGridSizerControl);
     FlexGridSizerControl->Fit(PanelControl);
     FlexGridSizerControl->SetSizeHints(PanelControl);
+    PanelLink = new wxScrolledWindow(Notebook1, ID_PANEL_Link, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxVSCROLL, _T("ID_PANEL_Link"));
+    PanelLink->SetScrollRate(0, 10);
+    FlexGridSizerLink = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizerLink->AddGrowableCol(0);
+    CheckBox_MHLinkToNext = new wxCheckBox(PanelLink, ID_CHECKBOX_MHLinkToNext, _("Link end position to next Moving Head effect\n(forces Dimmer to 0 at end)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_MHLinkToNext"));
+    CheckBox_MHLinkToNext->SetValue(false);
+    FlexGridSizerLink->Add(CheckBox_MHLinkToNext, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    StaticText_MHLinkPreview = new wxStaticText(PanelLink, ID_STATICTEXT_MHLinkPreview, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_MHLinkPreview"));
+    FlexGridSizerLink->Add(StaticText_MHLinkPreview, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    PanelLink->SetSizer(FlexGridSizerLink);
+    PanelLink->FitInside();
     PanelStatus = new wxPanel(Notebook1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer1->AddGrowableCol(0);
@@ -599,6 +618,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     Notebook1->AddPage(PanelPathing, _("Pathing"), false);
     Notebook1->AddPage(PanelPattern, _("Pattern"), false);
     Notebook1->AddPage(PanelControl, _("Control"), false);
+    Notebook1->AddPage(PanelLink, _("Link"), false);
     Notebook1->AddPage(PanelStatus, _("Status"), false);
     FlexGridSizer_Main->Add(Notebook1, 1, wxALL|wxEXPAND, 5);
     FlexGridSizer_Positions = new wxFlexGridSizer(0, 8, 0, 0);
@@ -658,6 +678,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     Connect(ID_CHECKBOX_MHShutterEnable,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHShutterEnableClick);
     Connect(ID_CHOICE_MHPattern,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&MovingHeadPanel::OnChoice_MHPatternSelect);
     Connect(ID_CHECKBOX_MHPatternEnable,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHPatternEnableClick);
+    Connect(ID_CHECKBOX_MHLinkToNext,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHLinkToNextClick);
     Connect(ID_BUTTON_ResetToDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_ResetToDefaultClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
     //*)
@@ -1301,6 +1322,25 @@ void MovingHeadPanel::ValidateWindow()
                             }
                         }
                     }
+                } else {
+                    // Own slot already has valid data, so the block above never ran --
+                    // but a single model only ever owns one fixture number, so any OTHER
+                    // populated slot is guaranteed stale. Two ways to get here: a sequence
+                    // saved before the copy/paste fixture-remap fix above existed, or --
+                    // more commonly -- copying an effect from a multi-head group (which
+                    // legitimately has several MHx_Settings slots populated, one per head
+                    // in the group) onto a single-fixture model. Either way, wipe every
+                    // other slot so Status/Dimmer stop reporting orphaned heads and the
+                    // extra data doesn't keep propagating on further copy/paste.
+                    for (int i = 1; i <= 8; ++i) {
+                        if (i == fixture) continue;
+                        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                        if( mh_textbox != nullptr && mh_textbox->GetValue() != xlEMPTY_STRING ) {
+                            mh_textbox->SetValue(xlEMPTY_STRING);
+                            remapped_fixture = true;
+                        }
+                    }
                 }
             }
         }
@@ -1408,6 +1448,19 @@ void MovingHeadPanel::ValidateWindow()
     if (active_timing == nullptr) return;
     m_movingHeadDimmerPanel->SetEffectTimeRange(startTimeMs_, endTimeMs_);
     m_movingHeadDimmerPanel->SetTimingTrack(active_timing);
+
+    // Silently re-sync to the next effect's current start position every time this
+    // effect is (re)selected, per the "Link" tab's checkbox state.
+    UpdateLinkTabState();
+    if (CheckBox_MHLinkToNext != nullptr && CheckBox_MHLinkToNext->IsChecked()) {
+        SyncLinkToNext();
+    } else if (StaticText_MHLinkPreview != nullptr && !StaticText_MHLinkPreview->GetLabel().IsEmpty()) {
+        // Not linked, so we're not looking for a next effect for this one -- clear any
+        // preview text left over from whichever other (linked) effect was selected before,
+        // rather than let it keep describing a position that isn't this effect's.
+        StaticText_MHLinkPreview->SetLabel(wxEmptyString);
+        PanelLink->FitInside();
+    }
 }
 
 static std::list<std::string> vcurves_pos = {"ID_VALUECURVE_MHPan", "ID_VALUECURVE_MHTilt", "ID_VALUECURVE_MHPanOffset",
@@ -1874,6 +1927,194 @@ void MovingHeadPanel::OnChoice_MHPatternSelect(wxCommandEvent& event)
 void MovingHeadPanel::OnCheckBox_MHPatternEnableClick(wxCommandEvent& event)
 {
     UpdatePatternSettings();
+    FireChangeEvent();
+}
+
+void MovingHeadPanel::OnCheckBox_MHLinkToNextClick(wxCommandEvent& event)
+{
+    UpdateLinkTabState();
+    if( CheckBox_MHLinkToNext->IsChecked() ) {
+        SyncLinkToNext(); // also fires the change event
+    } else {
+        // Clear the preview so it doesn't keep showing the last-synced position/heads
+        // now that Link is off and that text no longer describes anything real.
+        if (StaticText_MHLinkPreview != nullptr) {
+            StaticText_MHLinkPreview->SetLabel(wxEmptyString);
+            PanelLink->FitInside();
+        }
+        FireChangeEvent();
+    }
+}
+
+// The Link feature fully owns Pan/Tilt for linked heads and strips Path/Pattern
+// commands on every resync (see ApplyLinkedHeadPosition), so edits made on those two
+// tabs would appear to silently vanish -- gray them out while linked. The Position tab
+// is deliberately left enabled: its Groupings/Cycles fields survive linking, and the
+// user should still be able to see (even if not rely on) the shared Pan/Tilt sliders.
+void MovingHeadPanel::UpdateLinkTabState()
+{
+    bool linked = CheckBox_MHLinkToNext != nullptr && CheckBox_MHLinkToNext->IsChecked();
+    if (PanelPathing != nullptr) PanelPathing->Enable(!linked);
+    if (PanelPattern != nullptr) PanelPattern->Enable(!linked);
+}
+
+// Commands that define a head's Pan/Tilt at all (raw value, VC, offsets, path or
+// pattern driven) are stripped before splicing in the linked static Pan/Tilt so the
+// head unconditionally ends the effect at the next effect's computed start position,
+// regardless of how this effect was originally driving it.
+static std::list<std::string> linkedPositionOverrideSettings = {
+    "Pan", "Tilt", "Pan VC", "Tilt VC", "PanOffset", "TiltOffset", "PanOffset VC", "TiltOffset VC",
+    "Path", "PathScale", "PathScale VC", "TimeOffset", "TimeOffset VC", "IgnorePan", "IgnoreTilt",
+    "Pattern", "PatternWidth", "PatternHeight", "PatternXOffset", "PatternYOffset",
+    "PatternRotation", "PatternRotation VC", "PatternStartOffset", "PatternPhaseOffset",
+    "PatternXFreq", "PatternYFreq", "PatternXPhase", "PatternYPhase"
+};
+
+void MovingHeadPanel::ApplyLinkedHeadPosition(int headNum, float pan, float tilt)
+{
+    wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", headNum);
+    wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+    if( mh_textbox == nullptr ) return;
+
+    std::string mh_settings = mh_textbox->GetValue();
+
+    // Strip any existing position-defining commands (and any existing Dimmer curve --
+    // Link's whole point is to keep the head dark while it moves into position for the
+    // next effect, so the entire effect is forced off, not just its last handle), then
+    // splice in a plain static Pan/Tilt override and a flat-zero Dimmer curve.
+    wxArrayString all_cmds = wxSplit(mh_settings, ';');
+    wxArrayString updated_cmds;
+    for (size_t j = 0; j < all_cmds.size(); ++j) {
+        std::string cmd = all_cmds[j];
+        if( cmd == xlEMPTY_STRING ) continue;
+        int pos = cmd.find(":");
+        std::string cmd_type = cmd.substr(0, pos);
+        if( cmd_type == "Dimmer" ) continue;
+        bool found = (std::find(linkedPositionOverrideSettings.begin(), linkedPositionOverrideSettings.end(), cmd_type) != linkedPositionOverrideSettings.end());
+        if( !found ) {
+            updated_cmds.Add(all_cmds[j]);
+        }
+    }
+
+    updated_cmds.Add(wxString::Format("Pan: %.1f", pan));
+    updated_cmds.Add(wxString::Format("Tilt: %.1f", tilt));
+    updated_cmds.Add("Dimmer: 0.0,0.0,1.0,0.0");
+
+    mh_textbox->SetValue(wxJoin(updated_cmds, ';'));
+}
+
+void MovingHeadPanel::SyncLinkToNext()
+{
+    // IsHeadActive() reflects the fixture checkboxes, which are UI-only state that
+    // ValidateWindow deliberately does NOT resync when a different effect is selected
+    // (see the disabled auto-check block above it) -- they can be left over from
+    // whatever head was last clicked/edited, on a completely different effect. So a
+    // checked box is not reliable evidence of which heads *this* effect defines right
+    // after a reselect/drag/move: relying on it alone can point Link at the wrong (empty)
+    // head slot in the next effect and wrongly report "no defined position". But we also
+    // can't drop the checkboxes entirely -- a blank "warmup" effect with no per-head data
+    // yet, whose only signal of intent is which heads are checked, is a real use case for
+    // this feature. So for a fixture group, take the union: any head that already has
+    // settings on this effect (ground truth), plus any head that's checked (intent for an
+    // otherwise-blank effect). For a single model, trust the model's actual
+    // GetFixtureVal() instead of either signal.
+    std::vector<int> heads_to_sync;
+    auto models_for_sync = GetActiveModels();
+    if (models_for_sync.size() == 1) {
+        auto sync_model = models_for_sync.front();
+        if (sync_model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv ||
+            sync_model->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            auto mh = dynamic_cast<const DmxMovingHeadComm*>(sync_model);
+            if (mh != nullptr) {
+                heads_to_sync.push_back(mh->GetFixtureVal());
+            }
+        }
+    }
+    if (heads_to_sync.empty()) {
+        for (int i = 1; i <= 8; ++i) {
+            wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+            wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+            bool has_settings = mh_textbox != nullptr && !mh_textbox->GetValue().IsEmpty();
+            if (has_settings || IsHeadActive(i)) {
+                heads_to_sync.push_back(i);
+            }
+        }
+    }
+
+    bool found_next = false;
+    bool next_is_moving_head = false;
+    wxArrayString preview_lines;
+    int refreshed_head = -1;
+
+    xLightsApp::GetFrame()->CallOnEffectAfterSelected([this, &found_next, &next_is_moving_head, &preview_lines, &heads_to_sync, &models_for_sync, &refreshed_head](Effect* ef) {
+        found_next = true;
+        if (ef == nullptr || ef->GetEffectIndex() != EffectManager::eff_MOVINGHEAD) {
+            return false;
+        }
+        next_is_moving_head = true;
+
+        bool next_single_model = models_for_sync.size() == 1;
+        for (int i : heads_to_sync) {
+            std::string next_head_settings = ef->GetSettings().Get("E_TEXTCTRL_MH" + std::to_string(i) + "_Settings", "");
+            if (next_head_settings.empty() && next_single_model) {
+                // The next effect may be an un-remapped copy/paste from a different
+                // fixture model: ValidateWindow's fixture-remap block only moves an
+                // effect's data into the correct MH<fixture>_Settings slot once that
+                // effect itself gets selected, and CheckEffectSettings does nothing
+                // equivalent at load/paste time. For a single-model row there's only
+                // ever one real head, so fall back to whichever slot actually has data
+                // rather than reporting a false "no defined position".
+                for (int j = 1; j <= 8 && next_head_settings.empty(); ++j) {
+                    if (j == i) continue;
+                    next_head_settings = ef->GetSettings().Get("E_TEXTCTRL_MH" + std::to_string(j) + "_Settings", "");
+                }
+            }
+            float pan = 0.0f, tilt = 0.0f;
+            if (MovingHeadEffect::GetHeadStartPosition(next_head_settings, i, ef->GetStartTimeMS(), ef->GetEndTimeMS(), pan, tilt)) {
+                ApplyLinkedHeadPosition(i, pan, tilt);
+                preview_lines.Add(wxString::Format("Head %d: Pan %.1f deg / Tilt %.1f deg", i, pan, tilt));
+                if (refreshed_head == -1) refreshed_head = i;
+            } else {
+                preview_lines.Add(wxString::Format("Head %d: next effect has no defined position", i));
+            }
+        }
+
+        // We only ever read the next effect's settings, never mutate it, so there is
+        // never an undo step to capture for it.
+        return false;
+    });
+
+    // ApplyLinkedHeadPosition only writes the hidden per-head settings textctrl. The
+    // visible Position/Dimmer tab widgets (sliders, spinners, the dimmer curve editor)
+    // are otherwise only refreshed from that text via RecallSettings, which runs once
+    // per effect-(re)selection in ValidateWindow's "all_same" block -- and that already
+    // ran *before* this sync, off the pre-link settings. Re-run it now so the visible
+    // controls (and the Status tab) show what we just linked in, instead of stale
+    // pre-link values until the user clicks to another effect and back.
+    if (refreshed_head != -1) {
+        wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", refreshed_head);
+        wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+        if (mh_textbox != nullptr) {
+            RecallSettings(mh_textbox->GetValue().ToStdString());
+        }
+    }
+
+    wxString preview;
+    if (!found_next) {
+        preview = _("No following Moving Head effect on this row");
+    } else if (!next_is_moving_head) {
+        preview = _("Next effect is not a Moving Head effect");
+    } else if (preview_lines.empty()) {
+        preview = _("No active heads");
+    } else {
+        preview = wxJoin(preview_lines, '\n');
+    }
+    if (StaticText_MHLinkPreview != nullptr) {
+        StaticText_MHLinkPreview->SetLabel(preview);
+        PanelLink->FitInside();
+    }
+
+    UpdateStatusPanel();
     FireChangeEvent();
 }
 
@@ -2892,6 +3133,14 @@ void MovingHeadPanel::SetDefaultParameters()
     CheckBox_MHIgnoreTilt->SetValue(false);
     CheckBoxAutoShutter->SetValue(false);
     CheckBox_MHShutterEnable->SetValue(false);
+    CheckBox_MHLinkToNext->SetValue(false);
+    if (StaticText_MHLinkPreview != nullptr) {
+        // Link is off and has never been checked for this (brand-new) effect, so we haven't
+        // actually looked for a next effect -- leave this blank rather than asserting "no
+        // following effect", which would be a claim we never verified.
+        StaticText_MHLinkPreview->SetLabel(wxEmptyString);
+    }
+    UpdateLinkTabState();
 
     ResetPatternControls();
 

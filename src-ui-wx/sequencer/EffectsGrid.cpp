@@ -3993,6 +3993,15 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             mEffectMoveDragging = false;
             if (mEffectMoveDragThresholdExceeded && !mEffectMoveHasCollision && !mEffectMoveSnapshots.empty()) {
                 ApplyEffectMoveDrag();
+                // A plain same-row move doesn't otherwise notify the effect panel at all
+                // (ApplyEffectMoveDrag only reassigns mSelectedEffect for the cross-row/copy
+                // case). A Moving Head effect with "Link end position to next Moving Head
+                // effect" checked needs to know when its own end time moves, since that
+                // changes which effect is now "next" -- refresh it same as a resize does.
+                if (mSelectedEffect != nullptr &&
+                    mSelectedEffect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
+                    RaiseSelectedEffectChanged(mSelectedEffect, false);
+                }
             } else if (!mEffectMoveDragThresholdExceeded && mEffectMoveDragGroup && mEffectMoveAnchorEffect != nullptr) {
                 // Keep the group selected; just update the settings panel to the clicked effect
                 mSelectedEffect = mEffectMoveAnchorEffect;
@@ -4067,7 +4076,14 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                             sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
                         }
                         RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
-                        if (event.ShiftDown() || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+                        // Also refresh the panel for a plain resize of a Moving Head effect with
+                        // "Link end position to next Moving Head effect" checked: SyncLinkToNext()
+                        // only re-fires from ValidateWindow when the effect panel is re-validated,
+                        // and dragging this effect's edge up against the next Moving Head effect is
+                        // exactly the case Link needs to react to (its end time, and therefore which
+                        // effect is now "next", just changed).
+                        if (event.ShiftDown() || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT ||
+                            effect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
                             RaiseSelectedEffectChanged(effect, false);
                         }
                     }
@@ -4711,6 +4727,16 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt) {
         }
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
 
+        // None of the resize/stretch helpers above notify the effect panel (they only
+        // touch effect timing, not selection). A Moving Head effect with "Link end
+        // position to next Moving Head effect" checked needs to know its end time moved,
+        // since that changes which effect is now "next" -- refresh it same as a mouse
+        // drag does.
+        if (mSelectedEffect != nullptr &&
+            mSelectedEffect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
+            RaiseSelectedEffectChanged(mSelectedEffect, false);
+        }
+
         sendRenderDirtyEvent();
         Draw();
     }
@@ -4826,6 +4852,13 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt) {
             ResizeMoveMultipleEffectsByTime(by, force);
         }
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+
+        // See the matching comment in MoveSelectedEffectRight: a Moving Head effect
+        // linked to the next one needs the panel refreshed after its timing moves.
+        if (mSelectedEffect != nullptr &&
+            mSelectedEffect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
+            RaiseSelectedEffectChanged(mSelectedEffect, false);
+        }
 
         Draw();
         sendRenderDirtyEvent();

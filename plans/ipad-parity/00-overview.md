@@ -295,6 +295,7 @@ evidence lives in each theme doc's scorecard.
 | Feature | Theme | Pri | Gap | Ease |
 |---|---|---|---|---|
 | Convert selected effects to a different type | 04 | P2 | ipad-missing | hard |
+| Moving Head: "Link" tab (snap end Pan/Tilt to next effect + force Dimmer to 0) | 04 | P2 | ipad-missing | medium |
 | SubModel import: from Model / File / Layout / Downloads | 06 | P2 | ipad-missing | hard |
 | SubModels: output-to-lights live test toggle | 06 | P2 | ipad-missing | medium |
 | Real-world dimension readouts (ruler-calibrated) | 06 | P2 | ipad-missing | medium |
