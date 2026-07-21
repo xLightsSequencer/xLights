@@ -21,6 +21,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  small models exactly - the Metal/Vulkan kernels were rounding
                                  the ring edge differently than the CPU path
     -enh (dkulp)                 Ripple: faster circle drawing
+    -change (dkulp)              Render: HSV colour and transition/warp geometry now compute in
+                                 float instead of double (lower memory; negligible output change)
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
     -bug (cybercop23)            Fix Bars/Shockwave/ColorWash/Spirals/Circles effects producing no output on DMX models

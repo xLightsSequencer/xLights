@@ -25,14 +25,14 @@ class ColorCurve;
 class HSVValue
 {
 public:
-    HSVValue(double h=0.0, double s=0.0, double v=0.0)
+    HSVValue(float h=0.0f, float s=0.0f, float v=0.0f)
         : hue(h), saturation(s), value(v) {}
     HSVValue(const xlColor &c);
     HSVValue& operator=(const xlColor& hsv);
 
-    double hue;
-    double saturation;
-    double value;
+    float hue;
+    float saturation;
+    float value;
 };
 
 class HSLValue

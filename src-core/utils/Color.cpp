@@ -187,30 +187,30 @@ void xlColor::SetFromString(const std::string &str) {
     }
 }
 static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
-    double red, green, blue;
-    double value = std::clamp(hsv.value, 0.0, 1.0);
-    double saturation = std::clamp(hsv.saturation, 0.0, 1.0);
+    float red, green, blue;
+    float value = std::clamp(hsv.value, 0.0f, 1.0f);
+    float saturation = std::clamp(hsv.saturation, 0.0f, 1.0f);
     if (0.0f == saturation) {
         // Grey
         red = value;
         green = value;
         blue = value;
     } else { // not grey
-        double hue = std::clamp(hsv.hue, 0.0, 1.0) * 6.0;      // sector 0 to 5
+        float hue = std::clamp(hsv.hue, 0.0f, 1.0f) * 6.0f;      // sector 0 to 5
         int i = (int)std::floor(hue);
-        double f = hue - i;          // fractional part of h
-        double p = value * (1.0 - saturation);
+        float f = hue - i;          // fractional part of h
+        float p = value * (1.0f - saturation);
 
         switch (i) {
             case 6:
             case 0:
                 red = value;
-                green = value * (1.0 - saturation * (1.0 - f));
+                green = value * (1.0f - saturation * (1.0f - f));
                 blue = p;
                 break;
 
             case 1:
-                red = value * (1.0 - saturation * f);
+                red = value * (1.0f - saturation * f);
                 green = value;
                 blue = p;
                 break;
@@ -218,17 +218,17 @@ static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
             case 2:
                 red = p;
                 green = value;
-                blue = value * (1.0 - saturation * (1.0 - f));
+                blue = value * (1.0f - saturation * (1.0f - f));
                 break;
 
             case 3:
                 red = p;
-                green = value * (1.0 - saturation * f);
+                green = value * (1.0f - saturation * f);
                 blue = value;
                 break;
 
             case 4:
-                red = value * (1.0 - saturation * (1.0 - f));
+                red = value * (1.0f - saturation * (1.0f - f));
                 green = p;
                 blue = value;
                 break;
@@ -236,13 +236,13 @@ static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
             default:    // case 5:
                 red = value;
                 green = p;
-                blue = value * (1.0 - saturation * f);
+                blue = value * (1.0f - saturation * f);
                 break;
         }
     }
-    rgb.Set((uint8_t)std::lround(red * 255.0),
-            (uint8_t)std::lround(green * 255.0),
-            (uint8_t)std::lround(blue * 255.0));
+    rgb.Set((uint8_t)std::lround(red * 255.0f),
+            (uint8_t)std::lround(green * 255.0f),
+            (uint8_t)std::lround(blue * 255.0f));
 }
 
 void xlColor::fromHSV(const HSVValue &hsv) {
@@ -251,26 +251,26 @@ void xlColor::fromHSV(const HSVValue &hsv) {
 //optimized algorithm from http://lolengine.net/blog/2013/01/13/fast-rgb-to-hsv
 static void toHSV(const xlColor &c, HSVValue &v)
 {
-    double r = c.red / 255.0;
-    double g = c.green / 255.0;
-    double b = c.blue / 255.0;
+    float r = c.red / 255.0f;
+    float g = c.green / 255.0f;
+    float b = c.blue / 255.0f;
 
-    double K = 0.0;
+    float K = 0.0f;
     if (g < b)
     {
         std::swap(g, b);
-        K = -1.0;
+        K = -1.0f;
     }
-    double min_gb = b;
+    float min_gb = b;
     if (r < g)
     {
         std::swap(r, g);
-        K = -2.0 / 6.0 - K;
+        K = -2.0f / 6.0f - K;
         min_gb = std::min(g, b);
     }
-    double chroma = r - min_gb;
-    v.hue = std::abs(K + (g - b) / (6.0 * chroma + 1e-20));
-    v.saturation = chroma / (r + 1e-20);
+    float chroma = r - min_gb;
+    v.hue = std::abs(K + (g - b) / (6.0f * chroma + 1e-20f));
+    v.saturation = chroma / (r + 1e-20f);
     v.value = r;
 }
 

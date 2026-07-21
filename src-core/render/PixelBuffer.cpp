@@ -43,9 +43,9 @@ namespace {
         return std::min(hi, std::max(lo, val));
     }
 
-    double SmoothStep(double edge0, double edge1, double x) {
-        double t = CLAMP((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-        return t * t * (3.0 - 2.0 * t);
+    float SmoothStep(float edge0, float edge1, float x) {
+        float t = CLAMP((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+        return t * t * (3.0f - 2.0f * t);
     }
 
     struct ColorBuffer {
@@ -64,9 +64,9 @@ namespace {
         const int h;
     };
 
-    xlColor tex2D(const ColorBuffer& cb, double s, double t) {
-        s = CLAMP(0., s, 1.);
-        t = CLAMP(0., t, 1.);
+    xlColor tex2D(const ColorBuffer& cb, float s, float t) {
+        s = CLAMP(0.f, s, 1.f);
+        t = CLAMP(0.f, t, 1.f);
 
         int x = int(s * (cb.w - 1));
         int y = int(t * (cb.h - 1));
@@ -74,9 +74,9 @@ namespace {
         return cb.GetPixel(x, y);
     }
 
-    xlColor tex2D(const RenderBuffer& rb, double s, double t) {
-        s = CLAMP(0., s, 1.);
-        t = CLAMP(0., t, 1.);
+    xlColor tex2D(const RenderBuffer& rb, float s, float t) {
+        s = CLAMP(0.f, s, 1.f);
+        t = CLAMP(0.f, t, 1.f);
 
         int x = int(s * (rb.BufferWi - 1));
         int y = int(t * (rb.BufferHt - 1));
@@ -85,7 +85,7 @@ namespace {
     }
 
     struct Vec2D {
-        Vec2D(double i_x = 0., double i_y = 0.) :
+        Vec2D(float i_x = 0.f, float i_y = 0.f) :
             x(i_x), y(i_y) {
         }
 
@@ -95,16 +95,16 @@ namespace {
         Vec2D operator-(const Vec2D& p) const {
             return Vec2D(x - p.x, y - p.y);
         }
-        double operator^(const Vec2D& p) const {
+        float operator^(const Vec2D& p) const {
             return x * p.y - y * p.x;
         }
-        Vec2D operator*(const double& k) const {
+        Vec2D operator*(const float& k) const {
             return Vec2D(x * k, y * k);
         }
         Vec2D operator*(const Vec2D& p) const {
             return Vec2D(x * p.x, y * p.y);
         }
-        Vec2D operator/(const double& k) const {
+        Vec2D operator/(const float& k) const {
             return *this * (1 / k);
         }
         Vec2D operator+=(const Vec2D& p) {
@@ -113,10 +113,10 @@ namespace {
         Vec2D operator-=(const Vec2D& p) {
             return *this = *this - p;
         }
-        Vec2D operator*=(const double& k) {
+        Vec2D operator*=(const float& k) {
             return *this = *this * k;
         }
-        Vec2D operator/=(const double& k) {
+        Vec2D operator/=(const float& k) {
             return *this = *this / k;
         }
         Vec2D operator-() const {
@@ -128,16 +128,16 @@ namespace {
         Vec2D Max(const Vec2D& p) const {
             return Vec2D(std::max(x, p.x), std::max(y, p.y));
         }
-        double Len2() const {
+        float Len2() const {
             return x * x + y * y;
         }
-        double Len() const {
-            return ::sqrt(Len2());
+        float Len() const {
+            return std::sqrt(Len2());
         }
-        double Dist2(const Vec2D& p) const {
+        float Dist2(const Vec2D& p) const {
             return (*this - p).Len2();
         }
-        double Dist(const Vec2D& p) const {
+        float Dist(const Vec2D& p) const {
             return (*this - p).Len();
         }
         Vec2D Norm() const {
@@ -146,23 +146,23 @@ namespace {
         bool IsNormal() const {
             return fabs(Len2() - 1) < 1e-6;
         }
-        Vec2D Rotate(const double& fAngle) const {
-            float const cs = RenderBuffer::cos(fAngle);
-            float const sn = RenderBuffer::sin(fAngle);
+        Vec2D Rotate(const float& fAngle) const {
+            float const cs = std::cos(fAngle);
+            float const sn = std::sin(fAngle);
             return Vec2D(x * cs + y * sn, -x * sn + y * cs);
         }
-        Vec2D RotateAbout(double angle, const Vec2D& pt) const {
+        Vec2D RotateAbout(float angle, const Vec2D& pt) const {
             Vec2D p(*this - pt);
             p = p.Rotate(angle);
             return p + pt;
         }
 
-        static Vec2D lerp(const Vec2D& a, const Vec2D& b, double progress) {
-            double x = a.x + progress * (b.x - a.x);
-            double y = a.y + progress * (b.y - a.y);
+        static Vec2D lerp(const Vec2D& a, const Vec2D& b, float progress) {
+            float x = a.x + progress * (b.x - a.x);
+            float y = a.y + progress * (b.y - a.y);
             return Vec2D(x, y);
         }
-        double x, y;
+        float x, y;
     };
 
     xlColor tex2D(const ColorBuffer& cb, const Vec2D& st) {
@@ -176,29 +176,29 @@ namespace {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif
-    xlColor lerp(const xlColor& a, const xlColor& b, double progress) {
-        double red = a.red + progress * (b.red - a.red);
-        double green = a.green + progress * (b.green - a.green);
-        double blue = a.blue + progress * (b.blue - a.blue);
+    xlColor lerp(const xlColor& a, const xlColor& b, float progress) {
+        float red = a.red + progress * (b.red - a.red);
+        float green = a.green + progress * (b.green - a.green);
+        float blue = a.blue + progress * (b.blue - a.blue);
 
         return xlColor(uint8_t(red), uint8_t(green), uint8_t(blue));
     }
 
-    Vec2D operator+(double a, const Vec2D& b) {
+    Vec2D operator+(float a, const Vec2D& b) {
         return Vec2D(a + b.x, a + b.y);
     }
-    Vec2D operator-(double a, const Vec2D& b) {
+    Vec2D operator-(float a, const Vec2D& b) {
         return Vec2D(a - b.x, a - b.y);
     }
-    Vec2D operator*(double a, const Vec2D& b) {
+    Vec2D operator*(float a, const Vec2D& b) {
         return Vec2D(a * b.x, a * b.y);
     }
 
-    double dot(const Vec2D& a, const Vec2D& b) {
+    float dot(const Vec2D& a, const Vec2D& b) {
         return a.x * b.x + a.y * b.y;
     }
 
-    double lerp(double a, double b, double progress) {
+    float lerp(float a, float b, float progress) {
         return a + progress * (b - a);
     }
 
@@ -228,7 +228,7 @@ namespace {
     }
 
     struct Vec3D {
-        Vec3D(double i_x = 0., double i_y = 0., double i_z = 0.) :
+        Vec3D(float i_x = 0.f, float i_y = 0.f, float i_z = 0.f) :
             x(i_x), y(i_y), z(i_z) {
         }
         Vec3D operator-() const {
@@ -241,13 +241,13 @@ namespace {
             return Vec3D(x - p.x, y - p.y, z - p.z);
         }
 
-        double x, y, z;
+        float x, y, z;
     };
-    Vec3D operator*(double a, const Vec3D& b) {
+    Vec3D operator*(float a, const Vec3D& b) {
         return Vec3D(a * b.x, a * b.y, a * b.z);
     }
 
-    double dot(const Vec3D& a, const Vec3D& b) {
+    float dot(const Vec3D& a, const Vec3D& b) {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
@@ -1493,14 +1493,14 @@ void PixelBufferClass::GetMixedColor(int lx, int ly, xlColor& c, const std::vect
                 if (thelayer->contrast != 0) {
                     // contrast is not 0, can handle brightness change at same time
                     HSVValue hsv = color.asHSV();
-                    hsv.value = hsv.value * ((double)b / 100.0);
+                    hsv.value = hsv.value * ((float)b / 100.0f);
 
                     // Apply Contrast
-                    if (hsv.value < 0.5) {
+                    if (hsv.value < 0.5f) {
                         // reduce brightness when below 0.5 in the V value or increase if > 0.5
-                        hsv.value = hsv.value - (hsv.value * ((double)thelayer->contrast / 100.0));
+                        hsv.value = hsv.value - (hsv.value * ((float)thelayer->contrast / 100.0f));
                     } else {
-                        hsv.value = hsv.value + (hsv.value * ((double)thelayer->contrast / 100.0));
+                        hsv.value = hsv.value + (hsv.value * ((float)thelayer->contrast / 100.0f));
                     }
 
                     if (hsv.value < 0.0)
