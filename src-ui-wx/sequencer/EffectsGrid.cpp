@@ -381,7 +381,22 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
 
-        // C. Fetch sequencer-scoped EFFECT keybindings, limit to 18
+        // C. Clip the proposed range so the new effect never overwrites an
+        // existing effect on this row (mirrors AdjustDropLocations/OldPaste
+        // behavior used by drag-drop and the keyboard shortcut path).
+        EffectLayer* dropLayer = mSequenceElements->GetVisibleEffectLayer(row);
+        if (dropLayer != nullptr && !dropLayer->GetRangeIsClearMS(startTime, endTime)) {
+            Effect* before_eff = dropLayer->GetEffectBeforeEmptyTime(selectedTimeMS);
+            if (before_eff != nullptr && before_eff->GetEndTimeMS() > startTime) {
+                startTime = before_eff->GetEndTimeMS();
+            }
+            Effect* after_eff = dropLayer->GetEffectAfterEmptyTime(selectedTimeMS);
+            if (after_eff != nullptr && after_eff->GetStartTimeMS() < endTime) {
+                endTime = after_eff->GetStartTimeMS();
+            }
+        }
+
+        // D. Fetch sequencer-scoped EFFECT keybindings, limit to 18
         std::vector<const KeyBinding*> effectBindings;
         MainSequencer* ms = dynamic_cast<MainSequencer*>(mParent);
         if (ms != nullptr) {
@@ -396,7 +411,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
         }
 
         bool effectDropped = false;
-        if (!effectBindings.empty()) {
+        if (endTime > startTime && !effectBindings.empty()) {
             EffectWheelDialog dlg(this, effectBindings);
             dlg.PositionAtMouse(ClientToScreen(event.GetPosition()));
             if (dlg.ShowModal() == wxID_OK) {

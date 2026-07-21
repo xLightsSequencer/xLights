@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (floodlights, moving heads, etc.); the ISPC-accelerated render path wrote raw pixel data
                                  instead of routing through SetPixel(), which is what spreads a colour across a DMX
                                  fixture's channels (#6719)
+    -bug (derwin12)              Effect wheel: dropping an effect near an existing effect could
+                                 overwrite it instead of sizing to the available gap
     -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
                                  defines matrix (image) faces stored in the .xsq, usable by any
                                  matrix/group/submodel in that sequence (no need to duplicate the face
