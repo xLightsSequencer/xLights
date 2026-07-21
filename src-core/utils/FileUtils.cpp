@@ -67,6 +67,17 @@ static std::vector<std::string> GetPathComponents(const std::string& path) {
     return components;
 }
 
+// A Windows drive-letter path ("H:\...") or UNC path ("\\server\...") is
+// absolute on Windows but not per POSIX path rules — never treat one as a
+// portable relative path
+static bool IsWindowsAbsolutePath(const std::string& path) {
+    if (path.size() >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/') &&
+        ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'))) {
+        return true;
+    }
+    return path.size() >= 2 && path[0] == '\\' && path[1] == '\\';
+}
+
 // Check if a file exists in a directory with the given filename
 static bool doesFileExist(const std::string& dir, const std::string& filename, std::string& resultPath) {
     if (filename.empty()) return false;
@@ -133,7 +144,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
 
     // Relative paths (saved for portability) resolve against the show dir and
     // media dirs before any filename-based searching
-    if (!std::filesystem::path(file).is_absolute() && !sd.empty()) {
+    if (!std::filesystem::path(file).is_absolute() && !IsWindowsAbsolutePath(file) && !sd.empty()) {
         std::string append;
         for (const auto& comp : GetPathComponents(file)) {
             if (!append.empty()) append += std::filesystem::path::preferred_separator;
