@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (derwin12)              Effect wheel: dropping an effect near an existing effect could
+                                 overwrite it instead of sizing to the available gap
     -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
                                  be embedded, and SuperStar-imported scene animations silently failed to
                                  embed (frames lost on save)
