@@ -11,9 +11,6 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
-    -bug (wbhartmanii)           Layout: 3D object (mesh) files inside the show/media folders are now
-                                 saved with show-relative paths (forward slashes) instead of absolute
-                                 paths, so layouts survive show folders moved or synced across platforms
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
     -bug (cybercop23)            Fix Bars/Shockwave/ColorWash/Spirals/Circles effects producing no output on DMX models
@@ -156,6 +153,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  polled around a lost-wakeup race on the other)
     -bug (dkulp)                 Fix Shader effect rendering vertically flipped on the Vulkan renderer
                                  (Linux and Windows; Canvas/warp shaders over other layers appeared upside down)
+
+    -bug (wbhartmanii)           Layout: 3D object (mesh) files inside the show/media folders are now
+                                 saved with show-relative paths (forward slashes) instead of absolute
+                                 paths, so layouts survive show folders moved or synced across platforms
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
