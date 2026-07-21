@@ -165,6 +165,14 @@ void GarlandsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     gdata.invPS = (float)(1.0 / PixelSpacing);
     gdata.posOffOverPS = (float)(positionOffset / PixelSpacing);
 
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel()
+        ispc::uint8_t4 single;
+        ispc::GarlandsEffectISPC(&gdata, 0, 1, colors.data(), yb.data(), &single);
+        buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+        return;
+    }
+
     // Bound the ISPC writes by the actual pixel allocation, not the logical
     // dimensions: a variable sub-buffer can leave GetPixelCount() < BufferWi*BufferHt
     // and the kernel writes result[index] with no bounds check.

@@ -385,6 +385,15 @@ void CandleEffect::RenderDraw(Effect* effect, const SettingsMap& SettingsMap, Re
         xlColor* pixels = buffer.GetPixels();
         uint8_t* statesPtr = reinterpret_cast<uint8_t*>(states.data());
         int wi = buffer.BufferWi;
+
+        if (buffer.dmx_buffer) {
+            // DMX fixtures need the colour routed through SetPixel()
+            ispc::uint8_t4 single;
+            ispc::CandleEffectISPC(&cd, 0, 1, statesPtr, &single);
+            buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+            return;
+        }
+
         // Bound writes by the real pixel allocation: a variable sub-buffer can leave
         // GetPixelCount() below BufferWi*BufferHt and the kernel writes result[index]
         // unguarded.

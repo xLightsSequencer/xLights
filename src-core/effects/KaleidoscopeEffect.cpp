@@ -577,6 +577,14 @@ void KaleidoscopeEffect::RenderNew(const std::string& type, int xCentre, int yCe
     std::vector<uint8_t> srcSnap(pixelCount * 4);
     memcpy(srcSnap.data(), buffer.GetPixels(), pixelCount * 4);
 
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel()
+        ispc::uint8_t4 single;
+        ispc::KaleidoscopeEffectISPC(&kdata, (const ispc::uint8_t4*)srcSnap.data(), &single, 0, 1);
+        buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+        return;
+    }
+
     constexpr int bfBlockSize = 4096;
     int blocks = pixelCount / bfBlockSize + 1;
     parallel_for(0, blocks, [&kdata, &srcSnap, &buffer, pixelCount](int blk) {

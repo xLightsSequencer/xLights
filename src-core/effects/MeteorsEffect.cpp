@@ -313,6 +313,12 @@ void MeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParam
             renderLine(line);
         }
     }
+
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel(); the raw uint8_t4
+        // writes above bypass the DMX channel mapping.
+        buffer.SetPixel(0, 0, buffer.GetPixel(0, 0));
+    }
 }
 
 

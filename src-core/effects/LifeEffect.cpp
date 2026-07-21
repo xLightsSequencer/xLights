@@ -153,7 +153,15 @@ void LifeEffect::RenderLifeGenerationISPC(RenderBuffer& buffer, int type)
         }
     });
 
+    // Snapshot the clean generation for the next frame before the DMX routing
+    // below repurposes pixelVector entries as channel values.
     buffer.CopyPixelsToTempBuf();
+
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel(); the raw uint32_t
+        // write above bypasses the DMX channel mapping.
+        buffer.SetPixel(0, 0, buffer.GetPixel(0, 0));
+    }
 }
 
 void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
