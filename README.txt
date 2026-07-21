@@ -13,6 +13,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.14  July ??, 2026
     -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster
                                  (sequences using them saw 2-5x faster total render times)
+    -enh (dkulp)                 Pictures: much faster when the image is larger than the model
+                                 (no-scaling mode with big photos)
+    -enh (dkulp)                 Render: effect settings and value curves are parsed once per
+                                 effect instead of every frame
     -enh (dkulp)                 Ripple: faster circle drawing
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start

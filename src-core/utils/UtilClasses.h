@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
 #include <algorithm>
 #include <cerrno>
@@ -145,16 +146,77 @@ public:
     }
 };
 
+// Opaque per-instance derived-data cache attachable to a SettingsMap by hot
+// render paths (see RenderableEffect's GetValueCurve* memoization).  Contract:
+// the cache is a pure function of the map's contents - ANY mutation of the map
+// destroys it, and copies/moves never carry it - so an implementation may hold
+// pointers into the map's own nodes.  Concurrent READERS of one map exist
+// (RenderEffectFromMap's per-model fan-out renders one effect across a group's
+// model buffers in parallel with a shared map), so the attach is a
+// compare-exchange and implementations must make their own internals
+// thread-safe; mutation-while-reading is as undefined as it always was for
+// the map itself.
+class SettingsMapRenderCache {
+public:
+    virtual ~SettingsMapRenderCache() = default;
+};
+
 class SettingsMap {
     std::map<std::string, SettingValue> _internal;
+    // Derived data only (see SettingsMapRenderCache); logically not part of
+    // the map's value, so const accessors may attach it.
+    mutable std::atomic<SettingsMapRenderCache*> _renderCache{ nullptr };
+
+    void InvalidateRenderCache() {
+        delete _renderCache.exchange(nullptr, std::memory_order_acq_rel);
+    }
 public:
     SettingsMap() {}
-    virtual ~SettingsMap() {}
+    SettingsMap(const SettingsMap& o) : _internal(o._internal) {}
+    SettingsMap& operator=(const SettingsMap& o) {
+        if (this != &o) {
+            _internal = o._internal;
+            InvalidateRenderCache();
+        }
+        return *this;
+    }
+    SettingsMap(SettingsMap&& o) noexcept : _internal(std::move(o._internal)) {
+        o.InvalidateRenderCache();
+    }
+    SettingsMap& operator=(SettingsMap&& o) noexcept {
+        _internal = std::move(o._internal);
+        InvalidateRenderCache();
+        o.InvalidateRenderCache();
+        return *this;
+    }
+    virtual ~SettingsMap() {
+        InvalidateRenderCache();
+    }
+
+    SettingsMapRenderCache* GetRenderCache() const { return _renderCache.load(std::memory_order_acquire); }
+    // Attach-once: on a lost race the caller's candidate is discarded and the
+    // winner's cache returned.
+    SettingsMapRenderCache* AttachRenderCache(std::unique_ptr<SettingsMapRenderCache> c) const {
+        SettingsMapRenderCache* expected = nullptr;
+        SettingsMapRenderCache* raw = c.get();
+        if (_renderCache.compare_exchange_strong(expected, raw, std::memory_order_acq_rel)) {
+            c.release();
+            return raw;
+        }
+        return expected;
+    }
+    // The value node for `key`, or null.  The returned pointer is stable until
+    // the map is mutated (which also destroys any attached render cache).
+    const SettingValue* FindValue(const std::string& key) const {
+        auto i = _internal.find(key);
+        return i == _internal.end() ? nullptr : &i->second;
+    }
 
     const std::string &operator[](const std::string &key) const {
         return Get(key, xlEMPTY_STRING);
     }
     SettingValue &operator[](const std::string &key) {
+        InvalidateRenderCache();
         return _internal[key];
     }
     int GetInt(const std::string &key, const int def = 0) const {
@@ -213,6 +275,7 @@ public:
         return Get(key, xlEMPTY_STRING);
     }
     SettingValue& operator[](const char* ckey) {
+        InvalidateRenderCache();
         std::string key(ckey);
         return _internal[key];
     }
@@ -237,7 +300,10 @@ public:
     }
     
     bool empty() const { return _internal.empty(); }
-    void clear() { _internal.clear(); }
+    void clear() {
+        InvalidateRenderCache();
+        _internal.clear();
+    }
     size_t size() const { return _internal.size(); }
     auto keys() const { return std::views::keys(_internal); }
     auto begin() const { return _internal.begin(); }
@@ -252,10 +318,12 @@ public:
         return i->second;
     }
     size_t erase(const char* ckey) {
+        InvalidateRenderCache();
         std::string key(ckey);
         return _internal.erase(key);
     }
     size_t erase(const std::string& key) {
+        InvalidateRenderCache();
         return _internal.erase(key);
     }
 

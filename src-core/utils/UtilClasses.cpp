@@ -40,7 +40,7 @@ bool RepairEmbeddedKey(std::string& value, std::string& remainder) {
 
 void SettingsMap::ParseJson(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {
-    _internal.clear();
+    clear(); // also invalidates the attached render cache
     std::string before, after, name, value;
     std::string settings(str);
     ReplaceAll(settings, "{", "");
@@ -77,7 +77,7 @@ void SettingsMap::ParseJson(EffectManager* effectManager, const std::string& str
 
 void SettingsMap::Parse(EffectManager* effectManager, const std::string& str, const std::string& effectName)
 {
-    _internal.clear();
+    clear(); // also invalidates the attached render cache
     std::string before, after, name, value;
     std::string settings(str);
     while (!settings.empty()) {
