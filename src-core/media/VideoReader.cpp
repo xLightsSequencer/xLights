@@ -115,6 +115,8 @@ int VideoReader::GetPos() { return _impl->GetPos(); }
 std::string VideoReader::GetFilename() const { return _impl->GetFilename(); }
 int VideoReader::GetPixelChannels() const { return _impl->GetPixelChannels(); }
 bool VideoReader::Resize(int width, int height) { return _impl ? _impl->Resize(width, height) : false; }
+bool VideoReader::SupportsFrameIndependentAccess() const { return _impl ? _impl->SupportsFrameIndependentAccess() : false; }
+void VideoReader::SetStreamGroup(uint64_t group) { if (_impl) _impl->SetStreamGroup(group); }
 
 // Static methods delegate to FFmpeg on platforms that have it, no-ops on iPad
 #if TARGET_OS_IPHONE

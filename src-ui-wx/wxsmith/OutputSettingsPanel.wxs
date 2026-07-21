@@ -38,7 +38,7 @@
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticText" name="wxID_ANY" variable="StaticText3" member="no">
-					<label>xFade/xSchedule</label>
+					<label>API Port</label>
 				</object>
 				<col>0</col>
 				<row>3</row>
@@ -81,8 +81,8 @@
 				<object class="wxChoice" name="ID_CHOICE3" variable="xFadexScheduleChoice" member="yes">
 					<content>
 						<item>Disabled</item>
-						<item>Port A</item>
-						<item>Port B</item>
+						<item>Port A (49913)</item>
+						<item>Port B (49914)</item>
 					</content>
 					<selection>0</selection>
 					<handler function="OnxFadexScheduleChoiceSelect" entry="EVT_CHOICE" />

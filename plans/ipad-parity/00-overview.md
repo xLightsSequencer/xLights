@@ -295,6 +295,7 @@ evidence lives in each theme doc's scorecard.
 | Feature | Theme | Pri | Gap | Ease |
 |---|---|---|---|---|
 | Convert selected effects to a different type | 04 | P2 | ipad-missing | hard |
+| Moving Head: "Link" tab (snap end Pan/Tilt to next effect + force Dimmer to 0) | 04 | P2 | ipad-missing | medium |
 | SubModel import: from Model / File / Layout / Downloads | 06 | P2 | ipad-missing | hard |
 | SubModels: output-to-lights live test toggle | 06 | P2 | ipad-missing | medium |
 | Real-world dimension readouts (ruler-calibrated) | 06 | P2 | ipad-missing | medium |
@@ -474,7 +475,7 @@ reverse parity as "touch idiom").
 | View - Disable Key Acceleration when held | 11 | Desktop key-repeat concept; n/a to touch. |
 | View - Zoom To Cursor | 11 | Mouse-only behavior. |
 | Effects Grid - Double Click Mode | 11 | Edit Text / Play Timing. No double-click on touch. |
-| Output - xFade/xSchedule port | 11 | Companion-app integration; not on iPad. |
+| Output - API Port (xFade/xSchedule) | 11 | Companion-app integration; not on iPad. |
 | Other - Hardware Video Decoding + renderer | 11 | iPad uses AVFoundation/VideoToolbox automatically. |
 | Other - GPU Rendering (Metal compute) | 11 | iPad always uses Metal. |
 | Other - Shaders on Background Threads | 11 | Hidden on macOS/Linux already; Windows-only. |

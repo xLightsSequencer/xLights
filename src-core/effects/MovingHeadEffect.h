@@ -48,6 +48,13 @@ public:
     }
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
+    // Panel-time snapshot helper (NOT used by Render/RenderMovingHead): computes where a
+    // single head (loc, 1-based fixture slot matching "Heads:" command indices) would sit
+    // at the very start of an effect (eff_pos is always 0 there, regardless of Cycles) given
+    // its raw "TEXTCTRL_MHx_Settings" command string. Returns false if the settings string
+    // defines no position at all (mirrors RenderMovingHead's has_position).
+    static bool GetHeadStartPosition(const std::string& mh_settings, int loc, long effStartMS, long effEndMS, float& pan, float& tilt);
+
     virtual double GetSettingVCMin(const std::string& name) const override
     {
         if (name == "E_VALUECURVE_MHPan")
@@ -126,11 +133,11 @@ protected:
     void RenderMovingHead(std::string mh_settings, int loc, const Model* model_info, RenderBuffer &buffer);
     xlColor GetMultiColorBlend(double eff_pos, const std::vector<std::string>& colors, RenderBuffer &buffer);
     xlColor GetWheelColor(double eff_pos, const std::vector<std::string>& colors);
-    void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, RenderBuffer &buffer);
-    void CalculatePosition(int location, float& position, std::vector<std::string>& heads, int groupings, float offset, float& delta );
-    void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);
-    void CalculatePatternPoint(const std::string& algorithm, float iterator, float x_freq, float y_freq, float x_phase, float y_phase, float& x, float& y);
-    void CalculatePatternPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, const std::string& algorithm, float width, float height, float x_offset, float y_offset, float rotation, float start_offset, float phase_offset, float x_freq, float y_freq, float x_phase, float y_phase, float delta, double eff_pos);
+    static void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, long startMS, long endMS);
+    static void CalculatePosition(int location, float& position, std::vector<std::string>& heads, int groupings, float offset, float& delta );
+    static void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);
+    static void CalculatePatternPoint(const std::string& algorithm, float iterator, float x_freq, float y_freq, float x_phase, float y_phase, float& x, float& y);
+    static void CalculatePatternPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, const std::string& algorithm, float width, float height, float x_offset, float y_offset, float rotation, float start_offset, float phase_offset, float x_freq, float y_freq, float x_phase, float y_phase, float delta, double eff_pos);
     void CalculateDimmer(double eff_pos, std::vector<std::string>& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer);
     void CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const std::vector<std::string>& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer);
 };
