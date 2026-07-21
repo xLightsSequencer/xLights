@@ -45,6 +45,10 @@ public:
     std::string GetFilename() const override;
     int GetPixelChannels() const override;
     bool Resize(int width, int height) override;
+    void SetStreamGroup(uint64_t group) override;
+    // True except for rawvideo-demux files (the bridge can't reposition
+    // AVAssetReader mid-chunk on those, so they must be read serially).
+    bool SupportsFrameIndependentAccess() const override;
 
     void SetScaleAlgorithm(VideoScaleAlgorithm algorithm) override;
 

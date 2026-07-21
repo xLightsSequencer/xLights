@@ -1259,6 +1259,8 @@ std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
         }
     }
 
+    RewriteSequenceFacePaths(fullPath, newPath);
+
     _sequenceMedia->EmbedImage(newPath);
     return newPath;
 }
@@ -1405,6 +1407,8 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
             }
         }
     }
+
+    RewriteSequenceFacePaths(fullPath, finalPath);
 
     return finalPath;
 }
@@ -1873,10 +1877,17 @@ void ManageMediaPanel::OnBulkFindImages()
     Populate(lastFixedPath);
 }
 
+void ManageMediaPanel::RewriteSequenceFacePaths(const std::string& oldPath, const std::string& newPath)
+{
+    if (_sequenceElements == nullptr || oldPath == newPath) return;
+    _sequenceElements->GetSequenceFaces().RewriteImagePath(oldPath, newPath);
+}
+
 std::map<std::string, std::pair<int,int>> ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::string& newPath)
 {
     std::map<std::string, std::pair<int,int>> dirtyModels;
     if (_sequenceElements == nullptr || oldPath == newPath) return dirtyModels;
+    RewriteSequenceFacePaths(oldPath, newPath);
 
     // model name -> [startMS, endMS] union of all affected effects
     const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
@@ -2452,6 +2463,8 @@ void ManageMediaPanel::OnRenameButtonClick(wxCommandEvent& event)
         }
     }
 
+    RewriteSequenceFacePaths(oldPath, newPathStr);
+
     Populate(newPathStr);
 }
 
@@ -2617,6 +2630,8 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
             }
         }
 
+        RewriteSequenceFacePaths(oldPath, finalPath);
+
         // Update effect references oldPath -> finalPath
         if (_sequenceElements != nullptr && finalPath != oldPath) {
             auto scanLayer = [&](EffectLayer* layer) {
@@ -2736,6 +2751,12 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
                 }
             }
         }
+    }
+
+    // Sequence-level face definitions reference images outside effect settings
+    if (_sequenceElements != nullptr) {
+        for (const auto& path : toRemove)
+            usageCount += _sequenceElements->GetSequenceFaces().CountImageReferences(path);
     }
 
     // Warn if any effects reference the media

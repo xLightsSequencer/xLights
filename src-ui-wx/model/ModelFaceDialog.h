@@ -34,6 +34,8 @@
 #include <list>
 #include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 class Model;
 class ModelPreview;
@@ -44,14 +46,8 @@ class OutputManager;
 
 class ModelFaceDialog : public wxDialog
 {
-    const std::list<std::string> _phonemes = { "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ" };
-
     void PaintFace(wxDC& dc, int x, int y, const char* xpm[]);
-    void DoSetPhonemes(wxFileName fn, std::string actualkey, std::string key, int count, int row, int col, std::string name, std::list<std::string> phonemes, std::string setPhoneme);
-    void DoSetMatrixModels(wxFileName fn, std::string actualkey, std::string key, int count, int col, std::string name);
     void TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col);
-    bool IsValidPhoneme(const std::string phoneme) const;
-    int GetRowForPhoneme(const std::string phoneme) const;
     void TryToFindPath(wxString& filename) const;
     void ValidateMatrixGrid(int r, int c) const;
     void StartOutputToLights();
@@ -95,6 +91,9 @@ class ModelFaceDialog : public wxDialog
 
     void SetFaceInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& info);
     [[nodiscard]] std::map<std::string, std::map<std::string, std::string>> GetFaceInfo() const;
+    // (oldName, newName) pairs in the order the user renamed definitions -
+    // callers apply these on OK so referencing effects follow the rename
+    [[nodiscard]] const std::vector<std::pair<std::string, std::string>>& GetRenamedFaces() const { return _renamedFaces; }
 
 protected:
     //(*Identifiers(ModelFaceDialog)
@@ -182,6 +181,7 @@ private:
     ModelPreview* modelPreview = nullptr;
     Model* model = nullptr;
     std::map<std::string, std::map<std::string, std::string>> faceData;
+    std::vector<std::pair<std::string, std::string>> _renamedFaces;
     std::unordered_map<std::string, std::vector<size_t>> _nodeNameToIndex;
 
     void SelectFaceModel(const std::string& s);

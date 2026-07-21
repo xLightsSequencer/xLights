@@ -771,7 +771,14 @@ void RenderCacheItem::AddFrame(RenderBuffer* buffer)
     _frames.at(mname)[frame] = frameBuffer;
     _dirty = true;
 
+    // Frames can arrive out of order (frame-parallel windows render a chunk
+    // concurrently), so the end-of-effect frame is not necessarily the last
+    // one added. Latch its arrival and (re)attempt the save on later adds —
+    // Save() itself verifies every frame is present before writing.
     if (buffer->curPeriod == buffer->curEffEndPer) {
+        _sawEndFrame = true;
+    }
+    if (_sawEndFrame) {
         // if multi models in this cache then only call save when none of them have null pointers at the end
         for (const auto& itm : _frames) {
             if (itm.second.size() == 0 || itm.second.back() == nullptr) {

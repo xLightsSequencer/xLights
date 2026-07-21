@@ -80,6 +80,49 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                     }
                 }
             }
+            if (ef->GetEffectIndex() == EffectManager::eff_FACES) {
+                // Sequence-level face definitions travel inside the .xsq, so
+                // they can be imported even from a plain (non-package) .xsq.
+                // Copy the definition the source actually rendered - model
+                // definitions win over sequence-level ones on both sides, and
+                // "Default"/empty resolves to the first model face, else the
+                // first sequence face. Package imports run FixAndImportMedia
+                // first, which also copies any external face images - this
+                // pass then no-ops via the target-store check.
+                std::string face = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+                SequenceElements* srcSE = ef->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+                SequenceElements* tgtSE = target->GetParentElement()->GetSequenceElements();
+                if (srcSE != nullptr && tgtSE != nullptr) {
+                    const std::string& srcModelName = ef->GetParentEffectLayer()->GetParentElement()->GetModelName();
+                    if (face == "Default" || face.empty()) {
+                        const auto& seqFaces = srcSE->GetSequenceFaces().GetFaces();
+                        face = (!xsqPkg.SourceModelHasFace(srcModelName, "") && !seqFaces.empty()) ? seqFaces.begin()->first : "";
+                    } else if (xsqPkg.SourceModelHasFace(srcModelName, face)) {
+                        face.clear(); // the source rendered the model definition
+                    }
+                    const auto* srcDef = face.empty() ? nullptr : srcSE->GetSequenceFaces().GetFace(face);
+                    if (srcDef != nullptr && tgtSE->GetSequenceFaces().GetFace(face) == nullptr) {
+                        Model* tgtModel = tgtSE->GetRenderContext() != nullptr ? tgtSE->GetRenderContext()->GetModel(target->GetParentElement()->GetModelName()) : nullptr;
+                        if (tgtModel == nullptr || tgtModel->GetFaceInfo().find(face) == tgtModel->GetFaceInfo().end()) {
+                            auto& sm = srcSE->GetSequenceMedia();
+                            auto& tm = tgtSE->GetSequenceMedia();
+                            for (const auto& [key, value] : *srcDef) {
+                                if (!SequenceFaces::IsImageKey(key) || value.empty()) {
+                                    continue;
+                                }
+                                if (!tm.HasImage(value) && sm.HasImage(value)) {
+                                    auto img = sm.GetImage(value);
+                                    if (img != nullptr && img->IsEmbedded()) {
+                                        tm.AddEmbeddedImage(value, img->GetEmbeddedData());
+                                    }
+                                }
+                                tm.MarkUsedByMetadata(value);
+                            }
+                            tgtSE->GetSequenceFaces().SetFace(face, *srcDef);
+                        }
+                    }
+                }
+            }
 
             // if we are mapping the effect onto a group and it is a per preview render buffer then use the group's default camera
             //   unless there is a non-default 3D camera assigned to the effect, and it exists in the target layout
