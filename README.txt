@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster
+                                 (sequences using them saw 2-5x faster total render times)
+    -enh (dkulp)                 Ripple: faster circle drawing
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
     -bug (cybercop23)            Fix Bars/Shockwave/ColorWash/Spirals/Circles effects producing no output on DMX models
