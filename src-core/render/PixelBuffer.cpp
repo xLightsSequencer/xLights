@@ -1401,6 +1401,8 @@ void PixelBufferClass::mixColors(int x, int y, xlColor& fg, xlColor& bg, int lay
         int b = fg.blue * bg.blue / 255 * alpha;
         bg.Set(r, g, b);
     } break;
+    case MixTypes::Mix_LAST: // sentinel/count terminator, never a real mix type
+        break;
     }
 }
 
@@ -2719,7 +2721,8 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                 // buffer in GetForChannels (crash sig 62b47aa9b8).
                 if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
-                    if (typeid(*n) == baseTI) {
+                    auto& node = *n;
+                    if (typeid(node) == baseTI) {
                         n->GetForChannelsBase(&fdata[start]);
                     } else {
                         n->GetForChannels(&fdata[start]);
@@ -2781,7 +2784,8 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
             size_t start = n->ActChan;
             if (start >= numChannels) continue;
 
-            if (typeid(*n) == baseTI) {
+            auto& node = *n;
+            if (typeid(node) == baseTI) {
                 n->SetFromChannelsBase(&fdata[start]);
                 n->GetColorBase(color);
             } else {
@@ -2807,7 +2811,8 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
             size_t start = n->ActChan;
             if (start >= numChannels) continue;
 
-            if (typeid(*n) == baseTI) {
+            auto& node = *n;
+            if (typeid(node) == baseTI) {
                 n->SetFromChannelsBase(&fdata[start]);
                 n->GetColorBase(color);
             } else {

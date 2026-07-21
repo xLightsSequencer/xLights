@@ -83,12 +83,9 @@ public:
         blue = b;
         alpha = a;
     }
-    xlColor(const xlColor &rgb) {
-        red = rgb.red;
-        blue = rgb.blue;
-        green = rgb.green;
-        alpha = rgb.alpha;
-    }
+    // Defaulted (memberwise) so xlColor stays trivially copyable — lets the many
+    // memcpy/realloc paths over xlColor buffers stay well-defined and warning-free.
+    xlColor(const xlColor &rgb) = default;
     xlColor(const std::string &str) {
         SetFromString(str);
     }
