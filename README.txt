@@ -29,6 +29,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  fixture's channels (#6719)
     -bug (derwin12)              Effect wheel: dropping an effect near an existing effect could
                                  overwrite it instead of sizing to the available gap
+    -bug (derwin12)              Zoom out to show last effect ignored effects on submodels/strands/nodes,
+                                 so the timeline could stop short of the actual last effect (#6725)
     -enh (dkulp)                 Render: frame-parallel windows now cover model rows that carry
                                  submodel/strand effects (e.g. mega-trees with per-strand effects)
     -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
