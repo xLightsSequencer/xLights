@@ -579,7 +579,7 @@ void KaleidoscopeEffect::RenderNew(const std::string& type, int xCentre, int yCe
 
     if (buffer.dmx_buffer) {
         // DMX fixtures need the colour routed through SetPixel()
-        ispc::uint8_t4 single;
+        ispc::uint8_t4 single = {};
         ispc::KaleidoscopeEffectISPC(&kdata, (const ispc::uint8_t4*)srcSnap.data(), &single, 0, 1);
         buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
         return;

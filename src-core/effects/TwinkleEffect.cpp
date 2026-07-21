@@ -582,9 +582,13 @@ void TwinkleEffect::dispatchTwinkleISPC(RenderBuffer &buffer, const TwinkleFrame
 
     if (buffer.dmx_buffer) {
         // DMX fixtures need the colour routed through SetPixel(); the raw uint8_t4
-        // writes above (each lane targets its own strobe's buffer index) bypass the
-        // DMX channel mapping.
-        buffer.SetPixel(0, 0, buffer.GetPixel(0, 0));
+        // writes above (each lane targets its own strobe's buffer index) touch
+        // channels across the whole buffer, not just node 0, so clear it back to
+        // transparent first — otherwise leftover strobe colors leak into unrelated
+        // channels (pan/tilt, shutter, etc.) that SetPixelDMXModel doesn't itself set.
+        xlColor c = buffer.GetPixel(0, 0);
+        buffer.Clear();
+        buffer.SetPixel(0, 0, c);
     }
 }
 

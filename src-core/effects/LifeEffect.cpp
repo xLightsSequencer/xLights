@@ -159,8 +159,13 @@ void LifeEffect::RenderLifeGenerationISPC(RenderBuffer& buffer, int type)
 
     if (buffer.dmx_buffer) {
         // DMX fixtures need the colour routed through SetPixel(); the raw uint32_t
-        // write above bypasses the DMX channel mapping.
-        buffer.SetPixel(0, 0, buffer.GetPixel(0, 0));
+        // write above touched every channel in the buffer (sized to the DMX
+        // channel count, not just node 0), so clear it back to transparent first —
+        // otherwise leftover generation colors leak into unrelated channels
+        // (pan/tilt, shutter, etc.) that SetPixelDMXModel doesn't itself set.
+        xlColor c = buffer.GetPixel(0, 0);
+        buffer.Clear();
+        buffer.SetPixel(0, 0, c);
     }
 }
 

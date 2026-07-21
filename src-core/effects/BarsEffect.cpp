@@ -251,7 +251,7 @@ void BarsEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
 
         if (buffer.dmx_buffer) {
             // DMX fixtures need the colour routed through SetPixel()
-            ispc::uint8_t4 single;
+            ispc::uint8_t4 single = {};
             ispc::BarsEffectISPC(&bdata, 0, 1, &single);
             buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
             return;
