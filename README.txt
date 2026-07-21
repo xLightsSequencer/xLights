@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster
+                                 (sequences using them saw 2-5x faster total render times)
+    -enh (dkulp)                 Pictures: much faster when the image is larger than the model
+                                 (no-scaling mode with big photos)
+    -enh (dkulp)                 Render: effect settings and value curves are parsed once per
+                                 effect instead of every frame
+    -bug (dkulp)                 Shockwave: pixels on large (GPU-rendered) matrices now match
+                                 small models exactly - the Metal/Vulkan kernels were rounding
+                                 the ring edge differently than the CPU path
+    -enh (dkulp)                 Ripple: faster circle drawing
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
     -bug (cybercop23)            Fix Bars/Shockwave/ColorWash/Spirals/Circles effects producing no output on DMX models
@@ -21,6 +31,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  overwrite it instead of sizing to the available gap
     -bug (derwin12)              Zoom out to show last effect ignored effects on submodels/strands/nodes,
                                  so the timeline could stop short of the actual last effect (#6725)
+    -enh (dkulp)                 Render: frame-parallel windows now cover model rows that carry
+                                 submodel/strand effects (e.g. mega-trees with per-strand effects)
     -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
                                  defines matrix (image) faces stored in the .xsq, usable by any
                                  matrix/group/submodel in that sequence (no need to duplicate the face

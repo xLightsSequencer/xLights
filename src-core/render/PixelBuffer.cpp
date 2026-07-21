@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <typeinfo>
+
 #include "media/AudioManager.h"
 #include "DimmingCurve.h"
 #include "PixelBuffer.h"
@@ -2703,6 +2705,11 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
         if (!anyDimmingCurve) {
             // Fast path: no model on this buffer has a dimming curve, so
             // skip the per-node GetDimmingCurve()/apply() block entirely.
+            // Nodes of exactly NodeBaseClass (the dominant type - plain RGB
+            // pixels) get the base GetForChannels inlined instead of the
+            // per-node indirect call; buffers are homogeneous so the type
+            // check is a perfectly-predicted branch.
+            const std::type_info& baseTI = typeid(NodeBaseClass);
             for (auto& n : layers[0]->buffer.Nodes) {
                 if (n == nullptr) continue;
                 size_t start = n->ActChan;
@@ -2712,7 +2719,11 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                 // buffer in GetForChannels (crash sig 62b47aa9b8).
                 if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
-                    n->GetForChannels(&fdata[start]);
+                    if (typeid(*n) == baseTI) {
+                        n->GetForChannelsBase(&fdata[start]);
+                    } else {
+                        n->GetForChannels(&fdata[start]);
+                    }
                 }
             }
         } else {
@@ -2752,29 +2763,57 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
         return;
 
     xlColor color;
+    // Hoisted per-coord store: SetPixel(x, y, color, wrap=false, useAlpha=false,
+    // dmx_ignore=true) reduces to exactly this bounds-checked assignment, so
+    // inline it and skip the call + dead branches per coord.
+    RenderBuffer& rb = layers[layer]->buffer;
+    xlColor* px = rb.GetPixels();
+    const int wi = rb.BufferWi;
+    const int ht = rb.BufferHt;
+    const size_t pixCnt = rb.GetPixelCount();
+    const bool dmx = rb.IsDmxBuffer();
+    const std::type_info& baseTI = typeid(NodeBaseClass);
     if (!anyDimmingCurve) {
         // Fast path: no model on this buffer has a dimming curve, so
         // skip the per-node GetDimmingCurve()/reverse() block entirely.
-        for (const auto& n : layers[layer]->buffer.Nodes) {
+        for (const auto& n : rb.Nodes) {
             if (n == nullptr) continue;
             size_t start = n->ActChan;
             if (start >= numChannels) continue;
 
-            n->SetFromChannels(&fdata[start]);
-            n->GetColor(color);
+            if (typeid(*n) == baseTI) {
+                n->SetFromChannelsBase(&fdata[start]);
+                n->GetColorBase(color);
+            } else {
+                n->SetFromChannels(&fdata[start]);
+                n->GetColor(color);
+            }
 
-            for (const auto& a : n->Coords) {
-                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+            if (!dmx) {
+                for (const auto& a : n->Coords) {
+                    if (a.bufX >= 0 && a.bufX < wi && a.bufY >= 0 && a.bufY < ht && (size_t)(a.bufY * wi + a.bufX) < pixCnt) {
+                        px[a.bufY * wi + a.bufX] = color;
+                    }
+                }
+            } else {
+                for (const auto& a : n->Coords) {
+                    rb.SetPixel(a.bufX, a.bufY, color, false, false, true);
+                }
             }
         }
     } else {
-        for (const auto& n : layers[layer]->buffer.Nodes) {
+        for (const auto& n : rb.Nodes) {
             if (n == nullptr) continue;
             size_t start = n->ActChan;
             if (start >= numChannels) continue;
 
-            n->SetFromChannels(&fdata[start]);
-            n->GetColor(color);
+            if (typeid(*n) == baseTI) {
+                n->SetFromChannelsBase(&fdata[start]);
+                n->GetColorBase(color);
+            } else {
+                n->SetFromChannels(&fdata[start]);
+                n->GetColor(color);
+            }
 
             if (n->model != nullptr) {
                 DimmingCurve* curve = n->model->GetDimmingCurve();
@@ -2782,8 +2821,16 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
                     curve->reverse(color);
                 }
             }
-            for (const auto& a : n->Coords) {
-                layers[layer]->buffer.SetPixel(a.bufX, a.bufY, color, false, false, true);
+            if (!dmx) {
+                for (const auto& a : n->Coords) {
+                    if (a.bufX >= 0 && a.bufX < wi && a.bufY >= 0 && a.bufY < ht && (size_t)(a.bufY * wi + a.bufX) < pixCnt) {
+                        px[a.bufY * wi + a.bufX] = color;
+                    }
+                }
+            } else {
+                for (const auto& a : n->Coords) {
+                    rb.SetPixel(a.bufX, a.bufY, color, false, false, true);
+                }
             }
         }
     }
