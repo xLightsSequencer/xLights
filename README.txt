@@ -17,6 +17,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (no-scaling mode with big photos)
     -enh (dkulp)                 Render: effect settings and value curves are parsed once per
                                  effect instead of every frame
+    -bug (dkulp)                 Shockwave: pixels on large (GPU-rendered) matrices now match
+                                 small models exactly - the Metal/Vulkan kernels were rounding
+                                 the ring edge differently than the CPU path
     -enh (dkulp)                 Ripple: faster circle drawing
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
