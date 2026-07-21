@@ -757,14 +757,16 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ModelFilterCtrl->Bind(wxEVT_TEXT_ENTER, &LayoutPanel::OnModelFilterTextChanged, this);
     ModelFilterCtrl->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &LayoutPanel::OnModelFilterTextChanged, this);
     ModelFilterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &LayoutPanel::OnModelFilterCancelBtn, this);
+    // Debounce the realtime tree refresh so fast typing doesn't fire
+    // UpdateModelList on every keystroke.
+    _filterDebounceTimer.SetOwner(this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { UpdateModelList(true); }, _filterDebounceTimer.GetId());
     ModelFilterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
         _filterString = ModelFilterCtrl->GetValue().Trim();
         _filterRegex.Compile(_filterString, wxRE_ICASE);
         _filterRegexValid = _filterRegex.IsValid();
-        if (_filterString.IsEmpty()) {
-            UpdateModelList(true);
-        }
-        });
+        _filterDebounceTimer.StartOnce(150);
+    });
     filterSizer->Add(ModelFilterCtrl, 1, wxEXPAND | wxTOP, 2);
     sizer1->Add(filterSizer, 0, wxEXPAND);
 
@@ -12334,13 +12336,15 @@ int LayoutPanel::calculateNodeCountOfSelected()
 }
 
 void LayoutPanel::OnModelFilterCancelBtn(wxCommandEvent& event) {
-    ModelFilterCtrl->SetValue("");
+    _filterDebounceTimer.Stop();
+    ModelFilterCtrl->ChangeValue("");
     _filterString = "";
     _filterRegexValid = false;
     UpdateModelList(true);
 }
 
 void LayoutPanel::OnModelFilterTextChanged(wxCommandEvent& event) {
+    _filterDebounceTimer.Stop();
     _filterString = ModelFilterCtrl->GetValue().Trim();
     _filterRegex.Compile(_filterString, wxRE_ICASE);
     _filterRegexValid = _filterRegex.IsValid();
