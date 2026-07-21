@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (cybercop23)            Fix Bars/Shockwave/ColorWash/Spirals/Circles effects producing no output on DMX models
+                                 (floodlights, moving heads, etc.); the ISPC-accelerated render path wrote raw pixel data
+                                 instead of routing through SetPixel(), which is what spreads a colour across a DMX
+                                 fixture's channels (#6719)
     -bug (derwin12)              Effect wheel: dropping an effect near an existing effect could
                                  overwrite it instead of sizing to the available gap
     -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
