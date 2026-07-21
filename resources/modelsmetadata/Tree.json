@@ -138,9 +138,9 @@
             "xmlAttribute": "TreeDegrees",
             "label": "Degrees",
             "gridKey": "TreeDegrees",
-            "type": "uint",
+            "type": "int",
             "default": 360,
-            "min": 1,
+            "min": -1,
             "max": 360,
             "appliesWhen": {
                 "attribute": "TreeType",

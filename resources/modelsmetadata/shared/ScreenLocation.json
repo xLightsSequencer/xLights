@@ -28,7 +28,7 @@
             "xmlAttribute": "Locked",
             "gridKey": "Locked",
             "type": "bool",
-            "boolFormat": "01",
+            "boolFormat": "presentOnly",
             "default": "0",
             "description": "When true, the model's position/size handles are locked against accidental drag/resize in the layout preview. Only the value \"1\" is ever written (BaseSerializingVisitor::AddModelScreenLocationAttributes writes it only when IsLocked() is true); absence means unlocked. Applies to all four location styles identically."
         },

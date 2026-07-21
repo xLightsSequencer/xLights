@@ -126,9 +126,10 @@
             "label": "Inner Layer %",
             "gridKey": "StarCenterPercent",
             "type": "int",
-            "min": 0,
+            "default": -1,
+            "min": -1,
             "max": 100,
-            "description": "For a layered (multi-strand) star, how far in toward the center the innermost layer's points reach, as a percentage (StarModel::_innerPercent, GetInnerPercent()/SetInnerPercent()). No JSON \"default\" is given because the true on-disk default when the attribute is absent is the out-of-range sentinel -1 (\"not set\"/auto), which falls outside the 0-100 range the property grid enforces once shown. Only shown/editable in the property grid when the star has more than one layer (StarModel::GetNumStrands() > 1, i.e. LayerSizes describes 2+ layers), but always written regardless of layer count."
+            "description": "For a layered (multi-strand) star, how far in toward the center the innermost layer's points reach, as a percentage (StarModel::_innerPercent, GetInnerPercent()/SetInnerPercent()). Default/on-disk value when never configured is the sentinel -1 (\"not set\"/auto; StarModel::_innerPercent's initializer, and the fallback XmlDeserializingModelFactory::DeserializeStar reads when the attribute is absent). The property grid only exposes 0-100 (\"not set\" is not user-selectable once the control is shown), and only shows/allows editing when the star has more than one layer (StarModel::GetNumStrands() > 1, i.e. LayerSizes describes 2+ layers), but the attribute is always written regardless of layer count."
         }
     ],
     "notes": [
