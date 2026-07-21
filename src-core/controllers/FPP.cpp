@@ -1804,16 +1804,18 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
 
             if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
                 MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
-                std::string fn = obj["ObjFile"];
-                if (!fn.empty()) {
-                    std::string bn = std::filesystem::path(fn).filename().string();
-                    obj["ObjFile"] = bn;
-                    // the serialized attribute may be show-relative; upload from the resolved path
-                    virtualDisplayData[bn] = mesh != nullptr ? mesh->GetObjFile() : fn;
-                }
-                for (auto &fr : mesh->GetFileReferences()) {
-                    std::string bn = std::filesystem::path(fr).filename().string();
-                    virtualDisplayData[bn] = fr;
+                if (mesh != nullptr) {
+                    std::string fn = obj["ObjFile"];
+                    if (!fn.empty()) {
+                        std::string bn = std::filesystem::path(fn).filename().string();
+                        obj["ObjFile"] = bn;
+                        // the serialized attribute may be show-relative; upload from the resolved path
+                        virtualDisplayData[bn] = mesh->GetObjFile();
+                    }
+                    for (auto &fr : mesh->GetFileReferences()) {
+                        std::string bn = std::filesystem::path(fr).filename().string();
+                        virtualDisplayData[bn] = fr;
+                    }
                 }
             } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
                 std::string fn = obj["Image"];
