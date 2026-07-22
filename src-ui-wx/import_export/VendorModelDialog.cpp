@@ -539,13 +539,13 @@ int VendorModelDialog::AddModels(wxTreeItemId parent, const std::vector<MModel*>
     return added;
 }
 
-int VendorModelDialog::AddHierachy(wxTreeItemId parent, MVendor* vendor, const std::list<MVendorCategory*>& categories)
+int VendorModelDialog::AddHierarchy(wxTreeItemId parent, MVendor* vendor, const std::list<MVendorCategory*>& categories)
 {
     int total = 0;
     for (const auto& it : categories) {
         if (it == nullptr) continue;
         wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(it->_name), -1, -1, new MCategoryTreeItemData(it));
-        int here = AddHierachy(tid, vendor, it->_categories);
+        int here = AddHierarchy(tid, vendor, it->_categories);
         auto cm = _categoryModels.find(it);
         if (cm != _categoryModels.end()) {
             auto cs = _categorySearchText.find(it);
@@ -601,7 +601,7 @@ void VendorModelDialog::RebuildTreeUI()
         wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, wxString::FromUTF8(it->_name), -1, -1, new MVendorTreeItemData(it));
         int added = 0;
         if (!Contains(suppressList, it->_name)) {
-            added = AddHierachy(v, it, it->_categories);
+            added = AddHierarchy(v, it, it->_categories);
             auto um = _uncategorizedModels.find(it);
             if (um != _uncategorizedModels.end()) {
                 added += AddModels(v, um->second, vendorLower);

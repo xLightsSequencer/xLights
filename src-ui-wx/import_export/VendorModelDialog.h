@@ -87,7 +87,7 @@ class VendorModelDialog: public wxDialog
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
     void BuildModelSearchIndex();
     void RebuildTreeUI();
-    int AddHierachy(wxTreeItemId parent, MVendor* vendor, const std::list<MVendorCategory*>& categories);
+    int AddHierarchy(wxTreeItemId parent, MVendor* vendor, const std::list<MVendorCategory*>& categories);
     int AddModels(wxTreeItemId parent, const std::vector<MModel*>& models, const wxString& pathTextLower);
     void AppendModelNodes(wxTreeItemId parent, MModel* model);
     [[nodiscard]] bool FilterMatches(const wxString& hayLowerA, const wxString& hayLowerB = wxEmptyString) const;
