@@ -2957,6 +2957,9 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name]) {
                 if (info[x].frame != nullptr) {
+                    // Mirror of the Hide() above - restore the pane state too, or
+                    // Update() below would immediately re-hide the frame.
+                    info[x].Show();
                     info[x].frame->Show();
                     // On macOS, Cocoa repositions native floating frames during
                     // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
@@ -2978,6 +2981,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                         savedPaneShown[info[x].name] = true;
                     }
                     info[x].frame->Hide();
+                    // Keep the pane's own state in step with the native frame we
+                    // just hid. Leaving it marked shown makes the next Update()
+                    // (any pane toggle, possibly from another tab) believe every
+                    // floating window needs re-showing and repositioning, which
+                    // pumps native events back through the manager mid-layout.
+                    info[x].Hide();
                 }
             } else {
                 spdlog::warn("Pane {} was not valid ... ShowHideAllSequencerWindows", x);
@@ -3608,6 +3617,27 @@ std::string xLightsFrame::GetXmlSetting(const std::string& settingName, const st
         return it->second;
     }
     return defaultValue;
+}
+
+bool xLightsFrame::NeedsBaseRgbEffectsUpdate() const
+{
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty()) return false;
+
+    std::string baseFile = baseDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    return FileUtils::NeedsBaseFileUpdate(baseFile, GetXmlSetting("BaseRgbEffectsSyncedTime", ""), "model/view-object merge");
+}
+
+void xLightsFrame::MarkBaseRgbEffectsSynced()
+{
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty()) return;
+
+    std::string baseFile = baseDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    auto baseTicks = FileUtils::GetFileModTimeTicks(baseFile);
+    if (baseTicks) {
+        SetXmlSetting("BaseRgbEffectsSyncedTime", std::to_string(*baseTicks));
+    }
 }
 
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
@@ -9349,7 +9379,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     bool mergeRejectAll = false;
 
     // bring in any controllers overwriting some of their properties ... but not all of them
-    if (_outputManager.MergeFromBase(prompt, mergeAcceptAll, mergeRejectAll, this)) {
+    bool controllersChanged = false;
+    bool const controllersLoaded = _outputManager.MergeFromBase(prompt, mergeAcceptAll, mergeRejectAll, this, &controllersChanged);
+    if (controllersChanged) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "UpdateFromBaseShowFolder-controller");
@@ -9359,7 +9391,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 
     // bring in any models ... overwriting any with the same name
     // bring in any model groups ... again overwriting any ... the models in the group should be a merge and deduplication
-    if (AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll)) {
+    bool modelsChanged = false;
+    bool const modelsLoaded = AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll, &modelsChanged);
+    if (modelsChanged) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "UpdateFromBaseShowFolder-model");
@@ -9369,7 +9403,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder-model");
     }
 
-    if (AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll))
+    bool objectsChanged = false;
+    bool const objectsLoaded = AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll, &objectsChanged);
+    if (objectsChanged)
     {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-object");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-object");
@@ -9381,6 +9417,15 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     }
 
     spdlog::debug("Base show folder update done.");
+
+    // Only record the checkpoints for the merges whose base file actually loaded; a
+    // failed load leaves its checkpoint unset so the merge is retried on the next open.
+    if (controllersLoaded) {
+        _outputManager.MarkBaseControllersSynced();
+    }
+    if (modelsLoaded && objectsLoaded) {
+        MarkBaseRgbEffectsSynced();
+    }
 
     // other things we could bring in
     // - Test presets

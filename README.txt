@@ -16,6 +16,20 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  effects are registered that the toolbar no longer fits smaller screens.
                                  Right-click the toolbar to jump straight to this page, and use
                                  "Reset to Defaults" to restore every effect in the default order
+    -enh (cybercop23)            Show folders now skip the automatic base-show-folder merge (controllers, models,
+                                 view objects) when the base folder has not changed since the last saved sync.
+    -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster
+                                 (sequences using them saw 2-5x faster total render times)
+    -enh (dkulp)                 Pictures: much faster when the image is larger than the model
+                                 (no-scaling mode with big photos)
+    -enh (dkulp)                 Render: effect settings and value curves are parsed once per
+                                 effect instead of every frame
+    -bug (dkulp)                 Shockwave: pixels on large (GPU-rendered) matrices now match
+                                 small models exactly - the Metal/Vulkan kernels were rounding
+                                 the ring edge differently than the CPU path
+    -enh (dkulp)                 Ripple: faster circle drawing
+    -change (dkulp)              Render: HSV colour and transition/warp geometry now compute in
+                                 float instead of double (lower memory; negligible output change)
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
     -bug (cybercop23)            Fix Bars/Shockwave/ColorWash/Spirals/Circles effects producing no output on DMX models
@@ -24,6 +38,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  fixture's channels (#6719)
     -bug (derwin12)              Effect wheel: dropping an effect near an existing effect could
                                  overwrite it instead of sizing to the available gap
+    -bug (derwin12)              Zoom out to show last effect ignored effects on submodels/strands/nodes,
+                                 so the timeline could stop short of the actual last effect (#6725)
+    -enh (dkulp)                 Render: frame-parallel windows now cover model rows that carry
+                                 submodel/strand effects (e.g. mega-trees with per-strand effects)
     -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
                                  defines matrix (image) faces stored in the .xsq, usable by any
                                  matrix/group/submodel in that sequence (no need to duplicate the face
@@ -158,6 +176,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  polled around a lost-wakeup race on the other)
     -bug (dkulp)                 Fix Shader effect rendering vertically flipped on the Vulkan renderer
                                  (Linux and Windows; Canvas/warp shaders over other layers appeared upside down)
+    -bug (dkulp)                 Fix crash uploading outputs to PixLite/Advatek Mk3 controllers; the Mk3
+                                 config parser always read zero ports, so the upload wrote past the end of
+                                 every output array. Null pixels and colour order are now read correctly too.
+    -bug (dkulp)                 Fix render crash after the GPU compute backend shuts down mid-session (a
+                                 Vulkan device loss/TDR, or turning GPU rendering off); render buffers kept
+                                 writing through a pointer into the released GPU memory
+    -bug (dkulp)                 Fix crash toggling Display Elements / House Preview from the Windows toolbar;
+                                 leaving the sequencer tab hid the floating panes without recording it, so a
+                                 later toggle re-showed and relaid out every pane mid-layout
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,

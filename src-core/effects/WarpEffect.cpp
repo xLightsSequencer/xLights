@@ -45,10 +45,10 @@ namespace
     }
     struct LinearInterpolater
     {
-       double operator()( double t ) const { return t; }
+        float operator()( float t ) const { return t; }
     };
 
-    template <class T> double interpolate( double x, double loIn, double loOut, double hiIn, double hiOut, const T& interpolater )
+    template <class T> float interpolate( float x, float loIn, float loOut, float hiIn, float hiOut, const T& interpolater )
     {
        return ( loIn != hiIn )
           ? ( loOut + (hiOut - loOut) * interpolater( (x-loIn)/(hiIn-loIn) ) )
@@ -69,40 +69,40 @@ namespace
     };
     struct Vec2D
     {
-      Vec2D( double i_x = 0., double i_y = 0. ) : x( i_x ), y( i_y ) {}
+      Vec2D( float i_x = 0.f, float i_y = 0.f ) : x( i_x ), y( i_y ) {}
 
       Vec2D    operator+( const Vec2D& p ) const { return Vec2D( x + p.x, y + p.y ); }
       Vec2D    operator-( const Vec2D& p ) const { return Vec2D( x - p.x, y - p.y ); }
-      double   operator^( const Vec2D& p ) const { return x * p.y - y * p.x; }
-      Vec2D    operator*( const double& k ) const { return Vec2D( x*k, y*k ); }
+      float    operator^( const Vec2D& p ) const { return x * p.y - y * p.x; }
+      Vec2D    operator*( const float& k ) const { return Vec2D( x*k, y*k ); }
       Vec2D    operator*( const Vec2D& p ) const { return Vec2D( x * p.x, y * p.y ); }
-      Vec2D    operator/( const double& k ) const { return *this * ( 1 / k ); }
+      Vec2D    operator/( const float& k ) const { return *this * ( 1 / k ); }
       Vec2D    operator+=( const Vec2D& p ) { return *this = *this + p; }
       Vec2D    operator-=( const Vec2D& p ) { return *this = *this - p; }
-      Vec2D    operator*=( const double& k ) { return *this = *this * k; }
-      Vec2D    operator/=( const double& k ) { return *this = *this / k; }
+      Vec2D    operator*=( const float& k ) { return *this = *this * k; }
+      Vec2D    operator/=( const float& k ) { return *this = *this / k; }
       Vec2D    operator-() const { return Vec2D( -x, -y ); }
       Vec2D    Min( const Vec2D& p ) const { return Vec2D( std::min( x, p.x ), std::min( y, p.y ) ); }
       Vec2D    Max( const Vec2D& p ) const { return Vec2D( std::max( x, p.x ), std::max( y, p.y ) ); }
-      double   Len2() const { return x * x + y * y; }
-      double   Len() const { return ::sqrt( Len2() ); }
-      double   Dist2( const Vec2D& p ) const { return ( *this - p ).Len2(); }
-      double   Dist( const Vec2D& p ) const { return ( *this - p ).Len(); }
+      float    Len2() const { return x * x + y * y; }
+      float    Len() const { return std::sqrt( Len2() ); }
+      float    Dist2( const Vec2D& p ) const { return ( *this - p ).Len2(); }
+      float    Dist( const Vec2D& p ) const { return ( *this - p ).Len(); }
       Vec2D    Norm() const { return Len() > 0 ? *this / Len() : Vec2D( 0, 0 ); }
       bool     IsNormal() const { return fabs( Len2() - 1 ) < 1e-6; }
-      Vec2D    Rotate( const double& fAngle ) const
+      Vec2D    Rotate( const float& fAngle ) const
       {
          float cs = RenderBuffer::cos( fAngle );
          float sn = RenderBuffer::sin( fAngle );
          return Vec2D( x*cs + y * sn, -x * sn + y * cs );
       }
-      static Vec2D lerp( const Vec2D& a, const Vec2D& b, double progress )
+      static Vec2D lerp( const Vec2D& a, const Vec2D& b, float progress )
       {
-         double x = a.x + progress * ( b.x - a.x );
-         double y = a.y + progress * ( b.y - a.y );
+         float x = a.x + progress * ( b.x - a.x );
+         float y = a.y + progress * ( b.y - a.y );
          return Vec2D( x, y );
       }
-      double x, y;
+      float x, y;
     };
 
    struct WarpEffectParams

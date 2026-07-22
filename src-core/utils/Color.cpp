@@ -187,30 +187,30 @@ void xlColor::SetFromString(const std::string &str) {
     }
 }
 static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
-    double red, green, blue;
-    double value = std::clamp(hsv.value, 0.0, 1.0);
-    double saturation = std::clamp(hsv.saturation, 0.0, 1.0);
+    float red, green, blue;
+    float value = std::clamp(hsv.value, 0.0f, 1.0f);
+    float saturation = std::clamp(hsv.saturation, 0.0f, 1.0f);
     if (0.0f == saturation) {
         // Grey
         red = value;
         green = value;
         blue = value;
     } else { // not grey
-        double hue = std::clamp(hsv.hue, 0.0, 1.0) * 6.0;      // sector 0 to 5
+        float hue = std::clamp(hsv.hue, 0.0f, 1.0f) * 6.0f;      // sector 0 to 5
         int i = (int)std::floor(hue);
-        double f = hue - i;          // fractional part of h
-        double p = value * (1.0 - saturation);
+        float f = hue - i;          // fractional part of h
+        float p = value * (1.0f - saturation);
 
         switch (i) {
             case 6:
             case 0:
                 red = value;
-                green = value * (1.0 - saturation * (1.0 - f));
+                green = value * (1.0f - saturation * (1.0f - f));
                 blue = p;
                 break;
 
             case 1:
-                red = value * (1.0 - saturation * f);
+                red = value * (1.0f - saturation * f);
                 green = value;
                 blue = p;
                 break;
@@ -218,17 +218,17 @@ static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
             case 2:
                 red = p;
                 green = value;
-                blue = value * (1.0 - saturation * (1.0 - f));
+                blue = value * (1.0f - saturation * (1.0f - f));
                 break;
 
             case 3:
                 red = p;
-                green = value * (1.0 - saturation * f);
+                green = value * (1.0f - saturation * f);
                 blue = value;
                 break;
 
             case 4:
-                red = value * (1.0 - saturation * (1.0 - f));
+                red = value * (1.0f - saturation * (1.0f - f));
                 green = p;
                 blue = value;
                 break;
@@ -236,13 +236,13 @@ static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
             default:    // case 5:
                 red = value;
                 green = p;
-                blue = value * (1.0 - saturation * f);
+                blue = value * (1.0f - saturation * f);
                 break;
         }
     }
-    rgb.Set((uint8_t)std::lround(red * 255.0),
-            (uint8_t)std::lround(green * 255.0),
-            (uint8_t)std::lround(blue * 255.0));
+    rgb.Set((uint8_t)std::lround(red * 255.0f),
+            (uint8_t)std::lround(green * 255.0f),
+            (uint8_t)std::lround(blue * 255.0f));
 }
 
 void xlColor::fromHSV(const HSVValue &hsv) {
@@ -251,26 +251,26 @@ void xlColor::fromHSV(const HSVValue &hsv) {
 //optimized algorithm from http://lolengine.net/blog/2013/01/13/fast-rgb-to-hsv
 static void toHSV(const xlColor &c, HSVValue &v)
 {
-    double r = c.red / 255.0;
-    double g = c.green / 255.0;
-    double b = c.blue / 255.0;
+    float r = c.red / 255.0f;
+    float g = c.green / 255.0f;
+    float b = c.blue / 255.0f;
 
-    double K = 0.0;
+    float K = 0.0f;
     if (g < b)
     {
         std::swap(g, b);
-        K = -1.0;
+        K = -1.0f;
     }
-    double min_gb = b;
+    float min_gb = b;
     if (r < g)
     {
         std::swap(r, g);
-        K = -2.0 / 6.0 - K;
+        K = -2.0f / 6.0f - K;
         min_gb = std::min(g, b);
     }
-    double chroma = r - min_gb;
-    v.hue = std::abs(K + (g - b) / (6.0 * chroma + 1e-20));
-    v.saturation = chroma / (r + 1e-20);
+    float chroma = r - min_gb;
+    v.hue = std::abs(K + (g - b) / (6.0f * chroma + 1e-20f));
+    v.saturation = chroma / (r + 1e-20f);
     v.value = r;
 }
 
@@ -289,86 +289,6 @@ HSVValue& HSVValue::operator=(const xlColor& c) {
     return *this;
 }
 
-
-// HSL functions
-double Hue2RGB(double v1, double v2, double H) {
-   if(H < 0.0) H += 1.0;
-   if(H > 1.0) H -= 1.0;
-   if((6.0*H) < 1.0) return (v1 + (v2 - v1) * 6.0 * H);
-   if((2.0*H) < 1.0) return v2;
-   if((3.0*H) < 2.0) return (v1 + (v2 - v1) * ((2.0/3.0) - H) * 6.0);
-   return v1;
-}
-
-static void fromHSL(xlColor & rgb, const HSLValue &hsl) {
-    if(hsl.saturation == 0) {
-      rgb.red = (int)(hsl.lightness * 255.0);
-      rgb.green = rgb.red;
-      rgb.blue = rgb.red;
-      return;
-   }
-
-   double v2;
-   if(hsl.lightness < 0.5) v2 = hsl.lightness * (1.0 + hsl.saturation);
-   else                    v2 = (hsl.lightness + hsl.saturation) - (hsl.saturation * hsl.lightness);
-
-   double v1 = 2.0 * hsl.lightness - v2;
-
-   rgb.red =   (int)(255.0 * Hue2RGB(v1, v2, hsl.hue + (1.0/3.0)) + 0.5);
-   rgb.green = (int)(255.0 * Hue2RGB(v1, v2, hsl.hue) + 0.5);
-   rgb.blue =  (int)(255.0 * Hue2RGB(v1, v2, hsl.hue - (1.0/3.0)) + 0.5);
-}
-
-void xlColor::fromHSL(const HSLValue &hsl) {
-    ::fromHSL(*this, hsl);
-}
-
-static void toHSL(const xlColor &c, HSLValue &hsl)
-{
-   double rgb[3];
-   rgb[0] = (double)c.red / 255.0;
-   rgb[1] = (double)c.green / 255.0;
-   rgb[2] = (double)c.blue / 255.0;
-
-   double min = std::min(rgb[0], std::min(rgb[1], rgb[2]));
-   double max = std::max(rgb[0], std::max(rgb[1], rgb[2]));
-   double delta = max - min;
-
-   hsl.lightness = (max + min) / 2.0;
-   if(delta == 0) { // Grey
-      hsl.hue = -1.0;
-      hsl.saturation = 0;
-      return;
-   }
-
-   if(hsl.lightness <= 0.5) hsl.saturation = delta / (max + min);
-   else                    hsl.saturation = delta / (2.0 - max - min);
-
-   double dr = (((max - rgb[0]) / 6.0) + (delta / 2.0)) / delta;
-   double dg = (((max - rgb[1]) / 6.0) + (delta / 2.0)) / delta;
-   double db = (((max - rgb[2]) / 6.0) + (delta / 2.0)) / delta;
-
-   if     (rgb[0] == max) hsl.hue = db - dg;
-   else if(rgb[1] == max) hsl.hue = (1.0/3.0) + dr - db;
-   else if(rgb[2] == max) hsl.hue = (2.0/3.0) + dg - dr;
-
-   if(hsl.hue < 0.0) hsl.hue += 1.0;
-   if(hsl.hue > 1.0) hsl.hue -= 1.0;
-}
-
-void xlColor::toHSL(HSLValue &v) const {
-    ::toHSL(*this, v);
-}
-
-HSLValue::HSLValue(const xlColor &c) {
-    toHSL(c, *this);
-}
-
-
-HSLValue& HSLValue::operator=(const xlColor& c) {
-    toHSL(c, *this);
-    return *this;
-}
 
 int xlColor::Brightness() const
 {
@@ -577,7 +497,7 @@ static bool FindColourByName(const std::string& name, xlColor& result) {
     return false;
 }
 
-const std::string& GetColourName(const xlColor& c)
+const std::string& GetColorName(const xlColor& c)
 {
     const NAMED_COLOUR* nc = nullptr;
     float min = 99999999999.0f;

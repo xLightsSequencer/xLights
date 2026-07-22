@@ -37,6 +37,8 @@ struct KaleidoscopeTriangle {
     KaleidoscopeVertex v[3];
 };
 
+class KaleidoscopeRenderCache;
+
 class KaleidoscopeEffect : public RenderableEffect
 {
     public:
@@ -67,6 +69,7 @@ class KaleidoscopeEffect : public RenderableEffect
         virtual void OnMetadataLoaded() override;
         bool KaleidoscopeDone(const std::vector<std::vector<uint8_t>>& current);
         std::pair<int, int> GetSourceLocation(int x, int y, const KaleidoscopeEdge& edge, int width, int height);
+        void BuildLegacyMap(KaleidoscopeRenderCache* cache, int width, int height);
         void RenderNew(const std::string& type, int xCentre, int yCentre, int size, int rotation, RenderBuffer& buffer);
         static KaleidoscopeTriangle ComputeTriangle(const std::string& type, double cx, double cy, double size, double rotRad);
         static std::pair<int, int> MapToSourceTriangle(double px, double py, const KaleidoscopeTriangle& tri, int maxIter);

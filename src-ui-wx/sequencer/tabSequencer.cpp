@@ -3555,6 +3555,8 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
+    if (m_mgr == nullptr || IsExiting()) return;
+
     InitSequencer();
 
     wxAuiPaneInfo& info = m_mgr->GetPane("DisplayElements");
@@ -3625,12 +3627,16 @@ void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
 {
+    if (m_mgr == nullptr || IsExiting()) return;
+
     InitSequencer();
-    bool visible = m_mgr->GetPane("HousePreview").IsShown();
-    if (visible) {
-        m_mgr->GetPane("HousePreview").Hide();
+    wxAuiPaneInfo& info = m_mgr->GetPane("HousePreview");
+    if (!info.IsOk()) return;
+
+    if (info.IsShown()) {
+        info.Hide();
     } else {
-        m_mgr->GetPane("HousePreview").Show();
+        info.Show();
     }
     m_mgr->Update();
     UpdateViewMenu();

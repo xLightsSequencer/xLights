@@ -90,6 +90,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-ffast-math" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />

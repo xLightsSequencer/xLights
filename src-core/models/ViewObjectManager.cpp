@@ -284,22 +284,25 @@ static bool LoadBaseObjectXmlNodes(const std::string& baseShowDir, pugi::xml_doc
     return true;
 }
 
-bool ViewObjectManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localViewObjectsNode)
+bool ViewObjectManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localViewObjectsNode, bool* changedOut)
 {
     pugi::xml_document baseDoc;
     pugi::xml_node baseObjects;
     if (!LoadBaseObjectXmlNodes(baseShowDir, baseDoc, baseObjects)) return false;
 
     std::vector<std::string> changedObjects;
-    return MergeBaseIntoCurrentObjectsXml(localViewObjectsNode, baseObjects, changedObjects);
+    bool const changed = MergeBaseIntoCurrentObjectsXml(localViewObjectsNode, baseObjects, changedObjects);
+    if (changedOut != nullptr) *changedOut = *changedOut || changed;
+    return true;
 }
 
-bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll)
+bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll, bool* changedOut)
 {
     pugi::xml_document baseDoc;
     pugi::xml_node baseObjects;
     if (!LoadBaseObjectXmlNodes(baseShowDir, baseDoc, baseObjects)) return false;
-    if (!baseObjects) return false;
+    // Base file loaded but has no view objects section - nothing to merge, still counts as synced.
+    if (!baseObjects) return true;
 
     // Handle prompt mode: ask user about non-FromBase objects that clash with base
     if (prompt) {
@@ -349,7 +352,8 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
         }
     }
 
-    return changed;
+    if (changedOut != nullptr) *changedOut = changed;
+    return true;
 }
 
 bool ViewObjectManager::Rename(const std::string &oldName, const std::string &newName) {
