@@ -25,6 +25,7 @@ public:
         return false;
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     static std::vector<float> Parse(const std::string& l);
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual int GetColorSupportedCount() const override

@@ -631,6 +631,88 @@ void PicturesEffect::Render(RenderBuffer& buffer,
     int calc_position_wi = (imgwidth + BufferWi) * position;
     int calc_position_ht = (imght + BufferHt) * position;
 
+    // Most directions map the image by a pure translation (tx = x + A) with a
+    // possibly-flipped y (ty = B - y or y + B).  For those, iterate only the
+    // image pixels that can land inside the buffer - everything outside was
+    // bounds-rejected by SetPixel anyway (with "No Scaling" a photo can be
+    // orders of magnitude larger than the buffer) - and walk rows linearly
+    // with the per-pixel switch and accessor index math hoisted.  The final
+    // SetPixel call and per-pixel transparency logic are identical to the
+    // general loop below, so the output bytes are identical.
+    bool linearMap = true, yFlip = true;
+    int mapA = 0, mapB = 0;
+    switch (dir) {
+    case RENDER_PICTURE_LEFT:
+        mapA = xoffset_adj + BufferWi - calc_position_wi; mapB = yoffset - yoffset_adj - 1; break;
+    case RENDER_PICTURE_RIGHT:
+        mapA = xoffset_adj + calc_position_wi - imgwidth; mapB = yoffset - yoffset_adj - 1; break;
+    case RENDER_PICTURE_UP:
+    case RENDER_PICTURE_UPONCE:
+        mapA = xoffset_adj - xoffset; mapB = calc_position_ht - yoffset_adj; break;
+    case RENDER_PICTURE_DOWN:
+    case RENDER_PICTURE_DOWNONCE:
+        mapA = xoffset_adj - xoffset; mapB = BufferHt + imght - yoffset_adj - calc_position_ht; break;
+    case RENDER_PICTURE_UPLEFT:
+        mapA = xoffset_adj + BufferWi - calc_position_wi; mapB = calc_position_ht - yoffset_adj; break;
+    case RENDER_PICTURE_DOWNLEFT:
+        mapA = xoffset_adj + BufferWi - calc_position_wi; mapB = BufferHt + imght - yoffset_adj - calc_position_ht; break;
+    case RENDER_PICTURE_UPRIGHT:
+        mapA = xoffset_adj + calc_position_wi - imgwidth; mapB = calc_position_ht - yoffset_adj; break;
+    case RENDER_PICTURE_DOWNRIGHT:
+        mapA = xoffset_adj + calc_position_wi - imgwidth; mapB = BufferHt + imght - yoffset_adj - calc_position_ht; break;
+    case RENDER_PICTURE_PEEKABOO_0:
+        mapA = xoffset_adj - xoffset; mapB = BufferHt + yoffset - yoffset_adj - 1; break;
+    case RENDER_PICTURE_PEEKABOO_180:
+        mapA = xoffset_adj - xoffset; mapB = -yoffset - yoffset_adj; yFlip = false; break;
+    case RENDER_PICTURE_ZOOMIN:
+    case RENDER_PICTURE_PEEKABOO_90:
+    case RENDER_PICTURE_PEEKABOO_270:
+    case RENDER_PICTURE_FLAGWAVE:
+    case RENDER_PICTURE_TILE_LEFT:
+    case RENDER_PICTURE_TILE_RIGHT:
+    case RENDER_PICTURE_TILE_DOWN:
+    case RENDER_PICTURE_TILE_UP:
+        linearMap = false;
+        break;
+    default: // NONE / WIGGLE / resolved VECTOR - centered
+        mapA = xoffset_adj - xoffset; mapB = yoffset + yoffset_adj - 1; break;
+    }
+
+    if (linearMap) {
+        int y0 = yFlip ? std::max(0, mapB - (BufferHt - 1)) : std::max(0, -mapB);
+        int y1 = yFlip ? std::min(imght - 1, mapB) : std::min(imght - 1, BufferHt - 1 - mapB);
+        // x never wraps unless wrap_x; y never wraps (ProcessPixel wraps x only).
+        int x0 = 0, x1 = imgwidth - 1;
+        if (!wrap_x) {
+            x0 = std::max(0, -mapA);
+            x1 = std::min(imgwidth - 1, BufferWi - 1 - mapA);
+        }
+        const uint8_t* data = img.GetData();
+        for (int y = y0; y <= y1; ++y) {
+            const uint8_t* row = data + (size_t)y * imgwidth * 4;
+            const int ty = yFlip ? (mapB - y) : (y + mapB);
+            for (int x = x0; x <= x1; ++x) {
+                const uint8_t* p = row + (size_t)x * 4;
+                const unsigned char alpha = hasAlpha ? p[3] : 255;
+                if (hasAlpha && alpha <= 1) continue; // img.IsTransparent(x, y, 1)
+                c.Set(p[0], p[1], p[2], alpha);
+                if (!buffer.allowAlpha && alpha < 64) {
+                    c = xlBLACK;
+                }
+                if (transparentBlack) {
+                    int level = c.Red() + c.Green() + c.Blue();
+                    if (level <= transparentBlackLevel) continue;
+                }
+                int tx = x + mapA;
+                if (wrap_x) {
+                    tx %= BufferWi;
+                    if (tx < 0) tx += BufferWi;
+                }
+                buffer.SetPixel(tx, ty, c);
+            }
+        }
+        // fall through to the shimmer pass below
+    } else
     for (int x = 0; x < imgwidth; x++) {
         for (int y = 0; y < imght; y++) {
             if (!hasAlpha || !img.IsTransparent(x, y, 1)) {

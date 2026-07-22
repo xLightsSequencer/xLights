@@ -14,7 +14,9 @@
 
 #include "../utils/string_utils.h"
 
+#include <array>
 #include <cassert>
+#include <climits>
 #include <filesystem>
 #include <spdlog/fmt/fmt.h>
 
@@ -1294,6 +1296,18 @@ void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2
     }
 }
 
+// The per-degree angle grid is fixed (0..359 step 1), so the sin/cos pairs are
+// too - built once with the same expressions the loop used so the rounded pixel
+// positions stay bit-identical.
+static const std::array<std::pair<double, double>, 360> kCircleSinCos = []() {
+    std::array<std::pair<double, double>, 360> t;
+    for (int d = 0; d < 360; ++d) {
+        double radian = (double)d * (M_PI / 180.0);
+        t[d] = { cos(radian), sin(radian) };
+    }
+    return t;
+}();
+
 void RippleEffect::Drawcircle(RenderBuffer& buffer, int Movement, int xc, int yc, double radius, HSVValue& hsv, int Ripple_Thickness, int CheckBox_Ripple3D)
 {
     xlColor color(hsv);
@@ -1314,11 +1328,18 @@ void RippleEffect::Drawcircle(RenderBuffer& buffer, int Movement, int xc, int yc
         }
 
         if (radius >= 0.0) {
-            for (double degrees = 0.0; degrees < 360.0; degrees += 1.0) {
-                double radian = degrees * (M_PI / 180.0);
-                int x = radius * cos(radian) + xc;
-                int y = radius * sin(radian) + yc;
-                buffer.SetPixel(x, y, color); // Turn pixel
+            // Consecutive degrees usually round to the same pixel on small
+            // buffers; the store is idempotent, so skipping exact repeats of
+            // the previous pixel is output-identical.
+            int lastx = INT_MIN, lasty = INT_MIN;
+            for (int d = 0; d < 360; ++d) {
+                int x = radius * kCircleSinCos[d].first + xc;
+                int y = radius * kCircleSinCos[d].second + yc;
+                if (x != lastx || y != lasty) {
+                    buffer.SetPixel(x, y, color); // Turn pixel
+                    lastx = x;
+                    lasty = y;
+                }
             }
         }
     }

@@ -7,11 +7,13 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
-#include <map>
+#include <array>
 #include <functional>
+#include <memory>
 #include "ISPCComputeUtilities.h"
 
 #include "Parallel.h"
+#include <log.h>
 
 
 ISPCComputeUtilities ISPCComputeUtilities::INSTANCE;
@@ -95,40 +97,46 @@ public:
 class ISPCComputeUtilitiesData {
 public:
     ISPCComputeUtilitiesData() {
-        blendFunctions[MixTypes::Mix_Normal] = new ISPCBlendFunctionInfo("NormalBlendFunction", ispc::NormalBlendFunction);
-        blendFunctions[MixTypes::Mix_Effect1] = new ISPCBlendFunctionInfo("Effect1_2_Function", ispc::Effect1_2_Function);
-        blendFunctions[MixTypes::Mix_Effect2] = new ISPCBlendFunctionInfo("Effect1_2_Function", ispc::Effect1_2_Function, 1);
-        blendFunctions[MixTypes::Mix_Mask1] = new ISPCBlendFunctionInfo("Mask1Function", ispc::Mask1Function);
-        blendFunctions[MixTypes::Mix_Mask2] = new ISPCBlendFunctionInfo("Mask2Function", ispc::Mask2Function);
-        blendFunctions[MixTypes::Mix_Unmask1] = new ISPCBlendFunctionInfo("Unmask1Function", ispc::Unmask1Function);
-        blendFunctions[MixTypes::Mix_Unmask2] = new ISPCBlendFunctionInfo("Unmask2Function", ispc::Unmask2Function);
-        blendFunctions[MixTypes::Mix_TrueUnmask1] = new ISPCBlendFunctionInfo("TrueUnmask1Function", ispc::TrueUnmask1Function);
-        blendFunctions[MixTypes::Mix_TrueUnmask2] = new ISPCBlendFunctionInfo("TrueUnmask2Function", ispc::TrueUnmask2Function);
-        blendFunctions[MixTypes::Mix_Shadow_1on2] = new ISPCBlendFunctionInfo("Shadow_1on2Function", ispc::Shadow_1on2Function);
-        blendFunctions[MixTypes::Mix_Shadow_2on1] = new ISPCBlendFunctionInfo("Shadow_2on1Function", ispc::Shadow_2on1Function);
-        blendFunctions[MixTypes::Mix_Layered] = new ISPCBlendFunctionInfo("LayeredFunction", ispc::LayeredFunction);
-        blendFunctions[MixTypes::Mix_Average] = new ISPCBlendFunctionInfo("AveragedFunction", ispc::AveragedFunction);
-        blendFunctions[MixTypes::Mix_1_reveals_2] = new ISPCBlendFunctionInfo("Reveal12Function", ispc::Reveal12Function);
-        blendFunctions[MixTypes::Mix_2_reveals_1] = new ISPCBlendFunctionInfo("Reveal21Function", ispc::Reveal21Function);
-        blendFunctions[MixTypes::Mix_Additive] = new ISPCBlendFunctionInfo("AdditiveFunction", ispc::AdditiveFunction);
-        blendFunctions[MixTypes::Mix_Subtractive] = new ISPCBlendFunctionInfo("SubtractiveFunction", ispc::SubtractiveFunction);
-        blendFunctions[MixTypes::Mix_Max] = new ISPCBlendFunctionInfo("MaxFunction", ispc::MaxFunction);
-        blendFunctions[MixTypes::Mix_Min] = new ISPCBlendFunctionInfo("MinFunction", ispc::MinFunction);
-        blendFunctions[MixTypes::Mix_AsBrightness] = new ISPCBlendFunctionInfo("AsBrightnessFunction", ispc::AsBrightnessFunction);
-        blendFunctions[MixTypes::Mix_Highlight] = new ISPCBlendFunctionInfo("HighlightFunction", ispc::HighlightFunction);
-        blendFunctions[MixTypes::Mix_Highlight_Vibrant] = new ISPCBlendFunctionInfo("HighlightVibrantFunction", ispc::HighlightVibrantFunction);
-        blendFunctions[MixTypes::Mix_BottomTop] = new ISPCBlendFunctionInfo("BottomTopFunction", ispc::BottomTopFunction);
-        blendFunctions[MixTypes::Mix_LeftRight] = new ISPCBlendFunctionInfo("LeftRightFunction", ispc::LeftRightFunction);
+        set(MixTypes::Mix_Normal, "NormalBlendFunction", ispc::NormalBlendFunction);
+        set(MixTypes::Mix_Effect1, "Effect1_2_Function", ispc::Effect1_2_Function);
+        set(MixTypes::Mix_Effect2, "Effect1_2_Function", ispc::Effect1_2_Function, 1);
+        set(MixTypes::Mix_Mask1, "Mask1Function", ispc::Mask1Function);
+        set(MixTypes::Mix_Mask2, "Mask2Function", ispc::Mask2Function);
+        set(MixTypes::Mix_Unmask1, "Unmask1Function", ispc::Unmask1Function);
+        set(MixTypes::Mix_Unmask2, "Unmask2Function", ispc::Unmask2Function);
+        set(MixTypes::Mix_TrueUnmask1, "TrueUnmask1Function", ispc::TrueUnmask1Function);
+        set(MixTypes::Mix_TrueUnmask2, "TrueUnmask2Function", ispc::TrueUnmask2Function);
+        set(MixTypes::Mix_Shadow_1on2, "Shadow_1on2Function", ispc::Shadow_1on2Function);
+        set(MixTypes::Mix_Shadow_2on1, "Shadow_2on1Function", ispc::Shadow_2on1Function);
+        set(MixTypes::Mix_Layered, "LayeredFunction", ispc::LayeredFunction);
+        set(MixTypes::Mix_Average, "AveragedFunction", ispc::AveragedFunction);
+        set(MixTypes::Mix_1_reveals_2, "Reveal12Function", ispc::Reveal12Function);
+        set(MixTypes::Mix_2_reveals_1, "Reveal21Function", ispc::Reveal21Function);
+        set(MixTypes::Mix_Additive, "AdditiveFunction", ispc::AdditiveFunction);
+        set(MixTypes::Mix_Subtractive, "SubtractiveFunction", ispc::SubtractiveFunction);
+        set(MixTypes::Mix_Max, "MaxFunction", ispc::MaxFunction);
+        set(MixTypes::Mix_Min, "MinFunction", ispc::MinFunction);
+        set(MixTypes::Mix_AsBrightness, "AsBrightnessFunction", ispc::AsBrightnessFunction);
+        set(MixTypes::Mix_Highlight, "HighlightFunction", ispc::HighlightFunction);
+        set(MixTypes::Mix_Highlight_Vibrant, "HighlightVibrantFunction", ispc::HighlightVibrantFunction);
+        set(MixTypes::Mix_BottomTop, "BottomTopFunction", ispc::BottomTopFunction);
+        set(MixTypes::Mix_LeftRight, "LeftRightFunction", ispc::LeftRightFunction);
     }
-    ~ISPCComputeUtilitiesData() {
-        for (auto &bf : blendFunctions) {
-            delete bf.second;
+
+    ISPCBlendFunctionInfo* forMixType(MixTypes mt) const {
+        size_t idx = (size_t)mt;
+        if (idx < blendFunctions.size()) {
+            return blendFunctions[idx].get();
         }
+        return nullptr;
     }
-    
-    
-    std::map<MixTypes, ISPCBlendFunctionInfo*> blendFunctions;
-    
+
+    std::array<std::unique_ptr<ISPCBlendFunctionInfo>, (size_t)MixTypes::Mix_LAST> blendFunctions;
+
+private:
+    void set(MixTypes mt, const char* fn, std::function<void(const struct ispc::LayerBlendingData &, uint32_t * result, const uint32_t *, const uint32_t *)> f, int mtd = 0) {
+        blendFunctions[(size_t)mt] = std::make_unique<ISPCBlendFunctionInfo>(fn, std::move(f), mtd);
+    }
 };
 
 ISPCComputeUtilities::ISPCComputeUtilities() : data(nullptr) {
@@ -281,6 +289,7 @@ void ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
                 layer->outputSparkleCount > 0) {
                 
                 data.sparkleColor = layer->sparklesColour.GetRGBA();
+                data.sparkleFrame = effectPeriod - layer->buffer.curEffStartPer;
                 ispc::ApplySparkles(data, result, &pixelBuffer->sparklesVector[0]);
             }
             if (layer->contrast != 0 || layer->outputBrightnessAdjust != 100) {
@@ -330,7 +339,15 @@ void ISPCComputeUtilities::blendLayers(PixelBufferClass *pixelBuffer, int effect
                     ispc::NonAlphaFade(data, src);
                 }
                 
-                auto &f = this->data->blendFunctions[layer->mixType];
+                ISPCBlendFunctionInfo* f = this->data->forMixType(layer->mixType);
+                if (f == nullptr) {
+                    static bool warned = false;
+                    if (!warned) {
+                        warned = true;
+                        spdlog::warn("ISPCComputeUtilities::blendLayers: no blend function for MixType {} -- falling back to Mix_Normal", (int)layer->mixType);
+                    }
+                    f = this->data->forMixType(MixTypes::Mix_Normal);
+                }
                 data.mixTypeData = f->mixTypeData;
                 f->function(data, tmpBufferBlend, src, &layer->buffer.indexVector[0]);
             }

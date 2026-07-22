@@ -371,6 +371,18 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
     VkPhysicalDeviceProperties chosen;
     vkGetPhysicalDeviceProperties(physicalDevice, &chosen);
     storageBufferAlignment = std::max((VkDeviceSize)1, chosen.limits.minStorageBufferOffsetAlignment);
+    // Per-effect GPU attribution (XL_RENDER_PROFILE) needs queue timestamps.
+    // Left at 0 when the queue family cannot timestamp, which disables the
+    // attribution rather than reporting a wrong number.
+    {
+        uint32_t qc = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &qc, nullptr);
+        std::vector<VkQueueFamilyProperties> qf(qc);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &qc, qf.data());
+        if (queueFamilyIndex < qc && qf[queueFamilyIndex].timestampValidBits > 0 && chosen.limits.timestampPeriod > 0.0f) {
+            timestampPeriod = chosen.limits.timestampPeriod;
+        }
+    }
     return true;
 }
 
@@ -385,6 +397,7 @@ bool VulkanComputeUtilities::createDeviceAndQueue() {
     queueInfos.push_back(qi);
     if (graphicsFamilyCandidate >= 0 && (uint32_t)graphicsFamilyCandidate != queueFamilyIndex) {
         qi.queueFamilyIndex = (uint32_t)graphicsFamilyCandidate;
+        qi.queueCount = 1;
         queueInfos.push_back(qi);
     }
 
@@ -420,6 +433,9 @@ bool VulkanComputeUtilities::createDeviceAndQueue() {
     }
     volkLoadDevice(device);
     vkGetDeviceQueue(device, queueFamilyIndex, 0, &queue);
+    if (queue == VK_NULL_HANDLE) {
+        return false;
+    }
     if (graphicsFamilyCandidate >= 0) {
         graphicsQueueFamilyIndex = (uint32_t)graphicsFamilyCandidate;
         vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
@@ -1048,8 +1064,12 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
     }
 
     if (!pixelBuffer->sparklesVector.empty()) {
-        if (pixelBuffer->sparkles == &pixelBuffer->sparklesVector[0] && sparkleBuffer) {
-            // buffer was re-initialized; the old GPU copy is stale
+        // sparklesVector only ever grows (PixelBuffer::CalcOutput) and holds the
+        // stable per-node sparkle phase (the kernel no longer mutates it - it
+        // adds the frame in-kernel), so keep the buffer and only reallocate when
+        // the node count outgrows it.  Keying on element count (rather than the
+        // vector's data pointer) avoids a per-frame realloc.
+        if (sparkleBuffer && sparkleBufferCount < pixelBuffer->sparklesVector.size()) {
             u.destroyBuffer(sparkleBuffer);
         }
         if (!sparkleBuffer) {
@@ -1060,6 +1080,7 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
                 return false;
             }
             memcpy(sparkleBuffer.mapped, &pixelBuffer->sparklesVector[0], pixelBuffer->sparklesVector.size() * sizeof(uint16_t));
+            sparkleBufferCount = pixelBuffer->sparklesVector.size();
             pixelBuffer->sparkles = static_cast<uint16_t*>(sparkleBuffer.mapped);
         }
     }
@@ -1173,6 +1194,7 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
             (layer->use_music_sparkle_count ||
              layer->sparkle_count > 0 ||
              layer->outputSparkleCount > 0)) {
+            data.sparkleFrame = effectPeriod - layer->buffer.curEffStartPer;
             VulkanComputeUtilities::computeBarrier(cb);
             if (!slRMRB->encodeDispatch(cb, u.applySparklesFunction, "ApplySparkles", &data, sizeof(data),
                                         { lb.blend, sparkleBuffer.buffer }, data.nodeCount, 0)) {
@@ -1290,8 +1312,11 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
 
     xlColor* colors = (xlColor*)(tmpBufferBlend.mapped);
     int nc = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount();
-    for (int x = 0; x < nc; x++) {
-        pixelBuffer->layers[saveLayer]->buffer.Nodes[x]->SetColor(colors[x]);
+    auto& nodes = pixelBuffer->layers[saveLayer]->buffer.Nodes;
+    // Deliberately serial - see the Metal path: SetColor is a few byte writes,
+    // so a parallel_for costs more in pool dispatch than the copy itself.
+    for (int x = 0; x < nc; ++x) {
+        nodes[x]->SetColor(colors[x]);
     }
     return true;
 }
@@ -1325,6 +1350,10 @@ VulkanRenderBufferComputeData::~VulkanRenderBufferComputeData() {
     u.destroyBuffer(paramArena);
     for (VkDescriptorPool p : descriptorPools) {
         vkDestroyDescriptorPool(u.device, p, nullptr);
+    }
+    if (timestampPool != VK_NULL_HANDLE) {
+        vkDestroyQueryPool(u.device, timestampPool, nullptr);
+        timestampPool = VK_NULL_HANDLE;
     }
     if (fence != VK_NULL_HANDLE) {
         vkDestroyFence(u.device, fence, nullptr);
@@ -1536,6 +1565,17 @@ bool VulkanRenderBufferComputeData::ensureCommandInfra() {
     return true;
 }
 
+bool VulkanRenderBufferComputeData::ensureTimestampPool() {
+    if (timestampPool != VK_NULL_HANDLE) {
+        return true;
+    }
+    VkQueryPoolCreateInfo qi = {};
+    qi.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+    qi.queryType = VK_QUERY_TYPE_TIMESTAMP;
+    qi.queryCount = 2;
+    return vkCreateQueryPool(VulkanComputeUtilities::INSTANCE.device, &qi, nullptr, &timestampPool) == VK_SUCCESS;
+}
+
 VkCommandBuffer VulkanRenderBufferComputeData::getCommandBuffer(const std::string& postfix) {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     if (!u.enabled) {
@@ -1547,6 +1587,7 @@ VkCommandBuffer VulkanRenderBufferComputeData::getCommandBuffer(const std::strin
         // work was irrelevant.   That would need to be tracked down.
         waitForCompletion();
     }
+    bool fresh = false;
     if (!recording) {
         uint32_t max = MAX_COMMANDBUFFER_COUNT - 4;
         if (u.prioritizeGraphics()) {
@@ -1576,6 +1617,13 @@ VkCommandBuffer VulkanRenderBufferComputeData::getCommandBuffer(const std::strin
         u.setObjectName((uint64_t)commandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER,
                         renderBuffer->GetModelName() + "-" + std::to_string(layer) + postfix);
         recording = true;
+        fresh = true;
+    }
+    cbTag.note(postfix);
+    if (fresh && cbTag.armed() && u.timestampPeriod > 0.0f && ensureTimestampPool()) {
+        vkCmdResetQueryPool(commandBuffer, timestampPool, 0, 2);
+        vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, timestampPool, 0);
+        timestamped = true;
     }
     return commandBuffer;
 }
@@ -1586,6 +1634,8 @@ void VulkanRenderBufferComputeData::abortCommandBuffer() {
         vkResetCommandPool(VulkanComputeUtilities::INSTANCE.device, commandPool, 0);
         resetDescriptorPools();
         recording = false;
+        timestamped = false;
+        cbTag.reset();
         --commandBufferCount;
     }
 }
@@ -1593,6 +1643,9 @@ void VulkanRenderBufferComputeData::abortCommandBuffer() {
 void VulkanRenderBufferComputeData::commit() {
     if (recording && !committed) {
         VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+        if (timestamped) {
+            vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, timestampPool, 1);
+        }
         vkEndCommandBuffer(commandBuffer);
         VkSubmitInfo si = {};
         si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1613,6 +1666,8 @@ void VulkanRenderBufferComputeData::commit() {
             vkResetCommandPool(u.device, commandPool, 0);
             resetDescriptorPools();
             recording = false;
+            timestamped = false;
+            cbTag.reset();
             --commandBufferCount;
             return;
         }
@@ -1629,6 +1684,23 @@ void VulkanRenderBufferComputeData::waitForCompletion() {
             if (res == VK_ERROR_DEVICE_LOST) {
                 spdlog::error("Vulkan compute: device lost on wait — disabling GPU backend for this session");
                 u.enabled = false;
+            }
+            if (timestamped) {
+                uint64_t ts[2] = { 0, 0 };
+                if (res == VK_SUCCESS &&
+                    vkGetQueryPoolResults(u.device, timestampPool, 0, 2, sizeof(ts), ts, sizeof(uint64_t),
+                                          VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT) == VK_SUCCESS &&
+                    ts[1] > ts[0]) {
+                    cbTag.complete((uint64_t)((double)(ts[1] - ts[0]) * (double)u.timestampPeriod));
+                } else {
+                    cbTag.reset();
+                }
+                timestamped = false;
+            } else {
+                // Nothing measurable (device cannot timestamp): drop the tag rather
+                // than book a zero, so the profile's "no GPU time attributed" warning
+                // fires instead of a silent under-report.
+                cbTag.reset();
             }
             vkResetFences(u.device, 1, &fence);
             vkResetCommandPool(u.device, commandPool, 0);

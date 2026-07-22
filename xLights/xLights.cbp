@@ -56,7 +56,7 @@
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
@@ -90,6 +90,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-ffast-math" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
@@ -130,7 +131,7 @@
 					<Add directory="../dependencies/liquidfun/liquidfun/Box2D" />
 				</Compiler>
 				<Linker>
-					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lcurl" />
+					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
@@ -466,6 +467,8 @@
 		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.h" />
 		<Unit filename="../src-ui-wx/model/ModelFaceDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ModelFaceDialog.h" />
+		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.cpp" />
+		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.h" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ModelPreview.cpp" />
@@ -538,6 +541,7 @@
 		<Unit filename="../src-core/render/RenderCache.cpp" />
 		<Unit filename="../src-core/render/RenderCache.h" />
 		<Unit filename="../src-core/render/RenderContext.h" />
+		<Unit filename="../src-core/render/RenderProfile.h" />
 		<Unit filename="../src-core/render/RenderProgressInfo.h" />
 		<Unit filename="../src-core/render/RenderUtils.h" />
 		<Unit filename="../src-ui-wx/sequencer/RenderCommandEvent.cpp" />
@@ -567,6 +571,8 @@
 		<Unit filename="../src-ui-wx/import_export/SeqFileUtilities.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/SequenceFacesPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SequenceFacesPanel.h" />
 		<Unit filename="../src-core/render/SequenceData.cpp" />
 		<Unit filename="../src-core/render/SequenceData.h" />
 		<Unit filename="../src-core/render/SequencePackage.cpp" />
@@ -1413,6 +1419,8 @@
 		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
 		<Unit filename="../src-core/render/SequenceMedia.h" />
+		<Unit filename="../src-core/render/SequenceFaces.cpp" />
+		<Unit filename="../src-core/render/SequenceFaces.h" />
 		<Unit filename="../src-core/render/TextDrawingContext.cpp" />
 		<Unit filename="../src-core/render/TextDrawingContext.h" />
 		<Unit filename="../src-core/render/FreeTypeTextDrawingContext.cpp" />

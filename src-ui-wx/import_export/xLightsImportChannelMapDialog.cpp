@@ -166,7 +166,7 @@ public:
 
     virtual wxSize 	GetSize() const override
     {
-        return wxSize(GetOwner()->GetWidth(), 15);
+        return wxSize(100, 15);
     }
 
     virtual bool GetValue(wxVariant &value) const override
@@ -4494,12 +4494,13 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindToText(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& event)
 {
+    bool addedAny = false;
     wxDataViewItemArray models;
     _dataModel->GetChildren(wxDataViewItem(0), models);
     for (size_t i = 0; i < models.size(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping() && !m->_mapping.empty()) {
-            xlights->GetModel(m->_model)->AddAlias(m->_mapping);
+            addedAny |= xlights->GetModel(m->_model)->AddAlias(m->_mapping);
         }
         wxDataViewItemArray strands;
         _dataModel->GetChildren(models[i], strands);
@@ -4510,10 +4511,13 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
                 if ((sm0[0] != m->_mapping) || ((sm0.size() > 1) && (sm0[1] != astrand->_strand))) {
                     auto sm = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
                     if (sm != nullptr)
-                        sm->AddAlias(astrand->_mapping);
+                        addedAny |= sm->AddAlias(astrand->_mapping);
                 }
             }
         }
+    }
+    if (addedAny) {
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick");
     }
     xlights->SetStatusText(_("Update Aliases Done."));
 }

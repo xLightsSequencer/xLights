@@ -94,17 +94,21 @@ void VulkanShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMa
     if (num_colors == 0) {
         num_colors = 1;
     }
-    float eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
+    // Mirror ShockwaveEffect::Render's DOUBLE param math (not float), narrowing
+    // to float only when filling the kernel struct - same reasoning as the
+    // Metal wrapper: float here shifts color_index and the ring edges vs the
+    // ISPC/CPU reference. See MetalShockwaveEffect.mm.
+    double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
 
     xlColor color;
-    float blend_pct = 1.0;
+    double blend_pct = 1.0;
     if (num_colors > 1) {
         blend_pct = 1.0 / (num_colors - 1);
     }
-    float color_pct1 = eff_pos_adj / blend_pct;
+    double color_pct1 = eff_pos_adj / blend_pct;
     int color_index = (int)color_pct1;
     blend_pct = color_pct1 - (double)color_index;
-    buffer.Get2ColorBlend(std::min(color_index, num_colors - 1), std::min(color_index + 1, num_colors - 1), std::min(blend_pct, 1.0f), color);
+    buffer.Get2ColorBlend(std::min(color_index, num_colors - 1), std::min(color_index + 1, num_colors - 1), std::min(blend_pct, 1.0), color);
     if (buffer.palette.IsSpatial(color_index)) {
         ShockwaveEffect::Render(effect, SettingsMap, buffer);
         return;
@@ -113,23 +117,28 @@ void VulkanShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMa
     rdata.xc_adj = center_x * buffer.BufferWi / 100;
     rdata.yc_adj = center_y * buffer.BufferHt / 100;
 
-    rdata.radius1 = start_radius;
-    rdata.radius2 = end_radius;
+    double radius1 = start_radius;
+    double radius2 = end_radius;
     if (scale) {
         double bufferMax = std::max(buffer.BufferHt, buffer.BufferWi);
-        rdata.radius1 = rdata.radius1 * (bufferMax / 200.0);
-        rdata.radius2 = rdata.radius2 * (bufferMax / 200.0);
+        radius1 = radius1 * (bufferMax / 200.0);
+        radius2 = radius2 * (bufferMax / 200.0);
         start_width = start_width * (bufferMax / 100.0);
         end_width = end_width * (bufferMax / 100.0);
     }
-    rdata.radius_center = rdata.radius1 + (rdata.radius2 - rdata.radius1) * eff_pos_adj;
-    rdata.half_width = (start_width + (end_width - start_width) * eff_pos_adj) / 2.0;
-    if (rdata.half_width < 0.25) {
-        rdata.half_width = 0.25;
+    double radius_center = radius1 + (radius2 - radius1) * eff_pos_adj;
+    double half_width = (start_width + (end_width - start_width) * eff_pos_adj) / 2.0;
+    if (half_width < 0.25) {
+        half_width = 0.25;
     }
-    rdata.radius1 = rdata.radius_center - rdata.half_width;
-    rdata.radius2 = rdata.radius_center + rdata.half_width;
-    rdata.radius1 = std::max(0.0f, rdata.radius1);
+    radius1 = radius_center - half_width;
+    radius2 = radius_center + half_width;
+    radius1 = std::max(0.0, radius1);
+
+    rdata.radius_center = (float)radius_center;
+    rdata.half_width = (float)half_width;
+    rdata.radius1 = (float)radius1;
+    rdata.radius2 = (float)radius2;
 
     rdata.color = toUchar4(color);
     HSVValue hsv = color.asHSV();

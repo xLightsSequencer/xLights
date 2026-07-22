@@ -33,7 +33,7 @@ public:
 
         COUNT_WARP_STYLES
     };
-    WarpType mapWarpType(const std::string& wt);
+    WarpType mapWarpType(const std::string& wt) const;
 
     WarpEffect(int id);
     virtual ~WarpEffect();
@@ -42,6 +42,7 @@ public:
         return false;
     }
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override
     {
         return false;

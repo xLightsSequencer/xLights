@@ -95,6 +95,17 @@ MetalCandleEffect::~MetalCandleEffect() {
 }
 
 void MetalCandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    if (buffer.pendingSnapshot == nullptr) {
+        // The GPU draw is only ever reached through the engine's AdvanceState +
+        // Render(pendingSnapshot) sequence, which the engine drives in BOTH serial
+        // and frame-parallel rendering - so the GPU now runs inside parallel
+        // windows too (it used to early-out to the CPU there).  Any direct call
+        // without a snapshot (defensive preview path) takes the CPU base Render,
+        // which advances then draws.  The capture pre-pass calls AdvanceState, not
+        // Render, so it never reaches here.
+        CandleEffect::Render(effect, SettingsMap, buffer);
+        return;
+    }
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
     if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         CandleEffect::Render(effect, SettingsMap, buffer);
@@ -139,8 +150,12 @@ void MetalCandleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, R
         }
     }
 
+    // Draw pass: restore the captured pre-frame (post-init) state into the cache and
+    // feed THAT to the GPU, which advances the simulation in place and draws.  We
+    // must NOT call getPerNodeStates here - on a parallel clone that would reseed
+    // per-node state via the stream RNG and discard the captured simulation.
     int maxW = 0;
-    std::vector<CandleState>& states = *getPerNodeStates(buffer, SettingsMap, maxW);
+    std::vector<CandleState>& states = *RestoreSnapshotStates(buffer, *buffer.pendingSnapshot, maxW);
     if (states.empty()) {
         CandleEffect::Render(effect, SettingsMap, buffer);
         return;

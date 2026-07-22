@@ -1717,7 +1717,9 @@ public:
 
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
-    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
+    // skipFseqData: caller is about to re-render every frame, so don't pay to read
+    // the existing fseq. Ignored for canvas-mode sequences, which augment it.
+    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "", bool skipFseqData = false);
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr);
     }
@@ -1729,6 +1731,8 @@ public:
     void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
     void SaveAsSequence();
     void SaveAsSequence(const std::string& filename);
+    wxString GetLastSequenceDialogDir() const;
+    void SetLastSequenceDialogDir(const wxString& dir);
     void SetPasteByCell();
     void SetPasteByTime();
     void ShowSequenceSettings();

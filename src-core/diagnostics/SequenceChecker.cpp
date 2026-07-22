@@ -1348,7 +1348,11 @@ void SequenceChecker::CheckEffect(Effect* ef, CheckSequenceReport& report,
             }
             if (!checkAsNumeric) continue;
 
-            if (!isValidNum(val)) {
+            size_t trimStart = val.find_first_not_of(' ');
+            size_t trimEnd = val.find_last_not_of(' ');
+            std::string trimmedVal = (trimStart == std::string::npos) ? "" : val.substr(trimStart, trimEnd - trimStart + 1);
+
+            if (!isValidNum(trimmedVal)) {
                 std::string msg = fmt::format(
                     "    ERR: Effect has invalid numeric value '{}' for setting '{}'. Effect: {}, Model: {}, Start {}",
                     val, key, ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
@@ -1596,6 +1600,24 @@ int SequenceChecker::RunSequenceChecks(CheckSequenceReport& report) {
             }
         }
 
+        // Missing sequence-level face images (embedded images live in the .xsq)
+        for (const auto& [faceName, def] : _elements.GetSequenceFaces().GetFaces()) {
+            for (const auto& [key, value] : def) {
+                if (!SequenceFaces::IsImageKey(key) || value.empty()) continue;
+                if (_elements.GetSequenceMedia().GetMediaEmbedState(value).first) continue;
+                // FixFile so relative / moved-sequence paths resolve the way
+                // the renderer will resolve them
+                std::string resolved = FileUtils::FixFile("", value);
+                if (resolved.empty() || !FileExists(resolved)) {
+                    std::string msg = fmt::format("    ERR: Sequence face '{}' image missing {}.",
+                                                  faceName, value);
+                    RecordIssue(report, "sequence",
+                                CheckSequenceReport::ReportIssue(
+                                    CheckSequenceReport::ReportIssue::CRITICAL, msg, "faces"));
+                }
+            }
+        }
+
         // Models hidden by effects on groups (only when blending is off)
         if (!_sequenceFile->supportsModelBlending()) {
             std::string viewModels = _elements.GetViewModels(_elements.GetViewName(0));
@@ -1709,7 +1731,20 @@ int SequenceChecker::RunSequenceChecks(CheckSequenceReport& report) {
 
         // Summary lists (faces / states / viewpoints used)
         for (const auto& it : faces) {
-            std::string msg = fmt::format("        Model: {}, Face: {}.", it.first, it.second);
+            Model* fm = _models.GetModel(it.first);
+            if (fm != nullptr) {
+                if (fm->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                    auto* mg = dynamic_cast<ModelGroup*>(fm);
+                    if (mg != nullptr) fm = mg->GetFirstModel();
+                } else if (fm->GetDisplayAs() == DisplayAsType::SubModel) {
+                    auto* sub = dynamic_cast<SubModel*>(fm);
+                    if (sub != nullptr) fm = sub->GetParent();
+                }
+            }
+            bool seqLevel = _elements.GetSequenceFaces().GetFace(it.second) != nullptr &&
+                            (fm == nullptr || fm->GetFaceInfo().find(it.second) == fm->GetFaceInfo().end());
+            std::string msg = fmt::format("        Model: {}, Face: {}{}.", it.first, it.second,
+                                          seqLevel ? " (sequence)" : "");
             RecordIssue(report, "sequence",
                         CheckSequenceReport::ReportIssue(
                             CheckSequenceReport::ReportIssue::INFO, msg, "usedfaces"));
@@ -1747,12 +1782,48 @@ int SequenceChecker::RunFileReferenceChecks(CheckSequenceReport& report) {
                 continue;
             ModelElement* me = dynamic_cast<ModelElement*>(e);
             Model* model = me ? _models[me->GetModelName()] : nullptr;
+            // Faces resolves a group to its first model, so face lookups (and
+            // the Faces effect's file references) must use that model or a
+            // group-hosted effect reports the wrong definition's images
+            Model* faceModel = model;
+            if (faceModel != nullptr && faceModel->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                auto* mg = dynamic_cast<ModelGroup*>(faceModel);
+                faceModel = mg != nullptr ? mg->GetFirstModel() : nullptr;
+            }
             for (const auto& el : e->GetEffectLayers()) {
                 for (const auto& ef : el->GetEffects()) {
+                    bool isFaces = ef->GetEffectName() == "Faces" || ef->GetEffectName() == "CoroFaces";
+                    Model* refModel = isFaces ? faceModel : model;
                     RenderableEffect* eff = em.GetEffect(ef->GetEffectIndex());
-                    if (eff != nullptr && model != nullptr) {
-                        auto refs = eff->GetFileReferences(model, ef->GetSettings());
+                    if (eff != nullptr && refModel != nullptr) {
+                        auto refs = eff->GetFileReferences(refModel, ef->GetSettings());
                         allfiles.splice(allfiles.end(), refs);
+                    }
+                    // Sequence-level face definitions aren't covered by the
+                    // effect's GetFileReferences - resolve the way the
+                    // renderer does (model wins, Default/empty falls to the
+                    // first face) and add their images
+                    if (isFaces) {
+                        std::string face = ef->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "Default");
+                        if (face == "Default" || face.empty()) {
+                            if (faceModel != nullptr && !faceModel->GetFaceInfo().empty()) {
+                                face.clear(); // model face - covered by GetFileReferences
+                            } else if (!_elements.GetSequenceFaces().empty()) {
+                                face = _elements.GetSequenceFaces().GetFaces().begin()->first;
+                            } else {
+                                face.clear();
+                            }
+                        } else if (faceModel != nullptr && faceModel->GetFaceInfo().find(face) != faceModel->GetFaceInfo().end()) {
+                            face.clear(); // model definition wins
+                        }
+                        const auto* seqDef = face.empty() ? nullptr : _elements.GetSequenceFaces().GetFace(face);
+                        if (seqDef != nullptr) {
+                            for (const auto& [key, value] : *seqDef) {
+                                if (SequenceFaces::IsImageKey(key) && !value.empty()) {
+                                    allfiles.push_back(value);
+                                }
+                            }
+                        }
                     }
                 }
             }

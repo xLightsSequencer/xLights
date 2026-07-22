@@ -86,7 +86,29 @@ class Waveform : public GRAPHICS_BASE_CLASS
         // _media. Concurrent inference is not safe and freed objects
         // get messaged on the worker thread (crash sig 0b727679d7).
         std::atomic<bool> _stemSeparationActive{false};
+        // Set from outside to abandon an in-flight run at the next chunk
+        // boundary — see RequestStemSeparationCancel below.
+        std::atomic<bool> _stemSeparationCancel{false};
 #endif
+
+        // Both unconditional so callers need no backend #if. The worker
+        // holds raw PCM pointers into the AudioManager for the whole run
+        // (StemSeparator.cpp), so anything that would free the sequence
+        // audio must check IsStemSeparationActive() first and, if it wants
+        // to proceed, request cancellation and let the run wind down —
+        // the progress-dialog pump joins the worker before returning.
+        bool IsStemSeparationActive() const {
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
+            return _stemSeparationActive.load();
+#else
+            return false;
+#endif
+        }
+        void RequestStemSeparationCancel() {
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
+            _stemSeparationCancel.store(true);
+#endif
+        }
 
         int GetActiveAudioTrackIndex() const { return _activeAudioTrackIndex; }
 

@@ -1,4 +1,11 @@
-name: Build and Publish Snap
+# Builds the snap and attaches it to the draft GitHub release.  It does NOT
+# upload to the Snap Store: the `xlights` name is registered to a store account
+# we don't hold credentials for, so every upload failed with
+# "macaroon-permission-required: Package-restricted permission does not include
+# snap-id A1URizWCL1qYEp2zsgonIArJly6HqZBT".  To re-enable publishing, someone
+# with that account must regenerate SNAPCRAFT_STORE_CREDENTIALS scoped to the
+# xlights snap and restore the snapcore/action-publish step (see git history).
+name: Build Snap
 
 on:
   push:
@@ -25,15 +32,11 @@ jobs:
         uses: snapcore/action-build@v1
         id: build
 
-      - name: Publish to Snap Store
-        uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.build.outputs.snap }}
-          release: stable
-
+      # Tags only: on a workflow_dispatch run GITHUB_REF_NAME is the branch, and
+      # this action would cut a stray draft release named after it.  A manual run
+      # is just a build check, so it stops here.
       - name: Upload snap to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true

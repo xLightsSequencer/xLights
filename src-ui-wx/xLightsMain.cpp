@@ -2161,7 +2161,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     if (!xLightsApp::sequenceFiles.IsEmpty()) {
         spdlog::debug("Opening sequence: {}.", (const char*)xLightsApp::sequenceFiles[0].c_str());
-        OpenSequence(xLightsApp::sequenceFiles[0], nullptr);
+        // In -r mode OpenRenderAndSaveSequences reopens and re-renders this same
+        // sequence immediately, so reading its fseq here is wasted.
+        OpenSequence(xLightsApp::sequenceFiles[0], nullptr, "", _renderMode);
     }
 
     SetAudioControls();
@@ -2217,10 +2219,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 
-    bool gpuRendering = true;
-    config->Read("xLightsGPURendering", &gpuRendering, true);
-    GPURenderUtils::SetEnabled(gpuRendering);
-
     _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
 #else
     config->Read("xLightsVideoReaderAccelerated", &_hwVideoAccleration, false);
@@ -2228,6 +2226,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::SetHardwareRenderType(_hwVideoRenderer);
 #endif
+
+    bool gpuRendering = true;
+    config->Read("xLightsGPURendering", &gpuRendering, true);
+    GPURenderUtils::SetEnabled(gpuRendering);
 #ifdef __WXMSW__
     // make sure Direct2DRenderer is created on the main thread before the other threads need it
     wxGraphicsRenderer::GetDirect2DRenderer();
@@ -3235,6 +3237,11 @@ SequenceFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     if (!QuitMenuItem->IsEnabled()) {
+        // Refusing the close, so say so — the veto path below does. Without
+        // this, anything inspecting GetVeto() reads the refusal as success.
+        if (event.CanVeto()) {
+            event.Veto();
+        }
         return;
     }
 

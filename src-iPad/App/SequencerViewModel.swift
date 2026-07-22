@@ -1384,20 +1384,37 @@ class SequencerViewModel {
         // queue a re-pick of the parent folder (iOS grants child
         // access transitively). The actual `document.openSequence`
         // call is deferred until the user re-grants.
-        if !XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false) {
-            let parent = (path as NSString).deletingLastPathComponent
-            enqueueAccessReprompt(label: "sequence file",
-                                   originalPath: path,
-                                   pickPath: parent)
-            afterAccessQueueEmpty = { [weak self] in
-                guard let self else { return }
-                guard XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false) else { return }
-                self.performOpenSequence(path: path, forceRender: forceRender)
+        //
+        // `obtainAccess` resolves the bookmark synchronously and can stall
+        // (e.g. right after an iCloud download settles) long enough to trip
+        // the 0x8BADF00D main-thread watchdog, so run the pre-check off the
+        // main actor and branch back on main. Mirrors performOpenSequence's
+        // detach.
+        Task { [weak self] in
+            guard let self else { return }
+            let granted = await Task.detached {
+                XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+            }.value
+            if !granted {
+                let parent = (path as NSString).deletingLastPathComponent
+                self.enqueueAccessReprompt(label: "sequence file",
+                                            originalPath: path,
+                                            pickPath: parent)
+                self.afterAccessQueueEmpty = { [weak self] in
+                    guard let self else { return }
+                    Task {
+                        let ok = await Task.detached {
+                            XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+                        }.value
+                        guard ok else { return }
+                        self.performOpenSequence(path: path, forceRender: forceRender)
+                    }
+                }
+                self.runNextAccessReprompt()
+                return
             }
-            runNextAccessReprompt()
-            return
+            self.performOpenSequence(path: path, forceRender: forceRender)
         }
-        performOpenSequence(path: path, forceRender: forceRender)
     }
 
     private func performOpenSequence(path: String, forceRender: Bool) {
@@ -1415,7 +1432,12 @@ class SequencerViewModel {
         // existing `loadShowFolder` detach pattern.
         Task.detached { [document, weak self] in
             let opened = document.openSequence(path)
-            await self?.applyOpenResult(opened: opened, path: path, forceRender: forceRender)
+            // Resolved here rather than in applyOpenResult: obtainAccess blocks
+            // on bookmark resolution (and can wait on an iCloud materialisation),
+            // which tripped the 0x8BADF00D watchdog once applyOpenResult had
+            // hopped back to the main actor.
+            let readOnly = opened ? SequencerViewModel.detectReadOnly(path: path) : false
+            await self?.applyOpenResult(opened: opened, path: path, readOnly: readOnly, forceRender: forceRender)
         }
     }
 
@@ -1425,20 +1447,22 @@ class SequencerViewModel {
     /// A sequence opened from a write-protected provider, a locked
     /// iCloud item, or a download that only granted read scope lands
     /// here and Save is disabled until the user Saves As elsewhere.
-    private static func detectReadOnly(path: String) -> Bool {
+    /// `nonisolated` so the open path can resolve this off the main actor —
+    /// it touches no instance state.
+    private nonisolated static func detectReadOnly(path: String) -> Bool {
         guard !path.isEmpty else { return false }
         let writable = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: true)
         if !writable { return true }
         return !FileManager.default.isWritableFile(atPath: path)
     }
 
-    private func applyOpenResult(opened: Bool, path: String, forceRender: Bool) {
+    private func applyOpenResult(opened: Bool, path: String, readOnly: Bool, forceRender: Bool) {
         defer { openInFlight = false }
         guard opened else { return }
 
         isSequenceLoaded = true
         isDirty = false
-        isReadOnly = Self.detectReadOnly(path: path)
+        isReadOnly = readOnly
         sequenceName = document.sequenceName()
         sequenceDurationMS = Int(document.sequenceDurationMS())
         frameIntervalMS = Int(document.frameIntervalMS())

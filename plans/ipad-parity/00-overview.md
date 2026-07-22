@@ -7,7 +7,7 @@
 
 ## How to read this
 
-- **1,187 features** were enumerated across 14 themes (menu items, context-menu
+- **1,188 features** were enumerated across 14 themes (menu items, context-menu
   entries, dialog operations, preferences, keyboard shortcuts, gestures).
 - The **gap** for each feature is *derived from the `desktop`/`iPad` status*
   (✅ present / 🟡 partial / ❌ absent). Categories:
@@ -26,10 +26,10 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,187 |
-| **At parity** (both platforms) | 859 (**~72%**) |
+| Features audited | 1,188 |
+| **At parity** (both platforms) | 858 (**~72%**) |
 | **iPad-missing** (desktop has, iPad doesn't) | 175 |
-| **iPad-weaker** (partial on iPad) | 62 |
+| **iPad-weaker** (partial on iPad) | 63 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
 | Restricted (closed-firmware / IAP) | 23 |
@@ -60,10 +60,10 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
-| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 47 | 68% | 12 | 5 | 6 | 4 |
+| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 70 | 46 | 66% | 13 | 6 | 6 | 4 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 95 | 81% | 10 | 4 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 73 | 88% | 3 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 85 | 77 | 91% | 1 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 86 | 78 | 91% | 1 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 107 | 77% | 12 | 13 | 7 | 3 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 80 | 66 | 82% | 8 | 3 | 3 | 11 |
@@ -74,7 +74,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,188** | **858** | **~72%** | **176** | **62** | **≈92** | **82** |
+| — | **Total** | **1,190** | **859** | **~72%** | **176** | **63** | **≈92** | **82** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -295,6 +295,7 @@ evidence lives in each theme doc's scorecard.
 | Feature | Theme | Pri | Gap | Ease |
 |---|---|---|---|---|
 | Convert selected effects to a different type | 04 | P2 | ipad-missing | hard |
+| Moving Head: "Link" tab (snap end Pan/Tilt to next effect + force Dimmer to 0) | 04 | P2 | ipad-missing | medium |
 | SubModel import: from Model / File / Layout / Downloads | 06 | P2 | ipad-missing | hard |
 | SubModels: output-to-lights live test toggle | 06 | P2 | ipad-missing | medium |
 | Real-world dimension readouts (ruler-calibrated) | 06 | P2 | ipad-missing | medium |
@@ -474,7 +475,7 @@ reverse parity as "touch idiom").
 | View - Disable Key Acceleration when held | 11 | Desktop key-repeat concept; n/a to touch. |
 | View - Zoom To Cursor | 11 | Mouse-only behavior. |
 | Effects Grid - Double Click Mode | 11 | Edit Text / Play Timing. No double-click on touch. |
-| Output - xFade/xSchedule port | 11 | Companion-app integration; not on iPad. |
+| Output - API Port (xFade/xSchedule) | 11 | Companion-app integration; not on iPad. |
 | Other - Hardware Video Decoding + renderer | 11 | iPad uses AVFoundation/VideoToolbox automatically. |
 | Other - GPU Rendering (Metal compute) | 11 | iPad always uses Metal. |
 | Other - Shaders on Background Threads | 11 | Hidden on macOS/Linux already; Windows-only. |

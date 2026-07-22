@@ -259,7 +259,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
     PanelSequencer->SetLabel("XLIGHTS_SEQUENCER_TAB:" + sequence);
 }
 
-void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog, const wxString &rp)
+void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog, const wxString &rp, bool skipFseqData)
 {
     FileUtils::ClearNonExistentFiles();
     _sequenceElements.GetSequenceMedia().ClearRelocations();
@@ -268,7 +268,10 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     wxString filename;
     wxString wildcards = "xLights Sequence files (*.xsq;*.xml)|*.xsq;*.xml|Old xLights Sequence files (*.xml)|*.xml|FSEQ files (*.fseq)|*.fseq|Sequence Backups (*.xbkp)|*.xbkp";
     if (passed_filename.IsEmpty()) {
-        filename = wxFileSelector("Choose sequence file to open", CurrentDir, wxEmptyString, "*.xsq", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        filename = wxFileSelector("Choose sequence file to open", GetLastSequenceDialogDir(), wxEmptyString, "*.xsq", wildcards, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        if (!filename.empty()) {
+            SetLastSequenceDialogDir(wxFileName(filename).GetPath());
+        }
     } else {
         filename = passed_filename;
     }
@@ -376,9 +379,11 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         xlightsFilename = fseq_file.GetFullPath(); // this need to be set , as it is checked when saving is triggered
 
-        // load the fseq data file if it exists
-        if (FileExists(fseq_file)) {
-            spdlog::debug("Opening FSEQ File at: '{}'", fseq_file.GetFullPath().ToStdString());
+        // skipFrameData still reads the header, so _seqData ends up sized exactly as a
+        // full read would leave it -- only the frame decompression is skipped.
+        auto readFseqData = [&](bool skipFrameData) {
+            spdlog::debug("Opening FSEQ File at: '{}'{}", fseq_file.GetFullPath().ToStdString(),
+                          skipFrameData ? " (header only, frames are about to be re-rendered)" : "");
             if (plog != nullptr) {
                 plog->Show(true);
             }
@@ -391,6 +396,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                                           nullptr,
                                           plog,
                                           &mf); // media filename
+            read_params.skip_frame_data = skipFrameData;
 
             FileConverter::ReadFalconFile(read_params);
             if (mf != "") {
@@ -407,6 +413,16 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             spdlog::debug("        Frame Time {}", _seqData.FrameTime());
             spdlog::debug("        Frames {}", _seqData.NumFrames());
             spdlog::debug("        Length {}", _seqData.TotalTime());
+        };
+
+        // load the fseq data file if it exists
+        const bool fseq_exists = FileExists(fseq_file);
+        if (fseq_exists) {
+            // RenderIseqData clears the whole buffer before the re-render, so the frame
+            // data would be discarded. Canvas mode is the exception -- it augments the
+            // existing fseq -- but the render mode isn't known until the xml is parsed
+            // below, so that case reads the frames there instead.
+            readFseqData(skipFseqData);
         } else {
             spdlog::debug("Could not Find FSEQ File at: '{}'", ToStdString(fseq_file.GetFullPath()));
         }
@@ -441,6 +457,13 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     return;
                 }
             }
+        }
+
+        // Canvas mode renders on top of the existing fseq rather than erasing it
+        // (see RenderIseqData), so it needs the frame data the skip above passed over.
+        if (skipFseqData && fseq_exists && CurrentSeqXmlFile->GetRenderMode() == SequenceFile::CANVAS_MODE) {
+            spdlog::debug("Sequence is canvas mode, loading the FSEQ frame data after all.");
+            readFseqData(false);
         }
 
         _renderCache.SetSequence(renderCacheDirectory, CurrentSeqXmlFile->GetName());
@@ -998,6 +1021,22 @@ void xLightsFrame::AddToMRU(const std::string& filename)
 bool xLightsFrame::CloseSequence()
 {
     spdlog::debug("Closing sequence.");
+
+    // Stem separation runs a worker thread holding raw PCM pointers into the
+    // sequence's AudioManager for the whole run, and its progress dialog pumps
+    // the event queue (wxApp::Yield) — so a close dispatched during that pump
+    // lands here and would delete CurrentSeqXmlFile, and with it the audio the
+    // worker is still reading (crash sig 0b727679d7). Don't rely on
+    // EnableSequenceControls having disabled the close path: QuitMenuItem is
+    // global UI state that any render completion delivered by the same pump can
+    // re-enable. Ask the run to stop and refuse this close; the pump joins the
+    // worker and unlocks the UI, and the user can close again once it winds down.
+    if (mainSequencer != nullptr && mainSequencer->PanelWaveForm != nullptr &&
+        mainSequencer->PanelWaveForm->IsStemSeparationActive()) {
+        spdlog::info("Close refused: stem separation in progress; cancelling it.");
+        mainSequencer->PanelWaveForm->RequestStemSeparationCancel();
+        return false;
+    }
 
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
         // save perspective on this machine so we can restore it next time

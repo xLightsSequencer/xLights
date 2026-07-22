@@ -881,6 +881,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\dependencies\midifile\src\MidiMessage.cpp" />
     <ClCompile Include="..\src-ui-wx\model\ModelDimmingCurveDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\ModelFaceDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\FaceMatrixHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ModelGroupPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ModelPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\model\ModelStateDialog.cpp" />
@@ -984,6 +985,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\import_export\SeqExportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqFileUtilities.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SeqSettingsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SequenceFacesPanel.cpp" />
     <ClCompile Include="..\src-core\render\SequenceData.cpp" />
     <ClCompile Include="..\src-core\render\SequencePackage.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.cpp" />
@@ -1002,6 +1004,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp" />
     <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
+    <ClCompile Include="..\src-core\render\SequenceFaces.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\TimeLine.cpp" />
@@ -1525,6 +1528,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\media\ShaderPreviewGenerator.h" />
     <ClInclude Include="..\src-ui-wx\model\ModelDimmingCurveDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\ModelFaceDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\FaceMatrixHelpers.h" />
     <ClInclude Include="..\src-ui-wx\layout\ModelGroupPanel.h" />
     <ClInclude Include="..\src-ui-wx\layout\ModelPreview.h" />
     <ClInclude Include="..\src-core\graphics\IModelPreview.h" />
@@ -1629,6 +1633,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\SeqExportDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SeqSettingsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SequenceFacesPanel.h" />
     <ClInclude Include="..\src-core\render\SequenceData.h" />
     <ClInclude Include="..\src-core\render\SequencePackage.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.h" />
@@ -1648,6 +1653,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\render\SongStructureManager.h" />
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
+    <ClInclude Include="..\src-core\render\SequenceFaces.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TimeLine.h" />
     <ClInclude Include="..\src-core\render\UndoManager.h" />
@@ -1825,6 +1831,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\utils\nanosvg_xl.h" />
     <ClInclude Include="..\src-core\utils\CursorType.h" />
     <ClInclude Include="..\src-core\render\UICallbacks.h" />
+    <ClInclude Include="..\src-core\render\RenderProfile.h" />
     <ClInclude Include="..\src-core\render\RenderProgressInfo.h" />
     <ClInclude Include="..\src-core\render\RenderContext.h" />
     <ClInclude Include="..\src-core\render\JukeboxButtonData.h" />

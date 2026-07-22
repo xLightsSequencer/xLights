@@ -126,8 +126,8 @@ kernel void GalaxyEffect(constant MetalGalaxyData &d [[buffer(0)]],
     float i_hi = min(d.head_end_of_tail, d.revs);
     if (i_hi <= i_lo) { result[index] = uchar4(0, 0, 0, 0); return; }
 
-    float dx = (float)px - d.pos_x;
-    float dy = (float)py - d.pos_y;
+    float dx = (float)px + 0.5f - d.pos_x;
+    float dy = (float)py + 0.5f - d.pos_y;
     float rho = sqrt(dx*dx + dy*dy);
     float theta = atan2(dx, dy) * 180.0f / M_PI_F;
 

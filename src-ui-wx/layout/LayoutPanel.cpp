@@ -5571,6 +5571,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     return model;
 }
 
+// Set for the duration of FinalizeModel. Read by the preview mouse-move
+// handlers, which run on the same state FinalizeModel is mutating whenever one
+// of FinalizeModel's modal pumps dispatches a motion event.
+static bool inFinalize = false;
+
 void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
@@ -5582,7 +5587,6 @@ void LayoutPanel::FinalizeModel()
     // reassigned it, and crashes on the vtable read in SetAxisTool. Windows
     // bucket f6bdc90020 (7 reports, still regressing in dev). Drop the
     // re-entrant call — the outer pass will finish the work.
-    static bool inFinalize = false;
     if (inFinalize) {
         spdlog::warn("LayoutPanel::FinalizeModel called re-entrantly; ignoring inner call.");
         return;
@@ -6100,7 +6104,42 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
     if (!m_wheel_down) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
         if (is_3d) {
-            if (!fromTrackPad || event.ControlDown()) {
+            if (event.ShiftDown() && !event.ControlDown()) {
+                float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? event.GetWheelRotation() : 0;
+                if (std::abs(event.GetWheelRotation()) >= event.GetWheelDelta()) {
+                    new_x /= 4.0f;
+                    new_y /= 4.0f;
+                }
+
+                // account for grid rotation
+                float angleX = glm::radians(modelPreview->GetCameraRotationX());
+                float angleY = glm::radians(modelPreview->GetCameraRotationY());
+                float delta_x = 0.0f;
+                float delta_y = 0.0f;
+                float delta_z = 0.0f;
+                bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+                bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+                bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+                if( top_view ) {
+                    delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                    delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                } else if( bottom_view ) {
+                    delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+                    delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                } else {
+                    delta_x = new_x * std::cos(angleY);
+                    delta_y = new_y;
+                    delta_z = new_x * std::sin(angleY);
+                    if( !upside_down_view ) {
+                        delta_y *= -1.0f;
+                    }
+                }
+                delta_x *= modelPreview->GetZoom() * 2.0f;
+                delta_y *= modelPreview->GetZoom() * 2.0f;
+                delta_z *= modelPreview->GetZoom() * 2.0f;
+                modelPreview->SetPan(delta_x, delta_y, delta_z);
+            } else if (!fromTrackPad || event.ControlDown()) {
                 int mouse_x = event.GetX();
                 int mouse_y = event.GetY();
                 float centerx = modelPreview->getWidth() / 2.0f;
@@ -6151,44 +6190,11 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 delta_z *= modelPreview->GetZoom() * 2.0f;
                 modelPreview->SetPan(delta_x, delta_y, delta_z);
             } else {
-                if (event.ShiftDown()) {
-                    float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-                    float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+                float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
 
-                    // account for grid rotation
-                    float angleX = glm::radians(modelPreview->GetCameraRotationX());
-                    float angleY = glm::radians(modelPreview->GetCameraRotationY());
-                    float delta_x = 0.0f;
-                    float delta_y = 0.0f;
-                    float delta_z = 0.0f;
-                    bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
-                    bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
-                    bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
-                    if( top_view ) {
-                        delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
-                        delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
-                    } else if( bottom_view ) {
-                        delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
-                        delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
-                    } else {
-                        delta_x = new_x * std::cos(angleY);
-                        delta_y = new_y;
-                        delta_z = new_x * std::sin(angleY);
-                        if( upside_down_view ) {
-                            delta_y *= -1.0f;
-                        }
-                    }
-                    delta_x *= modelPreview->GetZoom() * 2.0f;
-                    delta_y *= modelPreview->GetZoom() * 2.0f;
-                    delta_z *= modelPreview->GetZoom() * 2.0f;
-                    modelPreview->SetPan(delta_x, delta_y, delta_z);
-                } else {
-                    float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-                    float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
-
-                    modelPreview->SetCameraView(delta_x, delta_y, false);
-                    modelPreview->SetCameraView(0, 0, true);
-                }
+                modelPreview->SetCameraView(delta_x, delta_y, false);
+                modelPreview->SetCameraView(0, 0, true);
             }
         }
         else {
@@ -6228,7 +6234,17 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 {
-    
+    // FinalizeModel pumps the event loop (vendor-model PromptYesNo, download
+    // progress, GetXlightsModel prompts) while it rebuilds the model list and
+    // reassigns _newModel. A motion event delivered during one of those pumps
+    // lands here and calls UnSelectAllModels / touches selectedBaseObject and
+    // highlightedBaseObject, which the outer call is in the middle of
+    // invalidating — routing then faults on a freed handler (macOS bucket
+    // 22dc52ae61). The FinalizeModel guard only blocks re-entry into
+    // FinalizeModel; motion has no useful work to do here either way.
+    if (inFinalize) {
+        return;
+    }
 
     xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D");
 
@@ -6663,6 +6679,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
+    if (inFinalize) {
+        return;
+    }
     if (is_3d) {
         OnPreviewMouseMove3D(event);
         return;
@@ -7673,6 +7692,9 @@ void LayoutPanel::EditFaces()
         auto newFaceInfo = dlg.GetFaceInfo();
         if (newFaceInfo != oldFaceInfo) {
             md->SetFaceInfo(newFaceInfo);
+            for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
+                xlights->GetSequenceElements().RenameModelFaceReferences(md->GetName(), oldName, newName);
+            }
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
             updatePropertyGrid();
@@ -10181,6 +10203,12 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
     int selectedModelCnt = ModelsSelectedCount();
     int selectedViewObjectCnt = ViewObjectsSelectedCount();
     if (type == "SingleModel" && selectedModelCnt > 1) {
+        type = "All";
+    }
+    // Moving a Set member drags the whole Set along, so a single-model
+    // snapshot would only restore the grabbed member on undo.
+    if (type == "SingleModel" && !model.empty() &&
+        xlights->AllModels.GetSetManager().GetSetContaining(model) != nullptr) {
         type = "All";
     }
     if (type == "SingleObject" && selectedViewObjectCnt > 1) {

@@ -307,6 +307,14 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
         sdata.colorS        = (float)colorHsv.saturation;
         sdata.colorV        = (float)colorHsv.value;
 
+        if (buffer.dmx_buffer) {
+            // DMX fixtures need the colour routed through SetPixel()
+            ispc::uint8_t4 single{ { 0, 0, 0, 255 } };
+            ispc::ShockwaveEffectISPC(&sdata, 0, 1, &single);
+            buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+            return;
+        }
+
         // Clamp to the real allocation: GetPixelCount() can be < BufferWi*BufferHt
         // for a variable sub-buffer, and the ISPC kernel writes unguarded.
         int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);

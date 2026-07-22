@@ -1,7 +1,10 @@
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <vector>
+
+#include "RenderProfile.h"
 
 class PixelBufferClass;
 class RenderBuffer;
@@ -41,7 +44,14 @@ public:
 
     static void waitForRenderCompletion(RenderBuffer *buffer) {
         if (INSTANCE) {
-            INSTANCE->doWaitForRenderCompletion(buffer);
+            RenderJobProfile* prof = tlsRenderProfile;
+            if (prof != nullptr) {
+                auto t0 = std::chrono::steady_clock::now();
+                INSTANCE->doWaitForRenderCompletion(buffer);
+                prof->gpuWaitNs += xlProfNs(t0, std::chrono::steady_clock::now());
+            } else {
+                INSTANCE->doWaitForRenderCompletion(buffer);
+            }
         }
     };
     static bool Blur(RenderBuffer *buffer, int radius) {

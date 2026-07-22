@@ -10885,8 +10885,12 @@ std::string buildXccDocument(const std::string& serialised) {
 - (NSArray<NSString*>*)facesForRow:(int)rowIndex atIndex:(int)effectIndex {
     (void)effectIndex;
     Model* m = [self _targetModelForRow:rowIndex];
-    if (!m) return @[];
-    return [self _keysOfFaceStateData:m->GetFaceInfo()];
+    // sequence-level face definitions are usable by any model; model
+    // definitions win on a name clash (map::insert keeps existing keys)
+    FaceStateData defs = m ? m->GetFaceInfo() : FaceStateData();
+    const auto& seqFaces = _context->GetSequenceElements().GetSequenceFaces().GetFaces();
+    defs.insert(seqFaces.begin(), seqFaces.end());
+    return [self _keysOfFaceStateData:defs];
 }
 
 - (NSArray<NSString*>*)modelNodeNamesForRow:(int)rowIndex atIndex:(int)effectIndex {
@@ -12862,6 +12866,7 @@ int rewriteEffectValues(iPadRenderContext& ctx,
     // hooks per effect; a final explicit bump covers the
     // no-referencing-effect edge case.
     (void)rewriteEffectValues(*_context, oldStr, newStr);
+    (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(oldStr, newStr);
     bumpSequenceDirty(_context.get());
     return YES;
 }
@@ -12965,6 +12970,7 @@ const char* canonicalSubdirForType(MediaType t) {
         }
         (void)media.ReloadMedia(newStr);
         (void)rewriteEffectValues(*_context, storedStr, newStr);
+        (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(storedStr, newStr);
         bumpSequenceDirty(_context.get());
     }
 
@@ -13319,10 +13325,16 @@ void appendLayerMatches(EffectLayer* layer,
     std::unordered_set<std::string> usedValues;
     collectAllEffectSettingValues(*_context, usedValues);
 
+    // Sequence-level face definitions reference images outside any effect's
+    // settings — without this their images would always look unused.
+    for (const auto& p : _context->GetSequenceElements().GetSequenceFaces().GetImagePaths()) {
+        usedValues.insert(p);
+    }
+
     auto paths = media.GetAllMediaPaths();
     int removed = 0;
     for (const auto& p : paths) {
-        if (usedValues.count(p.first) == 0) {
+        if (usedValues.count(p.first) == 0 && !media.IsUsedByMetadata(p.first)) {
             media.RemoveMedia(p.first);
             removed++;
         }
@@ -17563,6 +17575,8 @@ NSString* fppTypeString(FPP_TYPE t) {
         return @{@"globalError": [NSString stringWithFormat:@"Could not open fseq: %@", fseqPath],
                  @"outcomes": outcomes};
     }
+    // every frame is read in order below to build the upload
+    seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
 
     // Resolve each target to its FPP* and compute the right codec.
     // Targets that don't resolve (deleted between discover and upload?)

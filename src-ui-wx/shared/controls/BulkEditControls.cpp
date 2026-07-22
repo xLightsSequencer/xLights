@@ -1207,7 +1207,7 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                     if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t || !ok)
+                        if (!ok || (s->GetValue() != t && force))
                         {
                             wxString corrected = wxString::Format("%d", s->GetValue());
                             if (!ok) SetValue(corrected); else ChangeValue(corrected);
@@ -1226,7 +1226,7 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                     if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t || !ok)
+                        if (!ok || (s->GetValue() != t && force))
                         {
                             wxString corrected = wxString::Format("%.1f", (float)s->GetValue() / 10.0);
                             if (!ok) SetValue(corrected); else ChangeValue(corrected);
@@ -1245,7 +1245,7 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                     if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t || !ok)
+                        if (!ok || (s->GetValue() != t && force))
                         {
                             wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 100.0);
                             if (!ok) SetValue(corrected); else ChangeValue(corrected);
@@ -1264,7 +1264,7 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                     if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t || !ok)
+                        if (!ok || (s->GetValue() != t && force))
                         {
                             wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 360.0);
                             if (!ok) SetValue(corrected); else ChangeValue(corrected);

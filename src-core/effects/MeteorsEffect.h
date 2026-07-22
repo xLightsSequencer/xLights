@@ -43,6 +43,12 @@ public:
     MeteorsEffect(int id);
     virtual ~MeteorsEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: the axis-aligned styles (vertical/horizontal/icicle) split into a
+    // cheap serial particle advance (AdvanceState) and a pure GatherMeteors draw;
+    // Implode / Explode use a different draw path and stay Stateful (AdvanceState
+    // returns nullptr for them, mirroring GetFrameParallelism).
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
     virtual bool AppropriateOnNodes() const override
     {
@@ -82,12 +88,23 @@ protected:
     // to dispatch the GPU kernel and falls back here when Metal isn't viable.
     virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts);
 
+    // A meteor's axis coord is the only line of the buffer it can ever cover (the
+    // column it falls down, or the row it crosses), so bucket the snapshot by line and
+    // a pixel need only scan its own line's meteors instead of all of them. Counting
+    // sort, so a line's meteors stay in ascending snapshot order and the last one still
+    // wins the pixel. lineStart holds lineCount+1 prefix offsets into lineItems, which
+    // holds global indices into parts. Meteors whose line falls outside the buffer are
+    // dropped: no pixel can match their axis coord. Shared by the ISPC, Metal and
+    // Vulkan gathers so all three bucket identically.
+    static void BucketMeteorsByLine(const std::vector<MeteorSnapshot>& parts, int lineCount,
+                                    std::vector<int>& lineStart, std::vector<int>& lineItems);
+
 private:
-    void RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
+    std::unique_ptr<EffectFrameState> RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
         void VerticalAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
         void VerticalMoveMeteors(RenderBuffer& buffer, int speed);
         void VerticalRemoveMeteors(RenderBuffer& buffer, int Length);
-    void RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
+    std::unique_ptr<EffectFrameState> RenderMeteorsHorizontal(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
         void HorizontalAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
         void HorizontalMoveMeteors(RenderBuffer& buffer, int speed);
         void HorizontalRemoveMeteors(RenderBuffer& buffer, int Length);
@@ -95,7 +112,7 @@ private:
         void ImplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int xoffset, int yoffset);
         void ImplodeMoveMeteors(RenderBuffer& buffer, int speed, int xoffset, int yoffset, bool fadeWithDistance);
         void ImplodeRemoveMeteors(RenderBuffer& buffer, int xoffset, int yoffset);
-    void RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mSpeed, int warmupFrames);
+    std::unique_ptr<EffectFrameState> RenderIcicleDrip(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mSpeed, int warmupFrames);
         void IcicleAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
         void IcicleMoveMeteors(RenderBuffer& buffer, int mSpeed);
         void IcicleRemoveMeteors(RenderBuffer& buffer);

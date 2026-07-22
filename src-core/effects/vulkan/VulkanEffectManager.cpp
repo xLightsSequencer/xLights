@@ -57,11 +57,12 @@ public:
         // Vulkan data classes need a live device, so gate on full enablement.
         if (enabled()) {
             VulkanComputeUtilities::INSTANCE.statSetup++;
-            VulkanPixelBufferComputeData *pbc = nullptr;
             if (!parent->gpuRenderData) {
-                pbc = new VulkanPixelBufferComputeData();
-                parent->gpuRenderData = pbc;
+                parent->gpuRenderData = new VulkanPixelBufferComputeData();
             }
+            // every RenderBuffer of this PixelBuffer needs the parent's data —
+            // its compute queue is picked there
+            VulkanPixelBufferComputeData *pbc = static_cast<VulkanPixelBufferComputeData*>(parent->gpuRenderData);
             if (!buffer->gpuRenderData) {
                 buffer->gpuRenderData = new VulkanRenderBufferComputeData(buffer, pbc, layer);
             }

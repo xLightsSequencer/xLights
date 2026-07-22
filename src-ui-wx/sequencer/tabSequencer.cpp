@@ -71,6 +71,7 @@
 #include "layout/LayoutPanel.h"
 #include "utils/TraceLog.h"
 #include "effectpanels/EffectPanelUtils.h"
+#include "shared/controls/BulkEditControls.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "models/ModelGroup.h"
@@ -2956,9 +2957,23 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
     //colorPanel->Thaw();
 }
 
+static wxString NormalizeFloatForControl(BESLIDERTYPE type, const wxString& value) {
+    double d;
+    if (!value.ToCDouble(&d)) return value;
+    switch (type) {
+        case BE_FLOAT1:
+            return wxString::Format("%.1f", d);
+        case BE_FLOAT2:
+        case BE_FLOAT360:
+            return wxString::Format("%.2f", d);
+        default:
+            return value;
+    }
+}
+
 bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 {
-    
+
     bool res = true;
     auto orig = name;
     wxWindow* ContextWin = nullptr;
@@ -3007,12 +3022,20 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
         } else if (name.StartsWith("ID_TEXTCTRL")) {
 			wxTextCtrl* ctrl = dynamic_cast<wxTextCtrl*>(CtrlWin);
             if (ctrl != nullptr) {
-                ctrl->SetValue(value);
+                wxString v = value;
+                if (auto* beCtrl = dynamic_cast<BulkEditTextCtrl*>(ctrl)) {
+                    v = NormalizeFloatForControl(beCtrl->GetBESliderType(), v);
+                }
+                ctrl->SetValue(v);
             } else {
-                // some text ctrls have been replace with combo boxes ... maybe this is one of those
-                wxComboBox* ctrl = dynamic_cast<wxComboBox*>(CtrlWin);
-                if (ctrl != nullptr) {
-                    ctrl->SetValue(value);
+                // some text ctrls have been replaced with combo boxes ... maybe this is one of those
+                wxComboBox* comboCtrl = dynamic_cast<wxComboBox*>(CtrlWin);
+                if (comboCtrl != nullptr) {
+                    wxString v = value;
+                    if (auto* beCombo = dynamic_cast<BulkEditComboBox*>(comboCtrl)) {
+                        v = NormalizeFloatForControl(beCombo->GetBESliderType(), v);
+                    }
+                    comboCtrl->SetValue(v);
                 } else {
                     wxASSERT(false);
                 }

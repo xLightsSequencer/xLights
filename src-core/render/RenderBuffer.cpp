@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <unordered_set>
 #ifdef _MSC_VER
 	// required so M_PI will be defined by MSC
@@ -186,18 +187,24 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
 
     if (NumPixels != pixelVector.size()) {
         bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
-        bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
         pixelVector.resize(NumPixels);
-        tempbufVector.resize(NumPixels);
         if (resetPtr) {
-            // If the pixels or tempbuf ptr did not point to the first element
+            // If the pixels ptr did not point to the first element
             // originally, then it is pointing into GPU memory and we need
             // to keep that pointer pointing there so the data can be retreived
             // from the GPU.
             pixels = &pixelVector[0];
         }
-        if (resetTPtr) {
-            tempbuf = &tempbufVector[0];
+        // tempbufVector is lazily allocated (most effects never touch tempbuf -
+        // see ensureTempBuf()); only keep it in step with the pixel count if
+        // some effect already forced it into existence, so it retains the same
+        // liveness as before minus the never-used case.
+        if (!tempbufVector.empty()) {
+            bool resetTPtr = tempbuf == tempbufVector.data();
+            tempbufVector.resize(NumPixels);
+            if (resetTPtr) {
+                tempbuf = tempbufVector.empty() ? nullptr : &tempbufVector[0];
+            }
         }
     }
     
@@ -975,8 +982,44 @@ const xlColor& RenderBuffer::GetPixel(int x, int y) const {
     return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
+static_assert(sizeof(xlColor) == 4, "SnapshotTransformScratch memcpy assumes a 4-byte POD xlColor");
+
+void RenderBuffer::SnapshotTransformScratch() {
+    size_t n = pixelVector.size();
+    transformScratch.resize(n);
+    if (n) {
+        memcpy(transformScratch.data(), pixels, n * sizeof(xlColor));
+    }
+}
+
+const xlColor& RenderBuffer::GetTransformScratchPixel(int x, int y) const {
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < (int)transformScratch.size()) {
+        return transformScratch[pidx];
+    }
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
+}
+
+void RenderBuffer::GetTransformScratchPixel(int x, int y, xlColor& color) const {
+    color = GetTransformScratchPixel(x, y);
+}
+
+// tempbufVector is lazily allocated - most effects never touch tempbuf (see
+// RenderBuffer.h). This must run before every read/write/hand-out of tempbuf
+// so it behaves as if tempbufVector had always been sized with pixelVector.
+void RenderBuffer::ensureTempBuf() {
+    if (tempbufVector.size() != pixelVector.size()) {
+        bool resetTPtr = tempbufVector.empty() || tempbuf == tempbufVector.data();
+        tempbufVector.resize(pixelVector.size());
+        if (resetTPtr) {
+            tempbuf = tempbufVector.empty() ? nullptr : &tempbufVector[0];
+        }
+    }
+}
+
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor& color) {
+    ensureTempBuf();
     int pidx = y * BufferWi + x;
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < (int)tempbufVector.size()) {
         tempbuf[pidx] = color;
@@ -992,12 +1035,14 @@ void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha) 
 // 0,0 is lower left
 void RenderBuffer::GetTempPixel(int x, int y, xlColor& color)
 {
+    ensureTempBuf();
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         color = tempbuf[y * BufferWi + x];
     }
 }
 
 const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
+    ensureTempBuf();
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
@@ -1006,6 +1051,7 @@ const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
+    ensureTempBuf();
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
@@ -1024,14 +1070,17 @@ void RenderBuffer::SetState(int period, bool ResetState)
 
 void RenderBuffer::ClearTempBuf()
 {
+    ensureTempBuf();
     for (size_t i = 0; i < tempbufVector.size(); i++) {
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
 void RenderBuffer::CopyTempBufToPixels() {
+    ensureTempBuf();
     std::copy(tempbuf, tempbuf + pixelVector.size(), pixels);
 }
 void RenderBuffer::CopyPixelsToTempBuf() {
+    ensureTempBuf();
     std::copy(pixels, pixels + pixelVector.size(), tempbuf);
 }
 
