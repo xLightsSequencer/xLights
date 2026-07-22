@@ -1966,15 +1966,24 @@ static void enableAllMenubarControls(wxMenuBar* parent, bool enable)
     parent->Refresh();
 }
 
+// Applies the current sequence-editing gate to the Effects toolbar. Split out of
+// EnableSequenceControls because RebuildEffectsToolbar (Preferences > Toolbars)
+// creates fresh buttons that would otherwise come up enabled.
+void xLightsFrame::EnableEffectsToolbar()
+{
+    enableAllToolbarControls(EffectsToolBar, _sequenceControlsEnabled && _seqData.NumFrames() > 0 && !IsACActive());
+}
+
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
+    _sequenceControlsEnabled = enable;
     enableAllToolbarControls(MainToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
     SetAudioControls();
     bool enableSeq = enable && _seqData.NumFrames() > 0;
     bool enableSeqNotAC = enable && _seqData.NumFrames() > 0 && !IsACActive();
     enableAllToolbarControls(WindowMgmtToolbar, enableSeq);
-    enableAllToolbarControls(EffectsToolBar, enableSeqNotAC);
+    EnableEffectsToolbar();
     enableAllToolbarControls(EditToolBar, enableSeq);
     enableAllToolbarControls(ACToolbar, enableSeq);
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);

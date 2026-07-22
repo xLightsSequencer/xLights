@@ -1645,6 +1645,7 @@ public:
     bool IsDrawRamps();
 
     void EnableSequenceControls(bool enable);
+    void EnableEffectsToolbar();
 
     // Song Structure Region export
     std::string DoExportSongRegion(int startMS, int endMS, const std::string& regionLabel, const wxString& outputPath);
@@ -1769,6 +1770,9 @@ private:
     // written back only in ~xLightsFrame() (matches how mIconSize etc. persist).
     std::vector<std::pair<std::string, bool>> _effectsToolbarLayout;
     void RebuildEffectsToolbar();
+    // Last value passed to EnableSequenceControls, so a toolbar rebuilt outside
+    // that call can still apply the right enable state to its new buttons.
+    bool _sequenceControlsEnabled = false;
     int mGridSpacing;
     bool mGridIconBackgrounds;
     bool mShowAlternateTimingFormat = false;

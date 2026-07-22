@@ -569,6 +569,13 @@ void xLightsFrame::RebuildEffectsToolbar()
     wxAuiPaneInfo& info = MainAuiManager->GetPane("EffectsToolBar");
     info.BestSize(sz);
     MainAuiManager->Update();
+
+    // The buttons are brand new windows, so they come up enabled regardless of
+    // whether the sequencer is currently accepting edits. Without this a rebuild
+    // (any live change in Preferences > Toolbars) would make them clickable with
+    // no sequence open or while rendering, and the drag they start dereferences
+    // the not-yet-set SequenceElements.
+    EnableEffectsToolbar();
 }
 
 void xLightsFrame::SetEffectsToolbarLayout(std::vector<std::pair<std::string, bool>> layout)

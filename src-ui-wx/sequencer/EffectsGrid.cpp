@@ -7063,7 +7063,7 @@ void EffectsGrid::CancelMouseOperations() {
     mMouseOperationsCancelled = true;
 }
 bool EffectsGrid::CanDropEffect() const {
-    return (mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
+    return (mSequenceElements != nullptr && mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
 }
 
 void EffectsGrid::UpdateZoomPosition(int time) const {
