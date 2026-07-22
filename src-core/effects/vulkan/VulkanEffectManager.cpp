@@ -68,6 +68,15 @@ public:
             }
             VulkanRenderBufferComputeData *vrbcd = static_cast<VulkanRenderBufferComputeData*>(buffer->gpuRenderData);
             vrbcd->bufferResized();
+        } else if (buffer != nullptr && buffer->gpuRenderData != nullptr) {
+            // The backend went away after this buffer's pixels were pointed into
+            // GPU memory -- either a device loss latched computeEnabled() false or
+            // the user turned GPU rendering off. Nothing else re-points them, and
+            // RenderBuffer::InitBuffer deliberately leaves a non-pixelVector pixels
+            // pointer alone, so it would keep growing pixelVector around a pointer
+            // into a mapping that is about to be freed. Hand ownership back now.
+            buffer->ReleasePixelsToCpu();
+            doCleanUp(buffer);
         }
     }
     virtual void doWaitForRenderCompletion(RenderBuffer *c) override {

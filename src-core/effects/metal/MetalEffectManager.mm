@@ -55,6 +55,13 @@ public:
             }
             MetalRenderBufferComputeData *mrbcd = static_cast<MetalRenderBufferComputeData*>(buffer->gpuRenderData);
             mrbcd->bufferResized();
+        } else if (buffer != nullptr && buffer->gpuRenderData != nullptr) {
+            // GPU rendering was turned off after this buffer's pixels were pointed
+            // into GPU memory. Nothing else re-points them, and InitBuffer keeps a
+            // non-pixelVector pixels pointer alive across resizes, so hand
+            // ownership back to the CPU vector before the mapping is freed.
+            buffer->ReleasePixelsToCpu();
+            doCleanUp(buffer);
         }
     }
     virtual void doWaitForRenderCompletion(RenderBuffer *c) override {

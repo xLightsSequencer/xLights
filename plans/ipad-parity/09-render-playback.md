@@ -84,7 +84,7 @@
 | Color/palette engine (gradients, value curves, spatial color) | render | ✅ | ✅ | parity | P1 | easy | feasible | Shared `src-core/render/RenderBuffer.h` PaletteClass + `ColorCurve.cpp` + `ValueCurve.cpp`; `src-iPad/App/ColorCurveEditor.swift`. |
 | Sequence channel data buffer (SequenceData) | render | ✅ | ✅ | parity | P1 | easy | feasible | `src-iPad/Bridge/iPadRenderContext.cpp:1519` EnsureSequenceDataSized + _sequenceData; shared `src-core/render/SequenceData`. |
 | Embedded/external image media at render (SequenceMedia) | render | ✅ | ✅ | parity | P2 | easy | feasible | Shared `src-core/render/SequenceMedia.cpp`; `iPadRenderContext.cpp` PurgePreviewCaches; `src-iPad/App/MediaManagerSheet.swift`. |
-| GPU (Metal) / ISPC effect kernels — Tree, Shimmer, Candle perNode (2026-07) | render | ✅ | ✅ | parity | P2 | easy | feasible | Core-only, auto-applied: shared `src-core/effects/metal/` + `effects/ispc/` kernels build into `xLights-iPadLib` (Metal on-device, NEON ISPC fallback). Bit-exact vs scalar; no UI surface on either platform. |
+| GPU (Metal) / ISPC effect kernels — Tree, Shimmer, Candle perNode (2026-07) | render | ✅ | ✅ | parity | P2 | easy | feasible | Core-only, auto-applied: shared `src-core/effects/metal/` + `effects/ispc/` kernels build into `xLights-iPadLib` (Metal on-device, NEON ISPC fallback). Bit-exact vs scalar; no UI surface on either platform. Render buffers now hand pixel storage back to the CPU vector when a GPU backend shuts down mid-session (`RenderBuffer::ReleasePixelsToCpu`, 2026.14) — core-only, auto-applied to both platforms; verified render-output-neutral (6/6 byte-identical A/B). |
 
 These render-pipeline rows are shared-core features at parity by construction — both apps link the same `src-core/render/` engine.
 

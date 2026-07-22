@@ -535,6 +535,12 @@ private:
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
+    // Hand pixel storage back to the CPU-owned vector. A GPU backend may point
+    // `pixels` into its own mapping; InitBuffer then deliberately keeps that
+    // pointer across resizes because the backend re-points it. When the backend
+    // goes away instead (device lost, GPU rendering switched off) nothing would,
+    // so ownership has to be returned explicitly.
+    void ReleasePixelsToCpu() { pixels = pixelVector.data(); }
     xlColor *GetTempBuf() { ensureTempBuf(); return tempbuf; }
     // Whole temp-buffer snapshot/restore for frame-parallel Snapshottable effects
     // (e.g. Snowflakes) whose cross-frame state lives in the temp pixel layer.
