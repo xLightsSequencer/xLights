@@ -91,6 +91,7 @@
                 <Protocol>ucs8903</Protocol>
                 <Protocol>ws2801</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gece</Protocol>
             </PixelProtocols>
             <SerialProtocols>
@@ -111,6 +112,7 @@
                 <Protocol>ucs1903</Protocol>
                 <Protocol>ucs8903</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gece</Protocol>
             </PixelProtocols>
             <SerialProtocols>
@@ -127,6 +129,7 @@
             <MaxPixelPortChannels>3000</MaxPixelPortChannels>
             <PixelProtocols>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -148,6 +151,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -170,6 +174,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -192,6 +197,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -212,14 +218,15 @@
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>3000</MaxPixelPortChannels>
             <PixelProtocols>
-                <!--Protocol>apa102</Protocol>
+                <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
-                <!--Protocol>gs8208</Protocol>
+                <Protocol>tls3001</Protocol>
+                <!--Protocol>gs8208</Protocol-->
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
                 <Protocol>ucs1903</Protocol>
                 <Protocol>ucs8903</Protocol>
-                <!--Protocol>ws2801</Protocol>
+                <!--Protocol>ws2801</Protocol-->
             </PixelProtocols>
             <SerialProtocols>
                 <Protocol>dmx</Protocol>
@@ -234,14 +241,15 @@
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>3000</MaxPixelPortChannels>
             <PixelProtocols>
-                <!--Protocol>apa102</Protocol>
+                <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
-                <!--Protocol>gs8208</Protocol>
+                <Protocol>tls3001</Protocol>
+                <!--Protocol>gs8208</Protocol-->
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
                 <Protocol>ucs1903</Protocol>
                 <Protocol>ucs8903</Protocol>
-                <!--Protocol>ws2801</Protocol>
+                <!--Protocol>ws2801</Protocol-->
             </PixelProtocols>
             <SerialProtocols>
                 <Protocol>dmx</Protocol>
@@ -256,14 +264,15 @@
             <MaxSerialPortChannels>512</MaxSerialPortChannels>
             <MaxPixelPortChannels>3000</MaxPixelPortChannels>
             <PixelProtocols>
-                <!--Protocol>apa102</Protocol>
+                <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
-                <!--Protocol>gs8208</Protocol>
+                <Protocol>tls3001</Protocol>
+                <!--Protocol>gs8208</Protocol-->
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
                 <Protocol>ucs1903</Protocol>
                 <Protocol>ucs8903</Protocol>
-                <!--Protocol>ws2801</Protocol>
+                <!--Protocol>ws2801</Protocol-->
             </PixelProtocols>
             <SerialProtocols>
                 <Protocol>dmx</Protocol>
@@ -280,6 +289,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -302,6 +312,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -324,6 +335,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -346,6 +358,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -368,6 +381,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <!--Protocol>gece</Protocol-->
                 <Protocol>tm1814</Protocol>
@@ -390,6 +404,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -412,6 +427,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <!--Protocol>tm1814</Protocol-->
@@ -434,6 +450,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -456,6 +473,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -478,6 +496,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -522,6 +541,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -544,6 +564,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -566,6 +587,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -588,6 +610,7 @@
             <PixelProtocols>
                 <!--Protocol>apa102</Protocol-->
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -613,6 +636,7 @@
                 <Protocol>ucs1903</Protocol>
                 <Protocol>ucs8903</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gece</Protocol>
             </PixelProtocols>
             <SerialProtocols>
@@ -647,6 +671,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -669,6 +694,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
@@ -691,6 +717,7 @@
             <PixelProtocols>
                 <Protocol>apa102</Protocol>
                 <Protocol>ws2811</Protocol>
+                <Protocol>tls3001</Protocol>
                 <Protocol>gs8208</Protocol>
                 <Protocol>gece</Protocol>
                 <Protocol>tm1814</Protocol>
