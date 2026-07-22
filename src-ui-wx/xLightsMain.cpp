@@ -2917,6 +2917,9 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name]) {
                 if (info[x].frame != nullptr) {
+                    // Mirror of the Hide() above - restore the pane state too, or
+                    // Update() below would immediately re-hide the frame.
+                    info[x].Show();
                     info[x].frame->Show();
                     // On macOS, Cocoa repositions native floating frames during
                     // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
@@ -2938,6 +2941,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                         savedPaneShown[info[x].name] = true;
                     }
                     info[x].frame->Hide();
+                    // Keep the pane's own state in step with the native frame we
+                    // just hid. Leaving it marked shown makes the next Update()
+                    // (any pane toggle, possibly from another tab) believe every
+                    // floating window needs re-showing and repositioning, which
+                    // pumps native events back through the manager mid-layout.
+                    info[x].Hide();
                 }
             } else {
                 spdlog::warn("Pane {} was not valid ... ShowHideAllSequencerWindows", x);

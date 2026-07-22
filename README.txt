@@ -172,6 +172,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash uploading outputs to PixLite/Advatek Mk3 controllers; the Mk3
                                  config parser always read zero ports, so the upload wrote past the end of
                                  every output array. Null pixels and colour order are now read correctly too.
+    -bug (dkulp)                 Fix render crash after the GPU compute backend shuts down mid-session (a
+                                 Vulkan device loss/TDR, or turning GPU rendering off); render buffers kept
+                                 writing through a pointer into the released GPU memory
+    -bug (dkulp)                 Fix crash toggling Display Elements / House Preview from the Windows toolbar;
+                                 leaving the sequencer tab hid the floating panes without recording it, so a
+                                 later toggle re-showed and relaid out every pane mid-layout
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
