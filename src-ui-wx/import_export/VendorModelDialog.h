@@ -70,8 +70,14 @@ class VendorModelDialog: public wxDialog
 	int _modelDepthMM = -1;
     std::vector<DownloadedModelInfo> _downloadedModels;
     wxTreeItemId _lastSearchItem;
-    std::vector<wxString> _filterTokens;                        // lower-cased
-    std::unordered_map<const MModel*, wxString> _modelSearchText; // lower-cased haystack per model, built once after load
+    std::vector<wxString> _filterTokens;                          // lower-cased
+    // Search index, built once after load: lower-cased text per model
+    // (name + wiring names), per category (vendor + category path), and
+    // per-category / uncategorised model lists.
+    std::unordered_map<const MModel*, wxString> _modelSearchText;
+    std::unordered_map<const MVendorCategory*, wxString> _categorySearchText;
+    std::unordered_map<const MVendorCategory*, std::vector<MModel*>> _categoryModels;
+    std::unordered_map<const MVendor*, std::vector<MModel*>> _uncategorizedModels;
     wxTimer _filterTimer;
     bool _initialBuild = true;
     bool _treeRebuilding = false;
@@ -81,9 +87,10 @@ class VendorModelDialog: public wxDialog
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
     void BuildModelSearchIndex();
     void RebuildTreeUI();
-    void AppendModelLeaf(wxTreeItemId vendorNode, MModel* model);
-    [[nodiscard]] bool ModelMatchesFilter(const MModel* model) const;
-    [[nodiscard]] bool FilterMatches(const wxString& haystackLower) const;
+    int AddHierachy(wxTreeItemId parent, MVendor* vendor, const std::list<MVendorCategory*>& categories);
+    int AddModels(wxTreeItemId parent, const std::vector<MModel*>& models, const wxString& pathTextLower);
+    void AppendModelNodes(wxTreeItemId parent, MModel* model);
+    [[nodiscard]] bool FilterMatches(const wxString& hayLowerA, const wxString& hayLowerB = wxEmptyString) const;
     void ApplyFilterNow();
     void OnFilterTimer(wxTimerEvent& event);
     void ValidateWindow();

@@ -82,6 +82,17 @@ private:
     MVendor * _vendor;
 };
 
+class MCategoryTreeItemData : public VendorBaseTreeItemData
+{
+public:
+    MCategoryTreeItemData(MVendorCategory* category) : VendorBaseTreeItemData("Category"), _category(category) { }
+
+    MVendorCategory* GetCategory() const { return _category; }
+
+private:
+    MVendorCategory * _category;
+};
+
 class MModelTreeItemData : public VendorBaseTreeItemData
 {
 public:
@@ -430,86 +441,132 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 void VendorModelDialog::BuildModelSearchIndex()
 {
     _modelSearchText.clear();
+    _categorySearchText.clear();
+    _categoryModels.clear();
+    _uncategorizedModels.clear();
     for (const auto& vendor : _vendors) {
-        // Resolve this vendor's category ids to full paths once so each
-        // model's haystack can include the categories it lives in.
-        std::unordered_map<std::string, std::string> pathById;
-        std::vector<const MVendorCategory*> stack(vendor->_categories.begin(), vendor->_categories.end());
+        // Sorted here so every per-category list built below is sorted too.
+        vendor->_models.sort([](const MModel* a, const MModel* b) {
+            return wxString::FromUTF8(a->_name).CmpNoCase(wxString::FromUTF8(b->_name)) < 0;
+        });
+
+        const wxString vendorLower = wxString::FromUTF8(vendor->_name).Lower();
+        std::unordered_map<std::string, MVendorCategory*> catById;
+        std::vector<MVendorCategory*> stack(vendor->_categories.begin(), vendor->_categories.end());
         while (!stack.empty()) {
-            const MVendorCategory* c = stack.back();
+            MVendorCategory* c = stack.back();
             stack.pop_back();
             if (c == nullptr) continue;
-            pathById[c->_id] = c->GetPath();
+            catById[c->_id] = c;
+            _categorySearchText[c] = vendorLower + " / " + wxString::FromUTF8(c->GetPath()).Lower();
             stack.insert(stack.end(), c->_categories.begin(), c->_categories.end());
         }
 
         for (const auto& m : vendor->_models) {
             if (m == nullptr) continue;
-            wxString hay = wxString::FromUTF8(vendor->_name);
-            for (const auto& cid : m->_categoryIds) {
-                auto it = pathById.find(cid);
-                if (it != pathById.end()) {
-                    hay << " / " << wxString::FromUTF8(it->second);
-                }
-            }
-            hay << " / " << wxString::FromUTF8(m->_name);
+            wxString hay = wxString::FromUTF8(m->_name);
             for (const auto& w : m->_wiring) {
                 if (w != nullptr) {
                     hay << " / " << wxString::FromUTF8(w->_name);
                 }
             }
             _modelSearchText[m] = hay.Lower();
-        }
 
-        vendor->_models.sort([](const MModel* a, const MModel* b) {
-            return wxString::FromUTF8(a->_name).CmpNoCase(wxString::FromUTF8(b->_name)) < 0;
-        });
+            bool categorized = false;
+            for (const auto& cid : m->_categoryIds) {
+                auto it = catById.find(cid);
+                if (it != catById.end()) {
+                    _categoryModels[it->second].push_back(m);
+                    categorized = true;
+                }
+            }
+            if (!categorized) {
+                // Models with no (resolvable) category would otherwise never
+                // appear anywhere; list them directly under the vendor.
+                _uncategorizedModels[vendor].push_back(m);
+            }
+        }
     }
 }
 
-bool VendorModelDialog::FilterMatches(const wxString& haystackLower) const
+// Every token must appear in at least one of the two haystacks (the
+// category path text and the model text are kept separate so matching
+// never has to concatenate strings per model per rebuild).
+bool VendorModelDialog::FilterMatches(const wxString& hayLowerA, const wxString& hayLowerB) const
 {
     for (const auto& token : _filterTokens) {
-        if (haystackLower.Find(token) == wxNOT_FOUND) {
+        if (hayLowerA.Find(token) == wxNOT_FOUND && hayLowerB.Find(token) == wxNOT_FOUND) {
             return false;
         }
     }
     return true;
 }
 
-bool VendorModelDialog::ModelMatchesFilter(const MModel* model) const
-{
-    if (_filterTokens.empty()) {
-        return true;
-    }
-    auto it = _modelSearchText.find(model);
-    return it == _modelSearchText.end() || FilterMatches(it->second);
-}
-
-// A model with one (or no) wiring is a single leaf. A multi-wiring model
-// becomes one "Model - Wiring" leaf per wiring, since each wiring is a
-// separate downloadable .xmodel.
-void VendorModelDialog::AppendModelLeaf(wxTreeItemId vendorNode, MModel* model)
+// Same node shapes as the original tree: a multi-wiring model is a Model
+// node with one Wiring child per downloadable .xmodel; otherwise a single
+// model or wiring leaf.
+void VendorModelDialog::AppendModelNodes(wxTreeItemId parent, MModel* model)
 {
     const wxColour colour = TreeItemColourForModel(model);
     if (model->_wiring.size() > 1) {
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(model->_name), -1, -1, new MModelTreeItemData(model));
         for (const auto& w : model->_wiring) {
-            const wxString label = wxString::FromUTF8(model->_name) + " - " + wxString::FromUTF8(w->_name);
-            wxTreeItemId id = TreeCtrl_Navigator->AppendItem(vendorNode, label, -1, -1, new MWiringTreeItemData(w));
+            wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, wxString::FromUTF8(w->_name), -1, -1, new MWiringTreeItemData(w));
             TreeCtrl_Navigator->SetItemTextColour(id, colour);
         }
     } else if (model->_wiring.size() == 0) {
-        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(vendorNode, wxString::FromUTF8(model->_name), -1, -1, new MModelTreeItemData(model));
+        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(model->_name), -1, -1, new MModelTreeItemData(model));
         TreeCtrl_Navigator->SetItemTextColour(id, colour);
     } else {
-        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(vendorNode, wxString::FromUTF8(model->_name), -1, -1, new MWiringTreeItemData(model->_wiring.front()));
+        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(model->_name), -1, -1, new MWiringTreeItemData(model->_wiring.front()));
         TreeCtrl_Navigator->SetItemTextColour(id, colour);
     }
 }
 
+int VendorModelDialog::AddModels(wxTreeItemId parent, const std::vector<MModel*>& models, const wxString& pathTextLower)
+{
+    int added = 0;
+    for (auto* m : models) {
+        if (!_filterTokens.empty()) {
+            auto it = _modelSearchText.find(m);
+            if (it != _modelSearchText.end() && !FilterMatches(pathTextLower, it->second)) {
+                continue;
+            }
+        }
+        AppendModelNodes(parent, m);
+        ++added;
+    }
+    return added;
+}
+
+int VendorModelDialog::AddHierachy(wxTreeItemId parent, MVendor* vendor, const std::list<MVendorCategory*>& categories)
+{
+    int total = 0;
+    for (const auto& it : categories) {
+        if (it == nullptr) continue;
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(it->_name), -1, -1, new MCategoryTreeItemData(it));
+        int here = AddHierachy(tid, vendor, it->_categories);
+        auto cm = _categoryModels.find(it);
+        if (cm != _categoryModels.end()) {
+            auto cs = _categorySearchText.find(it);
+            here += AddModels(tid, cm->second, cs != _categorySearchText.end() ? cs->second : wxString());
+        }
+        if (here == 0) {
+            // Empty categories were never shown (master pruned them post-build);
+            // under a filter this is also what removes non-matching branches.
+            TreeCtrl_Navigator->Delete(tid);
+            continue;
+        }
+        TreeCtrl_Navigator->Expand(tid);
+        total += here;
+    }
+    return total;
+}
+
 // Rebuilds the tree from the cached _vendors data honouring the current
-// filter. The tree is two levels: Vendor -> Model. Called once at the end
-// of LoadTree() and whenever the filter changes (debounced).
+// filter. The Vendor -> Category -> Model hierarchy is preserved; a filter
+// prunes branches with no matching models. Called once at the end of
+// LoadTree() and whenever the filter changes (debounced).
 void VendorModelDialog::RebuildTreeUI()
 {
     if (_treeRebuilding) {
@@ -539,39 +596,32 @@ void VendorModelDialog::RebuildTreeUI()
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
     wxTreeItemId first;
-    std::vector<MModel*> matches;
     for (const auto& it : _vendors) {
-        matches.clear();
+        const wxString vendorLower = wxString::FromUTF8(it->_name).Lower();
+        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, wxString::FromUTF8(it->_name), -1, -1, new MVendorTreeItemData(it));
+        int added = 0;
         if (!Contains(suppressList, it->_name)) {
-            for (const auto& m : it->_models) {
-                if (m != nullptr && ModelMatchesFilter(m)) {
-                    matches.push_back(m);
-                }
+            added = AddHierachy(v, it, it->_categories);
+            auto um = _uncategorizedModels.find(it);
+            if (um != _uncategorizedModels.end()) {
+                added += AddModels(v, um->second, vendorLower);
             }
         }
-        // With a filter active, hide vendors with no matching models unless
+        // With a filter active, hide vendors with nothing matching unless
         // the vendor name itself matches (keeps suppressed and model-less
         // vendors reachable when searched for by name). With no filter,
         // every vendor is shown.
-        if (!_filterTokens.empty() && matches.empty() && !FilterMatches(wxString::FromUTF8(it->_name).Lower())) {
+        if (!_filterTokens.empty() && added == 0 && !FilterMatches(vendorLower)) {
+            TreeCtrl_Navigator->Delete(v);
             continue;
         }
-        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, wxString::FromUTF8(it->_name), -1, -1, new MVendorTreeItemData(it));
         if (!first.IsOk()) {
             first = v;
         }
-        for (auto* m : matches) {
-            AppendModelLeaf(v, m);
-        }
-    }
-
-    // Under an active filter, expand the surviving vendors so matches are
-    // visible without a click; safe on the two-level tree where the old
-    // deep-hierarchy expansion hung Win32. With no filter, vendors stay
-    // collapsed since one vendor can carry hundreds of models.
-    if (!_filterTokens.empty()) {
-        wxTreeItemIdValue cookie;
-        for (auto v = TreeCtrl_Navigator->GetFirstChild(root, cookie); v.IsOk(); v = TreeCtrl_Navigator->GetNextChild(root, cookie)) {
+        // Under an active filter, expand the surviving vendors so matches
+        // are visible without a click — a bounded set, unlike expanding the
+        // whole catalog. With no filter, vendors stay collapsed as before.
+        if (!_filterTokens.empty()) {
             TreeCtrl_Navigator->Expand(v);
         }
     }
@@ -945,6 +995,14 @@ void VendorModelDialog::UpdatePanelForItem(wxTreeItemId item)
                 NotebookPanels->SetSelection(1);
                 PopulateModelPanel(((MWiringTreeItemData*)tid)->GetWiring());
                 PopulateVendorPanel(((MWiringTreeItemData*)tid)->GetWiring()->_model->_vendor);
+            }
+            else if (type == "Category")
+            {
+                NotebookPanels->GetPage(0)->Show();
+                NotebookPanels->GetPage(1)->Hide();
+                NotebookPanels->SetSelection(0);
+                PopulateVendorPanel(((MCategoryTreeItemData*)tid)->GetCategory()->_vendor);
+                PopulateModelPanel((MModel*)nullptr);
             }
             else
             {
