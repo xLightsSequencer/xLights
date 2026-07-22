@@ -120,6 +120,7 @@
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "settings/XLightsConfigAdapter.h"
+#include "preferences/ToolbarLayout.h"
 #include "controllerproperties/ControllerPropertyAdapter.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
@@ -516,24 +517,58 @@ EVT_COMMAND(wxID_ANY, EVT_SET_EFFECT_DURATION, xLightsFrame::SetEffectDuration)
 EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 
-void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBar)
+// Rebuilds the Effects toolbar from _effectsToolbarLayout (Preferences >
+// Toolbars), showing only visible effects in the saved order. Called once at
+// startup (after loading the saved layout) and again any time the layout
+// changes live via the Preferences panel. DestroyToolByIndex (not
+// Clear()/ClearTools(), which only forgets the tool metadata and leaks the
+// DragEffectBitmapButton windows as orphaned children) properly destroys each
+// button before removing its slot.
+void xLightsFrame::RebuildEffectsToolbar()
 {
-    int size = EffectsToolBar->FromDIP(16);
-    for (size_t x = 0; x < manager.size(); ++x) {
+    while (EffectsToolBar->GetToolCount() > 0) {
+        EffectsToolBar->DestroyToolByIndex(0);
+    }
+
+    int size = EffectsToolBar->FromDIP(mIconSize);
+    for (const auto& [name, visible] : _effectsToolbarLayout) {
+        if (!visible) continue;
+        RenderableEffect* effect = effectManager.GetEffect(name);
+        if (effect == nullptr) continue;
+
+        size_t idx = EffectsToolBar->GetToolCount();
         DragEffectBitmapButton* bitmapButton = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size),
-                                                                          wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton%02llu", x));
+                                                                          wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton%02zu", idx));
         bitmapButton->SetMinSize(wxSize(size, size));
         bitmapButton->SetMaxSize(wxSize(size, size));
-        bitmapButton->SetEffect(manager[x], 16);
+        bitmapButton->SetEffect(effect, mIconSize);
         bitmapButton->SetBitmapMargins(0, 0);
         EffectsToolBar->AddControl(bitmapButton, bitmapButton->GetToolTipText());
 
-        EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMaxSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetSizeHints(size, size, size, size);
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetMaxSize(wxSize(size, size));
     }
     EffectsToolBar->Realize();
+
+    wxSize sz = EffectsToolBar->GetSize();
+    wxAuiPaneInfo& info = MainAuiManager->GetPane("EffectsToolBar");
+    info.BestSize(sz);
+    MainAuiManager->Update();
+
+    // The buttons are brand new windows, so they come up enabled regardless of
+    // whether the sequencer is currently accepting edits. Without this a rebuild
+    // (any live change in Preferences > Toolbars) would make them clickable with
+    // no sequence open or while rendering, and the drag they start dereferences
+    // the not-yet-set SequenceElements.
+    EnableEffectsToolbar();
+}
+
+void xLightsFrame::SetEffectsToolbarLayout(std::vector<std::pair<std::string, bool>> layout)
+{
+    _effectsToolbarLayout = std::move(layout);
+    RebuildEffectsToolbar();
 }
 
 inline wxBitmapBundle GetToolbarBitmapBundle(const wxString& id)
@@ -1351,6 +1386,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxEVT_CHAR, (wxObjectEventFunction)&xLightsFrame::OnChar);
     //*)
 
+    // Right-click anywhere on the Effects toolbar jumps to Preferences >
+    // Toolbars. wxEVT_CONTEXT_MENU (unlike a raw right-click mouse event)
+    // propagates up from the individual DragEffectBitmapButton children to
+    // this handler when they don't handle it themselves, so one Bind here
+    // covers both the toolbar background and its buttons.
+    EffectsToolBar->Bind(wxEVT_CONTEXT_MENU, &xLightsFrame::OnEffectsToolBarContextMenu, this);
+
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
     auto* config = GetXLightsConfig();
@@ -1423,11 +1465,17 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _appProgress->SetRange(100);
     _appProgress->Reset();
 
-    AddEffectToolbarButtons(effectManager, EffectsToolBar);
-    wxSize sz = EffectsToolBar->GetSize();
-    wxAuiPaneInfo& info = MainAuiManager->GetPane("EffectsToolBar");
-    info.BestSize(sz);
-    MainAuiManager->Update();
+    {
+        std::vector<std::string> allEffectNames;
+        allEffectNames.reserve(effectManager.size());
+        for (size_t i = 0; i < effectManager.size(); ++i) {
+            allEffectNames.push_back(effectManager.GetEffectName(i));
+        }
+        _effectsToolbarLayout = LoadToolbarLayout(GetXLightsConfig(), "EffectsToolbarLayout", allEffectNames);
+    }
+    //make sure we read the mIconSize before rebuilding the toolbar
+    config->Read("xLightsIconSize", &mIconSize, 16);
+    RebuildEffectsToolbar();
 
     wxToolTip::SetAutoPop(20000); // globally set tooltips stay on screen for a long time - may not work on all platforms per wxWidgets documentation
 
@@ -2017,7 +2065,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     if (!xLightsApp::sequenceFiles.IsEmpty()) {
         spdlog::debug("Opening sequence: {}.", (const char*)xLightsApp::sequenceFiles[0].c_str());
-        OpenSequence(xLightsApp::sequenceFiles[0], nullptr);
+        // In -r mode OpenRenderAndSaveSequences reopens and re-renders this same
+        // sequence immediately, so reading its fseq here is wasted.
+        OpenSequence(xLightsApp::sequenceFiles[0], nullptr, "", _renderMode);
     }
 
     SetAudioControls();
@@ -2073,10 +2123,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 
-    bool gpuRendering = true;
-    config->Read("xLightsGPURendering", &gpuRendering, true);
-    GPURenderUtils::SetEnabled(gpuRendering);
-
     _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
 #else
     config->Read("xLightsVideoReaderAccelerated", &_hwVideoAccleration, false);
@@ -2084,6 +2130,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::SetHardwareRenderType(_hwVideoRenderer);
 #endif
+
+    bool gpuRendering = true;
+    config->Read("xLightsGPURendering", &gpuRendering, true);
+    GPURenderUtils::SetEnabled(gpuRendering);
 #ifdef __WXMSW__
     // make sure Direct2DRenderer is created on the main thread before the other threads need it
     wxGraphicsRenderer::GetDirect2DRenderer();
@@ -2201,6 +2251,7 @@ xLightsFrame::~xLightsFrame()
         config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
     }
     config->Write("xLightsIconSize", mIconSize);
+    SaveToolbarLayout(config, "EffectsToolbarLayout", _effectsToolbarLayout);
     config->Write("xLightsGridSpacing", mGridSpacing);
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
     config->Write("xLightsShowAlternateTimingFormat", mShowAlternateTimingFormat);
@@ -2760,6 +2811,9 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                 savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
                 savedPaneShown[info[x].name]) {
                 if (info[x].frame != nullptr) {
+                    // Mirror of the Hide() above - restore the pane state too, or
+                    // Update() below would immediately re-hide the frame.
+                    info[x].Show();
                     info[x].frame->Show();
                     // On macOS, Cocoa repositions native floating frames during
                     // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
@@ -2781,6 +2835,12 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
                         savedPaneShown[info[x].name] = true;
                     }
                     info[x].frame->Hide();
+                    // Keep the pane's own state in step with the native frame we
+                    // just hid. Leaving it marked shown makes the next Update()
+                    // (any pane toggle, possibly from another tab) believe every
+                    // floating window needs re-showing and repositioning, which
+                    // pumps native events back through the manager mid-layout.
+                    info[x].Hide();
                 }
             } else {
                 spdlog::warn("Pane {} was not valid ... ShowHideAllSequencerWindows", x);
@@ -3071,6 +3131,11 @@ SequenceFile* xLightsFrame::CurrentSeqXmlFile = nullptr;
 void xLightsFrame::OnClose(wxCloseEvent& event)
 {
     if (!QuitMenuItem->IsEnabled()) {
+        // Refusing the close, so say so — the veto path below does. Without
+        // this, anything inspecting GetVeto() reads the refusal as success.
+        if (event.CanVeto()) {
+            event.Veto();
+        }
         return;
     }
 
@@ -3397,6 +3462,27 @@ std::string xLightsFrame::GetXmlSetting(const std::string& settingName, const st
         return it->second;
     }
     return defaultValue;
+}
+
+bool xLightsFrame::NeedsBaseRgbEffectsUpdate() const
+{
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty()) return false;
+
+    std::string baseFile = baseDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    return FileUtils::NeedsBaseFileUpdate(baseFile, GetXmlSetting("BaseRgbEffectsSyncedTime", ""), "model/view-object merge");
+}
+
+void xLightsFrame::MarkBaseRgbEffectsSynced()
+{
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty()) return;
+
+    std::string baseFile = baseDir + GetPathSeparator() + XLIGHTS_RGBEFFECTS_FILE;
+    auto baseTicks = FileUtils::GetFileModTimeTicks(baseFile);
+    if (baseTicks) {
+        SetXmlSetting("BaseRgbEffectsSyncedTime", std::to_string(*baseTicks));
+    }
 }
 
 void xLightsFrame::OnButtonClickSaveAs(wxCommandEvent& event)
@@ -3936,14 +4022,6 @@ void xLightsFrame::CheckUnsavedChanges()
         if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
                                   "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SaveEffectsFile();
-        } else {
-            wxFileName effectsFile;
-            effectsFile.AssignDir(CurrentDir);
-            effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
-            wxFileName fn(effectsFile.GetFullPath());
-            if (FileExists(fn.GetFullPath())) {
-                fn.Touch();
-            }
         }
     }
 
@@ -3963,14 +4041,6 @@ void xLightsFrame::CheckUnsavedChanges()
                                   "Effect Presets Changes Confirmation",
                                   wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SavePresetsFile();
-        } else {
-            wxFileName presetsFile;
-            presetsFile.AssignDir(CurrentDir);
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
-            wxFileName fn(presetsFile.GetFullPath());
-            if (FileExists(fn.GetFullPath())) {
-                fn.Touch();
-            }
         }
     }
 }
@@ -9068,7 +9138,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     bool mergeRejectAll = false;
 
     // bring in any controllers overwriting some of their properties ... but not all of them
-    if (_outputManager.MergeFromBase(prompt, mergeAcceptAll, mergeRejectAll, this)) {
+    bool controllersChanged = false;
+    bool const controllersLoaded = _outputManager.MergeFromBase(prompt, mergeAcceptAll, mergeRejectAll, this, &controllersChanged);
+    if (controllersChanged) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "UpdateFromBaseShowFolder-controller");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "UpdateFromBaseShowFolder-controller");
@@ -9078,7 +9150,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
 
     // bring in any models ... overwriting any with the same name
     // bring in any model groups ... again overwriting any ... the models in the group should be a merge and deduplication
-    if (AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll)) {
+    bool modelsChanged = false;
+    bool const modelsLoaded = AllModels.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll, &modelsChanged);
+    if (modelsChanged) {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-model");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_MODELLIST, "UpdateFromBaseShowFolder-model");
@@ -9088,7 +9162,9 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "UpdateFromBaseShowFolder-model");
     }
 
-    if (AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll))
+    bool objectsChanged = false;
+    bool const objectsLoaded = AllObjects.MergeFromBase(_outputManager.GetBaseShowDir(), prompt, mergeAcceptAll, mergeRejectAll, &objectsChanged);
+    if (objectsChanged)
     {
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "UpdateFromBaseShowFolder-object");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "UpdateFromBaseShowFolder-object");
@@ -9100,6 +9176,15 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     }
 
     spdlog::debug("Base show folder update done.");
+
+    // Only record the checkpoints for the merges whose base file actually loaded; a
+    // failed load leaves its checkpoint unset so the merge is retried on the next open.
+    if (controllersLoaded) {
+        _outputManager.MarkBaseControllersSynced();
+    }
+    if (modelsLoaded && objectsLoaded) {
+        MarkBaseRgbEffectsSynced();
+    }
 
     // other things we could bring in
     // - Test presets

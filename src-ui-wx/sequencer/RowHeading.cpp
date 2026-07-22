@@ -583,7 +583,13 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
         return;
     }
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+    if (ri == nullptr) {
+        return;
+    }
     Element* element = ri->element;
+    if (element == nullptr) {
+        return;
+    }
 
     if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement* me = dynamic_cast<ModelElement*>(element);

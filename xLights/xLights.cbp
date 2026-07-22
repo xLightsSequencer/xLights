@@ -90,6 +90,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-ffast-math" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
@@ -468,6 +469,8 @@
 		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.h" />
 		<Unit filename="../src-ui-wx/model/ModelFaceDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ModelFaceDialog.h" />
+		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.cpp" />
+		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.h" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ModelPreview.cpp" />
@@ -570,6 +573,8 @@
 		<Unit filename="../src-ui-wx/import_export/SeqFileUtilities.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/SequenceFacesPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SequenceFacesPanel.h" />
 		<Unit filename="../src-core/render/SequenceData.cpp" />
 		<Unit filename="../src-core/render/SequenceData.h" />
 		<Unit filename="../src-core/render/SequencePackage.cpp" />
@@ -1365,6 +1370,10 @@
 		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarLayout.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarLayout.h" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarsSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarsSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/RandomEffectsSettingsPanel.cpp" />
@@ -1416,6 +1425,8 @@
 		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
 		<Unit filename="../src-core/render/SequenceMedia.h" />
+		<Unit filename="../src-core/render/SequenceFaces.cpp" />
+		<Unit filename="../src-core/render/SequenceFaces.h" />
 		<Unit filename="../src-core/render/TextDrawingContext.cpp" />
 		<Unit filename="../src-core/render/TextDrawingContext.h" />
 		<Unit filename="../src-core/render/FreeTypeTextDrawingContext.cpp" />

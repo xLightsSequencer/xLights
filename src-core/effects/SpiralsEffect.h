@@ -18,6 +18,7 @@ public:
     SpiralsEffect(int id);
     virtual ~SpiralsEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual bool SupportsLinearColorCurves(const SettingsMap& SettingsMap) const override;
     virtual bool CanRenderPartialTimeInterval() const override
     {

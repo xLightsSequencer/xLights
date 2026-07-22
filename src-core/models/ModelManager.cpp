@@ -1974,6 +1974,9 @@ static bool LoadBaseXmlNodes(const std::string& baseShowDir, pugi::xml_document&
 
     pugi::xml_node root = doc.document_element();
     if (root) {
+        // The base folder stores its file references relative to itself; anchor
+        // them before any of these nodes get copied into the current show.
+        XmlSerialize::AbsolutizeFileReferences(root, baseShowDir);
         for (pugi::xml_node mm = root.first_child(); mm; mm = mm.next_sibling()) {
             if (std::string_view(mm.name()) == "models") baseModels = mm;
             else if (std::string_view(mm.name()) == "modelGroups") baseGroups = mm;
@@ -1982,7 +1985,7 @@ static bool LoadBaseXmlNodes(const std::string& baseShowDir, pugi::xml_document&
     return true;
 }
 
-bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode)
+bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode, bool* changedOut)
 {
     pugi::xml_document baseDoc;
     pugi::xml_node baseModels;
@@ -1991,12 +1994,14 @@ bool ModelManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_node l
 
     std::vector<std::string> changedModels;
     std::vector<std::string> changedGroups;
-    return MergeBaseIntoCurrentXml(localModelsNode, localGroupsNode,
-                                   baseModels, baseGroups,
-                                   changedModels, changedGroups);
+    bool const changed = MergeBaseIntoCurrentXml(localModelsNode, localGroupsNode,
+                                                 baseModels, baseGroups,
+                                                 changedModels, changedGroups);
+    if (changedOut != nullptr) *changedOut = *changedOut || changed;
+    return true;
 }
 
-bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll)
+bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll, bool* changedOut)
 {
     bool changed = false;
 
@@ -2004,7 +2009,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
     pugi::xml_node baseModels;
     pugi::xml_node baseGroups;
     if (!LoadBaseXmlNodes(baseShowDir, baseDoc, baseModels, baseGroups)) return false;
-    if (!baseModels) return false;
+    // Base file loaded but has no models section - nothing to merge, still counts as synced.
+    if (!baseModels) return true;
 
     // Handle prompt mode: ask user about non-FromBase models that clash with base
     if (prompt) {
@@ -2101,7 +2107,8 @@ bool ModelManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bo
         RecalcStartChannels();
     }
 
-    return changed;
+    if (changedOut != nullptr) *changedOut = changed;
+    return true;
 }
 
 bool ModelManager::Delete(const std::string& name)

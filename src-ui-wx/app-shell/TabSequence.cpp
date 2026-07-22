@@ -671,11 +671,18 @@ void xLightsFrame::LoadEffectsFile()
 
     // Merge base show folder models into the XML nodes before building the objects
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && !_outputManager.GetBaseShowDir().empty()) {
-        bool changed = false;
-        changed |= AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode);
-        changed |= AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode);
-        if (changed) {
-            UnsavedRgbEffectsChanges = true;
+        if (NeedsBaseRgbEffectsUpdate()) {
+            bool changed = false;
+            bool loadedOk = AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode, &changed);
+            loadedOk = AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode, &changed) && loadedOk;
+            if (changed) {
+                UnsavedRgbEffectsChanges = true;
+            }
+            // Only record the checkpoint if the base file actually loaded; a failed
+            // load leaves it unset so the merge is retried on the next open.
+            if (loadedOk) {
+                MarkBaseRgbEffectsSynced();
+            }
         }
     }
     LoadModels(modelsNode, modelGroupsNode, viewObjectsNode);
@@ -1500,7 +1507,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     spdlog::info("=== Batch Render [{} remaining] HWAccel={} File: {}",
                  fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", seq.ToStdString());
     LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
-    OpenSequence(seq, nullptr);
+    OpenSequence(seq, nullptr, "", true);
     EnableSequenceControls(false);
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
@@ -1770,6 +1777,15 @@ wxString xLightsFrame::GetLastSequenceDialogDir() const
     if (dir.IsEmpty() || !wxDirExists(dir)) {
         return CurrentDir;
     }
+    // The remembered dir may be left over from a previous show folder. If it is
+    // not within the current show directory, fall back to the show directory.
+    wxFileName fnDir(dir, "");
+    fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    wxFileName fnShow(CurrentDir, "");
+    fnShow.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    if (!fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR).StartsWith(fnShow.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR))) {
+        return CurrentDir;
+    }
     return dir;
 }
 
@@ -1942,15 +1958,24 @@ static void enableAllMenubarControls(wxMenuBar* parent, bool enable)
     parent->Refresh();
 }
 
+// Applies the current sequence-editing gate to the Effects toolbar. Split out of
+// EnableSequenceControls because RebuildEffectsToolbar (Preferences > Toolbars)
+// creates fresh buttons that would otherwise come up enabled.
+void xLightsFrame::EnableEffectsToolbar()
+{
+    enableAllToolbarControls(EffectsToolBar, _sequenceControlsEnabled && _seqData.NumFrames() > 0 && !IsACActive());
+}
+
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
+    _sequenceControlsEnabled = enable;
     enableAllToolbarControls(MainToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
     SetAudioControls();
     bool enableSeq = enable && _seqData.NumFrames() > 0;
     bool enableSeqNotAC = enable && _seqData.NumFrames() > 0 && !IsACActive();
     enableAllToolbarControls(WindowMgmtToolbar, enableSeq);
-    enableAllToolbarControls(EffectsToolBar, enableSeqNotAC);
+    EnableEffectsToolbar();
     enableAllToolbarControls(EditToolBar, enableSeq);
     enableAllToolbarControls(ACToolbar, enableSeq);
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);

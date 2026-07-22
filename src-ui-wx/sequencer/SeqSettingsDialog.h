@@ -36,6 +36,7 @@
 class ConvertLogDialog;
 class SequenceElements;
 class ManageMediaPanel;
+class SequenceFacesPanel;
 class xLightsFrame;
 
 class SeqSettingsDialog: public wxDialog
@@ -140,6 +141,9 @@ class SeqSettingsDialog: public wxDialog
         wxChoice* ModelsChoice;
 		wxButton* ModelsChoiceNext;
         ManageMediaPanel* Panel_ManageMedia;
+
+        // Faces tab (not wxSmith-generated) - sequence-level face definitions
+        SequenceFacesPanel* Panel_SequenceFaces = nullptr;
 
         // Audio Tracks tab (not wxSmith-generated)
         wxPanel* PanelAudio = nullptr;

@@ -49,6 +49,9 @@ public:
     bool channels_off_at_end = false;
     bool map_empty_channels = false;
     bool map_no_network_channels = false;
+    // Read the header and size seq_data as usual, but don't decompress the frames.
+    // For callers that are about to re-render every frame anyway.
+    bool skip_frame_data = false;
     ReadMode read_mode;
     xLightsFrame* xLightsFrm = nullptr;
     ConvertDialog* convertDialog = nullptr;

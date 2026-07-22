@@ -505,6 +505,7 @@ struct LayerBlendingData {
     int mixTypeData;
     
     int outputSparkleCount;
+    int sparkleFrame;
     simd::uchar4 sparkleColor;
     
     bool isChromaKey;

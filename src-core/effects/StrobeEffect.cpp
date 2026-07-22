@@ -84,7 +84,94 @@ public:
     std::list<StrobeClass> strobe;
 };
 
+// Tier-2 immutable per-frame draw state.  `flip` is the type-2/4 orientation
+// coin-flip that the old code rolled *in the draw* - moved into the advance so
+// the draw is RNG-free (required for the parallel draw to be byte-identical).
+struct StrobeDrawItem {
+    int x;
+    int y;
+    int duration;
+    xlColor color;
+    HSVValue hsv;
+    uint8_t flip;
+};
+struct StrobeFrameState : public EffectFrameState {
+    std::vector<StrobeDrawItem> items;
+    int strobeType = 1;
+};
+
+static void DrawStrobes(RenderBuffer& buffer, const std::vector<StrobeDrawItem>& items, int Strobe_Type) {
+    for (const auto& sit : items) {
+        HSVValue hsv = sit.hsv;
+        xlColor color(sit.color);
+        int x = sit.x;
+        int y = sit.y;
+        if (sit.duration > 0) {
+            buffer.SetPixel(x, y, color);
+        }
+
+        double v = 1.0;
+        if (sit.duration == 1) {
+            v = 0.5;
+        } else if (sit.duration == 2) {
+            v = 0.75;
+        }
+        if (buffer.allowAlpha) {
+            color.alpha = 255.0 * v;
+        } else {
+            hsv.value *= v;
+            color = hsv;
+        }
+
+        if (Strobe_Type == 2) {
+            if (sit.flip == 0) {
+                buffer.SetPixel(x, y - 1, color);
+                buffer.SetPixel(x, y + 1, color);
+            } else {
+                buffer.SetPixel(x - 1, y, color);
+                buffer.SetPixel(x + 1, y, color);
+            }
+        }
+        if (Strobe_Type == 3) {
+            buffer.SetPixel(x, y - 1, color);
+            buffer.SetPixel(x, y + 1, color);
+            buffer.SetPixel(x - 1, y, color);
+            buffer.SetPixel(x + 1, y, color);
+        }
+        if (Strobe_Type == 4) {
+            if (sit.flip == 0) {
+                buffer.SetPixel(x, y - 1, color);
+                buffer.SetPixel(x, y + 1, color);
+                buffer.SetPixel(x - 1, y, color);
+                buffer.SetPixel(x + 1, y, color);
+            } else {
+                buffer.SetPixel(x + 1, y - 1, color);
+                buffer.SetPixel(x + 1, y + 1, color);
+                buffer.SetPixel(x - 1, y - 1, color);
+                buffer.SetPixel(x - 1, y + 1, color);
+            }
+        }
+    }
+}
+
 void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: rasterise the snapshot AdvanceState produced.  Under the tier-2
+    // engine this is the ONLY path reached (AdvanceState runs first and sets
+    // pendingSnapshot in both serial and frame-parallel rendering).
+    if (buffer.pendingSnapshot != nullptr) {
+        const StrobeFrameState& fs = static_cast<const StrobeFrameState&>(*buffer.pendingSnapshot);
+        DrawStrobes(buffer, fs.items, fs.strobeType);
+        return;
+    }
+    // Defensive fall-through for any caller that invokes Render without first
+    // going through AdvanceState: advance then draw, exactly the legacy body.
+    // The draw is a pure function of the snapshot, so this stays byte-identical.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    const StrobeFrameState& sfs = static_cast<const StrobeFrameState&>(*fs);
+    DrawStrobes(buffer, sfs.items, sfs.strobeType);
+}
+
+std::unique_ptr<EffectFrameState> StrobeEffect::AdvanceState(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", sNumberStrobesDefault);
     int StrobeDuration = SettingsMap.GetInt("SLIDER_Strobe_Duration", sStrobeDurationDefault);
     int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", sStrobeTypeDefault);
@@ -142,62 +229,19 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
             buffer.randInt(0, buffer.BufferHt - 1), StrobeDuration, hsv, color));
     }
 
-    // render strobe, we go through all storbes and decide if they should be turned on
-    int n = 0;
+    // Advance: roll the type-2/4 orientation flip (was in the draw), snapshot the
+    // drawable state, decrement, cull.  The flip is the only RNG here and is drawn
+    // once per strobe in list order - same order the old interleaved loop rolled
+    // it - so advance-then-draw is byte-identical.
+    std::vector<StrobeDrawItem> drawItems;
+    drawItems.reserve(strobe.size());
     std::list<StrobeClass>::iterator it = strobe.begin();
     while (it != strobe.end()) {
-        n++;
-        hsv = it->hsv;
-        xlColor color(it->color);
-        int x = it->x;
-        int y = it->y;
-        if (it->duration > 0) {
-            buffer.SetPixel(x, y, color);
+        uint8_t flip = 0;
+        if (Strobe_Type == 2 || Strobe_Type == 4) {
+            flip = (uint8_t)buffer.randInt(0, 1);
         }
-
-        double v = 1.0;
-        if (it->duration == 1) {
-            v = 0.5;
-        } else if (it->duration == 2) {
-            v = 0.75;
-        }
-        if (buffer.allowAlpha) {
-            color.alpha = 255.0 * v;
-        } else {
-            hsv.value *= v;
-            color = hsv;
-        }
-
-        if (Strobe_Type == 2) {
-            int r = buffer.randInt(0, 1);
-            if (r == 0) {
-                buffer.SetPixel(x, y - 1, color);
-                buffer.SetPixel(x, y + 1, color);
-            } else {
-                buffer.SetPixel(x - 1, y, color);
-                buffer.SetPixel(x + 1, y, color);
-            }
-        }
-        if (Strobe_Type == 3) {
-            buffer.SetPixel(x, y - 1, color);
-            buffer.SetPixel(x, y + 1, color);
-            buffer.SetPixel(x - 1, y, color);
-            buffer.SetPixel(x + 1, y, color);
-        }
-        if (Strobe_Type == 4) {
-            int r = buffer.randInt(0, 1);
-            if (r == 0) {
-                buffer.SetPixel(x, y - 1, color);
-                buffer.SetPixel(x, y + 1, color);
-                buffer.SetPixel(x - 1, y, color);
-                buffer.SetPixel(x + 1, y, color);
-            } else {
-                buffer.SetPixel(x + 1, y - 1, color);
-                buffer.SetPixel(x + 1, y + 1, color);
-                buffer.SetPixel(x - 1, y - 1, color);
-                buffer.SetPixel(x - 1, y + 1, color);
-            }
-        }
+        drawItems.push_back({ it->x, it->y, it->duration, it->color, it->hsv, flip });
 
         it->duration--;  // decrease the frame counter on this strobe, when it gets to zero we no longer will turn it on
 
@@ -210,4 +254,16 @@ void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Render
         }
     }
 
+    // Capture the advanced items into this frame's immutable draw snapshot.  The
+    // engine hands it back to Render (via pendingSnapshot) for the actual draw,
+    // in both serial and frame-parallel rendering.
+    auto fs = std::make_unique<StrobeFrameState>();
+    fs->items = std::move(drawItems);
+    fs->strobeType = Strobe_Type;
+    return fs;
 }
+
+RenderableEffect::FrameParallelism StrobeEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    return FrameParallelism::Snapshottable;
+}
+

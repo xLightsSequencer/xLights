@@ -40,8 +40,11 @@ public:
     void AddViewObject(ViewObject *view_object);
     void Delete(const std::string &name);
     bool Rename(const std::string &oldName, const std::string &newName);
-    bool MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll);
-    static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localViewObjectsNode);
+    // Both return true if the base rgb effects file loaded and the merge ran (even if nothing
+    // changed); false only if the base file could not be loaded. Optional 'changed' reports
+    // whether any view object content was actually modified.
+    bool MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll, bool* changed = nullptr);
+    static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localViewObjectsNode, bool* changed = nullptr);
 
     void LoadViewObjects(pugi::xml_node objectNode);
 

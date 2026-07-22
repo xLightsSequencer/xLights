@@ -166,7 +166,7 @@ public:
 
     virtual wxSize 	GetSize() const override
     {
-        return wxSize(GetOwner()->GetWidth(), 15);
+        return wxSize(100, 15);
     }
 
     virtual bool GetValue(wxVariant &value) const override

@@ -62,6 +62,7 @@ class SequenceElements;
 class SequenceMedia;
 class MetalRenderBufferComputeData;
 class PixelBufferClass;
+struct EffectFrameState;
 
 
 // TextDrawingContext is now defined in TextDrawingContext.h
@@ -471,12 +472,27 @@ public:
     inline uint32_t hashRandomStable(uint32_t index) const {
         return uint32_t(rngMix64(rngBaseSeed ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL)) >> 32);
     }
+    // Like hashRandomStable but keyed ONLY on (model, index) - independent of the
+    // current effect/layer/frame. Use for per-node values that outlive a single
+    // effect and must be identical no matter which effect/frame first computes
+    // them (e.g. the sparkle phase, which the serial main buffer and the
+    // frame-parallel clones lazily initialize on different frames/effects).
+    inline uint32_t hashModelStable(uint32_t index) const {
+        return uint32_t(rngMix64(rngModelHash ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL)) >> 32);
+    }
     // Raw 64-bit per-(effect,frame) seed behind hashRandom()/hashRand01(); lets
     // ISPC/Metal kernels reproduce the hash stream bit-exactly off-CPU:
     // hashRandom(index) == mix64(frameSeed ^ (uint64(index) * 0xD1B54A32D192ED03)) >> 32.
     inline uint64_t hashRandomFrameSeed() const {
         return rngHashInput(0);
     }
+    // Force the next rand01()/randInt() this frame to reseed from scratch (as if
+    // the frame were drawn for the first time). The serial RNG already reseeds
+    // per frame via ensureRandomSeed(); this lets the XL_VERIFY_STATELESS harness
+    // re-render the SAME frame twice and get the identical stream, instead of the
+    // second pass continuing where the first left off - which made every
+    // randInt()/rand01() effect falsely look like it carried cross-frame state.
+    void resetSerialRandomForVerify() { rngSeededForPeriod = -1; }
     void SetLayerIndex(int idx) { rngLayerIndex = idx; }
     const PaletteClass& GetPalette() const { return palette; }
 
@@ -519,7 +535,20 @@ private:
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
+    // Hand pixel storage back to the CPU-owned vector. A GPU backend may point
+    // `pixels` into its own mapping; InitBuffer then deliberately keeps that
+    // pointer across resizes because the backend re-points it. When the backend
+    // goes away instead (device lost, GPU rendering switched off) nothing would,
+    // so ownership has to be returned explicitly.
+    void ReleasePixelsToCpu() { pixels = pixelVector.data(); }
     xlColor *GetTempBuf() { ensureTempBuf(); return tempbuf; }
+    // Whole temp-buffer snapshot/restore for frame-parallel Snapshottable effects
+    // (e.g. Snowflakes) whose cross-frame state lives in the temp pixel layer.
+    const xlColorVector& GetTempBufVector() { ensureTempBuf(); return tempbufVector; }
+    void SetTempBufVector(const xlColorVector& v) {
+        tempbufVector = v;
+        tempbuf = tempbufVector.empty() ? nullptr : &tempbufVector[0];
+    }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
     xlSize GetMaxBuffer(const SettingsMap& SettingsMap) const;
@@ -547,6 +576,21 @@ public:
 
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;
+
+    // Tier-2 frame-parallel plumbing (Snapshottable effects), set transiently by
+    // the render engine around a single effect render; effects never read
+    // captureSnapshot.
+    //  * captureSnapshot: engine-internal.  Non-null marks the serial capture
+    //    pre-pass - the engine calls the effect's AdvanceState() and stores the
+    //    returned draw-snapshot here (no draw).  The effect's Render() is not
+    //    invoked on this pass.
+    //  * pendingSnapshot: the draw-protocol input.  Non-null means Render() must
+    //    rasterise this previously captured snapshot and NOT advance (check it
+    //    first, at the top of Render).  Set in both serial and parallel drawing.
+    // Both null for the fused advance+draw of a Pure/Stateful effect.  Owned by
+    // the engine.
+    std::unique_ptr<EffectFrameState>* captureSnapshot = nullptr;
+    const EffectFrameState* pendingSnapshot = nullptr;
 
     //place for GPU Renderers to attach extra data/objects it needs
     void *gpuRenderData = nullptr;

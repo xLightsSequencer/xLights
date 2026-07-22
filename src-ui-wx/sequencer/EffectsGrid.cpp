@@ -381,7 +381,22 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
 
-        // C. Fetch sequencer-scoped EFFECT keybindings, limit to 18
+        // C. Clip the proposed range so the new effect never overwrites an
+        // existing effect on this row (mirrors AdjustDropLocations/OldPaste
+        // behavior used by drag-drop and the keyboard shortcut path).
+        EffectLayer* dropLayer = mSequenceElements->GetVisibleEffectLayer(row);
+        if (dropLayer != nullptr && !dropLayer->GetRangeIsClearMS(startTime, endTime)) {
+            Effect* before_eff = dropLayer->GetEffectBeforeEmptyTime(selectedTimeMS);
+            if (before_eff != nullptr && before_eff->GetEndTimeMS() > startTime) {
+                startTime = before_eff->GetEndTimeMS();
+            }
+            Effect* after_eff = dropLayer->GetEffectAfterEmptyTime(selectedTimeMS);
+            if (after_eff != nullptr && after_eff->GetStartTimeMS() < endTime) {
+                endTime = after_eff->GetStartTimeMS();
+            }
+        }
+
+        // D. Fetch sequencer-scoped EFFECT keybindings, limit to 18
         std::vector<const KeyBinding*> effectBindings;
         MainSequencer* ms = dynamic_cast<MainSequencer*>(mParent);
         if (ms != nullptr) {
@@ -396,7 +411,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
         }
 
         bool effectDropped = false;
-        if (!effectBindings.empty()) {
+        if (endTime > startTime && !effectBindings.empty()) {
             EffectWheelDialog dlg(this, effectBindings);
             dlg.PositionAtMouse(ClientToScreen(event.GetPosition()));
             if (dlg.ShowModal() == wxID_OK) {
@@ -3978,6 +3993,15 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             mEffectMoveDragging = false;
             if (mEffectMoveDragThresholdExceeded && !mEffectMoveHasCollision && !mEffectMoveSnapshots.empty()) {
                 ApplyEffectMoveDrag();
+                // A plain same-row move doesn't otherwise notify the effect panel at all
+                // (ApplyEffectMoveDrag only reassigns mSelectedEffect for the cross-row/copy
+                // case). A Moving Head effect with "Link end position to next Moving Head
+                // effect" checked needs to know when its own end time moves, since that
+                // changes which effect is now "next" -- refresh it same as a resize does.
+                if (mSelectedEffect != nullptr &&
+                    mSelectedEffect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
+                    RaiseSelectedEffectChanged(mSelectedEffect, false);
+                }
             } else if (!mEffectMoveDragThresholdExceeded && mEffectMoveDragGroup && mEffectMoveAnchorEffect != nullptr) {
                 // Keep the group selected; just update the settings panel to the clicked effect
                 mSelectedEffect = mEffectMoveAnchorEffect;
@@ -4052,7 +4076,14 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                             sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
                         }
                         RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
-                        if (event.ShiftDown() || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+                        // Also refresh the panel for a plain resize of a Moving Head effect with
+                        // "Link end position to next Moving Head effect" checked: SyncLinkToNext()
+                        // only re-fires from ValidateWindow when the effect panel is re-validated,
+                        // and dragging this effect's edge up against the next Moving Head effect is
+                        // exactly the case Link needs to react to (its end time, and therefore which
+                        // effect is now "next", just changed).
+                        if (event.ShiftDown() || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT ||
+                            effect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
                             RaiseSelectedEffectChanged(effect, false);
                         }
                     }
@@ -4696,6 +4727,16 @@ void EffectsGrid::MoveSelectedEffectRight(bool shift, bool control, bool alt) {
         }
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
 
+        // None of the resize/stretch helpers above notify the effect panel (they only
+        // touch effect timing, not selection). A Moving Head effect with "Link end
+        // position to next Moving Head effect" checked needs to know its end time moved,
+        // since that changes which effect is now "next" -- refresh it same as a mouse
+        // drag does.
+        if (mSelectedEffect != nullptr &&
+            mSelectedEffect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
+            RaiseSelectedEffectChanged(mSelectedEffect, false);
+        }
+
         sendRenderDirtyEvent();
         Draw();
     }
@@ -4812,6 +4853,13 @@ void EffectsGrid::MoveSelectedEffectLeft(bool shift, bool control, bool alt) {
         }
         mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
 
+        // See the matching comment in MoveSelectedEffectRight: a Moving Head effect
+        // linked to the next one needs the panel refreshed after its timing moves.
+        if (mSelectedEffect != nullptr &&
+            mSelectedEffect->GetSettings().Get("E_CHECKBOX_MHLinkToNext", "") == "1") {
+            RaiseSelectedEffectChanged(mSelectedEffect, false);
+        }
+
         Draw();
         sendRenderDirtyEvent();
     }
@@ -4856,7 +4904,10 @@ void EffectsGrid::LockEffects(bool lock) {
         }
 
         if (efs.size() > 0) {
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
             for (auto it = efs.begin(); it != efs.end(); ++it) {
+                EffectLayer* el = (*it)->GetParentEffectLayer();
+                mSequenceElements->get_undo_mgr().CaptureModifiedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), *it);
                 (*it)->SetLocked(lock);
             }
         }
@@ -6700,7 +6751,8 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
     }
 
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
-        int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT, mSequenceElements->GetMinPeriod());
+        bool prevLocked = mResizeEffectIndex > 0 && mEffectLayer->GetEffect(mResizeEffectIndex - 1)->IsLocked();
+        int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT && !prevLocked, mSequenceElements->GetMinPeriod());
         // User has dragged left side to the right side exit
         if (time >= mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS()) {
             return;
@@ -6709,7 +6761,7 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
                 // cannot have a starting time less than 0 or we cannot preview the effect or update the effect
                 time = 0;
             }
-            if (mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_LEFT) {
+            if (mEffectLayer->IsStartTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_LEFT && !prevLocked) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex - 1);
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
@@ -6734,12 +6786,13 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
             }
         }
     } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE) {
-        int maximumTime = mEffectLayer->GetMaximumEndTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_RIGHT, mSequenceElements->GetMinPeriod());
+        bool nextLocked = mResizeEffectIndex + 1 < mEffectLayer->GetEffectCount() && mEffectLayer->GetEffect(mResizeEffectIndex + 1)->IsLocked();
+        int maximumTime = mEffectLayer->GetMaximumEndTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_RIGHT && !nextLocked, mSequenceElements->GetMinPeriod());
         // User has dragged right side to the left side exit
         if (time <= mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS()) {
             return;
         } else if (time <= maximumTime || maximumTime == NO_MIN_MAX_TIME) {
-            if (mEffectLayer->IsEndTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_RIGHT) {
+            if (mEffectLayer->IsEndTimeLinked(mResizeEffectIndex) && mResizingMode == EFFECT_RESIZE_RIGHT && !nextLocked) {
                 Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex + 1);
                 if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
                     mSequenceElements->get_undo_mgr().CaptureEffectToBeMoved(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), eff->GetID(),
@@ -7010,7 +7063,7 @@ void EffectsGrid::CancelMouseOperations() {
     mMouseOperationsCancelled = true;
 }
 bool EffectsGrid::CanDropEffect() const {
-    return (mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
+    return (mSequenceElements != nullptr && mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
 }
 
 void EffectsGrid::UpdateZoomPosition(int time) const {
@@ -9038,7 +9091,13 @@ void EffectsGrid::DuplicateSelectedEffects() {
                 long end = mSelectedEffect->GetEndTimeMS();
                 long length = end - start;
 
-                long startCol = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS())->GetID() + 2;
+                // No timing mark covers the selected effect's start (it begins in a
+                // gap), so there is no cell column to duplicate from.
+                Effect* startTiming = tel->GetEffectByTime(mSelectedEffect->GetStartTimeMS());
+                if (startTiming == nullptr) {
+                    return;
+                }
+                long startCol = startTiming->GetID() + 2;
                 if (mSelectedEffect->GetStartTimeMS() == 0) { // first timing mark in the zero column, and second timing mark has start column of 0 too
                     startCol--;
                 }
@@ -9059,8 +9118,8 @@ void EffectsGrid::DuplicateSelectedEffects() {
                             Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
                             if (newef != nullptr) {
                                 newef->HandlePastedSymbolLink();
+                                mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                             }
-                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
                     }
                     ++startCol;
@@ -9080,8 +9139,8 @@ void EffectsGrid::DuplicateSelectedEffects() {
                         Effect* newef = el->AddEffect(0, xlights->GetEffectManager().GetEffectName(mSelectedEffect->GetEffectIndex()), mSelectedEffect->GetSettingsAsString(), mSelectedEffect->GetPaletteAsString(), newstart, newEnd, EFFECT_SELECTED, false);
                         if (newef != nullptr) {
                             newef->HandlePastedSymbolLink();
+                            mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                         }
-                        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetName(), el->GetIndex(), newef->GetID());
                     }
                     newstart = newEnd;
                 }

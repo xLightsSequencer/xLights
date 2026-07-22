@@ -48,6 +48,7 @@
 #include "Parallel.h"
 #include "ControllerCaps.h"
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
 #include "TempFileManager.h"
 
 #include <log.h>
@@ -1802,24 +1803,30 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             wp = obj["WorldPosY"];
             obj["WorldPosY"] = std::to_string(std::atof(wp.c_str()) - minY);
 
+            // The serialized attributes hold show-relative paths, so upload from
+            // the object's resolved path and flatten to a bare filename for FPP.
             if (e.second->GetDisplayAs() == DisplayAsType::Mesh) {
-                std::string fn = obj["ObjFile"];
-                if (!fn.empty()) {
-                    std::string bn = std::filesystem::path(fn).filename().string();
-                    obj["ObjFile"] = bn;
-                    virtualDisplayData[bn] = fn;
-                }
                 MeshObject *mesh = dynamic_cast<MeshObject*>(e.second);
-                for (auto &fr : mesh->GetFileReferences()) {
-                    std::string bn = std::filesystem::path(fr).filename().string();
-                    virtualDisplayData[bn] = fr;
+                if (mesh != nullptr) {
+                    std::string fn = mesh->GetObjFile();
+                    if (!fn.empty()) {
+                        std::string bn = FileUtils::GetFilenameFromPath(fn);
+                        obj["ObjFile"] = bn;
+                        virtualDisplayData[bn] = fn;
+                    }
+                    for (auto &fr : mesh->GetFileReferences()) {
+                        virtualDisplayData[FileUtils::GetFilenameFromPath(fr)] = fr;
+                    }
                 }
             } else if (e.second->GetDisplayAs() == DisplayAsType::Image) {
-                std::string fn = obj["Image"];
-                if (!fn.empty()) {
-                    std::string bn = std::filesystem::path(fn).filename().string();
-                    obj["Image"] = bn;
-                    virtualDisplayData[bn] = fn;
+                ImageObject *img = dynamic_cast<ImageObject*>(e.second);
+                if (img != nullptr) {
+                    std::string fn = img->GetImageFile();
+                    if (!fn.empty()) {
+                        std::string bn = FileUtils::GetFilenameFromPath(fn);
+                        obj["Image"] = bn;
+                        virtualDisplayData[bn] = fn;
+                    }
                 }
             }
             virtualDisplay["view_objects"].push_back(obj);

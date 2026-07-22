@@ -13,6 +13,34 @@
 #include "../Node.h"
 #include "Color.h"
 
+#include <algorithm>
+
+namespace {
+// HSL hue in [0,1], or -1 for grey.  Was xlColor::asHSL().hue, moved here as the
+// only caller when HSLValue was removed from Color.h.  HSV hue is NOT a drop-in:
+// it returns 0 for grey, which would let a white/grey wheel slot false-match a
+// hue-0 (red) colour.  The -1 grey sentinel keeps grey matching only grey.
+double hslHue(const xlColor& c) {
+    double r = c.red / 255.0, g = c.green / 255.0, b = c.blue / 255.0;
+    double mn = std::min(r, std::min(g, b));
+    double mx = std::max(r, std::max(g, b));
+    double delta = mx - mn;
+    if (delta == 0.0) {
+        return -1.0;   // grey
+    }
+    double dr = (((mx - r) / 6.0) + (delta / 2.0)) / delta;
+    double dg = (((mx - g) / 6.0) + (delta / 2.0)) / delta;
+    double db = (((mx - b) / 6.0) + (delta / 2.0)) / delta;
+    double hue;
+    if (r == mx)      hue = db - dg;
+    else if (g == mx) hue = (1.0 / 3.0) + dr - db;
+    else              hue = (2.0 / 3.0) + dg - dr;
+    if (hue < 0.0) hue += 1.0;
+    if (hue > 1.0) hue -= 1.0;
+    return hue;
+}
+}
+
 DmxColorAbilityWheel::DmxColorAbilityWheel() :
     DmxColorAbility()
 {
@@ -188,7 +216,7 @@ std::optional<xlColor> DmxColorAbilityWheel::GetDMXWheelValue(xlColor const& col
                                        [&color](auto const& col)
         {
             //return color == col.color;
-            return (std::abs(color.asHSL().hue - col.color.asHSL().hue) < 0.01);
+            return (std::abs(hslHue(color) - hslHue(col.color)) < 0.01);
         }) };
         found != colors.end()) {
         uint8_t dmxV{ (*found).dmxValue };
@@ -292,7 +320,7 @@ int DmxColorAbilityWheel::GetDMXWheelIndex(xlColor const& color) const {
     if (auto const found{ std::find_if(colors.begin(), colors.end(),
                                        [&color](auto const& col) {
                                            // return color == col.color;
-                                           return (std::abs(color.asHSL().hue - col.color.asHSL().hue) < 0.01);
+                                           return (std::abs(hslHue(color) - hslHue(col.color)) < 0.01);
                                        }) };
         found != colors.end()) {
         size_t index = std::distance(colors.begin(), found);

@@ -1432,7 +1432,12 @@ class SequencerViewModel {
         // existing `loadShowFolder` detach pattern.
         Task.detached { [document, weak self] in
             let opened = document.openSequence(path)
-            await self?.applyOpenResult(opened: opened, path: path, forceRender: forceRender)
+            // Resolved here rather than in applyOpenResult: obtainAccess blocks
+            // on bookmark resolution (and can wait on an iCloud materialisation),
+            // which tripped the 0x8BADF00D watchdog once applyOpenResult had
+            // hopped back to the main actor.
+            let readOnly = opened ? SequencerViewModel.detectReadOnly(path: path) : false
+            await self?.applyOpenResult(opened: opened, path: path, readOnly: readOnly, forceRender: forceRender)
         }
     }
 
@@ -1442,20 +1447,22 @@ class SequencerViewModel {
     /// A sequence opened from a write-protected provider, a locked
     /// iCloud item, or a download that only granted read scope lands
     /// here and Save is disabled until the user Saves As elsewhere.
-    private static func detectReadOnly(path: String) -> Bool {
+    /// `nonisolated` so the open path can resolve this off the main actor —
+    /// it touches no instance state.
+    private nonisolated static func detectReadOnly(path: String) -> Bool {
         guard !path.isEmpty else { return false }
         let writable = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: true)
         if !writable { return true }
         return !FileManager.default.isWritableFile(atPath: path)
     }
 
-    private func applyOpenResult(opened: Bool, path: String, forceRender: Bool) {
+    private func applyOpenResult(opened: Bool, path: String, readOnly: Bool, forceRender: Bool) {
         defer { openInFlight = false }
         guard opened else { return }
 
         isSequenceLoaded = true
         isDirty = false
-        isReadOnly = Self.detectReadOnly(path: path)
+        isReadOnly = readOnly
         sequenceName = document.sequenceName()
         sequenceDurationMS = Int(document.sequenceDurationMS())
         frameIntervalMS = Int(document.frameIntervalMS())

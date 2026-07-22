@@ -20,6 +20,7 @@ public:
     RippleEffect(int id);
     virtual ~RippleEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     //virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual bool AppropriateOnNodes() const override
     {

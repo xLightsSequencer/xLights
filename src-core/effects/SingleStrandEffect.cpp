@@ -273,6 +273,10 @@ void SingleStrandEffect::adjustSettings(const std::string& version, Effect* effe
     }
 }
 
+RenderableEffect::FrameParallelism SingleStrandEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    return settings.Get("NOTEBOOK_SSEFFECT_TYPE", "") == "FX" ? FrameParallelism::Stateful : FrameParallelism::Pure;
+}
+
 void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();

@@ -128,6 +128,8 @@ inline void AddSlowStorageWarning() {}
 #include <thread>
 #include <future>
 #include <deque>
+#include <mutex>
+#include <condition_variable>
 
 #ifdef ZSTD_STATIC_LINKING_ONLY
 class ZSTDThreadPoolHolder {
@@ -1053,6 +1055,7 @@ public:
         LogDebug(VB_SEQUENCE, "  Prepared to read/write a ZSTD compress fseq file.\n");
     }
     virtual ~V2ZSTDCompressionHandler() {
+        bulkShutdown();
         free(m_outBuffer.dst);
         if (m_inBuffer.src != nullptr) {
             free((void*)m_inBuffer.src);
@@ -1067,9 +1070,291 @@ public:
     virtual uint8_t getCompressionType() override { return 1; }
     virtual std::string GetType() const override { return "Compressed ZSTD"; }
 
+    // ---- ReadPattern::Bulk: decompress whole blocks ahead, in parallel ----
+    //
+    // Each seekable block is an independent zstd frame, so blocks can be
+    // decompressed concurrently - the same property the write path exploits.
+    // A caller that reads every frame front to back (and has already allocated
+    // room for the whole sequence) can therefore run the decompression across
+    // cores instead of doing it one frame at a time on the calling thread.
+    //
+    // Blocks are held in a ring of slots, indexed block % slots.  The ring is
+    // only ever filled over the half open range [m_bulkWindowStart,
+    // m_bulkNextDispatch), which is never wider than the ring, so that index
+    // cannot collide.  Slot buffers and worker threads are both reused for the
+    // life of the read: the blocks are small and numerous (commonly a few
+    // frames each, thousands per file), so allocating either per block costs
+    // far more than the decompression itself on a slow ARM host.
+    //
+    // All file I/O stays on the calling thread because the FILE* has shared
+    // seek state; only the decompression is handed to the pool.
+    static constexpr uint32_t NO_BLOCK = 0xFFFFFFFF;
+    enum BulkSlotState { SLOT_EMPTY = 0,
+                         SLOT_QUEUED = 1,
+                         SLOT_DONE = 2 };
+    struct BulkSlot {
+        uint32_t block = NO_BLOCK;
+        uint32_t startFrame = 0;
+        int state = SLOT_EMPTY;
+        std::vector<uint8_t> comp;
+        std::vector<uint8_t> out;
+        size_t outSize = 0;
+    };
+
+    void bulkConfigure() {
+        m_bulkConfigured = true;
+        if (m_file->getReadPattern() != FSEQFile::ReadPattern::Bulk) {
+            return;
+        }
+        if (m_file->m_frameOffsets.size() < 3) {
+            return; // one real block at most - nothing to overlap
+        }
+        unsigned int hw = std::thread::hardware_concurrency();
+        if (hw <= 1) {
+            // Nothing to win: decompressing a block on "another" core that does
+            // not exist just buys a thread and some context switches.  Measured
+            // as a wash on a single core BeagleBone, so stay on the simpler path.
+            return;
+        }
+        // Size a slot from the largest block the file actually contains.  The
+        // uncompressed side comes from the frame counts in the header and can
+        // never be inferred from the compressed size: pixel data routinely
+        // expands 10:1 and an all-black block far more.  Each slot also keeps
+        // the compressed bytes it read, and neither buffer ever shrinks, so
+        // both count against the budget.
+        uint32_t maxFramesPerBlock = 0;
+        uint64_t maxCompBytes = 0;
+        for (size_t i = 0; i + 1 < m_file->m_frameOffsets.size(); i++) {
+            uint32_t end = m_file->m_frameOffsets[i + 1].first;
+            if (end > m_file->getNumFrames()) {
+                end = m_file->getNumFrames();
+            }
+            uint32_t start = m_file->m_frameOffsets[i].first;
+            if (end > start && (end - start) > maxFramesPerBlock) {
+                maxFramesPerBlock = end - start;
+            }
+            uint64_t comp = m_file->m_frameOffsets[i + 1].second - m_file->m_frameOffsets[i].second;
+            if (comp > maxCompBytes) {
+                maxCompBytes = comp;
+            }
+        }
+        uint64_t slotBytes = (uint64_t)maxFramesPerBlock * m_file->getChannelCount() + maxCompBytes;
+        if (maxFramesPerBlock == 0 || slotBytes == 0) {
+            return;
+        }
+        // The window is (workers + 1) slots.  If even two blow the budget - a
+        // legacy file with few, huge blocks - stay on the streaming path, which
+        // only ever buffers one.
+        if (slotBytes * 2 > BULK_INFLIGHT_BYTE_BUDGET) {
+            LogDebug(VB_SEQUENCE, "  Bulk read declined: %" PRIu64 " bytes per block exceeds the budget.\n", slotBytes);
+            return;
+        }
+        uint64_t byBudget = (BULK_INFLIGHT_BYTE_BUDGET / slotBytes) - 1;
+        uint64_t workers = hw < byBudget ? hw : byBudget;
+        if (workers < 1) {
+            workers = 1;
+        }
+        m_bulkWorkers = (int)workers;
+        m_bulkSlots.resize(m_bulkWorkers + 1);
+        for (int i = 0; i < m_bulkWorkers; i++) {
+            m_bulkPool.emplace_back([this]() { bulkWorker(); });
+        }
+        LogDebug(VB_SEQUENCE, "  Bulk read: %d workers, %" PRIu64 " bytes per block.\n", m_bulkWorkers, slotBytes);
+    }
+    void bulkWorker() {
+        // One decompression stream per worker, reused for every block it takes.
+        ZSTD_DStream* dctx = ZSTD_createDStream();
+        std::unique_lock<std::mutex> lk(m_bulkMutex);
+        while (true) {
+            m_bulkWork.wait(lk, [this]() { return m_bulkStop || !m_bulkQueue.empty(); });
+            if (m_bulkStop) {
+                break;
+            }
+            uint32_t si = m_bulkQueue.front();
+            m_bulkQueue.pop_front();
+            BulkSlot& s = m_bulkSlots[si];
+            size_t outSize = s.outSize;
+            lk.unlock();
+
+            // A block's byte range can hold more than one zstd frame, so this
+            // decompresses as a stream and stops once the frames the block
+            // contributes are out.  One-shot ZSTD_decompress would instead
+            // insist on room for every concatenated frame in the range.
+            ZSTD_initDStream(dctx);
+            ZSTD_inBuffer_s in = { s.comp.data(), s.comp.size(), 0 };
+            ZSTD_outBuffer_s out = { s.out.data(), outSize, 0 };
+            while (out.pos < outSize && in.pos < in.size) {
+                size_t r = ZSTD_decompressStream(dctx, &out, &in);
+                if (ZSTD_isError(r)) {
+                    LogErr(VB_SEQUENCE, "Failed to decompress block %d: %s\n", (int)s.block, ZSTD_getErrorName(r));
+                    break;
+                }
+                if (r == 0 && out.pos < outSize && in.pos < in.size) {
+                    ZSTD_initDStream(dctx); // on to the next concatenated frame
+                }
+            }
+            if (out.pos < outSize) {
+                // Leave no stale bytes from whatever block used this slot last.
+                memset(&s.out[out.pos], 0, outSize - out.pos);
+            }
+
+            lk.lock();
+            s.state = SLOT_DONE;
+            m_bulkDone.notify_all();
+        }
+        ZSTD_freeDStream(dctx);
+    }
+    void bulkShutdown() {
+        if (m_bulkPool.empty()) {
+            return;
+        }
+        {
+            std::unique_lock<std::mutex> lk(m_bulkMutex);
+            m_bulkStop = true;
+            m_bulkWork.notify_all();
+        }
+        for (auto& t : m_bulkPool) {
+            if (t.joinable()) {
+                t.join();
+            }
+        }
+        m_bulkPool.clear();
+    }
+    // Reads the block's compressed bytes here on the calling thread, then hands
+    // the decompression to the pool.
+    void bulkDispatch(uint32_t block) {
+        uint32_t si = block % m_bulkSlots.size();
+        {
+            std::unique_lock<std::mutex> lk(m_bulkMutex);
+            m_bulkDone.wait(lk, [this, si]() { return m_bulkSlots[si].state == SLOT_EMPTY; });
+        }
+        BulkSlot& s = m_bulkSlots[si];
+        s.block = block;
+        s.startFrame = m_file->m_frameOffsets[block].first;
+        uint32_t endFrame = m_file->m_frameOffsets[block + 1].first;
+        if (endFrame > m_file->getNumFrames()) {
+            endFrame = m_file->getNumFrames();
+        }
+        uint32_t frames = endFrame > s.startFrame ? endFrame - s.startFrame : 0;
+        s.outSize = (size_t)frames * m_file->getChannelCount();
+        if (s.out.size() < s.outSize) {
+            s.out.resize(s.outSize);
+        }
+
+        uint64_t offset = m_file->m_frameOffsets[block].second;
+        uint64_t len = m_file->m_frameOffsets[block + 1].second - offset;
+        s.comp.resize(len);
+        seek(offset, SEEK_SET);
+        uint64_t bread = read(s.comp.data(), len);
+        if (bread != len) {
+            LogErr(VB_SEQUENCE, "Failed to read block %d!  Needed %" PRIu64 " but read %" PRIu64 "\n", (int)block, len, bread);
+            s.comp.resize(bread);
+        }
+
+        std::unique_lock<std::mutex> lk(m_bulkMutex);
+        s.state = SLOT_QUEUED;
+        m_bulkQueue.push_back(si);
+        m_bulkWork.notify_one();
+    }
+    // A block that was dispatched but skipped over may still be mid-decompress,
+    // so wait for the worker to drop it before handing its buffers back out.
+    void bulkRelease(uint32_t block) {
+        uint32_t si = block % m_bulkSlots.size();
+        std::unique_lock<std::mutex> lk(m_bulkMutex);
+        if (m_bulkSlots[si].block != block) {
+            return;
+        }
+        m_bulkDone.wait(lk, [this, si]() { return m_bulkSlots[si].state != SLOT_QUEUED; });
+        m_bulkSlots[si].state = SLOT_EMPTY;
+        m_bulkSlots[si].block = NO_BLOCK;
+        m_bulkDone.notify_all();
+    }
+    void bulkDrain() {
+        std::unique_lock<std::mutex> lk(m_bulkMutex);
+        for (auto& s : m_bulkSlots) {
+            m_bulkDone.wait(lk, [&s]() { return s.state != SLOT_QUEUED; });
+            s.state = SLOT_EMPTY;
+            s.block = NO_BLOCK;
+        }
+        m_bulkCurBlock = NO_BLOCK;
+    }
+    BulkSlot* bulkGetBlock(uint32_t block) {
+        uint32_t maxBlock = m_file->m_frameOffsets.size() - 1;
+        if (block >= maxBlock) {
+            return nullptr;
+        }
+        if (block == m_bulkCurBlock) {
+            return &m_bulkSlots[block % m_bulkSlots.size()]; // still held - no locking
+        }
+        if (block < m_bulkWindowStart || block > m_bulkNextDispatch) {
+            bulkDrain(); // seek outside the window: restart the pipeline here
+            m_bulkWindowStart = m_bulkNextDispatch = block;
+        }
+        while (m_bulkWindowStart < block) {
+            bulkRelease(m_bulkWindowStart);
+            m_bulkWindowStart++;
+        }
+        uint64_t limit = (uint64_t)block + m_bulkSlots.size();
+        if (limit > maxBlock) {
+            limit = maxBlock;
+        }
+        while (m_bulkNextDispatch < limit) {
+            bulkDispatch(m_bulkNextDispatch++);
+        }
+        uint32_t si = block % m_bulkSlots.size();
+        std::unique_lock<std::mutex> lk(m_bulkMutex);
+        m_bulkDone.wait(lk, [this, si, block]() { return m_bulkSlots[si].state == SLOT_DONE && m_bulkSlots[si].block == block; });
+        m_bulkCurBlock = block;
+        return &m_bulkSlots[si];
+    }
+    FrameData* getFrameBulk(uint32_t frame) {
+        // Resume from the block already in hand - a bulk caller walks the frames
+        // in order, so this is almost always either that block or the next one.
+        uint32_t block = m_bulkCurBlock;
+        if (block == NO_BLOCK || frame < m_file->m_frameOffsets[block].first) {
+            block = 0;
+        }
+        while (block + 1 < m_file->m_frameOffsets.size() && frame >= m_file->m_frameOffsets[block + 1].first) {
+            block++;
+        }
+        BulkSlot* b = bulkGetBlock(block);
+        UncompressedFrameData* data = new UncompressedFrameData(frame, m_file->m_dataBlockSize, m_file->m_rangesToRead);
+        if (b == nullptr) {
+            LogErr(VB_SEQUENCE, "Failed to get block %d for frame %d\n", (int)block, (int)frame);
+            return data;
+        }
+        uint64_t fidx = (uint64_t)(frame - b->startFrame) * m_file->getChannelCount();
+        if ((fidx + m_file->getChannelCount()) > b->outSize) {
+            LogErr(VB_SEQUENCE, "Frame %d falls outside block %d\n", (int)frame, (int)block);
+            return data;
+        }
+        const uint8_t* fdata = b->out.data();
+        if (!m_file->m_sparseRanges.empty()) {
+            memcpy(data->m_data, &fdata[fidx], m_file->getChannelCount());
+        } else {
+            uint32_t sz = 0;
+            //read the ranges into the buffer
+            for (auto& rng : data->m_ranges) {
+                if (rng.first < m_file->getChannelCount()) {
+                    uint64_t start = fidx + rng.first;
+                    memcpy(&data->m_data[sz], &fdata[start], rng.second);
+                    sz += rng.second;
+                }
+            }
+        }
+        return data;
+    }
+
     virtual FrameData *getFrame(uint32_t frame) override {
 
         if (m_file == nullptr) LogDebug(VB_SEQUENCE, " getFrame m_file unexpectantly null.\n");
+
+        if (!m_bulkConfigured) {
+            bulkConfigure();
+        }
+        if (m_bulkWorkers > 0) {
+            return getFrameBulk(frame);
+        }
 
         if (m_curBlock >= m_file->m_frameOffsets.size() || (frame < m_file->m_frameOffsets[m_curBlock].first) || (frame >= m_file->m_frameOffsets[m_curBlock + 1].first)) {
             //frame is not in the current block
@@ -1415,6 +1700,23 @@ public:
     size_t m_inFlightBytes = 0;
     std::vector<uint8_t> m_curRaw;
     std::deque<std::future<std::shared_ptr<ParallelBlock>>> m_pendingBlocks;
+
+    // Block-parallel read state (see bulkConfigure).  m_bulkWorkers == 0 selects
+    // the serial streaming path, which is what ReadPattern::Streaming - the
+    // default, and everything realtime - always gets.
+    static constexpr uint64_t BULK_INFLIGHT_BYTE_BUDGET = 256ull * 1024 * 1024;
+    bool m_bulkConfigured = false;
+    int m_bulkWorkers = 0;
+    std::vector<BulkSlot> m_bulkSlots;
+    std::vector<std::thread> m_bulkPool;
+    std::deque<uint32_t> m_bulkQueue; // slot indices waiting to be decompressed
+    std::mutex m_bulkMutex;
+    std::condition_variable m_bulkWork; // wakes the workers
+    std::condition_variable m_bulkDone; // wakes the caller
+    bool m_bulkStop = false;
+    uint32_t m_bulkNextDispatch = 0;
+    uint32_t m_bulkWindowStart = 0;
+    uint32_t m_bulkCurBlock = NO_BLOCK;
 };
 #endif
 
@@ -1872,6 +2174,13 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
             }
         }
 
+        // The block lengths read above sum to exactly the channel data, so once
+        // every block has been seen lastBlockOffset is the end of the channel
+        // data.  Anything the writer put after it (extended variable headers,
+        // embedded files) is not part of any block.
+        const bool haveBlocks = !m_frameOffsets.empty();
+        uint64_t chanDataEnd = lastBlockOffset;
+
         if (m_compressionType == CompressionType::none) {
             // Push frame offsets that cover the entire file length given the channel data is effectively a single block
             // For uncompressed blocks, maxBlocks should always be 0 and m_frameOffsets initially empty
@@ -1884,8 +2193,13 @@ V2FSEQFile::V2FSEQFile(const std::string& fn, FILE* file, const std::vector<uint
             m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(0, m_seqChanDataOffset));
         }
 
-        // Always push a final frame offset that ensures coverage of the full channel data length
-        m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(getNumFrames() + 2, this->m_seqFileSize));
+        // Push a final frame offset that terminates the last block.  Without a
+        // usable block table (uncompressed, or the corrupt-file recovery above)
+        // fall back to the file size so the last block still covers the data.
+        if (!haveBlocks || chanDataEnd > m_seqFileSize || chanDataEnd <= m_seqChanDataOffset) {
+            chanDataEnd = m_seqFileSize;
+        }
+        m_frameOffsets.push_back(std::pair<uint32_t, uint64_t>(getNumFrames() + 2, chanDataEnd));
 
         // Read sparse ranges
         // 6 byte size each (3 byte firstChannel + 3 byte length)

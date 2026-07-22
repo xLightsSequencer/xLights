@@ -24,7 +24,13 @@ ParallelJobPool::ParallelJobPool(const std::string &name) : JobPool(name) {
     }
     Start(c, c);
 }
-
+ParallelJobPool::ParallelJobPool(const std::string &name, int maxThreads) : JobPool(name) {
+    int c = std::thread::hardware_concurrency() - 1; //1 thread is the calling thread
+    if (c < 4) {
+        c = 4;
+    }
+    Start(c, std::max(c, maxThreads));
+}
 int ParallelJobPool::calcSteps(int minStep, int total) {
     if (minStep > 0) {
         int calcSteps = total / minStep;
@@ -80,14 +86,16 @@ class ParallelJob : public Job {
     const int calcSteps;
     const int blockSize;
     ParallelJobPool& _pool;
+    const std::string threadName;
 public:
     ParallelJob(int m, std::function<void(int)>& f,
                 std::atomic_int &dc,
                 std::atomic_int &it,
                 int cs,
                 int bs,
-                ParallelJobPool& pool = ParallelJobPool::POOL)
-        : max(m), func(f), doneCount(dc), iteration(it), calcSteps(cs), blockSize(bs), _pool(pool) {}
+                ParallelJobPool& pool = ParallelJobPool::POOL,
+                const std::string &tn = "")
+        : max(m), func(f), doneCount(dc), iteration(it), calcSteps(cs), blockSize(bs), _pool(pool), threadName(tn) {}
     virtual ~ParallelJob() {};
     virtual void Process() override {
         try {
@@ -114,10 +122,14 @@ public:
         }
     };
     virtual bool DeleteWhenComplete() override { return true; };
-    virtual bool SetThreadName() override { return false; }
+    virtual bool SetThreadName() override { return !threadName.empty(); }
+    virtual const std::string GetName() const override {
+        return threadName;
+    }
+    
 };
 
-void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep, ParallelJobPool *pool) {
+void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep, ParallelJobPool *pool, const std::string &tn) {
     // XL_SERIAL=1 forces every parallel_for to run serially on the calling
     // thread — a determinism diagnostic to separate parallel_for-order bugs
     // from other non-determinism sources (GPU, scheduling).
@@ -144,7 +156,7 @@ void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep
         if (blockSize < 1) blockSize = 1;
         std::list<Job*> jobs;
         for (int x = 0; x < calcSteps-1; x++) {
-            jobs.push_back(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, *pool));
+            jobs.push_back(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, *pool, tn));
         }
         pool->PushJobs(jobs);
         ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, *pool).Process();

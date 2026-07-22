@@ -87,6 +87,7 @@ void SequenceElements::Clear() {
     mChangeCount = 0;
     mMasterViewChangeCount++;
     mSequenceMedia.Clear();
+    mSequenceFaces.Clear();
     mSongStructure.Clear();
     mColorPalettes.clear();
     mCurrentView = 0;
@@ -111,15 +112,49 @@ int SequenceElements::GetMaxEffectEndTimeMS() const
 {
     int maxEndMS = 0;
 
+    auto scanElement = [&maxEndMS](Element* e) {
+        for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
+            EffectLayer* el = e->GetEffectLayer(j);
+            for (int k = 0; k < el->GetEffectCount(); k++) {
+                Effect* eff = el->GetEffect(k);
+                if (eff->GetEndTimeMS() > maxEndMS) {
+                    maxEndMS = eff->GetEndTimeMS();
+                }
+            }
+        }
+    };
+
     for (size_t i = 0; i < GetElementCount(); i++) {
         Element* e = GetElement(i);
-        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-            for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
-                EffectLayer* el = e->GetEffectLayer(j);
-                for (int k = 0; k < el->GetEffectCount(); k++) {
-                    Effect* eff = el->GetEffect(k);
-                    if (eff->GetEndTimeMS() > maxEndMS) {
-                        maxEndMS = eff->GetEndTimeMS();
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        scanElement(e);
+
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(e);
+            if (me != nullptr) {
+                for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+                    SubModelElement* sme = me->GetSubModel(s);
+                    if (sme == nullptr) {
+                        continue;
+                    }
+                    scanElement(sme);
+
+                    StrandElement* se = dynamic_cast<StrandElement*>(sme);
+                    if (se != nullptr) {
+                        for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+                            NodeLayer* nl = se->GetNodeLayer(n);
+                            if (nl == nullptr) {
+                                continue;
+                            }
+                            for (int k = 0; k < nl->GetEffectCount(); k++) {
+                                Effect* eff = nl->GetEffect(k);
+                                if (eff->GetEndTimeMS() > maxEndMS) {
+                                    maxEndMS = eff->GetEndTimeMS();
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -802,6 +837,10 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             }
         } else if (ename == "SequenceMedia") {
             mSequenceMedia.LoadFromXml(e);
+        } else if (ename == "FaceDefinitions") {
+            // relies on <SequenceMedia> preceding this section in the file so
+            // embedded image names are registered before paths are resolved
+            mSequenceFaces.LoadFromXml(e, mSequenceMedia);
         } else if (ename == "SongStructure") {
             mSongStructure.LoadFromXml(e);
         } else if (ename == "Jukebox") {
@@ -2188,6 +2227,55 @@ bool SequenceElements::GetElementsToRender(std::vector<Element *> &models) {
         return !models.empty();
     }
     return false;
+}
+
+int SequenceElements::RenameModelFaceReferences(const std::string& modelName, const std::string& oldName, const std::string& newName)
+{
+    if (oldName == newName || oldName.empty() || newName.empty()) {
+        return 0;
+    }
+    ModelElement* model = dynamic_cast<ModelElement*>(GetElement(modelName));
+    if (model == nullptr) {
+        return 0;
+    }
+
+    int count = 0;
+    auto scanLayer = [&](EffectLayer* layer) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const std::string& effName = eff->GetEffectName();
+            if (effName != "Faces" && effName != "CoroFaces") {
+                continue;
+            }
+            if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
+                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+                ++count;
+            }
+        }
+    };
+
+    for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j) {
+        scanLayer(model->GetEffectLayer(j));
+    }
+    for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
+        SubModelElement* sub = model->GetSubModel(j);
+        for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) {
+            scanLayer(sub->GetEffectLayer(l));
+        }
+        if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+            StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+            if (strand != nullptr) {
+                for (int k = 0; k < strand->GetNodeLayerCount(); ++k) {
+                    scanLayer(strand->GetNodeLayer(k));
+                }
+            }
+        }
+    }
+
+    if (count > 0) {
+        IncrementChangeCount(nullptr);
+    }
+    return count;
 }
 
 void SequenceElements::AddRenderDependency(const std::string &layer, const std::string &model) {

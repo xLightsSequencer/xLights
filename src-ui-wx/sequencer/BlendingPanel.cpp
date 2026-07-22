@@ -291,6 +291,7 @@ wxWindow* BlendingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* siz
         fadeCombo->Append(wxString(v));
     }
     fadeCombo->SetValue("0.00");
+    fadeCombo->SetBESliderType(BE_FLOAT2);
     row->Add(fadeCombo, 1, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     // Bind directly and explicitly start the save timer via FireChangeEvent.
     // AddListeners' Connect(id, wxEVT_TEXT) on the panel is supposed to

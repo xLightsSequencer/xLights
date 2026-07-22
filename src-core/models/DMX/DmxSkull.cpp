@@ -454,7 +454,6 @@ void DmxSkull::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraph
 
     xlColor ccolor(xlWHITE);
     xlColor eye_color(xlWHITE);
-    xlColor black(xlBLACK);
     xlColor base_color(200, 200, 200);
     xlColor base_color2(150, 150, 150);
     xlColor color;

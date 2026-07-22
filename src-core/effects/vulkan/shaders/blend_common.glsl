@@ -23,6 +23,7 @@ layout(push_constant) uniform PC {
     int mixTypeData;
 
     int outputSparkleCount;
+    int sparkleFrame;
     uint sparkleColor; // packed uchar4
 
     uint isChromaKey;

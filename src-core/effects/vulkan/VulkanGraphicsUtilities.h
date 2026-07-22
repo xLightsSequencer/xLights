@@ -144,7 +144,9 @@ private:
     VkImage dummyImage_ = VK_NULL_HANDLE;
     VmaAllocation dummyAlloc_ = VK_NULL_HANDLE;
     VkImageView dummyView_ = VK_NULL_HANDLE;
+    std::once_flag shaderInfraOnce_;
     void ensureShaderInfra();
+    void doInitShaderInfra();
     bool ensureDescriptor(VulkanGraphicsTarget& t);
 };
 

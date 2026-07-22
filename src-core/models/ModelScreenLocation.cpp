@@ -190,7 +190,13 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
 
 // This function is used when the render size needs to be adjusted after a mesh is loaded during model creation
 void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp) {
-    if ((NewWi != RenderWi || NewHt != RenderHt || NewDp != RenderDp) && NewWi != 1.0f) {
+    // RenderWi/Ht/Dp all still at their construction default of 0.0f means
+    // this is the first time real mesh geometry is being synced in (e.g.
+    // right after load from XML) rather than an actual resize (e.g. the
+    // user swapping in a differently-sized obj file). Resetting scale here
+    // would silently discard a ScaleX/Y/Z loaded from the model's XML.
+    bool firstEstablish = (RenderWi == 0.0f && RenderHt == 0.0f && RenderDp == 0.0f);
+    if (!firstEstablish && (NewWi != RenderWi || NewHt != RenderHt || NewDp != RenderDp) && NewWi != 1.0f) {
         RenderHt = NewHt;
         RenderWi = NewWi;
         RenderDp = NewDp;

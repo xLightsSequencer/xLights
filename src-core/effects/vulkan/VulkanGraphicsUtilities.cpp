@@ -253,20 +253,39 @@ void VulkanGraphicsUtilities::destroyTarget(VulkanGraphicsTarget& t) {
 bool VulkanGraphicsUtilities::ensureTarget(VulkanGraphicsTarget& t, uint32_t w, uint32_t h) {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     if (t.pool == VK_NULL_HANDLE) {
+        // Every exit here must leave pool/cb/fence all-or-nothing.  Returning
+        // with the pool set but cb still VK_NULL_HANDLE would make the next call
+        // skip this block and record into a null command buffer, which faults
+        // inside the driver rather than failing cleanly.
         VkCommandPoolCreateInfo pci = {};
         pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         pci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         pci.queueFamilyIndex = u.graphicsQueueFamilyIndex;
-        if (vkCreateCommandPool(u.device, &pci, nullptr, &t.pool) != VK_SUCCESS) return false;
+        if (vkCreateCommandPool(u.device, &pci, nullptr, &t.pool) != VK_SUCCESS) {
+            t.pool = VK_NULL_HANDLE;
+            return false;
+        }
         VkCommandBufferAllocateInfo ai = {};
         ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         ai.commandPool = t.pool;
         ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         ai.commandBufferCount = 1;
-        if (vkAllocateCommandBuffers(u.device, &ai, &t.cb) != VK_SUCCESS) return false;
+        if (vkAllocateCommandBuffers(u.device, &ai, &t.cb) != VK_SUCCESS || t.cb == VK_NULL_HANDLE) {
+            vkDestroyCommandPool(u.device, t.pool, nullptr);
+            t.pool = VK_NULL_HANDLE;
+            t.cb = VK_NULL_HANDLE;
+            spdlog::error("Vulkan graphics: command buffer allocation failed; this Shader frame falls back");
+            return false;
+        }
         VkFenceCreateInfo fci = {};
         fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        if (vkCreateFence(u.device, &fci, nullptr, &t.fence) != VK_SUCCESS) return false;
+        if (vkCreateFence(u.device, &fci, nullptr, &t.fence) != VK_SUCCESS) {
+            vkDestroyCommandPool(u.device, t.pool, nullptr);
+            t.pool = VK_NULL_HANDLE;
+            t.cb = VK_NULL_HANDLE;
+            t.fence = VK_NULL_HANDLE;
+            return false;
+        }
     }
     if (t.image != VK_NULL_HANDLE && t.width == w && t.height == h) {
         return true;
@@ -332,11 +351,16 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
                                          VkPipeline pipeline, VkPipelineLayout layout,
                                          const void* pushData, uint32_t pushBytes, VkDescriptorSet descSet) {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    if (target.cb == VK_NULL_HANDLE || target.framebuffer == VK_NULL_HANDLE) {
+        return false;
+    }
     vkResetCommandPool(u.device, target.pool, 0);
     VkCommandBufferBeginInfo bi = {};
     bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    vkBeginCommandBuffer(target.cb, &bi);
+    if (vkBeginCommandBuffer(target.cb, &bi) != VK_SUCCESS) {
+        return false;
+    }
 
     VkClearValue clear = {};
     clear.color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
@@ -381,7 +405,9 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
     vkCmdPipelineBarrier(target.cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT,
                          0, 0, nullptr, 1, &bmb, 0, nullptr);
 
-    vkEndCommandBuffer(target.cb);
+    if (vkEndCommandBuffer(target.cb) != VK_SUCCESS) {
+        return false;
+    }
 
     VkSubmitInfo si = {};
     si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -392,7 +418,11 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
         std::lock_guard<std::mutex> lock(m);
         if (vkQueueSubmit(u.graphicsQueue, 1, &si, target.fence) != VK_SUCCESS) return false;
     }
-    vkWaitForFences(u.device, 1, &target.fence, VK_TRUE, UINT64_MAX);
+    // Callers read target.readback straight after this returns true, so a failed
+    // wait (device lost) must not be reported as a completed render.
+    if (vkWaitForFences(u.device, 1, &target.fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) {
+        return false;
+    }
     vkResetFences(u.device, 1, &target.fence);
     return true;
 }
@@ -420,7 +450,16 @@ bool VulkanGraphicsUtilities::renderToBuffer(RenderBuffer& buffer, VkPipeline pi
 }
 
 void VulkanGraphicsUtilities::ensureShaderInfra() {
-    if (shaderPipelineLayout_ != VK_NULL_HANDLE) return;
+    // Called from renderShader()/prepareInputImage() on every RenderPool worker
+    // thread rendering a Shader effect; a bare "already inited" check here raced
+    // multiple threads into concurrently creating/overwriting the shared
+    // descriptor layout/sampler/dummy image, leaving another thread's in-flight
+    // descriptor write referencing a torn or dangling handle (crash deep in the
+    // driver). call_once makes the lazy init actually one-time.
+    std::call_once(shaderInfraOnce_, [this]() { doInitShaderInfra(); });
+}
+
+void VulkanGraphicsUtilities::doInitShaderInfra() {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
 
     VkDescriptorSetLayoutBinding b[2] = {};
@@ -433,8 +472,16 @@ void VulkanGraphicsUtilities::ensureShaderInfra() {
     slci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     slci.bindingCount = 2;
     slci.pBindings = b;
-    if (vkCreateDescriptorSetLayout(u.device, &slci, nullptr, &shaderSetLayout_) != VK_SUCCESS) return;
+    if (vkCreateDescriptorSetLayout(u.device, &slci, nullptr, &shaderSetLayout_) != VK_SUCCESS) {
+        shaderSetLayout_ = VK_NULL_HANDLE;
+        spdlog::error("Vulkan graphics: vkCreateDescriptorSetLayout failed; Shader effect stays on CPU/GL");
+        return;
+    }
     shaderPipelineLayout_ = createPipelineLayout(0, shaderSetLayout_);
+    if (shaderPipelineLayout_ == VK_NULL_HANDLE) {
+        spdlog::error("Vulkan graphics: shader pipeline layout failed; Shader effect stays on CPU/GL");
+        return;
+    }
 
     VkSamplerCreateInfo sci = {};
     sci.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -442,7 +489,11 @@ void VulkanGraphicsUtilities::ensureShaderInfra() {
     sci.minFilter = VK_FILTER_LINEAR;
     sci.addressModeU = sci.addressModeV = sci.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     sci.maxLod = VK_LOD_CLAMP_NONE;
-    vkCreateSampler(u.device, &sci, nullptr, &sampler_);
+    if (vkCreateSampler(u.device, &sci, nullptr, &sampler_) != VK_SUCCESS) {
+        sampler_ = VK_NULL_HANDLE;
+        spdlog::error("Vulkan graphics: vkCreateSampler failed; Shader effect stays on CPU/GL");
+        return;
+    }
 
     // 1x1 dummy sampled image (contents irrelevant — only bound when a shader
     // declares no input sampler; just needs a valid SHADER_READ_ONLY layout).
@@ -458,52 +509,97 @@ void VulkanGraphicsUtilities::ensureShaderInfra() {
     ici.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VmaAllocationCreateInfo aci = {};
     aci.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-    if (vmaCreateImage(u.allocator, &ici, &aci, &dummyImage_, &dummyAlloc_, nullptr) == VK_SUCCESS) {
-        VkImageViewCreateInfo vci = {};
-        vci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        vci.image = dummyImage_;
-        vci.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        vci.format = kTargetFormat;
-        vci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        vci.subresourceRange.levelCount = 1;
-        vci.subresourceRange.layerCount = 1;
-        vkCreateImageView(u.device, &vci, nullptr, &dummyView_);
-        // One-time layout transition UNDEFINED -> SHADER_READ_ONLY_OPTIMAL.
-        VkCommandPoolCreateInfo pci = {};
-        pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        pci.queueFamilyIndex = u.graphicsQueueFamilyIndex;
-        VkCommandPool pool = VK_NULL_HANDLE;
-        vkCreateCommandPool(u.device, &pci, nullptr, &pool);
-        VkCommandBufferAllocateInfo cbi = {};
-        cbi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        cbi.commandPool = pool; cbi.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; cbi.commandBufferCount = 1;
-        VkCommandBuffer cb = VK_NULL_HANDLE;
-        vkAllocateCommandBuffers(u.device, &cbi, &cb);
-        VkCommandBufferBeginInfo bi = {};
-        bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        vkBeginCommandBuffer(cb, &bi);
-        VkImageMemoryBarrier imb = {};
-        imb.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        imb.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imb.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imb.srcQueueFamilyIndex = imb.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        imb.image = dummyImage_;
-        imb.subresourceRange = vci.subresourceRange;
-        imb.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                             0, 0, nullptr, 0, nullptr, 1, &imb);
-        vkEndCommandBuffer(cb);
-        VkSubmitInfo si = {};
-        si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        si.commandBufferCount = 1; si.pCommandBuffers = &cb;
-        {
-            std::mutex& m = u.graphicsSubmitMutex();
-            std::lock_guard<std::mutex> lock(m);
-            vkQueueSubmit(u.graphicsQueue, 1, &si, VK_NULL_HANDLE);
-            vkQueueWaitIdle(u.graphicsQueue);
+    if (vmaCreateImage(u.allocator, &ici, &aci, &dummyImage_, &dummyAlloc_, nullptr) != VK_SUCCESS) {
+        dummyImage_ = VK_NULL_HANDLE;
+        dummyAlloc_ = VK_NULL_HANDLE;
+        spdlog::error("Vulkan graphics: dummy image allocation failed; input-less shaders stay on CPU/GL");
+        return;
+    }
+
+    // A dummy that never reaches SHADER_READ_ONLY_OPTIMAL must not be bound, so
+    // any failure below drops it entirely rather than leaving a half-built one:
+    // renderShader then refuses only the shaders that need it.
+    auto dropDummy = [&](const char* why) {
+        spdlog::error("Vulkan graphics: {}; input-less shaders stay on CPU/GL", why);
+        if (dummyView_ != VK_NULL_HANDLE) {
+            vkDestroyImageView(u.device, dummyView_, nullptr);
+            dummyView_ = VK_NULL_HANDLE;
         }
+        vmaDestroyImage(u.allocator, dummyImage_, dummyAlloc_);
+        dummyImage_ = VK_NULL_HANDLE;
+        dummyAlloc_ = VK_NULL_HANDLE;
+    };
+
+    VkImageViewCreateInfo vci = {};
+    vci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    vci.image = dummyImage_;
+    vci.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    vci.format = kTargetFormat;
+    vci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    vci.subresourceRange.levelCount = 1;
+    vci.subresourceRange.layerCount = 1;
+    if (vkCreateImageView(u.device, &vci, nullptr, &dummyView_) != VK_SUCCESS) {
+        dummyView_ = VK_NULL_HANDLE;
+        dropDummy("dummy image view failed");
+        return;
+    }
+
+    // One-time layout transition UNDEFINED -> SHADER_READ_ONLY_OPTIMAL.
+    VkCommandPoolCreateInfo pci = {};
+    pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pci.queueFamilyIndex = u.graphicsQueueFamilyIndex;
+    VkCommandPool pool = VK_NULL_HANDLE;
+    if (vkCreateCommandPool(u.device, &pci, nullptr, &pool) != VK_SUCCESS) {
+        dropDummy("dummy transition command pool failed");
+        return;
+    }
+    VkCommandBufferAllocateInfo cbi = {};
+    cbi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cbi.commandPool = pool; cbi.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; cbi.commandBufferCount = 1;
+    VkCommandBuffer cb = VK_NULL_HANDLE;
+    if (vkAllocateCommandBuffers(u.device, &cbi, &cb) != VK_SUCCESS || cb == VK_NULL_HANDLE) {
         vkDestroyCommandPool(u.device, pool, nullptr);
+        dropDummy("dummy transition command buffer failed");
+        return;
+    }
+    VkCommandBufferBeginInfo bi = {};
+    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkBeginCommandBuffer(cb, &bi) != VK_SUCCESS) {
+        vkDestroyCommandPool(u.device, pool, nullptr);
+        dropDummy("dummy transition begin failed");
+        return;
+    }
+    VkImageMemoryBarrier imb = {};
+    imb.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imb.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imb.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imb.srcQueueFamilyIndex = imb.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imb.image = dummyImage_;
+    imb.subresourceRange = vci.subresourceRange;
+    imb.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    vkCmdPipelineBarrier(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                         0, 0, nullptr, 0, nullptr, 1, &imb);
+    if (vkEndCommandBuffer(cb) != VK_SUCCESS) {
+        vkDestroyCommandPool(u.device, pool, nullptr);
+        dropDummy("dummy transition record failed");
+        return;
+    }
+    VkSubmitInfo si = {};
+    si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    si.commandBufferCount = 1; si.pCommandBuffers = &cb;
+    VkResult sr;
+    {
+        std::mutex& m = u.graphicsSubmitMutex();
+        std::lock_guard<std::mutex> lock(m);
+        sr = vkQueueSubmit(u.graphicsQueue, 1, &si, VK_NULL_HANDLE);
+        if (sr == VK_SUCCESS) {
+            sr = vkQueueWaitIdle(u.graphicsQueue);
+        }
+    }
+    vkDestroyCommandPool(u.device, pool, nullptr);
+    if (sr != VK_SUCCESS) {
+        dropDummy("dummy transition submit failed");
     }
 }
 
@@ -532,9 +628,16 @@ VkPipelineLayout VulkanGraphicsUtilities::shaderPipelineLayout() { ensureShaderI
 
 bool VulkanGraphicsUtilities::renderShader(RenderBuffer& buffer, VkPipeline pipeline, VkBuffer ubo, VkImageView inputView) {
     ensureInit();
-    if (!ok_ || pipeline == VK_NULL_HANDLE) return false;
+    if (!ok_ || pipeline == VK_NULL_HANDLE || ubo == VK_NULL_HANDLE) return false;
     ensureShaderInfra();
-    if (shaderSetLayout_ == VK_NULL_HANDLE) return false;
+    if (shaderSetLayout_ == VK_NULL_HANDLE || shaderPipelineLayout_ == VK_NULL_HANDLE ||
+        sampler_ == VK_NULL_HANDLE) {
+        return false;
+    }
+    // The dummy is dropped when its layout transition could not be completed, so
+    // a shader with no input of its own has nothing valid to sample.
+    const VkImageView view = (inputView != VK_NULL_HANDLE) ? inputView : dummyView_;
+    if (view == VK_NULL_HANDLE) return false;
     const uint32_t w = (uint32_t)buffer.BufferWi;
     const uint32_t h = (uint32_t)buffer.BufferHt;
     uint8_t* dst = (uint8_t*)buffer.GetPixels();
@@ -546,7 +649,7 @@ bool VulkanGraphicsUtilities::renderShader(RenderBuffer& buffer, VkPipeline pipe
     VkDescriptorBufferInfo dbi = { ubo, 0, VK_WHOLE_SIZE };
     VkDescriptorImageInfo dii = {};
     dii.sampler = sampler_;
-    dii.imageView = (inputView != VK_NULL_HANDLE) ? inputView : dummyView_;
+    dii.imageView = view;
     dii.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VkWriteDescriptorSet w2[2] = {};
     w2[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -588,18 +691,30 @@ VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, V
     static thread_local InputImg t;
 
     if (t.pool == VK_NULL_HANDLE) {
+        // All-or-nothing, as in ensureTarget: a pool left set alongside a null cb
+        // makes every later call skip this block and record into that null cb.
         VkCommandPoolCreateInfo pci = {};
         pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         pci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         pci.queueFamilyIndex = u.graphicsQueueFamilyIndex;
-        if (vkCreateCommandPool(u.device, &pci, nullptr, &t.pool) != VK_SUCCESS) return VK_NULL_HANDLE;
+        if (vkCreateCommandPool(u.device, &pci, nullptr, &t.pool) != VK_SUCCESS) {
+            t.pool = VK_NULL_HANDLE;
+            return VK_NULL_HANDLE;
+        }
         VkCommandBufferAllocateInfo ai = {};
         ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         ai.commandPool = t.pool; ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; ai.commandBufferCount = 1;
-        vkAllocateCommandBuffers(u.device, &ai, &t.cb);
         VkFenceCreateInfo fci = {};
         fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        vkCreateFence(u.device, &fci, nullptr, &t.fence);
+        if (vkAllocateCommandBuffers(u.device, &ai, &t.cb) != VK_SUCCESS || t.cb == VK_NULL_HANDLE ||
+            vkCreateFence(u.device, &fci, nullptr, &t.fence) != VK_SUCCESS) {
+            vkDestroyCommandPool(u.device, t.pool, nullptr);
+            t.pool = VK_NULL_HANDLE;
+            t.cb = VK_NULL_HANDLE;
+            t.fence = VK_NULL_HANDLE;
+            spdlog::error("Vulkan graphics: shader input command buffer allocation failed; this frame falls back");
+            return VK_NULL_HANDLE;
+        }
     }
     if (t.image == VK_NULL_HANDLE || t.w != w || t.h != h || t.fmt != format) {
         if (t.view) vkDestroyImageView(u.device, t.view, nullptr);
@@ -619,6 +734,7 @@ VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, V
         aci.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
         if (vmaCreateImage(u.allocator, &ici, &aci, &t.image, &t.alloc, nullptr) != VK_SUCCESS) {
             t.image = VK_NULL_HANDLE;
+            t.alloc = VK_NULL_HANDLE;
             return VK_NULL_HANDLE;
         }
         VkImageViewCreateInfo vci = {};
@@ -629,7 +745,16 @@ VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, V
         vci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         vci.subresourceRange.levelCount = 1;
         vci.subresourceRange.layerCount = 1;
-        vkCreateImageView(u.device, &vci, nullptr, &t.view);
+        if (vkCreateImageView(u.device, &vci, nullptr, &t.view) != VK_SUCCESS) {
+            // Leaving t.image set with a null view would strand every later call
+            // on this thread: the size check below would pass and we would return
+            // VK_NULL_HANDLE forever.  Drop it so the next frame rebuilds.
+            vmaDestroyImage(u.allocator, t.image, t.alloc);
+            t.view = VK_NULL_HANDLE;
+            t.image = VK_NULL_HANDLE;
+            t.alloc = VK_NULL_HANDLE;
+            return VK_NULL_HANDLE;
+        }
         t.w = w; t.h = h; t.fmt = format;
     }
     if (!t.staging || t.staging.size < byteSize) {
@@ -642,7 +767,9 @@ VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, V
     VkCommandBufferBeginInfo bi = {};
     bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    vkBeginCommandBuffer(t.cb, &bi);
+    if (vkBeginCommandBuffer(t.cb, &bi) != VK_SUCCESS) {
+        return VK_NULL_HANDLE;
+    }
 
     VkImageSubresourceRange range = {};
     range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -667,7 +794,9 @@ VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, V
     barrier(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-    vkEndCommandBuffer(t.cb);
+    if (vkEndCommandBuffer(t.cb) != VK_SUCCESS) {
+        return VK_NULL_HANDLE;
+    }
 
     VkSubmitInfo si = {};
     si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -677,7 +806,11 @@ VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, V
         std::lock_guard<std::mutex> lock(m);
         if (vkQueueSubmit(u.graphicsQueue, 1, &si, t.fence) != VK_SUCCESS) return VK_NULL_HANDLE;
     }
-    vkWaitForFences(u.device, 1, &t.fence, VK_TRUE, UINT64_MAX);
+    // The upload must have landed before the view is handed to a sampler; a lost
+    // device makes the wait fail rather than block, so don't return the view.
+    if (vkWaitForFences(u.device, 1, &t.fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) {
+        return VK_NULL_HANDLE;
+    }
     vkResetFences(u.device, 1, &t.fence);
     return t.view;
 }

@@ -125,6 +125,15 @@ class SequencePackage {
 
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
+        // Returns true when the definition resolved at the sequence level in
+        // the source (imported or already present) - callers then skip the
+        // model-level ImportFaceInfo path.
+        bool ImportSequenceFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
+        // Does the source rgbeffects define a face on srcModelName? Empty
+        // faceName = any face. Model definitions win over sequence-level
+        // ones, so importers must defer when this is true. Returns false
+        // when no source rgbeffects is available (best effort).
+        bool SourceModelHasFace(const std::string& srcModelName, const std::string& faceName);
         std::filesystem::path CopyMediaToTarget(const std::string& targetFolder, const std::filesystem::path& mediaToCopy);
         std::filesystem::path FindAndCopyAudio(const std::filesystem::path& targetDir);
         // Returns pairs of (shortname, copied_path) for alt tracks found in the package.

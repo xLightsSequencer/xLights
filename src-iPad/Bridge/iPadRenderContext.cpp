@@ -141,15 +141,12 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     // crash reports as ~ModelManager racing PixelBuffer::SetColors /
     // Node::GetForChannels). Safe to block here: loadShowFolder runs on a
     // detached background task, never the main actor, so the wait can't trip
-    // the watchdog. Mirrors the abort+drain CloseSequence already does.
-    if (_renderEngine) {
-        _renderEngine->SignalAbort();
-        auto deadline = std::chrono::steady_clock::now()
-                      + std::chrono::seconds(5);
-        while (!IsRenderDone()
-               && std::chrono::steady_clock::now() < deadline) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
+    // the watchdog. The abort is best-effort — on timeout the workers still
+    // hold Model* references, so keep the current show loaded rather than free
+    // the models under them.
+    if (!AbortRender(5000)) {
+        spdlog::error("iPadRenderContext: could not abort in-flight render; keeping the current show folder rather than freeing models under a live render job");
+        return false;
     }
 
     showDirectory = showDir;
@@ -973,7 +970,7 @@ bool iPadRenderContext::SaveLayoutChanges() {
                     case DisplayAsType::Mesh: {
                         auto* m = dynamic_cast<MeshObject*>(vo);
                         if (m) {
-                            setAttr("ObjFile",    m->GetObjFile());
+                            setAttr("ObjFile",    FileUtils::MakeRelativeFileOrOriginal(m->GetObjFile()));
                             setInt ("Brightness", m->GetBrightness());
                             setAttr("MeshOnly",   m->IsMeshOnly() ? "1" : "0");
                         }
@@ -982,7 +979,7 @@ bool iPadRenderContext::SaveLayoutChanges() {
                     case DisplayAsType::Image: {
                         auto* i = dynamic_cast<ImageObject*>(vo);
                         if (i) {
-                            setAttr("Image",        i->GetImageFile());
+                            setAttr("Image",        FileUtils::MakeRelativeFileOrOriginal(i->GetImageFile()));
                             setInt ("Brightness",   i->GetBrightness());
                             setInt ("Transparency", i->GetTransparency());
                         }
@@ -1003,7 +1000,7 @@ bool iPadRenderContext::SaveLayoutChanges() {
                     case DisplayAsType::Terrain: {
                         auto* t = dynamic_cast<TerrainObject*>(vo);
                         if (t) {
-                            setAttr("Image",              t->GetImageFile());
+                            setAttr("Image",              FileUtils::MakeRelativeFileOrOriginal(t->GetImageFile()));
                             setInt ("Brightness",         (int)t->GetBrightness());
                             setInt ("Transparency",       t->GetTransparency());
                             // Desktop typo: "Terrian" not "Terrain"
@@ -2515,6 +2512,9 @@ bool iPadRenderContext::TryLoadFseq(const std::string& fseqPath,
     // bytes that are actually stored. `readFrame` then uses the same range
     // list to scatter each compressed-frame chunk back to its absolute
     // channel offset in `_seqData`.
+    // _seqData is already sized for the whole sequence and every frame is read
+    // in order below, so the reader can decompress blocks ahead in parallel.
+    file->setReadPattern(FSEQFile::ReadPattern::Bulk);
     file->prepareRead(expectedRanges, 0);
 
     const uint32_t maxChan = static_cast<uint32_t>(_seqData.NumChannels());

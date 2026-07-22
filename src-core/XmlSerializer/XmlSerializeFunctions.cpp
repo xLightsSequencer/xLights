@@ -532,5 +532,27 @@ void AddDimensions(pugi::xml_node node, const Model* m) {
     }
 }
 
+static void AbsolutizeFileAttribute(pugi::xml_node node, const char* attrName, const std::string& baseDir) {
+    pugi::xml_attribute attr = node.attribute(attrName);
+    if (!attr) return;
+    std::string value = attr.as_string();
+    if (value.empty() || FileUtils::IsAbsoluteOrRootedPath(value)) return;
+    std::replace(value.begin(), value.end(), '\\', '/');
+    attr.set_value((baseDir + "/" + value).c_str());
+}
+
+void AbsolutizeFileReferences(pugi::xml_node node, const std::string& baseDir) {
+    if (!node || baseDir.empty()) return;
+
+    std::string base = baseDir;
+    while (!base.empty() && (base.back() == '/' || base.back() == '\\')) base.pop_back();
+    if (base.empty()) return;
+
+    AbsolutizeFileAttribute(node, XmlNodeKeys::ObjFileAttribute, base);
+    AbsolutizeFileAttribute(node, XmlNodeKeys::ImageAttribute, base);
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        AbsolutizeFileReferences(child, base);
+    }
+}
 
 } // end namespace XmlSerialize

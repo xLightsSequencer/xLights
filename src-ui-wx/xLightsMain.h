@@ -640,6 +640,15 @@ public:
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
     void OnMenuItemHinksPixExportSelected(wxCommandEvent& event);
     void OnMenuItemPreferencesSelected(wxCommandEvent& event);
+    void ShowPreferencesDialog(const wxString& initialPage = wxEmptyString);
+    void OnEffectsToolBarContextMenu(wxContextMenuEvent& event);
+    void OnButtonDiscoverClick(wxCommandEvent& event);
+    void OnButtonDeleteAllControllersClick(wxCommandEvent& event);
+    void OnButtonVisualiseClick(wxCommandEvent& event);
+    void OnButtonUploadInputClick(wxCommandEvent& event);
+    void OnButtonUploadOutputClick(wxCommandEvent& event);
+    void OnButtonOpenClick(wxCommandEvent& event);
+    void OnButtonControllerDeleteClick(wxCommandEvent& event);
     void OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event);
     void OnMenuItem_KeyBindingsSelected(wxCommandEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
@@ -1188,6 +1197,9 @@ public:
     int ToolIconSize() const { return mIconSize; }
     void SetToolIconSize(int size);
 
+    const std::vector<std::pair<std::string, bool>>& GetEffectsToolbarLayout() const { return _effectsToolbarLayout; }
+    void SetEffectsToolbarLayout(std::vector<std::pair<std::string, bool>> layout);
+
     bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
     bool SnapToTimingMarks() const { return _snapToTimingMarks; }
     void SetSnapToTimingMarks(bool b);
@@ -1533,6 +1545,7 @@ public:
     bool IsDrawRamps();
 
     void EnableSequenceControls(bool enable);
+    void EnableEffectsToolbar();
 
     // Song Structure Region export
     std::string DoExportSongRegion(int startMS, int endMS, const std::string& regionLabel, const wxString& outputPath);
@@ -1568,6 +1581,8 @@ public:
 
     void SetXmlSetting(const std::string& settingName, const std::string& value);
     std::string GetXmlSetting(const std::string& settingName, const std::string& defaultValue) const;
+    bool NeedsBaseRgbEffectsUpdate() const;
+    void MarkBaseRgbEffectsSynced();
     uint32_t GetMaxNumChannels();
 
     void UpdateSequenceVideoPanel( const wxString& path );
@@ -1608,7 +1623,9 @@ public:
 
     SequenceViewManager* GetViewsManager() { return &_sequenceViewManager; }
     EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
-    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "");
+    // skipFseqData: caller is about to re-render every frame, so don't pay to read
+    // the existing fseq. Ignored for canvas-mode sequences, which augment it.
+    void OpenSequence(const wxString &passed_filename, ConvertLogDialog* plog, const wxString &realPath = "", bool skipFseqData = false);
     void OpenSequence(const wxString& passed_filename) {
      OpenSequence(passed_filename, nullptr);
     }
@@ -1647,7 +1664,15 @@ private:
     bool mSuppressFadeHints = false;
     bool mSuppressColorWarn = false;
     wxString mAltBackupDir;
-    int mIconSize;
+    int mIconSize = 16;
+    // Ordered (effect name, visible) list backing the Effects toolbar - see
+    // preferences/ToolbarLayout.h. Populated at startup from GetXLightsConfig(),
+    // written back only in ~xLightsFrame() (matches how mIconSize etc. persist).
+    std::vector<std::pair<std::string, bool>> _effectsToolbarLayout;
+    void RebuildEffectsToolbar();
+    // Last value passed to EnableSequenceControls, so a toolbar rebuilt outside
+    // that call can still apply the right enable state to its new buttons.
+    bool _sequenceControlsEnabled = false;
     int mGridSpacing;
     bool mGridIconBackgrounds;
     bool mShowAlternateTimingFormat = false;
