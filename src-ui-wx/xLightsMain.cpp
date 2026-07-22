@@ -1618,6 +1618,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         }
         _effectsToolbarLayout = LoadToolbarLayout(GetXLightsConfig(), "EffectsToolbarLayout", allEffectNames);
     }
+    //make sure we read the mIconSize before rebuilding the toolbar
+    config->Read("xLightsIconSize", &mIconSize, 16);
     RebuildEffectsToolbar();
 
     wxToolTip::SetAutoPop(20000); // globally set tooltips stay on screen for a long time - may not work on all platforms per wxWidgets documentation

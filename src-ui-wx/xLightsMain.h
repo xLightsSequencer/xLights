@@ -1764,7 +1764,7 @@ private:
     bool mSuppressFadeHints = false;
     bool mSuppressColorWarn = false;
     wxString mAltBackupDir;
-    int mIconSize;
+    int mIconSize = 16;
     // Ordered (effect name, visible) list backing the Effects toolbar - see
     // preferences/ToolbarLayout.h. Populated at startup from GetXLightsConfig(),
     // written back only in ~xLightsFrame() (matches how mIconSize etc. persist).
