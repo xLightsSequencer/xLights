@@ -388,7 +388,9 @@ void ControllerListPanel::UpdateControllerList() {
             // model — the cost scales with how many controllers the user left
             // expanded, hence the timing below.
             PopulatePorts(item);
-            _tree->Expand(item);
+            if (_tree->GetFirstChild(item).IsOk()) {
+                _tree->Expand(item);
+            }
         }
         if (std::find(selections.begin(), selections.end(), it->GetName()) != selections.end()) {
             _tree->Select(item);
@@ -404,7 +406,15 @@ void ControllerListPanel::UpdateControllerList() {
 }
 
 void ControllerListPanel::OnItemExpanding(wxTreeListEvent& event) {
-    PopulatePorts(event.GetItem());
+    wxTreeListItem item = event.GetItem();
+    PopulatePorts(item);
+    if (!_tree->GetFirstChild(item).IsOk()) {
+        // No ports were added (controller has no configured/populated ports) -
+        // there's nothing to expand into, and the placeholder that made the
+        // item look expandable is gone, so cancel the expand rather than
+        // letting the tree try to expand a now-childless item.
+        event.Veto();
+    }
 }
 
 void ControllerListPanel::PopulatePorts(wxTreeListItem ctrlItem) {
