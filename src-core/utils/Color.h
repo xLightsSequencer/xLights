@@ -35,19 +35,6 @@ public:
     float value;
 };
 
-class HSLValue
-{
-public:
-    HSLValue(double h=0.0, double s=0.0, double l=0.0)
-        : hue(h), saturation(s), lightness(l) {}
-    HSLValue(const xlColor &c);
-    HSLValue& operator=(const xlColor& hsl);
-
-    double hue;
-    double saturation;
-    double lightness;
-};
-
 class xlColor {
 public:
     uint8_t red;
@@ -163,11 +150,6 @@ public:
         return *this;
     }
 
-    xlColor&operator=(const HSLValue& hsl) {
-        fromHSL(hsl);
-        return *this;
-    }
-
     HSVValue asHSV() const {
         HSVValue v;
         toHSV(v);
@@ -175,30 +157,6 @@ public:
     }
     void fromHSV(const HSVValue &v);
     void toHSV(HSVValue &v) const;
-
-    HSLValue asHSL() const {
-        HSLValue v;
-        toHSL(v);
-        return v;
-    }
-    void fromHSL(const HSLValue &v);
-    void toHSL(HSLValue &v) const;
-
-    xlColor ContrastColourNotBlack() const
-    {
-        xlColor c;
-        HSLValue hsl = asHSL();
-        hsl.hue += 0.5;
-        if (hsl.hue > 1.0)
-            hsl.hue -= 1.0;
-
-        if (hsl.lightness > 0.8 || hsl.lightness < 0.2)
-            hsl.lightness = 0.5;
-
-        c.fromHSL(hsl);
-
-        return c;
-    }
 
     static xlColor NilColor()
     {
