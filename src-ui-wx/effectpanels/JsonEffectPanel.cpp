@@ -1288,6 +1288,13 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 combo->Append(wxString(item));
             }
             combo->SetValue(wxString(defaultVal));
+            if (type == "float") {
+                switch (divisor) {
+                    case 100: combo->SetBESliderType(BE_FLOAT2); break;
+                    case 360: combo->SetBESliderType(BE_FLOAT360); break;
+                    default: combo->SetBESliderType(BE_FLOAT1); break;
+                }
+            }
             info.comboBox = combo;
             sizer->Add(combo, 1, wxALL | wxEXPAND, 2);
         } else {
@@ -2061,7 +2068,15 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
 
     if (m != nullptr) {
         populateFromDefinitions("states", m->GetStateInfo());
-        populateFromDefinitions("faces", m->GetFaceInfo());
+
+        // sequence-level face definitions are usable by any model; model
+        // definitions win on a name clash (map::insert keeps existing keys)
+        FaceStateData faceDefs = m->GetFaceInfo();
+        if (mSequenceElements != nullptr) {
+            const auto& seqFaces = mSequenceElements->GetSequenceFaces().GetFaces();
+            faceDefs.insert(seqFaces.begin(), seqFaces.end());
+        }
+        populateFromDefinitions("faces", faceDefs);
 
         // Populate any choice that wants the model's per-channel node names
         // (e.g. Servo's Channel selector). Skips empty / "-"-prefixed names

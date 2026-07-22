@@ -21,6 +21,10 @@ class PicturesEffect : public RenderableEffect
         virtual ~PicturesEffect();
         virtual bool CanBeRandom() override {return false;}
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
+        // Pure: buffer.randInt()/rand01() reseed per frame from a stable hash of
+        // (model, layer, effect-start, period), so the serial RNG reproduces in
+        // strided/parallel render order - a pure function of the frame.
+        virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
         static void Render(RenderBuffer &buffer,
                            const std::string & dirstr, const std::string &NewPictureName2,
                            float movementSpeed, float frameRateAdj,

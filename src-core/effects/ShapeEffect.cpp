@@ -413,12 +413,12 @@ public:
         }
     }
 
-    void AddShape(xlPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement, bool holdColour, int colourIndex)
+    void AddShape(RenderBuffer& buffer, xlPoint centre, float size, xlColor color, int oset, int shape, int angle, int speed, bool randomMovement, bool holdColour, int colourIndex)
     {
         if (randomMovement)
         {
-            speed = rand01() * (ShapeEffect::sVelocityMax - ShapeEffect::sVelocityMin) - ShapeEffect::sVelocityMin;
-            angle = rand01() * (ShapeEffect::sDirectionMax - ShapeEffect::sDirectionMin) - ShapeEffect::sDirectionMin;
+            speed = buffer.rand01() * (ShapeEffect::sVelocityMax - ShapeEffect::sVelocityMin) - ShapeEffect::sVelocityMin;
+            angle = buffer.rand01() * (ShapeEffect::sDirectionMax - ShapeEffect::sDirectionMin) - ShapeEffect::sDirectionMin;
         }
         _shapes.push_back(new ShapeData(centre, size, oset, color, shape, angle, speed, holdColour, colourIndex));
     }
@@ -461,7 +461,7 @@ public:
     }
 };
 
-int ShapeEffect::DecodeShape(const std::string& shape)
+int ShapeEffect::DecodeShape(RenderBuffer& buffer, const std::string& shape)
 {
     if (shape == "Circle") {
         return RENDER_SHAPE_CIRCLE;
@@ -499,7 +499,7 @@ int ShapeEffect::DecodeShape(const std::string& shape)
         return RENDER_SHAPE_SVG;
     }
 
-    return rand01() * 13; // exclude emoji
+    return buffer.rand01() * 13; // exclude emoji
 }
 
 static int mapSkinTone(const std::string &v) {
@@ -544,7 +544,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
     int rotation = GetValueCurveInt("Shape_Rotation", sRotationDefault, SettingsMap, oset, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    int Object_To_Draw = DecodeShape(Object_To_DrawStr);
+    int Object_To_Draw = DecodeShape(buffer, Object_To_DrawStr);
 
     int emojiTone = mapSkinTone(SettingsMap["CHOICE_Shape_SkinTone"]);
 
@@ -598,7 +598,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             for (int i = _shapes.size(); i < count; ++i) {
                 xlPoint pt;
                 if (randomLocation) {
-                    pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                    pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
                 } else {
                     pt = xlPoint(xc, yc);
                 }
@@ -612,10 +612,10 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 int os = 0;
                 if (startRandomly)
                 {
-                    os = rand01() * lifetimeFrames;
+                    os = buffer.rand01() * lifetimeFrames;
                 }
 
-                cache->AddShape(pt, startSize + os * growthPerFrame, buffer.palette.GetColor(_lastColorIdx), os, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
+                cache->AddShape(buffer, pt, startSize + os * growthPerFrame, buffer.palette.GetColor(_lastColorIdx), os, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
             }
             cache->SortShapes();
         }
@@ -657,7 +657,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                         xlPoint pt;
                         if (randomLocation)
                         {
-                            pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                            pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
                         }
                         else
                         {
@@ -671,7 +671,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                             _lastColorIdx = 0;
                         }
 
-                        cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
+                        cache->AddShape(buffer, pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
                         break;
                     }
                 }
@@ -689,7 +689,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 xlPoint pt;
                 if (randomLocation)
                 {
-                    pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                    pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
                 }
                 else
                 {
@@ -703,7 +703,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                     _lastColorIdx = 0;
                 }
 
-                cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
+                cache->AddShape(buffer, pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
             }
 
             // if music is over the trigger level for REPEATTRIGGER frames then we will trigger another firework
@@ -726,7 +726,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             xlPoint pt;
             if (randomLocation)
             {
-                pt = xlPoint(rand01() * buffer.BufferWi, rand01() * buffer.BufferHt);
+                pt = xlPoint(buffer.rand01() * buffer.BufferWi, buffer.rand01() * buffer.BufferHt);
             }
             else
             {
@@ -740,7 +740,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
                 _lastColorIdx = 0;
             }
 
-            cache->AddShape(pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
+            cache->AddShape(buffer, pt, startSize, buffer.palette.GetColor(_lastColorIdx), 0, Object_To_Draw, direction, velocity, randomMovement, holdColour, _lastColorIdx);
         }
     }
 

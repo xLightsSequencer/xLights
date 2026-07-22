@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <pugixml.hpp>
+#include <mutex>
 #include "ValueCurve.h"
 #include "xLightsVersion.h"
 #include "RenderContext.h"
@@ -1307,27 +1308,50 @@ void ValueCurve::RenderType()
             float max = parameter2 / 100.0;
             int points = std::round(Denormalise(3, parameter3));
 
+            // Deterministic stream seeded from the curve's identity — shapes
+            // drawn from rand() made renders differ run to run.
+            uint64_t rngSeed = 0xCBF29CE484222325ULL;
+            auto seedMix = [&rngSeed](const void* d, size_t n) {
+                const uint8_t* p = static_cast<const uint8_t*>(d);
+                for (size_t i = 0; i < n; i++) {
+                    rngSeed ^= p[i];
+                    rngSeed *= 0x100000001B3ULL;
+                }
+            };
+            seedMix(_id.data(), _id.size());
+            seedMix(&_parameter1, sizeof(_parameter1));
+            seedMix(&_parameter2, sizeof(_parameter2));
+            seedMix(&_parameter3, sizeof(_parameter3));
+            auto next01 = [&rngSeed]() {
+                rngSeed += 0x9E3779B97F4A7C15ULL;
+                uint64_t z = rngSeed;
+                z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+                z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+                z ^= z >> 31;
+                return (z >> 11) * (1.0 / 9007199254740992.0);
+            };
+
             if (points == 1)
             {
-                float value = rand01() * (max - min) + min;
+                float value = next01() * (max - min) + min;
                 _values.push_back(vcSortablePoint(0.0f, value, false));
                 _values.push_back(vcSortablePoint(1.0f, value, false));
             }
             else
             {
-                float value = rand01() * (max - min) + min;
+                float value = next01() * (max - min) + min;
                 _values.push_back(vcSortablePoint(0.0f, value, false));
-                value = rand01() * (max - min) + min;
+                value = next01() * (max - min) + min;
                 _values.push_back(vcSortablePoint(1.0f, value, false));
 
                 for (int i = 2; i < points; i++)
                 {
-                    float x = vcSortablePoint::Normalise(rand01());
+                    float x = vcSortablePoint::Normalise(next01());
                     while (IsSetPoint(x))
                     {
-                        x = vcSortablePoint::Normalise(rand01());
+                        x = vcSortablePoint::Normalise(next01());
                     }
-                    value = rand01() * (max - min) + min;
+                    value = next01() * (max - min) + min;
                     _values.push_back(vcSortablePoint(x, value, false));
                 }
             }
@@ -2036,6 +2060,21 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 
     // Resolve which audio manager to use for this curve
     AudioManager* _am = _audioTrackName.empty() ? __audioManager : GetAltAudio(_audioTrackName);
+
+    // "Music Trigger Fade" is the one type that lazily populates _values inside
+    // GetValueAt (it needs the audio manager, unavailable at setup). That
+    // push_back - and the point interpolation that reads _values later in this
+    // same call - is a data race when GetValueAt runs concurrently on the same
+    // curve (e.g. the parallel gap-fill in PixelBufferClass::GetMixedColor, or
+    // any effect that evaluates a value curve inside its own parallel_for).
+    // Serialize this type; held for the whole call so populate + read are
+    // consistent. Other types either set res directly or read a _values list
+    // that was populated serially in RenderType(), so they need no lock.
+    std::unique_lock<std::mutex> mtfLock;
+    if (_type == "Music Trigger Fade") {
+        static std::mutex mtfMutex;
+        mtfLock = std::unique_lock<std::mutex>(mtfMutex);
+    }
 
     // If we are music trigger fade and we dont have values ... calculate them on the fly
     if (_type == "Music Trigger Fade") {

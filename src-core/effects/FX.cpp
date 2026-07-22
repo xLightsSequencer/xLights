@@ -557,14 +557,9 @@ uint32_t map(uint32_t value, uint32_t in_low, uint32_t in_high, uint32_t out_low
     return ((float)value / ((float)in_high - (float)in_low + 1)) * ((float)out_high - (float)out_low + 1) + (float)out_low;
 }
 
-void random16_set_seed(int seed)
+uint16_t WS2812FX::random16(uint16_t limit)
 {
-    srand(seed);
-}
-
-uint16_t random16(uint16_t limit = 0xFFFF)
-{
-    return (uint16_t)(rand01() * limit);
+    return (uint16_t)(_buffer->rand01() * limit);
 }
 
 uint32_t WS2812FX::millis() const
@@ -573,29 +568,29 @@ uint32_t WS2812FX::millis() const
     return (_buffer->curPeriod - _buffer->curEffStartPer) * _buffer->frameTimeInMs;
 }
 
-uint16_t random16(uint16_t low, uint16_t high)
+uint16_t WS2812FX::random16(uint16_t low, uint16_t high)
 {
-    return (uint16_t)(rand01() * (high - low + 1)) + low;
+    return (uint16_t)(_buffer->rand01() * (high - low + 1)) + low;
 }
 
-uint32_t random(uint32_t limit = 0xFFFF)
+uint32_t WS2812FX::random(uint32_t limit)
 {
-    return (uint32_t)(rand01() * limit);
+    return (uint32_t)(_buffer->rand01() * limit);
 }
 
-uint32_t random(uint32_t low, uint32_t high)
+uint32_t WS2812FX::random(uint32_t low, uint32_t high)
 {
-    return (rand01() * (float)(high - low + 1)) + low;
+    return (_buffer->rand01() * (float)(high - low + 1)) + low;
 }
 
 uint8_t WS2812FX::random8(uint8_t limit)
 {
-    return (uint8_t)(rand01() * (float)limit);
+    return (uint8_t)(_buffer->rand01() * (float)limit);
 }
 
 uint8_t WS2812FX::random8(uint8_t low, uint8_t high)
 {
-    return (uint8_t)(rand01() * (float)(high - low + 1)) + low;
+    return (uint8_t)(_buffer->rand01() * (float)(high - low + 1)) + low;
 }
 
 /// scale a 16-bit unsigned value by a 16-bit value,
@@ -5227,22 +5222,26 @@ uint16_t WS2812FX::mode_phased_noise(void) {
 
 
 uint16_t WS2812FX::mode_twinkleup(void) {                 // A very short twinkle routine with fade-in and dual controls. By Andrew Tuline.
-  
-#ifdef XLIGHTS_FX
-    auto oldSeed = rand();
-#endif
+
   random16_set_seed(535); // The randomizer needs to be re-set each time through the loop in order for the same 'random' numbers to be the same each time through.
 
   for (int i = 0; i<SEGLEN; i++) {
-    uint8_t ranstart = random8();                         // The starting value (aka brightness) for each pixel. Must be consistent each time through the loop for this to work.
-    uint8_t pixBri = sin8(ranstart + 16 * now/(256-SEGMENT.speed));
-    if (random8() > SEGMENT.intensity) pixBri = 0;
-    setPixelColor(i, color_blend(SEGCOLOR(1), color_from_palette(random8()+now/100, false, PALETTE_SOLID_WRAP, 0), pixBri));
-  }
-
 #ifdef XLIGHTS_FX
-  random16_set_seed(oldSeed);
+    // Per-pixel randomness must be stable across frames (the fade-in phase is
+    // anchored to it). hashRandomStable is frame-independent and reproducible,
+    // replacing the upstream "reset the global seed each frame" trick.
+    uint8_t ranstart = (uint8_t)_buffer->hashRandomStable(3 * i);
+    uint8_t rthresh = (uint8_t)_buffer->hashRandomStable(3 * i + 1);
+    uint8_t rpal = (uint8_t)_buffer->hashRandomStable(3 * i + 2);
+#else
+    uint8_t ranstart = random8();                         // The starting value (aka brightness) for each pixel. Must be consistent each time through the loop for this to work.
+    uint8_t rthresh = random8();
+    uint8_t rpal = random8();
 #endif
+    uint8_t pixBri = sin8(ranstart + 16 * now/(256-SEGMENT.speed));
+    if (rthresh > SEGMENT.intensity) pixBri = 0;
+    setPixelColor(i, color_blend(SEGCOLOR(1), color_from_palette(rpal+now/100, false, PALETTE_SOLID_WRAP, 0), pixBri));
+  }
 
   return FRAMETIME;
 }
@@ -5712,16 +5711,16 @@ class AuroraWave {
     bool alive = true;
 
   public:
-    void init(uint32_t segment_length, CRGB color) {
-      ttl = random(500, 1501);
+    void init(RenderBuffer* buffer, uint32_t segment_length, CRGB color) {
+      ttl = buffer->randInt(500, 1501);
       basecolor = color;
-      basealpha = random(60, 101) / (float)100;
+      basealpha = buffer->randInt(60, 101) / (float)100;
       age = 0;
-      width = random(segment_length / 20, segment_length / W_WIDTH_FACTOR); //half of width to make math easier
+      width = buffer->randInt(segment_length / 20, segment_length / W_WIDTH_FACTOR); //half of width to make math easier
       if (!width) width = 1;
-      center = random(101) / (float)100 * segment_length;
-      goingleft = random(0, 2) == 0;
-      speed_factor = (random(10, 31) / (float)100 * W_MAX_SPEED / 255);
+      center = buffer->randInt(0, 100) / (float)100 * segment_length;
+      goingleft = buffer->randInt(0, 2) == 0;
+      speed_factor = (buffer->randInt(10, 31) / (float)100 * W_MAX_SPEED / 255);
       alive = true;
     }
 
@@ -5803,7 +5802,7 @@ uint16_t WS2812FX::mode_aurora(void) {
     waves = reinterpret_cast<AuroraWave*>(SEGENV.data);
 
     for(int i = 0; i < SEGENV.aux1; i++) {
-      waves[i].init(SEGLEN, col_to_crgb(color_from_palette(random8(), false, false, random(0, 3))));
+      waves[i].init(_buffer, SEGLEN, col_to_crgb(color_from_palette(random8(), false, false, random(0, 3))));
     }
   } else {
     waves = reinterpret_cast<AuroraWave*>(SEGENV.data);
@@ -5815,7 +5814,7 @@ uint16_t WS2812FX::mode_aurora(void) {
 
     if(!(waves[i].stillAlive())) {
       //If a wave dies, reinitialize it starts over.
-      waves[i].init(SEGLEN, col_to_crgb(color_from_palette(random8(), false, false, random(0, 3))));
+      waves[i].init(_buffer, SEGLEN, col_to_crgb(color_from_palette(random8(), false, false, random(0, 3))));
     }
   }
 

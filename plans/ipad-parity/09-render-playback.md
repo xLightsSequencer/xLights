@@ -21,6 +21,12 @@
 > on **both** platforms (desktop: `PLAY_LOOP` keybind + Replay-Section +
 > Waveform "Render Selected Region"; iPad: B32/B33/B44 loop region).
 
+> **Note (2026-07):** the Linux/Windows desktop gained a Vulkan GPU compute
+> backend (`src-core/effects/vulkan/`, `HAVE_VULKAN`) mirroring the Metal
+> backend's `GPURenderUtils` implementation (blur/rotozoom/transitions/layer
+> blending). Apple platforms (desktop + iPad) keep the Metal backend — the
+> Vulkan sources compile to nothing there, so no iPad action is needed.
+
 ## Parity scorecard
 
 | Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
@@ -41,7 +47,7 @@
 | Audio scrub (audible bursts on drag) | gesture | ❌ | ✅ | ipad-missing | P2 | medium | feasible | iPad B40 `scrubSeekTo` plays throttled 50 ms audio snippets while dragging the ruler. Desktop scrubs silently. |
 | Next Frame | menu / key | ✅ | ✅ | parity | P2 | easy | feasible | iPad Playback menu "." key. Desktop via keybinding/HousePreview; both step by frame interval. |
 | Previous Frame | menu / key | ✅ | ✅ | parity | P2 | easy | feasible | iPad Playback menu "," key. Desktop keybinding. |
-| Render All | toolbar / menu / key | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ID_AUITOOLBAR_RENDERALL` (⌘R); iPad toolbar `paintpalette` + Playback ▸ Render All (⌘R). Shared core `RenderAll`. |
+| Render All | toolbar / menu / key | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ID_AUITOOLBAR_RENDERALL` (⌘R); iPad toolbar `paintpalette` + Playback ▸ Render All (⌘R). Shared core `RenderAll`. 2026-07: shared `src-core/render/` scheduler reworked to suspend/requeue (plans/render-scheduler.md) — auto-applied to both apps; iPad pool sized in `iPadRenderContext::EnsureRenderEngine`, stall watchdog wired into `IsRenderDone` poll. 2026-07-14: `PixelBufferClass::GetColors`/`SetColors` (the per-node copy in/out of seqData) made serial instead of fanning out to the shared `ParallelJobPool` — `src-core/render/PixelBuffer.cpp`, so **auto-applied to iPad**; no UI or bridge surface. Output stage -76%, total render CPU -30%, byte-identical. iPad benefits at least as much: it has fewer cores, so the pool contention this removes was proportionally worse there. 2026-07-20: Video effect frame-parallel machinery added in shared `src-core/effects/VideoEffect.cpp` + `src-core/media/VideoReader*` (byte-gated; default OFF via XL_VIDEO_PARALLEL until the decoder-lock rework — see plans/render-perf/02) — **auto-applied to iPad** when enabled; the shipped serial-path decoder fixes apply to iPad unconditionally; no UI or bridge surface. 2026-07-20: frame-parallel windows extended to submodel/strand-effect rows in shared `src-core/render/RenderEngine.cpp` (byte-gated 56/56, default ON, `XL_PARALLEL_SUBMODEL_ROWS=0` kill switch) — core-only, **auto-applied to iPad**; no UI or bridge surface. |
 | Batch Render (multi-sequence) | toolbar / menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop Tools ▸ Batch Render (`BatchRenderDialog`); iPad = **sequence-browser toolbar** button → `BatchRenderSheet` (NOT the Tools menu). |
 | Purge Render Cache | menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Tools ▸ Purge Render Cache; iPad Tools ▸ Purge Render Cache (`purgeRenderCache`). Shared `RenderCache`. |
 | Render Selected / Loop Region | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Waveform ▸ "Render Selected Region" (`ID_WAVE_MNU_RENDER`); iPad loop-region menu ▸ "Render Loop Region" (B44). |
@@ -65,7 +71,7 @@
 | Per-layer brightness / contrast / HSV adjust at render | render | ✅ | ✅ | parity | P1 | easy | feasible | Shared `src-core` render path. `resources/effectmetadata/shared/Color.json` (Brightness, Contrast, HueAdjust, SaturationAdjust, ValueAdjust). |
 | Per-layer sparkles | render | ✅ | ✅ | parity | P2 | easy | feasible | `resources/effectmetadata/shared/Color.json` SparklesRow; shared `src-core/render/PixelBuffer.cpp` sparkles. |
 | Per-layer blur | render | ✅ | ✅ | parity | P2 | easy | feasible | `resources/effectmetadata/shared/Buffer.json` Blur; shared `src-core/render/PixelBuffer.cpp` Blur. |
-| Per-layer RotoZoom (rotation/zoom/pivot/3D rotation) | render | ✅ | ✅ | parity | P2 | easy | feasible | `resources/effectmetadata/shared/Buffer.json` (Rotation, Zoom); shared `src-core/render/PixelBuffer.cpp`. |
+| Per-layer RotoZoom (rotation/zoom/pivot/3D rotation) | render | ✅ | ✅ | parity | P2 | easy | feasible | `resources/effectmetadata/shared/Buffer.json` (Rotation, Zoom); shared `src-core/render/PixelBuffer.cpp`. 2026-07: fixed an OOB scatter in the shared Metal X/Y rotate kernels (`src-core/effects/metal/RotoZoomFunctions.metal`, bounds-check the rounded index) that corrupted an adjacent layer's buffer run-to-run on Per-Model group buffers — auto-applied to both apps via the shared `EffectComputeFunctions.metallib`. |
 | Per-layer in/out transitions | render | ✅ | ✅ | parity | P1 | easy | feasible | `resources/effectmetadata/shared/Blending.json` In_Transition/Out_Transition; shared `src-core/render/PixelBuffer.cpp`. |
 | Per-layer canvas (persistent) mode and overlay-background | render | ✅ | ✅ | parity | P2 | easy | feasible | `resources/effectmetadata/shared/Blending.json` CanvasRow; `Buffer.json` OverlayBkg; shared `src-core` render. |
 | Per-layer freeze-at-frame and suppress-until | render | ✅ | ✅ | parity | P2 | easy | feasible | `resources/effectmetadata/shared/Blending.json` FreezeEffectAtFrame, SuppressEffectUntil; shared `src-core` render. |
@@ -78,6 +84,7 @@
 | Color/palette engine (gradients, value curves, spatial color) | render | ✅ | ✅ | parity | P1 | easy | feasible | Shared `src-core/render/RenderBuffer.h` PaletteClass + `ColorCurve.cpp` + `ValueCurve.cpp`; `src-iPad/App/ColorCurveEditor.swift`. |
 | Sequence channel data buffer (SequenceData) | render | ✅ | ✅ | parity | P1 | easy | feasible | `src-iPad/Bridge/iPadRenderContext.cpp:1519` EnsureSequenceDataSized + _sequenceData; shared `src-core/render/SequenceData`. |
 | Embedded/external image media at render (SequenceMedia) | render | ✅ | ✅ | parity | P2 | easy | feasible | Shared `src-core/render/SequenceMedia.cpp`; `iPadRenderContext.cpp` PurgePreviewCaches; `src-iPad/App/MediaManagerSheet.swift`. |
+| GPU (Metal) / ISPC effect kernels — Tree, Shimmer, Candle perNode (2026-07) | render | ✅ | ✅ | parity | P2 | easy | feasible | Core-only, auto-applied: shared `src-core/effects/metal/` + `effects/ispc/` kernels build into `xLights-iPadLib` (Metal on-device, NEON ISPC fallback). Bit-exact vs scalar; no UI surface on either platform. Render buffers now hand pixel storage back to the CPU vector when a GPU backend shuts down mid-session (`RenderBuffer::ReleasePixelsToCpu`, 2026.14) — core-only, auto-applied to both platforms; verified render-output-neutral (6/6 byte-identical A/B). |
 
 These render-pipeline rows are shared-core features at parity by construction — both apps link the same `src-core/render/` engine.
 

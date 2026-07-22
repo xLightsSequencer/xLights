@@ -19,6 +19,7 @@
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
+					<Add option="`pkg-config --cflags gtk+-3.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -46,6 +47,7 @@
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
+					<Add directory="../dependencies/glslang-build/install/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -58,6 +60,7 @@
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gtk+-3.0`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
@@ -70,6 +73,12 @@
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang-default-resource-limits.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libSPIRV.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libMachineIndependent.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libGenericCodeGen.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libOSDependent.a" />
 				</Linker>
 			</Target>
 			<Target title="Linux_Release">
@@ -81,9 +90,11 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-ffast-math" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
+					<Add option="`pkg-config --cflags gtk+-3.0`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags lua53`" />
@@ -111,6 +122,7 @@
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
 					<Add directory="../dependencies/libxlsxwriter/include" />
+					<Add directory="../dependencies/glslang-build/install/include" />
 					<Add directory="../include/sol2-3.5.0" />
 					<Add directory="../dependencies" />
 					<Add directory="../dependencies/pugixml/src" />
@@ -123,6 +135,7 @@
 					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
+					<Add option="`pkg-config --libs gtk+-3.0`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
@@ -135,6 +148,12 @@
 					<Add option="-lstdc++fs" />
 					<Add library="../lib/linux/libliquidfun.a" />
 					<Add library="../dependencies/libxlsxwriter/lib/libxlsxwriter.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang-default-resource-limits.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libSPIRV.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libglslang.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libMachineIndependent.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libGenericCodeGen.a" />
+					<Add library="../dependencies/glslang-build/install/lib/libOSDependent.a" />
 				</Linker>
 			</Target>
 		</Build>
@@ -142,6 +161,12 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DHAVE_VULKAN" />
+				<Add option="-DHAVE_VULKAN_SHADER" />
+			<Add option="-DVK_NO_PROTOTYPES" />
+			<Add directory="../dependencies/Vulkan-Headers/include" />
+			<Add directory="../dependencies/volk" />
+			<Add directory="../dependencies/VulkanMemoryAllocator/include" />
 		</Compiler>
 		<Unit filename="../common/xlBaseApp.cpp" />
 		<Unit filename="../common/xlBaseApp.h" />
@@ -345,6 +370,8 @@
 		<Unit filename="../src-ui-wx/import_export/ExportSettings.h" />
 		<Unit filename="../src-core/render/FSEQFile.cpp" />
 		<Unit filename="../src-core/render/FSEQFile.h" />
+		<Unit filename="../src-core/render/FSEQFileIO.cpp" />
+		<Unit filename="../src-core/render/FSEQFileIO.h" />
 		<Unit filename="../src-ui-wx/import_export/FileConverter.cpp" />
 		<Unit filename="../src-ui-wx/import_export/FileConverter.h" />
 		<Unit filename="../src-ui-wx/diagnostics/FindDataPanel.cpp" />
@@ -357,6 +384,10 @@
 		<Unit filename="../src-core/render/GPURenderUtils.h" />
 		<Unit filename="../src-ui-wx/model/GenerateCustomModelDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/GenerateCustomModelDialog.h" />
+		<Unit filename="../src-ui-wx/klightmapper/CustomModelMethodPickerDialog.cpp" />
+		<Unit filename="../src-ui-wx/klightmapper/CustomModelMethodPickerDialog.h" />
+		<Unit filename="../src-ui-wx/klightmapper/KLightMapperBridge.h" />
+		<Unit filename="../src-ui-wx/klightmapper/KLightMapperBridge_win.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/GenerateLyricsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/GenerateLyricsDialog.h" />
 		<Unit filename="../src-ui-wx/layout/HousePreviewPanel.cpp" />
@@ -436,6 +467,8 @@
 		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.h" />
 		<Unit filename="../src-ui-wx/model/ModelFaceDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ModelFaceDialog.h" />
+		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.cpp" />
+		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.h" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ModelPreview.cpp" />
@@ -494,6 +527,8 @@
 		<Unit filename="../src-ui-wx/sequencer/RenameTextDialog.h" />
 		<Unit filename="../src-core/render/RenderEngine.cpp" />
 		<Unit filename="../src-core/render/RenderEngine.h" />
+		<Unit filename="../src-core/render/xLightsShowContext.cpp" />
+		<Unit filename="../src-core/render/xLightsShowContext.h" />
 		<Unit filename="../src-core/render/ViewpointMgr.cpp" />
 		<Unit filename="../src-core/render/ViewpointMgr.h" />
 		<Unit filename="../src-ui-wx/render/RenderUI.cpp" />
@@ -506,6 +541,7 @@
 		<Unit filename="../src-core/render/RenderCache.cpp" />
 		<Unit filename="../src-core/render/RenderCache.h" />
 		<Unit filename="../src-core/render/RenderContext.h" />
+		<Unit filename="../src-core/render/RenderProfile.h" />
 		<Unit filename="../src-core/render/RenderProgressInfo.h" />
 		<Unit filename="../src-core/render/RenderUtils.h" />
 		<Unit filename="../src-ui-wx/sequencer/RenderCommandEvent.cpp" />
@@ -535,6 +571,8 @@
 		<Unit filename="../src-ui-wx/import_export/SeqFileUtilities.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/SequenceFacesPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SequenceFacesPanel.h" />
 		<Unit filename="../src-core/render/SequenceData.cpp" />
 		<Unit filename="../src-core/render/SequenceData.h" />
 		<Unit filename="../src-core/render/SequencePackage.cpp" />
@@ -872,6 +910,10 @@
 		<Unit filename="../src-ui-wx/effectpanels/ServoPanel.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/ServoPanel.h" />
 		<Unit filename="../src-core/effects/ShaderEffect.cpp" />
+		<Unit filename="../src-core/effects/SPIRVShaderEffect.cpp" />
+		<Unit filename="../src-core/effects/SPIRVShaderEffect.h" />
+		<Unit filename="../src-core/effects/ShaderSourceTransforms.cpp" />
+		<Unit filename="../src-core/effects/ShaderSourceTransforms.h" />
 		<Unit filename="../src-core/effects/ShaderEffect.h" />
 		<Unit filename="../src-ui-wx/effectpanels/ShaderPanel.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/ShaderPanel.h" />
@@ -983,6 +1025,46 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/SpiralsFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/GalaxyFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/GalaxyFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/MeteorsFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/MeteorsFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/GarlandsFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/GarlandsFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/FillFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/FillFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/TreeFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/TreeFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/TwinkleFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/TwinkleFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/ShimmerFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/ShimmerFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/CandleFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/CandleFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/LifeFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/LifeFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/WaveFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/WaveFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/CirclesFunctions.ispc">
 			<Option link="1" />
 		</Unit>
@@ -1001,6 +1083,50 @@
 			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/LayerBlendingFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanBarsEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanButterflyEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanCandleEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanWaveEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanGarlandsEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanFillEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanMeteorsEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanTwinkleEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanLifeEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShaderEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanCirclesEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanColorWashEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanFanEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanGalaxyEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanPinwheelEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanPlasmaEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShockwaveEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShimmerEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanSpiralsEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanTreeEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanWarpEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanComputeUtilities.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanGraphicsUtilities.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanShaderTranslate.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanComputeUtilities.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanEffectDataTypes.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanEffects.h" />
+		<Unit filename="../src-core/effects/vulkan/VulkanEffectManager.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanLibs.cpp" />
+		<Unit filename="../src-core/graphics/vulkan/IVulkanCanvas.h" />
+		<Unit filename="../src-core/graphics/vulkan/VulkanFrameData.h" />
+		<Unit filename="../src-core/graphics/vulkan/VulkanPipelineCache.cpp" />
+		<Unit filename="../src-core/graphics/vulkan/VulkanPipelineCache.h" />
+		<Unit filename="../src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp" />
+		<Unit filename="../src-core/graphics/vulkan/xlVulkanGraphicsContext.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanCanvas.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanCanvas.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanX11Surface.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanX11Surface.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanWaylandSurface.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlVulkanWaylandSurface.h" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlSoftwareGLProbe.cpp" />
+		<Unit filename="../src-ui-wx/graphics/vulkan/xlSoftwareGLProbe.h" />
 		<Unit filename="../src-ui-wx/graphics/xlGraphicsBase.h" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.cpp" />
 		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.h" />
@@ -1010,8 +1136,6 @@
 		<Unit filename="../src-core/graphics/xlFontInfo.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.cpp" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.h" />
-		<Unit filename="../src-core/graphics/AngleEGL.cpp" />
-		<Unit filename="../src-core/graphics/AngleEGL.h" />
 		<Unit filename="../src-core/graphics/GLBackend.cpp" />
 		<Unit filename="../src-core/graphics/GLBackend.h" />
 		<Unit filename="../src-core/graphics/GLContextManager.cpp" />
@@ -1244,6 +1368,10 @@
 		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarLayout.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarLayout.h" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarsSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarsSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/RandomEffectsSettingsPanel.cpp" />
@@ -1266,6 +1394,12 @@
 		<Unit filename="../src-ui-wx/sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="../src-core/render/Effect.cpp" />
 		<Unit filename="../src-core/render/Effect.h" />
+		<Unit filename="../src-core/render/EffectSymbol.cpp" />
+		<Unit filename="../src-core/render/EffectSymbol.h" />
+		<Unit filename="../src-core/render/EffectSymbolManager.cpp" />
+		<Unit filename="../src-core/render/EffectSymbolManager.h" />
+		<Unit filename="../src-ui-wx/EffectSymbolDialog.cpp" />
+		<Unit filename="../src-ui-wx/EffectSymbolDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectDropTarget.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectDropTarget.h" />
 		<Unit filename="../src-core/render/EffectLayer.cpp" />
@@ -1289,6 +1423,8 @@
 		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
 		<Unit filename="../src-core/render/SequenceMedia.h" />
+		<Unit filename="../src-core/render/SequenceFaces.cpp" />
+		<Unit filename="../src-core/render/SequenceFaces.h" />
 		<Unit filename="../src-core/render/TextDrawingContext.cpp" />
 		<Unit filename="../src-core/render/TextDrawingContext.h" />
 		<Unit filename="../src-core/render/FreeTypeTextDrawingContext.cpp" />
@@ -1591,6 +1727,8 @@
 		<Unit filename="../src-ui-wx/wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/xLightsframe.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/xlColorPickerFields.wxs" />
+		<Unit filename="../src-core/render/HeadlessRenderContext.cpp" />
+		<Unit filename="../src-core/render/HeadlessRenderContext.h" />
 		<Unit filename="../src-ui-wx/xLightsApp.cpp" />
 		<Unit filename="../src-ui-wx/xLightsApp.h" />
 		<Unit filename="../src-ui-wx/import_export/xLightsImportChannelMapDialog.cpp" />

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,24 @@ public:
     void parseVariableHeaders(const std::vector<uint8_t> &header, int start);
 
 
+    //How the caller intends to read this file.  This is about the access pattern,
+    //not the hardware: it says what the reader is allowed to do ahead of the
+    //frame being asked for.
+    enum class ReadPattern {
+        //Serve one frame at a time with the smallest possible latency and memory
+        //footprint - what realtime playback needs, especially on a small single
+        //core device that cannot hold the sequence.  The default.
+        Streaming,
+        //Every frame will be read in order, front to back, as fast as possible,
+        //and the caller has already allocated room for the whole sequence.  The
+        //reader may then decompress whole blocks ahead of the requested frame,
+        //in parallel, at the cost of a bounded amount of extra memory.
+        Bulk
+    };
+    //Must be set before the first getFrame() to have any effect.
+    virtual void setReadPattern(ReadPattern p) { m_readPattern = p; }
+    ReadPattern getReadPattern() const { return m_readPattern; }
+
     //prepare to start reading. The ranges will be the list of channel ranges that
     //are actually needed for each frame.   The reader can optimize to only
     //read those frames.
@@ -123,6 +142,7 @@ protected:
     int           m_seqStepTime;
     int           m_seqVersionMajor;
     int           m_seqVersionMinor;
+    ReadPattern   m_readPattern = ReadPattern::Streaming;
 
     std::vector<VariableHeader> m_variableHeaders;
 

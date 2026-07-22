@@ -10,7 +10,45 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
+#include <cstdint>
+#include <vector>
+
 #include "RenderableEffect.h"
+
+// Per-light strobe state. The ISPC/Metal kernels index this array as a flat
+// int32 array with a stride of 6, so the layout must stay exactly six packed
+// int32 fields (x, y, duration, colorindex, strobing, isByNode).
+class StrobeClass {
+public:
+    int32_t x = 0, y = 0;
+    int32_t duration = 0; // How many frames the strobe light stays on; decremented each frame
+    int32_t colorindex = 0;
+    int32_t strobing = 0;
+    int32_t isByNode = 0;
+};
+
+// Immutable pre-frame draw state captured by AdvanceState and restored by the
+// draw pass (defined in TwinkleEffect.cpp).
+struct TwinkleFrameState;
+
+// Output of the shared per-frame setup (parameter read + renewal/compaction),
+// consumed by both the ISPC (CPU) and Metal (GPU) per-light dispatch paths.
+struct TwinkleFrame {
+    std::vector<StrobeClass>* states = nullptr; // the persistent per-light state array
+    std::atomic_int* lightsToRenew = nullptr;   // points into the render cache
+    int curNumStrobe = 0;
+    int max_modulo = 2;
+    int max_modulo2 = 1;
+    int colorcnt = 1;
+    uint64_t frameSeed = 0; // RenderBuffer::hashRandomFrameSeed() for this frame
+    int width = 0;
+    int npix = 0;           // pixel-write bound (GetPixelCount())
+    bool new_algorithm = false;
+    bool reRandomize = false;
+    bool strobe = false;
+    bool isByNode = false;
+};
 
 class TwinkleEffect : public RenderableEffect
 {
@@ -20,6 +58,12 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    // Tier-2: advance the per-light strobe simulation and return this frame's
+    // immutable pre-frame draw snapshot; Render draws from it (see AdvanceState
+    // in the .cpp). Twinkle is unconditionally Snapshottable, so this never
+    // returns nullptr.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
     virtual int GetSettingVCDivisor(const std::string& name) const override
     {
@@ -48,4 +92,19 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
+
+    // Shared setup + dispatch helpers used by the CPU (ISPC) and Metal paths.
+    // prepareTwinkleFrame mutates the persistent state (renewal/compaction) and
+    // must run exactly once per Render/AdvanceState call. When captureInto is
+    // non-null (AdvanceState) it deep-copies the pre-frame cache into it before
+    // mutating; otherwise, when buffer.pendingSnapshot is set (the Render draw
+    // pass), it first restores the cache from that snapshot.
+    TwinkleFrame prepareTwinkleFrame(const SettingsMap& settings, RenderBuffer& buffer, TwinkleFrameState* captureInto = nullptr);
+    // Builds the per-(colorindex,duration) RGBA lookup table with the exact
+    // scalar double-precision brightness/color math so the integer kernels are
+    // byte-identical to the historical scalar renderer.
+    void buildTwinkleLut(RenderBuffer& buffer, const TwinkleFrame& f, xlColorVector& lut);
+    void dispatchTwinkleISPC(RenderBuffer& buffer, const TwinkleFrame& f, const xlColorVector& lut);
+    void renderTwinkleByNode(RenderBuffer& buffer, const TwinkleFrame& f);
+    void applyTwinkleFinishCount(const TwinkleFrame& f);
 };

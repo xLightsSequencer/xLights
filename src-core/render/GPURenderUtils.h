@@ -1,7 +1,10 @@
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <vector>
+
+#include "RenderProfile.h"
 
 class PixelBufferClass;
 class RenderBuffer;
@@ -41,7 +44,14 @@ public:
 
     static void waitForRenderCompletion(RenderBuffer *buffer) {
         if (INSTANCE) {
-            INSTANCE->doWaitForRenderCompletion(buffer);
+            RenderJobProfile* prof = tlsRenderProfile;
+            if (prof != nullptr) {
+                auto t0 = std::chrono::steady_clock::now();
+                INSTANCE->doWaitForRenderCompletion(buffer);
+                prof->gpuWaitNs += xlProfNs(t0, std::chrono::steady_clock::now());
+            } else {
+                INSTANCE->doWaitForRenderCompletion(buffer);
+            }
         }
     };
     static bool Blur(RenderBuffer *buffer, int radius) {
@@ -54,6 +64,17 @@ public:
         if (INSTANCE) {
             return INSTANCE->setPrioritizeGraphics(p);
         }
+    }
+
+    // Estimated number of effect renders the GPU can process concurrently
+    // (~GPU core count); 0 when there is no GPU render backend.  Used to size
+    // the render pool: a thread parked in waitForRenderCompletion leaves its
+    // CPU core free for another job, so the pool wants cpu + gpu headroom.
+    static int GetGPUEffectConcurrency() {
+        if (INSTANCE) {
+            return INSTANCE->gpuEffectConcurrency();
+        }
+        return 0;
     }
 
     
@@ -114,6 +135,7 @@ protected:
 
     virtual void setPrioritizeGraphics(bool p) = 0;
 
+    virtual int gpuEffectConcurrency() { return 0; }
 
     static GPURenderUtils *INSTANCE;
 };

@@ -60,6 +60,9 @@ class OtherSettingsPanel: public wxPanel
 		wxStaticText* StaticText8;
 		wxTextCtrl* eMailTextControl;
 		//*)
+		// Hand-added (outside the wxSmith guards): preview graphics backend
+		// selector, only present on builds with the Vulkan backend compiled in.
+		wxChoice* GraphicsBackendChoice = nullptr;
 
         virtual bool TransferDataFromWindow() override;
         virtual bool TransferDataToWindow() override;
@@ -94,6 +97,7 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHECKBOX11;
 		static const wxWindowID ID_CHECKBOX_CustomColorPicker;
 		//*)
+		static const wxWindowID ID_CHOICE_GfxBackend;
 
 	private:
         xLightsFrame *frame;

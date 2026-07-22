@@ -157,7 +157,16 @@ public:
     std::function<void()> m_onPaneStateChanged;
 
     LayoutAuiManager(wxWindow* managed_wnd, unsigned int flags)
-        : wxAuiManager(managed_wnd, flags) {}
+        : wxAuiManager(managed_wnd, flags) {
+        // wxAuiManager::SetManagedWindow (called from the base ctor above) now Bind()s the
+        // base mouse handlers on managed_wnd instead of PushEventHandler()ing the manager,
+        // so our overrides are no longer reached via the class event table. Bind them here:
+        // these are added after the base bindings, so they run first (dynamic handlers are
+        // LIFO), and each ends in event.Skip() so the base wxAuiManager handler still runs.
+        managed_wnd->Bind(wxEVT_LEFT_DOWN, &LayoutAuiManager::OnLeftDown, this);
+        managed_wnd->Bind(wxEVT_MOTION, &LayoutAuiManager::OnMotion, this);
+        managed_wnd->Bind(wxEVT_LEFT_UP, &LayoutAuiManager::OnLeftUp, this);
+    }
 
     wxAuiFloatingFrame* CreateFloatingFrame(wxWindow* parent, const wxAuiPaneInfo& p) override {
         wxAuiFloatingFrame* frame = new wxAuiFloatingFrame(parent, this, p, wxID_ANY,
@@ -305,14 +314,7 @@ public:
         }
     }
 
-    wxDECLARE_EVENT_TABLE();
 };
-
-wxBEGIN_EVENT_TABLE(LayoutAuiManager, wxAuiManager)
-    EVT_LEFT_DOWN(LayoutAuiManager::OnLeftDown)
-    EVT_MOTION(LayoutAuiManager::OnMotion)
-    EVT_LEFT_UP(LayoutAuiManager::OnLeftUp)
-wxEND_EVENT_TABLE()
 
 #define MODELCOLNAME "Model/Group"
 #define STARTCHANCOLNAME "Start Chan"
@@ -5500,6 +5502,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             spdlog::error("Unable to load model from '{}': {}", last_model, e.what());
             DisplayError("Unable to load model file:\n" + std::string(e.what()));
             cancelled = true;
+            // CreateDefaultModelFromSavedModelNode deletes the passed-in model
+            // before deserializing, so on a throw `model` is already freed;
+            // returning it non-null makes FinalizeModel's cancel path delete
+            // it a second time.
+            model = nullptr;
         }
 
         if (!cancelled && model != nullptr) {
@@ -5543,8 +5550,8 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     try {
                         extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
                     } catch (const std::exception& e) {
+                        // the callee already deleted extraModel before throwing
                         spdlog::error("Unable to load additional model: {}", e.what());
-                        delete extraModel;
                         continue;
                     }
                     if (extraCancelled || extraModel == nullptr) continue;
@@ -5564,6 +5571,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     return model;
 }
 
+// Set for the duration of FinalizeModel. Read by the preview mouse-move
+// handlers, which run on the same state FinalizeModel is mutating whenever one
+// of FinalizeModel's modal pumps dispatches a motion event.
+static bool inFinalize = false;
+
 void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
@@ -5575,7 +5587,6 @@ void LayoutPanel::FinalizeModel()
     // reassigned it, and crashes on the vtable read in SetAxisTool. Windows
     // bucket f6bdc90020 (7 reports, still regressing in dev). Drop the
     // re-entrant call — the outer pass will finish the work.
-    static bool inFinalize = false;
     if (inFinalize) {
         spdlog::warn("LayoutPanel::FinalizeModel called re-entrantly; ignoring inner call.");
         return;
@@ -5814,8 +5825,14 @@ void LayoutPanel::FinalizeModel()
                 // it internally before returning a newly deserialized model. On failure it returns
                 // nullptr having already freed the passed-in pointer, so we must NOT delete
                 // extraModel here (would double-delete). Match the primary model path which also
-                // just returns without manual cleanup.
-                extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                // just returns without manual cleanup. The deserializer throws on a malformed
+                // file (after freeing extraModel), so catch it or it escapes FinalizeModel.
+                try {
+                    extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                } catch (const std::exception& e) {
+                    spdlog::error("Unable to load additional model from '{}': {}", extraModelPath, e.what());
+                    continue;
+                }
 
                 if (extraCancelled || extraModel == nullptr) {
                     continue;
@@ -6087,7 +6104,42 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
     if (!m_wheel_down) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
         if (is_3d) {
-            if (!fromTrackPad || event.ControlDown()) {
+            if (event.ShiftDown() && !event.ControlDown()) {
+                float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? event.GetWheelRotation() : 0;
+                if (std::abs(event.GetWheelRotation()) >= event.GetWheelDelta()) {
+                    new_x /= 4.0f;
+                    new_y /= 4.0f;
+                }
+
+                // account for grid rotation
+                float angleX = glm::radians(modelPreview->GetCameraRotationX());
+                float angleY = glm::radians(modelPreview->GetCameraRotationY());
+                float delta_x = 0.0f;
+                float delta_y = 0.0f;
+                float delta_z = 0.0f;
+                bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+                bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+                bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+                if( top_view ) {
+                    delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                    delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                } else if( bottom_view ) {
+                    delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
+                    delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
+                } else {
+                    delta_x = new_x * std::cos(angleY);
+                    delta_y = new_y;
+                    delta_z = new_x * std::sin(angleY);
+                    if( !upside_down_view ) {
+                        delta_y *= -1.0f;
+                    }
+                }
+                delta_x *= modelPreview->GetZoom() * 2.0f;
+                delta_y *= modelPreview->GetZoom() * 2.0f;
+                delta_z *= modelPreview->GetZoom() * 2.0f;
+                modelPreview->SetPan(delta_x, delta_y, delta_z);
+            } else if (!fromTrackPad || event.ControlDown()) {
                 int mouse_x = event.GetX();
                 int mouse_y = event.GetY();
                 float centerx = modelPreview->getWidth() / 2.0f;
@@ -6138,44 +6190,11 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
                 delta_z *= modelPreview->GetZoom() * 2.0f;
                 modelPreview->SetPan(delta_x, delta_y, delta_z);
             } else {
-                if (event.ShiftDown()) {
-                    float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-                    float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
+                float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+                float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
 
-                    // account for grid rotation
-                    float angleX = glm::radians(modelPreview->GetCameraRotationX());
-                    float angleY = glm::radians(modelPreview->GetCameraRotationY());
-                    float delta_x = 0.0f;
-                    float delta_y = 0.0f;
-                    float delta_z = 0.0f;
-                    bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
-                    bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
-                    bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
-                    if( top_view ) {
-                        delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
-                        delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
-                    } else if( bottom_view ) {
-                        delta_x = new_x * std::cos(angleY) + new_y * std::sin(angleY);
-                        delta_z = -new_y * std::cos(angleY) + new_x * std::sin(angleY);
-                    } else {
-                        delta_x = new_x * std::cos(angleY);
-                        delta_y = new_y;
-                        delta_z = new_x * std::sin(angleY);
-                        if( upside_down_view ) {
-                            delta_y *= -1.0f;
-                        }
-                    }
-                    delta_x *= modelPreview->GetZoom() * 2.0f;
-                    delta_y *= modelPreview->GetZoom() * 2.0f;
-                    delta_z *= modelPreview->GetZoom() * 2.0f;
-                    modelPreview->SetPan(delta_x, delta_y, delta_z);
-                } else {
-                    float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
-                    float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
-
-                    modelPreview->SetCameraView(delta_x, delta_y, false);
-                    modelPreview->SetCameraView(0, 0, true);
-                }
+                modelPreview->SetCameraView(delta_x, delta_y, false);
+                modelPreview->SetCameraView(0, 0, true);
             }
         }
         else {
@@ -6215,7 +6234,17 @@ void LayoutPanel::OnPreviewMouseWheel(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 {
-    
+    // FinalizeModel pumps the event loop (vendor-model PromptYesNo, download
+    // progress, GetXlightsModel prompts) while it rebuilds the model list and
+    // reassigns _newModel. A motion event delivered during one of those pumps
+    // lands here and calls UnSelectAllModels / touches selectedBaseObject and
+    // highlightedBaseObject, which the outer call is in the middle of
+    // invalidating — routing then faults on a freed handler (macOS bucket
+    // 22dc52ae61). The FinalizeModel guard only blocks re-entry into
+    // FinalizeModel; motion has no useful work to do here either way.
+    if (inFinalize) {
+        return;
+    }
 
     xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D");
 
@@ -6448,6 +6477,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Editing models");
                 for (const auto& it : modelPreview->GetModels())
                 {
+                    if (it == nullptr) {
+                        continue;
+                    }
                     if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                         if (intersection_distance < distance) {
                             distance = intersection_distance;
@@ -6647,6 +6679,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
 {
+    if (inFinalize) {
+        return;
+    }
     if (is_3d) {
         OnPreviewMouseMove3D(event);
         return;
@@ -7472,8 +7507,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
-                ? serializer.SerializeModel(selectedModels[0], true)
-                : serializer.SerializeModels(selectedModels, true);
+                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true)
+                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
@@ -7657,6 +7692,9 @@ void LayoutPanel::EditFaces()
         auto newFaceInfo = dlg.GetFaceInfo();
         if (newFaceInfo != oldFaceInfo) {
             md->SetFaceInfo(newFaceInfo);
+            for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
+                xlights->GetSequenceElements().RenameModelFaceReferences(md->GetName(), oldName, newName);
+            }
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
             updatePropertyGrid();
@@ -8750,6 +8788,36 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     }
 }
 
+void LayoutPanel::BeginImportModelFromFile(const std::string& xmodelPath) {
+    // Drive the existing "Import Custom" click-to-place flow with a known file
+    // instead of prompting for one. Mirrors OnNewModelTypeButtonClicked selecting
+    // the Import-Custom button: when the user next clicks the layout,
+    // CreateNewModel("Import Custom") -> FinalizeModel -> GetXlightsModel runs, and
+    // because _lastXlightsModel is non-empty GetXlightsModel skips its file prompt
+    // and loads xmodelPath. Used by the desktop KLightMapper scan completion to add
+    // the mapped model straight onto the layout, just like a vendor download.
+    NewModelBitmapButton* importBtn = nullptr;
+    for (const auto& it : buttons) {
+        if (it->GetModelType() == "Import Custom") {
+            importBtn = it;
+            it->SetState(1);
+        } else {
+            it->SetState(0);
+        }
+    }
+    if (importBtn == nullptr) {
+        return; // Import-Custom tool missing (shouldn't happen)
+    }
+    selectedButton = importBtn;
+    UnSelectAllModels();
+    Notebook_Objects->ChangeSelection(0);
+    editing_models = true;
+    modelPreview->SetFocus();
+    // Preset the path LAST: selecting a button leaves _lastXlightsModel untouched
+    // (only deselecting clears it), and GetXlightsModel keys off it at click time.
+    _lastXlightsModel = xmodelPath;
+}
+
 void LayoutPanel::AddObjectButton(wxMenu& mnu, const long id, const std::string &name, const char *icon[]) {
     wxMenuItem* menu_item = mnu.Append(id, name);
     if (icon != nullptr) {
@@ -9365,7 +9433,13 @@ void LayoutPanel::DeleteSelectedModels()
             // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
             xlights->GetOutputModelManager()->SuspendDeferredWork(true);
             xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-            xlights->AbortRender();    // stop any rendering as deleting models from under the renderer will crash xlights
+            if (!xlights->AbortRender()) {
+                // Render didn't drain in time — deleting models now would free
+                // them out from under a running render worker and crash. Skip
+                // the delete and restore the deferred-work flag suspended above.
+                xlights->GetOutputModelManager()->SuspendDeferredWork(false);
+                return;
+            }
 
             CreateUndoPoint("All", wxJoin(modelsToDelete, ','));
 
@@ -9428,7 +9502,9 @@ void LayoutPanel::DeleteSelectedGroups()
 		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
 
 		xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-        xlights->AbortRender(); // stop rendering as deleting groups while rendering is not good
+        // Stop rendering before deleting groups out from under a running render
+        // worker (crash). Bail if render won't drain in time.
+        if (!xlights->AbortRender()) return;
 
 		for (const auto& it : groupsToDelete) {
 			xlights->AllModels.Delete(it.ToStdString());
@@ -10129,6 +10205,12 @@ void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &mode
     if (type == "SingleModel" && selectedModelCnt > 1) {
         type = "All";
     }
+    // Moving a Set member drags the whole Set along, so a single-model
+    // snapshot would only restore the grabbed member on undo.
+    if (type == "SingleModel" && !model.empty() &&
+        xlights->AllModels.GetSetManager().GetSetContaining(model) != nullptr) {
+        type = "All";
+    }
     if (type == "SingleObject" && selectedViewObjectCnt > 1) {
         type = "All";
     }
@@ -10315,8 +10397,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
-                ? serializer.SerializeModel(selectedModels[0], true)
-                : serializer.SerializeModels(selectedModels, true);
+                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true)
+                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {

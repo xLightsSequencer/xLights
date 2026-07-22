@@ -46,7 +46,8 @@ enum class MixTypes {
     Mix_Max,
     Mix_Min,
     Mix_Highlight,
-    Mix_Highlight_Vibrant
+    Mix_Highlight_Vibrant,
+    Mix_LAST /** not a real mix type -- sentinel/count terminator, must stay last */
 };
 
 class Effect;
@@ -55,6 +56,44 @@ class SettingsMap;
 class DimmingCurve;
 class ModelGroup;
 class MetalPixelBufferComputeData;
+
+// The sub-buffer resolved for one frame, quantized to buffer cells. Node
+// mapping depends on the sub-buffer definition only through these integers,
+// so an unchanged rect means the node mapping does not need rebuilding.
+struct SubBufferRect {
+    int x1 = 0;
+    int y1 = 0;
+    int x2 = 0;
+    int y2 = 0;
+
+    bool operator==(const SubBufferRect& o) const {
+        return x1 == o.x1 && y1 == o.y1 && x2 == o.x2 && y2 == o.y2;
+    }
+    bool operator!=(const SubBufferRect& o) const {
+        return !(*this == o);
+    }
+};
+
+// A parsed sub-buffer definition string: the six fields (x1, y1, x2, y2 and
+// the x/y centre offsets) as either a static value or a value curve. Parsing
+// is hoisted out of the per-frame path.
+class SubBufferSpec {
+public:
+    void Parse(const std::string& subBuffer);
+    void Invalidate() {
+        parsed = false;
+    }
+    bool IsParsed() const {
+        return parsed;
+    }
+    SubBufferRect ComputeRect(float progress, long startMS, long endMS, int bufferWi, int bufferHi);
+
+private:
+    bool parsed = false;
+    bool hasCurve[6] = { false, false, false, false, false, false };
+    float statics[6] = { 0.0f, 0.0f, 100.0f, 100.0f, 0.0f, 0.0f };
+    ValueCurve curves[6];
+};
 
 class PixelBufferClass {
 private:
@@ -190,6 +229,47 @@ private:
         std::vector<std::unique_ptr<RenderBuffer>>* modelBuffers = nullptr;
         std::vector<std::unique_ptr<RenderBuffer>> shallowModelBuffers;
         std::vector<std::unique_ptr<RenderBuffer>> deepModelBuffers;
+
+        // Flattened node/coord walks for the "Per Model" group <-> member-model
+        // pixel copies, built once per layer settings change.
+        struct PerModelCopyMap {
+            struct Op {
+                int32_t dst;
+                int32_t src; // < 0 when the source coord falls outside its buffer
+            };
+            struct ModelOps {
+                std::vector<Op> unmerge; // group pixel -> model pixel
+                std::vector<Op> merge;   // model pixel -> group pixel
+                size_t nodeStart = 0;
+                size_t nodeCount = 0;
+                int wi = 0;
+                int ht = 0;
+                bool dmx = false; // model SetPixel() does DMX channel translation, not a plain store
+            };
+            std::vector<ModelOps> models;
+            const std::vector<std::unique_ptr<RenderBuffer>>* builtFor = nullptr;
+            size_t groupNodeCount = 0;
+            int groupWi = 0;
+            int groupHt = 0;
+            // Two member models write the same group-buffer cell, so the merge
+            // result depends on model order (last model wins). Merging across
+            // models in parallel would make that racy, so it stays serial.
+            bool groupOverlap = false;
+            bool valid = false;
+
+            void invalidate() {
+                valid = false;
+            }
+            void clear() {
+                models.clear();
+                builtFor = nullptr;
+                groupNodeCount = 0;
+                groupWi = groupHt = 0;
+                groupOverlap = false;
+                valid = false;
+            }
+        };
+        PerModelCopyMap perModelMap;
         bool isChromaKey = false;
         xlColor chromaKeyColour = xlBLACK;
         xlColor sparklesColour = xlWHITE;
@@ -201,6 +281,12 @@ private:
         uint8_t* mask = nullptr;
         size_t maskSize = 0;
         size_t maskMaxSize = 0;
+
+        SubBufferSpec subBufferSpec;
+        SubBufferRect subBufferRect;
+        bool subBufferRectValid = false;
+        int fullBufferWi = 0;
+        int fullBufferHt = 0;
 
         void renderTransitions(bool isFirstFrame, RenderBuffer* prevRB);
         void calculateMask(const std::string& type, bool mode, bool isFirstFrame);
@@ -216,6 +302,22 @@ private:
         int outputBrightnessAdjust = 100;
         float outputEffectMixThreshold = 0.0f;
 
+        struct ColorAdjust {
+            float hueAdjust = 0.0f;
+            float saturationAdjust = 0.0f;
+            float valueAdjust = 0.0f;
+            int brightnessAdjust = 100;
+            bool needsHSVAdjust = false;
+        };
+        // The output* members above are only refreshed for layers that get
+        // rendered this frame - a frozen layer (or the canvas layer itself,
+        // which is blended before its own transitions run) keeps stale ones, and
+        // the node blend depends on that. So the pixel-grid path keeps its own
+        // copy rather than sharing them.
+        ColorAdjust mixedColorAdjust;
+        int mixedColorAdjustPeriod = -1;
+
+        void calculateColorAdjust(int effectPeriod, ColorAdjust& adjust);
         void calculateNodeOutputParams(int effectPeriod);
 
     private:
@@ -231,6 +333,7 @@ private:
         void createSlideBarsMask(bool end);
 
         friend class MetalPixelBufferComputeData;
+        friend class VulkanPixelBufferComputeData;
     };
 
     PixelBufferClass(const PixelBufferClass& cls);
@@ -241,6 +344,11 @@ private:
     std::vector<uint32_t> blendDataBuffer;
     uint16_t *sparkles = nullptr;
     int frameTimeInMs = 50;
+    // Set once in reset() from layers[0]'s node/model set -- valid for the
+    // buffer's whole render-job lifetime (models are fixed once assigned;
+    // a model settings edit bumps the model generation and rebuilds the
+    // render tree, which reallocates this buffer via a fresh reset()).
+    bool anyDimmingCurve = false;
 
     // both fg and bg may be modified, bg will contain the new, mixed color to be the bg for the next mix
     void mixColors(int x, int y, xlColor& fg, xlColor& bg, int layer);
@@ -253,6 +361,11 @@ private:
 
     void GetMixedColor(int node, const std::vector<bool>& validLayers, int EffectPeriod, int saveLayer, bool saveToPixels);
 
+    void BuildPerModelCopyMap(LayerInfo* inf);
+    bool PerModelCopyMapUsable(const LayerInfo* inf) const;
+    void UnMergeBuffersForLayerScalar(int layer);
+    void MergeBuffersForLayerScalar(int layer);
+
     std::string modelName;
     std::string lastBufferType;
     std::string lastCamera;
@@ -264,6 +377,10 @@ private:
 
 public:
     static std::vector<std::string> GetMixTypes();
+    // Hoists the per-layer curve/HSV params GetMixedColor(x, y, ...) needs. Call
+    // once (single threaded) for an EffectPeriod before running the pixel loop;
+    // GetMixedColor recomputes them itself for any layer that was missed.
+    void PrepareMixedColorParams(const std::vector<bool>& validLayers, int EffectPeriod);
     void GetMixedColor(int x, int y, xlColor& c, const std::vector<bool>& validLayers, int EffectPeriod);
     void GetNodeChannelValues(size_t nodenum, unsigned char* buf);
     void SetNodeChannelValues(size_t nodenum, const unsigned char* buf);
@@ -325,6 +442,7 @@ public:
     // place for GPU Renderers to attach extra data/objects it needs
     void* gpuRenderData = nullptr;
     friend class MetalPixelBufferComputeData;
+    friend class VulkanPixelBufferComputeData;
     friend class ISPCComputeUtilities;
 };
 

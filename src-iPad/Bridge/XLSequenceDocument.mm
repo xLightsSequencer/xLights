@@ -5934,7 +5934,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (m->GetDisplayAs() == DisplayAsType::ModelGroup) return NO;
     ObtainAccessToURL([path UTF8String], true);
     XmlSerializer serializer;
-    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true);
+    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true, /*forExport*/ true);
     return doc.save_file(path.UTF8String) ? YES : NO;
 }
 
@@ -10885,8 +10885,12 @@ std::string buildXccDocument(const std::string& serialised) {
 - (NSArray<NSString*>*)facesForRow:(int)rowIndex atIndex:(int)effectIndex {
     (void)effectIndex;
     Model* m = [self _targetModelForRow:rowIndex];
-    if (!m) return @[];
-    return [self _keysOfFaceStateData:m->GetFaceInfo()];
+    // sequence-level face definitions are usable by any model; model
+    // definitions win on a name clash (map::insert keeps existing keys)
+    FaceStateData defs = m ? m->GetFaceInfo() : FaceStateData();
+    const auto& seqFaces = _context->GetSequenceElements().GetSequenceFaces().GetFaces();
+    defs.insert(seqFaces.begin(), seqFaces.end());
+    return [self _keysOfFaceStateData:defs];
 }
 
 - (NSArray<NSString*>*)modelNodeNamesForRow:(int)rowIndex atIndex:(int)effectIndex {
@@ -11267,13 +11271,23 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
         ++layerRow;
     };
 
-    for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) {
+    auto effectiveLayers = [](Element* elem) -> int {
+        for (int j = (int)elem->GetEffectLayerCount() - 1; j >= 0; --j) {
+            if (elem->GetEffectLayer(j)->GetEffectCount() > 0)
+                return j + 1;
+        }
+        return 1;
+    };
+
+    int mainCount = effectiveLayers(me);
+    for (int j = 0; j < mainCount; ++j) {
         appendLayer(me->GetEffectLayer(j));
     }
     for (int s = 0; s < me->GetSubModelCount(); ++s) {
         SubModelElement* sub = me->GetSubModel(s);
         if (!sub) continue;
-        for (int j = 0; j < (int)sub->GetEffectLayerCount(); ++j) {
+        int subCount = effectiveLayers(sub);
+        for (int j = 0; j < subCount; ++j) {
             appendLayer(sub->GetEffectLayer(j));
         }
     }
@@ -11588,24 +11602,15 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (BOOL)abortRenderAndWait:(NSTimeInterval)timeoutSeconds {
     if (!_context) return YES;
-    // Signal every in-flight render job to bail. Workers test the
-    // abort flag at their next frame boundary, so this unblocks them
-    // within milliseconds for typical sequences.
-    _context->AbortRender();
-    // Spin-wait on IsRenderDone(). The poll interval is short because
-    // we're on the main thread here and want the UI to close promptly,
-    // but aborted jobs finish quickly so the expected case is one or
-    // two iterations. The timeout is a safety net — we'd rather force
-    // a late teardown than hang the app indefinitely on a stuck job.
-    NSDate* deadline = [NSDate dateWithTimeIntervalSinceNow:
-                        timeoutSeconds > 0 ? timeoutSeconds : 5.0];
-    while (!_context->IsRenderDone()) {
-        if ([[NSDate date] compare:deadline] == NSOrderedDescending) {
-            return NO;
-        }
-        [NSThread sleepForTimeInterval:0.01];
-    }
-    return YES;
+    // AbortRender signals every in-flight render job to bail and waits
+    // (up to the budget) for them to unwind. Workers test the abort
+    // flag at their next frame boundary, so the expected case returns
+    // within milliseconds; the timeout is a safety net — we'd rather
+    // force a late teardown than hang indefinitely on a stuck job.
+    // The budget must be passed through: the argless overload waits
+    // 60s, defeating the caller's timeout.
+    double budget = timeoutSeconds > 0 ? timeoutSeconds : 5.0;
+    return _context->AbortRender((int)(budget * 1000.0)) ? YES : NO;
 }
 
 - (void)handleMemoryWarning {
@@ -12861,6 +12866,7 @@ int rewriteEffectValues(iPadRenderContext& ctx,
     // hooks per effect; a final explicit bump covers the
     // no-referencing-effect edge case.
     (void)rewriteEffectValues(*_context, oldStr, newStr);
+    (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(oldStr, newStr);
     bumpSequenceDirty(_context.get());
     return YES;
 }
@@ -12964,6 +12970,7 @@ const char* canonicalSubdirForType(MediaType t) {
         }
         (void)media.ReloadMedia(newStr);
         (void)rewriteEffectValues(*_context, storedStr, newStr);
+        (void)_context->GetSequenceElements().GetSequenceFaces().RewriteImagePath(storedStr, newStr);
         bumpSequenceDirty(_context.get());
     }
 
@@ -13318,10 +13325,16 @@ void appendLayerMatches(EffectLayer* layer,
     std::unordered_set<std::string> usedValues;
     collectAllEffectSettingValues(*_context, usedValues);
 
+    // Sequence-level face definitions reference images outside any effect's
+    // settings — without this their images would always look unused.
+    for (const auto& p : _context->GetSequenceElements().GetSequenceFaces().GetImagePaths()) {
+        usedValues.insert(p);
+    }
+
     auto paths = media.GetAllMediaPaths();
     int removed = 0;
     for (const auto& p : paths) {
-        if (usedValues.count(p.first) == 0) {
+        if (usedValues.count(p.first) == 0 && !media.IsUsedByMetadata(p.first)) {
             media.RemoveMedia(p.first);
             removed++;
         }
@@ -15709,23 +15722,29 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     bool rejectAll = false;
 
     BOOL controllersChanged = NO;
-    if (om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr)) {
+    bool controllersDidChange = false;
+    om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr, &controllersDidChange);
+    if (controllersDidChange) {
         controllersChanged = YES;
         [self recalcAndMarkControllersDirty];
     }
 
     BOOL modelsChanged = NO;
     if (_context->HasModelManager()) {
-        if (_context->GetModelManager().MergeFromBase(baseDir, /*prompt=*/false,
-                                                       acceptAll, rejectAll)) {
+        bool modelsDidChange = false;
+        _context->GetModelManager().MergeFromBase(baseDir, /*prompt=*/false,
+                                                   acceptAll, rejectAll, &modelsDidChange);
+        if (modelsDidChange) {
             modelsChanged = YES;
         }
     }
 
     BOOL objectsChanged = NO;
     if (_context->HasViewObjectManager()) {
-        if (_context->GetAllObjects().MergeFromBase(baseDir, /*prompt=*/false,
-                                                     acceptAll, rejectAll)) {
+        bool objectsDidChange = false;
+        _context->GetAllObjects().MergeFromBase(baseDir, /*prompt=*/false,
+                                                 acceptAll, rejectAll, &objectsDidChange);
+        if (objectsDidChange) {
             objectsChanged = YES;
         }
     }
@@ -17556,6 +17575,8 @@ NSString* fppTypeString(FPP_TYPE t) {
         return @{@"globalError": [NSString stringWithFormat:@"Could not open fseq: %@", fseqPath],
                  @"outcomes": outcomes};
     }
+    // every frame is read in order below to build the upload
+    seq->setReadPattern(FSEQFile::ReadPattern::Bulk);
 
     // Resolve each target to its FPP* and compute the right codec.
     // Targets that don't resolve (deleted between discover and upload?)

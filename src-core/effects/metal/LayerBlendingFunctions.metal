@@ -143,11 +143,16 @@ kernel void GetColorsForNodes(constant LayerBlendingData &data,
     }
 }
 
+// owner gates the scatter: several nodes can map to the same pixel, and
+// concurrent GPU threads racing for it made the result non-deterministic.
+// Only the owning node (last in Nodes order, matching the serial CPU loop)
+// writes the shared pixel.
 kernel void PutColorsForNodes(constant LayerBlendingData &data,
                               device uchar4* result,
                               const device uchar4* src,
                               const constant uchar*  mask,
                               const device int32_t *indexes,
+                              const device int32_t *owner,
                               uint index [[thread_position_in_grid]])
 {
     if (index >= (uint)data.nodeCount) return;
@@ -159,6 +164,7 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
         int cnt = indexes[idx++];
         for (int n = 0; n < cnt; n++) {
             int nidx = indexes[idx + n];
+            if (owner[nidx] != (int32_t)index) continue;
             int32_t x = nidx / data.bufferHi;
             int32_t y = nidx - (x * data.bufferHi);
             int32_t midx = x * data.bufferHi + y;
@@ -168,6 +174,8 @@ kernel void PutColorsForNodes(constant LayerBlendingData &data,
                 result[nidx] = src[index];
             }
         }
+    } else if (owner[idx] != (int32_t)index) {
+        // another node owns this pixel
     } else if (data.useMask) {
         int32_t x = idx / data.bufferHi;
         int32_t y = idx - (x * data.bufferHi);
@@ -233,8 +241,12 @@ kernel void ApplySparkles(constant LayerBlendingData &data,
     uchar4 c = result[index];
     if (c.r != 0 || c.g != 0 || c.b != 0) {
         int sc = data.outputSparkleCount;
-        uint16_t sparkle = sparkles[index];
-        
+        // Frame-keyed phase (see the ISPC ApplySparkles): sparkles[index] is the
+        // stable per-node phase; the animation advances with the frame, so
+        // placement is a pure function of (node, frame) and reproduces in any
+        // render order.
+        uint sparkle = (uint)sparkles[index] + (uint)data.sparkleFrame;
+
         switch (sparkle % (208 - sc)) {
             case 1:
             case 7:
@@ -255,7 +267,6 @@ kernel void ApplySparkles(constant LayerBlendingData &data,
             default:
                 break;
         }
-        sparkles[index] = sparkle + 1;
     }
 }
 

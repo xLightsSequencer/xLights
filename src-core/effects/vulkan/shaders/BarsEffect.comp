@@ -1,0 +1,172 @@
+#version 450
+// Port of BarsEffect in BarsFunctions.metal.  All direction modes (0-7) are
+// handled here; custom (12,13) and spatial palettes fall back to CPU in the
+// wrapper.  Params come from the arena SSBO (binding 5); the layout mirrors
+// VulkanBarsData in VulkanEffectDataTypes.h (std430).
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    int direction;
+    int barSize;
+    int blockSize;
+    int f_offset;
+    int newCenter;
+    int colorCount;
+    int highlight;
+    int show3D;
+    int gradient;
+    int allowAlpha;
+    int useFirstColorForHighlight;
+
+    uint colorsAsRGBA[8];
+    vec3 colorsAsHSV[8];
+    uint highlightColor;
+} data;
+
+const int BARS_DIR_UP = 0;
+const int BARS_DIR_DOWN = 1;
+const int BARS_DIR_EXPAND = 2;
+const int BARS_DIR_COMPRESS = 3;
+const int BARS_DIR_LEFT = 4;
+const int BARS_DIR_RIGHT = 5;
+const int BARS_DIR_HEXPAND = 6;
+const int BARS_DIR_HCOMPRESS = 7;
+
+// Truncated integer remainder (sign of dividend), matching C/Metal `%`.
+int imod(int a, int b) {
+    return a - (a / b) * b;
+}
+
+uvec4 blendRGBA(uvec4 c1, uvec4 c2, float t) {
+    return uvec4(
+        uint(float(c1.r) + t * (float(c2.r) - float(c1.r))),
+        uint(float(c1.g) + t * (float(c2.g) - float(c1.g))),
+        uint(float(c1.b) + t * (float(c2.b) - float(c1.b))),
+        uint(float(c1.a) + t * (float(c2.a) - float(c1.a))));
+}
+
+uvec4 barsHsv2rgba(vec3 hsv) {
+    float h = hsv.x, s = hsv.y, v = hsv.z;
+    float r, g, b;
+    if (s == 0.0) {
+        r = v; g = v; b = v;
+    } else {
+        float hh = xl_fmod(h, 1.0) * 6.0;
+        int i = int(hh);
+        float f = hh - float(i);
+        float p = v * (1.0 - s);
+        float q = v * (1.0 - s * f);
+        float t = v * (1.0 - s * (1.0 - f));
+        switch (i) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            default: r = v; g = p; b = q; break;
+        }
+    }
+    return uvec4(uint(r * 255.0), uint(g * 255.0), uint(b * 255.0), 255u);
+}
+
+uvec4 blendHSV(vec3 hsv1, vec3 hsv2, float t) {
+    // Blend hue along the shortest arc
+    float dh = hsv2.x - hsv1.x;
+    if (dh > 0.5) dh -= 1.0;
+    if (dh < -0.5) dh += 1.0;
+    vec3 blended = vec3(
+        xl_fmod(hsv1.x + t * dh + 1.0, 1.0),
+        hsv1.y + t * (hsv2.y - hsv1.y),
+        hsv1.z + t * (hsv2.z - hsv1.z));
+    return barsHsv2rgba(blended);
+}
+
+uvec4 computeBarColor(int n) {
+    int absN = abs(imod(n, data.blockSize));
+    int colorIdx = absN / data.barSize;
+    int color2 = imod(colorIdx + 1, data.colorCount);
+    float pct = float(abs(imod(n, data.barSize))) / float(data.barSize);
+
+    if (data.highlight != 0 && imod(n, data.barSize) == 0) {
+        return unpackPx(data.highlightColor);
+    }
+
+    uvec4 rgba;
+    if (data.allowAlpha != 0) {
+        rgba = unpackPx(data.colorsAsRGBA[colorIdx]);
+        if (data.gradient != 0) {
+            rgba = blendRGBA(rgba, unpackPx(data.colorsAsRGBA[color2]), pct);
+        }
+        if (data.show3D != 0) {
+            int numerator = data.barSize - abs(imod(n, data.barSize)) - 1;
+            rgba.a = uint(255.0 * float(numerator) / float(data.barSize));
+        }
+    } else {
+        vec3 hsv = data.colorsAsHSV[colorIdx];
+        if (data.gradient != 0) {
+            return blendHSV(hsv, data.colorsAsHSV[color2], pct);
+        }
+        if (data.show3D != 0) {
+            int numerator = data.barSize - abs(imod(n, data.barSize)) - 1;
+            hsv.z *= float(numerator) / float(data.barSize);
+        }
+        rgba = barsHsv2rgba(hsv);
+    }
+    return rgba;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    int dir = data.direction;
+    bool isVertical = (dir <= BARS_DIR_COMPRESS);
+
+    int n;
+    if (isVertical) {
+        int y;
+        switch (dir) {
+            case BARS_DIR_DOWN:
+                y = int(py);
+                break;
+            case BARS_DIR_EXPAND:
+                y = (int(py) <= data.newCenter) ? int(py) : (2 * data.newCenter - int(py));
+                break;
+            case BARS_DIR_COMPRESS:
+                y = (int(py) >= data.newCenter) ? int(py) : (2 * data.newCenter - int(py));
+                break;
+            default: // BARS_DIR_UP
+                y = int(data.height) - int(py) - 1;
+                break;
+        }
+        n = int(data.height) + y + data.f_offset;
+    } else {
+        int x;
+        switch (dir) {
+            case BARS_DIR_RIGHT:
+                x = int(data.width) - int(px) - 1;
+                break;
+            case BARS_DIR_HEXPAND:
+                x = (int(px) <= data.newCenter) ? int(px) : (2 * data.newCenter - int(px));
+                break;
+            case BARS_DIR_HCOMPRESS:
+                x = (int(px) >= data.newCenter) ? int(px) : (2 * data.newCenter - int(px));
+                break;
+            default: // BARS_DIR_LEFT
+                x = int(px);
+                break;
+        }
+        n = int(data.width) + x + data.f_offset;
+    }
+
+    result[index] = packPx(computeBarColor(n));
+}

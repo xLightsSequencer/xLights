@@ -32,3 +32,18 @@
 	path = dependencies/spdlog
 	url = https://github.com/gabime/spdlog.git
 	branch = v1.x
+[submodule "dependencies/Vulkan-Headers"]
+	path = dependencies/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "dependencies/volk"]
+	path = dependencies/volk
+	url = https://github.com/zeux/volk.git
+[submodule "dependencies/VulkanMemoryAllocator"]
+	path = dependencies/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "dependencies/glslang"]
+	path = dependencies/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "dependencies/SPIRV-Headers"]
+	path = dependencies/SPIRV-Headers
+	url = https://github.com/KhronosGroup/SPIRV-Headers.git

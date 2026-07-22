@@ -36,6 +36,7 @@ public:
     {
         return true;
     }
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     static bool IsVideoFile(std::string filename);
 
     // Currently not possible but I think changes could be made to make it support partial

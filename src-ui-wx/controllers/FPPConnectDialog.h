@@ -3,6 +3,7 @@
 
 #include <wx/progdlg.h>
 #include <list>
+#include <set>
 
 //(*Headers(FPPConnectDialog)
 #include <wx/button.h>
@@ -49,6 +50,7 @@ class FPPConnectDialog: public wxDialog
 		wxScrolledWindow* FPPInstanceList;
 		wxSplitterWindow* SplitterWindow1;
 		wxStaticText* Selected_Label;
+		wxStaticText* ShowDirLabel;
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		//*)
@@ -64,6 +66,7 @@ class FPPConnectDialog: public wxDialog
 		static const wxWindowID ID_STATICTEXT2;
 		static const wxWindowID ID_CHOICE_FOLDER;
 		static const wxWindowID ID_STATICTEXT3;
+		static const wxWindowID ID_STATICTEXT4;
 		static const wxWindowID ID_PANEL2;
 		static const wxWindowID ID_PANEL1;
 		static const wxWindowID ID_SPLITTERWINDOW1;
@@ -90,7 +93,6 @@ class FPPConnectDialog: public wxDialog
 		void OnChoiceFolderSelect(wxCommandEvent& event);
 		void OnChoiceFilterSelect(wxCommandEvent& event);
 		void HostSortMenu(wxContextMenuEvent& event);
-        void IPSortMenu(wxContextMenuEvent& event);
 		void OnHostSortClick(wxCommandEvent& event);
         void OnIPSortClick(wxCommandEvent& event);
 		void UploadPopupMenu(wxContextMenuEvent& event);
@@ -102,10 +104,13 @@ class FPPConnectDialog: public wxDialog
 		//*)
 
         void LoadSequencesFromFolder(wxString const& dir) const;
+        void LoadSequencesFromFolder(wxString const& dir, std::set<wxString>& knownPaths) const;
+        void AddSequenceListItem(const wxString& fseqPath, const std::string& media, std::set<wxString>& knownPaths) const;
         void LoadSequences();
         void PopulateFPPInstanceList(wxProgressDialog *prgs = nullptr);
         void AddInstanceRow(const FPP &inst);
         wxPanel *AddInstanceHeader(const std::string &h, const std::string &tt = std::string());
+        void OnInstanceListPaint(wxPaintEvent& event);
 
         void GetFolderList(const wxString& folder);
     
@@ -118,8 +123,8 @@ class FPPConnectDialog: public wxDialog
         void SetChoiceValueIndex(const std::string &col, int i);
         void SetCheckValue(const std::string &col, bool b);
 
+		wxString SequenceDisplayName(const wxString& filePath) const;
 		void DisplayDateModified(const wxString& filePath, wxTreeListItem &index) const;
-        void DisplayPixelCount(const wxString& filePath, wxTreeListItem &index) const;
 
 		void UpdateSeqCount();
         uint32_t GetSelectedSeqCount();

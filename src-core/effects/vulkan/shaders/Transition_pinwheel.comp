@@ -1,0 +1,40 @@
+#version 450
+// Port of pinwheelTransition in TransitionFunctions.metal.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "transition_common.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+layout(std430, set = 0, binding = 2) readonly buffer Prev { uint prev[]; };
+
+#include "transition_tex.glsl"
+
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    uint sidx = index.y * data.width + index.x;
+    float adjust = floor(interpolate(data.adjust, 0.0, 3.0, 100.0, 10.0));
+    float t = float(index.y) / (float(data.height) - 1.0);
+    float s = float(index.x) / (float(data.width) - 1.0);
+
+    float x = s - 0.5;
+    float y = t - 0.5;
+    if (t < 0.5) {
+        y = -y;
+        x = -x;
+    }
+    float arcTangent = atan(y, x);
+    float dummy;
+    float toProgress = modf(arcTangent / XL_PI * adjust, dummy);
+    if (toProgress > data.progress) {
+        result[sidx] = packPx(tex2Dsrc(s, t));
+    } else if (data.hasPrev != 0u) {
+        result[sidx] = packPx(tex2Dprev(s, t));
+    } else {
+        result[sidx] = 0u;
+    }
+}

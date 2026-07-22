@@ -235,7 +235,6 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 	ModelPreviewPanelLocation = new wxPanel(SplitterWindow1, ID_PANEL_PREVIEW, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_PREVIEW"));
 	PreviewSizer = new wxFlexGridSizer(0, 1, 0, 0);
 	PreviewSizer->AddGrowableCol(0);
-	PreviewSizer->AddGrowableRow(1);
 	BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
 	StaticText1 = new wxStaticText(ModelPreviewPanelLocation, ID_STATICTEXT1, _("Model Display"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	BoxSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
@@ -281,6 +280,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
     modelPreview->SetMinSize(wxSize(150, 150));
     PreviewSizer->Add(modelPreview, 1, wxALL | wxEXPAND, 0);
+    // must wait until the preview row exists; the sizer is laid out by SplitVertically above
+    PreviewSizer->AddGrowableRow(1);
     PreviewSizer->Fit(ModelPreviewPanelLocation);
     PreviewSizer->SetSizeHints(ModelPreviewPanelLocation);
 

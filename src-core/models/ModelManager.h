@@ -98,8 +98,11 @@ class ModelManager : public ObjectManager
 
         int GetPreviewWidth() const { return previewWidth; }
         int GetPreviewHeight() const { return previewHeight; }
-        bool MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll);
-        static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode);
+        // Both return true if the base rgb effects file loaded and the merge ran (even if nothing
+        // changed); false only if the base file could not be loaded. Optional 'changed' reports
+        // whether any model/group content was actually modified.
+        bool MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll, bool* changed = nullptr);
+        static bool MergeBaseXml(const std::string& baseShowDir, pugi::xml_node localModelsNode, pugi::xml_node localGroupsNode, bool* changed = nullptr);
         std::string GetLastGeneratedModelName() const { return lastGeneratedModelName; }
 
         // Ruler state for model import (tracks whether dimensions were applied via ruler)

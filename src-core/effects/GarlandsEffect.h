@@ -18,6 +18,7 @@ public:
     GarlandsEffect(int id);
     virtual ~GarlandsEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual bool AppropriateOnNodes() const override
@@ -45,6 +46,9 @@ public:
     static double sCyclesMax;
     static int sCyclesDivisor;
     static std::string sDirectionDefault;
+
+    // Maps the direction choice string to 0..7 (shared by the CPU and Metal paths).
+    static int GetDirection(const std::string& direction);
 
 protected:
     virtual void OnMetadataLoaded() override;

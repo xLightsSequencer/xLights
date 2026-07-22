@@ -77,45 +77,21 @@ inline uint32 fromHSV(const HSVColor &hsv, uint8 alph = 255) {
         float hue = hsv.x * 6.0;      // sector 0 to 5
         int i = (int)floor(hue);
         float f = hue - i;          // fractional part of h
+        int sec = i > 5 ? 5 : i;    // hue==1.0 lands in sector 6; the old
+                                    // switch's default folded it into 5, so match.
+        float v = hsv.z;
         float p = hsv.z * (1.0 - hsv.y);
-
-        switch (i) {
-            case 0:
-                red = hsv.z;
-                green = hsv.z * (1.0 - hsv.y * (1.0 - f));
-                blue = p;
-                break;
-
-            case 1:
-                red = hsv.z * (1.0 - hsv.y * f);
-                green = hsv.z;
-                blue = p;
-                break;
-
-            case 2:
-                red = p;
-                green = hsv.z;
-                blue = hsv.z * (1.0 - hsv.y * (1.0 - f));
-                break;
-
-            case 3:
-                red = p;
-                green = hsv.z * (1.0 - hsv.y * f);
-                blue = hsv.z;
-                break;
-
-            case 4:
-                red = hsv.z * (1.0 - hsv.y * (1.0 - f));
-                green = p;
-                blue = hsv.z;
-                break;
-
-            default:    // case 5:
-                red = hsv.z;
-                green = p;
-                blue = hsv.z * (1.0 - hsv.y * f);
-                break;
-        }
+        float q = hsv.z * (1.0 - hsv.y * f);
+        float t = hsv.z * (1.0 - hsv.y * (1.0 - f));
+        // Branchless sector select - replaces a switch(i) on the varying lane
+        // index (which forced SIMD divergence).  Identical per-sector values:
+        //   sector: 0  1  2  3  4  5
+        //     red : v  q  p  p  t  v
+        //     green: t  v  v  q  p  p
+        //     blue: p  p  t  v  v  q
+        red   = (sec == 0 || sec == 5) ? v : (sec == 1) ? q : (sec == 4) ? t : p;
+        green = (sec == 1 || sec == 2) ? v : (sec == 0) ? t : (sec == 3) ? q : p;
+        blue  = (sec == 3 || sec == 4) ? v : (sec == 2) ? t : (sec == 5) ? q : p;
     }
     return fromComponents((uint8)(red * 255.0), (uint8)(green * 255.0), (uint8)(blue * 255.0), alph);
 }
@@ -148,6 +124,7 @@ export struct LayerBlendingData {
     int mixTypeData;
     
     int outputSparkleCount;
+    int sparkleFrame;
     uint32 sparkleColor;
     
     bool isChromaKey;
@@ -324,29 +301,21 @@ export void ApplySparkles(uniform const LayerBlendingData &data,
         uint32 c = result[index];
         if (c & 0xFFFFFF) {
             int sc = data.outputSparkleCount;
-            uint16 sparkle = sparkles[index];
-            
-            switch (sparkle % (208 - sc)) {
-                case 1:
-                case 7:
-                    // too dim
-                    // color.Set("#444444");
-                    break;
-                case 2:
-                case 6:
-                    result[index] = ApplyBrightness(data.sparkleColor, 0.53f);
-                    break;
-                case 3:
-                case 5:
-                    result[index] = ApplyBrightness(data.sparkleColor, 0.75f);
-                   break;
-                case 4:
-                    result[index] = data.sparkleColor;
-                    break;
-                default:
-                    break;
-            }
-            sparkles[index] = sparkle + 1;
+            // Frame-keyed phase: sparkles[index] is the stable per-node phase
+            // (set once); the animation advances with the frame, so sparkle
+            // placement is a pure function of (node, frame) and reproduces in
+            // any render order (frame-parallel clones, partial re-renders).
+            uint sparkle = (uint)sparkles[index] + (uint)data.sparkleFrame;
+
+            // Branchless replacement for switch(sparkle % (208 - sc)) on the
+            // varying phase (the switch forced SIMD divergence).  Only phases
+            // 2..6 change the pixel; 1, 7 and everything else leave it as-is
+            // (writing c back is a no-op for those lanes).
+            int m = sparkle % (208 - sc);
+            result[index] = (m == 4)             ? data.sparkleColor
+                          : (m == 2 || m == 6)   ? ApplyBrightness(data.sparkleColor, 0.53f)
+                          : (m == 3 || m == 5)   ? ApplyBrightness(data.sparkleColor, 0.75f)
+                          : c;
         }
     }
 }

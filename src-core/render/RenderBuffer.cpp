@@ -11,6 +11,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <unordered_set>
 #ifdef _MSC_VER
 	// required so M_PI will be defined by MSC
 	#define _USE_MATH_DEFINES
@@ -108,10 +110,21 @@ void RenderBuffer::AlphaBlend(const RenderBuffer& src)
 }
 
 
+static inline uint64_t rngFnv1a(const std::string& s) {
+    uint64_t h = 0xCBF29CE484222325ULL;
+    for (unsigned char c : s) {
+        h ^= c;
+        h *= 0x100000001B3ULL;
+    }
+    return h;
+}
+
 RenderBuffer::RenderBuffer(RenderContext *ctx, PixelBufferClass *p, const Model *m) : renderContext(ctx), parent(p)
 {
     model = m == nullptr ? p->GetModel() : m;
     cur_model = model->GetFullName();
+    rngModelHash = rngFnv1a(cur_model);
+    computeRandomBaseSeed();
     dmx_buffer = IsDmxDisplayType(model->GetDisplayAs());
     BufferHt = 0;
     BufferWi = 0;
@@ -174,18 +187,24 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
 
     if (NumPixels != pixelVector.size()) {
         bool resetPtr = pixelVector.size() == 0 || pixels == &pixelVector[0];
-        bool resetTPtr = tempbufVector.size() == 0 || tempbuf == &tempbufVector[0];
         pixelVector.resize(NumPixels);
-        tempbufVector.resize(NumPixels);
         if (resetPtr) {
-            // If the pixels or tempbuf ptr did not point to the first element
+            // If the pixels ptr did not point to the first element
             // originally, then it is pointing into GPU memory and we need
             // to keep that pointer pointing there so the data can be retreived
             // from the GPU.
             pixels = &pixelVector[0];
         }
-        if (resetTPtr) {
-            tempbuf = &tempbufVector[0];
+        // tempbufVector is lazily allocated (most effects never touch tempbuf -
+        // see ensureTempBuf()); only keep it in step with the pixel count if
+        // some effect already forced it into existence, so it retains the same
+        // liveness as before minus the never-used case.
+        if (!tempbufVector.empty()) {
+            bool resetTPtr = tempbuf == tempbufVector.data();
+            tempbufVector.resize(NumPixels);
+            if (resetTPtr) {
+                tempbuf = tempbufVector.empty() ? nullptr : &tempbufVector[0];
+            }
         }
     }
     
@@ -198,6 +217,21 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
     }
     if (indexVector.size() < (size_t)indexCount) {
         indexVector.resize(indexCount);
+    }
+    // Groups can legitimately contain the same channels twice (e.g. a group
+    // listing both a nested group and that group's members).  GetColors'
+    // parallel path would let those nodes race for fdata[ActChan], so flag
+    // the buffer and let callers fall back to the serial last-node-wins loop.
+    dupActChans = false;
+    {
+        std::unordered_set<uint32_t> seen;
+        seen.reserve(Nodes.size());
+        for (auto &n : Nodes) {
+            if (!seen.insert(n->ActChan).second) {
+                dupActChans = true;
+                break;
+            }
+        }
     }
     allSimpleIndex = true;
     int idx = 0;
@@ -247,8 +281,21 @@ size_t RenderBuffer::GetColorCount()
     return palette.Size();
 }
 
+// (Re)derive the per-effect base seed. Called once per effect (from
+// SetEffectDuration) so the model name is hashed only once and the base seed
+// only recomputed when the layer's effect changes - the per-frame cost is just
+// the lazy mix in ensureRandomSeed().
+void RenderBuffer::computeRandomBaseSeed()
+{
+    uint64_t s = rngModelHash;
+    s ^= (uint64_t(uint32_t(rngLayerIndex)) + 0x9E3779B97F4A7C15ULL) * 0xFF51AFD7ED558CCDULL;
+    s ^= (uint64_t(uint32_t(curEffStartPer)) + 0x85EBCA6B29B7C4A5ULL) * 0xC2B2AE3D27D4EB4FULL;
+    rngBaseSeed = rngMix64(s);
+    rngSeededForPeriod = -1; // force the serial stream to reseed on next draw
+}
+
 // generates a random number between num1 and num2 inclusive
-double RenderBuffer::RandomRange(double num1, double num2) const
+double RenderBuffer::RandomRange(double num1, double num2)
 {
     double hi,lo;
     if (num1 < num2)
@@ -935,8 +982,44 @@ const xlColor& RenderBuffer::GetPixel(int x, int y) const {
     return this->allowAlpha ? xlCLEAR : xlBLACK;
 }
 
+static_assert(sizeof(xlColor) == 4, "SnapshotTransformScratch memcpy assumes a 4-byte POD xlColor");
+
+void RenderBuffer::SnapshotTransformScratch() {
+    size_t n = pixelVector.size();
+    transformScratch.resize(n);
+    if (n) {
+        memcpy(transformScratch.data(), pixels, n * sizeof(xlColor));
+    }
+}
+
+const xlColor& RenderBuffer::GetTransformScratchPixel(int x, int y) const {
+    int pidx = y * BufferWi + x;
+    if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < (int)transformScratch.size()) {
+        return transformScratch[pidx];
+    }
+    return this->allowAlpha ? xlCLEAR : xlBLACK;
+}
+
+void RenderBuffer::GetTransformScratchPixel(int x, int y, xlColor& color) const {
+    color = GetTransformScratchPixel(x, y);
+}
+
+// tempbufVector is lazily allocated - most effects never touch tempbuf (see
+// RenderBuffer.h). This must run before every read/write/hand-out of tempbuf
+// so it behaves as if tempbufVector had always been sized with pixelVector.
+void RenderBuffer::ensureTempBuf() {
+    if (tempbufVector.size() != pixelVector.size()) {
+        bool resetTPtr = tempbufVector.empty() || tempbuf == tempbufVector.data();
+        tempbufVector.resize(pixelVector.size());
+        if (resetTPtr) {
+            tempbuf = tempbufVector.empty() ? nullptr : &tempbufVector[0];
+        }
+    }
+}
+
 // 0,0 is lower left
 void RenderBuffer::SetTempPixel(int x, int y, const xlColor& color) {
+    ensureTempBuf();
     int pidx = y * BufferWi + x;
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && pidx < (int)tempbufVector.size()) {
         tempbuf[pidx] = color;
@@ -952,12 +1035,14 @@ void RenderBuffer::SetTempPixel(int x, int y, const xlColor & color, int alpha) 
 // 0,0 is lower left
 void RenderBuffer::GetTempPixel(int x, int y, xlColor& color)
 {
+    ensureTempBuf();
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         color = tempbuf[y * BufferWi + x];
     }
 }
 
 const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
+    ensureTempBuf();
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
@@ -966,6 +1051,7 @@ const xlColor& RenderBuffer::GetTempPixel(int x, int y) {
 
 const xlColor& RenderBuffer::GetTempPixelRGB(int x, int y)
 {
+    ensureTempBuf();
     if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt && y * BufferWi + x < (int)tempbufVector.size()) {
         return tempbuf[y * BufferWi + x];
     }
@@ -984,14 +1070,17 @@ void RenderBuffer::SetState(int period, bool ResetState)
 
 void RenderBuffer::ClearTempBuf()
 {
+    ensureTempBuf();
     for (size_t i = 0; i < tempbufVector.size(); i++) {
         tempbuf[i].Set(0, 0, 0, 0);
     }
 }
 void RenderBuffer::CopyTempBufToPixels() {
+    ensureTempBuf();
     std::copy(tempbuf, tempbuf + pixelVector.size(), pixels);
 }
 void RenderBuffer::CopyPixelsToTempBuf() {
+    ensureTempBuf();
     std::copy(pixels, pixels + pixelVector.size(), tempbuf);
 }
 
@@ -1053,6 +1142,7 @@ void RenderBuffer::SetEffectDuration(int startMsec, int endMsec)
 {
     curEffStartPer = startMsec / frameTimeInMs;
     curEffEndPer = (endMsec - 1) / frameTimeInMs;
+    computeRandomBaseSeed();
 }
 
 void RenderBuffer::GetEffectPeriods(int& start, int& endp) const {
@@ -1168,6 +1258,12 @@ RenderBuffer::RenderBuffer(RenderBuffer& buffer) : pixelVector(buffer.pixels, &b
     BufferHt = buffer.BufferHt;
     BufferWi = buffer.BufferWi;
     cur_model = buffer.cur_model;
+
+    rngModelHash = buffer.rngModelHash;
+    rngBaseSeed = buffer.rngBaseSeed;
+    rngState = buffer.rngState;
+    rngLayerIndex = buffer.rngLayerIndex;
+    rngSeededForPeriod = buffer.rngSeededForPeriod;
 
     pixels = &pixelVector[0];
     _textDrawingContext = buffer._textDrawingContext;

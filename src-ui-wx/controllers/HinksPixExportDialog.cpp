@@ -1806,6 +1806,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
 
     std::vector<std::pair<uint32_t, uint32_t>> rng;
     rng.emplace_back(std::pair<uint32_t, uint32_t>(0, ogNumChannels));
+    xf->setReadPattern(FSEQFile::ReadPattern::Bulk);
     xf->prepareRead(rng);
 
     //Get Map of HinksPix Port channel locations to xLights channel locations

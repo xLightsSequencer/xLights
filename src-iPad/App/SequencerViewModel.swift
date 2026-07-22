@@ -1336,13 +1336,26 @@ class SequencerViewModel {
                       mediaPath: String,
                       durationMS: Int,
                       frameMS: Int,
-                      savePath: String) -> Bool {
-        let ok = document.newSequence(
-            atPath: savePath,
-            type: type,
-            mediaPath: mediaPath,
-            durationMS: Int32(durationMS),
-            frameMS: Int32(frameMS))
+                      savePath: String) async -> Bool {
+        if openInFlight {
+            print("newSequence: ignoring concurrent create of \(savePath)")
+            return false
+        }
+        openInFlight = true
+        defer { openInFlight = false }
+        // Heavy: the bridge closes the current sequence (AbortRender can
+        // block up to 60s draining in-flight render jobs), saves the new
+        // .xsq, then runs the full open chain. On the main actor this was
+        // blowing the 0x8BADF00D watchdog. Detach it; the guard above is
+        // held across the await so an open can't race the C++ context.
+        let ok = await Task.detached { [document] in
+            document.newSequence(
+                atPath: savePath,
+                type: type,
+                mediaPath: mediaPath,
+                durationMS: Int32(durationMS),
+                frameMS: Int32(frameMS))
+        }.value
         if ok {
             isSequenceLoaded = true
             isDirty = false
@@ -1371,20 +1384,37 @@ class SequencerViewModel {
         // queue a re-pick of the parent folder (iOS grants child
         // access transitively). The actual `document.openSequence`
         // call is deferred until the user re-grants.
-        if !XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false) {
-            let parent = (path as NSString).deletingLastPathComponent
-            enqueueAccessReprompt(label: "sequence file",
-                                   originalPath: path,
-                                   pickPath: parent)
-            afterAccessQueueEmpty = { [weak self] in
-                guard let self else { return }
-                guard XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false) else { return }
-                self.performOpenSequence(path: path, forceRender: forceRender)
+        //
+        // `obtainAccess` resolves the bookmark synchronously and can stall
+        // (e.g. right after an iCloud download settles) long enough to trip
+        // the 0x8BADF00D main-thread watchdog, so run the pre-check off the
+        // main actor and branch back on main. Mirrors performOpenSequence's
+        // detach.
+        Task { [weak self] in
+            guard let self else { return }
+            let granted = await Task.detached {
+                XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+            }.value
+            if !granted {
+                let parent = (path as NSString).deletingLastPathComponent
+                self.enqueueAccessReprompt(label: "sequence file",
+                                            originalPath: path,
+                                            pickPath: parent)
+                self.afterAccessQueueEmpty = { [weak self] in
+                    guard let self else { return }
+                    Task {
+                        let ok = await Task.detached {
+                            XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+                        }.value
+                        guard ok else { return }
+                        self.performOpenSequence(path: path, forceRender: forceRender)
+                    }
+                }
+                self.runNextAccessReprompt()
+                return
             }
-            runNextAccessReprompt()
-            return
+            self.performOpenSequence(path: path, forceRender: forceRender)
         }
-        performOpenSequence(path: path, forceRender: forceRender)
     }
 
     private func performOpenSequence(path: String, forceRender: Bool) {
@@ -1402,7 +1432,12 @@ class SequencerViewModel {
         // existing `loadShowFolder` detach pattern.
         Task.detached { [document, weak self] in
             let opened = document.openSequence(path)
-            await self?.applyOpenResult(opened: opened, path: path, forceRender: forceRender)
+            // Resolved here rather than in applyOpenResult: obtainAccess blocks
+            // on bookmark resolution (and can wait on an iCloud materialisation),
+            // which tripped the 0x8BADF00D watchdog once applyOpenResult had
+            // hopped back to the main actor.
+            let readOnly = opened ? SequencerViewModel.detectReadOnly(path: path) : false
+            await self?.applyOpenResult(opened: opened, path: path, readOnly: readOnly, forceRender: forceRender)
         }
     }
 
@@ -1412,20 +1447,22 @@ class SequencerViewModel {
     /// A sequence opened from a write-protected provider, a locked
     /// iCloud item, or a download that only granted read scope lands
     /// here and Save is disabled until the user Saves As elsewhere.
-    private static func detectReadOnly(path: String) -> Bool {
+    /// `nonisolated` so the open path can resolve this off the main actor —
+    /// it touches no instance state.
+    private nonisolated static func detectReadOnly(path: String) -> Bool {
         guard !path.isEmpty else { return false }
         let writable = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: true)
         if !writable { return true }
         return !FileManager.default.isWritableFile(atPath: path)
     }
 
-    private func applyOpenResult(opened: Bool, path: String, forceRender: Bool) {
+    private func applyOpenResult(opened: Bool, path: String, readOnly: Bool, forceRender: Bool) {
         defer { openInFlight = false }
         guard opened else { return }
 
         isSequenceLoaded = true
         isDirty = false
-        isReadOnly = Self.detectReadOnly(path: path)
+        isReadOnly = readOnly
         sequenceName = document.sequenceName()
         sequenceDurationMS = Int(document.sequenceDurationMS())
         frameIntervalMS = Int(document.frameIntervalMS())
@@ -2001,7 +2038,7 @@ class SequencerViewModel {
     /// swapping filenames on disk, then reloading. Desktop's
     /// recovery flow renames `foo.xbkp` → `foo.xsq` to claim the
     /// backup; we do the same through FileManager.
-    func applyAutosaveBackup() -> Bool {
+    func applyAutosaveBackup() async -> Bool {
         let xsqPath = document.currentSequencePath()
         if xsqPath.isEmpty { return false }
         let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
@@ -2020,7 +2057,7 @@ class SequencerViewModel {
         }
         try? fm.removeItem(atPath: archived)
         // Re-open so in-memory state matches the promoted file.
-        closeSequence()
+        await closeSequence()
         openSequence(path: xsqPath)
         return true
     }
@@ -2086,7 +2123,7 @@ class SequencerViewModel {
     /// copies the snapshot over the working file, then reopens. Only
     /// supports non-packaged `.xsq` sequences; returns false otherwise.
     @discardableResult
-    func restoreBackup(_ snapshot: BackupSnapshot) -> Bool {
+    func restoreBackup(_ snapshot: BackupSnapshot) async -> Bool {
         guard isSequenceLoaded, !document.isPackagedSequence() else { return false }
         let target = document.currentSequencePath()
         guard !target.isEmpty,
@@ -2101,7 +2138,7 @@ class SequencerViewModel {
         writeSaveBackup(ofSequenceAt: target)
 
         suppressAutosaveBackup()
-        closeSequence()
+        await closeSequence()
 
         _ = XLSequenceDocument.obtainAccess(toPath: target, enforceWritable: true)
         do {
@@ -2121,12 +2158,12 @@ class SequencerViewModel {
     /// canonical `.xsq` on disk. Deletes the autosave `.xbkp` first so
     /// the re-open does not immediately offer "recover unsaved changes"
     /// on a file the user just chose to revert.
-    func revertToLastSaved() {
+    func revertToLastSaved() async {
         guard isSequenceLoaded else { return }
         let path = document.currentSequencePath()
         guard !path.isEmpty else { return }
         suppressAutosaveBackup()
-        closeSequence()
+        await closeSequence()
         openSequence(path: path)
     }
 
@@ -2170,27 +2207,22 @@ class SequencerViewModel {
         }
     }
 
-    func closeSequence() {
+    func closeSequence() async {
+        if openInFlight {
+            print("closeSequence: ignoring close while an open/close is in flight")
+            return
+        }
+        openInFlight = true
+        defer { openInFlight = false }
+
         if isOutputting { toggleOutput() }
         stopPlayback()
         stopDirtyPolling()
         stopAutosaveTimer()
         cancelBackgroundRender()
-        // Wait for any background render jobs to exit before tearing
-        // down SequenceElements / SequenceData — the render workers
-        // hold pointers into those structures and would crash on next
-        // frame access if we proceeded with close while they're busy.
-        _ = document.abortRenderAndWait(5.0)
-        let wasPackaged = packageSandboxDir != nil
-        document.closeSequence()
 
-        // Wipe the sandbox scratch dir used for Files-provider
-        // `.xsqz` opens (if any). The bridge's closeSequence wiped
-        // the *extraction* temp dir; this wipes the separate
-        // "incoming copy" dir that held the sandbox `.xsqz` itself.
-        if let sandbox = packageSandboxDir {
-            try? FileManager.default.removeItem(at: sandbox)
-        }
+        let sandbox = packageSandboxDir
+        let wasPackaged = sandbox != nil
         packageSandboxDir = nil
         packageOriginalURL = nil
 
@@ -2201,12 +2233,30 @@ class SequencerViewModel {
         // the show-folder setup screen. FolderConfig.showFolder
         // (the persisted config) tells us whether a "real" show
         // folder was ever configured — if so, the bridge's
-        // closeSequence already re-loaded it and we leave
+        // closeSequence re-loads it and we leave
         // isShowFolderLoaded true.
         if wasPackaged && FolderConfig.showFolder == nil {
             isShowFolderLoaded = false
             showFolderPath = ""
         }
+
+        // Tear down off the main actor: abortRenderAndWait blocks up to
+        // 5s draining render workers (they hold pointers into
+        // SequenceElements / SequenceData), and the bridge close aborts
+        // again and can re-load the show folder after a packaged open.
+        // Run synchronously on the main actor this was blowing the
+        // 0x8BADF00D watchdog. `openInFlight` is held across the await
+        // so an open can't race the teardown; the sandbox scratch dir
+        // (the "incoming copy" dir for Files-provider `.xsqz` opens —
+        // the bridge wipes the separate *extraction* dir) is removed
+        // only after the C++ close is done with it.
+        await Task.detached { [document] in
+            _ = document.abortRenderAndWait(5.0)
+            document.closeSequence()
+            if let sandbox {
+                try? FileManager.default.removeItem(at: sandbox)
+            }
+        }.value
 
         isSequenceLoaded = false
         isDirty = false

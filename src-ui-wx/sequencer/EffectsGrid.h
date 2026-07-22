@@ -312,6 +312,11 @@ private:
     void AddShimmer();
     void RemoveShimmer();
 
+    // Effect Symbol methods
+    void CreateSymbolFromEffect();
+    void UnlinkEffectFromSymbol();
+    void LinkEffectToSymbol(int symbolIndex);
+
     SequenceElements* mSequenceElements = nullptr;
     bool mIsDrawing = false;
     bool mGridIconBackgrounds;
@@ -369,6 +374,7 @@ private:
 
     EffectLayer* mEffectLayer;
     int mResizeEffectIndex;
+    Effect* _rightClickEffect = nullptr;
 
     // Drag And Drop
     bool mDragDropping;
@@ -463,6 +469,9 @@ private:
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
     static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;
     static const long ID_GRID_MNU_FILL_REGION;
+    static const long ID_GRID_MNU_CREATE_SYMBOL;
+    static const long ID_GRID_MNU_UNLINK_SYMBOL;
+    static const long ID_GRID_MNU_LINK_SYMBOL_BASE;
     EventPlayEffectArgs* playArgs = nullptr;
 
     const SequenceData *seqData = nullptr;

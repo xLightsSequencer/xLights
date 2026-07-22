@@ -27,6 +27,7 @@
 #include "Parallel.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
 #include "utils/ip_utils.h"
 #include "render/UICallbacks.h"
 #include <cassert>
@@ -209,6 +210,8 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
             }
         }
 
+        _baseControllersSyncedTime = root.attribute("BaseControllersSyncedTime").as_string("");
+
         std::map<std::string, bool> multiip;
         for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
             if (std::string_view(e.name()) == "network")
@@ -357,7 +360,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
-bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui)
+bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui, bool* changedOut)
 {
     bool changed = false;
 
@@ -419,6 +422,7 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
         }
 
     } else {
+        spdlog::warn("MergeFromBase: unable to load base networks file from '{}' - merge skipped.", _baseShowDir);
         return false;
     }
 
@@ -426,7 +430,27 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
         SomethingChanged();
     }
 
-    return changed;
+    if (changedOut != nullptr) *changedOut = changed;
+    return true;
+}
+
+bool OutputManager::NeedsBaseControllersUpdate() const
+{
+    if (_baseShowDir.empty()) return false;
+
+    std::string baseFile = (std::filesystem::path(_baseShowDir) / GetNetworksFileName()).string();
+    return FileUtils::NeedsBaseFileUpdate(baseFile, _baseControllersSyncedTime, "controller merge");
+}
+
+void OutputManager::MarkBaseControllersSynced()
+{
+    if (_baseShowDir.empty()) return;
+
+    std::string baseFile = (std::filesystem::path(_baseShowDir) / GetNetworksFileName()).string();
+    auto baseTicks = FileUtils::GetFileModTimeTicks(baseFile);
+    if (baseTicks) {
+        _baseControllersSyncedTime = std::to_string(*baseTicks);
+    }
 }
 
 void OutputManager::SaveToXML(pugi::xml_document& doc) {
@@ -450,6 +474,7 @@ void OutputManager::SaveToXML(pugi::xml_document& doc) {
         if (!ec) baseRel = rel.generic_string();
     }
     root.append_attribute("BaseShowDirRelative") = baseRel;
+    root.append_attribute("BaseControllersSyncedTime") = _baseControllersSyncedTime;
 
     if (_syncUniverse != 0) {
         pugi::xml_node newNode = root.append_child("e131sync");
@@ -1192,18 +1217,18 @@ bool OutputManager::StartOutput() {
     bool ok = true;
     bool err = false;
 
+    // Re-resolve any controllers whose hostnames failed to resolve at startup
+    for (const auto& ctrl : GetControllers()) {
+        auto eth = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (eth != nullptr) eth->RefreshResolvedIP();
+    }
+    ip_utils::waitForAllToResolve();
+
     for (const auto& it : GetAllOutputs()) {
 
         // make sure global FPP proxy is up to date ...
         it->SetGlobalFPPProxyIP(_globalFPPProxy);
         it->SetGlobalForceLocalIP(_globalForceLocalIP);
-
-        //try to refresh in case ctrl was turned on after xlights started
-        if (hasAlpha(it->GetResolvedIP())) {
-            IPOutput* ipOutput = dynamic_cast<IPOutput*>(it);
-            if (ipOutput) ipOutput->SetIP(it->GetResolvedIP(), true, true);
-            ip_utils::waitForAllToResolve();
-        }
 
         bool preok = ok;
         ok = it->Open() && ok;
@@ -1229,6 +1254,28 @@ bool OutputManager::StartOutput() {
     _outputCriticalSection.unlock();
 
     return _outputting; // even partially started is ok
+}
+
+bool OutputManager::StartControllerOutputs(Controller* controller) {
+    if (!_outputCriticalSection.try_lock()) return false;
+
+    auto eth = dynamic_cast<ControllerEthernet*>(controller);
+    if (eth != nullptr) {
+        eth->RefreshResolvedIP();
+        ip_utils::waitForAllToResolve();
+    }
+
+    int started = 0;
+    for (auto output : controller->GetOutputs()) {
+        output->SetGlobalFPPProxyIP(_globalFPPProxy);
+        output->SetGlobalForceLocalIP(_globalForceLocalIP);
+        if (output->Open()) started++;
+    }
+
+    if (started > 0) _outputting = true;
+
+    _outputCriticalSection.unlock();
+    return started > 0;
 }
 
 void OutputManager::StopOutput() {

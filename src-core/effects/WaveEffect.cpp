@@ -19,6 +19,9 @@
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
+#include "Parallel.h"
+
+#include "ispc/WaveFunctions.ispc.h"
 
 #include "../../include/wave-16.xpm"
 #include "../../include/wave-24.xpm"
@@ -144,6 +147,13 @@ public:
     float state = 0.0f;
 };
 
+// Tier-2 immutable per-frame draw state: just the phase accumulator.  The rest
+// of the column math is recomputed from settings + the current frame, so only
+// the integrated phase needs carrying to a parallel draw pass.
+struct WaveFrameState : public EffectFrameState {
+    float state = 0.0f;
+};
+
 static inline int GetWaveType(const std::string & WaveType) {
     if (WaveType == "Sine") {
         return WAVETYPE_SINE;
@@ -167,7 +177,50 @@ static inline int GetWaveFillColor(const std::string &color) {
     return 0; //None
 }
 
-void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+RenderableEffect::FrameParallelism WaveEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // Every wave type animates via cache->state, an integrated phase accumulator,
+    // so none is Pure.  But the advance is a single float add and the draw is the
+    // whole per-column band computation + ISPC fill, so the non-fractal types
+    // split cleanly into a cheap serial advance and a parallel per-frame draw
+    // (Snapshottable).  Fractal/ivy also builds an init-time RNG branch buffer
+    // that isn't snapshotted, so it stays Stateful.
+    if (GetWaveType(settings.Get("CHOICE_Wave_Type", sWaveTypeDefault)) == WAVETYPE_IVYFRACTAL) {
+        return FrameParallelism::Stateful;
+    }
+    return FrameParallelism::Snapshottable;
+}
+
+// Tier-2 advance: integrate this frame's phase accumulator and return it as the
+// immutable draw snapshot.  Only wspeed (a deterministic value-curve read) is
+// consumed here; every other setting read stays in the pure BuildWaveColumns
+// draw.  Fractal/ivy returns nullptr (Stateful - its init-time RNG branch buffer
+// can't be snapshotted); this partition mirrors GetFrameParallelism exactly.
+std::unique_ptr<EffectFrameState> WaveEffect::AdvanceState(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) {
+    if (GetWaveType(SettingsMap.Get("CHOICE_Wave_Type", sWaveTypeDefault)) == WAVETYPE_IVYFRACTAL) {
+        return nullptr;
+    }
+
+    float oset = buffer.GetEffectTimeIntervalPosition();
+    float wspeed = GetValueCurveDouble("Wave_Speed", sWaveSpeedDefault, SettingsMap, oset, sWaveSpeedMin, sWaveSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sWaveSpeedDivisor);
+
+    WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new WaveRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    if (buffer.needToInit) {
+        cache->state = 0.0f;
+        buffer.needToInit = false;
+    }
+    cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
+
+    auto snap = std::make_unique<WaveFrameState>();
+    snap->state = cache->state;
+    return snap;
+}
+
+void WaveEffect::BuildWaveColumns(const SettingsMap &SettingsMap, RenderBuffer &buffer,
+                                  WaveKernelConfig &cfg, std::vector<int32_t> &cols) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
@@ -189,30 +242,42 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     double WaveYOffset = (buffer.BufferHt / 2.0) * (yoffset * 0.01);
     int roundedWaveYOffset = std::round(WaveYOffset);
 
-    WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
-    if (cache == nullptr) {
-        cache = new WaveRenderCache();
-        buffer.infoCache[id] = cache;
-    }
-    std::vector<int> &WaveBuffer0 = cache->WaveBuffer;
-
-    int y, ystart;
-    double deltay;
+    int ystart;
     static const double pi_180 = 0.01745329;
-    xlColor color;
-    HSVValue hsv, hsv0, hsv1;
+    HSVValue hsv0;
     buffer.palette.GetHSV(0, hsv0);
-    buffer.palette.GetHSV(1, hsv1);
 
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
-    if (buffer.needToInit) {
-        cache->state = 0.0f;
-        buffer.needToInit = false;
+
+    // Phase: on a draw pass take the accumulator AdvanceState captured (pure, no
+    // advance, no cache write); else fuse advance+draw off the persistent cache.
+    // The migrated (non-fractal) types always reach this via pendingSnapshot
+    // (the engine runs AdvanceState first).  Fractal/ivy is Stateful (see
+    // GetFrameParallelism), so it takes the else branch - WaveBuffer0 stays the
+    // cache's branch buffer.  drawWaveBuffer is only a placeholder for the
+    // (non-fractal) draw pass, which never reads it.
+    std::vector<int> drawWaveBuffer;
+    std::vector<int>* waveBufferPtr = &drawWaveBuffer;
+    float state;
+    if (buffer.pendingSnapshot != nullptr) {
+        state = static_cast<const WaveFrameState&>(*buffer.pendingSnapshot).state;
+    } else {
+        WaveRenderCache *cache = (WaveRenderCache*)buffer.infoCache[id];
+        if (cache == nullptr) {
+            cache = new WaveRenderCache();
+            buffer.infoCache[id] = cache;
+        }
+        waveBufferPtr = &cache->WaveBuffer;
+        if (buffer.needToInit) {
+            cache->state = 0.0f;
+            buffer.needToInit = false;
+        }
+        cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
+        state = cache->state;
     }
-    cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
-    float state = cache->state;
+    std::vector<int> &WaveBuffer0 = *waveBufferPtr;
 
     double yc = buffer.BufferHt / 2.0;
     double r = yc;
@@ -233,17 +298,37 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 if (WaveBuffer0[x1] >= 2 * buffer.BufferHt) { delta = -2; WaveBuffer0[x1] = 2 * buffer.BufferHt - 1; if (delay > 1) delay = 1; }
                 if (WaveBuffer0[x1] < 0) { delta = 2; WaveBuffer0[x1] = 0; if (delay > 1) delay = 1; }
                 if (delay < 1) {
-                    delta = (rand() % 7) - 3;
-                    delay = 2 + (rand() % 3);
+                    delta = buffer.randInt(0, 6) - 3;
+                    delay = 2 + buffer.randInt(0, 2);
                 }
             }
             buffer.needToInit = false;
         }
     }
     double degree_per_x = static_cast<double>(NumberWaves) / buffer.BufferWi;
-    hsv.saturation = 1.0;
-    hsv.value = 1.0;
-    hsv.hue = 1.0;
+
+    cfg.width = buffer.BufferWi;
+    cfg.height = buffer.BufferHt;
+    cfg.fillColor = FillColor;
+    cfg.mirror = MirrorWave ? 1 : 0;
+    cfg.yoffset = roundedWaveYOffset;
+    cfg.numColors = (int)buffer.GetColorCount();
+    cfg.noneColor = xlColor(hsv0);
+    for (int i = 0; i < MAX_WAVE_COLORS; i++) {
+        if (i < cfg.numColors) {
+            buffer.palette.GetColor(i, cfg.palColors[i]);
+        } else {
+            cfg.palColors[i].Set(0, 0, 0);
+        }
+    }
+
+    // 2 ints per column. Default sentinel y1 > y2 (empty main + mirror band).
+    cols.assign((size_t)buffer.BufferWi * 2, 0);
+    for (int x = 0; x < buffer.BufferWi; x++) {
+        cols[2 * x] = 0;
+        cols[2 * x + 1] = -1;
+    }
+
     for (int x = 0; x < buffer.BufferWi; x++) {
         double degree;
         if (!WaveDirection)
@@ -263,25 +348,6 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         double sinradMinus1 = buffer.sin(radianMinus1);
 
         if (WaveType == WAVETYPE_TRIANGLE) { // Triangle
-            /*
-             .
-             .
-             .      x
-             .     x x
-             .    x   x
-             .   x     x
-             .  x       x
-             . x         x
-             ******************************************** yc
-             .      a
-             .
-             .
-             .
-             .
-             .
-             .
-             */
-
             double waves = ((double)NumberWaves / 180.0) / 5; // number of waves
             int amp = buffer.BufferHt * WaveHeight / 100;
 
@@ -309,36 +375,9 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         }
 
         if (x >= 0 && x < buffer.BufferWi && ystart >= 0 && ystart < buffer.BufferHt) {
-            //  SetPixel(x,ystart,hsv0);  // just leading edge
-            /*
-
-             BufferHt
-             .
-             .
-             .
-             x <- y2
-             x <- ystart. calculated point of wave
-             x <- y1
-             .
-             .
-             + < - yc
-             .
-             .
-             x <- y2mirror
-             x
-             x <- y1mirror
-             .
-             .
-             .
-             0
-             */
-
-
             int y1 = (int)(ystart - (r*(ThicknessWave / 100.0)));
             int y2 = (int)(ystart + (r*(ThicknessWave / 100.0)));
             if (y2 <= y1) y2 = y1 + 1; //minimum height
-
-            //if (x < 2) debug(10, "wave out: x %d, y %d..%d", x, y1, y2);
 
             if (WaveType == WAVETYPE_SQUARE) { // Square Wave
                 if (std::signbit(sinrad) != std::signbit(sinradMinus1)) {
@@ -362,50 +401,55 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
                 }
             }
 
-            int y1mirror = yc + (yc - y1);
-            int y2mirror = yc + (yc - y2);
-            deltay = y2 - y1;
-
-            for (y = y1; y <= y2; y++) {
-                int adjustedY = y + roundedWaveYOffset;
-                if (FillColor <= 0) { //default to this if no selection -DJ
-                    buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
-                } else if (FillColor == 1) {
-
-                    hsv.hue = (double)(y - y1) / deltay;
-                    buffer.SetPixel(x, adjustedY, hsv); // rainbow
-                } else if (FillColor == 2) {
-                    hsv.hue = (double)(y - y1) / deltay;
-                    buffer.GetMultiColorBlend(hsv.hue, false, color);
-                    buffer.SetPixel(x, adjustedY, color); // palete fill
-                }
-            }
-
-            if (MirrorWave) {
-
-                if (y1mirror < y2mirror) {
-                    y1 = y1mirror;
-                    y2 = y2mirror;
-                } else {
-                    y2 = y1mirror;
-                    y1 = y2mirror;
-                }
-
-                for (y = y1; y <= y2; y++) {
-                    int adjustedY = y + roundedWaveYOffset;
-                    if (FillColor <= 0) { //default to this if no selection -DJ
-                        buffer.SetPixel(x, adjustedY, hsv0);  // fill with color 2
-                    } else if (FillColor == 1) {
-
-                        hsv.hue = (double)(y - y1) / deltay;
-                        buffer.SetPixel(x, adjustedY, hsv); // rainbow
-                    } else if (FillColor == 2) {
-                        hsv.hue = (double)(y - y1) / deltay;
-                        buffer.GetMultiColorBlend(hsv.hue, false, color);
-                        buffer.SetPixel(x, adjustedY, color); // palete fill
-                    }
-                }
-            }
+            cols[2 * x] = y1;
+            cols[2 * x + 1] = y2;
         }
     }
+}
+
+void WaveEffect::RenderWaveISPC(const WaveKernelConfig &cfg, const std::vector<int32_t> &cols, RenderBuffer &buffer) {
+    if (cfg.width <= 0 || cfg.height <= 0) {
+        return;
+    }
+
+    ispc::WaveISPCData wd;
+    wd.width = cfg.width;
+    wd.height = cfg.height;
+    wd.fillColor = cfg.fillColor;
+    wd.mirror = cfg.mirror;
+    wd.yoffset = cfg.yoffset;
+    wd.numColors = cfg.numColors;
+    wd.noneColor.v[0] = cfg.noneColor.red;
+    wd.noneColor.v[1] = cfg.noneColor.green;
+    wd.noneColor.v[2] = cfg.noneColor.blue;
+    wd.noneColor.v[3] = cfg.noneColor.alpha;
+    for (int i = 0; i < MAX_WAVE_COLORS; i++) {
+        wd.palColors[i].v[0] = cfg.palColors[i].red;
+        wd.palColors[i].v[1] = cfg.palColors[i].green;
+        wd.palColors[i].v[2] = cfg.palColors[i].blue;
+        wd.palColors[i].v[3] = cfg.palColors[i].alpha;
+    }
+
+    // Clamp to the real allocation: a variable sub-buffer can have
+    // GetPixelCount() < BufferWi*BufferHt and the kernel writes unguarded.
+    int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
+    const int32_t *colsPtr = cols.data();
+    constexpr int waveBlockSize = 4096;
+    int blocks = max / waveBlockSize + 1;
+    parallel_for(0, blocks, [&wd, &buffer, max, colsPtr](int block) {
+        int start = block * waveBlockSize;
+        int end = start + waveBlockSize;
+        if (end > max) end = max;
+        ispc::WaveEffectISPC(&wd, colsPtr, start, end, (ispc::uint8_t4*)buffer.GetPixels());
+    });
+}
+
+void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    // Draw pass: BuildWaveColumns reads the phase from pendingSnapshot for the
+    // migrated types (the engine runs AdvanceState first, in both serial and
+    // frame-parallel rendering), or fuses advance+draw for Fractal/ivy (Stateful).
+    WaveKernelConfig cfg;
+    std::vector<int32_t> cols;
+    BuildWaveColumns(SettingsMap, buffer, cfg, cols);
+    RenderWaveISPC(cfg, cols, buffer);
 }

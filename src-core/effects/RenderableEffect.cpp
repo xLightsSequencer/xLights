@@ -11,6 +11,8 @@
 #include "RenderableEffect.h"
 
 #include <cstdlib>
+#include <mutex>
+#include <unordered_map>
 #include <spdlog/fmt/fmt.h>
 #include <nlohmann/json.hpp>
 
@@ -102,7 +104,18 @@ double RenderableEffect::GetDoubleDefault(const std::string& propId, double fall
     }
     return it->get<double>();
 }
-
+float RenderableEffect::GetFloatDefault(const std::string& propId, float fallback) const
+{
+    const nlohmann::json* prop = GetPropertyMetadata(propId);
+    if (prop == nullptr) {
+        return fallback;
+    }
+    auto it = prop->find("default");
+    if (it == prop->end() || !it->is_number()) {
+        return fallback;
+    }
+    return it->get<float>();
+}
 bool RenderableEffect::GetBoolDefault(const std::string& propId, bool fallback) const
 {
     const nlohmann::json* prop = GetPropertyMetadata(propId);
@@ -295,6 +308,27 @@ bool RenderableEffect::SupportsRenderCache(const SettingsMap& settings) const
     return false;
 }
 
+RenderableEffect::FrameParallelism RenderableEffect::GetEffectiveFrameParallelism(const SettingsMap& settings) const
+{
+    FrameParallelism fp = GetFrameParallelism(settings);
+    if (fp == FrameParallelism::Stateful) {
+        return fp;
+    }
+    // Buffer-level features that make any effect's frame depend on another frame,
+    // whatever the effect's own algorithm reports (keys are prefix-stripped in
+    // the render SettingsMap - B_CHECKBOX_OverlayBkg -> CHECKBOX_OverlayBkg):
+    //  - Persistent (OverlayBkg): the buffer is not cleared between frames.
+    //  - Canvas: the effect reads lower layers' blended output.
+    //  - Freeze / Suppress: specific frames reuse an earlier frame's output.
+    if (settings.GetBool("CHECKBOX_OverlayBkg", false) ||
+        settings.GetBool("CHECKBOX_Canvas", false) ||
+        settings.GetInt("SPINCTRL_FreezeEffectAtFrame", 999999) < 999999 ||
+        settings.GetInt("SPINCTRL_SuppressEffectUntil", 0) > 0) {
+        return FrameParallelism::Stateful;
+    }
+    return fp;
+}
+
 bool RenderableEffect::needToAdjustSettings(const std::string &version) {
     return IsVersionOlder("2024.05", version);
 }
@@ -332,92 +366,196 @@ std::list<std::string> RenderableEffect::CheckEffectSettings(const SettingsMap& 
 };
 
 
+// Memoization for the GetValueCurve* family.  Every call used to build 2-3
+// key strings, probe the settings map up to 4 times and - when a curve is
+// present - re-Deserialise it, per setting per FRAME; on small buffers that
+// setup dwarfed the actual effect math.  The parse result depends only on the
+// map contents, so it is cached on the SettingsMap itself (see
+// SettingsMapRenderCache: any mutation of the map destroys the cache, and the
+// engine rebuilds the map exactly when the covering effect changes).  Each
+// entry replicates its variant's exact construction sequence - Int:
+// SetDivisor/SetLimits BEFORE Deserialise (limits participate in the 0-100
+// rescale); Double: ctor-Deserialise with default limits THEN SetLimits (the
+// pre-existing asymmetry, preserved); IntMax: constant result resolved once -
+// so evaluation state is bit-identical to the uncached path.  `fallback`
+// points at the map's own node (stable until mutation, which also kills the
+// cache) and the caller's `def` is applied per call, so entries are
+// def-independent.  A SettingsMap instance is only ever used by one render
+// thread at a time, which makes the lazy attach safe.
+namespace {
+struct VCMemo : public SettingsMapRenderCache {
+    struct Entry {
+        uint8_t variant = 0; // 1 = Int, 2 = Double, 3 = IntMax
+        bool resolved = false;
+        double lo = 0, hi = 0;
+        int divisor = 1;
+        std::unique_ptr<ValueCurve> curve;      // active curve, fully constructed
+        const SettingValue* fallback = nullptr; // SLIDER_/TEXTCTRL_ node when no active curve
+        int maxValue = 0;                       // IntMax: resolved constant
+        bool maxFromCurve = false;
+    };
+    // Guards entries AND every use of a cached ValueCurve: the per-model
+    // fan-out in RenderEffectFromMap renders one effect across a group's
+    // model buffers concurrently with a SHARED SettingsMap, and ValueCurve
+    // evaluation itself memoizes internally (cached offsets), so lookup,
+    // resolve and eval all serialize here.  Uncontended in the common
+    // per-layer case; under the fan-out the critical section is a few
+    // microseconds against each model's full render.
+    std::mutex mtx;
+    std::unordered_map<std::string, Entry> entries;
+};
+
+VCMemo* VCMemoFor(const SettingsMap& settings) {
+    VCMemo* memo = dynamic_cast<VCMemo*>(settings.GetRenderCache());
+    if (memo == nullptr) {
+        memo = dynamic_cast<VCMemo*>(settings.AttachRenderCache(std::make_unique<VCMemo>()));
+    }
+    return memo;
+}
+
+VCMemo::Entry& VCMemoEntryLocked(VCMemo* memo, const std::string& name, uint8_t variant, double lo, double hi, int divisor) {
+    VCMemo::Entry& e = memo->entries[name];
+    if (e.variant != variant || e.lo != lo || e.hi != hi || e.divisor != divisor) {
+        e = VCMemo::Entry();
+        e.variant = variant;
+        e.lo = lo;
+        e.hi = hi;
+        e.divisor = divisor;
+    }
+    return e;
+}
+
+// Replicates SettingsMap::GetInt's empty/leading-space fallback semantics on a
+// cached value node.
+int SettingValueInt(const SettingValue* v, int def) {
+    if (v == nullptr || v->length() == 0 || v->at(0) == ' ') {
+        return def;
+    }
+    return v->getInt(def);
+}
+double SettingValueDouble(const SettingValue* v, double def) {
+    if (v == nullptr || v->length() == 0 || v->at(0) == ' ') {
+        return def;
+    }
+    return v->getDouble(def);
+}
+} // namespace
+
 double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {
-    double res = def;
-    const std::string vn = "VALUECURVE_" + name;
-    const std::string &vc = SettingsMap.Get(vn, xlEMPTY_STRING);
-    if (vc != xlEMPTY_STRING) {
-        ValueCurve valc(vc);
-        if (valc.IsActive()) {
-            valc.SetLimits(min, max);
-            valc.SetDivisor(divisor);
-            return valc.GetOutputValueAtDivided(offset, startMS, endMS);
+    VCMemo* memo = VCMemoFor(SettingsMap);
+    VCMemo::Entry local;
+    std::unique_lock<std::mutex> lk;
+    if (memo != nullptr) {
+        lk = std::unique_lock<std::mutex>(memo->mtx);
+    }
+    VCMemo::Entry& e = memo != nullptr ? VCMemoEntryLocked(memo, name, 2, min, max, divisor) : local;
+    if (!e.resolved) {
+        e.resolved = true;
+        const std::string vn = "VALUECURVE_" + name;
+        const std::string& vc = SettingsMap.Get(vn, xlEMPTY_STRING);
+        if (vc != xlEMPTY_STRING) {
+            auto valc = std::make_unique<ValueCurve>(vc);
+            if (valc->IsActive()) {
+                valc->SetLimits(min, max);
+                valc->SetDivisor(divisor);
+                e.curve = std::move(valc);
+            }
+        }
+        if (e.curve == nullptr) {
+            const std::string sn = "SLIDER_" + name;
+            const std::string tn = "TEXTCTRL_" + name;
+            e.fallback = SettingsMap.FindValue(sn);
+            if (e.fallback == nullptr) {
+                e.fallback = SettingsMap.FindValue(tn);
+            }
         }
     }
-    
-    const std::string sn = "SLIDER_" + name;
-    const std::string tn = "TEXTCTRL_" + name;
-    if (SettingsMap.Contains(sn)) {
-        res = SettingsMap.GetDouble(sn, def);
-    } else if (SettingsMap.Contains(tn)) {
-        res = SettingsMap.GetDouble(tn, def);
+    if (e.curve != nullptr) {
+        return e.curve->GetOutputValueAtDivided(offset, startMS, endMS);
     }
-    return res;
+    return SettingValueDouble(e.fallback, def);
 }
 
 int RenderableEffect::GetValueCurveIntMax(const std::string& name, int def, const SettingsMap& SettingsMap, int min, int max, int divisor)
 {
-    int res = def;
-
-    const std::string vn = "E_VALUECURVE_" + name;
-    if (SettingsMap.Contains(vn)) {
-        const std::string& vc = SettingsMap.Get(vn, xlEMPTY_STRING);
-
-        ValueCurve valc;
-        valc.SetDivisor(divisor);
-        valc.SetLimits(min, max);
-        valc.Deserialise(vc);
-        if (valc.IsActive()) {
-            return valc.GetMaxValueDivided();
+    VCMemo* memo = VCMemoFor(SettingsMap);
+    VCMemo::Entry local;
+    std::unique_lock<std::mutex> lk;
+    if (memo != nullptr) {
+        lk = std::unique_lock<std::mutex>(memo->mtx);
+    }
+    VCMemo::Entry& e = memo != nullptr ? VCMemoEntryLocked(memo, name, 3, min, max, divisor) : local;
+    if (!e.resolved) {
+        e.resolved = true;
+        const std::string vn = "E_VALUECURVE_" + name;
+        if (SettingsMap.Contains(vn)) {
+            const std::string& vc = SettingsMap.Get(vn, xlEMPTY_STRING);
+            ValueCurve valc;
+            valc.SetDivisor(divisor);
+            valc.SetLimits(min, max);
+            valc.Deserialise(vc);
+            if (valc.IsActive()) {
+                e.maxValue = valc.GetMaxValueDivided();
+                e.maxFromCurve = true;
+            }
+        }
+        if (!e.maxFromCurve) {
+            const std::string sn = "E_SLIDER_" + name;
+            const std::string tn = "E_TEXTCTRL_" + name;
+            e.fallback = SettingsMap.FindValue(sn);
+            if (e.fallback == nullptr) {
+                e.fallback = SettingsMap.FindValue(tn);
+            }
         }
     }
-
-    const std::string sn = "E_SLIDER_" + name;
-    const std::string tn = "E_TEXTCTRL_" + name;
-    // bool slider = false;
-    if (SettingsMap.Contains(sn)) {
-        res = SettingsMap.GetInt(sn, def);
-        // slider = true;
-    } else if (SettingsMap.Contains(tn)) {
-        res = SettingsMap.GetInt(tn, def);
+    if (e.maxFromCurve) {
+        return e.maxValue;
     }
-    return res;
+    return SettingValueInt(e.fallback, def);
 }
 
 int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
 {
-    int res = def;
-    const std::string vn = "VALUECURVE_" + name;
-    if (SettingsMap.Contains(vn)) {
-        const std::string &vc = SettingsMap.Get(vn, xlEMPTY_STRING);
-
-        ValueCurve valc;
-        valc.SetDivisor(divisor);
-        valc.SetLimits(min, max);
-        valc.Deserialise(vc);
-        if (valc.IsActive()) {
-            return valc.GetOutputValueAt(offset, startMS, endMS);
+    VCMemo* memo = VCMemoFor(SettingsMap);
+    VCMemo::Entry local;
+    std::unique_lock<std::mutex> lk;
+    if (memo != nullptr) {
+        lk = std::unique_lock<std::mutex>(memo->mtx);
+    }
+    VCMemo::Entry& e = memo != nullptr ? VCMemoEntryLocked(memo, name, 1, min, max, divisor) : local;
+    if (!e.resolved) {
+        e.resolved = true;
+        const std::string vn = "VALUECURVE_" + name;
+        if (SettingsMap.Contains(vn)) {
+            const std::string& vc = SettingsMap.Get(vn, xlEMPTY_STRING);
+            auto valc = std::make_unique<ValueCurve>();
+            valc->SetDivisor(divisor);
+            valc->SetLimits(min, max);
+            valc->Deserialise(vc);
+            if (valc->IsActive()) {
+                e.curve = std::move(valc);
+            }
+        }
+        if (e.curve == nullptr) {
+            const std::string sn = "SLIDER_" + name;
+            const std::string tn = "TEXTCTRL_" + name;
+            e.fallback = SettingsMap.FindValue(sn);
+            if (e.fallback == nullptr) {
+                e.fallback = SettingsMap.FindValue(tn);
+            }
         }
     }
-    const std::string sn = "SLIDER_" + name;
-    const std::string tn = "TEXTCTRL_" + name;
-    //bool slider = false;
-    if (SettingsMap.Contains(sn)) {
-        res = SettingsMap.GetInt(sn, def);
-        //slider = true;
-    } else if (SettingsMap.Contains(tn)) {
-        res = SettingsMap.GetInt(tn, def);
+    if (e.curve != nullptr) {
+        return e.curve->GetOutputValueAt(offset, startMS, endMS);
     }
-    return res;
+    return SettingValueInt(e.fallback, def);
 }
 
-EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack) const
+EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack, SequenceElements* seqEl) const
 {
-    if (timingtrack == "") return nullptr;
+    if (timingtrack == "" || seqEl == nullptr) return nullptr;
 
-    auto* seqEl = GetSequenceElements();
-    if (!seqEl) return nullptr;
     for (int i = 0; i < (int)seqEl->GetElementCount(); i++) {
         Element* e = seqEl->GetElement(i);
         if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack) {
@@ -456,7 +594,8 @@ std::string RenderableEffect::GetTimingTracks(const int max, const int equals) c
 
 Effect* RenderableEffect::GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const
 {
-    EffectLayer* el = GetTiming(timingtrack);
+    SequenceElements* seqEl = buffer.renderContext ? &buffer.renderContext->GetSequenceElements() : nullptr;
+    EffectLayer* el = GetTiming(timingtrack, seqEl);
 
     if (el == nullptr) return nullptr;
 

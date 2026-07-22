@@ -243,7 +243,6 @@
 						<object class="wxFlexGridSizer" variable="PreviewSizer" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>1</growablerows>
 							<object class="sizeritem">
 								<object class="wxBoxSizer" variable="BoxSizer1" member="no">
 									<object class="sizeritem">

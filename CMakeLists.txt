@@ -109,17 +109,6 @@ if(WIN32 AND wxWidgets_LIB_DIR)
     link_directories(${wxWidgets_LIB_DIR})
 endif()
 
-# ANGLE build: wx's USE_FILE appends opengl32/glu32 to wxWidgets_LIBRARIES.  The
-# MSVC linker resolves each gl* import to the FIRST lib that exports it, so if
-# opengl32 stays in the wx libs it shadows ANGLE's libGLESv2 (opengl32 exports
-# the GL 1.1 set: glClear/glGetString/glViewport/…) and the ANGLE canvas renders
-# black.  Strip them here; opengl32/glu32 are re-added dead-last (only wx's own
-# wgl* references still need them) in the platform-link block below.
-option(XLIGHTS_USE_ANGLE "Build the ANGLE (OpenGL ES) variant instead of native desktop GL" OFF)
-if(XLIGHTS_USE_ANGLE AND NOT APPLE AND WIN32)
-    list(REMOVE_ITEM wxWidgets_LIBRARIES opengl32 glu32 opengl32.lib glu32.lib)
-endif()
-
 # ─── OpenGL ─────────────────────────────────────────────────────────────────
 find_package(OpenGL REQUIRED)
 
@@ -274,7 +263,6 @@ file(GLOB_RECURSE SRC_CORE
 	src-core/diagnostics/*.cpp
     src-core/discovery/*.cpp
     src-core/import_export/*.cpp
-    src-core/graphics/AngleEGL.cpp
     src-core/graphics/GLBackend.cpp
     src-core/graphics/GLContextManager.cpp
     src-core/graphics/xlFontInfo.cpp
@@ -353,6 +341,51 @@ file(GLOB SRC_EFFECTS
     src-core/effects/*.cpp
     src-core/effects/ispc/ISPCComputeUtilities.cpp
 )
+
+# ─── Vulkan compute backend (Linux/Windows analogue of the Metal backend) ───
+# Headers/loader come from the vendored submodules; volk dlopens the Vulkan
+# loader at runtime, so there is no link-time dependency and machines without
+# Vulkan silently fall back to the CPU render paths.
+option(XLIGHTS_USE_VULKAN "Enable the Vulkan GPU compute render backend" ON)
+set(XLIGHTS_VULKAN_ENABLED FALSE)
+# Linux + Windows (CMake).  Apple uses Metal.  The MSBuild .vcxproj still lacks
+# the glslc CustomBuild + ClCompile entries, so the .sln build stays CPU-only;
+# only the CMake path builds the Vulkan backend on Windows.
+if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
+    list(APPEND SRC_EFFECTS
+        src-core/effects/vulkan/VulkanComputeUtilities.cpp
+        src-core/effects/vulkan/VulkanGraphicsUtilities.cpp
+        src-core/effects/vulkan/VulkanShaderTranslate.cpp
+        src-core/effects/vulkan/VulkanEffectManager.cpp
+        src-core/effects/vulkan/VulkanLibs.cpp
+        src-core/effects/vulkan/VulkanBarsEffect.cpp
+        src-core/effects/vulkan/VulkanColorWashEffect.cpp
+        src-core/effects/vulkan/VulkanShockwaveEffect.cpp
+        src-core/effects/vulkan/VulkanFanEffect.cpp
+        src-core/effects/vulkan/VulkanSpiralsEffect.cpp
+        src-core/effects/vulkan/VulkanGalaxyEffect.cpp
+        src-core/effects/vulkan/VulkanCirclesEffect.cpp
+        src-core/effects/vulkan/VulkanPlasmaEffect.cpp
+        src-core/effects/vulkan/VulkanButterflyEffect.cpp
+        src-core/effects/vulkan/VulkanPinwheelEffect.cpp
+        src-core/effects/vulkan/VulkanKaleidoscopeEffect.cpp
+        src-core/effects/vulkan/VulkanWarpEffect.cpp
+        src-core/effects/vulkan/VulkanTreeEffect.cpp
+        src-core/effects/vulkan/VulkanShimmerEffect.cpp
+        src-core/effects/vulkan/VulkanCandleEffect.cpp
+        src-core/effects/vulkan/VulkanWaveEffect.cpp
+        src-core/effects/vulkan/VulkanGarlandsEffect.cpp
+        src-core/effects/vulkan/VulkanFillEffect.cpp
+        src-core/effects/vulkan/VulkanMeteorsEffect.cpp
+        src-core/effects/vulkan/VulkanTwinkleEffect.cpp
+        src-core/effects/vulkan/VulkanLifeEffect.cpp
+        # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
+        src-core/graphics/vulkan/VulkanPipelineCache.cpp
+        src-core/graphics/vulkan/xlVulkanGraphicsContext.cpp
+        src-core/effects/vulkan/VulkanShaderEffect.cpp)
+    set(XLIGHTS_VULKAN_ENABLED TRUE)
+endif()
+
 # ─── ISPC (Intel SPMD Program Compiler — SIMD kernels) ──────────────────────
 # Visual Studio generators do not support enable_language(ISPC).
 # Use it on Linux/macOS (Ninja/Makefile), fall back to add_custom_command on VS.
@@ -422,6 +455,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/xLightsApp.cpp
     src-ui-wx/xLightsMain.cpp
     src-ui-wx/CommandPaletteDialog.cpp
+    src-ui-wx/EffectSymbolDialog.cpp
     src-ui-wx/ai/*.cpp
     src-ui-wx/app-shell/*.cpp
     src-ui-wx/automation/*.cpp
@@ -435,6 +469,7 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/graphics/opengl/xlOGL3GraphicsContext.cpp
     src-ui-wx/graphics/wxTextDrawingContext.cpp
     src-ui-wx/import_export/*.cpp
+    src-ui-wx/klightmapper/*.cpp
     src-ui-wx/layout/*.cpp
     src-ui-wx/media/*.cpp
     src-ui-wx/model/*.cpp
@@ -449,6 +484,16 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/shared/utils/*.cpp
     src-ui-wx/support/*.cpp
 )
+
+if(XLIGHTS_VULKAN_ENABLED)
+    list(APPEND SRC_UI src-ui-wx/graphics/vulkan/xlVulkanCanvas.cpp)
+    if(UNIX AND NOT APPLE)
+        list(APPEND SRC_UI
+            src-ui-wx/graphics/vulkan/xlVulkanX11Surface.cpp
+            src-ui-wx/graphics/vulkan/xlVulkanWaylandSurface.cpp
+            src-ui-wx/graphics/vulkan/xlSoftwareGLProbe.cpp)
+    endif()
+endif()
 
 # macOS-only Objective-C++ helper for the command palette (SF Symbols / colors).
 # Must be appended after the glob: file(GLOB) does not evaluate generator
@@ -550,6 +595,105 @@ target_include_directories(xLights PRIVATE
     ${CURL_INC}
 )
 
+if(XLIGHTS_VULKAN_ENABLED)
+    target_compile_definitions(xLights PRIVATE HAVE_VULKAN VK_NO_PROTOTYPES)
+    target_include_directories(xLights PRIVATE
+        ${XL_DEPS}/Vulkan-Headers/include
+        ${XL_DEPS}/volk
+        ${XL_DEPS}/VulkanMemoryAllocator/include)
+
+    # The native Vulkan Shader effect (graphics-pipeline path + glslang
+    # GLSL->SPIR-V) is Linux-only for now.  Windows Vulkan is compute-only until
+    # the glslang packaging/link is sorted there (the SDK's glslang lib set
+    # varies by version); HAVE_VULKAN_SHADER gates the shader/graphics sources and
+    # their references so the Windows builds link cleanly without them.
+    if((UNIX AND NOT APPLE) OR WIN32)
+        target_compile_definitions(xLights PRIVATE HAVE_VULKAN_SHADER)
+        if(WIN32)
+            if(XLIGHTS_USE_VCPKG)
+                # vcpkg-specific modern CMake approach
+                find_package(glslang CONFIG REQUIRED)
+                find_package(SPIRV-Tools CONFIG REQUIRED)
+                target_link_libraries(xLights PRIVATE 
+                    glslang::glslang
+                    glslang::glslang-default-resource-limits
+                    SPIRV-Tools::SPIRV-Tools-opt
+                    SPIRV-Tools::SPIRV-Tools
+                )
+                message(STATUS "Vulkan Toolchain: Found via vcpkg CONFIG packages")
+            else()
+                # Point to local Vulkan SDK
+                target_include_directories(xLights PRIVATE "$ENV{VULKAN_SDK}/include")
+                target_link_directories(xLights PRIVATE "$ENV{VULKAN_SDK}/lib")
+                
+                # Link missing libraries to resolve LNK errors
+                target_link_libraries(xLights PRIVATE 
+                    glslang
+                    glslang-default-resource-limits
+                    SPIRV-Tools-opt
+                    SPIRV-Tools
+                )
+            endif()
+        else()
+            # The native-Wayland Vulkan surface helper calls into GDK/GTK
+            # (gdk_wayland_* live in libgdk-3); the Xlib helper needs nothing extra.
+            find_package(PkgConfig QUIET)
+            if(PkgConfig_FOUND)
+                pkg_check_modules(GTK3 QUIET gtk+-3.0)
+                if(GTK3_FOUND)
+                    target_include_directories(xLights PRIVATE ${GTK3_INCLUDE_DIRS})
+                    target_link_libraries(xLights PRIVATE ${GTK3_LIBRARIES})
+                endif()
+            endif()
+            # glslang from the vendored static build's install prefix (produced by the
+            # Makefile `glslang` target).  Only-if-found so the lean build
+            # (ENABLE_OPT=OFF, no SPIRV-Tools) links cleanly.
+            target_include_directories(xLights PRIVATE ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/include)
+            foreach(_gl glslang-default-resource-limits SPIRV glslang MachineIndependent GenericCodeGen OSDependent)
+                find_library(GLSLANG_${_gl}_LIB NAMES ${_gl} HINTS ${CMAKE_SOURCE_DIR}/dependencies/glslang-build/install/lib)
+                if(GLSLANG_${_gl}_LIB)
+                    target_link_libraries(xLights PRIVATE ${GLSLANG_${_gl}_LIB})
+                endif()
+            endforeach()
+        endif()
+    endif()
+
+    # Compile the .comp compute kernels into the SPIR-V headers the vulkan/
+    # sources #include.  These are generated (gitignored), not committed —
+    # glslc is a build tool here, like ispc for the .ispc kernels.
+    find_program(GLSLC_EXECUTABLE glslc HINTS $ENV{VULKAN_SDK}/Bin $ENV{VULKAN_SDK}/bin)
+    if(NOT GLSLC_EXECUTABLE)
+        message(FATAL_ERROR
+            "glslc not found — required to build the Vulkan compute backend.\n"
+            "Install it (Ubuntu/Debian: apt-get install glslc; or the Vulkan SDK)\n"
+            "or reconfigure with -DXLIGHTS_USE_VULKAN=OFF.")
+    endif()
+    file(GLOB _vulkan_comp CONFIGURE_DEPENDS
+        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.comp
+        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.vert
+        ${CMAKE_SOURCE_DIR}/src-core/effects/vulkan/shaders/*.frag
+        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.vert
+        ${CMAKE_SOURCE_DIR}/src-core/graphics/vulkan/shaders/*.frag)
+    # Windows has no bash by default — run the PowerShell counterpart there.
+    # Both scripts honor the GLSLC env var (CMake's find_program result) and emit
+    # the same *.spv.h headers.
+    if(WIN32)
+        add_custom_target(vulkan_shaders
+            COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
+                    powershell -NoProfile -ExecutionPolicy Bypass
+                    -File ${CMAKE_SOURCE_DIR}/build_scripts/msw/compile_vulkan_shaders.ps1
+            SOURCES ${_vulkan_comp}
+            COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
+    else()
+        add_custom_target(vulkan_shaders
+            COMMAND ${CMAKE_COMMAND} -E env "GLSLC=${GLSLC_EXECUTABLE}"
+                    bash ${CMAKE_SOURCE_DIR}/build_scripts/compile_vulkan_shaders.sh
+            SOURCES ${_vulkan_comp}
+            COMMENT "Compiling Vulkan compute and graphics shaders to SPIR-V headers")
+    endif()
+    add_dependencies(xLights vulkan_shaders)
+endif()
+
 # ─── zlib ───────────────────────────────────────────────────────────────────
 if(NOT XLIGHTS_USE_VCPKG)
     # Prefer z.lib (plain static MSVC build, no ASM deps).
@@ -578,43 +722,6 @@ endif()
 if(FFMPEG_LIBRARY_DIRS)
     target_link_directories(xLights PRIVATE ${FFMPEG_LIBRARY_DIRS})
 endif()
-# ANGLE (USE_GLES): the gl* provider MUST be linked BEFORE wxWidgets, which
-# pulls in opengl32.  MSVC resolves each gl* import to the FIRST lib on the link
-# line that exports it, so linking libGLESv2 first makes the GL functions bind
-# to ANGLE while wgl* (only in opengl32) still fall through to opengl32 for wx's
-# own GL-canvas code.  If linked after wx, opengl32's GL 1.1 exports (glClear,
-# glGetString, glViewport, glScissor, …) win and the ANGLE canvas renders black
-# (drawing goes to opengl32 with no WGL context).  See plans/angle-support.md.
-if(XLIGHTS_USE_ANGLE AND NOT APPLE)
-    if(XLIGHTS_ANGLE_DIR)
-        # Prebuilt ANGLE SDK: headers + import libs from a directory (e.g. a
-        # release downloaded from mmozeiko/build-angle, or the repo-vendored copy
-        # in include/ + lib/windows64).  No vcpkg, no source build — the slowest
-        # dependency ships as a prebuilt DLL.  find_library matches both the
-        # plain "libGLESv2.lib" (repo-vendored) and "libGLESv2.dll.lib"
-        # (mmozeiko) import-lib naming.
-        message(STATUS "ANGLE: using prebuilt SDK at ${XLIGHTS_ANGLE_DIR}")
-        find_library(XL_ANGLE_GLESV2 NAMES libGLESv2 libGLESv2.dll
-            PATHS ${XLIGHTS_ANGLE_DIR}/lib ${XLIGHTS_ANGLE_DIR}/lib/x64 ${XLIGHTS_ANGLE_DIR}
-            NO_DEFAULT_PATH REQUIRED)
-        find_library(XL_ANGLE_EGL NAMES libEGL libEGL.dll
-            PATHS ${XLIGHTS_ANGLE_DIR}/lib ${XLIGHTS_ANGLE_DIR}/lib/x64 ${XLIGHTS_ANGLE_DIR}
-            NO_DEFAULT_PATH REQUIRED)
-        if(EXISTS ${XLIGHTS_ANGLE_DIR}/include)
-            target_include_directories(xLights PRIVATE ${XLIGHTS_ANGLE_DIR}/include)
-        endif()
-        target_link_libraries(xLights PRIVATE ${XL_ANGLE_GLESV2} ${XL_ANGLE_EGL})
-    else()
-        # vcpkg-provided ANGLE (builds the port from source the first time).
-        find_package(unofficial-angle CONFIG REQUIRED)
-        target_link_libraries(xLights PRIVATE
-            unofficial::angle::libGLESv2
-            unofficial::angle::libEGL)
-    endif()
-    target_compile_definitions(xLights PRIVATE USE_GLES)
-    message(STATUS "OpenGL backend: ANGLE (USE_GLES; libGLESv2 before wx, opengl32 last)")
-endif()
-
 target_link_libraries(xLights PRIVATE
     ${wxWidgets_LIBRARIES}
     ${FFMPEG_LIBS}
@@ -671,19 +778,13 @@ else()
     endif()
 endif()
 
-# OpenGL backend — COMPILE-TIME choice of native desktop GL OR ANGLE (OpenGL
-# ES).  Build EITHER one or the other.  The ANGLE/USE_GLES variant links
-# libGLESv2+libEGL earlier (just before the wxWidgets link) so its gl* win
-# symbol resolution over opengl32.  Here we only add the NATIVE desktop-GL libs
-# (default build).  macOS selects ANGLE via macOS/ANGLE.xcconfig, not this path.
-if(NOT (XLIGHTS_USE_ANGLE AND NOT APPLE))
-    target_link_libraries(xLights PRIVATE OpenGL::GL)
-    if(WIN32)
-        target_link_libraries(xLights PRIVATE glu32)
-    elseif(UNIX AND NOT APPLE)
-        target_link_libraries(xLights PRIVATE GL GLU)
-    endif()
-    message(STATUS "OpenGL backend: native desktop GL")
+# OpenGL backend — native desktop GL.
+target_link_libraries(xLights PRIVATE OpenGL::GL)
+if(WIN32)
+    target_link_libraries(xLights PRIVATE glu32)
+elseif(UNIX AND NOT APPLE)
+    # EGL is the Wayland pbuffer fallback in GLContextManager (GLX handles X11).
+    target_link_libraries(xLights PRIVATE GL GLU EGL)
 endif()
 
 # vcpkg FFmpeg ships avfilter with vsrc_gfxcapture_winrt compiled against the
@@ -725,6 +826,36 @@ else()
     endif()
 endif()
 
+if(WIN32 OR (UNIX AND NOT APPLE))
+    if(WIN32)
+        set(KLM_FETCH powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_dependencies.ps1")
+        set(KLM_LIB_HINTS ${XL_LIB}/windows64)
+    else()
+        set(KLM_FETCH bash "${CMAKE_SOURCE_DIR}/ci_scripts/fetch_klightmapper.sh")
+        set(KLM_LIB_HINTS ${XL_LIB}/linux)
+    endif()
+    execute_process(COMMAND ${KLM_FETCH}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        RESULT_VARIABLE KLM_FETCH_RC)
+    if(NOT KLM_FETCH_RC EQUAL 0)
+        message(FATAL_ERROR "KLightMapper: required dependency fetch failed (rc=${KLM_FETCH_RC}). "
+                            "Check network access to github.com/KulpLights/KLightMapper.")
+    endif()
+    # The fetch just staged the files; drop any stale NOTFOUND cache before locating.
+    unset(KLM_LIB CACHE)
+    unset(KLM_INC CACHE)
+    find_library(KLM_LIB NAMES klightmapper HINTS ${KLM_LIB_HINTS})
+    find_path(KLM_INC NAMES klm/scan_api.h
+        HINTS ${XL_INC}/klightmapper ${XL_DEPS}/klightmapper/include)
+    if(NOT KLM_LIB OR NOT KLM_INC)
+        message(FATAL_ERROR "KLightMapper: lib/headers missing after fetch (lib=${KLM_LIB} inc=${KLM_INC}).")
+    endif()
+    message(STATUS "KLightMapper: ${KLM_LIB}")
+    target_include_directories(xLights PRIVATE ${KLM_INC})
+    target_link_libraries(xLights PRIVATE ${KLM_LIB})
+endif()
+
 # hidapi
 if(XLIGHTS_USE_VCPKG)
     find_package(hidapi CONFIG REQUIRED)
@@ -736,15 +867,6 @@ if(WIN32)
     target_link_libraries(xLights PRIVATE ws2_32 winmm comctl32 rpcrt4
                                           mfuuid propsys wmcodecdspuuid
                                           iphlpapi)
-    # ANGLE build: supply opengl32/glu32 as DEFAULT libs (/DEFAULTLIB).  Default
-    # libraries are searched by the linker AFTER every explicit lib, so ANGLE's
-    # libGLESv2 (an explicit lib) wins gl* symbol resolution and opengl32 is used
-    # only for the wgl* that wx's own GL-canvas code references.  Linking opengl32
-    # explicitly instead would let its GL 1.1 exports shadow libGLESv2 and the
-    # ANGLE canvas would render black.
-    if(XLIGHTS_USE_ANGLE AND NOT APPLE)
-        target_link_options(xLights PRIVATE "/DEFAULTLIB:opengl32.lib" "/DEFAULTLIB:glu32.lib")
-    endif()
     if(NOT XLIGHTS_USE_VCPKG)
         # vendored pre-built libs (FFmpeg, SDL2, etc.) + lua pragma stubs
         target_link_directories(xLights PRIVATE ${XL_LIB}/windows64 ${XL_DEPS}/lua/src)
@@ -877,9 +999,6 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/effectmetadata"
             "$<TARGET_FILE_DIR:xLights>/effectmetadata"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_SOURCE_DIR}/bin64/Vamp"
-            "$<TARGET_FILE_DIR:xLights>/Vamp"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/prompts"
             "$<TARGET_FILE_DIR:xLights>/prompts"

@@ -45,34 +45,81 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
     for (int x = 0; x < src->GetEffectCount(); ++x) {
         Effect* ef = src->GetEffect(x);
         if (!target->HasEffectsInTimeRange(ef->GetStartTimeMS(), ef->GetEndTimeMS())) {
-            std::string settings;
+            std::string settingsStr;
             if (xsqPkg.HasMedia() && xsqPkg.GetImportOptions()->IsImportActive()) {
                 // attempt to import it and fix settings
-                settings = xsqPkg.FixAndImportMedia(ef, target);
+                settingsStr = xsqPkg.FixAndImportMedia(ef, target);
             } else {
-                settings = ef->GetSettingsAsString();
+                settingsStr = ef->GetSettingsAsString();
             }
 
-            // remove lock if it is there
-            Replace(settings, ",X_Effect_Locked=True", "");
+            // Parse into a map so the key edits below are keyed lookups/assignments
+            // rather than substring replaces on the serialized string — a prior
+            // version matched ",Key=value" (with a leading comma) and silently
+            // no-op'd whenever Key was the first/only setting in the string.
+            SettingsMap settings;
+            settings.Parse(nullptr, settingsStr, ef->GetEffectName());
 
             // If this is a duplicate effect map the duplicate to the model the original model was mapped to
-            if (ef->GetEffectIndex() == EffectManager::eff_DUPLICATE && Contains(settings, "E_CHOICE_Duplicate_Model")) {
-                auto dupModel = ef->GetSettings()["E_CHOICE_Duplicate_Model"];
+            if (ef->GetEffectIndex() == EffectManager::eff_DUPLICATE && settings.Contains("E_CHOICE_Duplicate_Model")) {
+                auto dupModel = settings.Get("E_CHOICE_Duplicate_Model", "");
                 auto it = mapping.find(dupModel);
                 if (it != mapping.end()) {
-                    Replace(settings, ",E_CHOICE_Duplicate_Model=" + dupModel, ",E_CHOICE_Duplicate_Model=" + it->second);
+                    settings["E_CHOICE_Duplicate_Model"] = it->second;
                 }
             }
             if (ef->GetEffectIndex() == EffectManager::eff_PICTURES) {
                 // if using embedded images, need to copy it over
-                std::string v = ef->GetSettings()["E_TEXTCTRL_Pictures_Filename"];
+                std::string v = settings.Get("E_TEXTCTRL_Pictures_Filename", "");
                 auto& sm = ef->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
                 auto& tm = target->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
                 if (sm.HasImage(v) && !tm.HasImage(v)) {
                     auto img = sm.GetImage(v);
                     if (img->IsEmbedded()) {
                         tm.AddEmbeddedImage(v, img->GetEmbeddedData());
+                    }
+                }
+            }
+            if (ef->GetEffectIndex() == EffectManager::eff_FACES) {
+                // Sequence-level face definitions travel inside the .xsq, so
+                // they can be imported even from a plain (non-package) .xsq.
+                // Copy the definition the source actually rendered - model
+                // definitions win over sequence-level ones on both sides, and
+                // "Default"/empty resolves to the first model face, else the
+                // first sequence face. Package imports run FixAndImportMedia
+                // first, which also copies any external face images - this
+                // pass then no-ops via the target-store check.
+                std::string face = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+                SequenceElements* srcSE = ef->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+                SequenceElements* tgtSE = target->GetParentElement()->GetSequenceElements();
+                if (srcSE != nullptr && tgtSE != nullptr) {
+                    const std::string& srcModelName = ef->GetParentEffectLayer()->GetParentElement()->GetModelName();
+                    if (face == "Default" || face.empty()) {
+                        const auto& seqFaces = srcSE->GetSequenceFaces().GetFaces();
+                        face = (!xsqPkg.SourceModelHasFace(srcModelName, "") && !seqFaces.empty()) ? seqFaces.begin()->first : "";
+                    } else if (xsqPkg.SourceModelHasFace(srcModelName, face)) {
+                        face.clear(); // the source rendered the model definition
+                    }
+                    const auto* srcDef = face.empty() ? nullptr : srcSE->GetSequenceFaces().GetFace(face);
+                    if (srcDef != nullptr && tgtSE->GetSequenceFaces().GetFace(face) == nullptr) {
+                        Model* tgtModel = tgtSE->GetRenderContext() != nullptr ? tgtSE->GetRenderContext()->GetModel(target->GetParentElement()->GetModelName()) : nullptr;
+                        if (tgtModel == nullptr || tgtModel->GetFaceInfo().find(face) == tgtModel->GetFaceInfo().end()) {
+                            auto& sm = srcSE->GetSequenceMedia();
+                            auto& tm = tgtSE->GetSequenceMedia();
+                            for (const auto& [key, value] : *srcDef) {
+                                if (!SequenceFaces::IsImageKey(key) || value.empty()) {
+                                    continue;
+                                }
+                                if (!tm.HasImage(value) && sm.HasImage(value)) {
+                                    auto img = sm.GetImage(value);
+                                    if (img != nullptr && img->IsEmbedded()) {
+                                        tm.AddEmbeddedImage(value, img->GetEmbeddedData());
+                                    }
+                                }
+                                tm.MarkUsedByMetadata(value);
+                            }
+                            tgtSE->GetSequenceFaces().SetFace(face, *srcDef);
+                        }
                     }
                 }
             }
@@ -86,38 +133,28 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                     auto mg = dynamic_cast<const ModelGroup*>(m);
                     if (mg != nullptr) {
                         if (convertRender) {
-                            auto buffer = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                            auto buffer = settings.Get("B_CHOICE_BufferStyle", "");
                             if (buffer == "Per Preview" || buffer == "Default" || buffer == "Single Line") {
-                                Replace(settings, "B_CHOICE_BufferStyle=" + buffer,
-                                        "B_CHOICE_BufferStyle=Per Model " + buffer);
+                                settings["B_CHOICE_BufferStyle"] = "Per Model " + buffer;
                             } else if (buffer.empty()) {
-                                if (Contains(settings, "B_CHOICE_BufferStyle")) {
-                                    Replace(settings, "B_CHOICE_BufferStyle=",
-                                            "B_CHOICE_BufferStyle=Per Model Default");
-                                } else {
-                                    if (!settings.empty()) {
-                                        settings += ",";
-                                    }
-                                    settings += "B_CHOICE_BufferStyle=Per Model Default";
-                                }
+                                settings["B_CHOICE_BufferStyle"] = "Per Model Default";
                             }
                         }
                         // so is it a per preview render buffer
-                        auto rb = ef->GetSettings()["B_CHOICE_BufferStyle"];
+                        auto rb = settings.Get("B_CHOICE_BufferStyle", "");
                         if (BufferStyles::CanRenderBufferUseCamera(rb)) {
-                            if (Contains(settings, "B_CHOICE_PerPreviewCamera")) {
+                            if (settings.Contains("B_CHOICE_PerPreviewCamera")) {
                                 // MoC - There isn't a way to just indicate "use group's default", so instead we grab it as
                                 //   a setting for the effect.
                                 // That way if the group default changes, there is no effect on old / mapped effects
                                 auto newCamera = mg->GetDefaultCamera();
-                                auto effCamera = ef->GetSettings()["B_CHOICE_PerPreviewCamera"];
+                                auto effCamera = settings.Get("B_CHOICE_PerPreviewCamera", "");
                                 if (effCamera != "2D" && effCamera != "Default" && rc->GetNamedCamera3D(effCamera)) {
                                     newCamera = effCamera;
                                 }
-                                Replace(settings, ",B_CHOICE_PerPreviewCamera=" + effCamera,
-                                        ",B_CHOICE_PerPreviewCamera=" + newCamera);
+                                settings["B_CHOICE_PerPreviewCamera"] = newCamera;
                             } else {
-                                settings += ",B_CHOICE_PerPreviewCamera=" + mg->GetDefaultCamera();
+                                settings["B_CHOICE_PerPreviewCamera"] = mg->GetDefaultCamera();
                             }
                         }
                     }
@@ -127,10 +164,14 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                 }
             }
 
-            Effect* ne = target->AddEffect(0, ef->GetEffectName(), settings, ef->GetPaletteAsString(),
+            Effect* ne = target->AddEffect(0, ef->GetEffectName(), settings.AsString(), ef->GetPaletteAsString(),
                                            ef->GetStartTimeMS(), ef->GetEndTimeMS(), 0, false);
-            if (lock) {
-                ne->SetLocked(true);
+            if (ne != nullptr) {
+                // honour the "Lock effects on import" option only; never carry the source
+                // effect's own lock status across (SetLocked() erases X_Effect_Locked from
+                // the new effect's settings map when false, regardless of whether it
+                // survived in the `settings` string above).
+                ne->SetLocked(lock);
             }
         }
     }

@@ -28,6 +28,7 @@
 #include "ispc/KaleidoscopeFunctions.ispc.h"
 #include <log.h>
 #include <cstring>
+#include <numeric>
 
 #define KALE_ISPC_STYLE_SQUARE2  0
 #define KALE_ISPC_STYLE_6FOLD    1
@@ -105,7 +106,9 @@ public:
     int _y;
     int _width;
     int _height;
-    void Initialise(int size, int rotation, int x, int y, int width, int height, const std::string& type, bool force)
+    // Returns true when the geometry was (re)built - the caller's pixel map is
+    // stale and must be rebuilt too.
+    bool Initialise(int size, int rotation, int x, int y, int width, int height, const std::string& type, bool force)
     {
         if (force || size != _size || rotation != _rotation || x != _x || y != _y || width != _width || height != _height)
         {
@@ -141,7 +144,9 @@ public:
             {
                 assert(false);
             }
+            return true;
         }
+        return false;
     }
 
     bool CreateEdge(int x1, int y1, int x2, int y2)
@@ -313,11 +318,82 @@ public:
         } while (added > 0);
     }
 
-    std::vector<std::vector<bool>> _startUsed;
+    // uint8_t, not bool: vector<bool> packs bits, so the flood-fill's
+    // parallel row writes would race on shared bytes and drop marks.
+    std::vector<std::vector<uint8_t>> _startUsed;
     std::list<KaleidoscopeEdge> _edges;
+    // Per-pixel source index (y*width+x layout), identity for start-region and
+    // never-reached pixels.  The legacy flood fill only ever copies colors that
+    // originate in the start region, so the whole iteration collapses to this
+    // geometry-only map; per frame the effect is then a single snapshot+gather.
+    // Rebuilt whenever Initialise() reports a geometry change.
+    std::vector<int32_t> _map;
 };
 
-bool KaleidoscopeEffect::KaleidoscopeDone(const std::vector<std::vector<bool>>& current)
+// Replays the legacy iterative reflection fill on PIXEL INDICES instead of
+// colors: identical pass structure, edge cycling and termination as the old
+// per-frame loop, so composing map[idx] = map[srcIdx] lands every pixel on the
+// same start-region source the color chain would have - byte-identical output.
+// Flat arrays + a remaining-count replace the per-pass vector-of-vectors deep
+// copies and full-grid KaleidoscopeDone rescans the old loop paid.
+void KaleidoscopeEffect::BuildLegacyMap(KaleidoscopeRenderCache* cache, int width, int height)
+{
+    const int pixelCount = width * height;
+    std::vector<int32_t>& map = cache->_map;
+    map.resize(pixelCount);
+    std::iota(map.begin(), map.end(), 0);
+
+    std::vector<uint8_t> used(pixelCount, 0);
+    int unfilled = pixelCount;
+    for (int x = 0; x < width; ++x) {
+        for (int y = 0; y < height; ++y) {
+            if (cache->_startUsed[x][y]) {
+                used[y * width + x] = 1;
+                --unfilled;
+            }
+        }
+    }
+
+    auto& edges = cache->_edges;
+    if (edges.empty()) {
+        return;
+    }
+    auto edge = edges.begin();
+    std::atomic_int setSinceBegin{ 0 };
+    std::vector<uint8_t> usedSnap;
+    while (unfilled > 0) {
+        usedSnap = used;
+        std::atomic_int setThisPass{ 0 };
+        parallel_for(0, height, [&](int y) {
+            for (int x = 0; x < width; ++x) {
+                const int idx = y * width + x;
+                if (!usedSnap[idx]) {
+                    auto source = GetSourceLocation(x, y, *edge, width, height);
+                    if (source.first >= 0 && source.first < width && source.second >= 0 && source.second < height) {
+                        const int sidx = source.second * width + source.first;
+                        if (usedSnap[sidx]) {
+                            map[idx] = map[sidx];
+                            used[idx] = 1;
+                            ++setThisPass;
+                            ++setSinceBegin;
+                        }
+                    }
+                }
+            }
+        });
+        unfilled -= setThisPass;
+        ++edge;
+        if (edge == edges.end()) {
+            if (setSinceBegin == 0) {
+                break;
+            }
+            setSinceBegin = 0;
+            edge = edges.begin();
+        }
+    }
+}
+
+bool KaleidoscopeEffect::KaleidoscopeDone(const std::vector<std::vector<uint8_t>>& current)
 {
     for (const auto& xx : current)
     {
@@ -346,7 +422,7 @@ std::pair<int, int> KaleidoscopeEffect::GetSourceLocation(int x, int y, const Ka
             std::round(b * (x - x1) - a * (y - y1) + y1) };
 }
 
-void DumpUsed(const std::vector<std::vector<bool>>& current, int width, int height)
+void DumpUsed(const std::vector<std::vector<uint8_t>>& current, int width, int height)
 {
     
 
@@ -613,17 +689,42 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
         buffer.infoCache[id] = cache;
     }
 
+    bool changed;
     if (buffer.needToInit)
     {
         buffer.needToInit = false;
-        cache->Initialise(size, rotation, xCentre, yCentre, buffer.BufferWi, buffer.BufferHt, type, true);
+        changed = cache->Initialise(size, rotation, xCentre, yCentre, buffer.BufferWi, buffer.BufferHt, type, true);
     }
     else
     {
         // reinitialise ... but only if something has changed
-        cache->Initialise(size, rotation, xCentre, yCentre, buffer.BufferWi, buffer.BufferHt, type, false);
+        changed = cache->Initialise(size, rotation, xCentre, yCentre, buffer.BufferWi, buffer.BufferHt, type, false);
     }
 
+    if (!buffer.dmx_buffer) {
+        // The fill's result is a pure geometric map (see BuildLegacyMap), so a
+        // static-geometry effect pays the fill once and every frame is just a
+        // snapshot + gather.
+        const int pixelCount = buffer.BufferWi * buffer.BufferHt;
+        if (changed || (int)cache->_map.size() != pixelCount) {
+            BuildLegacyMap(cache, buffer.BufferWi, buffer.BufferHt);
+        }
+        std::vector<xlColor> srcSnap(pixelCount);
+        memcpy(srcSnap.data(), buffer.GetPixels(), pixelCount * 4);
+        const int32_t* map = cache->_map.data();
+        const xlColor* src = srcSnap.data();
+        xlColor* dst = buffer.GetPixels();
+        parallel_for(0, buffer.BufferHt, [&](int y) {
+            const int base = y * buffer.BufferWi;
+            for (int x = 0; x < buffer.BufferWi; ++x) {
+                dst[base + x] = src[map[base + x]];
+            }
+        });
+        return;
+    }
+
+    // DMX-model buffers: SetPixel routes through SetPixelDMXModel, so the raw
+    // gather above doesn't apply - keep the original iterative fill.
     auto currentUsed = cache->_startUsed;
     auto &edges = cache->_edges;
 
@@ -637,13 +738,22 @@ void KaleidoscopeEffect::Render(Effect *eff, const SettingsMap &SettingsMap, Ren
         //int set = 0;
 
         //DumpUsed(currentUsed, buffer.BufferWi, buffer.BufferHt);
-        parallel_for(0, buffer.BufferHt, [&currentUsed, this, &buffer, &edge, &setSinceBegin] (int y) {
+        // Read the fill state as it was at the start of this pass. Reading the
+        // live currentUsed grid (and the pixels it points at) while other
+        // threads were writing them made the fill order - and thus the colors -
+        // depend on thread timing, so the effect rendered differently every
+        // time. Sources are always pixels filled in a PRIOR pass (usedSnap ==
+        // true), so their pixels are stable this pass; writes only touch pixels
+        // that were unfilled at pass start, disjoint from any source. Race-free
+        // and reproducible.
+        auto usedSnap = currentUsed;
+        parallel_for(0, buffer.BufferHt, [&usedSnap, &currentUsed, this, &buffer, &edge, &setSinceBegin] (int y) {
             for (int x = 0; x < buffer.BufferWi; x++) {
-                if (!currentUsed[x][y]) {
+                if (!usedSnap[x][y]) {
                     // this pixel needs to be set
                     auto source = GetSourceLocation(x, y, *edge, buffer.BufferWi, buffer.BufferHt);
                     if (source.first >= 0 && source.first < buffer.BufferWi && source.second >= 0 && source.second < buffer.BufferHt) {
-                        if (currentUsed[source.first][source.second]) {
+                        if (usedSnap[source.first][source.second]) {
                             buffer.SetPixel(x, y, buffer.GetPixel(source.first, source.second));
                             currentUsed[x][y] = true;
                             //set++;

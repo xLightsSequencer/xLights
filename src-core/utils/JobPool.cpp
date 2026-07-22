@@ -91,7 +91,11 @@ class JobPoolWorker
 #else
     std::thread *thread;
 #endif
-    uint64_t tid;
+    // Written by the ctor after the thread is spawned, but the new thread reads
+    // it immediately in Entry() and GetThreadStatus() reads it from the UI
+    // thread - so it races unless it is atomic.  Logging/status only: a reader
+    // that gets in first simply sees 0.
+    std::atomic<uint64_t> tid;
     std::shared_ptr<spdlog::logger> m_logger{ nullptr };
 
 public:
@@ -143,12 +147,12 @@ JobPoolWorker::JobPoolWorker(JobPool *p) :
     thread = new std::thread(startFunc, this);
     tid = (uint64_t)thread->native_handle();
 #endif
-    m_logger->debug("JobPoolWorker created {:x}", tid);
+    m_logger->debug("JobPoolWorker created {:x}", tid.load());
 }
 
 JobPoolWorker::~JobPoolWorker()
 {
-    m_logger->debug("JobPoolWorker destroyed {:x}", tid);
+    m_logger->debug("JobPoolWorker destroyed {:x}", tid.load());
     status = UNKNOWN;
 #ifdef __APPLE__
     pthread_detach(pThread);
@@ -167,7 +171,7 @@ std::string JobPoolWorker::GetStatus()
     ret << std::showbase // show the 0x prefix
         << std::internal // fill between the prefix and the number
         << std::setfill('0') << std::setw(10)
-        << std::hex << tid
+        << std::hex << tid.load()
         << "    ";
     
     Job *j = currentJob;
@@ -226,29 +230,51 @@ static void SetThreadName(const std::string &name) {
 static void RemoveThreadName() {}
 #else
 //no idea how to do this on Windows or even if there is value in doing so
-static std::map<DWORD, std::string> __threadNames;
-static std::mutex thread_name_mutex;
+//
+// Deliberately immortal (leaked): pool workers are DETACHED, and a worker calls
+// RemoveThreadName() as it winds down.  These used to be namespace-scope statics,
+// so the CRT's onexit table could destroy them while a detached worker was still
+// exiting - erase() then freed already-freed tree nodes and the process died with
+// STATUS_HEAP_CORRUPTION.  Worse, JobPool::~JobPool -> Stop() is itself an onexit
+// destructor sleeping until those very workers finish, so the map was being
+// destroyed at exactly the moment the workers still needed it.  Cross-TU
+// destruction order is unspecified; leaking removes the ordering dependency
+// entirely.  (Windows-only: RemoveThreadName() is a no-op elsewhere, which is why
+// this never fired on macOS/Linux.)
+static std::map<DWORD, std::string>& ThreadNames()
+{
+    static std::map<DWORD, std::string>* names = new std::map<DWORD, std::string>();
+    return *names;
+}
+static std::mutex& ThreadNameMutex()
+{
+    static std::mutex* m = new std::mutex();
+    return *m;
+}
 static std::string OriginalThreadName()
 {
-    std::unique_lock<std::mutex> lock(thread_name_mutex);
-    if (__threadNames.find(::GetCurrentThreadId()) != __threadNames.end()) {
-        return __threadNames[::GetCurrentThreadId()];
+    std::unique_lock<std::mutex> lock(ThreadNameMutex());
+    auto& names = ThreadNames();
+    auto it = names.find(::GetCurrentThreadId());
+    if (it != names.end()) {
+        return it->second;
     }
     return "";
 }
 
 static void SetThreadName(const std::string &name)
 {
-    std::unique_lock<std::mutex> lock(thread_name_mutex);
-    __threadNames[::GetCurrentThreadId()] = name;
+    std::unique_lock<std::mutex> lock(ThreadNameMutex());
+    ThreadNames()[::GetCurrentThreadId()] = name;
 }
 
 static void RemoveThreadName()
 {
-    std::unique_lock<std::mutex> lock(thread_name_mutex);
-    auto it = __threadNames.find(::GetCurrentThreadId());
-    if (it != __threadNames.end())
-        __threadNames.erase(it);
+    std::unique_lock<std::mutex> lock(ThreadNameMutex());
+    auto& names = ThreadNames();
+    auto it = names.find(::GetCurrentThreadId());
+    if (it != names.end())
+        names.erase(it);
 }
 #endif
 
@@ -266,7 +292,7 @@ std::string JobPoolWorker::GetThreadName() const
 void JobPoolWorker::Entry()
 {
     std::ostringstream oss;
-    oss << tid;
+    oss << tid.load();
     m_logger->debug("JobPoolWorker started  {}", oss.str());
 
     try {
@@ -377,14 +403,17 @@ void JobPool::SetMaxThreadCount(int maxThreads)
 JobPool::~JobPool()
 {
     //
-    if ( !queue.empty() ) {
-        std::deque<Job*>::iterator iter = queue.begin();
-        for (; iter != queue.end(); ++iter) {
-            delete (*iter);
+    if ( !queue.empty() || !highPriorityQueue.empty() ) {
+        for (auto* job : queue) {
+            delete job;
+        }
+        for (auto* job : highPriorityQueue) {
+            delete job;
         }
         auto logger = spdlog::get("job") ? spdlog::get("job") : spdlog::default_logger();
         logger->debug("Clearing JobPool queue.");
         queue.clear();
+        highPriorityQueue.clear();
     }
     Stop();
 }
@@ -410,18 +439,24 @@ void JobPool::RemoveWorker(JobPoolWorker *w) {
 Job *JobPool::GetNextJob() {
     std::unique_lock<std::mutex> mutLock(queueLock);
     Job *req = nullptr;
-    if (queue.empty()) {
+    if (queue.empty() && highPriorityQueue.empty()) {
         SetThreadQOS(0);
         ++idleThreads;
         signal.wait_for(mutLock, std::chrono::milliseconds(30000));
         --idleThreads;
     }
-    if ( !queue.empty() ) {
+    // Strict two-level priority, deliberately no aging/fairness: interactive
+    // jobs may starve queued background rows, and the dirty-range machinery
+    // re-renders anything they invalidate.
+    if ( !highPriorityQueue.empty() ) {
+        req = highPriorityQueue.front();
+        highPriorityQueue.pop_front();
+    } else if ( !queue.empty() ) {
         req = queue.front();
         queue.pop_front();
-        if (req) {
-            SetThreadQOS(10);
-        }
+    }
+    if (req) {
+        SetThreadQOS(10);
     }
     return req;
 }
@@ -429,15 +464,19 @@ Job *JobPool::GetNextJob() {
 void JobPool::PushJob(Job *job)
 {
 	std::unique_lock<std::mutex> locker(queueLock);
-    queue.push_back(job);
+    if (job->IsHighPriority()) {
+        highPriorityQueue.push_back(job);
+    } else {
+        queue.push_back(job);
+    }
     ++inFlight;
-    
+
     int count = inFlight;
     count -= idleThreads;
     count -= numThreads;
     count = std::min(count, maxNumThreads - numThreads);
     locker.unlock();
-    
+
     if (count > 0) {
         LockThreads();
         if (numThreads == 0 && count < MIN_JOBPOOLTHREADS && MIN_JOBPOOLTHREADS < maxNumThreads) {
@@ -455,7 +494,11 @@ void JobPool::PushJob(Job *job)
 void JobPool::PushJobs(const std::list<Job *> &jobs) {
     std::unique_lock<std::mutex> locker(queueLock);
     for (auto job : jobs) {
-        queue.push_back(job);
+        if (job->IsHighPriority()) {
+            highPriorityQueue.push_back(job);
+        } else {
+            queue.push_back(job);
+        }
         ++inFlight;
     }
     int count = inFlight;

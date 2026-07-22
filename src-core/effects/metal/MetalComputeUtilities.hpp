@@ -3,6 +3,8 @@
 #include <Metal/Metal.h>
 #include <MetalKit/MetalKit.h>
 
+#include <array>
+#include <atomic>
 
 #include "GPURenderUtils.h"
 #include "MetalEffectDataTypes.h"
@@ -22,8 +24,9 @@ public:
     bool doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB);
     bool doMap(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer);
     bool doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> prev);
-    
+
     id<MTLBuffer> sparkleBuffer;
+    size_t sparkleBufferCount = 0;
     id<MTLBuffer> tmpBufferBlend;
 };
 
@@ -52,6 +55,8 @@ public:
     id<MTLBuffer> getPixelBufferCopy();
     id<MTLBuffer> getIndexBuffer();
     id<MTLBuffer> getBlendBuffer();
+    id<MTLBuffer> getOwnerBuffer();
+    id<MTLBuffer> getCPUMaskBuffer(int sz);
 
 
     void commit();
@@ -64,11 +69,12 @@ public:
 
     id<MTLBuffer> maskBuffer;
 private:
-    bool callRotoZoomFunction(id<MTLComputePipelineState> f, RotoZoomData &data);
+    bool callRotoZoomFunction(id<MTLComputePipelineState> f, id<MTLComputePipelineState> claimF, RotoZoomData &data);
     
     RenderBuffer *renderBuffer;
     int layer;
     id<MTLCommandBuffer> commandBuffer;
+    GpuCommandBufferTag cbTag;  // XL_RENDER_PROFILE; inert (null profile) when off
     id<MTLBuffer> blendBuffer;
     id<MTLBuffer> pixelBuffer;
     id<MTLBuffer> pixelBufferCopy;
@@ -77,15 +83,26 @@ private:
     id<MTLBuffer> indexBuffer;
     int32_t *indexes;
     int indexesSize;
+    // pixel index -> node index that deterministically owns the pixel (the
+    // last node in Nodes order covering it).  PutColorsForNodes gates its
+    // scatter on this so concurrent GPU threads never race for a shared
+    // pixel; rebuilt lazily after any geometry change (see bufferResized).
+    id<MTLBuffer> ownerBuffer;
+    int ownerSize = 0;
+    bool ownerStale = true;
+    // per-dispatch scratch for the rotozoom claim pass (pixel -> winning
+    // source index); refilled to -1 before every rotation, so no staleness
+    // tracking is needed.
+    id<MTLBuffer> rotoOwnerBuffer;
+    int rotoOwnerSize = 0;
+    // cached grow-only staging buffer for CPU-built transition masks (the GPU
+    // transition path uses maskBuffer instead); avoids a per-blend allocation.
+    id<MTLBuffer> cpuMaskBuffer = nil;
+    int cpuMaskBufferSize = 0;
     std::pair<uint32_t, uint32_t> pixelTextureSize;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
 
-    // Cached MPSImageTent for blur — recreating per-frame leaks driver-side
-    // metallib parsing state. Keep one alive per buffer, swap when radius changes.
-    id cachedBlurKernel;
-    int cachedBlurRadius;
-    
     static std::atomic<uint32_t> commandBufferCount;
 };
 
@@ -104,14 +121,20 @@ public:
         pg = p;
     }
 
+    // ~Number of GPU cores, for sizing the render pool (0 if Metal unusable).
+    int gpuCoreCount();
+
     id<MTLComputePipelineState> FindComputeFunction(const char *name);
 
-
     bool enabled = true;
-    std::atomic<bool> pg = false;    
-    
+    std::atomic<bool> pg = false;
+
     id<MTLDevice> device;
     id<MTLLibrary> library;
+    // One queue for all effect compute.  A pool of queues sharded per
+    // PixelBuffer was tried and measured no faster on Metal, and no GPU we can
+    // test exposes more than one compute queue on Vulkan, so it was dropped
+    // rather than carry untestable command-ordering risk.
     id<MTLCommandQueue> commandQueue;
     NSUInteger maxTextureSize = 16384;
     NSUInteger metalBufferSizeThreshold = 2048;
@@ -119,7 +142,12 @@ public:
     id<MTLComputePipelineState> xrotateFunction;
     id<MTLComputePipelineState> yrotateFunction;
     id<MTLComputePipelineState> zrotateFunction;
+    id<MTLComputePipelineState> xrotateClaimFunction;
+    id<MTLComputePipelineState> yrotateClaimFunction;
+    id<MTLComputePipelineState> zrotateClaimFunction;
     id<MTLComputePipelineState> rotateBlankFunction;
+    id<MTLComputePipelineState> tentBlurHFunction;
+    id<MTLComputePipelineState> tentBlurVFunction;
     
     id<MTLComputePipelineState> getColorsFunction;
     id<MTLComputePipelineState> putColorsFunction;

@@ -62,6 +62,7 @@ class SequenceElements;
 class SequenceMedia;
 class MetalRenderBufferComputeData;
 class PixelBufferClass;
+struct EffectFrameState;
 
 
 // TextDrawingContext is now defined in TextDrawingContext.h
@@ -375,6 +376,15 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
 
+    // Snapshot the current pixels into a persistent scratch buffer for callers
+    // (rotate/small-blur) that need to read the pre-transform frame while
+    // writing the live buffer in place - avoids a full RenderBuffer copy-ctor
+    // (heap alloc + copy) every frame. Same GetPixel bounds/out-of-range
+    // semantics, backed by the scratch buffer instead of pixels.
+    void SnapshotTransformScratch();
+    const xlColor &GetTransformScratchPixel(int x, int y) const;
+    void GetTransformScratchPixel(int x, int y, xlColor &color) const;
+
     //optimized/direct versions only usable in cases where x/y are known to be within bounds
     void SetPixelDirect(int x, int y, const xlColor &color) {
         pixels[y * BufferWi + x] = color;
@@ -429,8 +439,61 @@ public:
     void Get2ColorAlphaBlend(const xlColor& c1, const xlColor& c2, float ratio, xlColor &color);
     void GetMultiColorBlend(float n, bool circular, xlColor &color, int reserveColors = 0);
     void SetRangeColor(const HSVValue& hsv1, const HSVValue& hsv2, HSVValue& newhsv);
-    double RandomRange(double num1, double num2) const;
+    double RandomRange(double num1, double num2);
     void Color2HSV(const xlColor& color, HSVValue& hsv) const;
+
+    // --- Deterministic per-buffer RNG (reproducible renders) -----------------
+    // Seeded from a stable hash of (model name, layer, effect-start) and reseeded
+    // lazily on first use each frame, so a given draw reproduces regardless of
+    // thread, render start frame, or what other effects drew. Use rand01()/
+    // randInt() in serial code. Inside parallel_for bodies use the stateless
+    // hashRand01()/hashRandom(index) keyed on the element index - they touch no
+    // shared state, so they are thread-safe and order-independent.
+    inline double rand01() {
+        ensureRandomSeed();
+        return (rngMix64(rngState += 0x9E3779B97F4A7C15ULL) >> 11) * (1.0 / 9007199254740992.0);
+    }
+    inline int randInt(int lo, int hi) { // inclusive [lo, hi]
+        if (hi <= lo) return lo;
+        ensureRandomSeed();
+        uint32_t range = uint32_t(hi - lo) + 1u;
+        uint32_t r = uint32_t(rngMix64(rngState += 0x9E3779B97F4A7C15ULL));
+        return lo + int((uint64_t(r) * range) >> 32);
+    }
+    inline uint32_t hashRandom(uint32_t index) const {
+        return uint32_t(rngMix64(rngHashInput(index)) >> 32);
+    }
+    inline double hashRand01(uint32_t index) const {
+        return (rngMix64(rngHashInput(index)) >> 11) * (1.0 / 9007199254740992.0);
+    }
+    // Frame-INDEPENDENT stateless hash for position-anchored randomness that must
+    // stay stable across frames (e.g. a per-pixel seed that shouldn't jitter).
+    // Same (model, layer, effect, index) -> same value on every frame.
+    inline uint32_t hashRandomStable(uint32_t index) const {
+        return uint32_t(rngMix64(rngBaseSeed ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL)) >> 32);
+    }
+    // Like hashRandomStable but keyed ONLY on (model, index) - independent of the
+    // current effect/layer/frame. Use for per-node values that outlive a single
+    // effect and must be identical no matter which effect/frame first computes
+    // them (e.g. the sparkle phase, which the serial main buffer and the
+    // frame-parallel clones lazily initialize on different frames/effects).
+    inline uint32_t hashModelStable(uint32_t index) const {
+        return uint32_t(rngMix64(rngModelHash ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL)) >> 32);
+    }
+    // Raw 64-bit per-(effect,frame) seed behind hashRandom()/hashRand01(); lets
+    // ISPC/Metal kernels reproduce the hash stream bit-exactly off-CPU:
+    // hashRandom(index) == mix64(frameSeed ^ (uint64(index) * 0xD1B54A32D192ED03)) >> 32.
+    inline uint64_t hashRandomFrameSeed() const {
+        return rngHashInput(0);
+    }
+    // Force the next rand01()/randInt() this frame to reseed from scratch (as if
+    // the frame were drawn for the first time). The serial RNG already reseeds
+    // per frame via ensureRandomSeed(); this lets the XL_VERIFY_STATELESS harness
+    // re-render the SAME frame twice and get the identical stream, instead of the
+    // second pass continuing where the first left off - which made every
+    // randInt()/rand01() effect falsely look like it carried cross-frame state.
+    void resetSerialRandomForVerify() { rngSeededForPeriod = -1; }
+    void SetLayerIndex(int idx) { rngLayerIndex = idx; }
     const PaletteClass& GetPalette() const { return palette; }
 
     HSVValue Get2ColorAdditive(HSVValue& hsv1, HSVValue& hsv2) const;
@@ -457,14 +520,35 @@ private:
     xlColorVector tempbufVector;
     xlColor *pixels = nullptr;
     xlColor *tempbuf = nullptr;
+    // Scratch for SnapshotTransformScratch()/GetTransformScratchPixel(); resized
+    // (never proactively shrunk in capacity) to pixelVector's size on each snapshot.
+    xlColorVector transformScratch;
+    void ensureTempBuf();
 
     std::vector<uint32_t> blendBuffer;
     std::vector<uint32_t> indexVector;
     bool allSimpleIndex = true;
+    // true when two nodes share an ActChan (e.g. a group listing a nested
+    // group plus that group's members) — parallel per-node channel writes
+    // would race for the shared channel, so callers must use serial paths
+    bool dupActChans = false;
 public:
     uint32_t GetPixelCount() { return pixelVector.size(); }
     xlColor *GetPixels() { return pixels; }
-    xlColor *GetTempBuf() { return tempbuf; }
+    // Hand pixel storage back to the CPU-owned vector. A GPU backend may point
+    // `pixels` into its own mapping; InitBuffer then deliberately keeps that
+    // pointer across resizes because the backend re-points it. When the backend
+    // goes away instead (device lost, GPU rendering switched off) nothing would,
+    // so ownership has to be returned explicitly.
+    void ReleasePixelsToCpu() { pixels = pixelVector.data(); }
+    xlColor *GetTempBuf() { ensureTempBuf(); return tempbuf; }
+    // Whole temp-buffer snapshot/restore for frame-parallel Snapshottable effects
+    // (e.g. Snowflakes) whose cross-frame state lives in the temp pixel layer.
+    const xlColorVector& GetTempBufVector() { ensureTempBuf(); return tempbufVector; }
+    void SetTempBufVector(const xlColorVector& v) {
+        tempbufVector = v;
+        tempbuf = tempbufVector.empty() ? nullptr : &tempbufVector[0];
+    }
     void CopyTempBufToPixels();
     void CopyPixelsToTempBuf();
     xlSize GetMaxBuffer(const SettingsMap& SettingsMap) const;
@@ -493,6 +577,21 @@ public:
     /* Places to store and data that is needed from one frame to another */
     std::map<int, EffectRenderCache*> infoCache;
 
+    // Tier-2 frame-parallel plumbing (Snapshottable effects), set transiently by
+    // the render engine around a single effect render; effects never read
+    // captureSnapshot.
+    //  * captureSnapshot: engine-internal.  Non-null marks the serial capture
+    //    pre-pass - the engine calls the effect's AdvanceState() and stores the
+    //    returned draw-snapshot here (no draw).  The effect's Render() is not
+    //    invoked on this pass.
+    //  * pendingSnapshot: the draw-protocol input.  Non-null means Render() must
+    //    rasterise this previously captured snapshot and NOT advance (check it
+    //    first, at the top of Render).  Set in both serial and parallel drawing.
+    // Both null for the fused advance+draw of a Pure/Stateful effect.  Owned by
+    // the engine.
+    std::unique_ptr<EffectFrameState>* captureSnapshot = nullptr;
+    const EffectFrameState* pendingSnapshot = nullptr;
+
     //place for GPU Renderers to attach extra data/objects it needs
     void *gpuRenderData = nullptr;
 
@@ -506,10 +605,36 @@ private:
     std::vector<NodeBaseClassPtr> Nodes;
     TextDrawingContext *_textDrawingContext = nullptr;
 
+    // Deterministic per-buffer RNG state (see rand01()/hashRandom()).
+    uint64_t rngModelHash = 0;   // stable hash of cur_model, computed once in ctor
+    uint64_t rngBaseSeed = 0;    // hash(modelHash, layer, curEffStartPer); per effect
+    uint64_t rngState = 0;       // stateful stream, serial path only
+    int rngLayerIndex = 0;
+    int rngSeededForPeriod = -1; // lazy per-frame reseed guard (serial path)
+
+    void computeRandomBaseSeed(); // recompute rngBaseSeed when the effect changes
+    static inline uint64_t rngMix64(uint64_t z) {
+        z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+        z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
+        return z ^ (z >> 31);
+    }
+    inline uint64_t rngHashInput(uint32_t index) const {
+        return rngBaseSeed ^ (uint64_t(uint32_t(curPeriod)) * 0x9E3779B97F4A7C15ULL)
+                           ^ (uint64_t(index) * 0xD1B54A32D192ED03ULL);
+    }
+    inline void ensureRandomSeed() {
+        if (rngSeededForPeriod != curPeriod) {
+            rngState = rngBaseSeed ^ (uint64_t(uint32_t(curPeriod)) * 0x9E3779B97F4A7C15ULL);
+            rngSeededForPeriod = curPeriod;
+        }
+    }
+
     void SetPixelDMXModel(int x, int y, const xlColor& color);
     void Forget();
     
     friend class MetalPixelBufferComputeData;
     friend class MetalRenderBufferComputeData;
+    friend class VulkanPixelBufferComputeData;
+    friend class VulkanRenderBufferComputeData;
     friend class ISPCComputeUtilities;
 };

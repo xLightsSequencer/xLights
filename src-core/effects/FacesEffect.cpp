@@ -104,9 +104,19 @@ void FacesEffect::OnMetadataLoaded()
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
+    SequenceElements* se = nullptr;
+    if (eff->GetParentEffectLayer() != nullptr && eff->GetParentEffectLayer()->GetParentElement() != nullptr) {
+        se = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+    }
+
     std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault);
+    if (definition.empty()) {
+        definition = "Default"; // the renderer treats them identically
+    }
     if (definition == "Default" && !model->GetFaceInfo().empty() && model->GetFaceInfo().begin()->first != "") {
         definition = model->GetFaceInfo().begin()->first;
+    } else if (definition == "Default" && se != nullptr && !se->GetSequenceFaces().empty()) {
+        definition = se->GetSequenceFaces().GetFaces().begin()->first;
     }
     bool found = true;
     auto it = model->GetFaceInfo().find(definition);
@@ -123,10 +133,11 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
             found = true;
         }
     }
+    const std::map<std::string, std::string>* seqDef = (!found && se != nullptr) ? se->GetSequenceFaces().GetFace(definition) : nullptr;
 
-    // check the face exists on the model
+    // check the face exists on the model or at the sequence level
     if (definition != "Rendered") {
-        if (model->GetFaceInfo().find(definition) == model->GetFaceInfo().end()) {
+        if (model->GetFaceInfo().find(definition) == model->GetFaceInfo().end() && seqDef == nullptr) {
             res.push_back(fmt::format("    ERR: Face effect face '{}' does not exist on model '{}'. Start {}", definition, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
@@ -134,6 +145,8 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     std::string modelType = definition;
     if (found && model->GetFaceInfo().at(definition).contains("Type") && !model->GetFaceInfo().at(definition).at("Type").empty()) {
         modelType = model->GetFaceInfo().at(definition).at("Type");
+    } else if (seqDef != nullptr) {
+        modelType = "Matrix";
     }
 
     if (modelType != "Matrix" && modelType != "Rendered") {
@@ -162,11 +175,16 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         }
     }
 
-    if (modelType == "Matrix" && model->GetFaceInfo().contains(definition)) {
-        auto images = model->GetFaceInfo().at(definition);
+    if (modelType == "Matrix" && (model->GetFaceInfo().contains(definition) || seqDef != nullptr)) {
+        auto images = model->GetFaceInfo().contains(definition) ? model->GetFaceInfo().at(definition) : *seqDef;
         for (const auto& it2 : images) {
             if (it2.first.find("Mouth") == 0) {
                 std::string picture = it2.second;
+
+                if (picture != "" && se != nullptr && se->GetSequenceMedia().GetMediaEmbedState(picture).first) {
+                    // embedded in the .xsq - nothing on disk to validate
+                    continue;
+                }
 
                 if (picture != "") {
                     // Face image paths are stored as user-picked at config
@@ -210,7 +228,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     // - Face chosen or specific phoneme
     if (phoneme == "" && timing == "") {
         res.push_back(fmt::format("    ERR: Face effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    } else if (timing != "" && GetTiming(timing) == nullptr) {
+    } else if (timing != "" && GetTiming(timing, eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()) == nullptr) {
         res.push_back(fmt::format("    ERR: Face effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
@@ -611,7 +629,7 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
-        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
+        cache = new FacesRenderCache(buffer.randInt(0, maxEyeDelay));
         buffer.infoCache[id] = cache;
     }
 
@@ -631,7 +649,7 @@ void FacesEffect::drawoutline(RenderBuffer& buffer, int Phoneme, bool outline, c
             if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                 //calculate the blink time taking into account user selection
                 int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
-                cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                 cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; //100ms blink
                 eye = "Closed";
             } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -852,7 +870,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     FacesRenderCache* cache = (FacesRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
-        cache = new FacesRenderCache(intRand(0, maxEyeDelay));
+        cache = new FacesRenderCache(buffer.randInt(0, maxEyeDelay));
 
         buffer.infoCache[id] = cache;
     }
@@ -919,7 +937,16 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
         //not found
         found = false;
     }
-    if (!found) {
+    // sequence-level (matrix) face definitions are the fallback when the
+    // model doesn't define the face itself - model definitions always win
+    const std::map<std::string, std::string>* seqFaceDef = nullptr;
+    if (!found && elements != nullptr) {
+        if ((definition == "Default" || definition == "") && !elements->GetSequenceFaces().empty()) {
+            definition = elements->GetSequenceFaces().GetFaces().begin()->first;
+        }
+        seqFaceDef = elements->GetSequenceFaces().GetFace(definition);
+    }
+    if (!found && seqFaceDef == nullptr) {
         if ("Coro" == definition && model_info->GetFaceInfo().find("SingleNode") != model_info->GetFaceInfo().end()) {
             definition = "SingleNode";
             found = true;
@@ -942,8 +969,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     std::map<std::string, std::string> emptyMap;
-    const std::map<std::string, std::string>& faceInfoDef = found ? model_info->GetFaceInfo().find(definition)->second : emptyMap;
-    std::string modelType = found ? findKey(faceInfoDef, "Type") : definition;
+    const std::map<std::string, std::string>& faceInfoDef = found ? model_info->GetFaceInfo().find(definition)->second : (seqFaceDef != nullptr ? *seqFaceDef : emptyMap);
+    std::string modelType = (found || seqFaceDef != nullptr) ? findKey(faceInfoDef, "Type") : definition;
     if (modelType == "") {
         modelType = definition;
     }
@@ -982,7 +1009,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                     //calculate the blink time taking into account user selection
                     int maxEyeDelay = GetMaxEyeDelay( eyeBlinkFreq );
-                    cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                    cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + 101; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {
@@ -1036,7 +1063,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                     if ((buffer.curPeriod * buffer.frameTimeInMs) >= cache->nextBlinkTime) {
                         if ((startms + 150) >= (buffer.curPeriod * buffer.frameTimeInMs)) {
                             // don't want to blink RIGHT at the start of the rest, delay a little bit
-                            int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + intRand(150, 549);
+                            int tmp = (buffer.curPeriod * buffer.frameTimeInMs) + buffer.randInt(150, 549);
 
                             // also don't want it right at the end
                             if ((tmp + 130) > endms) {
@@ -1048,7 +1075,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                             //calculate the blink time taking into account user selection
                             int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
                             int EyeBlinkDuration = GetEyeBlinkDuration(eyeBlinkDuration);
-                            cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                            cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                             cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + EyeBlinkDuration + 1; // 100ms blink
                             eyes = "Closed";
                         }
@@ -1066,7 +1093,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                     //calculate the blink time, taking into account user selection
                     int maxEyeDelay = GetMaxEyeDelay(eyeBlinkFreq);
                     int EyeBlinkDuration = GetEyeBlinkDuration(eyeBlinkDuration);
-                    cache->nextBlinkTime += intRand(maxEyeDelay-1000, maxEyeDelay);
+                    cache->nextBlinkTime += buffer.randInt(maxEyeDelay-1000, maxEyeDelay);
                     cache->blinkEndTime = buffer.curPeriod * buffer.frameTimeInMs + EyeBlinkDuration + 1; // 100ms blink
                     eyes = "Closed";
                 } else if ((buffer.curPeriod * buffer.frameTimeInMs) < cache->blinkEndTime) {

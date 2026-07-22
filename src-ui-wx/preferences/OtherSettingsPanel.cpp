@@ -25,13 +25,8 @@
 
 #include <wx/preferences.h>
 #include "xLightsMain.h"
-
-
-#ifdef __WXOSX__
-extern "C" {
-extern bool isMetalComputeSupported();
-}
-#endif
+#include "render/GPURenderUtils.h"
+#include "settings/XLightsConfigAdapter.h"
 
 //(*IdInit(OtherSettingsPanel)
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX1 = wxNewId();
@@ -61,6 +56,7 @@ const wxWindowID OtherSettingsPanel::ID_CHECKBOX10 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX11 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX_CustomColorPicker = wxNewId();
 //*)
+const wxWindowID OtherSettingsPanel::ID_CHOICE_GfxBackend = wxNewId();
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
 	//(*EventTable(OtherSettingsPanel)
@@ -234,23 +230,44 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
+#ifdef HAVE_VULKAN
+    // Hand-added outside the wxSmith guards: preview graphics backend choice
+    // (read directly by xlVulkanCanvas::VulkanSelected at startup).
+    {
+        wxFlexGridSizer* gfxSizer = new wxFlexGridSizer(0, 2, 0, 0);
+        wxStaticText* gfxLabel = new wxStaticText(this, wxID_ANY, _("Preview graphics (restart required):"));
+        gfxSizer->Add(gfxLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        GraphicsBackendChoice = new wxChoice(this, ID_CHOICE_GfxBackend);
+        // "Auto" uses Vulkan only when OpenGL would fall back to software
+        // rendering anyway (e.g. llvmpipe in a VM); otherwise it keeps hardware
+        // OpenGL.  See xlVulkanCanvas::VulkanSelected.
+        GraphicsBackendChoice->Append(_("Auto"));
+        GraphicsBackendChoice->Append(_("OpenGL"));
+        GraphicsBackendChoice->Append(_("Vulkan"));
+        GraphicsBackendChoice->SetSelection(0);
+        gfxSizer->Add(GraphicsBackendChoice, 1, wxALL | wxEXPAND, 5);
+        GridBagSizer1->Add(gfxSizer, wxGBPosition(14, 0), wxDefaultSpan, wxALL | wxEXPAND, 0);
+        Connect(ID_CHOICE_GfxBackend, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    }
+#endif
+
 #ifdef __LINUX__
     HardwareVideoDecodingCheckBox->Hide();
     ShaderCheckbox->Hide();
     HardwareVideoRenderChoice->Hide();
-    GPURenderCheckbox->Hide();
 #endif
 #ifdef __WXOSX__
-    if (!isMetalComputeSupported()) {
-        GPURenderCheckbox->Hide();
-    }
     ShaderCheckbox->Hide();
     HardwareVideoRenderChoice->Hide();
 #endif
 #ifdef __WXMSW__
-    GPURenderCheckbox->Hide();
     MSWDisableComposited();
 #endif
+    // Hardware GPU compute backend (Metal / Vulkan) — hide the toggle when no
+    // usable device is present, independent of the user-toggleable enable flag.
+    if (GPURenderUtils::GetGPUEffectConcurrency() <= 0) {
+        GPURenderCheckbox->Hide();
+    }
 
     TransferDataToWindow();
 }
@@ -284,6 +301,13 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
     frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
     xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
+#ifdef HAVE_VULKAN
+    if (GraphicsBackendChoice != nullptr) {
+        auto* config = GetXLightsConfig();
+        config->Write("xLightsGraphicsBackend", GraphicsBackendChoice->GetStringSelection());
+        config->Flush();
+    }
+#endif
     return true;
 }
 
@@ -311,6 +335,14 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_EnablePositionZones->SetValue(frame->GetEnablePositionZones());
     CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
     CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
+#ifdef HAVE_VULKAN
+    if (GraphicsBackendChoice != nullptr) {
+        wxString backend = GetXLightsConfig()->Read("xLightsGraphicsBackend", "Auto");
+        if (!GraphicsBackendChoice->SetStringSelection(backend)) {
+            GraphicsBackendChoice->SetSelection(0);
+        }
+    }
+#endif
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__

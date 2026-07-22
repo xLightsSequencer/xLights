@@ -350,6 +350,7 @@ void xLightsFrame::LoadEffectsFile()
             _effectPresetManager.Load(effectsNode);
             spdlog::info("Migrated effect presets from xlights_rgbeffects.xml to JSON");
             UnsavedRgbEffectsChanges = true; // trigger save to create the new JSON file
+            UnsavedPresetChanges = true;
         }
     }
     if (_effectPresetManager.GetVersion().empty()) {
@@ -671,11 +672,18 @@ void xLightsFrame::LoadEffectsFile()
 
     // Merge base show folder models into the XML nodes before building the objects
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && !_outputManager.GetBaseShowDir().empty()) {
-        bool changed = false;
-        changed |= AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode);
-        changed |= AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode);
-        if (changed) {
-            UnsavedRgbEffectsChanges = true;
+        if (NeedsBaseRgbEffectsUpdate()) {
+            bool changed = false;
+            bool loadedOk = AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode, &changed);
+            loadedOk = AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode, &changed) && loadedOk;
+            if (changed) {
+                UnsavedRgbEffectsChanges = true;
+            }
+            // Only record the checkpoint if the base file actually loaded; a failed
+            // load leaves it unset so the merge is retried on the next open.
+            if (loadedOk) {
+                MarkBaseRgbEffectsSynced();
+            }
         }
     }
     LoadModels(modelsNode, modelGroupsNode, viewObjectsNode);
@@ -870,26 +878,8 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
         return false;
     }
 
-    // Save effect presets to separate JSON file
-    {
-        wxFileName presetsFile;
-        presetsFile.AssignDir(CurrentDir);
-        if (backup) {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
-        } else {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
-        }
-
-        if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
-            if (backup) {
-                spdlog::warn("Unable to save backup of effect presets file");
-            } else {
-                DisplayError("Unable to save effect presets file", this);
-            }
-        }
-    }
-
     if (!backup) {
+        SavePresetsFile();
         UnsavedRgbEffectsChanges = false;
     }
 
@@ -897,6 +887,31 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     UpdateControllerSave();
 
     return true;
+}
+
+void xLightsFrame::SavePresetsFile(bool backup)
+{
+    wxFileName presetsFile;
+    presetsFile.AssignDir(CurrentDir);
+    if (backup) {
+        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
+    } else {
+        presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+    }
+
+    if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
+        if (backup) {
+            spdlog::warn("Unable to save backup of effect presets file");
+        } else {
+            DisplayError("Unable to save effect presets file", this);
+        }
+        return;
+    }
+
+    if (!backup) {
+        UnsavedPresetChanges = false;
+        UpdateLayoutSave();
+    }
 }
 
 void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)
@@ -1225,6 +1240,7 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
             }
         }
     }
+    PreviewModelsGeneration = AllModels.GetModelGeneration();
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
@@ -1275,6 +1291,7 @@ void xLightsFrame::UpdateModelsList()
             }
         }
     }
+    PreviewModelsGeneration = AllModels.GetModelGeneration();
 
     layoutPanel->UpdateModelList(true);
     displayElementsPanel->UpdateModelsForSelectedView();
@@ -1401,6 +1418,13 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
 
 void xLightsFrame::OpenRenderAndSaveSequencesF(const wxArrayString& origFileNames, int flags)
 {
+    if (!_commandLineFseqDir.empty()) {
+        // -r --outputdir override. The show (and its configured fseqDir) has
+        // loaded by the time this deferred render runs, so apply it here rather
+        // than in OnInit where the show load would clobber it. Set the member
+        // directly (not SetFseqDirectory) so it isn't persisted to the show.
+        fseqDirectory = _commandLineFseqDir;
+    }
     OpenRenderAndSaveSequences(origFileNames, flags & RENDER_EXIT_ON_DONE, flags & RENDER_ALREADY_RETRIED);
 }
 
@@ -1491,7 +1515,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     spdlog::info("=== Batch Render [{} remaining] HWAccel={} File: {}",
                  fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", seq.ToStdString());
     LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
-    OpenSequence(seq, nullptr);
+    OpenSequence(seq, nullptr, "", true);
     EnableSequenceControls(false);
 
     // if the fseq directory is not the show directory then ensure the fseq folder is set right
@@ -1667,12 +1691,20 @@ void xLightsFrame::SaveSequence()
             spdlog::info("Render on Save: Number of channels was wrong ... reallocating sequence data memory before rendering and saving.");
 
             //need to abort any render going on in order to change the SeqData size
-            AbortRender();
+            // AbortRender is best-effort and returns false if it times out (e.g. a
+            // render job wedged in a video decode). Reinitialising seqData while a job
+            // is still live frees the channel blocks out from under it -> use-after-free
+            // in GetColors/SetColors (crash sig 25e8b06bcc / a14ee11b9c). Only resize
+            // once the renders are confirmed stopped, matching the guarded pattern in
+            // xLightsMain.cpp (RenderTree rebuild path).
+            if (AbortRender()) {
+                wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+                int ms = wxAtoi(mss);
 
-            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-            int ms = wxAtoi(mss);
-
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            } else {
+                spdlog::error("Render on Save: could not abort the in-flight render; skipping the seqData resize to avoid a use-after-free.");
+            }
         }
 
         ProgressBar->Show();
@@ -1735,9 +1767,40 @@ void xLightsFrame::SetSequenceTiming(int timingMS)
         return;
 
     if (_seqData.FrameTime() != (unsigned int)timingMS) {
-        AbortRender();
-        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+        // Only resize seqData once renders are confirmed stopped; a bare AbortRender()
+        // can time out and reinitialising under a live job is a use-after-free
+        // (crash sig 25e8b06bcc / a14ee11b9c). See the render-on-save path above.
+        if (AbortRender()) {
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / timingMS, timingMS);
+        } else {
+            spdlog::error("SetSequenceTiming: could not abort the in-flight render; deferring the seqData reinit to avoid a use-after-free.");
+        }
     }
+}
+
+wxString xLightsFrame::GetLastSequenceDialogDir() const
+{
+    wxString dir;
+    GetXLightsConfig()->Read("xLightsLastSequenceDir", &dir, "");
+    if (dir.IsEmpty() || !wxDirExists(dir)) {
+        return CurrentDir;
+    }
+    // The remembered dir may be left over from a previous show folder. If it is
+    // not within the current show directory, fall back to the show directory.
+    wxFileName fnDir(dir, "");
+    fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    wxFileName fnShow(CurrentDir, "");
+    fnShow.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    if (!fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR).StartsWith(fnShow.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR))) {
+        return CurrentDir;
+    }
+    return dir;
+}
+
+void xLightsFrame::SetLastSequenceDialogDir(const wxString& dir)
+{
+    GetXLightsConfig()->Write("xLightsLastSequenceDir", dir);
+    GetXLightsConfig()->Flush();
 }
 
 void xLightsFrame::SaveAsSequence()
@@ -1751,10 +1814,20 @@ void xLightsFrame::SaveAsSequence()
         DisplayError("You must open a sequence first!", this);
         return;
     }
+    wxString initialDir = GetLastSequenceDialogDir();
+    {
+        wxFileName fnInit(initialDir, "");
+        fnInit.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+        wxFileName fnShow(CurrentDir, "");
+        fnShow.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+        if (!fnInit.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR).StartsWith(fnShow.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR))) {
+            initialDir = CurrentDir;
+        }
+    }
     wxString newFilename;
     wxFileDialog fd(this,
                     "Choose filename to Save Sequence:",
-                    CurrentDir,
+                    initialDir,
                     CurrentSeqXmlFile->GetName(),
                     strSequenceSaveAsFileTypes,
                     wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -1788,6 +1861,7 @@ void xLightsFrame::SaveAsSequence()
         }
     } while (!ok);
 
+    SetLastSequenceDialogDir(wxFileName(newFilename).GetPath());
     SaveAsSequence(ToStdString(newFilename));
 }
 
@@ -1810,9 +1884,15 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
 
 void xLightsFrame::RenderAll()
 {
-    
-
-    if (!_seqData.IsValidData()) {
+    if (mRendering) {
+        // the wxYield() below pumps the event queue, so a queued second
+        // toolbar click can re-enter before the controls are disabled
+        return;
+    }
+    // CurrentSeqXmlFile can be null while _seqData is still valid during
+    // CloseSequence teardown; a toolbar click landing in that window
+    // passed the guard and faulted on the model-blending check below
+    if (!_seqData.IsValidData() || CurrentSeqXmlFile == nullptr) {
         spdlog::warn("Aborting render all because sequence data has not been initialised.");
         return;
     }
@@ -1886,15 +1966,24 @@ static void enableAllMenubarControls(wxMenuBar* parent, bool enable)
     parent->Refresh();
 }
 
+// Applies the current sequence-editing gate to the Effects toolbar. Split out of
+// EnableSequenceControls because RebuildEffectsToolbar (Preferences > Toolbars)
+// creates fresh buttons that would otherwise come up enabled.
+void xLightsFrame::EnableEffectsToolbar()
+{
+    enableAllToolbarControls(EffectsToolBar, _sequenceControlsEnabled && _seqData.NumFrames() > 0 && !IsACActive());
+}
+
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
+    _sequenceControlsEnabled = enable;
     enableAllToolbarControls(MainToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
     SetAudioControls();
     bool enableSeq = enable && _seqData.NumFrames() > 0;
     bool enableSeqNotAC = enable && _seqData.NumFrames() > 0 && !IsACActive();
     enableAllToolbarControls(WindowMgmtToolbar, enableSeq);
-    enableAllToolbarControls(EffectsToolBar, enableSeqNotAC);
+    EnableEffectsToolbar();
     enableAllToolbarControls(EditToolBar, enableSeq);
     enableAllToolbarControls(ACToolbar, enableSeq);
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);

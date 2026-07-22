@@ -8,17 +8,18 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#ifdef USE_GLES
-// OpenGL ES 3.0 via ANGLE (Windows/Linux) or ANGLE-on-Metal (Apple).  ES3
-// exposes the gl* functions as direct prototypes from libGLESv2, so the
-// function-pointer loading the desktop-GL path needs is unnecessary here.
-#define GL_GLES_PROTOTYPES 1
-#include <GLES3/gl3.h>
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+#ifndef TARGET_OS_IPHONE
+#define TARGET_OS_IPHONE 0
+#endif
 
-static bool canUseShaders() { return true; }
-static bool canUseFramebufferObjects() { return true; }
+// iOS has no OpenGL shader path (the native Metal ShaderEffect handles all
+// shader rendering) — this whole translation unit compiles out there.
+#if !TARGET_OS_IPHONE
 
-#elif !defined(__APPLE__)
+#if !defined(__APPLE__)
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -186,8 +187,10 @@ namespace
             std::vector<char> errorMessage( infoLogLength + 1 );
             char*             messagePtr = &errorMessage[0];
             glGetProgramInfoLog( programID, infoLogLength, NULL, messagePtr );
-            auto logger = spdlog::get("opengl");
-            logger->error("shader-link failure {}: '{}'", filename, messagePtr);
+            if (!s_glLogger) {
+                OpenGLShaders::SetupDebugLogging();
+            }
+            s_glLogger->error("shader-link failure {}: '{}'", filename, messagePtr);
          }
       }
       return result == GL_TRUE;
@@ -212,8 +215,10 @@ namespace
              m += messagePtr;
              AddTraceMessage(m);
 
-            auto logger = spdlog::get("opengl");
-            logger->error("shader-compile failure {}: '{}'", filename, messagePtr);
+            if (!s_glLogger) {
+                OpenGLShaders::SetupDebugLogging();
+            }
+            s_glLogger->error("shader-compile failure {}: '{}'", filename, messagePtr);
          }
       }
       return result == GL_TRUE;
@@ -283,8 +288,10 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
         LOG_GL_ERRORV(glDeleteShader(vertexShader));
         LOG_GL_ERRORV(glDeleteShader(fragmentShader));
 
-        auto logger = spdlog::get("opengl");
-        logger->error(PrepareShaderCodeForLogging(fragmentSource));
+        if (!s_glLogger) {
+            SetupDebugLogging();
+        }
+        s_glLogger->error(PrepareShaderCodeForLogging(fragmentSource));
         return 0;
     }
     AddTraceMessage("Compile successful");
@@ -306,7 +313,9 @@ unsigned OpenGLShaders::compile( const std::string& vertexSource, const std::str
     return linkSuccess ? program : 0;
 }
 
-#if defined(__APPLE__) && !defined(USE_GLES)
+#ifdef __APPLE__
 // OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
 #pragma clang diagnostic pop
 #endif
+
+#endif // !TARGET_OS_IPHONE

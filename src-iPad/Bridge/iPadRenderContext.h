@@ -14,6 +14,7 @@
 // sequences on iPad.  Includes RenderEngine for effect rendering.
 
 #include "render/RenderContext.h"
+#include "render/xLightsShowContext.h"
 #include "render/SequenceData.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
@@ -42,7 +43,7 @@
 #include <string>
 #include <vector>
 
-class iPadRenderContext : public RenderContext {
+class iPadRenderContext : public xLightsShowContext {
 public:
     iPadRenderContext();
     ~iPadRenderContext() override;
@@ -51,11 +52,13 @@ public:
     bool LoadShowFolder(const std::string& showDir);
     bool LoadShowFolder(const std::string& showDir,
                         const std::list<std::string>& mediaFolders);
-    const std::string& GetShowDirectory() const override { return _showDir; }
 
     // Sequence management
     bool OpenSequence(const std::string& path);
-    void CloseSequence();
+
+    // Shared-open hook: convert iOS-undecodable animated-GIF Video effects to
+    // Pictures effects (base default is a no-op).
+    void OnSequenceElementsLoaded(SequenceFile& file) override;
 
     // Write the rendered sequence to a v2/zstd/sparse .fseq file matching
     // desktop's `xLightsFrame::WriteFalconPiFile` format. Sparse ranges come
@@ -75,11 +78,9 @@ public:
     // untouched so a normal render can proceed.
     bool TryLoadFseq(const std::string& fseqPath, const std::string& xsqPath);
 
-    // RenderContext implementation
-    const std::string& GetFseqDirectory() const override { return _showDir; }
-    const std::list<std::string>& GetMediaFolders() const override { return _mediaFolders; }
-    bool IsInShowFolder(const std::string& file) const override;
-    bool IsInShowOrMediaFolder(const std::string& file) const override;
+    // RenderContext implementation. IsInShow*Folder, MakeRelativePath,
+    // IsSequenceLoaded, GetCurrentMediaManager, AbortRender and CloseSequence
+    // are provided by the base (xLightsShowContext).
     // Copy `file` into `<showDir>/<subdirectory>`, returning the final
     // absolute path. Appends `_N` on name collision unless `reuse` and
     // the existing file's contents already match. Empty string on
@@ -95,12 +96,7 @@ public:
     std::string CopyToMediaFolder(const std::string& file,
                                    const std::string& mediaFolderPath,
                                    const std::string& subdirectory);
-    std::string MakeRelativePath(const std::string& file) const override;
-
-    SequenceElements& GetSequenceElements() override { return _sequenceElements; }
-    SequenceViewManager& GetSequenceViewManager() { return _viewsManager; }
-    bool IsSequenceLoaded() const override { return _sequenceFile && _sequenceFile->IsOpen(); }
-    AudioManager* GetCurrentMediaManager() const override;
+    SequenceViewManager& GetSequenceViewManager() { return _sequenceViewManager; }
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
 
     // B43: alt audio track switching for the *waveform display*. Does
@@ -115,9 +111,6 @@ public:
     std::string GetAltTrackDisplayName(int idx) const;
 
     Model* GetModel(const std::string& name) const override;
-    unsigned int GetModelGeneration() const override { return _modelManager ? _modelManager->GetModelGeneration() : 0; }
-    EffectManager& GetEffectManager() override { return _effectManager; }
-    OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
 
     // PRE-1 — persistent effect preset library. Mirrors
     // xLightsFrame::_effectPresetManager. Loaded at show-folder load
@@ -140,7 +133,6 @@ public:
     // no presets file. Returns true when at least one base preset loaded.
     bool LoadBasePresets();
 
-    bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
     // Render a single model over the whole sequence and BLOCK until the
     // render workers finish (or maxTimeMs elapses). Used by the
@@ -168,14 +160,13 @@ public:
     // so the CachedFileDownloader header stays out of this header.
     void PurgeDownloadCache();
     void SetModelColors(int frameMS);
-    SequenceData& GetSequenceData() { return _sequenceData; }
+    SequenceData& GetSequenceData() { return _seqData; }
 
     // Set while a house-preview video export renders offscreen on a background
     // thread. The live on-screen preview skips drawing so it doesn't race the
     // export over per-model node colours (both call SetModelColors).
     void SetExportInProgress(bool v) { _exportInProgress.store(v); }
     bool IsExportInProgress() const { return _exportInProgress.load(); }
-    bool IsRenderDone();
 
     // Live house-preview camera snapshot. The on-screen house-preview bridge
     // publishes its 2D/3D cameras + active mode + canvas size here on every
@@ -261,15 +252,18 @@ public:
 
     // Accessors
     OutputManager& GetOutputManager() { return _outputManager; }
-    ModelManager& GetModelManager() { return *_modelManager; }
-    ViewObjectManager& GetAllObjects() { return *_viewObjectManager; }
+    ModelManager& GetModelManager() { return AllModels; }
+    ViewObjectManager& GetAllObjects() { return AllObjects; }
     // J-7 — null-safe checks. `GetModelManager()` / `GetAllObjects()`
     // dereference the unique_ptr without guarding, so callers that
     // can run before `LoadShowFolder` must check via these first.
     // `GetModelsForActivePreview()` does this internally; methods
     // that call `GetModels()` direct do not.
-    bool HasModelManager() const { return _modelManager != nullptr; }
-    bool HasViewObjectManager() const { return _viewObjectManager != nullptr; }
+    // The model / view-object managers are now the base's eager value members
+    // (always constructed). "Has…" therefore means "a show has been loaded",
+    // which the show directory being set indicates.
+    bool HasModelManager() const { return !showDirectory.empty(); }
+    bool HasViewObjectManager() const { return !showDirectory.empty(); }
     SequenceFile* GetSequenceFile() { return _sequenceFile.get(); }
     // B49: expose the render engine so the export-model bridge can
     // call `RenderEngine::ExportModelData` without creating a
@@ -397,10 +391,11 @@ public:
     // node in xlights_rgbeffects.xml; each camera is flagged 2D or 3D
     // and named. UI filters by the preview's current mode before
     // showing them.
-    ViewpointMgr& GetViewpointMgr() { return _viewpointMgr; }
-    const ViewpointMgr& GetViewpointMgr() const { return _viewpointMgr; }
-    PreviewCamera* GetNamedCamera3D(const std::string& name) override {
-        return _viewpointMgr.GetNamedCamera3D(name);
+    ViewpointMgr& GetViewpointMgr() { return viewpoint_mgr; }
+    const ViewpointMgr& GetViewpointMgr() const { return viewpoint_mgr; }
+    void GetRenderPreviewSize(int& w, int& h) const override {
+        w = _previewWidth;
+        h = _previewHeight;
     }
 
     // Check-Sequence per-check disable flags (desktop parity with the
@@ -683,27 +678,13 @@ public:
     PaletteColor GetEffectBracketColor(EffectBracketState state) const;
 
 private:
-    std::string _showDir;
-    std::list<std::string> _mediaFolders;
+    // Show state (managers, sequence, render engine, directories, seq data,
+    // modelsChangeCount) is inherited from xLightsShowContext. Only iPad-specific
+    // members live here.
 
-    OutputManager _outputManager;
-    OutputModelManager _outputModelManager;
-    std::unique_ptr<ModelManager> _modelManager;
-    std::unique_ptr<ViewObjectManager> _viewObjectManager;
-    EffectManager _effectManager;
-    EffectPresetManager _effectPresetManager;
+    // Read-only "From Base" preset library (the shared _effectPresetManager is
+    // in the base).
     EffectPresetManager _basePresetManager;
-    SequenceElements _sequenceElements;
-    SequenceViewManager _viewsManager;
-    std::unique_ptr<SequenceFile> _sequenceFile;
-    std::optional<pugi::xml_document> _sequenceDoc;
-
-    // Rendering
-    SequenceData _sequenceData;
-    std::unique_ptr<JobPool> _jobPool;
-    RenderCache _renderCache;
-    std::unique_ptr<RenderEngine> _renderEngine;
-    unsigned int _modelsChangeCount = 0;
 
     // Virtual preview canvas size — desktop defaults.
     int _previewWidth = 1280;
@@ -735,7 +716,6 @@ private:
     // B85 phoneme dictionary, lazy-loaded.
     std::unique_ptr<PhonemeDictionary> _phonemeDict;
 
-    ViewpointMgr _viewpointMgr;
 
     // Models whose in-memory <stateInfo> map has diverged from the
     // on-disk xlights_rgbeffects.xml. SaveModelStates() reads + drains
@@ -842,6 +822,4 @@ private:
     // Normally a no-op — OpenSequence pre-allocates once and
     // subsequent RenderAll passes reuse. Triggers a fresh init
     // after duration / frame-rate / channel-count mutations.
-public:
-    void EnsureSequenceDataSized();
 };

@@ -13,9 +13,10 @@
 #include <wx/artprov.h>
 #include <wx/config.h>
 
-#if defined(USE_GLES) && !defined(__WXMAC__)
-    #include <GLES3/gl3.h>
-#elif defined(__WXMAC__)
+#include <algorithm>
+#include <unordered_set>
+
+#if defined(__WXMAC__)
     #include "OpenGL/gl.h"
 #else
     #include <GL/gl.h>
@@ -368,9 +369,15 @@ ModelGroup* ModelPreview::GetSelectedModelGroup()
 const std::vector<Model*> &ModelPreview::GetModels() {
     tmpModelList.clear();
     if (xlights) {
+        // PreviewModels and the layout-group model lists are cached and only
+        // rebuilt by UpdateModelsList, which runs as deferred ASAP work — a
+        // model delete bumps the AllModels generation before that rebuild, so
+        // a paint or mouse event landing in that window would walk freed
+        // Model pointers. When the generation has moved, return a copy
+        // filtered down to models that still exist.
+        const bool stale = xlights->AllModels.GetModelGeneration() != xlights->PreviewModelsGeneration;
         if (currentLayoutGroup == "Default") {
-            if (additionalModel == nullptr) {
-                //wxASSERT(ValidateModels(xlights->PreviewModels, xlights->AllModels));
+            if (additionalModel == nullptr && !stale) {
                 return xlights->PreviewModels;
             } else {
                 tmpModelList = xlights->PreviewModels;
@@ -394,8 +401,7 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             for (auto& [gname, grp] : xlights->LayoutGroups) {
                 if (currentLayoutGroup == gname) {
                     foundGrp = true;
-                    if (additionalModel == nullptr) {
-                        //wxASSERT(ValidateModels(grp->GetModels(), xlights->AllModels));
+                    if (additionalModel == nullptr && !stale) {
                         return grp->GetModels();
                     } else {
                         tmpModelList = grp->GetModels();
@@ -408,8 +414,20 @@ const std::vector<Model*> &ModelPreview::GetModels() {
             }
         }
 
-        // Only in debug builds but this really should all be valid or bad things will happen
-        //wxASSERT(ValidateModels(tmpModelList, xlights->AllModels));
+        if (stale && !tmpModelList.empty()) {
+            // membership test must not dereference the (possibly freed)
+            // cached pointers, so build the live set from AllModels
+            std::unordered_set<const Model*> live;
+            for (const auto& a : xlights->AllModels) {
+                live.insert(a.second);
+                for (const auto* sm : a.second->GetSubModels()) {
+                    live.insert(sm);
+                }
+            }
+            tmpModelList.erase(std::remove_if(tmpModelList.begin(), tmpModelList.end(),
+                                              [&live](const Model* m) { return live.find(m) == live.end(); }),
+                               tmpModelList.end());
+        }
     }
     if (additionalModel != nullptr) {
         tmpModelList.push_back(additionalModel);
@@ -469,7 +487,44 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
     }
     if (!m_wheel_down) {
         bool fromTrackPad = IsMouseEventFromTouchpad();
-        if (!fromTrackPad || event.ControlDown()) {
+        if (is3d && event.ShiftDown() && !event.ControlDown()) {
+            float new_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
+            float new_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? event.GetWheelRotation() : 0;
+            if (std::abs(event.GetWheelRotation()) >= event.GetWheelDelta()) {
+                new_x /= 4.0f;
+                new_y /= 4.0f;
+            }
+
+            // account for grid rotation
+            float angleX = glm::radians(GetCameraRotationX());
+            float angleY = glm::radians(GetCameraRotationY());
+            float delta_x = 0.0f;
+            float delta_y = 0.0f;
+            float delta_z = 0.0f;
+            bool top_view = (angleX > glm::radians(45.0f)) && (angleX < glm::radians(135.0f));
+            bool bottom_view = (angleX > glm::radians(225.0f)) && (angleX < glm::radians(315.0f));
+            bool upside_down_view = (angleX >= glm::radians(135.0f)) && (angleX <= glm::radians(225.0f));
+            if (top_view) {
+                delta_x = new_x * std::cos(angleY) - new_y * std::sin(angleY);
+                delta_z = new_y * std::cos(angleY) + new_x * std::sin(angleY);
+            }
+            else if (bottom_view) {
+                delta_x = -new_x * std::sin(angleY) - new_y * std::cos(angleY);
+                delta_z = new_y * std::sin(angleY) - new_x * std::cos(angleY);
+            }
+            else {
+                delta_x = new_x * std::cos(angleY);
+                delta_y = new_y;
+                delta_z = new_x * std::sin(angleY);
+                if (!upside_down_view) {
+                    delta_y *= -1.0f;
+                }
+            }
+            delta_x *= GetZoom() * 2.0f;
+            delta_y *= GetZoom() * 2.0f;
+            delta_z *= GetZoom() * 2.0f;
+            SetPan(delta_x, delta_y, delta_z);
+        } else if (!fromTrackPad || event.ControlDown()) {
             float delta = event.GetWheelRotation() > 0 ? -0.1f : 0.1f;
             if (fromTrackPad) {
                 float f = event.GetWheelRotation();
@@ -480,12 +535,8 @@ void ModelPreview::mouseWheelMoved(wxMouseEvent& event) {
             float delta_x = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? 0 : -event.GetWheelRotation();
             float delta_y = event.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL ? -event.GetWheelRotation() : 0;
             if (is3d) {
-                if (event.ShiftDown()) {
-                    SetPan(delta_x, delta_y, 0.0f);
-                } else {
-                    SetCameraView(delta_x, delta_y, false);
-                    SetCameraView(0, 0, true);
-                }
+                SetCameraView(delta_x, delta_y, false);
+                SetCameraView(0, 0, true);
             } else {
                 if (!fromTrackPad) {
                     delta_x *= GetZoom() * 2.0f;
@@ -1014,6 +1065,12 @@ void ModelPreview::rightClick(wxMouseEvent& event) {
                     }
                 }
             }
+            wxWindow* topLevel = wxGetTopLevelParent(this);
+            if (topLevel != xlights) {
+                mnu.AppendSeparator();
+                wxMenuItem* keepOnTopItem = mnu.Append(0x3001, "Keep on Top", wxEmptyString, wxITEM_CHECK);
+                keepOnTopItem->Check(topLevel->GetWindowStyleFlag() & wxSTAY_ON_TOP);
+            }
             mnu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ModelPreview::OnPopup, nullptr, this);
             PopupMenu(&mnu);
         }
@@ -1049,6 +1106,12 @@ void ModelPreview::OnPopup(wxCommandEvent& event)
         Reset();
     } else if (id == 0x1000) {
         is3d = !is3d;
+    } else if (id == 0x3000) {
+        wxWindow* topLevel = wxGetTopLevelParent(this);
+        if (topLevel != xlights) {
+            long style = topLevel->GetWindowStyleFlag();
+            topLevel->SetWindowStyleFlag(style & wxSTAY_ON_TOP ? style & ~wxSTAY_ON_TOP : style | wxSTAY_ON_TOP);
+        }
     } else if (is3d) {
         long camIdx = event.GetId() - CAMERA_LOAD_BASE;
         if (camIdx >= 0 && camIdx < xlights->viewpoint_mgr.GetNum3DCameras()) {

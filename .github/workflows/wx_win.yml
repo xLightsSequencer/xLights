@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
     
     env:
-      WX_VERSION: xlights_2026.04
+      WX_VERSION: xlights_2026.13
 
     steps:
 

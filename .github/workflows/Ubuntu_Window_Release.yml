@@ -40,6 +40,17 @@ jobs:
 
   build-windows:
    runs-on: windows-2022
+   # Tag/dispatch-only workflow, so always enter the `release` environment: the
+   # OIDC token subject (repo:.../environment:release) must match the Entra
+   # federated credential that authorizes Azure Trusted Signing. Signing is then
+   # gated on the WINDOWS_SIGNING_ENABLED repo variable, so releases keep
+   # building (unsigned) until Trusted Signing is configured.
+   environment: release
+   permissions:
+     id-token: write
+     contents: write
+   env:
+     SIGN: ${{ vars.WINDOWS_SIGNING_ENABLED == 'true' }}
 
    steps:
     - name: Checkout xLights
@@ -53,11 +64,21 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.30.0
+        version: 1.31.0
+
+    # glslc (Vulkan SDK Bin) compiles the .comp compute kernels to SPIR-V
+    # headers via the Xlights.vcxproj CompileVulkanShaders pre-build target
+    # (x64).  The action exports VULKAN_SDK so that target's PowerShell script
+    # finds glslc; without it the msbuild step fails at the pre-build event.
+    - name: Install Vulkan SDK
+      uses: jakoch/install-vulkan-sdk-action@v1
+      with:
+        install_runtime: false
+        cache: true
 
     - name: Download wxWidgets
       run:
-        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2026.04 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
+        git clone --depth=1 --shallow-submodules  --recurse-submodules -b xlights_2026.13 https://github.com/xLightsSequencer/wxWidgets ..\wxWidgets\
 
     - name: Build wxWidgets
       working-directory: ..\wxWidgets\
@@ -68,9 +89,86 @@ jobs:
       working-directory: build_scripts\msw
       run: call build_VS_x64_skip_libltc.cmd
 
+    # --- Authenticode signing via Azure Trusted Signing (Kulp Lights LLC) ------
+    # Sign our own executables before packaging, then sign the installer after
+    # ISCC (the artifact users download and that SmartScreen/AV evaluate).
+    # Third-party DLLs keep their vendors' signatures. Reuses fppMon's signing
+    # account/profile; runs only when WINDOWS_SIGNING_ENABLED is set.
+    - name: Azure login (OIDC for Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/login@v3
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Sign xLights.exe (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: xlights\x64\Release
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+    - name: Sign xlDo.exe (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: xlDo\x64\Release
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+    - name: Sign fseq_convert.exe (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: fseq_convert\cmake_vs\Release
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
     - name: Build Installer
       working-directory: build_scripts\msw
       run: ISCC.exe xLights_4_64bit_VS.iss
+
+    - name: Sign installer (Trusted Signing)
+      if: env.SIGN == 'true'
+      uses: azure/artifact-signing-action@v2
+      with:
+        endpoint: https://eus.codesigning.azure.net/
+        signing-account-name: kulplightssigning
+        certificate-profile-name: kulplights-public
+        files-folder: build_scripts\msw\output
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+
+    # --- Microsoft Store package (unsigned; the Store re-signs on ingestion) ----
+    # Built every release so the .msix is ready for manual Partner Center upload.
+    # Bundles the already-signed exes. Output to a separate dir and uploaded as a
+    # workflow artifact (NOT a public release asset) - an unsigned Store-identity
+    # package isn't user-installable, so it must not land in the GitHub release.
+    - name: Build Store MSIX
+      shell: pwsh
+      working-directory: build_scripts\msw\msix
+      run: ./BuildMSIX.ps1 -Store -OutDir ..\store-output
+
+    - name: Upload Store MSIX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: xLights_Store_MSIX
+        path: build_scripts\msw\store-output\xLights-Store-x64.msix
 
     - name: Stage Windows symbol map
       shell: pwsh

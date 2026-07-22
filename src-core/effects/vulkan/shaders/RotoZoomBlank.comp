@@ -1,0 +1,16 @@
+#version 450
+// Port of RotoZoomBlank in RotoZoomFunctions.metal — clears the destination
+// before the rotate write pass scatters into it.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "rotozoom_pc.glsl"
+
+layout(std430, set = 0, binding = 0) writeonly buffer Result { uint result[]; };
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    result[index.y * data.width + index.x] = 0u;
+}

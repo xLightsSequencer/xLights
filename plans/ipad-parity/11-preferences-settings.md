@@ -80,7 +80,7 @@
 | Output ▸ Use Frame Sync (E1.31) | preference | ✅ | ❌ | desktop-missing | P3 | hard | restricted | `OutputSettingsPanel.cpp:48`. iPad has no live USB/serial/sACN output. |
 | Output ▸ Force Local IP | preference | ✅ | ❌ | desktop-missing | P3 | hard | restricted | `OutputSettingsPanel.cpp:57`. Output-stack tuning; out of scope on iPad. |
 | Output ▸ Duplicate Frames to Suppress | preference | ✅ | ❌ | desktop-missing | P3 | hard | restricted | `OutputSettingsPanel.cpp:60` (None/10/20/40). |
-| Output ▸ xFade/xSchedule port | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OutputSettingsPanel.cpp:66`. Companion-app integration; not on iPad. |
+| Output ▸ API Port (xFade/xSchedule) | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OutputSettingsPanel.cpp:66`. Companion-app integration; not on iPad. |
 | Check Sequence (run + filtered report) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop report; iPad `CheckSequenceSheet.swift` (severity/section chips, tap-to-jump). Same core checker. |
 | Check Sequence ▸ Disable Duplicate Universe checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:50` ("DupUniv"). iPad: gear menu in `CheckSequenceSheet.swift`, `csDisableDupUniv` @AppStorage → bridge `setCheckSequenceDisabledOptions` → `iPadRenderContext` disable set, read by both `SequenceCheckerCallbacks::IsCheckOptionDisabled` and `GetUICallbacks`. |
 | Check Sequence ▸ Disable Non-Contiguous Channel checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:54` ("NonContigChOnPort"). Same `CheckSequenceSheet` gear menu plumbing. |
@@ -271,7 +271,7 @@
 ## Infeasible / restricted on iPad
 
 - **Output-protocol tuning** — Frame Sync (E1.31), Force Local IP, Suppress
-  Duplicate Frames, Controller Ping Interval, xFade/xSchedule port,
+  Duplicate Frames, Controller Ping Interval, API (xFade/xSchedule) port,
   Link-Controller-Upload (`OutputSettingsPanel.cpp`, `OtherSettingsPanel.cpp`):
   iPad has no live USB/serial/sACN output stack. *restricted/infeasible.*
 - **Hardware Video Decoding / renderer choice, GPU Rendering, Shaders on

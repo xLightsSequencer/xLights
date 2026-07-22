@@ -58,7 +58,7 @@
 | Effect-import: FPS / version mismatch warning | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `loadWarning` from `sourceFrequency`/`targetFrequency` (xsq/pkg only). |
 | Effect-import: missing-media report (post-apply) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `applyWarning` from `sourceMissingMedia` after the media walk. |
 | Import effects by mapping from any on-disk `.xsq` | menu | ✅ | ✅ | parity | P1 | easy | feasible | This IS the iPad Import Effects flow (file-picker → map). |
-| Open `.fseq` directly (FSEQ→effects round-trip) | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop Open Sequence wildcard accepts `.fseq` (`SeqFileUtilities.cpp:262`). iPad only round-trips a matching FSEQ sidecar via `tryLoadFseq`, not as an open format. Low value. |
+| Open `.fseq` directly (FSEQ→effects round-trip) | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop Open Sequence wildcard accepts `.fseq` (`SeqFileUtilities.cpp:262`). iPad only round-trips a matching FSEQ sidecar via `tryLoadFseq`, not as an open format. Low value. 2026-07-16: shared `src-core/render/FSEQFile.cpp` gained `ReadPattern::Bulk` — a caller that reads every frame front-to-back (and has already sized its destination) gets the blocks decompressed ahead in parallel, ~10x on a multi-core host. **Auto-applied to iPad**, and `iPadRenderContext::TryLoadFseq` opts in (`src-iPad/Bridge/iPadRenderContext.cpp`), so the sidecar round-trip loads at the same speed as desktop. Default stays `Streaming`, so realtime one-frame-at-a-time readers are unchanged. |
 | Open `.xbkp` backup directly | dialog/menu | ✅ | 🟡 | ipad-weaker | P3 | easy | feasible | Desktop Open wildcard accepts `.xbkp`. iPad routing is **in place**: `handleIncomingSequenceURL` (`XLightsApp.swift`) detects a `.xbkp` URL, opens it through the normal `openSequence` path (it IS `.xsq` XML), then sheets an "Opened a Backup File" alert offering **Save As…** (bumps `saveAsRequestToken`); the pre-existing newer-than-`.xsq` autosave *recovery* sheet is unchanged. **Blocking follow-up:** the `org.xlights.sequence-backup` UTI (extension `xbkp`) + CFBundleDocumentType must be added to `macOS/Assets/xLights-iPad/Info.plist` for Files/iCloud to deliver `.xbkp` taps to `.onOpenURL` — that plist lives in the pinned `macOS` submodule (read-only here), so registration is deferred to a submodule bump. Until then `.xbkp` opens only via in-app pickers that already hand us the URL. |
 | Import timing track standalone (`.xtiming`) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop SeqSettings + RowHeading; iPad `importXTiming(fromPath:)` in `SequenceSettingsSheet`. |
 | Import timing from LOR `.lms` / `.las` | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad `importLorTiming(fromPath:)`. |
@@ -96,7 +96,7 @@
 | Export controller wiring as CSV | menu / context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `UDController::ExportAsCSV`. Desktop Tools menu; iPad ControllerVisualize export menu. |
 | Export controller wiring as JSON | menu / context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `UDController::ExportAsJSON`. |
 | Export / import effect presets (library round-trip) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `EffectTreeDialog` Import/Export `.xpreset` (`EffectTreeDialog.cpp:774/873`); iPad `exportPresets`/`importPresets` (JSON / effects-tree XML). Both round-trip via shared preset blob. |
-| Map From Lights (camera-scan → model geometry) | menu/wizard | ✅ | ✅ | parity | P2 | hard | feasible | macOS desktop via `KLightMapperBridge` (Continuity Camera, `xLightsMain.cpp:4296`); iPad `MapFromLightsWizard`. (Windows/Linux desktop lacks it.) |
+| Map From Lights (camera-scan → model geometry) | menu/wizard | ✅ | ✅ | parity | P2 | hard | feasible | macOS desktop via `KLightMapperBridge` (Continuity Camera, `xLightsMain.cpp:4296`); iPad `MapFromLightsWizard`. Windows/Linux desktop now also supported (local + RTSP/IP camera) via the prebuilt KLightMapper library + `KLightMapperBridge_win.cpp`, fetched by `ci_scripts/fetch_dependencies.ps1` / `fetch_klightmapper.sh`. |
 | Export HinksPix configuration | menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | restricted | Desktop `HinksPixExportDialog` (`xLightsMain.cpp:6083`). Closed/proprietary controller firmware → IAP-gated, low priority. |
 | Import vendor model / vendor music (online catalog) | dialog | ✅ | 🟡 | parity | P2 | medium | feasible | Desktop `VendorModelDialog` / `VendorMusicDialog`; iPad `VendorBrowserSheet` + `XLVendorCatalog` (shared `VendorCatalog`). Model browser present; verify music-download breadth. |
 | Export Effects summary (CSV) | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `ExportEffects.cpp:347-360`; iPad `src-core/import_export/ExportEffectsReport.cpp` (EFX-1) + bridge `XLSequenceDocument.mm:exportEffectsReport(toPath:)` + Tools menu in `XLightsCommands.swift` + fileExporter in `SequencerView.swift`. |
@@ -248,7 +248,8 @@ For this theme there are **no true desktop-missing items**:
 - *Package exclude-audio* — desktop has it (Preferences → Other Settings).
 - *Preset library export* — desktop has it (`EffectTreeDialog` Export
   `.xpreset`).
-- *Map From Lights* — desktop has it on macOS (`KLightMapperBridge`).
+- *Map From Lights* — desktop has it on macOS, Windows, and Linux
+  (`KLightMapperBridge` / `KLightMapperBridge_win.cpp`).
 - *AI Speech-to-Lyrics / online lyric search* — desktop has both.
 
 The only directional nuance: the iPad surfaces several of these more

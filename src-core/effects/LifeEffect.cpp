@@ -10,9 +10,14 @@
 
 #include "LifeEffect.h"
 
+#include <algorithm>
+
+#include "ispc/LifeFunctions.ispc.h"
+
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
 #include "UtilClasses.h"
+#include "Parallel.h"
 
 #include "../../include/life-16.xpm"
 #include "../../include/life-24.xpm"
@@ -42,27 +47,6 @@ void LifeEffect::OnMetadataLoaded()
     sSpeedDefault = GetIntDefault("Life_Speed", sSpeedDefault);
 }
 
-static size_t Life_CountNeighbors(RenderBuffer& buffer, int x0, int y0)
-{
-    //     2   3   4
-    //     1   X   5
-    //     0   7   6
-    static const int n_x[] = { -1, -1, -1, 0, 1, 1, 1, 0 };
-    static const int n_y[] = { -1, 0, 1, 1, 1, 0, -1, -1 };
-    size_t cnt = 0;
-    for (size_t i = 0; i < 8; ++i) {
-        int x = (x0 + n_x[i]) % buffer.BufferWi;
-        int y = (y0 + n_y[i]) % buffer.BufferHt;
-        if (x < 0)
-            x += buffer.BufferWi;
-        if (y < 0)
-            y += buffer.BufferHt;
-        if (buffer.GetTempPixelRGB(x, y) != xlBLACK)
-            ++cnt;
-    }
-    return cnt;
-}
-
 class LifeRenderCache : public EffectRenderCache {
 public:
     LifeRenderCache() : LastLifeCount(0), LastLifeType(0), LastLifeState(0) {};
@@ -72,11 +56,23 @@ public:
     int LastLifeState;
 };
 
-void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+void LifeEffect::BuildLifePalette(RenderBuffer& buffer, std::vector<uint32_t>& palette)
+{
+    int n = (int)buffer.palette.Size(); // >= 1
+    palette.resize(n);
+    xlColor c;
+    for (int i = 0; i < n; i++) {
+        buffer.palette.GetColor(i, c); // white if i >= explicit size
+        palette[i] = uint32_t(c.red) | (uint32_t(c.green) << 8) | (uint32_t(c.blue) << 16) | (uint32_t(c.alpha) << 24);
+    }
+}
+
+bool LifeEffect::PrepareLifeGeneration(RenderBuffer& buffer, const SettingsMap& SettingsMap, int& outType)
 {
     int Count = SettingsMap.GetInt("SLIDER_Life_Count", sCountDefault);
     int Type = SettingsMap.GetInt("SLIDER_Life_Seed", sSeedDefault);
     int lspeed = SettingsMap.GetInt("SLIDER_Life_Speed", sSpeedDefault);
+    outType = Type;
 
     LifeRenderCache* cache = (LifeRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -84,13 +80,8 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         buffer.infoCache[id] = cache;
     }
 
-    int i, x, y, cnt;
-    bool isLive;
-    xlColor color;
-
     int BufferHt = buffer.BufferHt;
     int BufferWi = buffer.BufferWi;
-
     if (BufferHt < 1)
         BufferHt = 1;
     Count = BufferWi * BufferHt * Count / 200 + 1;
@@ -100,10 +91,11 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         cache->LastLifeCount = Count;
         cache->LastLifeType = Type;
         buffer.ClearTempBuf();
-        for (i = 0; i < Count; i++) {
-            x = rand() % BufferWi;
-            y = rand() % BufferHt;
-            buffer.GetMultiColorBlend(rand01(), false, color);
+        xlColor color;
+        for (int i = 0; i < Count; i++) {
+            int x = buffer.randInt(0, BufferWi - 1);
+            int y = buffer.randInt(0, BufferHt - 1);
+            buffer.GetMultiColorBlend(buffer.rand01(), false, color);
             buffer.SetTempPixel(x, y, color);
         }
     }
@@ -112,70 +104,63 @@ void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     long TempState = effectState % 400 / 20;
     if (TempState == cache->LastLifeState) {
         buffer.CopyTempBufToPixels();
+        return false;
+    }
+    cache->LastLifeState = TempState;
+    return true;
+}
+
+void LifeEffect::RenderLifeGenerationISPC(RenderBuffer& buffer, int type)
+{
+    int width = buffer.BufferWi;
+    int height = buffer.BufferHt;
+    if (width < 1 || height < 1) {
         return;
-    } else {
-        cache->LastLifeState = TempState;
     }
-    for (x = 0; x < BufferWi; x++) {
-        for (y = 0; y < BufferHt; y++) {
-            buffer.GetTempPixel(x, y, color);
-            isLive = color != xlBLACK;
-            cnt = Life_CountNeighbors(buffer, x, y);
-            switch (Type) {
-            case 0:
-                // B3/S23
-                /*
-                 Any live cell with fewer than two live neighbours dies, as if caused by under-population.
-                 Any live cell with two or three live neighbours lives on to the next generation.
-                 Any live cell with more than three live neighbours dies, as if by overcrowding.
-                 Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-                 */
-                if (isLive && cnt >= 2 && cnt <= 3) {
-                    buffer.SetPixel(x, y, color);
-                } else if (!isLive && cnt == 3) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
-                    buffer.SetPixel(x, y, color);
-                }
-                break;
-            case 1:
-                // B35/S236
-                if (isLive && (cnt == 2 || cnt == 3 || cnt == 6)) {
-                    buffer.SetPixel(x, y, color);
-                } else if (!isLive && (cnt == 3 || cnt == 5)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
-                    buffer.SetPixel(x, y, color);
-                }
-                break;
-            case 2:
-                // B357/S1358
-                if (isLive && (cnt == 1 || cnt == 3 || cnt == 5 || cnt == 8)) {
-                    buffer.SetPixel(x, y, color);
-                } else if (!isLive && (cnt == 3 || cnt == 5 || cnt == 7)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
-                    buffer.SetPixel(x, y, color);
-                }
-                break;
-            case 3:
-                // B378/S235678
-                if (isLive && (cnt == 2 || cnt == 3 || cnt >= 5)) {
-                    buffer.SetPixel(x, y, color);
-                } else if (!isLive && (cnt == 3 || cnt == 7 || cnt == 8)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
-                    buffer.SetPixel(x, y, color);
-                }
-                break;
-            case 4:
-                // B25678/S5678
-                if (isLive && (cnt >= 5)) {
-                    buffer.SetPixel(x, y, color);
-                } else if (!isLive && (cnt == 2 || cnt >= 5)) {
-                    buffer.GetMultiColorBlend(rand01(), false, color);
-                    buffer.SetPixel(x, y, color);
-                }
-                break;
-            }
+    // Bound writes by the real pixel allocation: a variable sub-buffer can leave
+    // GetPixelCount() below BufferWi*BufferHt and the kernel writes result[index]
+    // unguarded.
+    int npix = std::min<int>(buffer.GetPixelCount(), width * height);
+    if (npix < 1) {
+        return;
+    }
+
+    std::vector<uint32_t> palette;
+    BuildLifePalette(buffer, palette);
+
+    ispc::LifeISPCData ld;
+    ld.width = width;
+    ld.height = height;
+    ld.npix = npix;
+    ld.type = type;
+    ld.numColors = (int)palette.size();
+    ld.frameSeed = buffer.hashRandomFrameSeed();
+
+    // The kernel reads the previous generation (tempbuf) and writes the new
+    // generation (pixels); the two buffers are distinct so lanes never read a
+    // half-written cell. State advances by copying pixels back to tempbuf after.
+    const uint32_t* prev = reinterpret_cast<const uint32_t*>(buffer.GetTempBuf());
+    uint32_t* result = reinterpret_cast<uint32_t*>(buffer.GetPixels());
+    const uint32_t* pal = palette.data();
+
+    constexpr int lifeBlockSize = 4096;
+    int blocks = npix / lifeBlockSize + 1;
+    parallel_for(0, blocks, [&ld, prev, pal, result, npix](int block) {
+        int start = block * lifeBlockSize;
+        int end = std::min(start + lifeBlockSize, npix);
+        if (start < end) {
+            ispc::LifeEffectISPC(&ld, start, end, prev, pal, result);
         }
-    }
-    // copy new life state to tempbuf
+    });
+
     buffer.CopyPixelsToTempBuf();
+}
+
+void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    int Type = 0;
+    if (!PrepareLifeGeneration(buffer, SettingsMap, Type)) {
+        return;
+    }
+    RenderLifeGenerationISPC(buffer, Type);
 }

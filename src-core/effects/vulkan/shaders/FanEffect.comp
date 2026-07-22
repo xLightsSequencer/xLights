@@ -1,0 +1,128 @@
+#version 450
+// Port of FanEffect in FanFunctions.metal.  A partial-write effect: only
+// pixels inside the current blade/element wedge are written; everything
+// else keeps the buffer's existing contents (mirrors the CPU/Metal kernels,
+// which only call SetPixel / write `result[index]` for matching pixels).
+// Params mirror VulkanFanData in VulkanEffectDataTypes.h (std430).
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+#define MAX_VULKAN_FAN_COLORS 8
+
+const float FAN_PI = 3.14159265358979323846;
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+
+    int xc_adj;
+    int yc_adj;
+
+    float radius1;
+    float radius2;
+    float max_radius;
+
+    float blade_div_angle;
+    float blade_width_angle;
+    float color_angle;
+    float element_angle;
+    float element_size;
+    float angle_offset;
+    float start_angle;
+    float blade_angle;
+
+    int reverse_dir;
+    int blend_edges;
+    int allowAlpha;
+    int num_colors;
+
+    uint colorsAsRGBA[MAX_VULKAN_FAN_COLORS];
+    vec3 colorsAsHSV[MAX_VULKAN_FAN_COLORS];
+} data;
+
+// Local switch-based HSV->RGB, matching fanHsv2rgb() in FanFunctions.metal
+// (not the shared IQ-style hsv2rgb() used by Shockwave/Pinwheel).
+uvec4 fanHsv2rgb(vec3 hsv) {
+    float h = hsv.x;
+    float s = hsv.y;
+    float v = hsv.z;
+    float r, g, b;
+    if (s == 0.0) {
+        r = v; g = v; b = v;
+    } else {
+        float hh = xl_fmod(h, 1.0) * 6.0;
+        int i = int(hh);
+        float f = hh - float(i);
+        float p = v * (1.0 - s);
+        float q = v * (1.0 - s * f);
+        float t = v * (1.0 - s * (1.0 - f));
+        switch (i) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            default: r = v; g = p; b = q; break;
+        }
+    }
+    return uvec4(uint(r * 255.0), uint(g * 255.0), uint(b * 255.0), 255u);
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint px = index % data.width;
+    uint py = index / data.width;
+    if (px >= data.width || py >= data.height) return;
+
+    float x1 = float(px) - float(data.xc_adj) - (float(data.width) / 2.0);
+    float y1 = float(py) - float(data.yc_adj) - (float(data.height) / 2.0);
+
+    float r = sqrt(x1 * x1 + y1 * y1);
+    if (r < data.radius1 || r > data.radius2) return;
+
+    float degrees_twist = (data.max_radius > 0.0) ? (r / data.max_radius) * data.blade_angle : 0.0;
+    // Matches CPU/Metal: theta = atan2(x1,y1)*180/PI + degrees_twist + start_angle
+    // (Metal/GLSL atan2/atan take (y, x); Metal calls atan2(x1, y1), so we
+    // mirror the same argument order here.)
+    float theta = (atan(x1, y1) * 180.0 / FAN_PI) + degrees_twist + data.start_angle;
+
+    if (data.reverse_dir != 0) {
+        theta = data.angle_offset - theta + 180.0;
+    } else {
+        theta = theta + 180.0 + data.angle_offset;
+    }
+
+    // Single correction to bring theta >= 0 (matches CPU/Metal).
+    if (theta < 0.0) theta += 360.0;
+
+    // current_blade_angle = theta mod blade_div_angle (integer truncation, as CPU/Metal do).
+    float current_blade_angle = theta - float(int(theta / data.blade_div_angle)) * data.blade_div_angle;
+    if (current_blade_angle > data.blade_width_angle) return;
+
+    float current_element_angle = current_blade_angle - float(int(current_blade_angle / data.element_angle)) * data.element_angle;
+    if (current_element_angle > data.element_size) return;
+
+    int color_index = int(current_blade_angle / data.color_angle);
+    if (color_index < 0) color_index = 0;
+    if (color_index >= data.num_colors) color_index = data.num_colors - 1;
+
+    float color_pct = 1.0 - ((abs(current_element_angle - (data.element_size / 2.0)) * 2.0) / data.element_size);
+
+    vec3 hsv = data.colorsAsHSV[color_index];
+
+    if (data.blend_edges != 0) {
+        if (data.allowAlpha != 0) {
+            uvec4 c = unpackPx(data.colorsAsRGBA[color_index]);
+            c.a = uint(255.0 * color_pct);
+            result[index] = packPx(c);
+        } else {
+            hsv.z = hsv.z * color_pct;
+            result[index] = packPx(fanHsv2rgb(hsv));
+        }
+    } else {
+        result[index] = packPx(fanHsv2rgb(hsv));
+    }
+}

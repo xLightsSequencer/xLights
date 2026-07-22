@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <memory>
 #include <string>
 #include <nlohmann/json.hpp>
 #include "Color.h"
@@ -25,6 +26,13 @@ class AudioManager;
 class EffectManager;
 class EffectLayer;
 class RenderContext;
+
+// Immutable per-frame draw state produced by a Snapshottable effect's
+// AdvanceFrame and consumed by the draw pass (tier-2 frame-parallel).  Effects
+// subclass this with whatever their frame's draw needs (e.g. a particle list).
+struct EffectFrameState {
+    virtual ~EffectFrameState() = default;
+};
 
 class RenderableEffect
 {
@@ -104,6 +112,57 @@ public:
 
     // Methods for rendering the effect
     virtual bool SupportsRenderCache(const SettingsMap& settings) const;
+
+    // Frame-parallelism capability. Describes whether this effect's output at
+    // frame N is a pure function of N and its settings, or depends on state
+    // carried from a prior frame (an infoCache simulation, a tempbuf generation,
+    // a running accumulator, or prior-frame pixels). Conservatively Stateful by
+    // default so any un-audited effect is never reordered; an effect proven to
+    // derive its whole output from curPeriod / GetEffectTimeIntervalPosition()
+    // overrides this to Pure, letting the engine render a run of its frames out
+    // of order or concurrently. Snapshottable is reserved for effects that split
+    // a cheap serial state-advance (AdvanceState) from a parallel per-frame draw
+    // (Render from the snapshot) - see the tier-2 API below.
+    enum class FrameParallelism { Stateful, Snapshottable, Pure };
+    virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const {
+        return FrameParallelism::Stateful;
+    }
+    // What the engine actually consults: combines GetFrameParallelism() with the
+    // buffer-level settings that make ANY effect frame-dependent regardless of
+    // its own algorithm - Persistent (OverlayBkg) keeps the buffer between
+    // frames, Canvas reads lower layers, Freeze/Suppress reuse another frame's
+    // output. Effect overrides only need to describe their own algorithm.
+    FrameParallelism GetEffectiveFrameParallelism(const SettingsMap& settings) const;
+
+    // --- Tier-2 Snapshottable API ------------------------------------------
+    // A Snapshottable effect exposes a cheap serial state-advance separately
+    // from an expensive pure per-frame draw, so the engine can advance the
+    // simulation serially while drawing many frames concurrently.  The two
+    // phases live in two entry points:
+    //   * AdvanceState() advances the cross-frame simulation (buffer.infoCache)
+    //     for this frame and returns the frame's immutable draw snapshot.
+    //   * Render(), when buffer.pendingSnapshot is set, rasterises that snapshot
+    //     and does NOT advance.  Pure function of the snapshot; runs on worker
+    //     threads.  (Check pendingSnapshot first, at the top of Render.)
+    // The engine advances serially via AdvanceState and then draws through
+    // Render(pendingSnapshot) in BOTH serial and frame-parallel rendering, so the
+    // two paths are byte-identical.
+    //
+    // Contract: an effect returns a non-null snapshot from AdvanceState for
+    // EXACTLY the settings where GetFrameParallelism returns Snapshottable (share
+    // one predicate so the two can never drift).  Pure and Stateful effects leave
+    // AdvanceState at the default nullptr and keep fusing advance+draw in Render;
+    // the engine renders them the ordinary way (Pure may still reorder frames,
+    // Stateful runs serially).
+
+    // Advances the effect's cross-frame simulation state for this frame and
+    // returns the frame's immutable draw snapshot, or nullptr (the default) for a
+    // Pure/Stateful effect whose Render fuses advance+draw.  When this returns
+    // non-null, the engine sets buffer.pendingSnapshot and Render draws from it -
+    // in BOTH serial and frame-parallel rendering, so the two paths are identical.
+    // Must return non-null whenever GetFrameParallelism == Snapshottable.
+    virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) { return nullptr; }
+
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) = 0;
     virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) {}
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache);
@@ -151,6 +210,7 @@ public:
     // Intended for use from OnMetadataLoaded() to populate cached members —
     // NOT for use inside Render() or any hot path (they walk the JSON).
     int GetIntDefault(const std::string& id, int fallback) const;
+    float GetFloatDefault(const std::string& id, float fallback) const;
     double GetDoubleDefault(const std::string& id, double fallback) const;
     bool GetBoolDefault(const std::string& id, bool fallback) const;
     std::string GetStringDefault(const std::string& id, const std::string& fallback) const;
@@ -187,7 +247,12 @@ protected:
     double GetValueCurveDouble(const std::string& name, double def, const SettingsMap& SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveInt(const std::string& name, int def, const SettingsMap& SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveIntMax(const std::string& name, int def, const SettingsMap& SettingsMap, int min, int max, int divisor = 1);
-    EffectLayer* GetTiming(const std::string& timingtrack) const;
+    // Resolve a timing track's mark layer from the given sequence elements.
+    // Callers pass the elements from their context: GetSequenceElements(buffer)
+    // in a render, or eff->GetParentEffectLayer()->GetParentElement()->
+    // GetSequenceElements() in a UI/check path — never a cached member, so this
+    // works off the desktop (headless / iPad) too.
+    EffectLayer* GetTiming(const std::string& timingtrack, SequenceElements* seqEl) const;
     Effect* GetCurrentTiming(const RenderBuffer& buffer, const std::string& timingtrack) const;
     std::string GetTimingTracks(const int maxLayers = 0, const int absoluteLayers = 0) const;
     bool IsVersionOlder(const std::string& compare, const std::string& version);

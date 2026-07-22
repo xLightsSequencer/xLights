@@ -118,6 +118,68 @@ static wxString BaseFileName(const std::string& path) {
     return wxString(name);
 }
 
+// Trim a trailing path separator so top-level-directory comparisons in
+// BuildBasenameIndex aren't thrown off by whether a given path happens to
+// have one (wxDir::GetAllFiles / wxFileName::GetPath aren't guaranteed to
+// agree with the caller's own formatting of searchDir).
+static wxString TrimTrailingSeparator(wxString path) {
+    while (!path.IsEmpty() && (path.Last() == '/' || path.Last() == '\\')) {
+        path.RemoveLast();
+    }
+    return path;
+}
+
+// One-time recursive index of searchDir's files, so the bulk find/repoint
+// loops below can do a map lookup per item instead of re-walking the whole
+// folder tree per item - the per-item wxDir::GetAllFiles scan got much more
+// expensive once bulk find started processing every item of a type instead
+// of just the (usually few) broken ones.
+//
+// Two maps, tried in order (see LookupInIndex): `exact` is keyed by the
+// literal basename, so on a case-sensitive filesystem (typical Linux) two
+// files differing only in case - "foo.png" and "Foo.png" - never collide to
+// the same key and each media path finds its true match. `lower` is a
+// lower-cased fallback so a media path whose casing has drifted from the
+// on-disk file (Windows / default macOS are case-insensitive, so this
+// happens) still matches. Within each map, a top-level file wins over a
+// same-named nested one, matching the previous per-item
+// "exact top-level match first" behavior.
+struct BasenameIndex {
+    std::map<std::string, std::string> exact;
+    std::map<std::string, std::string> lower;
+};
+
+static BasenameIndex BuildBasenameIndex(const std::string& searchDir) {
+    BasenameIndex idx;
+    wxArrayString allFiles;
+    wxString wxSearchDir = ToWXString(searchDir);
+    GetAllFilesInDir(wxSearchDir, allFiles, wxEmptyString, wxDIR_FILES);
+    wxString normalizedSearchDir = TrimTrailingSeparator(wxSearchDir);
+    for (const auto& f : allFiles) {
+        std::string fullPath = ToStdString(f);
+        std::string basename = ToStdString(BaseFileName(fullPath));
+        std::string basenameLower = ToStdString(BaseFileName(fullPath).Lower());
+        bool isTopLevel = (TrimTrailingSeparator(wxFileName(f).GetPath()) == normalizedSearchDir);
+        if (isTopLevel || idx.exact.find(basename) == idx.exact.end()) {
+            idx.exact[basename] = fullPath;
+        }
+        if (isTopLevel || idx.lower.find(basenameLower) == idx.lower.end()) {
+            idx.lower[basenameLower] = fullPath;
+        }
+    }
+    return idx;
+}
+
+// Exact-case match first, falling back to a case-insensitive one. Returns
+// nullptr if neither map has an entry for basename.
+static const std::string* LookupInIndex(const BasenameIndex& idx, const std::string& basename) {
+    auto exactIt = idx.exact.find(basename);
+    if (exactIt != idx.exact.end()) return &exactIt->second;
+    auto lowerIt = idx.lower.find(ToStdString(ToWXString(basename).Lower()));
+    if (lowerIt != idx.lower.end()) return &lowerIt->second;
+    return nullptr;
+}
+
 static wxString WildcardForMediaType(std::optional<MediaType> type) {
     if (!type.has_value()) {
         return "All Media Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.tga;*.pcx;*.ico;"
@@ -495,6 +557,14 @@ bool MediaViewModel::IsGroup(const wxDataViewItem& item) const
     if (!item.IsOk()) return false;
     MediaNode* node = static_cast<MediaNode*>(item.GetID());
     return node && node->isGroup;
+}
+
+MediaType MediaViewModel::GetMediaType(const wxDataViewItem& item) const
+{
+    if (!item.IsOk()) return MediaType::Image;
+    MediaNode* node = static_cast<MediaNode*>(item.GetID());
+    if (!node || node->isGroup) return MediaType::Image;
+    return node->mediaType;
 }
 
 void MediaViewModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const
@@ -1189,6 +1259,8 @@ std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
         }
     }
 
+    RewriteSequenceFacePaths(fullPath, newPath);
+
     _sequenceMedia->EmbedImage(newPath);
     return newPath;
 }
@@ -1336,6 +1408,8 @@ std::string ManageMediaPanel::ExtractWithRename(const std::string& fullPath)
         }
     }
 
+    RewriteSequenceFacePaths(fullPath, finalPath);
+
     return finalPath;
 }
 
@@ -1357,7 +1431,7 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         }, reloadItem->GetId());
     }
 
-    // Broken image options
+    // Image options
     if (_sequenceMedia->HasImage(path)) {
         auto entry = _sequenceMedia->GetImage(path);
         if (entry && !entry->IsOk()) {
@@ -1368,24 +1442,34 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             menu.Bind(wxEVT_MENU, [this, path](wxCommandEvent&) {
                 OnReSelectImage(path);
             }, reselectItem->GetId());
+        }
 
-            // Count total broken images to decide whether to offer bulk find
-            int brokenCount = 0;
-            for (const auto& p : _sequenceMedia->GetImagePaths()) {
-                auto e = _sequenceMedia->GetImage(p);
-                if (e && !e->IsOk()) ++brokenCount;
-            }
-            if (brokenCount > 1) {
-                wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
-                menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-                    OnBulkFindImages();
-                }, bulkItem->GetId());
-            }
+        // Offer bulk repoint whenever there's more than one external (on-disk)
+        // image, whether or not any of them are currently broken - lets users
+        // redirect a whole set of already-working files to a new folder (e.g.
+        // a show copied from last year), not just fix missing ones. Embedded
+        // images have no on-disk file to repoint, so they don't count.
+        int externalImageCount = 0;
+        for (const auto& p : _sequenceMedia->GetImagePaths()) {
+            // GetMediaEmbedState() is a pure cache lookup, unlike GetImage(),
+            // which loads the file from disk if it isn't cached yet - this
+            // runs on every right-click, so avoid the I/O here.
+            if (!_sequenceMedia->GetMediaEmbedState(p).first) ++externalImageCount;
+        }
+        if (externalImageCount > 1) {
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+            wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find Images...");
+            menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+                OnBulkFindImages();
+            }, bulkItem->GetId());
         }
     }
 
-    // Broken non-image media options (Shader, SVG, TextFile, BinaryFile, Video)
-    MediaType mtype = MediaTypeFromPath(path);
+    // Non-image media options (Shader, SVG, TextFile, BinaryFile, Video)
+    // Use the node's stored type rather than re-deriving from the extension, so
+    // paths with no extension (e.g. comma-truncated) are still handled correctly.
+    MediaType mtype = _model->GetMediaType(item);
     if (mtype != MediaType::Image && mtype != MediaType::Audio) {
         std::shared_ptr<MediaCacheEntry> entry;
         switch (mtype) {
@@ -1396,8 +1480,9 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
             default: break;
         }
+        wxString typeName = wxString(MediaTypeName(mtype));
+
         if (entry && !entry->IsOk()) {
-            wxString typeName = wxString(MediaTypeName(mtype));
             if (menu.GetMenuItemCount() > 0)
                 menu.AppendSeparator();
 
@@ -1405,27 +1490,28 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
             menu.Bind(wxEVT_MENU, [this, path, mtype](wxCommandEvent&) {
                 ReSelectMediaByType(path, mtype);
             }, reselectItem->GetId());
+        }
 
-            int brokenCount = 0;
-            for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
-                if (pt != mtype) continue;
-                std::shared_ptr<MediaCacheEntry> e;
-                switch (mtype) {
-                    case MediaType::Shader:     e = _sequenceMedia->GetShader(p); break;
-                    case MediaType::SVG:        e = _sequenceMedia->GetSVG(p); break;
-                    case MediaType::TextFile:   e = _sequenceMedia->GetTextFile(p); break;
-                    case MediaType::BinaryFile: e = _sequenceMedia->GetBinaryFile(p); break;
-                    case MediaType::Video:      e = _sequenceMedia->GetVideo(p); break;
-                    default: break;
-                }
-                if (e && !e->IsOk()) ++brokenCount;
-            }
-            if (brokenCount > 1) {
-                wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "s...");
-                menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
-                    BulkFindMediaByType(mtype);
-                }, bulkItem->GetId());
-            }
+        // Same as images: offer bulk repoint whenever there's more than one
+        // external (on-disk) item of this media type, regardless of whether
+        // any are broken. Embedded entries have no on-disk file to repoint,
+        // so they don't count.
+        int externalTypeCount = 0;
+        for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
+            if (pt != mtype) continue;
+            // GetMediaEmbedState() is a pure cache lookup, unlike the
+            // per-type GetShader()/GetSVG()/etc. getters, which load/reload
+            // the file from disk - this runs on every right-click, so avoid
+            // the I/O here.
+            if (!_sequenceMedia->GetMediaEmbedState(p).first) ++externalTypeCount;
+        }
+        if (externalTypeCount > 1) {
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+            wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "...");
+            menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
+                BulkFindMediaByType(mtype);
+            }, bulkItem->GetId());
         }
     }
 
@@ -1611,17 +1697,34 @@ void ManageMediaPanel::OnBulkFindImages()
 {
     if (_sequenceMedia == nullptr) return;
 
-    // Collect all broken image paths
-    std::vector<std::string> brokenPaths;
+    // Collect every external (non-embedded) image path, not just broken ones -
+    // lets users bulk-repoint a whole set of already-working images to a new
+    // folder, not only fix missing ones. Embedded images have no on-disk file
+    // to repoint from/to; relinking one would replace its embedded content
+    // with an external file reference, so they're excluded.
+    std::vector<std::string> mediaPaths;
     for (const auto& p : _sequenceMedia->GetImagePaths()) {
-        auto e = _sequenceMedia->GetImage(p);
-        if (e && !e->IsOk()) brokenPaths.push_back(p);
+        // GetMediaEmbedState() is a pure cache lookup, unlike GetImage(),
+        // which loads the file from disk if it isn't cached yet - this would
+        // otherwise front-load I/O for every image before the user has even
+        // chosen a folder to search.
+        if (!_sequenceMedia->GetMediaEmbedState(p).first) mediaPaths.push_back(p);
     }
-    if (brokenPaths.empty()) return;
+    if (mediaPaths.empty()) {
+        // Defensive: the context menu only offers this action when there are
+        // 2+ external images (same non-embedded check as above), so this
+        // shouldn't be reachable in practice. Kept as a safety net rather
+        // than a silent no-op in case that gating and this collection ever
+        // drift apart.
+        wxMessageBox("No external (on-disk) images to search for - all images in "
+                     "this sequence are embedded.",
+                     "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
+        return;
+    }
 
     // Ask user to pick a directory to search in
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
-    wxDirDialog dlg(this, "Select folder containing missing images", defaultDir,
+    wxDirDialog dlg(this, "Select folder to bulk-find images in", defaultDir,
                     wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
     if (dlg.ShowModal() != wxID_OK) return;
 
@@ -1673,40 +1776,23 @@ void ManageMediaPanel::OnBulkFindImages()
             outsideAction = rawSel + 1;  // no importedMedia slot, copy starts at 2
     }
 
-    // Scan broken images and try to find matches in the selected directory
+    // Built here, after the outside-folder choice (and its possible cancel),
+    // so a cancelled dialog doesn't pay for a recursive scan that goes unused.
+    BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
+
+    // Scan every image and look it up in the pre-built folder index
     int found = 0;
     int notFound = 0;
     std::string lastFixedPath;
-    for (const auto& oldPath : brokenPaths) {
-        // Extract just the filename from the broken path (handles Windows
+    for (const auto& oldPath : mediaPaths) {
+        // Extract just the filename from the path (handles Windows
         // backslash paths even when running on macOS/Linux)
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        // Look for the file in the search directory (and subdirectories)
-        wxString foundFile;
-        wxDir dir(searchDir);
-        if (dir.IsOpened()) {
-            // Try exact name in the top directory first
-            wxString candidate = searchDir + sep + ToStdString(nameToFind);
-            if (wxFileExists(candidate)) {
-                foundFile = candidate;
-            } else {
-                // Recurse into subdirectories
-                wxString f;
-                if (dir.GetFirst(&f, nameToFind, wxDIR_FILES | wxDIR_DIRS)) {
-                    foundFile = searchDir + sep + ToStdString(f);
-                } else {
-                    // Try a recursive traversal
-                    wxArrayString results;
-                    wxDir::GetAllFiles(searchDir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
-                    if (!results.IsEmpty())
-                        foundFile = results[0];
-                }
-            }
-        }
-
-        if (foundFile.IsEmpty()) { ++notFound; continue; }
+        const std::string* foundPath = LookupInIndex(folderIndex, ToStdString(nameToFind));
+        if (foundPath == nullptr) { ++notFound; continue; }
+        wxString foundFile(*foundPath);
 
         std::string pickedPath = ToStdString(foundFile);
         std::string finalPath = pickedPath;
@@ -1791,10 +1877,17 @@ void ManageMediaPanel::OnBulkFindImages()
     Populate(lastFixedPath);
 }
 
+void ManageMediaPanel::RewriteSequenceFacePaths(const std::string& oldPath, const std::string& newPath)
+{
+    if (_sequenceElements == nullptr || oldPath == newPath) return;
+    _sequenceElements->GetSequenceFaces().RewriteImagePath(oldPath, newPath);
+}
+
 std::map<std::string, std::pair<int,int>> ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::string& newPath)
 {
     std::map<std::string, std::pair<int,int>> dirtyModels;
     if (_sequenceElements == nullptr || oldPath == newPath) return dirtyModels;
+    RewriteSequenceFacePaths(oldPath, newPath);
 
     // model name -> [startMS, endMS] union of all affected effects
     const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
@@ -1944,56 +2037,53 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
 
     wxString typeName = wxString(MediaTypeName(type));
 
-    std::vector<std::string> brokenPaths;
+    // Collect every external (non-embedded) path of this type, not just
+    // broken ones - lets users bulk-repoint a whole set of already-working
+    // files to a new folder, not only fix missing ones. Embedded entries are
+    // excluded: ForceRefreshEntry() below unconditionally repoints to an
+    // on-disk file, which would erase an embedded entry's content and
+    // replace it with an external reference.
+    std::vector<std::string> mediaPaths;
     for (const auto& [path, mtype] : _sequenceMedia->GetAllMediaPaths()) {
         if (mtype != type) continue;
-        // Re-use GetAllMediaPaths result: load entry and check IsOk
-        // GetXxx() returns from cache; broken entries have IsOk()==false
-        std::shared_ptr<MediaCacheEntry> entry;
-        switch (type) {
-            case MediaType::Shader:     entry = _sequenceMedia->GetShader(path); break;
-            case MediaType::SVG:        entry = _sequenceMedia->GetSVG(path); break;
-            case MediaType::TextFile:   entry = _sequenceMedia->GetTextFile(path); break;
-            case MediaType::BinaryFile: entry = _sequenceMedia->GetBinaryFile(path); break;
-            case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
-            default: break;
-        }
-        if (entry && !entry->IsOk()) brokenPaths.push_back(path);
+        // GetMediaEmbedState() is a pure cache lookup, unlike the per-type
+        // GetShader()/GetSVG()/etc. getters, which load/reload the file from
+        // disk - this would otherwise front-load I/O for every entry before
+        // the user has even chosen a folder to search.
+        if (!_sequenceMedia->GetMediaEmbedState(path).first) mediaPaths.push_back(path);
     }
-    if (brokenPaths.empty()) return;
+    if (mediaPaths.empty()) {
+        // Defensive: same as OnBulkFindImages - the context menu only offers
+        // this action when there are 2+ external items of this type, so this
+        // shouldn't be reachable in practice. Kept as a safety net rather
+        // than a silent no-op in case that gating and this collection ever
+        // drift apart.
+        wxMessageBox("No external (on-disk) " + typeName.Lower() +
+                     " to search for - all are embedded.",
+                     "Bulk Find " + typeName, wxICON_INFORMATION | wxOK, this);
+        return;
+    }
 
     wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
     wxDirDialog dlg(this,
-                    "Select folder containing missing " + typeName.Lower(),
+                    "Select folder to bulk-find " + typeName.Lower() + " in",
                     defaultDir, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
     if (dlg.ShowModal() != wxID_OK) return;
 
     std::string searchDir = ToStdString(dlg.GetPath());
     ObtainAccessToURL(searchDir);
-    const std::string sep(1, wxFileName::GetPathSeparator());
+    BasenameIndex folderIndex = BuildBasenameIndex(searchDir);
 
     int found = 0;
     int notFound = 0;
     std::string lastFixedPath;
-    for (const auto& oldPath : brokenPaths) {
+    for (const auto& oldPath : mediaPaths) {
         wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
-        wxString foundFile;
-        wxDir dir(searchDir);
-        if (dir.IsOpened()) {
-            wxString candidate = searchDir + sep + ToStdString(nameToFind);
-            if (wxFileExists(candidate)) {
-                foundFile = candidate;
-            } else {
-                wxArrayString results;
-                wxDir::GetAllFiles(searchDir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
-                if (!results.IsEmpty())
-                    foundFile = results[0];
-            }
-        }
-
-        if (foundFile.IsEmpty()) { ++notFound; continue; }
+        const std::string* foundPath = LookupInIndex(folderIndex, ToStdString(nameToFind));
+        if (foundPath == nullptr) { ++notFound; continue; }
+        wxString foundFile(*foundPath);
 
         // finalAbsPath is the known absolute path; finalPath may be relativized below.
         std::string finalAbsPath = ToStdString(foundFile);
@@ -2373,6 +2463,8 @@ void ManageMediaPanel::OnRenameButtonClick(wxCommandEvent& event)
         }
     }
 
+    RewriteSequenceFacePaths(oldPath, newPathStr);
+
     Populate(newPathStr);
 }
 
@@ -2538,6 +2630,8 @@ void ManageMediaPanel::OnExtractAllButtonClick(wxCommandEvent& event)
             }
         }
 
+        RewriteSequenceFacePaths(oldPath, finalPath);
+
         // Update effect references oldPath -> finalPath
         if (_sequenceElements != nullptr && finalPath != oldPath) {
             auto scanLayer = [&](EffectLayer* layer) {
@@ -2657,6 +2751,12 @@ void ManageMediaPanel::OnRemoveButtonClick(wxCommandEvent& event)
                 }
             }
         }
+    }
+
+    // Sequence-level face definitions reference images outside effect settings
+    if (_sequenceElements != nullptr) {
+        for (const auto& path : toRemove)
+            usageCount += _sequenceElements->GetSequenceFaces().CountImageReferences(path);
     }
 
     // Warn if any effects reference the media

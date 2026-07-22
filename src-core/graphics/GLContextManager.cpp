@@ -19,41 +19,17 @@
 #include <log.h>
 
 // =========================================================================
-// Windows/Linux ANGLE build (USE_GLES) — the offscreen ShaderEffect pool uses
-// pbuffer contexts from xlAngleEGL, sharing the single EGL root group with the
-// on-screen canvas so programs/textures are shared across the process.  All
-// EGL/GLES headers stay inside AngleEGL.cpp; this file only sees the opaque
-// handle API.
+// Apple — CGL on macOS; iOS has no GL shader path (the native Metal
+// ShaderEffect handles all shader rendering) so it gets a no-op manager to
+// keep shared callers linking.
 // =========================================================================
-#if defined(USE_GLES) && !defined(__APPLE__)
+#if defined(__APPLE__)
 
-#include "AngleEGL.h"
+#include <TargetConditionals.h>
 
-#include <future>
+#if TARGET_OS_IPHONE
 
-// ANGLE's D3D11 (Windows) / Vulkan (Linux) backend is NOT safe under concurrent
-// multi-threaded rendering, and bouncing a context between arbitrary render-pool
-// threads crashes it.  Mirror the proven native-Windows model: run ALL offscreen
-// GL on ONE dedicated worker thread, with a single pooled context.  ShaderEffect
-// calls AcquireContext/MakeCurrent/render/Release inside ExecuteOnGLThread, so
-// everything below runs on that single thread.
-static constexpr int kMaxPoolSize = 1;
-
-struct GLContextManager::PlatformState {
-    std::list<void*> pool;   // xlAngleEGL::Handle entries
-    int contextCount = 0;
-    std::mutex poolMutex;
-    std::condition_variable poolNotifier;
-
-    // Dedicated GL worker thread — all offscreen GL runs here so ANGLE only ever
-    // sees a single, stable caller thread.
-    std::thread worker;
-    std::queue<std::function<void()>> taskQueue;
-    std::mutex taskMutex;
-    std::condition_variable taskCv;
-    std::once_flag workerStartFlag;
-    bool workerStop = false;
-};
+struct GLContextManager::PlatformState {};
 
 GLContextManager& GLContextManager::Instance() {
     static GLContextManager instance;
@@ -61,336 +37,25 @@ GLContextManager& GLContextManager::Instance() {
 }
 
 GLContextManager::~GLContextManager() {
-    Shutdown();
 }
 
 void GLContextManager::Initialize(const InitParams& params) {
-    if (_initialized) return;
     _params = params;
-    _platform = new PlatformState();
     _initialized = true;
 }
 
 GLContextManager::ContextHandle GLContextManager::AcquireContext() {
-    if (!_platform) return nullptr;
-    if (!xlAngleEGL::IsInitialized() && !xlAngleEGL::Initialize()) {
-        return nullptr;
-    }
-
-    std::unique_lock<std::mutex> lock(_platform->poolMutex);
-    if (_platform->pool.empty() && _platform->contextCount < kMaxPoolSize) {
-        lock.unlock();
-        void* h = xlAngleEGL::CreatePbufferContext();
-        lock.lock();
-        if (h) {
-            _platform->pool.push_front(h);
-            ++_platform->contextCount;
-        } else if (_platform->contextCount == 0) {
-            return nullptr;  // first-ever creation failed; nothing in flight
-        }
-    }
-    while (_platform->pool.empty()) {
-        _platform->poolNotifier.wait(lock);
-    }
-    void* h = _platform->pool.front();
-    _platform->pool.pop_front();
-    return (ContextHandle)h;
-}
-
-bool GLContextManager::MakeCurrent(ContextHandle ctx) {
-    return xlAngleEGL::MakeCurrent(ctx);
-}
-
-void GLContextManager::DoneCurrent(ContextHandle /*ctx*/) {
-    xlAngleEGL::ClearCurrent();
-}
-
-void GLContextManager::ReleaseContext(ContextHandle ctx) {
-    if (!_platform || !ctx) return;
-    xlAngleEGL::ClearCurrent();
-    {
-        std::unique_lock<std::mutex> lock(_platform->poolMutex);
-        _platform->pool.push_front(ctx);
-    }
-    _platform->poolNotifier.notify_all();
-}
-
-void GLContextManager::ExecuteOnGLThread(std::function<void()> fn) {
-    if (!fn || !_platform) return;
-
-    // Single-threaded ANGLE model (no dedicated GL worker thread): run the
-    // off-screen GL synchronously on the calling thread, serialized against the
-    // on-screen canvas render via the shared render lock so ANGLE's shared D3D11
-    // device is only ever submitted from one thread at a time.  Combined with the
-    // pool cap of 1 (only one pbuffer context exists), this keeps every ANGLE
-    // submission strictly serialized without bouncing work onto a background
-    // thread that would desync the device's virtualized-context state.
-    xlAngleEGL::RenderGuard guard;
-    fn();
-}
-
-void GLContextManager::Shutdown() {
-    if (!_platform) return;
-
-    // Tear down pool contexts on the worker (the thread that created them), then
-    // stop and join it.
-    if (_platform->worker.joinable()) {
-        std::promise<void> drained;
-        auto drainedFuture = drained.get_future();
-        {
-            std::unique_lock<std::mutex> lock(_platform->taskMutex);
-            _platform->taskQueue.push([this, &drained]() {
-                std::unique_lock<std::mutex> plock(_platform->poolMutex);
-                for (auto h : _platform->pool) {
-                    xlAngleEGL::DestroyContext(h);
-                }
-                _platform->pool.clear();
-                _platform->contextCount = 0;
-                drained.set_value();
-            });
-        }
-        _platform->taskCv.notify_one();
-        drainedFuture.get();
-
-        {
-            std::unique_lock<std::mutex> lock(_platform->taskMutex);
-            _platform->workerStop = true;
-        }
-        _platform->taskCv.notify_one();
-        _platform->worker.join();
-    } else {
-        std::unique_lock<std::mutex> lock(_platform->poolMutex);
-        for (auto h : _platform->pool) {
-            xlAngleEGL::DestroyContext(h);
-        }
-        _platform->pool.clear();
-        _platform->contextCount = 0;
-    }
-
-    delete _platform;
-    _platform = nullptr;
-    _initialized = false;
-}
-
-void* GLContextManager::GetNativeDisplay() const {
     return nullptr;
 }
 
-// =========================================================================
-// Apple — EGL/ANGLE (USE_GLES) or CGL (legacy desktop GL)
-// =========================================================================
-#elif defined(__APPLE__)
-
-#ifdef USE_GLES
-
-// ---- ANGLE/EGL implementation (OpenGL ES 3.0 on Metal) ----
-
-#define EGL_EGL_PROTOTYPES 1
-#define GL_GLES_PROTOTYPES 1
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <EGL/eglext_angle.h>
-#include <GLES3/gl3.h>
-
-// ANGLE's Metal backend is NOT thread-safe — only one context may be active
-// at a time.  Pool size 1 ensures callers serialize naturally: the second
-// thread blocks on the condition_variable until the first releases.
-static constexpr int kMaxPoolSize = 1;
-
-struct GLContextManager::PlatformState {
-    EGLDisplay display = EGL_NO_DISPLAY;
-    EGLConfig  config  = nullptr;
-    EGLContext sharedContext = EGL_NO_CONTEXT;
-
-    struct PoolEntry {
-        EGLContext context;
-        EGLSurface surface;  // 1x1 pbuffer; required for eglMakeCurrent
-    };
-
-    std::list<PoolEntry> pool;
-    int contextCount = 0;
-    std::mutex poolMutex;
-    std::condition_variable poolNotifier;
-};
-
-using PlatformStateEGL = GLContextManager::PlatformState;
-
-static bool initEGLDisplay(PlatformStateEGL* ps, uint64_t metalDeviceRegistryID) {
-    // Request ANGLE's Metal backend, optionally targeting a specific GPU
-    std::vector<EGLAttrib> displayAttribs = {
-        EGL_PLATFORM_ANGLE_TYPE_ANGLE,
-        EGL_PLATFORM_ANGLE_TYPE_METAL_ANGLE,
-    };
-    if (metalDeviceRegistryID != 0) {
-        // Force ANGLE onto the same Metal device as the compute effects
-        displayAttribs.push_back(EGL_PLATFORM_ANGLE_DEVICE_ID_HIGH_ANGLE);
-        displayAttribs.push_back(static_cast<EGLAttrib>(metalDeviceRegistryID >> 32));
-        displayAttribs.push_back(EGL_PLATFORM_ANGLE_DEVICE_ID_LOW_ANGLE);
-        displayAttribs.push_back(static_cast<EGLAttrib>(metalDeviceRegistryID & 0xFFFFFFFF));
-    }
-    displayAttribs.push_back(EGL_NONE);
-
-    ps->display = eglGetPlatformDisplay(
-        EGL_PLATFORM_ANGLE_ANGLE,
-        nullptr,
-        displayAttribs.data());
-
-    if (ps->display == EGL_NO_DISPLAY) {
-        spdlog::error("GLContextManager: eglGetPlatformDisplay failed");
-        return false;
-    }
-
-    EGLint major = 0, minor = 0;
-    if (!eglInitialize(ps->display, &major, &minor)) {
-        spdlog::error("GLContextManager: eglInitialize failed: 0x{:X}", eglGetError());
-        return false;
-    }
-    if (metalDeviceRegistryID != 0) {
-        spdlog::info("GLContextManager: EGL {}.{} (ANGLE/Metal, device 0x{:X})", major, minor, metalDeviceRegistryID);
-    } else {
-        spdlog::info("GLContextManager: EGL {}.{} (ANGLE/Metal, default device)", major, minor);
-    }
-
-    // Choose an RGBA8 config that supports pbuffer surfaces
-    const EGLint configAttribs[] = {
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
-        EGL_SURFACE_TYPE,    EGL_PBUFFER_BIT,
-        EGL_RED_SIZE,        8,
-        EGL_GREEN_SIZE,      8,
-        EGL_BLUE_SIZE,       8,
-        EGL_ALPHA_SIZE,      8,
-        EGL_NONE
-    };
-    EGLint numConfigs = 0;
-    if (!eglChooseConfig(ps->display, configAttribs, &ps->config, 1, &numConfigs) || numConfigs == 0) {
-        spdlog::error("GLContextManager: eglChooseConfig failed: 0x{:X}", eglGetError());
-        return false;
-    }
-    return true;
-}
-
-static PlatformStateEGL::PoolEntry
-createEGLContext(PlatformStateEGL* ps, EGLContext shared) {
-    const EGLint contextAttribs[] = {
-        EGL_CONTEXT_CLIENT_VERSION, 3,
-        EGL_NONE
-    };
-    EGLContext ctx = eglCreateContext(ps->display, ps->config, shared, contextAttribs);
-    if (ctx == EGL_NO_CONTEXT) {
-        spdlog::error("GLContextManager: eglCreateContext failed: 0x{:X}", eglGetError());
-        return { EGL_NO_CONTEXT, EGL_NO_SURFACE };
-    }
-
-    // Create a 1x1 pbuffer surface — needed for eglMakeCurrent but we render to FBOs
-    const EGLint pbufferAttribs[] = {
-        EGL_WIDTH,  1,
-        EGL_HEIGHT, 1,
-        EGL_NONE
-    };
-    EGLSurface surface = eglCreatePbufferSurface(ps->display, ps->config, pbufferAttribs);
-    if (surface == EGL_NO_SURFACE) {
-        spdlog::error("GLContextManager: eglCreatePbufferSurface failed: 0x{:X}", eglGetError());
-        eglDestroyContext(ps->display, ctx);
-        return { EGL_NO_CONTEXT, EGL_NO_SURFACE };
-    }
-
-    // Log GL info on first successful context
-    eglMakeCurrent(ps->display, surface, surface, ctx);
-    const char* ver  = (const char*)glGetString(GL_VERSION);
-    const char* rend = (const char*)glGetString(GL_RENDERER);
-    const char* vend = (const char*)glGetString(GL_VENDOR);
-    spdlog::info("GLContextManager - glVer: {} ({}) ({})",
-                 ver ? ver : "?", rend ? rend : "?", vend ? vend : "?");
-    eglMakeCurrent(ps->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
-    return { ctx, surface };
-}
-
-GLContextManager& GLContextManager::Instance() {
-    static GLContextManager instance;
-    return instance;
-}
-
-GLContextManager::~GLContextManager() {
-    Shutdown();
-}
-
-void GLContextManager::Initialize(const InitParams& params) {
-    if (_initialized) return;
-    _params = params;
-    _platform = new PlatformState();
-    _initialized = true;
-}
-
-GLContextManager::ContextHandle GLContextManager::AcquireContext() {
-    if (!_platform) return nullptr;
-
-    std::unique_lock<std::mutex> lock(_platform->poolMutex);
-
-    // Lazy-init the EGL display and shared context
-    if (_platform->display == EGL_NO_DISPLAY) {
-        lock.unlock();
-        if (!initEGLDisplay(_platform, _params.metalDeviceRegistryID)) return nullptr;
-        auto shared = createEGLContext(_platform, EGL_NO_CONTEXT);
-        lock.lock();
-        if (shared.context == EGL_NO_CONTEXT) return nullptr;
-        _platform->sharedContext = shared.context;
-        // The shared context's surface is not pooled; it stays with the shared ctx
-    }
-
-    // Grow pool if below max
-    if (_platform->pool.empty() && _platform->contextCount < kMaxPoolSize) {
-        lock.unlock();
-        auto entry = createEGLContext(_platform, _platform->sharedContext);
-        lock.lock();
-        if (entry.context != EGL_NO_CONTEXT) {
-            _platform->pool.push_front(entry);
-            ++_platform->contextCount;
-        } else if (_platform->contextCount == 0) {
-            // First-ever creation failed and there's nothing in flight to
-            // wait for — fail fast instead of deadlocking on poolNotifier.
-            return nullptr;
-        }
-    }
-
-    // Wait for a context to become available
-    while (_platform->pool.empty()) {
-        _platform->poolNotifier.wait(lock);
-    }
-
-    auto entry = _platform->pool.front();
-    _platform->pool.pop_front();
-
-    // Pack both context and surface into a single opaque handle
-    auto* handle = new PlatformState::PoolEntry(entry);
-    return (ContextHandle)handle;
-}
-
-bool GLContextManager::MakeCurrent(ContextHandle ctx) {
-    auto* entry = (PlatformState::PoolEntry*)ctx;
-    if (entry && _platform) {
-        return eglMakeCurrent(_platform->display, entry->surface, entry->surface, entry->context) == EGL_TRUE;
-    }
+bool GLContextManager::MakeCurrent(ContextHandle) {
     return false;
 }
 
-void GLContextManager::DoneCurrent(ContextHandle /*ctx*/) {
-    if (_platform && _platform->display != EGL_NO_DISPLAY) {
-        eglMakeCurrent(_platform->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    }
+void GLContextManager::DoneCurrent(ContextHandle) {
 }
 
-void GLContextManager::ReleaseContext(ContextHandle ctx) {
-    if (!_platform || !ctx) return;
-
-    auto* entry = (PlatformState::PoolEntry*)ctx;
-    DoneCurrent(ctx);
-
-    std::unique_lock<std::mutex> lock(_platform->poolMutex);
-    _platform->pool.push_front(*entry);
-    delete entry;
-    lock.unlock();
-    _platform->poolNotifier.notify_all();
+void GLContextManager::ReleaseContext(ContextHandle) {
 }
 
 void GLContextManager::ExecuteOnGLThread(std::function<void()> fn) {
@@ -398,35 +63,9 @@ void GLContextManager::ExecuteOnGLThread(std::function<void()> fn) {
 }
 
 void GLContextManager::Shutdown() {
-    if (!_platform) return;
-
-    std::unique_lock<std::mutex> lock(_platform->poolMutex);
-    for (auto& e : _platform->pool) {
-        eglDestroySurface(_platform->display, e.surface);
-        eglDestroyContext(_platform->display, e.context);
-    }
-    _platform->pool.clear();
-    if (_platform->sharedContext != EGL_NO_CONTEXT) {
-        eglDestroyContext(_platform->display, _platform->sharedContext);
-        _platform->sharedContext = EGL_NO_CONTEXT;
-    }
-    if (_platform->display != EGL_NO_DISPLAY) {
-        eglTerminate(_platform->display);
-        _platform->display = EGL_NO_DISPLAY;
-    }
-    _platform->contextCount = 0;
-    lock.unlock();
-
-    delete _platform;
-    _platform = nullptr;
-    _initialized = false;
 }
 
-void* GLContextManager::GetNativeDisplay() const {
-    return _platform ? (void*)_platform->display : nullptr;
-}
-
-#else // !USE_GLES — legacy CGL implementation
+#else // macOS — legacy CGL implementation
 
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl3.h>
@@ -652,13 +291,9 @@ void GLContextManager::Shutdown() {
     _initialized = false;
 }
 
-void* GLContextManager::GetNativeDisplay() const {
-    return nullptr; // CGL has no EGL display
-}
-
 #pragma clang diagnostic pop
 
-#endif // USE_GLES
+#endif // TARGET_OS_IPHONE
 
 // =========================================================================
 // Windows — Hidden HWND + WGL implementation
@@ -1006,6 +641,11 @@ bool GLContextManager::MakeCurrent(ContextHandle ctx) {
                 _platform->shaderShareRootHwnd &&
                 !IsWindow(_platform->shaderShareRootHwnd)) {
                 spdlog::warn("GLContextManager: share-root also invalidated by TDR, rebuilding");
+                // The whole share group dies with the root: every GL object id
+                // cached anywhere (ShaderRenderCache programs/buffers/textures)
+                // is now dangling.  Bump the generation so those caches reset
+                // instead of binding stale — or worse, recycled — ids.
+                BumpShareGroupGeneration();
                 wglDeleteContext(_platform->shaderShareRoot);
                 _platform->shaderShareRoot = nullptr;
                 if (_platform->shaderShareRootHdc) {
@@ -1219,10 +859,6 @@ void GLContextManager::Shutdown() {
     delete _platform;
     _platform = nullptr;
     _initialized = false;
-}
-
-void* GLContextManager::GetNativeDisplay() const {
-    return nullptr; // WGL has no EGL display
 }
 
 // =========================================================================
@@ -1573,13 +1209,6 @@ void GLContextManager::Shutdown() {
     delete _platform;
     _platform = nullptr;
     _initialized = false;
-}
-
-void* GLContextManager::GetNativeDisplay() const {
-    // Returns nullptr on Linux: the EGL display is internal to this class and
-    // not intended for external texture-sharing.  Callers requiring the
-    // EGLDisplay for interop must use platform-specific APIs directly.
-    return nullptr;
 }
 
 #endif

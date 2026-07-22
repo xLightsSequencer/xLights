@@ -66,6 +66,7 @@
 | Model clipboard copy/cut/paste (layout) | shortcut | ✅ | ✅ | parity | P3 | hard | feasible | Desktop DoCopy/DoPaste (CopyPasteBaseObject XML). iPad: bridge `copyModelsToString:` (XmlSerializer::SerializeModels → string) + `pasteModelsFromString:` (deserialize, uniquify, clear controller, +50/+50 offset, RecalcStartChannels) wired to ⌘C/⌘V/⌘X in `LayoutClipboardKeysModifier` (LayoutEditorView.swift). Pasteboard carries a custom `com.xlights.layoutmodels` UTI (declared in xLights-iPad Info.plist) + plain-text fallback, so paste works cross-sequence. |
 | Model keyboard nudge (arrows ±) | shortcut | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Nudge(); iPad arrow-key nudge + per-step undo. |
 | Per-type property grid (all model types) | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad descriptor pane mirrors desktop adapters per type. |
+| Cube model: cylinder shape / hollow % / row offset editing | panel | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop commit 676ad64c5 (#6559) added CubeShape/CubeHollow/CubeRowOffset to CubePropertyAdapter (src-core/models/CubeModel.cpp + src-core/XmlSerializer/); cylinder mode relabels Width/Depth as Circumference/Layers. Shared core renders these cube variants on iPad automatically — only the property-grid editing controls are missing from the iPad cube descriptor pane. |
 | Model tag color | panel | ✅ | ✅ | parity | P2 | easy | feasible | tagColorPicker. |
 | Model active/inactive | panel | ✅ | ✅ | parity | P1 | easy | feasible | boolBinding "active". |
 | Model controller-port connection | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad controllerConnectionFields (port/protocol/smart-remote gated by caps). #6518 restored port management for from-base models in core ModelManager.cpp — shared, auto-applies to iPad. |
@@ -114,7 +115,7 @@
 | Model import (.xmodel / multi-model) | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad .fileImporter + multi-model handling (xmodelFileIsMultiModel). |
 | Multi-model import preserves relative positions | dialog | ✅ | ✅ | parity | P3 | medium | feasible | Desktop #6438: importing several models from one .xmodel keeps their original relative layout positions. iPad already does this — `importXmodelFromPath:` (XLMetalBridge.mm:2520-2567) detects the `<models>` root, anchors the primary at the touch point, and re-applies each sibling's file-space `WorldPosX/Y/Z` delta from the primary (`primaryNew + (sibFilePos - primaryFilePos)`), the same min-corner-relative offset desktop's FinalizeModel computes. Verified at audit time; flipped. |
 | Import fixture from GDTF file | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop GdtfParser → CreateDmxModelFromGdtf. iPad: `importXmodelFromPath:` (XLMetalBridge.mm) now branches on the `.gdtf` extension — `LoadGdtfDescriptionXml` unzips `description.xml` (minizip), then the shared core `XmlSerialize::ParseGdtfDescriptionXml` + `CreateDmxModelFromGdtfData` build the DMX model (same calls desktop makes), placed under the touch point via the existing import path. **Multi-mode fixtures now get a mode picker**: `gdtfModesForFile:` lists the DMX modes, `GdtfModePickerSheet` presents the chooser, and `importGdtfFromPath:mode:` forces the choice through ChooseFromList (`iPadGdtfModeCallbacks`); single-mode fixtures skip the sheet. |
-| Import Previews/Models/Groups (from RGBeffects) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS. iPad: no UI. |
+| Import Previews/Models/Groups (from RGBeffects) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS. iPad: no UI. Desktop dialog gained a live filter box (#6635, `ImportPreviewsModelsDialog`); no new gap — the whole dialog is still iPad-missing, so the filter comes along whenever this is built. |
 | Import LOR S5 models/groups | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORT_MODELS_FROM_LORS5. iPad: no UI. |
 | Vendor model browser (download .xmodel/wiring) | dialog | ❌ | ✅ | desktop-missing | P2 | hard | feasible | iPad VendorBrowserSheet (XLVendorCatalog). Desktop downloads .xmodel manually. |
 | Map-from-lights (FPP structured-light scan) | dialog | ❌ | ✅ | desktop-missing | P3 | hard | restricted | iPad MapFromLightsWizard (camera + FPP). Needs FPP controller + camera; desktop has no camera path. |
@@ -151,7 +152,7 @@
 | View object delete | menu | ✅ | ✅ | parity | P2 | medium | feasible | iPad deleteViewObject + confirm. |
 | View object drag-move / rotate / scale | gesture | ✅ | ✅ | parity | P2 | medium | feasible | Both handle-based. |
 | Image object file picker | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad generic object file-importer. |
-| Mesh object file picker (.obj/.3ds/.stl/.ply) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad mesh-file picker w/ UTType filter. |
+| Mesh object file picker (.obj/.3ds/.stl/.ply) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad mesh-file picker w/ UTType filter. Obj files inside the show/media dirs save show-relative on both platforms (shared BaseSerializingVisitor + FileUtils::MakeRelativeFile; iPad in-place save matched in iPadRenderContext.cpp). |
 | Terrain object height-map / editing | dialog | ✅ | 🟡 | ipad-missing | P3 | hard | feasible | iPad terrain edit target flow; full height-map paint scope narrower than desktop TerrainObjectPropertyAdapter. |
 | DMX MovingHead / MovingHeadAdv create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad AddModelSheet + descriptor (fixture/mode), MovingHeadFixtureRowView. |
 | DMX Servo / Servo3D create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad add types + descriptor. |
@@ -373,6 +374,16 @@
   equivalent of desktop's hover tooltip.
 - **Per-node individual start channels** — desktop has a per-node
   editor; iPad exposes only the start-channel string. Ease: medium.
+- **Cube model: cylinder shape / hollow % / row offset editing.**
+  Desktop commit 676ad64c5 (#6559) added a Cube/Cylinder shape
+  selector (`CubeShape` XML key), `CubeHollow` (hollow %), and
+  `CubeRowOffset` to the `CubePropertyAdapter`; in cylinder mode
+  the Width/Depth labels become Circumference/Layers. The geometry
+  lives in shared core (`src-core/models/CubeModel.cpp`,
+  `src-core/XmlSerializer/` keys) so iPad renders cylinder/hollow
+  cube models correctly via the shared preview. Only the new
+  property-grid editing controls are absent from the iPad cube
+  descriptor pane. Ease: easy.
 
 ### Infeasible
 

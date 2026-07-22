@@ -78,6 +78,8 @@ parts:
       - wget
       - pkg-config
       - cbp2make           # converts xLights.cbp -> xLights.cbp.mak
+      - cmake              # builds the glslang submodule (Makefile `glslang` target)
+      - glslc              # compiles the Vulkan GLSL kernels to SPIR-V headers
       # wxWidgets 3.3 build dependencies
       - libgtk-3-dev
       - libgstreamer1.0-dev
@@ -147,11 +149,12 @@ parts:
       - libpulse0
       - libasound2t64
       - libportmidi0
-      # OpenGL / EGL
+      # OpenGL / EGL / Vulkan
       - libgl1
       - libglu1-mesa
       - libgles2
       - libegl1
+      - libvulkan1       # volk dlopen()s the loader for the Vulkan effect backend
       # HTTP (controller uploads)
       - libcurl4t64
       # Compression

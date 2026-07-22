@@ -27,7 +27,7 @@ static const std::string TEXTCTRL_On_Cycles("TEXTCTRL_On_Cycles");
 int OnEffect::sStartDefault = 100;
 int OnEffect::sEndDefault = 100;
 bool OnEffect::sShimmerDefault = false;
-double OnEffect::sCyclesDefault = 1.0;
+float OnEffect::sCyclesDefault = 1.0f;
 int OnEffect::sTransparencyDefault = 0;
 int OnEffect::sTransparencyMin = 0;
 int OnEffect::sTransparencyMax = 100;
@@ -47,7 +47,7 @@ void OnEffect::OnMetadataLoaded()
     sStartDefault = GetIntDefault("Eff_On_Start", sStartDefault);
     sEndDefault = GetIntDefault("Eff_On_End", sEndDefault);
     sShimmerDefault = GetBoolDefault("On_Shimmer", sShimmerDefault);
-    sCyclesDefault = GetDoubleDefault("On_Cycles", sCyclesDefault);
+    sCyclesDefault = GetFloatDefault("On_Cycles", sCyclesDefault);
     sTransparencyDefault = GetIntDefault("On_Transparency", sTransparencyDefault);
     sTransparencyMin = (int)GetMinFromMetadata("On_Transparency", sTransparencyMin);
     sTransparencyMax = (int)GetMaxFromMetadata("On_Transparency", sTransparencyMax);
@@ -137,7 +137,7 @@ void OnEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffer 
     int start = SettingsMap.GetInt(TEXTCTRL_Eff_On_Start, sStartDefault);
     int end = SettingsMap.GetInt(TEXTCTRL_Eff_On_End, sEndDefault);
     bool shimmer = SettingsMap.GetInt(CHECKBOX_On_Shimmer, sShimmerDefault ? 1 : 0) > 0;
-    float cycles = SettingsMap.GetDouble(TEXTCTRL_On_Cycles, sCyclesDefault);
+    float cycles = SettingsMap.GetFloat(TEXTCTRL_On_Cycles, sCyclesDefault);
     
     int cidx = 0;
     if (shimmer) {

@@ -10,7 +10,11 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
+#include <cstdint>
+#include <cstring>
 #include <map>
+#include <memory>
 #include <string>
 #include <algorithm>
 #include <cerrno>
@@ -24,25 +28,38 @@
 class EffectManager;
 
 class SettingValue : public std::string {
-    enum Type {
-        STRING,
-        BOOLEAN,
-        INT,
-        FLOAT,
-        DOUBLE
+    enum Type : uint64_t {
+        STRING = 0, // == no cached conversion
+        BOOLEAN = 1,
+        INT = 2,
+        FLOAT = 3,
     };
-    mutable Type curType = STRING;
-    union {
-        bool bt;
-        int it;
-        float ft;
-        double dt;
-    } mutable valHolder;
+    // Packed lazy-parse cache: low 8 bits = Type tag, upper 32 bits = the
+    // value's bit pattern, in ONE atomic word.  The per-model parallel
+    // render shares a single SettingsMap across threads, so the previous
+    // separate curType + union could publish the tag before the value (or
+    // tear across a concurrent re-parse) and hand an effect a garbage
+    // parameter on the frame that first read it.  Doubles don't fit the
+    // packed word and are rare in render paths, so getDouble just parses
+    // every call.  Concurrent first-reads may both parse, but they store
+    // the identical packed word — benign.
+    mutable std::atomic<uint64_t> _cache{ 0 };
+
+    static constexpr uint64_t pack(Type t, uint32_t bits) {
+        return ((uint64_t)bits << 32) | (uint64_t)t;
+    }
+
 public:
-    SettingValue() : std::string(""), curType(STRING) {}
-    SettingValue(const std::string &s) : std::string(s), curType(STRING) {}
-    SettingValue(const char *s) : std::string(s), curType(STRING) {}
-    SettingValue(const SettingValue& v) = default;
+    SettingValue() :
+        std::string("") {}
+    SettingValue(const std::string& s) :
+        std::string(s) {}
+    SettingValue(const char* s) :
+        std::string(s) {}
+    SettingValue(const SettingValue& v) :
+        std::string(v) {
+        _cache.store(v._cache.load(std::memory_order_relaxed), std::memory_order_relaxed);
+    }
 
     // Invalidate the cached type-converted value whenever the string
     // is reassigned via an inherited std::string op. Without this,
@@ -54,86 +71,152 @@ public:
     // at this layer so direct mutation stays correct.
     SettingValue& operator=(const std::string& s) {
         std::string::operator=(s);
-        curType = STRING;
+        _cache.store(0, std::memory_order_relaxed);
         return *this;
     }
     SettingValue& operator=(const char* s) {
         std::string::operator=(s);
-        curType = STRING;
+        _cache.store(0, std::memory_order_relaxed);
         return *this;
     }
     SettingValue& operator=(const SettingValue& v) {
         if (this != &v) {
             std::string::operator=(v);
-            curType = STRING;
+            _cache.store(v._cache.load(std::memory_order_relaxed), std::memory_order_relaxed);
         }
         return *this;
     }
 
     bool getBool() const {
-        if (curType != BOOLEAN) {
-            valHolder.bt = length() >= 1 && this->at(0) == '1';
-            curType = BOOLEAN;
+        uint64_t c = _cache.load(std::memory_order_relaxed);
+        if ((c & 0xFF) != BOOLEAN) {
+            bool b = length() >= 1 && this->at(0) == '1';
+            c = pack(BOOLEAN, b ? 1 : 0);
+            _cache.store(c, std::memory_order_relaxed);
         }
-        return valHolder.bt;
+        return (c >> 32) != 0;
     }
     int getInt(const int &def) const {
-        if (curType != INT) {
+        uint64_t c = _cache.load(std::memory_order_relaxed);
+        if ((c & 0xFF) != INT) {
             const char* s = this->c_str();
             char* end = nullptr;
             errno = 0;
             long v = std::strtol(s, &end, 10);
+            int result;
             if (end == s || errno == ERANGE || v > INT_MAX || v < INT_MIN) {
-                valHolder.it = def;
+                result = def;
             } else {
-                valHolder.it = static_cast<int>(v);
+                result = static_cast<int>(v);
             }
-            curType = INT;
+            c = pack(INT, static_cast<uint32_t>(result));
+            _cache.store(c, std::memory_order_relaxed);
         }
-        return valHolder.it;
+        return static_cast<int>(static_cast<uint32_t>(c >> 32));
     }
     float getFloat(const float &def) const {
-        if (curType != FLOAT) {
+        uint64_t c = _cache.load(std::memory_order_relaxed);
+        if ((c & 0xFF) != FLOAT) {
             const char* s = this->c_str();
             char* end = nullptr;
             errno = 0;
             float v = std::strtof(s, &end);
             if (end == s || errno == ERANGE) {
-                valHolder.ft = def;
-            } else {
-                valHolder.ft = v;
+                v = def;
             }
-            curType = FLOAT;
+            uint32_t bits;
+            std::memcpy(&bits, &v, sizeof(bits));
+            c = pack(FLOAT, bits);
+            _cache.store(c, std::memory_order_relaxed);
         }
-        return valHolder.ft;
+        uint32_t bits = static_cast<uint32_t>(c >> 32);
+        float f;
+        std::memcpy(&f, &bits, sizeof(f));
+        return f;
     }
     double getDouble(const double &def) const {
-        if (curType != DOUBLE) {
-            const char* s = this->c_str();
-            char* end = nullptr;
-            errno = 0;
-            double v = std::strtod(s, &end);
-            if (end == s || errno == ERANGE) {
-                valHolder.dt = def;
-            } else {
-                valHolder.dt = v;
-            }
-            curType = DOUBLE;
+        const char* s = this->c_str();
+        char* end = nullptr;
+        errno = 0;
+        double v = std::strtod(s, &end);
+        if (end == s || errno == ERANGE) {
+            return def;
         }
-        return valHolder.dt;
+        return v;
     }
+};
+
+// Opaque per-instance derived-data cache attachable to a SettingsMap by hot
+// render paths (see RenderableEffect's GetValueCurve* memoization).  Contract:
+// the cache is a pure function of the map's contents - ANY mutation of the map
+// destroys it, and copies/moves never carry it - so an implementation may hold
+// pointers into the map's own nodes.  Concurrent READERS of one map exist
+// (RenderEffectFromMap's per-model fan-out renders one effect across a group's
+// model buffers in parallel with a shared map), so the attach is a
+// compare-exchange and implementations must make their own internals
+// thread-safe; mutation-while-reading is as undefined as it always was for
+// the map itself.
+class SettingsMapRenderCache {
+public:
+    virtual ~SettingsMapRenderCache() = default;
 };
 
 class SettingsMap {
     std::map<std::string, SettingValue> _internal;
+    // Derived data only (see SettingsMapRenderCache); logically not part of
+    // the map's value, so const accessors may attach it.
+    mutable std::atomic<SettingsMapRenderCache*> _renderCache{ nullptr };
+
+    void InvalidateRenderCache() {
+        delete _renderCache.exchange(nullptr, std::memory_order_acq_rel);
+    }
 public:
     SettingsMap() {}
-    virtual ~SettingsMap() {}
+    SettingsMap(const SettingsMap& o) : _internal(o._internal) {}
+    SettingsMap& operator=(const SettingsMap& o) {
+        if (this != &o) {
+            _internal = o._internal;
+            InvalidateRenderCache();
+        }
+        return *this;
+    }
+    SettingsMap(SettingsMap&& o) noexcept : _internal(std::move(o._internal)) {
+        o.InvalidateRenderCache();
+    }
+    SettingsMap& operator=(SettingsMap&& o) noexcept {
+        _internal = std::move(o._internal);
+        InvalidateRenderCache();
+        o.InvalidateRenderCache();
+        return *this;
+    }
+    virtual ~SettingsMap() {
+        InvalidateRenderCache();
+    }
+
+    SettingsMapRenderCache* GetRenderCache() const { return _renderCache.load(std::memory_order_acquire); }
+    // Attach-once: on a lost race the caller's candidate is discarded and the
+    // winner's cache returned.
+    SettingsMapRenderCache* AttachRenderCache(std::unique_ptr<SettingsMapRenderCache> c) const {
+        SettingsMapRenderCache* expected = nullptr;
+        SettingsMapRenderCache* raw = c.get();
+        if (_renderCache.compare_exchange_strong(expected, raw, std::memory_order_acq_rel)) {
+            c.release();
+            return raw;
+        }
+        return expected;
+    }
+    // The value node for `key`, or null.  The returned pointer is stable until
+    // the map is mutated (which also destroys any attached render cache).
+    const SettingValue* FindValue(const std::string& key) const {
+        auto i = _internal.find(key);
+        return i == _internal.end() ? nullptr : &i->second;
+    }
 
     const std::string &operator[](const std::string &key) const {
         return Get(key, xlEMPTY_STRING);
     }
     SettingValue &operator[](const std::string &key) {
+        InvalidateRenderCache();
         return _internal[key];
     }
     int GetInt(const std::string &key, const int def = 0) const {
@@ -192,6 +275,7 @@ public:
         return Get(key, xlEMPTY_STRING);
     }
     SettingValue& operator[](const char* ckey) {
+        InvalidateRenderCache();
         std::string key(ckey);
         return _internal[key];
     }
@@ -216,7 +300,10 @@ public:
     }
     
     bool empty() const { return _internal.empty(); }
-    void clear() { _internal.clear(); }
+    void clear() {
+        InvalidateRenderCache();
+        _internal.clear();
+    }
     size_t size() const { return _internal.size(); }
     auto keys() const { return std::views::keys(_internal); }
     auto begin() const { return _internal.begin(); }
@@ -231,10 +318,12 @@ public:
         return i->second;
     }
     size_t erase(const char* ckey) {
+        InvalidateRenderCache();
         std::string key(ckey);
         return _internal.erase(key);
     }
     size_t erase(const std::string& key) {
+        InvalidateRenderCache();
         return _internal.erase(key);
     }
 

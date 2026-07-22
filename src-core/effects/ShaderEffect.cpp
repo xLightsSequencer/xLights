@@ -25,16 +25,19 @@
 #include <semaphore>
 #include <sstream>
 
-#ifdef USE_GLES
-    // OpenGL ES 3.0 via ANGLE (Windows/Linux) or ANGLE-on-Metal (Apple).
-    // Direct ES3 prototypes (no function-pointer loading) plus EGL for interop.
-    #define GL_GLES_PROTOTYPES 1
-    #define EGL_EGL_PROTOTYPES 1
-    #include <EGL/egl.h>
-    #include <EGL/eglext.h>
-    #include <EGL/eglext_angle.h>
-    #include <GLES3/gl3.h>
-#elif !defined(__APPLE__)
+#ifdef __APPLE__
+    #include <TargetConditionals.h>
+#endif
+#ifndef TARGET_OS_IPHONE
+    #define TARGET_OS_IPHONE 0
+#endif
+
+// iOS has no OpenGL shader path — the native Metal ShaderEffect subclass
+// handles all shader rendering there.  Everything GL below (includes,
+// ShaderRenderCache, the Render body, programIdForShaderCode) is compiled
+// out with !TARGET_OS_IPHONE; the parse/config/settings code stays on all
+// platforms (the Metal translator and the UI depend on it).
+#if !defined(__APPLE__)
     #ifdef _WIN32
     #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
@@ -77,17 +80,14 @@
     extern PFNGLUNIFORM1FPROC glUniform1f;
     extern PFNGLUNIFORM2FPROC glUniform2f;
     extern PFNGLUNIFORM4FPROC glUniform4f;
-#else
+#elif !TARGET_OS_IPHONE
     // Apple desktop GL (CGL)
-    #if !TARGET_OS_IPHONE
-        #include "OpenGL/gl3.h"
-        #define __gl_h_
-        #include <OpenGL/OpenGL.h>
+    #include "OpenGL/gl3.h"
+    #define __gl_h_
+    #include <OpenGL/OpenGL.h>
 
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    #endif
-
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 #include "ShaderEffect.h"
@@ -121,6 +121,7 @@
 
 namespace
 {
+#if !TARGET_OS_IPHONE
 #ifndef GL_CLAMP_TO_EDGE
 #define GL_CLAMP_TO_EDGE 0x812F
 #endif
@@ -151,11 +152,7 @@ namespace
         LOG_GL_ERRORV(glGenTextures(1, &texId));
         LOG_GL_ERRORV(glBindTexture(GL_TEXTURE_2D, texId));
 
-#ifdef USE_GLES
-        LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 128, 1, 0, GL_RED, GL_FLOAT, nullptr));
-#else
         LOG_GL_ERRORV(glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 128, 1, 0, GL_RED, GL_FLOAT, nullptr));
-#endif
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -172,21 +169,12 @@ namespace
         GLuint rb = 0;
         LOG_GL_ERRORV(glGenRenderbuffers(1, &rb));
         LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, rb));
-#ifdef USE_GLES
-        LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height));
-#else
         LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height));
-#endif
         return rb;
     }
 
     const char* vsSrc =
-#ifdef USE_GLES
-        "#version 300 es\n"
-        "precision highp float;\n"
-#else
         "#version 330 core\n"
-#endif
         "uniform vec2 RENDERSIZE;\n"
         "uniform vec2 XL_OFFSET;\n"
         "uniform float XL_ZOOM;\n"
@@ -212,6 +200,7 @@ namespace
         "void main(){\n"
         "    isf_vertShaderInit();"
         "}\n";
+#endif // !TARGET_OS_IPHONE
 
     void setRenderBufferAll(RenderBuffer& buffer, const xlColor& colour) {
         buffer.Fill(colour);
@@ -220,6 +209,40 @@ namespace
 
 void ShaderEffect::SetBackgroundRender(bool b) {
     GLContextManager::Instance().SetBackgroundRenderEnabled(b);
+}
+
+std::string ShaderEffect::GetNativeVertexShaderSource() {
+    return
+        "#version 330 core\n"
+        // Enables explicit layout(location=) on the varyings below (needed in 330).
+        "#extension GL_ARB_separate_shader_objects : enable\n"
+        "uniform vec2 RENDERSIZE;\n"
+        "uniform vec2 XL_OFFSET;\n"
+        "uniform float XL_ZOOM;\n"
+        "uniform float XL_DURATION;\n"
+        "in vec2 vpos;\n"
+        "in vec2 tpos;\n"
+        // Explicit, matching locations so the separately-compiled MSL vertex and
+        // fragment stages agree on the varying interface (spirv-cross renumbers
+        // per-stage otherwise, since the fragment drops unused varyings).
+        "layout(location=0) out vec2 texCoord;\n"
+        "layout(location=1) out vec2 orig_FragNormCoord;\n"
+        "layout(location=2) out vec2 orig_FragCoord;\n"
+        "layout(location=3) out vec2 xl_FragNormCoord;\n"
+        "layout(location=4) out vec2 xl_FragCoord;\n"
+        "vec2 XL_ZOOM_OFFSET(vec2 coord) {\n  return ((coord.xy - (XL_OFFSET - 0.5) - 0.5) / XL_ZOOM) + 0.5;\n}\n\n"
+        "void isf_vertShaderInit(void)\n"
+        "{\n"
+        "   gl_Position = vec4(vpos,0,1);\n"
+        "   texCoord = tpos;\n"
+        "   orig_FragNormCoord = vec2(tpos.x, tpos.y);\n"
+        "   xl_FragNormCoord = XL_ZOOM_OFFSET(vec2(tpos.x, tpos.y));\n"
+        "   orig_FragCoord = orig_FragNormCoord * RENDERSIZE;\n"
+        "   xl_FragCoord = xl_FragNormCoord * RENDERSIZE;\n"
+        "}\n"
+        "void main(){\n"
+        "    isf_vertShaderInit();"
+        "}\n";
 }
 
 bool ShaderEffect::IsBackgroundRender() {
@@ -392,6 +415,8 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
 // Platform-specific GL context management moved to graphics/GLContextManager.cpp
 
+#if !TARGET_OS_IPHONE
+
 #if defined(__APPLE__)
 constexpr int COMPILED_PROGRAM_RETAIN_COUNT = 24;
 #else
@@ -457,10 +482,50 @@ public:
     static std::set<std::string> failedShaders;
     static std::set<std::string> warnedShaders;
     static std::mutex shaderMapMutex;
+    static uint64_t purgedGeneration; // guarded by shaderMapMutex
+
+    // The GL share group died (Windows TDR / device reset) — every id cached
+    // below belongs to the dead group.  Drop them WITHOUT glDelete (deleting
+    // foreign ids in the new group is at best an error, at worst frees a
+    // recycled object), and forget the program handle rather than returning
+    // it to shaderMap.
+    void DropStaleGLState() {
+        s_shadersInit = false;
+        s_vertexBufferId = 0;
+        s_rbId = 0;
+        s_rbTex = 0;
+        s_audioTex = 0;
+        s_programId = 0;
+        s_rbWidth = 0;
+        s_rbHeight = 0;
+    }
+
+    // Once per generation: empty the global program-id pools (all stale) and
+    // let previously failed shaders retry — a compile that failed during the
+    // device-reset storm shouldn't be blacklisted for the rest of the session.
+    static void PurgeStaleShaderMap(uint64_t gen) {
+        std::unique_lock<std::mutex> lock(shaderMapMutex);
+        if (purgedGeneration == gen) return;
+        purgedGeneration = gen;
+        size_t dropped = 0;
+        for (auto& [code, info] : shaderMap) {
+            if (info != nullptr) {
+                dropped += info->programIds.size();
+                info->programIds.clear();
+            }
+        }
+        failedShaders.clear();
+        spdlog::warn("ShaderEffect: GL share group reset (generation {}) - dropped {} cached program ids; shaders will recompile", gen, dropped);
+    }
 
     ShaderRenderCache() { _shaderConfig = nullptr; }
     virtual ~ShaderRenderCache()
     {
+        if (glGeneration != GLContextManager::Instance().ShareGroupGeneration()) {
+            // Ids were created in a share group that no longer exists; they
+            // must be neither returned to shaderMap nor glDeleted.
+            DropStaleGLState();
+        }
         if (s_programId != 0 && _shaderConfig != nullptr) {
             std::unique_lock<std::mutex> lock(shaderMapMutex);
             shaderMap[s_code]->programIds.push_back(s_programId);
@@ -509,6 +574,13 @@ public:
     }
     void StoreProgramId() {
         if (s_programId && s_shaderInfo) {
+            if (glGeneration != GLContextManager::Instance().ShareGroupGeneration()) {
+                // Program was compiled in a share group that has since been
+                // reset — don't recycle the id into shaderMap (RefreshProgramId
+                // pops without validating) and don't glDelete a foreign id.
+                s_programId = 0;
+                return;
+            }
             std::unique_lock<std::mutex> lock(shaderMapMutex);
             if (s_shaderInfo->programIds.size() > COMPILED_PROGRAM_RETAIN_COUNT) {
                 glDeleteProgram(s_programId);
@@ -533,6 +605,7 @@ public:
     int s_rbWidth = 0;
     int s_rbHeight = 0;
     long _timeMS = 0;
+    uint64_t glGeneration = 0; // ShareGroupGeneration the ids above were created under
     GLContextManager::ContextHandle contextHandle = nullptr;
 
     void InitialiseShaderConfig(const std::string& filename, SequenceElements* sequenceElements) {
@@ -545,6 +618,9 @@ std::map<std::string, ShaderRenderCache::ShaderInfo*> ShaderRenderCache::shaderM
 std::set<std::string> ShaderRenderCache::failedShaders;
 std::set<std::string> ShaderRenderCache::warnedShaders;
 std::mutex ShaderRenderCache::shaderMapMutex;
+uint64_t ShaderRenderCache::purgedGeneration = 1; // matches GLContextManager's initial generation
+
+#endif // !TARGET_OS_IPHONE
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
 {
@@ -553,6 +629,8 @@ ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm,
 ShaderEffect::~ShaderEffect()
 {
 }
+
+#if !TARGET_OS_IPHONE
 
 bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
     auto& mgr = GLContextManager::Instance();
@@ -620,6 +698,17 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     long& _timeMS = cache->_timeMS;
 
     bool contextSet = SetGLContext(cache);
+    if (contextSet) {
+        // A device reset (Windows WDDM TDR, typically under heavy NVDEC video
+        // decode) rebuilds the share group; every GL id cached before it is
+        // dangling and may alias a recycled object.  Drop and recreate.
+        uint64_t gen = GLContextManager::Instance().ShareGroupGeneration();
+        if (cache->glGeneration != gen) {
+            ShaderRenderCache::PurgeStaleShaderMap(gen);
+            cache->DropStaleGLState();
+            cache->glGeneration = gen;
+        }
+    }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     double timeRate = GetValueCurveDouble("Shader_Speed", 100, SettingsMap, oset, SHADER_SPEED_MIN, SHADER_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 1) / 100.0;
@@ -749,6 +838,24 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
 
     LOG_GL_ERRORV(glBindVertexArray(vao));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
+    // If the bind didn't take (stale id after a device reset, failed
+    // creation), glVertexAttribPointer(offset 0) below would legally point
+    // attribute 0 at client address NULL and glDrawArrays would crash inside
+    // the driver reading it.  Skip the frame instead.
+    GLint boundVbo = 0;
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &boundVbo);
+    if (boundVbo == 0) {
+        spdlog::error("ShaderEffect::Render() - vertex buffer {} not bindable (device reset?), skipping frame", s_vertexBufferId);
+        s_shadersInit = false; // recreate GL objects next frame
+        LOG_GL_ERRORV(glBindVertexArray(0));
+        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+        LOG_GL_ERRORV(glDeleteFramebuffers(1, &fb));
+        LOG_GL_ERRORV(glDeleteVertexArrays(1, &vao));
+        setRenderBufferAll(buffer, xlYELLOW);
+        cache->StoreProgramId();
+        UnsetGLContext(cache);
+        return;
+    }
     LOG_GL_ERRORV(glUseProgram(programId));
     
     int colourIndex = 0;
@@ -820,7 +927,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             {
                 auto timingtrack = SettingsMap.Get(it.GetUndecoratedId(ShaderCtrlType::SHADER_CTRL_TIMING), "");
 
-                EffectLayer* el = GetTiming(timingtrack);
+                EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
 
                 bool b = false;
                 if (el != nullptr) {
@@ -1007,6 +1114,24 @@ unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCac
     }
     return programId;
 }
+
+#else // TARGET_OS_IPHONE — no GL; MetalShaderEffect overrides Render, so this should never run
+
+void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
+{
+    setRenderBufferAll(buffer, xlRED);
+}
+
+void ShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) {
+}
+
+void ShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) {
+}
+
+void ShaderEffect::copyPixelDataFromTexture(RenderBuffer& buffer) {
+}
+
+#endif // !TARGET_OS_IPHONE
 
 std::string SafeFloat(const std::string& s)
 {
@@ -1296,19 +1421,10 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     prependText += "vec4 IMG_THIS_NORM_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * pct);\n}\n\n";
     prependText += "vec4 IMG_THIS_NORM_PIXEL(sampler2D sampler) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_2D(sampler2D sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_2D(sampler, pct);\n}\n\n";
-#ifdef USE_GLES
-    // OpenGL ES has no sampler2DRect; provide sampler2D equivalents so shaders
-    // written for desktop GL still compile (they sample via normalized coords).
-    prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2D sampler, vec2 pct, vec2 normLoc) {\n   return texture(sampler, normLoc);\n}\n\n";
-    prependText += "vec4 IMG_PIXEL_RECT(sampler2D sampler, vec2 pct, vec2 loc) {\n   return texture(sampler, loc / RENDERSIZE);\n}\n\n";
-    prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2D sampler, vec2 pct) {\n   return texture(sampler, xl_FragNormCoord);\n}\n\n";
-    prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2D sampler, vec2 pct) {\n   return texture(sampler, xl_FragNormCoord);\n}\n\n";
-#else
     prependText += "vec4 IMG_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 normLoc) {\n   vec2 coord = normLoc;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_PIXEL_RECT(sampler2DRect sampler, vec2 pct, vec2 loc) {\n   return IMG_NORM_PIXEL_RECT(sampler, pct, loc / RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_NORM_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   vec2 coord = xl_FragNormCoord;\n   return texture(sampler, coord * RENDERSIZE);\n}\n\n";
     prependText += "vec4 IMG_THIS_PIXEL_RECT(sampler2DRect sampler, vec2 pct) {\n   return IMG_THIS_NORM_PIXEL_RECT(sampler, pct);\n}\n\n";
-#endif
     prependText += "ivec2 IMG_SIZE(sampler2D sampler) {\n   return textureSize(sampler, 0);\n}\n\n";
 
 #ifdef __DEBUG
@@ -1354,180 +1470,30 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     _hasTime = Contains(shaderCode, "TIME");
     _hasCoord = Contains(shaderCode, "xl_FragCoord");
 
-#ifdef USE_GLES
-    // GLSL ES 3.00 requires global variable initializers to be constant expressions.
-    // Desktop GLSL 330 allows non-constant initializers (e.g. "float T = TIME*rate;").
-    // Fix: split such declarations and defer their initialization into main().
-    {
-        std::set<std::string> uniformNames = {
-            "TIME", "TIMEDELTA", "RENDERSIZE", "PASSINDEX", "FRAMEINDEX",
-            "DATE", "NUMCOLORS", "clearBuffer", "resetNow", "texSampler",
-            "XL_OFFSET", "XL_ZOOM", "XL_DURATION",
-            "xl_FragNormCoord", "xl_FragCoord", "orig_FragNormCoord", "orig_FragCoord"
-        };
-        for (const auto& p : _parms) {
-            uniformNames.insert(p._name);
-        }
-
-        // Join split declarations where the type is alone on one line:
-        //   vec2\n    center = 0.5*RENDERSIZE.xy;  -->  vec2 center = 0.5*RENDERSIZE.xy;
-        static const std::regex splitDeclRe(
-            R"(\n(\s*)(float|int|bool|u?vec[234]|mat[234](?:x[234])?|ivec[234]|uvec[234])\s*\n(\s*\w+\s*=))",
-            std::regex_constants::ECMAScript);
-        shaderCode = std::regex_replace(shaderCode, splitDeclRe, "\n$1$2 $3");
-
-        // Match global-scope type declarations with initializers:
-        //   float foo = expr;  vec2 bar = expr;  etc.
-        // Also handles comma-separated multi-variable declarations:
-        //   float T = TIME * rate, moy = 0.0;
-        // but NOT: const float foo = 1.0;  uniform float foo;  void main()  #define  //comment
-        static const std::regex declRe(
-            R"(^(\s*)(float|int|bool|u?vec[234]|mat[234](?:x[234])?|ivec[234]|uvec[234])\s+(.+?)\s*;\s*(?://.*)?\s*$)",
-            std::regex_constants::ECMAScript);
-
-        std::istringstream stream(shaderCode);
-        std::string line;
-        std::string newCode;
-        std::string deferredInits;
-        int braceDepth = 0;
-
-        while (std::getline(stream, line)) {
-            // Count braces to track scope (outside of strings/comments — good enough for most shaders)
-            for (char c : line) {
-                if (c == '{') braceDepth++;
-                else if (c == '}') braceDepth--;
-            }
-
-            bool replaced = false;
-            if (braceDepth == 0) {
-                // At global scope — check for non-const variable decl with uniform-dependent initializer
-                std::string trimmed = line;
-                auto ws = trimmed.find_first_not_of(" \t");
-                if (ws != std::string::npos) trimmed = trimmed.substr(ws);
-
-                // Skip lines that can't be variable declarations
-                if (!trimmed.empty() && trimmed[0] != '#' && trimmed[0] != '/' &&
-                    trimmed.rfind("const ", 0) != 0 && trimmed.rfind("uniform ", 0) != 0 &&
-                    trimmed.rfind("in ", 0) != 0 && trimmed.rfind("out ", 0) != 0 &&
-                    trimmed.rfind("void ", 0) != 0 && trimmed.rfind("struct ", 0) != 0) {
-
-                    std::smatch m;
-                    if (std::regex_match(line, m, declRe)) {
-                        std::string varList = m[3].str();
-                        std::string indent = m[1].str();
-                        std::string typeName = m[2].str();
-
-                        // Split comma-separated variables at top-level commas only
-                        // (skip commas inside parentheses from function calls)
-                        std::vector<std::string> vars;
-                        int parenDepth = 0;
-                        size_t start = 0;
-                        for (size_t i = 0; i <= varList.size(); ++i) {
-                            if (i < varList.size()) {
-                                if (varList[i] == '(') parenDepth++;
-                                else if (varList[i] == ')') parenDepth--;
-                                else if (varList[i] == ',' && parenDepth == 0) {
-                                    vars.push_back(varList.substr(start, i - start));
-                                    start = i + 1;
-                                    continue;
-                                }
-                            } else {
-                                vars.push_back(varList.substr(start));
-                            }
-                        }
-
-                        // Check each variable — only defer those whose initializer references uniforms
-                        bool anyDeferred = false;
-                        std::string declLine;
-                        for (auto& var : vars) {
-                            // Trim whitespace
-                            auto s = var.find_first_not_of(" \t");
-                            if (s != std::string::npos) var = var.substr(s);
-                            auto e = var.find_last_not_of(" \t");
-                            if (e != std::string::npos) var = var.substr(0, e + 1);
-
-                            auto eqPos = var.find('=');
-                            if (eqPos == std::string::npos) {
-                                // No initializer — keep as-is
-                                if (!declLine.empty()) declLine += ", ";
-                                declLine += var;
-                                continue;
-                            }
-
-                            std::string varName = var.substr(0, eqPos);
-                            auto ne = varName.find_last_not_of(" \t");
-                            if (ne != std::string::npos) varName = varName.substr(0, ne + 1);
-
-                            std::string initExpr = var.substr(eqPos + 1);
-                            auto ns = initExpr.find_first_not_of(" \t");
-                            if (ns != std::string::npos) initExpr = initExpr.substr(ns);
-
-                            bool hasUniformRef = false;
-                            for (const auto& u : uniformNames) {
-                                size_t pos = 0;
-                                while ((pos = initExpr.find(u, pos)) != std::string::npos) {
-                                    bool leftOk = (pos == 0 || (!std::isalnum(initExpr[pos - 1]) && initExpr[pos - 1] != '_'));
-                                    size_t uend = pos + u.size();
-                                    bool rightOk = (uend >= initExpr.size() || (!std::isalnum(initExpr[uend]) && initExpr[uend] != '_'));
-                                    if (leftOk && rightOk) { hasUniformRef = true; break; }
-                                    pos = uend;
-                                }
-                                if (hasUniformRef) break;
-                            }
-
-                            if (hasUniformRef) {
-                                // Emit declaration without initializer
-                                if (!declLine.empty()) declLine += ", ";
-                                declLine += varName;
-                                deferredInits += "    " + varName + " = " + initExpr + ";\n";
-                                anyDeferred = true;
-                            } else {
-                                // Keep initializer (it's constant)
-                                if (!declLine.empty()) declLine += ", ";
-                                declLine += var;
-                            }
-                        }
-
-                        if (anyDeferred) {
-                            newCode += indent + typeName + " " + declLine + ";\n";
-                            replaced = true;
-                        }
-                    }
-                }
-            }
-
-            if (!replaced) {
-                newCode += line + "\n";
-            }
-        }
-
-        // Inject deferred initializations at the start of main()
-        if (!deferredInits.empty()) {
-            // Find "void main()" and inject after the opening brace
-            auto mainPos = newCode.find("void main()");
-            if (mainPos == std::string::npos) mainPos = newCode.find("void main(void)");
-            if (mainPos == std::string::npos) mainPos = newCode.find("void main ()");
-            if (mainPos != std::string::npos) {
-                auto bracePos = newCode.find('{', mainPos);
-                if (bracePos != std::string::npos) {
-                    newCode.insert(bracePos + 1, "\n    // [ES compat] deferred global initializers\n" + deferredInits);
-                }
-            }
-        }
-
-        shaderCode = newCode;
-    }
-
-    _code = "#version 300 es\nprecision highp float;\nprecision mediump sampler2D;\n\n";
-#else
     _code = "#version 330\n\n";
-#endif
-    size_t idx = shaderCode.find("#extension");
-    if (idx != std::string::npos) {
-        size_t nidx = shaderCode.find("\n", idx);
-        _code += shaderCode.substr(0, nidx);
-        _code += "\n";
-        shaderCode = shaderCode.substr(nidx);
+    // Hoist ALL #extension directives to immediately after #version, ahead of
+    // the `precision` preamble.  ESSL 3.00 requires every #extension to precede
+    // any non-preprocessor token, and `precision` statements ARE non-preprocessor
+    // tokens — so an #extension left in the body (or, as the old single-directive
+    // hoist did, appended after the precision lines) is rejected: "extension
+    // directive must occur before any non-preprocessor tokens in ESSL3".  Most
+    // legacy shaders use `: enable`, so extensions unsupported under ES3 (e.g.
+    // GL_OES_standard_derivatives, whose functions are core in ES3) degrade to a
+    // harmless warning rather than a compile error.
+    std::string extensions;
+    for (size_t idx = 0; (idx = shaderCode.find("#extension", idx)) != std::string::npos; ) {
+        if (idx != 0 && shaderCode[idx - 1] != '\n') { idx += 10; continue; }  // not at line start
+        size_t eol = shaderCode.find('\n', idx);
+        size_t lineEnd = (eol == std::string::npos) ? shaderCode.size() : eol + 1;
+        extensions += shaderCode.substr(idx, lineEnd - idx);
+        if (eol == std::string::npos) extensions += "\n";
+        shaderCode.erase(idx, lineEnd - idx);
+    }
+    if (!extensions.empty()) {
+        size_t afterVersion = _code.find('\n');  // end of the "#version ..." line
+        if (afterVersion != std::string::npos) {
+            _code.insert(afterVersion + 1, extensions);
+        }
     }
     _code += prependText;
     _code += shaderCode;
@@ -1661,6 +1627,6 @@ nlohmann::json ShaderConfig::GetDynamicPropertiesJson() const
     return out;
 }
 
-#if defined(__APPLE__) && !defined(USE_GLES)
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
 #pragma clang diagnostic pop
 #endif

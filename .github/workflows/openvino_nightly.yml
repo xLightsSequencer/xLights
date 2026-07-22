@@ -98,7 +98,7 @@ jobs:
       - name: Install ISPC
         uses: ispc/install-ispc-action@main
         with:
-          version: 1.30.0
+          version: 1.31.0
 
       # ── sccache ───────────────────────────────────────────────────────────
       - name: Setup sccache

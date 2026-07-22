@@ -30,7 +30,7 @@
 
 | Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
 |---|---|---|---|---|---|---|---|---|
-| New Sequence | menu/toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Desktop wizard (≤5 steps) vs iPad 3-step wizard (type/content/save). |
+| New Sequence | menu/toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Desktop wizard (≤5 steps) vs iPad 3-step wizard (type/content/save). 2026-07-05: create runs detached off the main actor (`SequencerViewModel.newSequence` async) — the bridge's close/abort-render wait was blowing the 0x8BADF00D watchdog (crash sig 03308ce269). |
 | New Seq — type picker | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Musical/Animation/Effect both. |
 | New Seq — media pick | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad routes through MediaRelocation; desktop free path. |
 | New Seq — duration & frame rate | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad TextField + segmented picker (25/50/100). |
@@ -44,7 +44,7 @@
 | Open Packaged Sequence (.xsqz) | system | 🟡 | ✅ | desktop-weaker | P2 | medium | feasible | iPad opens an `.xsqz` **and repacks it back to the original on Save** (round-trip; `SequencerViewModel.swift:32-37`). Desktop opens by *extracting* read-only (`xLightsApp.cpp:840` `readOnlyZipFile`), NOT in File>Open, and cannot save back into the same package — its `SequencePackage::Pack` is a separate export. Reverse-parity item; see theme 14. |
 | Save Sequence | menu/toolbar/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘S; clears undo + writes fseq when enabled. |
 | Save Sequence As | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘⇧S → fileExporter; updates path. |
-| Close Sequence | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘W; closeRequestToken → prompt. |
+| Close Sequence | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | iPad ⌘W; closeRequestToken → prompt. 2026-07-05: teardown (abort-render wait + bridge close) runs detached off the main actor (`closeSequence` async, watchdog sig 0c45db2f0e); `abortRenderAndWait:` now passes its timeout through to `AbortRender`. |
 | Unsaved-changes prompt on close | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop SaveChangesDialog; iPad confirmationDialog (Save/Discard/Cancel). |
 | Unsaved-changes handling on quit/background | dialog | ✅ | 🟡 | parity | P1 | easy | feasible | Desktop CheckUnsavedChanges prompt; iPad silently saves on `.inactive`/`.background` (Stage-Manager pill can't host an alert). |
 | Sequence Settings dialog/sheet | menu/toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Tabs differ (see below). |
@@ -52,8 +52,9 @@
 | Settings — Metadata tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | song/artist/album/author/email/website/url/comment. |
 | Settings — Timings tab | dialog tab | ✅ | ✅ | parity | P1 | medium | feasible | iPad fully built (add/rename/delete/export single+multi/import 9 formats incl. multi-track Vixen3/xsq). |
 | Settings — Audio Tracks tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | alt-track add/remove/rename/replace. |
-| Settings — Media tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | per-effect media inventory embed/extract/rename/replace. |
+| Settings — Media tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | per-effect media inventory embed/extract/rename/replace. 2026-07: core fix (`ImageCacheEntry::IsEmbeddable`, shared) makes picture-series animations (`name-1.png..name-N.png`) embeddable on both platforms. |
 | Settings — Render tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | iPad: model blending + frame interval + autosave interval picker. |
+| Settings — Faces tab (sequence-level face definitions) | dialog tab | ✅ | ❌ | ipad-missing | P2 | medium | feasible | 2026-07: desktop `SequenceFacesPanel` (`src-ui-wx/sequencer/SequenceFacesPanel.cpp`) edits Matrix/image face defs stored in the `.xsq` (`SequenceFaces` on `SequenceElements`, `src-core/render/SequenceFaces.h`). Core (storage/serialize/render/package/import) is shared — iPad renders + lists sequence faces already (see 04); only the *editor* UI is missing. Future bridge shape: `sequenceFaceInfo` / `setSequenceFaceInfo:` mirroring `setFaceInfo:` (`XLSequenceDocument.mm:5510`), editor reusable from the model face/state editor in `LayoutEditorView`/`NodePickerPane`. |
 | Settings — Data Layers tab | dialog tab | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop tree importer; absent on iPad. **Impl plan added 2026-06-12 (below).** |
 | Settings — Render Mode selector | dialog | ✅ | ✅ | parity | P3 | medium | feasible | ✅ 2026-06-12. Desktop `RenderModeChoice` (Erase/Canvas) stored on the Nutcracker data layer. iPad: Render tab segmented Erase/Canvas picker (`SequenceSettingsSheet.swift` RenderTab) → bridge `renderMode` / `setRenderMode:` (`XLSequenceDocument.mm`) maps the UI strings ↔ `SequenceFile::GetRenderMode/SetRenderMode`, normalizing the legacy ERASE_MODE/CANVAS_MODE sentinels. |
 | Settings — Hash/Checksum display | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `TextCtrl_Hash` (media hash); iPad Info-tab "Media Hash" row → bridge `mediaFileHash` (`AudioManager::Hash`). |
@@ -68,7 +69,7 @@
 | Media Folders configuration | preference/sheet | ✅ | ✅ | parity | P2 | medium | feasible | Desktop has media dirs concept; iPad FolderConfigView media-folder list. |
 | Media Relocation on file pick | gesture/dialog | ❌ | ✅ | desktop-missing | P2 | medium | feasible | iPad enforces "copy under show/media folder"; desktop free path + Cleanup later. |
 | Add media to sequence (multi-file) | manager/sheet | ✅ | ✅ | parity | P1 | medium | feasible | Desktop `ManageMediaPanel.cpp:2004` (`_addButton` "Add", `wxFD_MULTIPLE`); iPad MediaManagerSheet "Add…" toolbar button → multi-select `.fileImporter` → relocate under show folder + `addMedia(atPath:)` bridge (`MediaManagerSheet.swift` `addPickedFiles`; `XLSequenceDocument.mm` `addMediaAtPath:`). |
-| Bulk find missing media | manager/sheet | ✅ | ✅ | parity | P2 | medium | feasible | iPad MediaManagerSheet "Bulk Find Missing…" menu action → folder `.fileImporter` → one-pass basename index → relink each missing entry via `replaceMissingMedia` (`MediaManagerSheet.swift` `bulkFindMissing(in:)`). |
+| Bulk find/repoint media | manager/sheet | ✅ | 🟡 | ipad-weaker | P2 | small | feasible | Desktop `ManageMediaPanel.cpp` (2026-07) generalized "Bulk Find `<Type>`s…" to offer whenever there's more than one item of a media type, and to search/relink *every* item of that type — not just currently-broken ones — so users can bulk-redirect a whole set of already-working files to a new folder (e.g. a show copied to a new year). iPad `MediaManagerSheet`'s "Bulk Find Missing…" is still `.disabled(brokenCount == 0)` and only relinks broken entries (`bulkFindMissing(in:)`). |
 | Media preview (still + animated) | manager/sheet | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad shows a static `MediaThumbnailView` with no animation (`MediaManagerSheet.swift:503-518`); bridge `ensureThumbnailPreviewForPath` (`XLSequenceDocument.h:2055`). |
 | Reload media from disk | manager/sheet | ✅ | ✅ | parity | P3 | easy | feasible | iPad MediaManagerSheet external rows have a "Reload from Disk" swipe action → `reloadMedia(atPath:)` bridge purges the cache entry so the next render re-reads the file (`MediaManagerSheet.swift` `reloadFromDisk`; `XLSequenceDocument.mm` `reloadMediaAtPath:` / `reloadAllMedia`). |
 | Render Cache mode | preference/sheet | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Preferences `RenderCacheChoice` (Enabled/Locked/Disabled); iPad FolderConfigView picker. |
@@ -114,11 +115,15 @@
 
 ### P2
 
-- ✅ **Bulk find missing media** — **landed 2026-06-11.** iPad `MediaManagerSheet`'s overflow menu has
+- 🟡 **Bulk find missing media** — landed on iPad 2026-06-11 (`MediaManagerSheet`'s overflow menu
   "Bulk Find Missing…" → folder `.fileImporter`; one security-scoped pass builds a lowercased-basename
   index of the folder tree, then each missing inventory entry is relinked through the existing
-  `replaceMissingMedia` primitive (`src-iPad/App/MediaManagerSheet.swift` `bulkFindMissing(in:)`).
-  Reports "Relinked N, still missing M".
+  `replaceMissingMedia` primitive, `bulkFindMissing(in:)`; reports "Relinked N, still missing M"), but
+  desktop's `ManageMediaPanel.cpp` moved ahead 2026-07: "Bulk Find `<Type>`s…" now offers whenever
+  there's more than one item of a type (not just broken ones) and relinks by filename match against
+  *every* item, so a whole set of already-working files can be redirected to a new folder in one pass
+  (e.g. a show folder copied to a new year). iPad's version is still `.disabled(brokenCount == 0)` and
+  broken-only. New gap, not yet closed.
 
 - ✅ **Restore Backup dialog** — **landed 2026-06-12.** File menu "Restore Backup…"
   (`src-iPad/App/XLightsCommands.swift`) → `src-iPad/App/RestoreBackupSheet.swift` enumerates the

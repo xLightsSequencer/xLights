@@ -12,6 +12,7 @@
 // Input:        `mix` [1, 2, 343980]  stereo float @ 44.1 kHz (~7.8 s)
 // Output:       `time_output` [1, 8, 343980]  (drums L/R, bass L/R, other L/R, vocals L/R)
 
+#include <atomic>
 #include <functional>
 #include <string>
 #include <vector>
@@ -39,11 +40,17 @@ struct StemSeparatorOptions {
 };
 
 // Synchronous. Loads the model at `modelPath`, runs inference, and
-// fills `out`. Returns false on model-load or inference failure.
-// `progress` (optional) is called with a 0..100 integer as chunks
-// complete.
+// fills `out`. Returns false on model-load or inference failure, and
+// also on cancellation — `out` holds no usable result in any of those
+// cases. `progress` (optional) is called with a 0..100 integer as chunks
+// complete. `cancel` (optional) is polled once per chunk; setting it
+// abandons the run at the next chunk boundary. Inference for one chunk
+// cannot be interrupted, so cancellation takes effect within roughly one
+// chunk's compute time, not instantly. The caller owns the flag and must
+// keep it alive for the duration of the call.
 bool SeparateStems(AudioManager* audio,
                     const std::string& modelPath,
                     StemOutput& out,
                     const StemSeparatorOptions& opts = StemSeparatorOptions{},
-                    std::function<void(int pct)> progress = nullptr);
+                    std::function<void(int pct)> progress = nullptr,
+                    const std::atomic<bool>* cancel = nullptr);

@@ -76,12 +76,33 @@ public:
                                       int startms,
                                       int endms,
                                       bool clear = false) = 0;
+
+    // Request a re-render WITHOUT rendering synchronously on the caller's
+    // thread. RenderEffectForModel runs the render pipeline inline and is only
+    // safe at the top of the event loop; calling it from deep inside a settings
+    // mutation (e.g. Effect::IncrementChangeCount, which holds the effect's
+    // settingsLock) deadlocks against the render worker threads that need that
+    // lock. The desktop overrides this to post the render to the event loop so
+    // it runs once the lock is released. Headless contexts render synchronously
+    // by design, so the default falls back to RenderEffectForModel.
+    virtual void RequestRenderForModel(const std::string& model,
+                                       int startms,
+                                       int endms) {
+        RenderEffectForModel(model, startms, endms);
+    }
     virtual TimingElement* AddTimingElement(const std::string& name,
                                             const std::string& subType = "") = 0;
 
     // ---- preview / camera access (for 3D render buffer calculation) ----
     virtual IModelPreview* GetHousePreview() const { return nullptr; }
     virtual PreviewCamera* GetNamedCamera3D(const std::string& /*name*/) { return nullptr; }
+
+    // Pixel size whose ASPECT RATIO drives the "Per Preview" 3D projection
+    // (glm::perspective(45deg, w/h, ...)). Sourced from the show's stored render
+    // aspect (falling back to the virtual preview canvas) rather than any live
+    // on-screen preview window, so desktop, iPad, and headless render Per-Preview
+    // identically and reproducibly. Only the ratio matters.
+    virtual void GetRenderPreviewSize(int& w, int& h) const { w = 1280; h = 720; }
 
     // ---- status / timer (empty defaults for headless) ----
     virtual void SetLoadingStatusText(const std::string& /*text*/) {}

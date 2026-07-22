@@ -190,7 +190,13 @@ void ModelScreenLocation::SetRenderSize(float NewWi, float NewHt, float NewDp) {
 
 // This function is used when the render size needs to be adjusted after a mesh is loaded during model creation
 void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp) {
-    if ((NewWi != RenderWi || NewHt != RenderHt || NewDp != RenderDp) && NewWi != 1.0f) {
+    // RenderWi/Ht/Dp all still at their construction default of 0.0f means
+    // this is the first time real mesh geometry is being synced in (e.g.
+    // right after load from XML) rather than an actual resize (e.g. the
+    // user swapping in a differently-sized obj file). Resetting scale here
+    // would silently discard a ScaleX/Y/Z loaded from the model's XML.
+    bool firstEstablish = (RenderWi == 0.0f && RenderHt == 0.0f && RenderDp == 0.0f);
+    if (!firstEstablish && (NewWi != RenderWi || NewHt != RenderHt || NewDp != RenderDp) && NewWi != 1.0f) {
         RenderHt = NewHt;
         RenderWi = NewWi;
         RenderDp = NewDp;
@@ -661,6 +667,28 @@ glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheig
         glm::vec3(sx, sy, sz),                                // X,Y,Z coords of the position when not transformed at all.
         preview->GetProjMatrix() * camera->GetViewMatrix(),    // Projection / View matrix
         Identity                                              // Points must be pre-translated
+    );
+    return position;
+}
+
+// Window-independent variant of GetScreenPosition: builds the same projection
+// the desktop house preview computes in ModelPreview::StartDrawing
+// (glm::perspective(45deg, aspect, 1, 200000)) from an explicit aspect ratio
+// (previewWidth/previewHeight) rather than a live preview surface, so the
+// "Per Preview" 3D render buffer is identical across desktop / iPad / headless.
+glm::vec2 ModelScreenLocation::GetScreenPositionForAspect(int screenwidth, int screenheight, int previewWidth, int previewHeight, PreviewCamera* camera, float &sx, float &sy, float &sz) const
+{
+    if (camera == nullptr || previewWidth <= 0 || previewHeight <= 0) {
+        return glm::vec2(sx, sy);
+    }
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f),
+                                      (float)previewWidth / (float)previewHeight,
+                                      1.0f, 200000.0f);
+    glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
+        screenheight,
+        glm::vec3(sx, sy, sz),
+        proj * camera->GetViewMatrix(),
+        Identity
     );
     return position;
 }

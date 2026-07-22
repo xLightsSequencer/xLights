@@ -39,6 +39,9 @@
 
 #include <wx/dir.h>
 #include <wx/listbox.h>
+#include <wx/choice.h>
+
+#include <vector>
 
 class Model;
 class MHPresetBitmapButton;
@@ -98,6 +101,8 @@ public:
     wxButton* Button_Odds;
     wxButton* Button_ResetToDefault;
     wxCheckBox* CheckBoxAutoShutter;
+    wxCheckBox* CheckBox_MHLinkToNext;
+    wxCheckBox* CheckBox_MHShutterEnable;
     wxCheckBox* CheckBox_MH1;
     wxCheckBox* CheckBox_MH2;
     wxCheckBox* CheckBox_MH3;
@@ -110,6 +115,7 @@ public:
     wxFlexGridSizer* FlexGridSizerColorWheel;
     wxFlexGridSizer* FlexGridSizerDimmerCanvas;
     wxWrapSizer* FlexGridSizerDimmerPresets;
+    wxFlexGridSizer* FlexGridSizerLink;
     wxFlexGridSizer* FlexGridSizerPathCanvas;
     wxWrapSizer* FlexGridSizerPathPresets;
     wxFlexGridSizer* FlexGridSizerPathing;
@@ -123,6 +129,7 @@ public:
     wxScrolledWindow* PanelColorWheel;
     wxPanel* PanelControl;
     wxScrolledWindow* PanelDimmer;
+    wxScrolledWindow* PanelLink;
     wxScrolledWindow* PanelPathing;
     wxScrolledWindow* PanelPosition;
     wxPanel* PanelStatus;
@@ -134,6 +141,7 @@ public:
     wxStaticText* Label_TimeOffset;
     wxStaticText* StaticTextFixtures;
     wxStaticText* StaticText_Groupings;
+    wxStaticText* StaticText_MHLinkPreview;
     wxStaticText* StaticText_MHCycles;
     wxTextCtrl* TextCtrl_MH1_Settings;
     wxTextCtrl* TextCtrl_MH2_Settings;
@@ -145,6 +153,57 @@ public:
     wxTextCtrl* TextCtrl_MH8_Settings;
     wxTextCtrl* TextCtrl_MHPathDef;
     wxTextCtrl* TextCtrl_Status;
+    wxScrolledWindow* PanelPattern;
+    wxCheckBox* CheckBox_MHPatternEnable;
+    wxChoice* Choice_MHPattern;
+    wxStaticText* StaticText_MHPatternShape;
+    wxStaticText* StaticText_MHPatternWidth;
+    wxStaticText* StaticText_MHPatternHeight;
+    wxStaticText* StaticText_MHPatternXOffset;
+    wxStaticText* StaticText_MHPatternYOffset;
+    wxStaticText* StaticText_MHPatternRotation;
+    wxStaticText* StaticText_MHPatternStartOffset;
+    wxStaticText* StaticText_MHPatternPhaseOffset;
+    wxStaticText* StaticText_MHPatternXFreq;
+    wxStaticText* StaticText_MHPatternYFreq;
+    wxStaticText* StaticText_MHPatternXPhase;
+    wxStaticText* StaticText_MHPatternYPhase;
+    BulkEditSlider* Slider_MHPatternWidth;
+    BulkEditSlider* Slider_MHPatternHeight;
+    BulkEditSlider* Slider_MHPatternXOffset;
+    BulkEditSlider* Slider_MHPatternYOffset;
+    BulkEditSlider* Slider_MHPatternRotation;
+    BulkEditSlider* Slider_MHPatternStartOffset;
+    BulkEditSlider* Slider_MHPatternPhaseOffset;
+    BulkEditSlider* Slider_MHPatternXFreq;
+    BulkEditSlider* Slider_MHPatternYFreq;
+    BulkEditSlider* Slider_MHPatternXPhase;
+    BulkEditSlider* Slider_MHPatternYPhase;
+    BulkEditTextCtrl* TextCtrl_MHPatternWidth;
+    BulkEditTextCtrl* TextCtrl_MHPatternHeight;
+    BulkEditTextCtrl* TextCtrl_MHPatternXOffset;
+    BulkEditTextCtrl* TextCtrl_MHPatternYOffset;
+    BulkEditTextCtrl* TextCtrl_MHPatternRotation;
+    BulkEditTextCtrl* TextCtrl_MHPatternStartOffset;
+    BulkEditTextCtrl* TextCtrl_MHPatternPhaseOffset;
+    BulkEditTextCtrl* TextCtrl_MHPatternXFreq;
+    BulkEditTextCtrl* TextCtrl_MHPatternYFreq;
+    BulkEditTextCtrl* TextCtrl_MHPatternXPhase;
+    BulkEditTextCtrl* TextCtrl_MHPatternYPhase;
+    BulkEditValueCurveButton* ValueCurve_MHPatternRotation;
+    wxFlexGridSizer* FlexGridSizerPattern;
+    wxFlexGridSizer* FlexGridSizerPatternShape;
+    wxFlexGridSizer* FlexGridSizer_PatternWidth;
+    wxFlexGridSizer* FlexGridSizer_PatternHeight;
+    wxFlexGridSizer* FlexGridSizer_PatternXOffset;
+    wxFlexGridSizer* FlexGridSizer_PatternYOffset;
+    wxFlexGridSizer* FlexGridSizer_PatternRotation;
+    wxFlexGridSizer* FlexGridSizer_PatternStartOffset;
+    wxFlexGridSizer* FlexGridSizer_PatternPhaseOffset;
+    wxFlexGridSizer* FlexGridSizer_PatternXFreq;
+    wxFlexGridSizer* FlexGridSizer_PatternYFreq;
+    wxFlexGridSizer* FlexGridSizer_PatternXPhase;
+    wxFlexGridSizer* FlexGridSizer_PatternYPhase;
     //*)
     
 protected:
@@ -208,11 +267,53 @@ protected:
     static const wxWindowID ID_CHECKBOX_MHIgnoreTilt;
     static const wxWindowID ID_BUTTON_SavePathPreset;
     static const wxWindowID ID_PANEL_Pathing;
+    static const wxWindowID ID_CHECKBOX_MHPatternEnable;
+    static const wxWindowID ID_STATICTEXT_MHPatternShape;
+    static const wxWindowID ID_CHOICE_MHPattern;
+    static const wxWindowID ID_STATICTEXT_MHPatternWidth;
+    static const wxWindowID ID_SLIDER_MHPatternWidth;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternWidth;
+    static const wxWindowID ID_STATICTEXT_MHPatternHeight;
+    static const wxWindowID ID_SLIDER_MHPatternHeight;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternHeight;
+    static const wxWindowID ID_STATICTEXT_MHPatternXOffset;
+    static const wxWindowID ID_SLIDER_MHPatternXOffset;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternXOffset;
+    static const wxWindowID ID_STATICTEXT_MHPatternYOffset;
+    static const wxWindowID ID_SLIDER_MHPatternYOffset;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternYOffset;
+    static const wxWindowID ID_STATICTEXT_MHPatternRotation;
+    static const wxWindowID ID_SLIDER_MHPatternRotation;
+    static const wxWindowID ID_VALUECURVE_MHPatternRotation;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternRotation;
+    static const wxWindowID ID_STATICTEXT_MHPatternStartOffset;
+    static const wxWindowID ID_SLIDER_MHPatternStartOffset;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternStartOffset;
+    static const wxWindowID ID_STATICTEXT_MHPatternPhaseOffset;
+    static const wxWindowID ID_SLIDER_MHPatternPhaseOffset;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternPhaseOffset;
+    static const wxWindowID ID_STATICTEXT_MHPatternXFreq;
+    static const wxWindowID ID_SLIDER_MHPatternXFreq;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternXFreq;
+    static const wxWindowID ID_STATICTEXT_MHPatternYFreq;
+    static const wxWindowID ID_SLIDER_MHPatternYFreq;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternYFreq;
+    static const wxWindowID ID_STATICTEXT_MHPatternXPhase;
+    static const wxWindowID ID_SLIDER_MHPatternXPhase;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternXPhase;
+    static const wxWindowID ID_STATICTEXT_MHPatternYPhase;
+    static const wxWindowID ID_SLIDER_MHPatternYPhase;
+    static const wxWindowID IDD_TEXTCTRL_MHPatternYPhase;
+    static const wxWindowID ID_PANEL_Pattern;
     static const wxWindowID ID_PANEL_Color;
     static const wxWindowID ID_CHECKBOX_AUTO_SHUTTER;
+    static const wxWindowID ID_CHECKBOX_MHShutterEnable;
     static const wxWindowID ID_PANEL_ColorWheel;
     static const wxWindowID ID_NOTEBOOK2;
     static const wxWindowID ID_PANEL_Control;
+    static const wxWindowID ID_CHECKBOX_MHLinkToNext;
+    static const wxWindowID ID_STATICTEXT_MHLinkPreview;
+    static const wxWindowID ID_PANEL_Link;
     static const wxWindowID IDD_TEXTCTRL_Status;
     static const wxWindowID ID_BUTTON_ResetToDefault;
     static const wxWindowID ID_PANEL1;
@@ -226,7 +327,7 @@ protected:
     static const wxWindowID ID_TEXTCTRL_MH7_Settings;
     static const wxWindowID ID_TEXTCTRL_MH8_Settings;
     //*)
-    
+
     static void SetSliderValue(wxSlider* slider, int value);
 private:
     
@@ -254,14 +355,21 @@ private:
     void OnButtonDimmerOffClick(wxCommandEvent& event);
     void OnValueCurve_MHTiltOffsetClick(wxCommandEvent& event);
     void OnCheckBoxAutoShutterClick(wxCommandEvent& event);
+    void OnCheckBox_MHShutterEnableClick(wxCommandEvent& event);
+    void OnChoice_MHPatternSelect(wxCommandEvent& event);
+    void OnCheckBox_MHPatternEnableClick(wxCommandEvent& event);
+    void OnCheckBox_MHLinkToNextClick(wxCommandEvent& event);
     //*)
     
     DECLARE_EVENT_TABLE()
 
     void UncheckAllFixtures();
+    void ResetPatternControls();
+    void UpdatePatternControlState();
     void UpdateMHSettings();
     void UpdateColorSettings();
     void UpdatePathSettings();
+    void UpdatePatternSettings();
     void UpdateDimmerSettings();
     void RemoveSettings(std::list<std::string>& settings);
     void AddSetting(const std::string& name, const std::string& ctrl_name, std::string& mh_settings);
@@ -279,6 +387,9 @@ private:
     void RecallSettings(const std::string mh_settings);
     bool IsHeadActive(int num);
     void GetFixturesGroups();
+    void SyncLinkToNext();
+    void UpdateLinkTabState();
+    void ApplyLinkedHeadPosition(int headNum, float pan, float tilt);
     
     // Preset Functions
     void PopulatePresets();
@@ -345,6 +456,7 @@ private:
     unsigned char m_bitmapAlpha = 0x30;
     int m_pathIndexToDelete = -1;
     bool m_minSizeSet = false;
+    bool m_isModelGroup = false;
 };
 
 #endif

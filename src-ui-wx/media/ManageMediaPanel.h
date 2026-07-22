@@ -72,6 +72,7 @@ public:
     // Returns the file path for an item, or empty if it's a group node
     std::string GetFilePath(const wxDataViewItem& item) const;
     bool IsGroup(const wxDataViewItem& item) const;
+    MediaType GetMediaType(const wxDataViewItem& item) const;
     // Find the item for a given file path (invalid item if not found)
     wxDataViewItem FindItem(const std::string& filePath) const;
 
@@ -122,6 +123,9 @@ private:
     void BulkFindMediaByType(MediaType type);
     std::map<std::string, std::pair<int,int>> UpdateEffectPaths(const std::string& oldPath, const std::string& newPath);
     void RenderDirtyModels(const std::map<std::string, std::pair<int,int>>& dirtyModels);
+    // Sequence-level face definitions reference images outside effect
+    // settings - keep them in sync with any rename/embed/extract re-keying
+    void RewriteSequenceFacePaths(const std::string& oldPath, const std::string& newPath);
     void OnAddButtonClick(wxCommandEvent& event);
     void OnAIGenerateButtonClick(wxCommandEvent& event);
     void OnRenameButtonClick(wxCommandEvent& event);

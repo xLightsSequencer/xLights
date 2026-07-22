@@ -46,6 +46,7 @@ class OutputManager
     std::mutex _outputCriticalSection; // used to protect areas that must be single threaded
     std::string _baseShowDir = "";
     bool _autoUpdateFromBaseShowDir = false;
+    std::string _baseControllersSyncedTime = "";
     // Loaded show dir. Used at save time to derive the relative
     // form of `_baseShowDir` so the base-folder link survives
     // moving the show between machines (e.g. desktop ↔ iPad).
@@ -125,8 +126,13 @@ public:
             _dirty = true;
         }
     }
-    bool MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui = nullptr);
-    #pragma endregion 
+    // Returns true if the base networks file loaded and the merge ran (even if nothing changed);
+    // false only if the base file could not be loaded. Optional 'changed' reports whether any
+    // controller content was actually modified.
+    bool MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui = nullptr, bool* changed = nullptr);
+    bool NeedsBaseControllersUpdate() const;
+    void MarkBaseControllersSynced();
+    #pragma endregion
 
     #pragma region Controller Management
     std::list<Controller*> GetControllers() const { return _controllers; }
@@ -212,6 +218,7 @@ public:
 
     #pragma region Start and Stop
     bool StartOutput();
+    bool StartControllerOutputs(Controller* controller);
     void StopOutput();
     bool IsOutputting() const { return _outputting; }
     size_t TxNonEmptyCount();
