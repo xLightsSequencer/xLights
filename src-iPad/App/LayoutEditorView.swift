@@ -6878,6 +6878,11 @@ private struct SubModelListSheet: View {
                             NavigationLink(value: sub) {
                                 HStack {
                                     Text(sub).font(.body.monospaced())
+                                    if let brightness = entryFor(sub)?.dimmingBrightness, brightness != 0 {
+                                        Text("(\(brightness))")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
                                     Spacer()
                                     let entry = entryFor(sub)
                                     Text(entry?.isRanges ?? true

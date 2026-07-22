@@ -320,6 +320,7 @@ private:
 
     void ApplySubmodelName();
     void PopulateList();
+    wxString SubModelDimmingColumnText(const SubModelInfo* sm) const;
     void ValidateWindow();
     void Select(const wxString& name);
     void SelectAll(const wxString& names);
