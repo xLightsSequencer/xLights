@@ -18,7 +18,12 @@
 //*)
 
 #include <wx/treelist.h>
+#include <wx/srchctrl.h>
+#include <wx/timer.h>
 #include <pugixml.hpp>
+
+#include <set>
+#include <string>
 
 #include "models/ModelManager.h"
 
@@ -46,7 +51,13 @@ class ImportPreviewsModelsDialog: public wxDialog
     const std::map<std::string, std::unique_ptr<LayoutGroup>>& _layoutGroups;
 
     void ValidateWindow();
-    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview);
+    void PopulateTree();
+    void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter);
+    static bool MatchesFilter(const wxString& name, const wxString& filterLower);
+    // Filtering rebuilds the tree, so checked state is kept in these sets
+    // (which survive filtered-out rows) and synced to/from the visible tree.
+    void SyncCheckedFromTree();
+    void RestoreChecksToTree();
     void SelectAll(bool checked);
     void SelectHighlighted(bool checked);
     void SelectRecursiveModel(wxString m, bool checked);
@@ -112,6 +123,12 @@ class ImportPreviewsModelsDialog: public wxDialog
         };
     
         PreviewItemComparator previewItemComparator;
+
+        wxSearchCtrl* _filterCtrl = nullptr;
+        wxString _filter; // lower-cased; whitespace-tokenised AND match
+        wxTimer _filterTimer; // debounce tree rebuilds while typing
+        std::set<std::string> _checkedModels;   // "name|G" (group) or "name|M" (model)
+        std::set<std::string> _checkedPreviews; // checked preview/layout-group rows
 
 		DECLARE_EVENT_TABLE()
 };
