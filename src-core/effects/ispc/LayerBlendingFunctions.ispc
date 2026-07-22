@@ -77,45 +77,21 @@ inline uint32 fromHSV(const HSVColor &hsv, uint8 alph = 255) {
         float hue = hsv.x * 6.0;      // sector 0 to 5
         int i = (int)floor(hue);
         float f = hue - i;          // fractional part of h
+        int sec = i > 5 ? 5 : i;    // hue==1.0 lands in sector 6; the old
+                                    // switch's default folded it into 5, so match.
+        float v = hsv.z;
         float p = hsv.z * (1.0 - hsv.y);
-
-        switch (i) {
-            case 0:
-                red = hsv.z;
-                green = hsv.z * (1.0 - hsv.y * (1.0 - f));
-                blue = p;
-                break;
-
-            case 1:
-                red = hsv.z * (1.0 - hsv.y * f);
-                green = hsv.z;
-                blue = p;
-                break;
-
-            case 2:
-                red = p;
-                green = hsv.z;
-                blue = hsv.z * (1.0 - hsv.y * (1.0 - f));
-                break;
-
-            case 3:
-                red = p;
-                green = hsv.z * (1.0 - hsv.y * f);
-                blue = hsv.z;
-                break;
-
-            case 4:
-                red = hsv.z * (1.0 - hsv.y * (1.0 - f));
-                green = p;
-                blue = hsv.z;
-                break;
-
-            default:    // case 5:
-                red = hsv.z;
-                green = p;
-                blue = hsv.z * (1.0 - hsv.y * f);
-                break;
-        }
+        float q = hsv.z * (1.0 - hsv.y * f);
+        float t = hsv.z * (1.0 - hsv.y * (1.0 - f));
+        // Branchless sector select - replaces a switch(i) on the varying lane
+        // index (which forced SIMD divergence).  Identical per-sector values:
+        //   sector: 0  1  2  3  4  5
+        //     red : v  q  p  p  t  v
+        //     green: t  v  v  q  p  p
+        //     blue: p  p  t  v  v  q
+        red   = (sec == 0 || sec == 5) ? v : (sec == 1) ? q : (sec == 4) ? t : p;
+        green = (sec == 1 || sec == 2) ? v : (sec == 0) ? t : (sec == 3) ? q : p;
+        blue  = (sec == 3 || sec == 4) ? v : (sec == 2) ? t : (sec == 5) ? q : p;
     }
     return fromComponents((uint8)(red * 255.0), (uint8)(green * 255.0), (uint8)(blue * 255.0), alph);
 }
