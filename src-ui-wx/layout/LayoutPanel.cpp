@@ -878,7 +878,6 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     spdlog::debug("LayoutPanel property grid created");
 
-    ToolSizer->SetCols(21);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
@@ -901,6 +900,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("Import Custom", import);
     obj_button = AddModelButton("Add Object", object);
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
+
+    // The model buttons live on a single row. Derive the column count from what
+    // was actually added so adding a button here doesn't silently wrap the row.
+    ToolSizer->SetCols(ToolSizer->GetItemCount());
 
     spdlog::debug("LayoutPanel model buttons created");
 
