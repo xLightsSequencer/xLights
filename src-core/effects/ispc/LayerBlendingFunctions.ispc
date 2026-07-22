@@ -307,26 +307,15 @@ export void ApplySparkles(uniform const LayerBlendingData &data,
             // any render order (frame-parallel clones, partial re-renders).
             uint sparkle = (uint)sparkles[index] + (uint)data.sparkleFrame;
 
-            switch (sparkle % (208 - sc)) {
-                case 1:
-                case 7:
-                    // too dim
-                    // color.Set("#444444");
-                    break;
-                case 2:
-                case 6:
-                    result[index] = ApplyBrightness(data.sparkleColor, 0.53f);
-                    break;
-                case 3:
-                case 5:
-                    result[index] = ApplyBrightness(data.sparkleColor, 0.75f);
-                   break;
-                case 4:
-                    result[index] = data.sparkleColor;
-                    break;
-                default:
-                    break;
-            }
+            // Branchless replacement for switch(sparkle % (208 - sc)) on the
+            // varying phase (the switch forced SIMD divergence).  Only phases
+            // 2..6 change the pixel; 1, 7 and everything else leave it as-is
+            // (writing c back is a no-op for those lanes).
+            int m = sparkle % (208 - sc);
+            result[index] = (m == 4)             ? data.sparkleColor
+                          : (m == 2 || m == 6)   ? ApplyBrightness(data.sparkleColor, 0.53f)
+                          : (m == 3 || m == 5)   ? ApplyBrightness(data.sparkleColor, 0.75f)
+                          : c;
         }
     }
 }
