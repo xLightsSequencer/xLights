@@ -3788,6 +3788,58 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
 }
 
 
+static void AddDetectControllerTypeFallback(Discovery &discovery, const std::string &address) {
+    discovery.AddCurl(address, "/", [address, &discovery] (int rc, const std::string &buffer, const std::string &errorBuffer) {
+        if (rc == 200) {
+            discovery.DetectControllerType(address, "", buffer);
+        }
+        return true;
+    });
+}
+static void AddSystemInfoCurl(Discovery &discovery, const std::string &address, bool add404Fallback) {
+    discovery.AddCurl(address, "/api/system/info", [&discovery, address, add404Fallback](int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            ProcessFPPSysinfo(discovery, address, "", buffer);
+        } else if (rc == 404 && add404Fallback) {
+            AddDetectControllerTypeFallback(discovery, address);
+        }
+        return true;
+    });
+}
+static void AddMultiSyncSystemsCurl(Discovery &discovery, const std::string &address, bool add404Fallback) {
+    discovery.AddCurl(address, "/api/fppd/multiSyncSystems", [&discovery, address, add404Fallback] (int rc, const std::string &buffer, const std::string &err) {
+        if (rc == 200) {
+            ProcessFPPSystems(discovery, buffer);
+        } else if (rc == 404 && add404Fallback) {
+            AddDetectControllerTypeFallback(discovery, address);
+        }
+        return true;
+    });
+}
+static void FillFPPPingBuffer(uint8_t *buffer) {
+    buffer[5] = 207-7;
+    buffer[7] = 2; //v2 ping
+    buffer[8] = 1; //discovery
+    buffer[9] = 0xC0;
+
+    std::string ver = xlights_version_string;
+    auto const parts = Split(ver, '.');
+    int maj = (int)strtol(parts[0].c_str(), nullptr, 10);
+    int min = (int)strtol(parts[1].c_str(), nullptr, 10);
+
+    buffer[10] = (maj >> 8) & 0xFF;
+    buffer[11] = maj & 0xFF;
+    buffer[12] = 0;
+    buffer[13] = min;
+
+    buffer[14] = 0; // MODE?!?!?
+
+    //Technically, the IP address but since we aren't actually an FPP instance,
+    //we don't want anyone trying to contact us, so we'll set to 0
+    buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
+    strcpy((char *)&buffer[84], ver.c_str());
+}
+
 static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) {
     if (buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
         std::string ipStr = std::to_string((uint8_t)buffer[15]) + "." + std::to_string((uint8_t)buffer[16]) + "." + std::to_string((uint8_t)buffer[17]) + "." + std::to_string((uint8_t)buffer[18]);
@@ -3808,18 +3860,8 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
 
                 if (buffer[9] < 0x80) {
                     std::string ipAddr = ipStr;
-                    discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
-                        if (rc == 200) {
-                            ProcessFPPSystems(discovery, buffer);
-                        }
-                        return true;
-                    });
-                    discovery.AddCurl(ipAddr, "/api/system/info", [&discovery, ipAddr] (int rc, const std::string &buffer, const std::string &err) {
-                        if (rc == 200) {
-                            ProcessFPPSysinfo(discovery, ipAddr, "", buffer);
-                        }
-                        return true;
-                    });
+                    AddMultiSyncSystemsCurl(discovery, ipAddr, false);
+                    AddSystemInfoCurl(discovery, ipAddr, false);
                 }
             }
             if (inst->typeId == 0) {
@@ -3871,61 +3913,14 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
 }
 void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &addresses, bool broadcastPing) {
     uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
-    buffer[5] = 207-7;
-    buffer[7] = 2; //v2 ping
-    buffer[8] = 1; //discovery
-    buffer[9] = 0xC0;
-
-    std::string ver = xlights_version_string;
-    auto const parts = Split(ver, '.');
-    int maj = (int)strtol(parts[0].c_str(), nullptr, 10);
-    int min = (int)strtol(parts[1].c_str(), nullptr, 10);
-
-    buffer[10] = (maj >> 8) & 0xFF;
-    buffer[11] = maj & 0xFF;
-    buffer[12] = 0;
-    buffer[13] = min;
-
-    buffer[14] = 0; // MODE?!?!?
-
-    //Technically, the IP address but since we aren't actually an FPP instance,
-    //we don't want anyone trying to contact us, so we'll set to 0
-    buffer[15] = buffer[16] = buffer[17] = buffer[18] = 0;
-    strcpy((char *)&buffer[84], ver.c_str());
+    FillFPPPingBuffer(buffer);
 
     for (const auto &a : addresses) {
-        discovery.AddCurl(a, "/api/fppd/multiSyncSystems", [a, &discovery] (int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                ProcessFPPSystems(discovery, buffer);
-            } else if (rc == 404) {
-                discovery.AddCurl(a, "/", [a, &discovery] (int rc, const std::string &buffer, const std::string &errorBuffer) {
-                    if (rc == 200) {
-                        discovery.DetectControllerType(a, "", buffer);
-                    }
-                    return true;
-                });
-            }
-            return true;
-        });
-        discovery.AddCurl(a, "/api/system/info", [&discovery, a](int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                ProcessFPPSysinfo(discovery, a, "", buffer);
-            }
-            return true;
-        });
+        AddMultiSyncSystemsCurl(discovery, a, true);
+        AddSystemInfoCurl(discovery, a, false);
     }
-    discovery.AddCurl("localhost", "/api/system/info", [&discovery](int rc, const std::string &buffer, const std::string &err) {
-        if (rc == 200) {
-            ProcessFPPSysinfo(discovery, "localhost", "", buffer);
-        }
-        return true;
-    });
-    discovery.AddCurl("localhost", "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
-        if (rc == 200) {
-            ProcessFPPSystems(discovery, buffer);
-        }
-        return true;
-    });
+    AddSystemInfoCurl(discovery, "localhost", false);
+    AddMultiSyncSystemsCurl(discovery, "localhost", false);
 
     discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](uint8_t *buffer, int len, const std::string &fromIP) {
         ProcessFPPPingPacket(discovery, buffer, len);
@@ -3939,19 +3934,21 @@ void FPP::PrepareDiscovery(Discovery &discovery, const std::list<std::string> &a
         discovery.SendData(FPP_CTRL_PORT, a, buffer, 207);
     }
     discovery.AddBonjour("_fppd._udp", [&](const std::string &ip) {
-        discovery.AddCurl(ip, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                ProcessFPPSystems(discovery, buffer);
-            }
-            return true;
-        });
-        discovery.AddCurl(ip, "/api/system/info", [&discovery, ip](int rc, const std::string &buffer, const std::string &err) {
-            if (rc == 200) {
-                ProcessFPPSysinfo(discovery, ip, "", buffer);
-            }
-            return true;
-        });
+        AddMultiSyncSystemsCurl(discovery, ip, false);
+        AddSystemInfoCurl(discovery, ip, false);
     });
+}
+void FPP::PrepareSingleDiscovery(Discovery &discovery, const std::string &address) {
+    uint8_t buffer[512] = { 'F', 'P', 'P', 'D', 0x04};
+    FillFPPPingBuffer(buffer);
+
+    AddSystemInfoCurl(discovery, address, true);
+
+    discovery.AddMulticast("239.70.80.80", FPP_CTRL_PORT, [&discovery](uint8_t *buffer, int len, const std::string &fromIP) {
+        ProcessFPPPingPacket(discovery, buffer, len);
+    });
+
+    discovery.SendData(FPP_CTRL_PORT, address, buffer, 207);
 }
 bool FPP::supportedForFPPConnect() const {
     if (this->IsVersionAtLeast(7, 1)) {

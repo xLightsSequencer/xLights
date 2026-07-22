@@ -89,6 +89,13 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] static std::string ToCustomModel(const std::vector<std::vector<std::vector<int>>>& model);
         [[nodiscard]] std::vector<std::vector<std::vector<int>>> & GetData() { return _locations; }  // letting the XmlSerializer functions access this member data for speed
         [[nodiscard]] int GetCustomNodeStringNumber(int node) const;
+        // On a custom model StringNum holds the zero-based custom node number
+        // (InitModel sets it from the grid value), not a string number, so the
+        // base implementation would return nonsense. -1 means "unknown".
+        [[nodiscard]] int GetNodePhysicalStringIndex(size_t nodenum) const override {
+            if (nodenum >= Nodes.size() || Nodes[nodenum] == nullptr) return -1;
+            return GetCustomNodeStringNumber((int)Nodes[nodenum]->StringNum + 1) - 1;
+        }
 
         [[nodiscard]] const std::string StartNodeAttrName(int idx) const override
         {

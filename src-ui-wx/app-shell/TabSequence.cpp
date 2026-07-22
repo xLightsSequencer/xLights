@@ -658,7 +658,6 @@ void xLightsFrame::LoadEffectsFile()
     layoutPanel->Set3d(is_3d);
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     // update version
     _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
@@ -699,7 +698,6 @@ void xLightsFrame::LoadEffectsFile()
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), effectsFile.GetFullPath(), elapsedTime));
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     if (converted) {
         UnsavedRgbEffectsChanges = true;
@@ -884,7 +882,6 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     }
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     return true;
 }
@@ -920,7 +917,6 @@ void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)
     doc.append_child("xrgb");
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
 }
 
 // This ensures submodels are in the right order in the sequence elements after the user
@@ -1015,7 +1011,6 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
 
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
     return internalsChanged;
 }
 
@@ -1060,7 +1055,6 @@ bool xLightsFrame::RenameObject(const std::string OldName, const std::string& Ne
 
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
     return internalsChanged;
 }
 
@@ -1247,7 +1241,6 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
 
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 }
 
 
@@ -1297,7 +1290,6 @@ void xLightsFrame::UpdateModelsList()
     displayElementsPanel->UpdateModelsForSelectedView();
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 }
 
 std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)

@@ -158,9 +158,8 @@ struct MediaCompatibilityIssue;
 #define MRUF_LENGTH 8
 
 // notebook pages
-#define SETUPTAB 0
-#define LAYOUTTAB 1
-#define NEWSEQUENCER 2
+#define LAYOUTTAB 0
+#define NEWSEQUENCER 1
 
 #define PLAY_TYPE_STOPPED 0
 #define PLAY_TYPE_EFFECT 1
@@ -257,7 +256,6 @@ class wxDebugReportCompress;
 class BufferPanel;
 class LayoutPanel;
 class RenderProgressInfo;
-class wxLed;
 
 class xlAuiToolBar : public wxAuiToolBar {
 public:
@@ -485,7 +483,6 @@ public:
     void SaveCurrentTab();
     void DoWork(uint32_t work, const std::string& type, BaseObject* model = nullptr, const std::string& selected = "");
     void DoASAPWork();
-    void DoSetupWork();
     void DoLayoutWork();
     bool DoAllWork();
 
@@ -515,9 +512,6 @@ public:
     void OnAbout(wxCommandEvent& event);
     void OnMenuOpenFolderSelected(wxCommandEvent& event);
     void OnOutputTimerTrigger(wxTimerEvent& event);
-    void OnButtonNetworkMoveUpClick(wxCommandEvent& event);
-    void OnButtonNetworkMoveDownClick(wxCommandEvent& event);
-    void OnButtonSaveSetupClick(wxCommandEvent& event);
     void OnBitmapButtonTabInfoClick(wxCommandEvent& event);
     void OnCheckBoxLightOutputClick(wxCommandEvent& event);
     void OnBitmapButtonOpenSeqClick(wxCommandEvent& event);
@@ -648,24 +642,11 @@ public:
     void OnMenuItemPreferencesSelected(wxCommandEvent& event);
     void ShowPreferencesDialog(const wxString& initialPage = wxEmptyString);
     void OnEffectsToolBarContextMenu(wxContextMenuEvent& event);
-    void OnButtonDiscoverClick(wxCommandEvent& event);
-    void OnButtonDeleteAllControllersClick(wxCommandEvent& event);
-    void OnButtonVisualiseClick(wxCommandEvent& event);
-    void OnButtonUploadInputClick(wxCommandEvent& event);
-    void OnButtonUploadOutputClick(wxCommandEvent& event);
-    void OnButtonOpenClick(wxCommandEvent& event);
-    void OnButtonControllerDeleteClick(wxCommandEvent& event);
     void OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event);
-    void OnButtonAddControllerSerialClick(wxCommandEvent& event);
-    void OnButtonAddControllerEthernetClick(wxCommandEvent& event);
-    void OnButtonAddControllerNullClick(wxCommandEvent& event);
     void OnMenuItem_KeyBindingsSelected(wxCommandEvent& event);
-    void OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
     void OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event);
-    void OnButton_OpenProxyClick(wxCommandEvent& event);
     void OnMenuItemRunScriptSelected(wxCommandEvent& event);
-    void OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event);
     void OnMenuItem_ColorReplaceSelected(wxCommandEvent& event);
     void OnMenuItemFindDataSelected(wxCommandEvent& event);
     void OnMenuItemSearchEffectsSelected(wxCommandEvent& event);
@@ -676,13 +657,7 @@ public:
     void OnMenuItem_ConvertSymbolsSelected(wxCommandEvent& event);
     void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
     void OnMenuItem_SuppressDock(wxCommandEvent& event);
-    void OnButton_ChangeBaseShowDirClick(wxCommandEvent& event);
-    void OnButton_ClearBaseShowDirClick(wxCommandEvent& event);
-    void OnCheckBox_AutoUpdateBaseClick(wxCommandEvent& event);
-    void OnButton_UpdateBaseClick(wxCommandEvent& event);
     void ShowHideSelectEffectsWindow(wxCommandEvent& event);
-    void OnButtonFPPConnectClick(wxCommandEvent& event);
-    void OnButton_OpenBaseShowDirClick(wxCommandEvent& event);
     void OnMenuItemFindShowFolderSelected(wxCommandEvent& event);
     void OnMenuItemShiftEffectsAndTimingSelected(wxCommandEvent& event);
     void OnMenuItem_GenerateAIImageSelected(wxCommandEvent& event);
@@ -755,18 +730,6 @@ public:
     static const wxWindowID ID_AUITOOLBAR_VIEW;
     static const wxWindowID ID_AUIEFFECTSTOOLBAR;
     static const wxWindowID ID_BUTTON3;
-    static const wxWindowID ID_BUTTON11;
-    static const wxWindowID ID_BUTTON13;
-    static const wxWindowID ID_STATICTEXT4;
-    static const wxWindowID ID_STATICTEXT2;
-    static const wxWindowID ID_BUTTON14;
-    static const wxWindowID ID_BUTTON17;
-    static const wxWindowID ID_BUTTON15;
-    static const wxWindowID ID_STATICTEXT3;
-    static const wxWindowID ID_CHECKBOX1;
-    static const wxWindowID ID_BUTTON16;
-    static const wxWindowID ID_BUTTON_SAVE_SETUP;
-    static const wxWindowID ID_BUTTON9;
     static const wxWindowID ID_BUTTON6;
     static const wxWindowID ID_BUTTON10;
     static const wxWindowID ID_BUTTON5;
@@ -782,7 +745,6 @@ public:
     static const wxWindowID ID_BUTTON4;
     static const wxWindowID ID_BUTTON12;
     static const wxWindowID ID_PANEL3;
-    static const wxWindowID ID_PANEL_SETUP;
     static const wxWindowID ID_PANEL_PREVIEW;
     static const wxWindowID XLIGHTS_SEQUENCER_TAB;
     static const wxWindowID ID_NOTEBOOK1;
@@ -926,40 +888,10 @@ public:
     wxAuiManager* MainAuiManager;
     wxAuiManager* m_mgr;
     wxAuiNotebook* Notebook1;
-    wxBitmapButton* BitmapButtonMoveNetworkDown;
-    wxBitmapButton* BitmapButtonMoveNetworkUp;
-    wxButton* ButtonAddControllerEthernet;
-    wxButton* ButtonAddControllerNull;
-    wxButton* ButtonAddControllerSerial;
-    wxButton* ButtonControllerDelete;
-    wxButton* ButtonDiscover;
-    wxButton* ButtonFPPConnect;
-    wxButton* ButtonOpen;
-    wxButton* ButtonSaveSetup;
-    wxButton* ButtonUploadInput;
-    wxButton* ButtonUploadOutput;
-    wxButton* ButtonVisualise;
-    wxButton* Button_ChangeBaseShowDir;
-    wxButton* Button_ChangeShowDirPermanently;
-    wxButton* Button_ChangeTemporarilyAgain;
-    wxButton* Button_CheckShowFolderTemporarily;
-    wxButton* Button_ClearBaseShowDir;
-    wxButton* Button_OpenBaseShowDir;
-    wxButton* Button_OpenProxy;
-    wxButton* Button_UpdateBase;
-    wxCheckBox* CheckBox_AutoUpdateBase;
     wxChoice* ChoiceParm1;
     wxChoice* ChoiceParm2;
-    wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxFlexGridSizer* FlexGridSizerSetup;
-    wxFlexGridSizer* FlexGridSizerSetupControllerButtons;
-    wxFlexGridSizer* FlexGridSizerSetupControllers;
-    wxFlexGridSizer* FlexGridSizerSetupProperties;
-    wxFlexGridSizer* FlexGridSizerSetupRight;
     wxFlexGridSizer* GaugeSizer;
     wxGauge* ProgressBar;
-    wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* StatusBarSizer;
     wxMenu* AudioMenu;
     wxMenu* Menu1;
@@ -1073,17 +1005,9 @@ public:
     wxMenuItem* mAltBackupMenuItem;
     wxMenuItem* mExportModelsMenuItem;
     wxPanel* AUIStatusBar;
-    wxPanel* Panel2;
-    wxPanel* Panel5;
     wxPanel* PanelPreview;
     wxPanel* PanelSequencer;
-    wxPanel* PanelSetup;
-    wxStaticBoxSizer* StaticBoxSizer1;
     wxStaticText* FileNameText;
-    wxStaticText* ShowDirectoryLabel;
-    wxStaticText* StaticTextDummy;
-    wxStaticText* StaticText_BaseShowDir;
-    wxStaticText* StaticText_BaseShowDirLabel;
     wxStaticText* StatusText;
     wxTimer AutoSaveTimer;
     wxTimer EffectSettingsTimer;
@@ -1130,8 +1054,6 @@ public:
     wxMenu *revertToMenu = nullptr;
     wxMenuItem* revertToMenuItem = nullptr;
 
-    long DragRowIdx;
-    //wxListCtrl* DragListBox;
     bool UnsavedNetworkChanges = false;
     unsigned int mSavedChangeCount = 0;
     unsigned int mLastAutosaveCount = 0;
@@ -1208,7 +1130,6 @@ public:
 
     void CollectUserEmail();
     void ShowACLights();
-    void UpdateControllerSave();
     void UpdateLayoutSave();
 
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
@@ -1440,52 +1361,25 @@ public:
     void LogPerspective(const wxString& perspective) const;
 
     // setup
-    wxListCtrl* List_Controllers = nullptr;
     bool inInitialize = false;
-    wxPropertyGrid* Controllers_PropertyEditor = nullptr;
-    std::unique_ptr<class ControllerPropertyAdapter> _controllerAdapter;
-    wxLed* LedPing = nullptr;
 
-    void OnListItemActivatedControllers(wxListEvent& event);
-    void OnListItemSelectedControllers(wxListEvent& event);
-    void OnListKeyDownControllers(wxListEvent& event);
-    void OnListControllersRClick(wxContextMenuEvent& event);
-    void OnListControllersColClick(wxListEvent& event);
-    void OnListControllersItemRClick(wxListEvent& event);
-    void OnControllerPropertyGridChange(wxPropertyGridEvent& event);
-    void OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event);
-    void OnControllerPropertyGridExpanded(wxPropertyGridEvent& event);
-    void OnListItemDeselectedControllers(wxListEvent& event);
-
-    void SelectController(const std::string& controllerName);
-    void UnselectAllControllers();
-    void InitialiseControllersTab(bool rebuildPropGrid = true);
     void OnPingTimer(wxTimerEvent& event);
     void waitForPingsToComplete();
+    void PingActiveControllers();
+    void RefreshControllerStatusColumn();
     void StatusRefreshTimer(wxTimerEvent& event);
-    wxBitmap CreateLedBitmap(bool online);
-    void SetControllersProperties(bool rebuildPropGrid = true);
-    void DeleteSelectedControllers();
-    void UnlinkSelectedControllers();
-    void ActivateSelectedControllers(const std::string& active);
-    void SelectAllControllers();
+    void RefreshControllerStatusNow();
+    bool IsControllerListVisible() const;
     ControllerCaps* GetControllerCaps(const std::string& name);
+    bool ControllerSupportsOutputUpload(Controller* controller);
     bool UploadInputToController(Controller* controller, wxString& message);
     bool UploadOutputToController(Controller* controller, wxString& message);
-    int GetFirstSelectedControllerIndex() const;
-    std::list<std::string> GetSelectedControllerNames() const;
-    void OnListControllerPopup(wxCommandEvent& event);
-    int GetSelectedControllerCount() const;
-    int FindControllerInListControllers(const std::string& name) const;
-
-    void ValidateControllerProperties();
-    void MoveSelectedControllerRows(bool up);
-    void MoveListControllerRows(int toRow, bool reverse);
-    void OnListItemBeginDragControllers(wxListEvent& event);
-    void OnListItemDragQuitControllers(wxMouseEvent& event);
-    void OnListItemDragEndControllers(wxMouseEvent& event);
-    void OnListItemMoveControllers(wxMouseEvent& event);
-    void OnListItemScrollTimerControllers(wxTimerEvent& event);
+    void UploadControllerInput(Controller* controller);
+    void UploadControllerOutput(Controller* controller);
+    void OnButtonDiscoverClick(wxCommandEvent& event);
+    void OnButtonAddControllerSerialClick(wxCommandEvent& event);
+    void OnButtonAddControllerEthernetClick(wxCommandEvent& event);
+    void OnButtonAddControllerNullClick(wxCommandEvent& event);
 
     void OnMenuMRU(wxCommandEvent& event);
     void OnMRUSequence(wxCommandEvent& event);
@@ -1509,8 +1403,6 @@ public:
     void OnProgressBarDoubleClick(wxMouseEvent& event);
 
     void DoPostStartupCommands();
-
-    wxTimer _scrollTimer;
 
     wxArrayString ChannelNames;
     wxArrayInt ChannelColors;
@@ -1871,12 +1763,13 @@ public:
     // Gather start addresses from OutputManager controllers + forced IPs from config
     std::list<std::string> GetDiscoveryAddresses(std::list<std::string>* forcedOut = nullptr) const;
     // FPP-only discovery: discover FPP instances using addresses from GetDiscoveryAddresses
-    std::list<FPP*> DiscoverFPPInstances(DiscoveryDelegate* delegate);
+    std::list<FPP*> DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp = "");
     // Full multi-protocol discovery: prepare all protocol handlers on the given Discovery object
     void PrepareAllControllerDiscovery(Discovery& discovery);
 
     void RenderLayout();
     ViewsModelsPanel* GetDisplayElementsPanel() const { return displayElementsPanel; }
+    LayoutPanel* GetLayoutPanel() const { return layoutPanel; }
     EffectsPanel* GetEffectsPanel() const { return EffectsPanel1; }
     void ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased);
     void ResetAllPanelDefaultSettings();
@@ -2023,7 +1916,6 @@ private:
     void ValidateEffectAssets();
     bool CleanupRGBEffectsFileLocations();
     bool CleanupSequenceFileLocations();
-    void ValidateWindow();
     void DoDonate();
     void AutoShowHouse();
     bool CheckForUpdate(int maxRetries, bool canSkipUpdates, bool showMessageBoxes);
@@ -2037,23 +1929,6 @@ private:
     wxMenuItem* MenuItemPreviewSeparator = nullptr;
     static const long ID_MENU_ITEM_PREVIEWS;
     static const long ID_MENU_ITEM_PREVIEWS_SHOW_ALL;
-
-    static const long ID_List_Controllers;
-    static const long ID_NETWORK_ADDSERIAL;
-    static const long ID_NETWORK_ADDNULL;
-    static const long ID_NETWORK_ADDETHERNET;
-    static const long ID_NETWORK_ACTIVE;
-    static const long ID_NETWORK_ACTIVEXLIGHTS;
-    static const long ID_NETWORK_UNLINKFROMBASE;
-    static const long ID_NETWORK_INACTIVE;
-    static const long ID_NETWORK_DELETE;
-    static const long ID_NETWORK_UPLOADOUTPUT;
-    static const long ID_NETWORK_SORT_NAME;
-    static const long ID_NETWORK_SORT_ID;
-    static const long ID_NETWORK_SORT_IP;
-    static const long ID_NETWORK_SORT_FPP_PROXY;
-    static const long ID_NETWORK_SORT_CONTROLLER_VENDOR;
-    static const long ID_NETWORK_SORT_CONTROLLER_PROTOCOL;
 
     #define isRandom(ctl)  isRandom_(ctl, #ctl) //(buttonState[std::string(ctl->GetName())] == Random)
 

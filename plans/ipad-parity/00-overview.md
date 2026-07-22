@@ -7,7 +7,7 @@
 
 ## How to read this
 
-- **1,191 features** were enumerated across 14 themes (menu items, context-menu
+- **1,200 features** were enumerated across 14 themes (menu items, context-menu
   entries, dialog operations, preferences, keyboard shortcuts, gestures).
 - The **gap** for each feature is *derived from the `desktop`/`iPad` status*
   (✅ present / 🟡 partial / ❌ absent). Categories:
@@ -26,9 +26,9 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,191 |
-| **At parity** (both platforms) | 859 (**~72%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 177 |
+| Features audited | 1,200 |
+| **At parity** (both platforms) | 864 (**~72%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 181 |
 | **iPad-weaker** (partial on iPad) | 63 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
@@ -60,13 +60,13 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
-| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 70 | 46 | 66% | 13 | 6 | 6 | 4 |
+| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 71 | 47 | 66% | 13 | 6 | 6 | 4 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 95 | 81% | 10 | 4 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 73 | 88% | 3 | 3 | 4 | 3 |
 | 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 87 | 78 | 90% | 2 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
-| 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 107 | 77% | 12 | 13 | 7 | 3 |
-| 07 | [Setup](07-setup-controllers-upload.md) | 80 | 66 | 82% | 8 | 3 | 3 | 11 |
+| 06 | [Layout: Models](06-layout-models-preview.md) | 141 | 109 | 77% | 12 | 13 | 7 | 3 |
+| 07 | [Setup](07-setup-controllers-upload.md) | 86 | 68 | 79% | 12 | 3 | 3 | 11 |
 | 08 | [Import & Export](08-import-export.md) | 71 | 55 | 77% | 9 | 7 | 0 | 1 |
 | 09 | [Render & Playback](09-render-playback.md) | 53 | 46 | 87% | 4 | 2 | 1 | 0 |
 | 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 85 | 67 | 79% | 12 | 5 | 0 | 7 |
@@ -74,7 +74,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,191** | **859** | **~72%** | **177** | **63** | **≈92** | **82** |
+| — | **Total** | **1,200** | **864** | **~72%** | **181** | **63** | **≈92** | **82** |
 
 ## The roadmap — P1 iPad gaps (build first)
 

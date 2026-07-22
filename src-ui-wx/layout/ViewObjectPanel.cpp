@@ -118,7 +118,6 @@ wxTreeListCtrl* ViewObjectPanel::CreateTreeListCtrl(long style)
                               wxDefaultPosition, wxDefaultSize,
                               style, "ID_TREELISTVIEW_OBJECTS");
     tree->SetImages(m_imageList);
-
     tree->AppendColumn("Object / Group",
                        wxCOL_WIDTH_AUTOSIZE,
                        wxALIGN_LEFT,

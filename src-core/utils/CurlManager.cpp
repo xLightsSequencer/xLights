@@ -127,7 +127,7 @@ std::string CurlManager::HTTPSDelete(const std::string& url, const std::string& 
     return INSTANCE.doRequest(url, options);
 }
 
-std::string CurlManager::HTTPSGet(const std::string& s, const std::string& user, const std::string& password, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode)
+std::string CurlManager::HTTPSGet(const std::string& s, const std::string& user, const std::string& password, int timeout, const std::vector<std::pair<std::string, std::string>>& customHeaders, int* responseCode, bool quiet)
 {
     SyncRequestOptions options;
     options.method = "GET";
@@ -136,6 +136,7 @@ std::string CurlManager::HTTPSGet(const std::string& s, const std::string& user,
     options.timeoutSeconds = timeout;
     options.disableSSLVerification = true;
     options.responseCode = responseCode;
+    options.quiet = quiet;
     for (const auto& it : customHeaders) {
         options.headers.push_back(it.first + ": " + it.second);
     }
@@ -333,7 +334,11 @@ void CurlManager::addPut(const std::string& url, const std::string& data, const 
 std::string CurlManager::doRequest(const std::string& furl, const SyncRequestOptions& options)
 {
     auto logger_curl = spdlog::get("curl");
-    logger_curl->info("Adding Synchronous CURL - URL: {}    Method: {}", furl.c_str(), options.method.c_str());
+    if (options.quiet) {
+        logger_curl->debug("Adding Synchronous CURL - URL: {}    Method: {}", furl.c_str(), options.method.c_str());
+    } else {
+        logger_curl->info("Adding Synchronous CURL - URL: {}    Method: {}", furl.c_str(), options.method.c_str());
+    }
 
     CURL* curl = createCurl(furl);
     if (curl == nullptr) {
@@ -400,7 +405,7 @@ std::string CurlManager::doRequest(const std::string& furl, const SyncRequestOpt
         resp.assign(reinterpret_cast<char*>(data->resp.data()), data->resp.size());
     } else {
         const char* err = curl_easy_strerror(res);
-        logger_curl->error("Curl request failed: {} {}", static_cast<int>(res), (err ? err : ""));
+        logger_curl->error("Curl request failed: {} {}    URL: {}", static_cast<int>(res), (err ? err : ""), furl.c_str());
     }
 
     if (headerlist != nullptr) {
