@@ -191,6 +191,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (wbhartmanii)           Layout: 3D object (mesh) files inside the show/media folders are now
                                  saved with show-relative paths (forward slashes) instead of absolute
                                  paths, so layouts survive show folders moved or synced across platforms
+    -bug (dkulp)                 Model States dialog: debug builds asserted ("invalid growable row index")
+                                 when the dialog opened
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
