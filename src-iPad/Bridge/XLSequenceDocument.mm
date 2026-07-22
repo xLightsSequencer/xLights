@@ -15722,23 +15722,29 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     bool rejectAll = false;
 
     BOOL controllersChanged = NO;
-    if (om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr)) {
+    bool controllersDidChange = false;
+    om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr, &controllersDidChange);
+    if (controllersDidChange) {
         controllersChanged = YES;
         [self recalcAndMarkControllersDirty];
     }
 
     BOOL modelsChanged = NO;
     if (_context->HasModelManager()) {
-        if (_context->GetModelManager().MergeFromBase(baseDir, /*prompt=*/false,
-                                                       acceptAll, rejectAll)) {
+        bool modelsDidChange = false;
+        _context->GetModelManager().MergeFromBase(baseDir, /*prompt=*/false,
+                                                   acceptAll, rejectAll, &modelsDidChange);
+        if (modelsDidChange) {
             modelsChanged = YES;
         }
     }
 
     BOOL objectsChanged = NO;
     if (_context->HasViewObjectManager()) {
-        if (_context->GetAllObjects().MergeFromBase(baseDir, /*prompt=*/false,
-                                                     acceptAll, rejectAll)) {
+        bool objectsDidChange = false;
+        _context->GetAllObjects().MergeFromBase(baseDir, /*prompt=*/false,
+                                                 acceptAll, rejectAll, &objectsDidChange);
+        if (objectsDidChange) {
             objectsChanged = YES;
         }
     }

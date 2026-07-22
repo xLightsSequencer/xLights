@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (cybercop23)            Show folders now skip the automatic base-show-folder merge (controllers, models,
+                                 view objects) when the base folder has not changed since the last saved sync.
     -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster
                                  (sequences using them saw 2-5x faster total render times)
     -enh (dkulp)                 Pictures: much faster when the image is larger than the model
