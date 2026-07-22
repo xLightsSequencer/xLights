@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (heffneil)              Import Previews and Models: added a filter box above the tree to
+                                 quickly find models/groups in a long list
     -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
                                  always-visible Effects toolbar, and reorder them - handy once enough
                                  effects are registered that the toolbar no longer fits smaller screens.

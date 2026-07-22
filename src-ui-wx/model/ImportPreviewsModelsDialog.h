@@ -58,6 +58,7 @@ class ImportPreviewsModelsDialog: public wxDialog
     // (which survive filtered-out rows) and synced to/from the visible tree.
     void SyncCheckedFromTree();
     void RestoreChecksToTree();
+    void ClearFilter();
     void SelectAll(bool checked);
     void SelectHighlighted(bool checked);
     void SelectRecursiveModel(wxString m, bool checked);
@@ -114,20 +115,20 @@ class ImportPreviewsModelsDialog: public wxDialog
         void OnContextMenu(wxTreeListEvent& event);
         void OnListPopup(wxCommandEvent& event);
         void OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event);
-        
-        class PreviewItemComparator : public wxTreeListItemComparator {
-            public:
-                PreviewItemComparator() {};
-                virtual ~PreviewItemComparator() {};
-                virtual int Compare(wxTreeListCtrl *treelist, unsigned col, wxTreeListItem first, wxTreeListItem second) override;
+
+        struct CheckedModel {
+            std::string name;
+            bool group;
+            bool operator<(const CheckedModel& o) const {
+                return group != o.group ? group < o.group : name < o.name;
+            }
         };
-    
-        PreviewItemComparator previewItemComparator;
 
         wxSearchCtrl* _filterCtrl = nullptr;
-        wxString _filter; // lower-cased; whitespace-tokenised AND match
-        wxTimer _filterTimer; // debounce tree rebuilds while typing
-        std::set<std::string> _checkedModels;   // "name|G" (group) or "name|M" (model)
+        wxString _filter;        // lower-cased; whitespace-tokenised AND match
+        wxString _appliedFilter; // what the tree currently shows; lags _filter by the debounce
+        wxTimer _filterTimer;    // debounce tree rebuilds while typing
+        std::set<CheckedModel> _checkedModels;
         std::set<std::string> _checkedPreviews; // checked preview/layout-group rows
 
 		DECLARE_EVENT_TABLE()
