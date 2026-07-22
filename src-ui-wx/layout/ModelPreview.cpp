@@ -655,6 +655,18 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
 
+            // Port highlight: color only the nodes belonging to the selected port/string.
+            auto psh = _portStringHighlight.end();
+            auto pch = _portChannelHighlight.end();
+            if (!_portStringHighlight.empty() || !_portChannelHighlight.empty()) {
+                const std::string& mname = m->GetName();
+                psh = _portStringHighlight.find(mname);
+                pch = _portChannelHighlight.find(mname);
+            }
+            const bool hasPortStringHighlight = (psh != _portStringHighlight.end() && psh->second >= 0);
+            const bool hasPortChannelHighlight = (pch != _portChannelHighlight.end());
+            const bool hasPortHighlight = hasPortStringHighlight || hasPortChannelHighlight;
+
             if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->GroupSelected() && !m->Selected()) {
                 // we dont display submodels if they are not selected
             } else {
@@ -662,8 +674,48 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 bounds[0] = bounds[1] = bounds[2] = 999999;
                 bounds[3] = bounds[4] = bounds[5] = -999999;
 
+                // Node colors are part of the model's persistent state, so save the originals
+                // here and restore them right after drawing to avoid leaking the highlight into
+                // other render paths (e.g. playback) that also read per-node colors.
+                std::vector<xlColor> savedNodeColors;
+                if (hasPortHighlight) {
+                    static const xlColor highlightColor = xlYELLOW;
+                    static const xlColor dimColor(30, 30, 30);
+                    const size_t nodeCount = m->GetNodeCount();
+                    savedNodeColors.resize(nodeCount);
+                    for (size_t n = 0; n < nodeCount; ++n) {
+                        savedNodeColors[n] = m->GetNodeColor(n);
+                    }
+                    if (hasPortChannelHighlight) {
+                        const uint32_t firstChan = pch->second.first;
+                        const uint32_t lastChan = pch->second.second;
+                        for (size_t n = 0; n < nodeCount; ++n) {
+                            const int32_t nodeChan = m->NodeStartChannel(n);
+                            if (nodeChan >= (int32_t)firstChan && nodeChan <= (int32_t)lastChan)
+                                m->SetNodeColor(n, highlightColor);
+                            else
+                                m->SetNodeColor(n, dimColor);
+                        }
+                    } else {
+                        const int highlightStr = psh->second;
+                        for (size_t n = 0; n < nodeCount; ++n) {
+                            if (m->GetNodePhysicalStringIndex(n) == highlightStr)
+                                m->SetNodeColor(n, highlightColor);
+                            else
+                                m->SetNodeColor(n, dimColor);
+                        }
+                    }
+                    color = nullptr; // DisplayModelOnWindow reads per-node colors when c == nullptr
+                }
+
                 m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d,
                                         color, allowSelected, false, highlightFirst, 0, bounds);
+
+                if (!savedNodeColors.empty()) {
+                    for (size_t n = 0; n < savedNodeColors.size(); ++n) {
+                        m->SetNodeColor(n, savedNodeColors[n]);
+                    }
+                }
 
                 if (color == selColor && bounds[0] != 999999 && bounds[3] != -999999) {
                     m->GetModelScreenLocation().TranslatePoint(bounds[0], bounds[1], bounds[2]);
@@ -1308,6 +1360,14 @@ double ModelPreview::getBackingScaleFactor() const {
 bool ModelPreview::GetActive() const
 {
     return mPreviewPane->GetActive();
+}
+
+void ModelPreview::SetPortStringHighlight(const Model* m, int stringIndex) {
+    _portStringHighlight[m->GetName()] = stringIndex;
+}
+
+void ModelPreview::SetPortChannelHighlight(const Model* m, uint32_t firstChan, uint32_t lastChan) {
+    _portChannelHighlight[m->GetName()] = { firstChan, lastChan };
 }
 
 void ModelPreview::SetActive(bool show) {

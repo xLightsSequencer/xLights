@@ -87,6 +87,8 @@ const long ControllerModelDialog::CONTROLLER_COLORORDER = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GROUPCOUNT = wxNewId();
 const long ControllerModelDialog::CONTROLLER_GAMMA = wxNewId();
 
+int ControllerModelDialog::s_activeCount = 0;
+
 BEGIN_EVENT_TABLE(ControllerModelDialog, wxDialog)
 //(*EventTable(ControllerModelDialog)
 //*)
@@ -1959,7 +1961,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     _mm(mm),
     _xLights((xLightsFrame*)parent)
 {
-    
+    ++s_activeCount;
 
     //(*Initialize(ControllerModelDialog)
     wxBoxSizer* BoxSizer1;
@@ -2176,6 +2178,7 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
 ControllerModelDialog::~ControllerModelDialog()
 {
+    --s_activeCount;
     SaveWindowPosition("ControllerModelDialogPosition", this);
     auto* config = GetXLightsConfig();
     config->Write("ControllerModelSashPosition", SplitterWindow1->GetSashPosition());

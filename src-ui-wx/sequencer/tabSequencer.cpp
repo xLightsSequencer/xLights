@@ -370,7 +370,6 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         mCurrentPerpective = &_perspectives.back();
         UnsavedRgbEffectsChanges = true;
         UpdateLayoutSave();
-        UpdateControllerSave();
     } else {
         for (auto& p : _perspectives) {
             if (!p.name.empty() && p.name == _currentPerspectiveName) {
@@ -3429,7 +3428,6 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         }
     }
     UpdateLayoutSave();
-    UpdateControllerSave();
     UpdateViewMenu();
 }
 
@@ -3504,7 +3502,6 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
     LoadPerspectivesMenu();
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
     UpdateViewMenu();
 }
 

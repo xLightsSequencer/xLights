@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (cybercop23)            Moved the Controllers tab to the Layout tab and separated Models and Groups into
+                                 their own tab, bringing the UI into parity with the iPad; added a controller
+                                 port/model selector to see the model(s)/string selected in the layout; added
+                                 right-click single controller FPPConnect functionality
+    -enh (cybercop23)            Show/base show folder settings moved to a Directories dialog opened from the
+                                 Layout tab; controller list columns can be shown/hidden from the header
     -enh (heffneil)              Import Previews and Models: added a filter box above the tree to
                                  quickly find models/groups in a long list
     -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the

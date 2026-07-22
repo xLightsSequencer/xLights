@@ -29,6 +29,7 @@
 
 #include "xLightsMain.h"
 #include "xLightsApp.h"
+#include "layout/ControllerListPanel.h"
 #include "layout/LayoutPanel.h"
 #include "render/SequenceFile.h"
 #ifdef __WXOSX__
@@ -42,6 +43,7 @@
 #include "utils/SpecialOptions.h"
 #include "layout/LayoutGroup.h"
 #include "setup/ControllerModelDialog.h"
+#include "setup/ShowDirectoriesDialog.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
 
@@ -56,6 +58,7 @@
 #include "controllers/AlphaPix.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
+#include "controllers/FPPConnectDialog.h"
 
 #include "outputs/ControllerEthernet.h"
 #include "outputs/ControllerSerial.h"
@@ -73,8 +76,6 @@
 #include "setup/DiscoveryAuthDialog.h"
 #include "controllerproperties/ControllerPropertyManager.h"
 #include "controllerproperties/ControllerPropertyAdapter.h"
-
-#include "wxLED/wxLED.h"
 
 #include <log.h>
 
@@ -107,23 +108,6 @@ private:
     Controller* _controller;
 };
 std::atomic_int ControllerPingThread::pingCount(0);
-
-const long xLightsFrame::ID_List_Controllers = wxNewId();
-const long xLightsFrame::ID_NETWORK_ADDETHERNET = wxNewId();
-const long xLightsFrame::ID_NETWORK_ADDNULL = wxNewId();
-const long xLightsFrame::ID_NETWORK_ADDSERIAL = wxNewId();
-const long xLightsFrame::ID_NETWORK_ACTIVE = wxNewId();
-const long xLightsFrame::ID_NETWORK_ACTIVEXLIGHTS = wxNewId();
-const long xLightsFrame::ID_NETWORK_INACTIVE = wxNewId();
-const long xLightsFrame::ID_NETWORK_DELETE = wxNewId();
-const long xLightsFrame::ID_NETWORK_UNLINKFROMBASE = wxNewId();
-const long xLightsFrame::ID_NETWORK_UPLOADOUTPUT = wxNewId();
-const long xLightsFrame::ID_NETWORK_SORT_NAME = wxNewId();
-const long xLightsFrame::ID_NETWORK_SORT_ID = wxNewId();
-const long xLightsFrame::ID_NETWORK_SORT_IP = wxNewId();
-const long xLightsFrame::ID_NETWORK_SORT_FPP_PROXY = wxNewId();
-const long xLightsFrame::ID_NETWORK_SORT_CONTROLLER_VENDOR = wxNewId();
-const long xLightsFrame::ID_NETWORK_SORT_CONTROLLER_PROTOCOL = wxNewId();
 
 #pragma region Show Directory
 void xLightsFrame::OnMenuMRU(wxCommandEvent& event) {
@@ -433,8 +417,6 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 
                 wxMessageBox(message, "ZCPP Deprecated", wxOK | wxICON_WARNING, this);
             }
-
-            InitialiseControllersTab();
         }
     } else {
         _outputManager.SetShowDir(ToStdString(CurrentDir));
@@ -446,37 +428,12 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         NetworkChange();
     } else {
         UnsavedNetworkChanges = false;
-        UpdateControllerSave();
+        UpdateLayoutSave();
     }
 
-    ShowDirectoryLabel->SetLabel(showDirectory);
-
-    CheckBox_AutoUpdateBase->SetValue(_outputManager.IsAutoUpdateFromBaseShowDir());
-    if (_outputManager.GetBaseShowDir() == "") {
-        StaticText_BaseShowDir->SetLabel("No Base Show Directory");
-    } else {
-        StaticText_BaseShowDir->SetLabel(_outputManager.GetBaseShowDir());
+    if (layoutPanel != nullptr) {
+        layoutPanel->UpdateDirectoriesFooter();
     }
-
-    if (permanent) {
-        ShowDirectoryLabel->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-        wxFont font = ShowDirectoryLabel->GetFont();
-        font.SetWeight(wxFONTWEIGHT_NORMAL);
-        ShowDirectoryLabel->SetFont(font);
-        Button_CheckShowFolderTemporarily->SetLabelText("Change Temporarily");
-        Button_ChangeTemporarilyAgain->Hide();
-    }
-    else {
-        ShowDirectoryLabel->SetForegroundColour(wxColor(255, 200, 0));
-        wxFont font = ShowDirectoryLabel->GetFont();
-        font.SetWeight(wxFONTWEIGHT_BOLD);
-        ShowDirectoryLabel->SetFont(font);
-        Button_CheckShowFolderTemporarily->SetLabelText("Restore to Permanent");
-        Button_ChangeTemporarilyAgain->Show();
-    }
-
-    // do layout after so button resizes to fit label (only issue on osx, "Restore to Permanent" is cut off)
-    ShowDirectoryLabel->GetParent()->Layout();
 
     spdlog::debug("Updating networks on setup tab.");
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir");
@@ -536,7 +493,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 
     EnableSequenceControls(true);
 
-    Notebook1->ChangeSelection(SETUPTAB);
+    Notebook1->ChangeSelection(LAYOUTTAB);
     SetStatusText("");
     FileNameText->SetLabel(nd);
 
@@ -549,39 +506,12 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     _outputModelManager.RemoveWork("ASAP", OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS);
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_RELOAD_MODELLIST, "SetDir-post-rework");
 
-    ValidateWindow();
-
     return true;
 }
 
 void xLightsFrame::OnMenuOpenFolderSelected(wxCommandEvent& event) {
-
-    PromptForShowDirectory(true);
-}
-
-void xLightsFrame::OnButton_ChangeTemporarilyAgainClick(wxCommandEvent& event)
-{
-    PromptForShowDirectory(false);
-}
-
-void xLightsFrame::OnButton_OpenBaseShowDirClick(wxCommandEvent& event) {
-    displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
-    layoutPanel->ClearUndo();
-    SetDir(_outputManager.GetBaseShowDir(), false);
-}
-
-void xLightsFrame::OnButton_ChangeShowFolderTemporarily(wxCommandEvent& event)
-{
-    if (Button_CheckShowFolderTemporarily->GetLabel() == "Change Temporarily") {
-        PromptForShowDirectory(false);
-    }
-    else {
-        displayElementsPanel->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
-        layoutPanel->ClearUndo();
-        wxASSERT(_permanentShowFolder != "");
-        SetDir(_permanentShowFolder, true);
-        Button_ChangeTemporarilyAgain->Hide();
-    }
+    ShowDirectoriesDialog dlg(this);
+    dlg.ShowModal();
 }
 
 bool xLightsFrame::PromptForDirectorySelection(const std::string &msg, std::string &dir) {
@@ -770,247 +700,12 @@ void xLightsFrame::UpdateChannelNames() {
     }
 }
 
-void xLightsFrame::ActivateSelectedControllers(const std::string& active) {
-
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1) {
-        auto controller = _outputManager.GetController(List_Controllers->GetItemText(item));
-        if (controller != nullptr) {
-            controller->SetActive(active);
-
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ActivateSelectedControllers", nullptr);
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ActivateSelectedControllers", nullptr);
-        }
-        item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-}
-
-#pragma region Move Controllers
-void xLightsFrame::MoveSelectedControllerRows(bool up) {
-    auto selected = GetSelectedControllerNames();
-
-    if (up) {
-        for (const auto& it : selected) {
-            auto c = _outputManager.GetController(it);
-            int index = _outputManager.GetControllerIndex(c);
-            if (index != 0) {
-                _outputManager.MoveController(c, index - 1);
-            }
-        }
-    }
-    else {
-        for (auto it = selected.rbegin(); it != selected.rend(); ++it) {
-            auto c = _outputManager.GetController(*it);
-            int index = _outputManager.GetControllerIndex(c);
-            if (index != _outputManager.GetControllerCount() - 1) {
-                _outputManager.MoveController(c, index + 1);
-            }
-        }
-    }
-
-    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_NETWORK_CHANGE, "MoveSelectedControllerRows");
-    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "MoveSelectedControllerRows");
-    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "MoveSelectedControllerRows");
-    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "MoveSelectedControllerRows");
-
-    for (const auto& it : selected) {
-        int index = FindControllerInListControllers(it);
-        if (index >= 0) {
-            List_Controllers->SetItemState(index, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-            List_Controllers->EnsureVisible(index);
-        }
-    }
-}
-
-int xLightsFrame::FindControllerInListControllers(const std::string& name) const {
-
-    for (int i = 0; i < List_Controllers->GetItemCount(); i++) {
-        if (List_Controllers->GetItemText(i) == name) return i;
-    }
-    return -1;
-}
-
-void xLightsFrame::OnButtonNetworkMoveUpClick(wxCommandEvent& event) {
-
-    MoveSelectedControllerRows(true);
-}
-
-void xLightsFrame::OnButtonNetworkMoveDownClick(wxCommandEvent& event) {
-
-    MoveSelectedControllerRows(false);
-}
-
-void xLightsFrame::OnListItemBeginDragControllers(wxListEvent& event) {
-
-    if (!ButtonAddControllerSerial->IsEnabled()) return;
-
-    DragRowIdx = event.GetIndex();	// save the start index
-    // do some checks here to make sure valid start
-    // ...
-    // trigger when user releases left button (drop)
-    List_Controllers->Connect(wxEVT_LEFT_UP, wxMouseEventHandler(xLightsFrame::OnListItemDragEndControllers), nullptr,this);
-    // trigger when user leaves window to abort drag
-    List_Controllers->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(xLightsFrame::OnListItemDragQuitControllers), nullptr,this);
-    // trigger when mouse moves
-    List_Controllers->Connect(wxEVT_MOTION, wxMouseEventHandler(xLightsFrame::OnListItemMoveControllers), nullptr, this);
-
-    // give visual feedback that we are doing something
-    List_Controllers->SetCursor(wxCursor(wxCURSOR_HAND));
-}
-
-void xLightsFrame::MoveListControllerRows(int toRow, bool reverse) {
-
-    auto selected = GetSelectedControllerNames();
-
-    std::list<Controller*> tomove;
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1) {
-        if (reverse) {
-            tomove.push_back(_outputManager.GetControllerIndex(item));
-        }
-        else {
-            tomove.push_front(_outputManager.GetControllerIndex(item));
-        }
-        item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-    if (toRow == -1) {
-        for (const auto& it : selected) {
-            _outputManager.MoveController(_outputManager.GetController(it), toRow);
-        }
-    }
-    else {
-        int adjustment = 0;
-        if (reverse) {
-            adjustment = tomove.size() - 2;
-        }
-
-        int moved = 0;
-        for (const auto& it : tomove) {
-            _outputManager.MoveController(it, toRow + adjustment);
-            moved++;
-        }
-    }
-
-    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_NETWORK_CHANGE, "MoveControllerRows");
-    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "MoveControllerRows");
-    _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "MoveControllerRows");
-    _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "MoveControllerRows");
-
-    for (const auto& it : selected) {
-        int index = FindControllerInListControllers(it);
-        if (index >= 0) {
-            List_Controllers->SetItemState(index, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-            List_Controllers->EnsureVisible(index);
-        }
-    }
-}
-
-// drop a list item (start row is in DragRowIdx)
-void xLightsFrame::OnListItemDragEndControllers(wxMouseEvent& event) {
-
-    wxPoint pos = event.GetPosition();  // must reference the event
-    int flags = wxLIST_HITTEST_ONITEM;
-    long index = List_Controllers->HitTest(pos,flags,nullptr); // got to use it at last
-    if(index >= 0 && index != DragRowIdx) {
-        if (DragRowIdx < index) {
-            // drag down
-            int selected = GetSelectedControllerCount();
-            MoveListControllerRows(index - selected + 1, true);
-        }
-        else {
-            // drag up
-            MoveListControllerRows(index, false);
-        }
-    }
-    else if (index == -1) {
-        // move to end
-        MoveListControllerRows(index, true);
-    }
-
-    // restore cursor
-    List_Controllers->SetCursor(wxCursor(*wxSTANDARD_CURSOR));
-    // disconnect both functions
-    List_Controllers->Disconnect(wxEVT_LEFT_UP,wxMouseEventHandler(xLightsFrame::OnListItemDragEndControllers));
-    List_Controllers->Disconnect(wxEVT_LEAVE_WINDOW,wxMouseEventHandler(xLightsFrame::OnListItemDragQuitControllers));
-    List_Controllers->Disconnect(wxEVT_MOTION, wxMouseEventHandler(xLightsFrame::OnListItemMoveControllers));
-    DragRowIdx = -1;
-    _scrollTimer.Stop();
-}
-
-// abort dragging a list item because user has left window
-void xLightsFrame::OnListItemDragQuitControllers(wxMouseEvent& event) {
-
-    _scrollTimer.Stop();
-    // restore cursor and disconnect unconditionally
-    List_Controllers->SetCursor(wxCursor(*wxSTANDARD_CURSOR));
-    List_Controllers->Disconnect(wxEVT_LEFT_UP, wxMouseEventHandler(xLightsFrame::OnListItemDragEndControllers));
-    List_Controllers->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(xLightsFrame::OnListItemDragQuitControllers));
-    List_Controllers->Disconnect(wxEVT_MOTION, wxMouseEventHandler(xLightsFrame::OnListItemMoveControllers));
-    DragRowIdx = -1;
-}
-
-void xLightsFrame::OnListItemScrollTimerControllers(wxTimerEvent& event) {
-
-    if (DragRowIdx >= 0) {
-        wxMouseEvent* e = new wxMouseEvent();
-        wxPostEvent(this, *e);
-    }
-    else {
-        _scrollTimer.Stop();
-    }
-}
-
-void xLightsFrame::OnListItemMoveControllers(wxMouseEvent& event) {
-
-    if (DragRowIdx < 0) return;
-
-    static int scrollspersec = 2;
-    static wxLongLong last = wxGetLocalTimeMillis() - 10000;
-    static int lastitem = 99999;
-
-    wxPoint pos = event.GetPosition();  // must reference the event
-    int flags = wxLIST_HITTEST_ONITEM;
-    long index = List_Controllers->HitTest(pos, flags, nullptr); // got to use it at last
-
-    // dont scroll too fast
-    if (lastitem == index && (wxGetLocalTimeMillis() - last).ToLong() < 1000 / scrollspersec) {
-        _scrollTimer.StartOnce(1000 / scrollspersec + 10);
-        return;
-    }
-
-    lastitem = index;
-    last = wxGetLocalTimeMillis();
-
-    int topitem = List_Controllers->GetTopItem();
-    int bottomitem = topitem + List_Controllers->GetCountPerPage() - 1;
-
-    if (index >= 0 && index == topitem && topitem != 0) {
-        // scroll up
-        List_Controllers->EnsureVisible(topitem - 1);
-        _scrollTimer.StartOnce(1000 / scrollspersec + 10);
-    }
-    else if (index >= 0 && index == bottomitem && bottomitem < List_Controllers->GetItemCount()) {
-        // scroll down
-        List_Controllers->EnsureVisible(bottomitem + 1);
-        _scrollTimer.StartOnce(1000 / scrollspersec + 10);
-    }
-
-    // Highlight the row we are dropping on
-    for (int i = 0; i < List_Controllers->GetItemCount(); i++) {
-        List_Controllers->SetItemState(i, 0, wxLIST_STATE_DROPHILITED);
-    }
-    index = List_Controllers->HitTest(pos, flags, nullptr); // got to use it at last
-    if (index >= 0) {
-        List_Controllers->SetItemState(index, wxLIST_STATE_DROPHILITED, wxLIST_STATE_DROPHILITED);
-    }
-}
-#pragma endregion
 
 void xLightsFrame::NetworkChange() {
 
     _outputManager.SomethingChanged();
     UnsavedNetworkChanges = true;
-    UpdateControllerSave();
+    UpdateLayoutSave();
 }
 
 void xLightsFrame::NetworkChannelsChange() {
@@ -1049,27 +744,11 @@ bool xLightsFrame::SaveNetworksFile() {
 
     if (_outputManager.Save()) {
         UnsavedNetworkChanges = false;
-        UpdateControllerSave();
+        UpdateLayoutSave();
         return true;
     } else {
         DisplayError(_("Unable to save network definition file"), this);
         return false;
-    }
-}
-
-void xLightsFrame::UpdateControllerSave() {
-    if (UnsavedNetworkChanges || UnsavedRgbEffectsChanges) {
-#ifdef __WXOSX__
-        SetButtonBackground(ButtonSaveSetup, wxColour(255, 0, 0), 0);
-#else
-        ButtonSaveSetup->SetBackgroundColour(wxColour(255, 108, 108));
-#endif
-    } else {
-#ifdef __WXOSX__
-        SetButtonBackground(ButtonSaveSetup, wxTransparentColour, 0);
-#else
-        ButtonSaveSetup->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-#endif
     }
 }
 
@@ -1087,13 +766,6 @@ void xLightsFrame::UpdateLayoutSave() {
         layoutPanel->ButtonSavePreview->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 #endif
     }
-}
-
-void xLightsFrame::OnButtonSaveSetupClick(wxCommandEvent& event) {
-
-    SaveNetworksFile();
-    layoutPanel->SaveEffects();
-    UpdateControllerSave();
 }
 
 void xLightsFrame::SetSyncUniverse(int syncUniverse) {
@@ -1220,11 +892,15 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work->debug("    WORK_UPDATE_NETWORK_LIST.");
         // Updates the list of outputs on the screen
         //UpdateNetworkList();
-        InitialiseControllersTab((work & OutputModelManager::WORK_UPDATE_NETWORK_PROPERTIES) != 0);
+        if (layoutPanel != nullptr && layoutPanel->GetControllerListPanel() != nullptr) {
+            layoutPanel->GetControllerListPanel()->UpdateControllerList();
+        }
 
         std::string selectedController = _outputModelManager.GetSelectedController();
         if (selectedController != "") {
-            SelectController(selectedController);
+            if (layoutPanel != nullptr && layoutPanel->GetControllerListPanel() != nullptr) {
+                layoutPanel->GetControllerListPanel()->SelectController(selectedController);
+            }
         }
     }
     work = _outputModelManager.ClearWork(type, work,
@@ -1405,7 +1081,11 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
         OutputModelManager::WORK_SAVE_NETWORKS
     );
-    if (selectedModel != "") {
+    // The visualiser runs modal over the Layout tab and queues work as the user
+    // drags models between ports. Selecting into the tree from here would fight
+    // the dialog for the selection (and switch the notebook page out from under
+    // it), so defer until it closes — the tree is rebuilt on close anyway.
+    if (selectedModel != "" && !ControllerModelDialog::IsAnyActive()) {
         logger_work->debug("    Selecting model '{}'.", (const char*)selectedModel.c_str());
         //SelectModel(selectModel);
         layoutPanel->SelectBaseObject(selectedModel);
@@ -1455,7 +1135,6 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         //}
     }
 
-    UpdateControllerSave();
     UpdateLayoutSave();
 
     // ensure all model groups have all valid model pointers
@@ -1472,12 +1151,6 @@ void xLightsFrame::DoLayoutWork() {
     DoWork(_outputModelManager.GetLayoutWork(), "Layout");
 }
 
-void xLightsFrame::DoSetupWork() {
-
-    auto logger_work = spdlog::get("work");
-    logger_work->debug("Doing Switch To Setup Tab Work.");
-    DoWork(_outputModelManager.GetLayoutWork(), "Setup");
-}
 #pragma endregion
 
 void xLightsFrame::SetE131Sync(bool b) {
@@ -1493,29 +1166,18 @@ void xLightsFrame::SetE131Sync(bool b) {
 }
 
 void xLightsFrame::EnableNetworkChanges() {
-
-    bool flag = (!_outputManager.IsOutputting() && !CurrentDir.IsEmpty());
-    ButtonAddControllerSerial->Enable(flag);
-    ButtonAddControllerEthernet->Enable(flag);
-    ButtonAddControllerNull->Enable(flag);
-    BitmapButtonMoveNetworkUp->Enable(flag);
-    BitmapButtonMoveNetworkDown->Enable(flag);
-    ButtonDiscover->Enable(flag);
-    ButtonFPPConnect->Enable(flag);
-    ButtonSaveSetup->Enable(!CurrentDir.IsEmpty());
     CheckBoxLightOutput->Enable(!CurrentDir.IsEmpty());
-    BitmapButtonMoveNetworkDown->Enable(flag);
-    BitmapButtonMoveNetworkUp->Enable(flag);
-    Panel5->Enable(flag);
+    if (layoutPanel != nullptr && layoutPanel->GetControllerListPanel() != nullptr) {
+        layoutPanel->GetControllerListPanel()->UpdateControllerProperties();
+    }
 }
 
-#pragma region Left Buttons
-void xLightsFrame::OnButtonFPPConnectClick(wxCommandEvent& event) {
-    this->OnMenuItem_FPP_ConnectSelected(event);
-}
+// Still invoked directly (not via a widget click event) from the Layout tab's
+// "Add Controller" button menu (LayoutPanel::OnAddControllerButtonClicked) and
+// from ControllerListPanel's own "Discover" action.
 void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
 
-    
+
     spdlog::debug("[Discovery] Running controller discovery.");
     SetStatusText("Running controller discovery ...");
     SetCursor(wxCURSOR_WAIT);
@@ -1693,14 +1355,6 @@ void xLightsFrame::OnButtonDiscoverClick(wxCommandEvent& event) {
     spdlog::debug("[Discovery] Controller discovery complete.");
 }
 
-void xLightsFrame::OnButtonDeleteAllControllersClick(wxCommandEvent& event) {
-
-    if (wxMessageBox("Are you sure you want to remove all controllers?", "Delete All Controllers", wxYES_NO, this) == wxYES) {
-        SelectAllControllers();
-        DeleteSelectedControllers();
-    }
-}
-
 void xLightsFrame::OnButtonAddControllerSerialClick(wxCommandEvent& event) {
 
     auto c = new ControllerSerial(&_outputManager);
@@ -1730,35 +1384,28 @@ void xLightsFrame::OnButtonAddControllerNullClick(wxCommandEvent& event) {
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnButtonAddControllerNullClick", nullptr, c);
     _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnButtonAddControllerNullClick");
 }
-#pragma endregion
 
-wxBitmap xLightsFrame::CreateLedBitmap(bool online) {
-    wxBitmap bitmap(8, 8);
-    wxMemoryDC dc(bitmap);
-    dc.SetBrush(online ? *wxGREEN_BRUSH : *wxRED_BRUSH);
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.DrawCircle(4, 4, 4);
-    dc.SelectObject(wxNullBitmap);
-    return bitmap;
+bool xLightsFrame::IsControllerListVisible() const {
+    return Notebook1->GetSelection() == LAYOUTTAB && layoutPanel != nullptr &&
+           layoutPanel->GetControllerListPanel() != nullptr && layoutPanel->IsControllersPageActive();
 }
 
-void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
-    if (List_Controllers == nullptr) {
-        //xLights not fully started, likely waiting for show folder to be selected
-        return;
-    }
-    if (Notebook1->GetSelection() != SETUPTAB || _pingInProgress) {
-        return;
-    }
+void xLightsFrame::PingActiveControllers() {
     _pingInProgress = true;
-    for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
-        auto controller = dynamic_cast<Controller*>(_outputManager.GetController(ToStdString(List_Controllers->GetItemText(row, 0))));
-        if (controller != nullptr && controller->IsActive()) {
-            ControllerPingThread* thread = new ControllerPingThread(controller);
+    for (const auto& it : _outputManager.GetControllers()) {
+        if (it->IsActive()) {
+            ControllerPingThread* thread = new ControllerPingThread(it);
             thread->Run();
         }
     }
     _pingInProgress = false;
+}
+
+void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
+    if (!IsControllerListVisible() || _pingInProgress) {
+        return;
+    }
+    PingActiveControllers();
     StatusRefreshTimer(event);
 }
 void xLightsFrame::waitForPingsToComplete() {
@@ -1767,187 +1414,30 @@ void xLightsFrame::waitForPingsToComplete() {
     }
 }
 
-void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
-    if (Notebook1->GetSelection() == SETUPTAB && List_Controllers != nullptr) {
-        List_Controllers->Freeze();
-        for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
-            auto controller = dynamic_cast<Controller*>(_outputManager.GetController(ToStdString(List_Controllers->GetItemText(row, 0))));
-            if (controller != nullptr && controller->IsActive()) {
-                int imageIndex = (controller->GetLastPingState() == Output::PINGSTATE::PING_OK || controller->GetLastPingState() == Output::PINGSTATE::PING_WEBOK) ? 0 : 1;
-                List_Controllers->SetItem(row, 12, "", imageIndex);
-            }
-        }
-        List_Controllers->Thaw();
+void xLightsFrame::RefreshControllerStatusColumn() {
+    if (Notebook1->GetSelection() == LAYOUTTAB && layoutPanel != nullptr &&
+        layoutPanel->GetControllerListPanel() != nullptr && layoutPanel->IsControllersPageActive()) {
+        layoutPanel->GetControllerListPanel()->RefreshStatusColumn();
     }
 }
 
-void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
-    inInitialize = true;
-    // create the checked tree control
-    if (List_Controllers == nullptr) {
-        List_Controllers = new wxListCtrl(Panel2, ID_List_Controllers, wxDefaultPosition, wxDefaultSize, wxLC_REPORT, wxDefaultValidator, _T("ID_List_Controllers"));
-        FlexGridSizerSetupControllers->Add(List_Controllers, 1, wxALL | wxEXPAND, 5);
+void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
+    RefreshControllerStatusColumn();
+}
 
-        Connect(ID_List_Controllers, wxEVT_LIST_KEY_DOWN, (wxObjectEventFunction)&xLightsFrame::OnListKeyDownControllers);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_ACTIVATED, (wxObjectEventFunction)&xLightsFrame::OnListItemActivatedControllers);
-        Connect(ID_List_Controllers, wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&xLightsFrame::OnListControllersRClick);
-        Connect(ID_List_Controllers, wxEVT_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersColClick);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_RIGHT_CLICK, (wxObjectEventFunction)&xLightsFrame::OnListControllersItemRClick);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemDeselectedControllers);
-        Connect(ID_List_Controllers, wxEVT_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsFrame::OnListItemBeginDragControllers);
-        Connect(ID_List_Controllers, wxEVT_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnListItemSelectedControllers);
 
-        // Create image list with actual LED bitmaps
-        wxImageList* imageList = new wxImageList(8, 8, true, 2);
-        imageList->Add(CreateLedBitmap(true));
-        imageList->Add(CreateLedBitmap(false));
-        List_Controllers->AssignImageList(imageList, wxIMAGE_LIST_SMALL);
-
-        List_Controllers->AppendColumn("   Name");
-        List_Controllers->AppendColumn("Protocol");
-        List_Controllers->AppendColumn("Address");
-        List_Controllers->AppendColumn("Universes/Id");
-        List_Controllers->AppendColumn("Channels");
-        List_Controllers->AppendColumn("Vendor");
-        List_Controllers->AppendColumn("Model");
-        List_Controllers->AppendColumn("Variant");
-        List_Controllers->AppendColumn("Active");
-        List_Controllers->AppendColumn("Auto Layout");
-        List_Controllers->AppendColumn("Auto Size");
-        List_Controllers->AppendColumn("Description");
-        List_Controllers->AppendColumn("Status", wxLIST_FORMAT_LEFT, _controllerPingInterval >0 ? 45 : 0);
-
-        auto* config = GetXLightsConfig();
-        if (config != nullptr) {
-            wxString co;
-            config->Read("ControllerTabColumnOrder", &co, "0,1,2,3,4,5,6,7,8,9,10,11,12");
-            wxArrayString tokens = wxSplit(co, ',');
-            wxArrayInt controllerTabColumns;
-            for (const auto& token : tokens) {
-                int value;
-                if (token.ToInt(&value)) {
-                    controllerTabColumns.Add(static_cast<int>(value));
-                }
-            }
-            if (controllerTabColumns.size() != 13) controllerTabColumns.Add(13);
-            List_Controllers->SetColumnsOrder(controllerTabColumns);
-        }
-
-        ButtonAddControllerEthernet->SetToolTip("Use this button to add E1.31, Artnet, DDP and ZCPP controllers.");
-        ButtonAddControllerNull->SetToolTip("Use this button to add channels that you never want to send to a controller.");
-        ButtonAddControllerSerial->SetToolTip("Use this button to add typically USB attached Serial/RS485 devices running protocols like DMX, LOR, and Renard.");
-        ButtonDiscover->SetToolTip("Probe the network for unlisted controllers.");
+void xLightsFrame::RefreshControllerStatusNow() {
+    if (_pingInProgress) {
+        return;
     }
+    PingActiveControllers();
+    RefreshControllerStatusColumn();
 
-    if (Controllers_PropertyEditor == nullptr) {
-        Controllers_PropertyEditor = new xlPropertyGrid(Panel5, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-            // Here are just some of the supported window styles
-            //wxPG_AUTO_SORT | // Automatic sorting after items added
-            wxPG_SPLITTER_AUTO_CENTER | // Automatically center splitter until user manually adjusts it
-            // Default style
-            wxPG_DEFAULT_STYLE);
-        Controllers_PropertyEditor->SetExtraStyle(wxWS_EX_PROCESS_IDLE | wxPG_EX_HELP_AS_TOOLTIPS);
-        FlexGridSizerSetupProperties->Add(Controllers_PropertyEditor, 1, wxALL | wxEXPAND, 5);
-        Controllers_PropertyEditor->Connect(wxEVT_PG_CHANGED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridChange, 0, this);
-        Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_COLLAPSED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridCollapsed, 0, this);
-        Controllers_PropertyEditor->Connect(wxEVT_PG_ITEM_EXPANDED, (wxObjectEventFunction)&xLightsFrame::OnControllerPropertyGridExpanded, 0, this);
-        Controllers_PropertyEditor->SetValidationFailureBehavior(wxPGVFBFlags::MarkCell | wxPGVFBFlags::Beep);
 
-        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardAction::NextProperty, WXK_RETURN);
-        Controllers_PropertyEditor->DedicateKey(WXK_RETURN);
-        Controllers_PropertyEditor->AddActionTrigger(wxPGKeyboardAction::NextProperty, WXK_TAB);
-        Controllers_PropertyEditor->DedicateKey(WXK_TAB);
+    if (_controllerPingInterval > 0) {
+        _pingTimer->Start(_controllerPingInterval * 1000);
+        _statusRefreshTimer->Start(_controllerPingInterval / 2 * 1000);
     }
-
-    List_Controllers->Freeze();
-
-    // remember where the list was scrolled to so we can hold its position
-    int itemBottom = List_Controllers->GetTopItem() + List_Controllers->GetCountPerPage() - 1;
-    int itemSelected = GetFirstSelectedControllerIndex();
-
-    auto selections = GetSelectedControllerNames();
-
-    // Start with an empty List
-    List_Controllers->DeleteAllItems();
-
-    // Reload the list
-    for (const auto& it : _outputManager.GetControllers()) {
-        int row = List_Controllers->InsertItem(List_Controllers->GetItemCount(), it->GetName(), -1);
-        if (std::find(begin(selections), end(selections), it->GetName()) != selections.end()) {
-            List_Controllers->SetItemState(row, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-        }
-        List_Controllers->SetItem(row, 1, it->GetColumn1Label());
-        List_Controllers->SetItem(row, 2, it->GetColumn2Label());
-        List_Controllers->SetItem(row, 3, it->GetColumn3Label());
-        List_Controllers->SetItem(row, 4, it->GetColumn4Label());
-        List_Controllers->SetItem(row, 5, it->GetColumn5Label());
-        List_Controllers->SetItem(row, 6, it->GetColumn6Label());
-        List_Controllers->SetItem(row, 7, it->GetColumn7Label());
-        List_Controllers->SetItem(row, 8, it->GetColumn8Label());
-        List_Controllers->SetItem(row, 9, it->GetColumn9Label());
-        List_Controllers->SetItem(row, 10, it->GetColumn10Label());
-        List_Controllers->SetItem(row, 11, it->GetColumn11Label());
-        if (it->IsFromBase())
-        {
-            if (it->IsActive()) {
-                List_Controllers->SetItemTextColour(row, CyanOrBlue());
-            } else {
-                List_Controllers->SetItemTextColour(row, wxColor(0x80, 0x80, 0xFF));
-            }
-        }
-        else if (!it->IsActive()) {
-            List_Controllers->SetItemTextColour(row, *wxLIGHT_GREY);
-        }
-        if (it->IsActive() && _controllerPingInterval > 0) {
-            int imageIndex = (it->GetLastPingState() == Output::PINGSTATE::PING_OK || it->GetLastPingState() == Output::PINGSTATE::PING_WEBOK) ? 0 : 1;
-            List_Controllers->SetItem(row, 12, "", imageIndex);
-        }
-    }
-
-    auto sz = 0;
-    for (int i = 0; i < List_Controllers->GetColumnCount() - 1; i++) {
-        List_Controllers->SetColumnWidth(i, wxLIST_AUTOSIZE_USEHEADER);
-        //if (List_Controllers->GetColumnWidth(i) < 75) List_Controllers->SetColumnWidth(i, 75);
-        sz += List_Controllers->GetColumnWidth(i);
-    }
-
-    int lc = List_Controllers->GetColumnCount() - 2;
-    List_Controllers->SetColumnWidth(lc, wxLIST_AUTOSIZE_USEHEADER);
-    if (List_Controllers->GetColumnWidth(lc) < 100) List_Controllers->SetColumnWidth(lc, 100);
-
-    if (sz + List_Controllers->GetColumnWidth(lc) < List_Controllers->GetSize().GetWidth()) {
-        List_Controllers->SetColumnWidth(lc, List_Controllers->GetSize().GetWidth() - sz);
-    }
-
-    if (LedPing == nullptr) {
-        // setting initial size makes led visible on create and properly centers led with buttons, prior it didn't
-        // show until selection was made and was aligned below buttons
-        LedPing = new wxLed(Panel5, wxID_ANY, "000000", wxDefaultPosition, wxSize(17,17));
-        FlexGridSizerSetupControllerButtons->Add(LedPing, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-        LedPing->Show();
-
-    }
-
-    // try to ensure what should be visible is visible in roughly the same part of the screen
-    if (itemBottom >= List_Controllers->GetItemCount()) itemBottom = List_Controllers->GetItemCount() - 1;
-    if (itemBottom != -1) {
-        List_Controllers->EnsureVisible(itemBottom);
-    }
-    if (itemSelected >= List_Controllers->GetItemCount()) itemSelected = List_Controllers->GetItemCount() - 1;
-    if (itemSelected != -1) {
-        List_Controllers->EnsureVisible(itemSelected);
-    }
-
-    Panel2->SetMinSize(wxSize(400, -1));
-    Panel5->SetMinSize(this->FromDIP(wxSize(380, -1)));
-    List_Controllers->Thaw();
-
-    Panel2->Layout();
-    Panel5->Layout();
-    Layout();
-
-    SetControllersProperties(rebuildPropGrid);
-    inInitialize = false;
 }
 
 ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name) {
@@ -1957,799 +1447,19 @@ ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name) {
     return ControllerCaps::GetControllerConfig(controller->GetVendor(), controller->GetModel(), controller->GetVariant());
 }
 
-#pragma region Controller Properties
-void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
-
-    std::list<wxPGProperty*> expandProperties;
-
-    if (GetFirstSelectedControllerIndex() >= 0 && ButtonAddControllerSerial->IsEnabled()) {
-        if (Controllers_PropertyEditor->GetPropertyByName("ControllerName") == nullptr ||
-            List_Controllers->GetItemText(GetFirstSelectedControllerIndex()) != Controllers_PropertyEditor->GetPropertyByName("ControllerName")->GetValue().GetString()) {
-            auto doping = _outputManager.GetController(List_Controllers->GetItemText(GetFirstSelectedControllerIndex()));
-            if (doping != nullptr) doping->AsyncPing();
-        }
-        BitmapButtonMoveNetworkUp->Enable();
-        BitmapButtonMoveNetworkDown->Enable();
-    }
-    else {
-        BitmapButtonMoveNetworkUp->Enable(false);
-        BitmapButtonMoveNetworkDown->Enable(false);
-    }
-
-    Controllers_PropertyEditor->Freeze();
-
-    // save property grid location
-    auto save = Controllers_PropertyEditor->SaveEditableState();
-    wxString selProp = "";
-    if (Controllers_PropertyEditor->GetSelection() != nullptr) {
-        selProp = Controllers_PropertyEditor->GetSelection()->GetName();
-    }
-
-    auto selections = GetSelectedControllerNames();
-
-    if (selections.size() != 1 || _outputManager.GetController(selections.front()) == nullptr) {
-        _controllerAdapter.reset();
-        Controllers_PropertyEditor->Clear();
-        ButtonVisualise->Enable(false);
-        ButtonUploadInput->Enable(false);
-        ButtonUploadOutput->Enable(false);
-        ButtonOpen->Enable(false);
-        ButtonControllerDelete->Enable(false);
-        LedPing->Disable();
-
-        if (_outputManager.GetGlobalFPPProxy() != "") {
-            Button_OpenProxy->Enable();
-        }
-        else {
-            Button_OpenProxy->Enable(false);
-        }
-
-        wxPGProperty* p = Controllers_PropertyEditor->Append(new wxBoolProperty("Controller Sync", "ControllerSync", me131Sync));
-        p->SetEditor("CheckBox");
-        p->SetHelpString("Sends a sync packet at the end of each frame for controllers to synchronise light change to. Supported by E1.31, ArtNET and ZCPP. Controller support varies.");
-
-        // nothing selected or many items selected - display global properties
-        if (me131Sync) {
-            p = Controllers_PropertyEditor->Append(new wxUIntProperty("E1.31 Sync Universe", "E131SyncUniverse", _outputManager.GetSyncUniverse()));
-            p->SetAttribute("Min", 0);
-            p->SetAttribute("Max", 64000);
-            p->SetEditor("SpinCtrl");
-        }
-        p = Controllers_PropertyEditor->Append(new wxUIntProperty("Max Duplicate Frames To Suppress", "MaxSuppressFrames", _outputManager.GetSuppressFrames()));
-        p->SetAttribute("Min", 0);
-        p->SetAttribute("Max", 1000);
-        p->SetEditor("SpinCtrl");
-
-        auto const ips = ip_utils::GetLocalIPs();
-        wxPGChoices choices;
-        int val = 0;
-        choices.Add("");
-        for (const auto& it : ips) {
-            if (it == _outputManager.GetGlobalForceLocalIP()) val = choices.GetCount();
-            choices.Add(it);
-        }
-
-        Controllers_PropertyEditor->Append(new wxEnumProperty("Global Force Local IP", "ForceLocalIP", choices, val));
-        Controllers_PropertyEditor->Append(new wxStringProperty("Global FPP Proxy", "GlobalFPPProxy", _outputManager.GetGlobalFPPProxy()));
-    } else if (selections.size() == 1) {
-        auto controller = _outputManager.GetController(selections.front());
-        if (controller != nullptr) {
-            int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
-
-            if (usingip == 1 && controller->CanVisualise()) {
-                ButtonVisualise->Enable();
-            }
-            else {
-                ButtonVisualise->Enable(false);
-            }
-
-            auto eth = dynamic_cast<ControllerEthernet*>(controller);
-            auto caps = GetControllerCaps(selections.front());
-            if (caps != nullptr && caps->SupportsUpload() && usingip == 1) {
-                if (_linkedControllerUpload == "None" && caps->SupportsInputOnlyUpload() && (eth == nullptr || ((eth->GetProtocol() != OUTPUT_DDP || caps->NeedsDDPInputUpload()) && eth->GetProtocol() != OUTPUT_ZCPP))) {
-                    ButtonUploadInput->Enable();
-                }
-                else {
-                    ButtonUploadInput->Enable(false);
-                }
-                if (eth == nullptr || eth->GetProtocol() != OUTPUT_ZCPP) {
-                    ButtonUploadOutput->Enable();
-                }
-                else {
-                    ButtonUploadOutput->Enable(false);
-                }
-            }
-            else {
-                ButtonUploadInput->Enable(false);
-                ButtonUploadOutput->Enable(false);
-            }
-            if (eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetIP() != "" && (caps == nullptr || !caps->NoWebUI())) {
-                ButtonOpen->Enable();
-            }
-            else {
-                ButtonOpen->Enable(false);
-            }
-
-            if (eth != nullptr && eth->GetFPPProxy() != "") {
-                Button_OpenProxy->Enable();
-            }
-            else {
-                Button_OpenProxy->Enable(false);
-            }
-            ButtonControllerDelete->Enable();
-
-            LedPing->Enable();
-            auto pingresult = controller->GetLastPingState();
-            if (pingresult == Output::PINGSTATE::PING_ALLFAILED) {
-                LedPing->SetColor("FF0000");
-            }
-            else if (pingresult == Output::PINGSTATE::PING_UNKNOWN || pingresult == Output::PINGSTATE::PING_UNAVAILABLE) {
-                LedPing->SetColor("808000");
-            }
-            else {
-                LedPing->SetColor("00FF00");
-            }
-
-            // one item selected - display selected controller properties
-            if (rebuildPropGrid || !_controllerAdapter || _controllerAdapter->GetController() != controller) {
-                Controllers_PropertyEditor->Clear();
-                _controllerAdapter = ControllerPropertyManager::CreateAdapter(*controller);
-                _controllerAdapter->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
-            }
-            if (_controllerAdapter) {
-                _controllerAdapter->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
-            }
-
-            {
-                auto* config = GetXLightsConfig();
-                auto ctrlName = controller->GetName();
-
-                wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
-                if (!p) {
-                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
-                }
-                p->ChangeFlag(wxPGFlags::ReadOnly, true);
-                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                wxString ts;
-                if (!config->Read(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
-                p->SetValue(ts);
-
-                p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
-                if (!p) {
-                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
-                }
-                p->ChangeFlag(wxPGFlags::ReadOnly, true);
-                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                if (!config->Read(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
-                p->SetValue(ts);
-            }
-
-            if (controller->IsFromBase()) {
-                Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
-                auto it = Controllers_PropertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
-                while (!it.AtEnd()) {
-                    it.GetProperty()->Enable(false);
-                    it.Next(true);
-                }
-            } else {
-                Controllers_PropertyEditor->UnsetToolTip();
-            }
-        }
-    }
-
-    // restore property grid location
-    Controllers_PropertyEditor->RestoreEditableState(save);
-    if (selProp != "") {
-        auto p = Controllers_PropertyEditor->GetPropertyByName(selProp);
-        if (p != nullptr) Controllers_PropertyEditor->EnsureVisible(p);
-    }
-
-    ValidateControllerProperties();
-
-    Controllers_PropertyEditor->Thaw();
-
-    if (expandProperties.size() > 0) {
-        // This has to be done when the Property editor is not frozen ... as it is ignored if called when frozen
-        for (const auto& it : expandProperties) {
-            it->SetExpanded(true);
-        }
-
-        // this is only here to force a recalculation of the virtual size and thus force scrollbar display
-        // there has to be a better way to do this
-        Controllers_PropertyEditor->Freeze();
-        expandProperties.front()->Hide(true); // hide then show triggers a flag that vertical height has changed
-        expandProperties.front()->Hide(false);
-        Controllers_PropertyEditor->Thaw();
-    }
+bool xLightsFrame::ControllerSupportsOutputUpload(Controller* controller) {
+    if (controller == nullptr) return false;
+    auto caps = GetControllerCaps(controller->GetName());
+    if (caps == nullptr || !caps->SupportsUpload()) return false;
+    auto eth = dynamic_cast<ControllerEthernet*>(controller);
+    return eth == nullptr || eth->GetProtocol() != OUTPUT_ZCPP;
 }
-
-void xLightsFrame::ValidateControllerProperties() {
-
-    auto p = Controllers_PropertyEditor->GetPropertyByName("ControllerName");
-    if (p == nullptr) {
-        // general settings
-    } else if (_controllerAdapter) {
-            // controller settings
-            _controllerAdapter->ValidateProperties(&_outputManager, Controllers_PropertyEditor);
-    }
-}
-
-void xLightsFrame::OnControllerPropertyGridCollapsed(wxPropertyGridEvent& event)
-{
-    auto selections = GetSelectedControllerNames();
-
-    if (selections.size() == 1) {
-        if (_controllerAdapter) {
-            _controllerAdapter->HandleExpanded(event, false);
-        }
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::OnControllerPropertyGridCollapsed");
-    }
-}
-
-void xLightsFrame::OnControllerPropertyGridExpanded(wxPropertyGridEvent& event)
-{
-    auto selections = GetSelectedControllerNames();
-
-    if (selections.size() == 1) {
-        if (_controllerAdapter) {
-            _controllerAdapter->HandleExpanded(event, true);
-        }
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::OnControllerPropertyGridExpanded");
-    }
-}
-
-void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
-
-    wxString name = event.GetPropertyName();
-    auto selections = GetSelectedControllerNames();
-
-    if (selections.size() == 1) {
-        auto controllername = selections.front();
-        auto controller = _outputManager.GetController(controllername);
-
-        std::string oldName = controllername;
-        std::string oldIP = controller->GetIP();
-
-        auto processed = _controllerAdapter ? _controllerAdapter->HandlePropertyEvent(event, &_outputModelManager) : false;
-
-        if (name == "ControllerName") {
-            // it may not have been processed if it would have resulted in a duplicate
-            if (processed) {
-                // change the value immediately otherwise the focus will be lost
-                auto c = _outputManager.GetController(event.GetValue().GetString());
-                int cn = _outputManager.GetControllerIndex(c);
-                List_Controllers->SetItemText(cn, event.GetValue().GetString());
-
-                // This fixes up any start channels dependent on the controller name
-                // RenameController rewrites each affected model's start channel
-                // (Model::SetStartChannel → IncrementChangeCount), which can fire
-                // ModelGroup::CheckForChanges on a render thread; stop the renderer first.
-                AbortRender();
-                AllModels.RenameController(oldName, event.GetValue().GetString());
-
-                _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "xLightsFrame::OnControllerPropertyGridChange::ControllerName", nullptr);
-            }
-        } else if (name == "IP") {
-            // This fixes up any start channels dependent on the controller IP
-            if (ip_utils::IsIPValid(oldIP) && ip_utils::IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
-                AbortRender();
-                AllModels.ReplaceIPInStartChannels(oldIP, controller->GetIP());
-            }
-        }
-    } else {
-        // we handle general properties only
-        if (name == "ControllerSync") {
-            me131Sync = event.GetValue().GetBool();
-            _outputManager.SetSyncEnabled(me131Sync);
-            SetControllersProperties();
-
-            if (me131Sync) {
-                // recycle output connections if necessary
-                CycleOutputsIfOn();
-            }
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::ControllerSync");
-        }
-        else if (name == "E131SyncUniverse") {
-            _outputManager.SetSyncUniverse((int)event.GetValue().GetLong());
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::E131SyncUniverse");
-        }
-        else if (name == "MaxSuppressFrames") {
-            SetSuppressDuplicateFrames((int)event.GetValue().GetLong());
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::MaxSuppressFrames");
-        }
-        else if (name == "GlobalFPPProxy") {
-            _outputManager.SetGlobalFPPProxy(event.GetValue().GetString().Trim(true).Trim(false));
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::GlobalFPPProxy");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnControllerPropertyGridChange::GlobalFPPProxy", nullptr);
-        }
-        else if (name == "ForceLocalIP") {
-            auto ips = ip_utils::GetLocalIPs();
-
-            if (event.GetValue().GetLong() == 0) {
-                _outputManager.SetGlobalForceLocalIP("");
-            }
-            else {
-                if ((size_t)event.GetValue().GetLong() >= ips.size() + 1) {//need to add one as dropdown has blank first entry
-                    // likely the number of IPs changed after the list was loaded so ignore
-                }
-                else {
-                    auto it = begin(ips);
-                    std::advance(it, event.GetValue().GetLong() - 1);
-                    _outputManager.SetGlobalForceLocalIP(*it);
-                }
-            }
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnControllerPropertyGridChange::ForceLocalIP");
-            CycleOutputsIfOn();
-        }
-    }
-
-    // Only validate if we are not going to reload the list
-    if (!_outputModelManager.IsASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST)) {
-        ValidateControllerProperties();
-    }
-}
-#pragma endregion
-
-#pragma region List_Controllers
-std::list<std::string> xLightsFrame::GetSelectedControllerNames() const {
-
-    std::list<std::string> selected;
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1) {
-        selected.push_back(List_Controllers->GetItemText(item, 0));
-        item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-
-    /*
-    if (selected.size() == 0) {
-        int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
-        if (item != -1) {
-            auto focussed = List_Controllers->GetItemText(item, 0);
-            if (focussed != "") selected.push_back(focussed);
-        }
-    }
-    */
-    return selected;
-}
-
-int xLightsFrame::GetFirstSelectedControllerIndex() const {
-
-    return List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-}
-
-int xLightsFrame::GetSelectedControllerCount() const {
-
-    int count = 0;
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-    while (item != -1) {
-        count++;
-        item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-    return count;
-}
-
-void xLightsFrame::OnListItemSelectedControllers(wxListEvent& event)
-{
-    if (!inInitialize) {
-        SetControllersProperties();
-    }
-
-    auto name = List_Controllers->GetItemText(event.GetItem());
-    auto controller = _outputManager.GetController(name);
-
-    if (controller != nullptr && controller->IsFromBase())
-    {
-        List_Controllers->SetToolTip("From Base Show Directory");
-    }
-    else
-    {
-        List_Controllers->UnsetToolTip();
-    }
-}
-
-void xLightsFrame::OnListItemActivatedControllers(wxListEvent& event)
-{
-    auto name = List_Controllers->GetItemText(event.GetItem());
-    auto controller = _outputManager.GetController(name);
-    if (wxGetKeyState(WXK_CONTROL) || wxGetKeyState(WXK_SHIFT)) {
-        if (controller != nullptr && controller->GetIP() != "") {
-            if (controller->GetFPPProxy() != "" && controller->GetFPPProxy() != controller->GetIP()) {
-                ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
-            }
-            else {
-                ::wxLaunchDefaultBrowser("http://" + controller->GetIP());
-            }
-        }
-    } else {
-        if (_outputManager.IsOutputting()) {
-            return;
-        }
-        if (controller != nullptr) {
-            int usingip = _outputManager.GetControllerCount(controller->GetType(), controller->GetColumn2Label());
-            if (usingip == 1 && controller->CanVisualise()) {
-                UDController cud(controller, &_outputManager, &AllModels, true);
-                ControllerModelDialog dlg(this, &cud, &AllModels, controller);
-                dlg.ShowModal();
-            } else {
-                DisplayError(name + " cannot be Visualised", this);
-            }
-        }
-        else {
-            DisplayError(name + " cannot find the controller", this);
-        }
-    }
-}
-
-void xLightsFrame::OnListItemDeselectedControllers(wxListEvent& event) {
-    SetControllersProperties();
-    List_Controllers->UnsetToolTip();
-}
-
-void xLightsFrame::OnListKeyDownControllers(wxListEvent& event) {
-
-    wxChar uc = event.GetKeyCode();
-    // This is not ideal as it gets the current state which may be different from when the event was generated
-    bool ctrl = wxGetKeyState(WXK_CONTROL);
-
-    switch (uc) {
-    case WXK_ESCAPE:
-        UnselectAllControllers();
-        break;
-    case WXK_DELETE:
-        DeleteSelectedControllers();
-        break;
-    case 'A':
-        if (ctrl) {
-            SelectAllControllers();
-        }
-        break;
-    default:
-        break;
-    }
-}
-
-void xLightsFrame::SelectAllControllers() {
-
-    for (int i = 0; i < List_Controllers->GetItemCount(); i++) {
-        List_Controllers->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-    }
-}
-
-void xLightsFrame::UnlinkSelectedControllers()
-{
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item != -1) {
-        auto controller = _outputManager.GetController(List_Controllers->GetItemText(item));
-        if (controller != nullptr) {
-            controller->SetFromBase(false);
-
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "UnlinkSelectedControllers", nullptr);
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "UnlinkSelectedControllers", nullptr);
-        }
-        item = List_Controllers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-    SetControllersProperties();
-}
-
-void xLightsFrame::DeleteSelectedControllers() {
-
-    auto todel = GetSelectedControllerNames();
-
-    if (todel.size() > 0) {
-        auto msg = wxString::Format("Are you sure you want to delete %d controllers.", (int)todel.size());
-        if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
-            waitForPingsToComplete();
-            // DeleteController rewrites start channels on every model that referenced
-            // this controller (Model::SetStartChannel → IncrementChangeCount); stop
-            // the renderer before mutating so ModelGroup::CheckForChanges can't fire
-            // on a render thread.
-            AbortRender();
-            for (const auto& it : todel) {
-                AllModels.DeleteController(it);
-                _outputManager.DeleteController(it);
-            }
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
-            _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");
-            _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
-        }
-    }
-}
-
-void xLightsFrame::SelectController(const std::string& controllerName) {
-
-    auto s = GetSelectedControllerNames();
-    if (s.size() == 1 && s.front() == controllerName) return;
-
-    UnselectAllControllers();
-
-    int index = FindControllerInListControllers(controllerName);
-    if (index >= 0) {
-        List_Controllers->SetItemState(index, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-        List_Controllers->EnsureVisible(index);
-        SetControllersProperties();
-    }
-}
-
-void xLightsFrame::UnselectAllControllers() {
-
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    while (item >= 0) {
-        List_Controllers->SetItemState(item, 0, wxLIST_STATE_SELECTED);
-        item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    }
-
-    // remove the focus from all items
-    item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED);
-    if (item >= 0) {
-        List_Controllers->SetItemState(item, 0, wxLIST_STATE_FOCUSED);
-    }
-
-    SetControllersProperties();
-}
-
-void xLightsFrame::OnListControllersColClick(wxListEvent& event) {
-
-    UnselectAllControllers();
-}
-
-void xLightsFrame::OnListControllersRClick(wxContextMenuEvent& event) {
-
-    if (!ButtonAddControllerSerial->IsEnabled()) return;
-
-    // NOTE: This function is only required if you want a right click menu on an empty list ... right now I dont need that
-
-    List_Controllers->SetFocus();
-
-    int flags;
-    //if the click is in the area where there are items, ignore the event and
-    //let the normal ItemRClick stuff handle it
-    int i = List_Controllers->HitTest(List_Controllers->ScreenToClient(event.GetPosition()), flags);
-    if (i >= 0) {
-        event.Skip();
-        return;
-    }
-
-    // If there is an item selected then use the item right click
-    if (List_Controllers->GetSelectedItemCount() > 0) {
-        wxListEvent e(wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK);
-        OnListControllersItemRClick(e);
-        return;
-    }
-
-    //wxMenu mnu;
-    //std::string ethernet = "Insert E1.31/ArtNET/ZCPP/DDP";
-    //if (SpecialOptions::GetOption("xxx") == "true")
-    //{
-    //    ethernet += "xxx";
-    //}
-    //mnu.Append(ID_NETWORK_ADDETHERNET, ethernet)->Enable(ButtonAddControllerSerial->IsEnabled());
-    //mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
-    //mnu.Append(ID_NETWORK_ADDSERIAL, "Insert DMX/LOR/DLight/Renard")->Enable(ButtonAddControllerSerial->IsEnabled());
-
-    //mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
-    //PopupMenu(&mnu);
-    //List_Controllers->SetFocus();
-}
-
-void xLightsFrame::OnListControllersItemRClick(wxListEvent& event) {
-
-    if (!ButtonAddControllerSerial->IsEnabled()) return;
-
-    wxMenu mnu;
-    std::string ethernet = "Insert E1.31/ArtNET/ZCPP/DDP";
-    if (SpecialOptions::GetOption("xxx") == "true") {
-        ethernet += "xxx";
-    }
-
-    std::vector<Controller*> selectedControllers;
-    for (const auto& controllerName : GetSelectedControllerNames()) {
-        Controller* controller = _outputManager.GetController(controllerName);
-        if (controller)
-            selectedControllers.push_back(controller);
-    }
-
-    bool anySelectedControllersFromBase = std::any_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->IsFromBase(); });
-    bool allSelectedControllersFromBase = std::all_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->IsFromBase(); });
-    bool enableActivateMenuItems = selectedControllers.size() > 0 && !anySelectedControllersFromBase;
-    bool enableUnlinkFromBaseMenuItem = selectedControllers.size() > 0 && allSelectedControllersFromBase;
-    bool anySelectedControllersSupportUpload = std::any_of(selectedControllers.begin(), selectedControllers.end(), [](const Controller* controller) { return controller->SupportsUpload(); });
-    bool enableUploadMenuItem = selectedControllers.size() == 1 && anySelectedControllersSupportUpload;
-
-    mnu.Append(ID_NETWORK_ADDETHERNET, ethernet)->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_ADDNULL, "Insert NULL")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_ADDSERIAL, "Insert DMX/LOR/DLight/Renard")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_ACTIVE, "Activate")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
-    mnu.Append(ID_NETWORK_ACTIVEXLIGHTS, "Activate in xLights Only")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
-    mnu.Append(ID_NETWORK_INACTIVE, "Inactivate")->Enable(ButtonAddControllerSerial->IsEnabled() && enableActivateMenuItems);
-    mnu.Append(ID_NETWORK_DELETE, "Delete")->Enable(ButtonAddControllerSerial->IsEnabled());
-    mnu.Append(ID_NETWORK_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUnlinkFromBaseMenuItem);
-    mnu.Append(ID_NETWORK_UPLOADOUTPUT, "Upload Output")->Enable(ButtonAddControllerSerial->IsEnabled() && enableUploadMenuItem);
-
-    mnu.AppendSeparator();
-    wxMenu* cc = new wxMenu();
-    cc->Append(ID_NETWORK_SORT_NAME, "by Name");
-    cc->Append(ID_NETWORK_SORT_ID, "by ID");
-    cc->Append(ID_NETWORK_SORT_IP, "by IP");
-    cc->Append(ID_NETWORK_SORT_FPP_PROXY, "by FPP Proxy");
-    cc->Append(ID_NETWORK_SORT_CONTROLLER_VENDOR, "by Controller Model");
-    cc->Append(ID_NETWORK_SORT_CONTROLLER_PROTOCOL, "by Controller Protocol");
-    mnu.AppendSubMenu(cc, "Sort");
-
-    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&xLightsFrame::OnListControllerPopup, nullptr, this);
-    PopupMenu(&mnu);
-    List_Controllers->SetFocus();
-}
-
-void xLightsFrame::OnListControllerPopup(wxCommandEvent& event) {
-
-    int id = event.GetId();
-    int item = List_Controllers->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-    if (id == ID_NETWORK_ADDSERIAL) {
-        auto c = new ControllerSerial(&_outputManager);
-        _outputManager.AddController(c, item);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ADDSERIAL");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ADDSERIAL");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDSERIAL", nullptr, c);
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDSERIAL");
-    }
-    else if (id == ID_NETWORK_ADDETHERNET) {
-        auto c = new ControllerEthernet(&_outputManager);
-        _outputManager.AddController(c, item);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ADDETHERNET");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ADDETHERNET");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDETHERNET", nullptr, c);
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDETHERNET");
-    }
-    else if (id == ID_NETWORK_ADDNULL) {
-        auto c = new ControllerNull(&_outputManager);
-        _outputManager.AddController(c, item);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ADDNULL");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ADDNULL");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ADDNULL", nullptr, c);
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ADDNULL");
-    }
-    else if (id == ID_NETWORK_ACTIVE) {
-        ActivateSelectedControllers("Active");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ACTIVE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ACTIVE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ACTIVE");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ACTIVE");
-    } else if (id == ID_NETWORK_UNLINKFROMBASE) {
-        UnlinkSelectedControllers();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:UNLINKFROMBASE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:UNLINKFROMBASE");
-    }
-    else if (id == ID_NETWORK_ACTIVEXLIGHTS) {
-        ActivateSelectedControllers("xLights Only");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:ACTIVEXLIGHTS");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:ACTIVEXLIGHTS");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:ACTIVEXLIGHTS");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:ACTIVEXLIGHTS");
-    }
-    else if (id == ID_NETWORK_INACTIVE) {
-        ActivateSelectedControllers("Inactive");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:INACTIVE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:INACTIVE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:INACTIVE");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:INACTIVE");
-    }
-    else if (id == ID_NETWORK_DELETE) {
-        DeleteSelectedControllers();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "OnListControllerPopup:DELETE");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "OnListControllerPopup:DELETE");
-    }
-    else if (id == ID_NETWORK_UPLOADOUTPUT) {
-        OnButtonUploadOutputClick(event);
-    } else if (id == ID_NETWORK_SORT_NAME) {
-        _outputManager.SortControllersbyName();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyName");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyName");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyName");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyName");
-    } else if (id == ID_NETWORK_SORT_ID) {
-        _outputManager.SortControllersbyID();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyID");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyID");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyID");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyID");
-    } else if (id == ID_NETWORK_SORT_IP) {
-        _outputManager.SortControllersbyIP();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyIP");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyIP");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyIP");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyIP");
-    } else if (id == ID_NETWORK_SORT_FPP_PROXY) {
-        _outputManager.SortControllersbyFPPProxy();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyFPPProxy");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyFPPProxy");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyFPPProxy");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyFPPProxy");
-    } else if (id == ID_NETWORK_SORT_CONTROLLER_VENDOR) {
-        _outputManager.SortControllersbyModel();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyVendor");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyVendor");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyVendor");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyVendor");
-    } else if (id == ID_NETWORK_SORT_CONTROLLER_PROTOCOL) {
-        _outputManager.SortControllersbyProtocal();
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SortControllersbyProtocal");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "SortControllersbyProtocal");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SortControllersbyProtocal");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SortControllersbyProtocal");
-    }
-}
-#pragma endregion
 
 #pragma region Selected Controller Actions
-void xLightsFrame::OnButtonVisualiseClick(wxCommandEvent& event)
-{
-    
+void xLightsFrame::UploadControllerInput(Controller* controller) {
+    if (controller == nullptr) return;
 
-    // handle right click on an item
-    auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    auto controller = _outputManager.GetController(name);
-    if (controller != nullptr) {
-        UDController cud(controller, &_outputManager, &AllModels, true);
-        ControllerModelDialog dlg(this, &cud, &AllModels, controller);
-        dlg.ShowModal();
-    }
-    else {
-        spdlog::debug("OnButtonVisualiseClick unable to get controller.");
-    }
-}
-
-void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
-{
-    if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
-        auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-        waitForPingsToComplete();
-        AbortRender();
-        AllModels.DeleteController(name);
-        _outputManager.DeleteController(name);
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");
-        _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "DeleteSelectedControllers");
-        _outputModelManager.AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "DeleteSelectedControllers");
-    }
-}
-
-void xLightsFrame::OnButtonOpenClick(wxCommandEvent& event)
-{
-    auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    auto controller = _outputManager.GetController(name);
-    if (controller != nullptr && controller->GetIP() != "") {
-        if (controller->GetFPPProxy() != "" && controller->GetFPPProxy() != controller->GetIP()) {
-            ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy() + "/proxy/" + controller->GetIP() + "/");
-        }
-        else {
-            ::wxLaunchDefaultBrowser("http://" + controller->GetIP());
-        }
-    }
-}
-
-void xLightsFrame::OnButton_OpenProxyClick(wxCommandEvent& event)
-{
-    auto name = Controllers_PropertyEditor->GetProperty("ControllerName") == nullptr ? "" : Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    auto controller = _outputManager.GetController(name);
-    if (controller != nullptr) {
-        if (controller->GetFPPProxy() != "") {
-            ::wxLaunchDefaultBrowser("http://" + controller->GetFPPProxy());
-        }
-    } else {
-        if (_outputManager.GetGlobalFPPProxy() != "") {
-            ::wxLaunchDefaultBrowser("http://" + _outputManager.GetGlobalFPPProxy());
-        }
-    }
-}
-
-void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
-{
-    if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
+    if (IsControllerUploadLinked()) {
         SetStatusText("Uploading inputs and outputs.");
     } else {
         SetStatusText("Uploading inputs.");
@@ -2757,55 +1467,43 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
 
     SetCursor(wxCURSOR_WAIT);
 
-    auto const name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    spdlog::debug("Uploading controller inputs to" + ToStdString(name));
-    auto controller = _outputManager.GetController(name);
-
-    if (controller != nullptr) {
-        if (controller->GetFPPProxy() != "") {
-            if (!FPP::ValidateProxy(controller->GetIP(), controller->GetFPPProxy())) {
-                wxMessageBox("FPP " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table.");
-            }
+    if (controller->GetFPPProxy() != "") {
+        if (!FPP::ValidateProxy(controller->GetIP(), controller->GetFPPProxy())) {
+            wxMessageBox("FPP " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table.");
         }
-        wxString message;
-        if (UploadInputToController(controller, message)) {
-            if (IsControllerUploadLinked() && ButtonUploadOutput->IsEnabled()) {
-                UploadOutputToController(controller, message);
-            }
+    }
+    wxString message;
+    if (UploadInputToController(controller, message)) {
+        if (IsControllerUploadLinked() && ControllerSupportsOutputUpload(controller)) {
+            UploadOutputToController(controller, message);
         }
     }
 
     SetCursor(wxCURSOR_ARROW);
 }
 
-void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
-{
-    
+void xLightsFrame::UploadControllerOutput(Controller* controller) {
+    if (controller == nullptr) return;
 
     SetCursor(wxCURSOR_WAIT);
-    auto const name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    spdlog::debug("Uploading controller outputs to " + ToStdString(name));
 
-    auto controller = _outputManager.GetController(name);
-    if (controller != nullptr) {
-        if (controller->GetFPPProxy() != "") {
-            if (!FPP::ValidateProxy(controller->GetIP(), controller->GetFPPProxy())) {
-                wxMessageBox("FPP proxy " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table. This upload may fail until this is corrected.");
-            }
+    if (controller->GetFPPProxy() != "") {
+        if (!FPP::ValidateProxy(controller->GetIP(), controller->GetFPPProxy())) {
+            wxMessageBox("FPP proxy " + controller->GetFPPProxy() + " is either not online or does not have this controller in its proxy table. This upload may fail until this is corrected.");
         }
-
-        bool ok = true;
-        wxString message;
-        auto caps = GetControllerCaps(controller->GetName());
-        if (IsControllerUploadLinked() && caps != nullptr && caps->SupportsInputOnlyUpload()) {
-            SetStatusText("Uploading inputs and outputs.");
-            ok = UploadInputToController(controller, message);
-        } else {
-            SetStatusText("Uploading outputs");
-        }
-
-        if (ok) UploadOutputToController(controller, message);
     }
+
+    bool ok = true;
+    wxString message;
+    auto caps = GetControllerCaps(controller->GetName());
+    if (IsControllerUploadLinked() && caps != nullptr && caps->SupportsInputOnlyUpload()) {
+        SetStatusText("Uploading inputs and outputs.");
+        ok = UploadInputToController(controller, message);
+    } else {
+        SetStatusText("Uploading outputs");
+    }
+
+    if (ok) UploadOutputToController(controller, message);
 
     SetCursor(wxCURSOR_ARROW);
 }
@@ -2850,9 +1548,6 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                             auto ctrlName = controller->GetName();
                             config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
-                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
-                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
-                            }
                         }
                     }
                     else {
@@ -2925,9 +1620,6 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                             auto ctrlName = controller->GetName();
                             config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
-                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
-                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
-                            }
                         }
                     } else {
                         message = vendor + " Output Upload Failed.";
