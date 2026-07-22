@@ -480,6 +480,9 @@ void SubModelsPanel::OnSubbufferSize(wxSizeEvent& event)
 
 SubModelsPanel::~SubModelsPanel()
 {
+    if (model != nullptr) {
+        model->SetSuppressDimmingCurvePreview(false);
+    }
     for (auto a = _subModels.begin(); a != _subModels.end(); ++a) {
         delete *a;
     }
@@ -550,6 +553,7 @@ void SubModelsPanel::Setup(Model *m)
 {
     model = m;
     if (_modelPreview) _modelPreview->SetModel(m);
+    model->SetSuppressDimmingCurvePreview(true);
 
     if (m->GetDefaultBufferWi() > 1 && m->GetDefaultBufferHt() > 1) {
         _isMatrix = true;

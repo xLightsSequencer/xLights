@@ -3370,11 +3370,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             // Nodes[n] can be a default-constructed (null) slot on a freshly-placed
             // model; keep SetColor(n) below in sync by only guarding the deref here.
             Nodes[n]->GetColor(color);
-            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
-                Nodes[n]->model->modelDimmingCurve->reverse(color);
-            }
-            if (Nodes[n]->nodeDimmingCurve != nullptr) {
-                Nodes[n]->nodeDimmingCurve->reverse(color);
+            if (!Nodes[n]->model->IsDimmingCurvePreviewSuppressed()) {
+                if (Nodes[n]->model->modelDimmingCurve != nullptr) {
+                    Nodes[n]->model->modelDimmingCurve->reverse(color);
+                }
+                if (Nodes[n]->nodeDimmingCurve != nullptr) {
+                    Nodes[n]->nodeDimmingCurve->reverse(color);
+                }
             }
             if (Nodes[n]->model->StrobeRate) {
                 int r = rand() % 5;
@@ -3894,11 +3896,13 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
         for (int n = 0; n < (int)NodeCount; ++n) {
             xlColor color;
             Nodes[n]->GetColor(color);
-            if (Nodes[n]->model->modelDimmingCurve != nullptr) {
-                Nodes[n]->model->modelDimmingCurve->reverse(color);
-            }
-            if (Nodes[n]->nodeDimmingCurve != nullptr) {
-                Nodes[n]->nodeDimmingCurve->reverse(color);
+            if (!Nodes[n]->model->IsDimmingCurvePreviewSuppressed()) {
+                if (Nodes[n]->model->modelDimmingCurve != nullptr) {
+                    Nodes[n]->model->modelDimmingCurve->reverse(color);
+                }
+                if (Nodes[n]->nodeDimmingCurve != nullptr) {
+                    Nodes[n]->nodeDimmingCurve->reverse(color);
+                }
             }
             if (Nodes[n]->model->StrobeRate) {
                 int r = rand() % 5;

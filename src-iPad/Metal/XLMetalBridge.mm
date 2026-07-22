@@ -3857,6 +3857,7 @@ public:
     if (!rctx) return NO;
     Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
     if (!m) return NO;
+    m->SetSuppressDimmingCurvePreview(true);
     std::set<int> selected;
     for (NSNumber* n in highlighted) {
         if (![n isKindOfClass:[NSNumber class]]) continue;
@@ -3897,6 +3898,7 @@ public:
     for (uint32_t i = 0; i < nn; ++i) {
         m->SetNodeColor(i, base);
     }
+    m->SetSuppressDimmingCurvePreview(false);
     return YES;
 }
 
