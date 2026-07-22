@@ -152,7 +152,7 @@
 | View object delete | menu | ✅ | ✅ | parity | P2 | medium | feasible | iPad deleteViewObject + confirm. |
 | View object drag-move / rotate / scale | gesture | ✅ | ✅ | parity | P2 | medium | feasible | Both handle-based. |
 | Image object file picker | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad generic object file-importer. |
-| Mesh object file picker (.obj/.3ds/.stl/.ply) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad mesh-file picker w/ UTType filter. |
+| Mesh object file picker (.obj/.3ds/.stl/.ply) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad mesh-file picker w/ UTType filter. Obj files inside the show/media dirs save show-relative on both platforms (shared BaseSerializingVisitor + FileUtils::MakeRelativeFile; iPad in-place save matched in iPadRenderContext.cpp). |
 | Terrain object height-map / editing | dialog | ✅ | 🟡 | ipad-missing | P3 | hard | feasible | iPad terrain edit target flow; full height-map paint scope narrower than desktop TerrainObjectPropertyAdapter. |
 | DMX MovingHead / MovingHeadAdv create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad AddModelSheet + descriptor (fixture/mode), MovingHeadFixtureRowView. |
 | DMX Servo / Servo3D create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad add types + descriptor. |

@@ -70,6 +70,7 @@
 #include "../models/DMX/Servo.h"
 
 #include "XmlNodeKeys.h"
+#include "utils/FileUtils.h"
 
 #include <algorithm>
 #include <spdlog/fmt/fmt.h>
@@ -82,6 +83,14 @@ static std::string LowerStr(const std::string& s) {
     std::string result = s;
     std::transform(result.begin(), result.end(), result.begin(), ::tolower);
     return result;
+}
+
+// Files inside the show/media folders are saved show-relative (with '/'
+// separators) so layouts survive show folders being moved or synced across
+// platforms; anything else keeps its absolute path.
+static std::string PortableFilePath(const std::string& file) {
+    std::string rel = FileUtils::MakeRelativeFile(file);
+    return rel.empty() ? file : rel;
 }
 
 // ---------------------------------------------------------------------------
@@ -397,7 +406,7 @@ void BaseSerializingVisitor::WriteDmxMotorElement(const DmxMotor* motor) {
 
 void BaseSerializingVisitor::WriteMeshElement(const Mesh* mesh) {
     AttrCollector attrs;
-    attrs.Add(XmlNodeKeys::ObjFileAttribute,    mesh->GetObjFile());
+    attrs.Add(XmlNodeKeys::ObjFileAttribute,    forExport ? mesh->GetObjFile() : PortableFilePath(mesh->GetObjFile()));
     attrs.Add(XmlNodeKeys::MeshOnlyAttribute,   std::to_string(mesh->GetMeshOnly()));
     attrs.Add(XmlNodeKeys::BrightnessAttribute, std::to_string(mesh->GetBrightness()));
     attrs.Add(XmlNodeKeys::WidthAttribute,      std::to_string(mesh->GetWidth()));
@@ -1215,7 +1224,7 @@ void BaseSerializingVisitor::Visit(const MeshObject& object) {
     AttrCollector attrs;
     CommonObjectVisitSteps(object, attrs);
     AddBoxedScreenLocationAttributes(object, attrs);
-    attrs.Add(XmlNodeKeys::ObjFileAttribute,    object.GetObjFile());
+    attrs.Add(XmlNodeKeys::ObjFileAttribute,    forExport ? object.GetObjFile() : PortableFilePath(object.GetObjFile()));
     attrs.Add(XmlNodeKeys::MeshOnlyAttribute,   object.IsMeshOnly() ? "1" : "0");
     attrs.Add(XmlNodeKeys::BrightnessAttribute, std::to_string(object.GetBrightness()));
     WriteOpenTag(XmlNodeKeys::ViewObjectNodeName, attrs, true);

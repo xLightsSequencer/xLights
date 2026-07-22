@@ -110,6 +110,17 @@ static std::vector<std::string> GetPathComponents(const std::string& path) {
     return components;
 }
 
+// Only bare relative paths ("Models3D/House.obj") are portable across
+// platforms. Anything rooted — POSIX "/..." (not fs-absolute on Windows),
+// Windows drive-rooted "\..." or "H:\...", or UNC "\\server\..." — must not
+// be resolved as if it were show-relative
+static bool IsRootedOrAbsolutePath(const std::string& path) {
+    if (path.empty()) return false;
+    if (path[0] == '/' || path[0] == '\\') return true;
+    return path.size() >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/') &&
+           ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'));
+}
+
 // Check if a file exists in a directory with the given filename
 static bool doesFileExist(const std::string& dir, const std::string& filename, std::string& resultPath) {
     if (filename.empty()) return false;
@@ -173,6 +184,21 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     // Extract filename using both Unix and Windows separators
     std::string filename = GetFilenameFromPath(file);
     std::string resultPath;
+
+    // Relative paths (saved for portability) resolve against the show dir and
+    // media dirs before any filename-based searching
+    if (!std::filesystem::path(file).is_absolute() && !IsRootedOrAbsolutePath(file) && !sd.empty()) {
+        std::string append;
+        for (const auto& comp : GetPathComponents(file)) {
+            if (!append.empty()) append += std::filesystem::path::preferred_separator;
+            append += comp;
+        }
+        if (doesFileExistInDirs(sd, append, filename, resultPath)) {
+            lock.lock();
+            _fixFileMap[file] = resultPath;
+            return resultPath;
+        }
+    }
 
     // Search show dir and search dirs for the file directly
     if (doesFileExistInDirs(sd, "", filename, resultPath)) {

@@ -970,7 +970,8 @@ bool iPadRenderContext::SaveLayoutChanges() {
                     case DisplayAsType::Mesh: {
                         auto* m = dynamic_cast<MeshObject*>(vo);
                         if (m) {
-                            setAttr("ObjFile",    m->GetObjFile());
+                            std::string relObj = FileUtils::MakeRelativeFile(m->GetObjFile());
+                            setAttr("ObjFile",    relObj.empty() ? m->GetObjFile() : relObj);
                             setInt ("Brightness", m->GetBrightness());
                             setAttr("MeshOnly",   m->IsMeshOnly() ? "1" : "0");
                         }

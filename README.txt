@@ -186,6 +186,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  leaving the sequencer tab hid the floating panes without recording it, so a
                                  later toggle re-showed and relaid out every pane mid-layout
 
+    -bug (wbhartmanii)           Layout: 3D object (mesh) files inside the show/media folders are now
+                                 saved with show-relative paths (forward slashes) instead of absolute
+                                 paths, so layouts survive show folders moved or synced across platforms
+
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,
                                  reducing the thread pool to roughly CPU+GPU core count and lowering
