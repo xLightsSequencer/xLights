@@ -31,7 +31,9 @@
 #include <wx/filename.h>
 #include <list>
 #include <string>
+#include <unordered_map>
 #include <vector>
+#include <wx/timer.h>
 #include <wx/uri.h>
 #include "CachedFileDownloader.h"
 
@@ -68,18 +70,28 @@ class VendorModelDialog: public wxDialog
 	int _modelDepthMM = -1;
     std::vector<DownloadedModelInfo> _downloadedModels;
     wxTreeItemId _lastSearchItem;
+    std::vector<wxString> _filterTokens;                        // lower-cased
+    std::unordered_map<const MModel*, wxString> _modelSearchText; // lower-cased haystack per model, built once after load
+    wxTimer _filterTimer;
+    bool _initialBuild = true;
+    bool _treeRebuilding = false;
+    static constexpr int kFilterDebounceMs = 200;
 
     [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
-    void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories);
-    void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId);
+    void BuildModelSearchIndex();
+    void RebuildTreeUI();
+    void AppendModelLeaf(wxTreeItemId vendorNode, MModel* model);
+    [[nodiscard]] bool ModelMatchesFilter(const MModel* model) const;
+    [[nodiscard]] bool FilterMatches(const wxString& haystackLower) const;
+    void ApplyFilterNow();
+    void OnFilterTimer(wxTimerEvent& event);
     void ValidateWindow();
     void PopulateVendorPanel(MVendor* vendor);
     void PopulateModelPanel(MModel* vendor);
     void PopulateModelPanel(MModelWiring* vendor);
     void LoadModelImage(const std::list<std::string>& imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
-    [[nodiscard]] bool DeleteEmptyCategories(wxTreeItemId& parent);
     [[nodiscard]] bool IsVendorSuppressed(const std::string& vendor);
     void SuppressVendor(const std::string& vendor, bool suppress);
 	[[nodiscard]] bool DownloadModel(MModelWiring* wiring);
@@ -160,6 +172,8 @@ class VendorModelDialog: public wxDialog
 		static const wxWindowID ID_SPLITTERWINDOW1;
 		//*)
 
+		static const long ID_FILTERTIMER;
+
 	private:
 
 		//(*Handlers(VendorModelDialog)
@@ -177,6 +191,7 @@ class VendorModelDialog: public wxDialog
 		void OnResize(wxSizeEvent& event);
 		void OnCheckBox_DontDownloadClick(wxCommandEvent& event);
 		void OnTextCtrl_SearchText(wxCommandEvent& event);
+		void OnTextCtrl_SearchTextEnter(wxCommandEvent& event);
 		void OnButton_SearchClick(wxCommandEvent& event);
 		void OnSearchCancelClick(wxCommandEvent& event);
 		//*)
