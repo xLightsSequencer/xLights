@@ -655,6 +655,12 @@
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\ToolbarLayout.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -2175,6 +2181,12 @@
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\ToolbarLayout.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h">

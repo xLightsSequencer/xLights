@@ -646,6 +646,8 @@ public:
     void OnMenuItem_ColourDropperSelected(wxCommandEvent& event);
     void OnMenuItemHinksPixExportSelected(wxCommandEvent& event);
     void OnMenuItemPreferencesSelected(wxCommandEvent& event);
+    void ShowPreferencesDialog(const wxString& initialPage = wxEmptyString);
+    void OnEffectsToolBarContextMenu(wxContextMenuEvent& event);
     void OnButtonDiscoverClick(wxCommandEvent& event);
     void OnButtonDeleteAllControllersClick(wxCommandEvent& event);
     void OnButtonVisualiseClick(wxCommandEvent& event);
@@ -1267,6 +1269,9 @@ public:
     int ToolIconSize() const { return mIconSize; }
     void SetToolIconSize(int size);
 
+    const std::vector<std::pair<std::string, bool>>& GetEffectsToolbarLayout() const { return _effectsToolbarLayout; }
+    void SetEffectsToolbarLayout(std::vector<std::pair<std::string, bool>> layout);
+
     bool GetSnapToTimingMarks() const { return _snapToTimingMarks; }
     bool SnapToTimingMarks() const { return _snapToTimingMarks; }
     void SetSnapToTimingMarks(bool b);
@@ -1759,6 +1764,11 @@ private:
     bool mSuppressColorWarn = false;
     wxString mAltBackupDir;
     int mIconSize;
+    // Ordered (effect name, visible) list backing the Effects toolbar - see
+    // preferences/ToolbarLayout.h. Populated at startup from GetXLightsConfig(),
+    // written back only in ~xLightsFrame() (matches how mIconSize etc. persist).
+    std::vector<std::pair<std::string, bool>> _effectsToolbarLayout;
+    void RebuildEffectsToolbar();
     int mGridSpacing;
     bool mGridIconBackgrounds;
     bool mShowAlternateTimingFormat = false;

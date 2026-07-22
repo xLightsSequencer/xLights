@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
+                                 always-visible Effects toolbar, and reorder them - handy once enough
+                                 effects are registered that the toolbar no longer fits smaller screens.
+                                 Right-click the toolbar to jump straight to this page, and use
+                                 "Reset to Defaults" to restore every effect in the default order
     -enh (cybercop23)            Show folders now skip the automatic base-show-folder merge (controllers, models,
                                  view objects) when the base folder has not changed since the last saved sync.
     -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster

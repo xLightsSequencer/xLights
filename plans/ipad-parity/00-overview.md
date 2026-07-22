@@ -7,7 +7,7 @@
 
 ## How to read this
 
-- **1,188 features** were enumerated across 14 themes (menu items, context-menu
+- **1,191 features** were enumerated across 14 themes (menu items, context-menu
   entries, dialog operations, preferences, keyboard shortcuts, gestures).
 - The **gap** for each feature is *derived from the `desktop`/`iPad` status*
   (✅ present / 🟡 partial / ❌ absent). Categories:
@@ -15,7 +15,7 @@
   - **iPad-weaker** — desktop ✅, iPad 🟡 → partial; finish it.
   - **Reverse (desktop-missing / desktop-weaker)** — iPad does it and desktop
     doesn't (or does it worse) → candidates to **pull back into desktop**.
-  - **Parity** — both have it (858 features; see the per-theme scorecards).
+  - **Parity** — both have it (859 features; see the per-theme scorecards).
 - **priority** P1/P2/P3, **ease** easy/medium/hard, **feasibility**
   feasible / hard / infeasible / **restricted** (closed-firmware controller
   config/upload — IAP-gated, deliberately low priority) / **declined**
@@ -26,9 +26,9 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,188 |
-| **At parity** (both platforms) | 858 (**~72%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 175 |
+| Features audited | 1,191 |
+| **At parity** (both platforms) | 859 (**~72%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 177 |
 | **iPad-weaker** (partial on iPad) | 63 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
@@ -63,7 +63,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 70 | 46 | 66% | 13 | 6 | 6 | 4 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 95 | 81% | 10 | 4 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 73 | 88% | 3 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 86 | 78 | 91% | 1 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 87 | 78 | 90% | 2 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 107 | 77% | 12 | 13 | 7 | 3 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 80 | 66 | 82% | 8 | 3 | 3 | 11 |
@@ -74,7 +74,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,190** | **859** | **~72%** | **176** | **63** | **≈92** | **82** |
+| — | **Total** | **1,191** | **859** | **~72%** | **177** | **63** | **≈92** | **82** |
 
 ## The roadmap — P1 iPad gaps (build first)
 

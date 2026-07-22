@@ -120,6 +120,7 @@
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "settings/XLightsConfigAdapter.h"
+#include "preferences/ToolbarLayout.h"
 #include "controllerproperties/ControllerPropertyAdapter.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
@@ -529,24 +530,51 @@ EVT_COMMAND(wxID_ANY, EVT_SET_EFFECT_DURATION, xLightsFrame::SetEffectDuration)
 EVT_SYS_COLOUR_CHANGED(xLightsFrame::OnSysColourChanged)
 END_EVENT_TABLE()
 
-void AddEffectToolbarButtons(EffectManager& manager, xlAuiToolBar* EffectsToolBar)
+// Rebuilds the Effects toolbar from _effectsToolbarLayout (Preferences >
+// Toolbars), showing only visible effects in the saved order. Called once at
+// startup (after loading the saved layout) and again any time the layout
+// changes live via the Preferences panel. DestroyToolByIndex (not
+// Clear()/ClearTools(), which only forgets the tool metadata and leaks the
+// DragEffectBitmapButton windows as orphaned children) properly destroys each
+// button before removing its slot.
+void xLightsFrame::RebuildEffectsToolbar()
 {
-    int size = EffectsToolBar->FromDIP(16);
-    for (size_t x = 0; x < manager.size(); ++x) {
+    while (EffectsToolBar->GetToolCount() > 0) {
+        EffectsToolBar->DestroyToolByIndex(0);
+    }
+
+    int size = EffectsToolBar->FromDIP(mIconSize);
+    for (const auto& [name, visible] : _effectsToolbarLayout) {
+        if (!visible) continue;
+        RenderableEffect* effect = effectManager.GetEffect(name);
+        if (effect == nullptr) continue;
+
+        size_t idx = EffectsToolBar->GetToolCount();
         DragEffectBitmapButton* bitmapButton = new DragEffectBitmapButton(EffectsToolBar, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size),
-                                                                          wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton%02llu", x));
+                                                                          wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, wxString::Format("DragTBButton%02zu", idx));
         bitmapButton->SetMinSize(wxSize(size, size));
         bitmapButton->SetMaxSize(wxSize(size, size));
-        bitmapButton->SetEffect(manager[x], 16);
+        bitmapButton->SetEffect(effect, mIconSize);
         bitmapButton->SetBitmapMargins(0, 0);
         EffectsToolBar->AddControl(bitmapButton, bitmapButton->GetToolTipText());
 
-        EffectsToolBar->FindToolByIndex(x)->SetMinSize(wxSize(size, size));
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetSizeHints(size, size, size, size);
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMinSize(wxSize(size, size));
-        EffectsToolBar->FindToolByIndex(x)->GetWindow()->SetMaxSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetSizeHints(size, size, size, size);
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetMinSize(wxSize(size, size));
+        EffectsToolBar->FindToolByIndex(idx)->GetWindow()->SetMaxSize(wxSize(size, size));
     }
     EffectsToolBar->Realize();
+
+    wxSize sz = EffectsToolBar->GetSize();
+    wxAuiPaneInfo& info = MainAuiManager->GetPane("EffectsToolBar");
+    info.BestSize(sz);
+    MainAuiManager->Update();
+}
+
+void xLightsFrame::SetEffectsToolbarLayout(std::vector<std::pair<std::string, bool>> layout)
+{
+    _effectsToolbarLayout = std::move(layout);
+    RebuildEffectsToolbar();
 }
 
 inline wxBitmapBundle GetToolbarBitmapBundle(const wxString& id)
@@ -1491,6 +1519,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxEVT_CHAR, (wxObjectEventFunction)&xLightsFrame::OnChar);
     //*)
 
+    // Right-click anywhere on the Effects toolbar jumps to Preferences >
+    // Toolbars. wxEVT_CONTEXT_MENU (unlike a raw right-click mouse event)
+    // propagates up from the individual DragEffectBitmapButton children to
+    // this handler when they don't handle it themselves, so one Bind here
+    // covers both the toolbar background and its buttons.
+    EffectsToolBar->Bind(wxEVT_CONTEXT_MENU, &xLightsFrame::OnEffectsToolBarContextMenu, this);
+
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
     auto* config = GetXLightsConfig();
@@ -1568,11 +1603,15 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     _appProgress->SetRange(100);
     _appProgress->Reset();
 
-    AddEffectToolbarButtons(effectManager, EffectsToolBar);
-    wxSize sz = EffectsToolBar->GetSize();
-    wxAuiPaneInfo& info = MainAuiManager->GetPane("EffectsToolBar");
-    info.BestSize(sz);
-    MainAuiManager->Update();
+    {
+        std::vector<std::string> allEffectNames;
+        allEffectNames.reserve(effectManager.size());
+        for (size_t i = 0; i < effectManager.size(); ++i) {
+            allEffectNames.push_back(effectManager.GetEffectName(i));
+        }
+        _effectsToolbarLayout = LoadToolbarLayout(GetXLightsConfig(), "EffectsToolbarLayout", allEffectNames);
+    }
+    RebuildEffectsToolbar();
 
     wxToolTip::SetAutoPop(20000); // globally set tooltips stay on screen for a long time - may not work on all platforms per wxWidgets documentation
 
@@ -2348,6 +2387,7 @@ xLightsFrame::~xLightsFrame()
         config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
     }
     config->Write("xLightsIconSize", mIconSize);
+    SaveToolbarLayout(config, "EffectsToolbarLayout", _effectsToolbarLayout);
     config->Write("xLightsGridSpacing", mGridSpacing);
     config->Write("xLightsGridIconBackgrounds", mGridIconBackgrounds);
     config->Write("xLightsShowAlternateTimingFormat", mShowAlternateTimingFormat);
