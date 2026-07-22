@@ -115,7 +115,7 @@
 | AlphaPix upload | toolbar | ✅ | ❌ | ipad-missing | P3 | hard | restricted | Closed firmware. |
 | J1Sys upload | toolbar | ✅ | ❌ | ipad-missing | P3 | hard | restricted | Closed firmware. |
 | Minleon upload | toolbar | ✅ | ❌ | ipad-missing | P3 | hard | restricted | Closed firmware. |
-| Pixlite / Pixie upload | toolbar | ✅ | 🟡 | ipad-missing | P3 | hard | restricted | Open-FW path in-scope; vendor-FW path restricted. |
+| Pixlite / Pixie upload | toolbar | ✅ | 🟡 | ipad-missing | P3 | hard | restricted | Open-FW path in-scope; vendor-FW path restricted. Mk3 config parse + port-array bounds fixed in `src-core/controllers/Pixlite16.cpp` (2026.14) — shared core, auto-applied if/when the iPad gains this upload path; no iPad UI work needed today. |
 | FPP / WLED / ESPixelStick / DDP config + upload | dialog/toolbar | ✅ | ✅ | parity | P1 | medium | feasible | Open-source firmware — fully in-scope and present on iPad. |
 
 ## iPad gaps (desktop has, iPad missing)
