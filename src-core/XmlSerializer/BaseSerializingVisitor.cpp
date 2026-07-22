@@ -70,7 +70,7 @@
 #include "../models/DMX/Servo.h"
 
 #include "XmlNodeKeys.h"
-#include "utils/FileUtils.h"
+#include "../utils/FileUtils.h"
 
 #include <algorithm>
 #include <spdlog/fmt/fmt.h>
@@ -85,12 +85,12 @@ static std::string LowerStr(const std::string& s) {
     return result;
 }
 
-// Files inside the show/media folders are saved show-relative (with '/'
-// separators) so layouts survive show folders being moved or synced across
-// platforms; anything else keeps its absolute path.
-static std::string PortableFilePath(const std::string& file) {
-    std::string rel = FileUtils::MakeRelativeFile(file);
-    return rel.empty() ? file : rel;
+// Files inside the show or a media folder are saved relative to whichever one
+// contains them (with '/' separators) so layouts survive show folders being
+// moved or synced across platforms; anything else keeps its absolute path.
+// forExport keeps everything absolute so an exported document stands alone.
+std::string BaseSerializingVisitor::FilePathToWrite(const std::string& file) const {
+    return forExport ? file : FileUtils::MakeRelativeFileOrOriginal(file);
 }
 
 // ---------------------------------------------------------------------------
@@ -406,7 +406,7 @@ void BaseSerializingVisitor::WriteDmxMotorElement(const DmxMotor* motor) {
 
 void BaseSerializingVisitor::WriteMeshElement(const Mesh* mesh) {
     AttrCollector attrs;
-    attrs.Add(XmlNodeKeys::ObjFileAttribute,    forExport ? mesh->GetObjFile() : PortableFilePath(mesh->GetObjFile()));
+    attrs.Add(XmlNodeKeys::ObjFileAttribute,    FilePathToWrite(mesh->GetObjFile()));
     attrs.Add(XmlNodeKeys::MeshOnlyAttribute,   std::to_string(mesh->GetMeshOnly()));
     attrs.Add(XmlNodeKeys::BrightnessAttribute, std::to_string(mesh->GetBrightness()));
     attrs.Add(XmlNodeKeys::WidthAttribute,      std::to_string(mesh->GetWidth()));
@@ -444,7 +444,7 @@ void BaseSerializingVisitor::WriteServoElement(const Servo* servo) {
 
 void BaseSerializingVisitor::WriteDmxImageElement(const DmxImage* img) {
     AttrCollector attrs;
-    attrs.Add(XmlNodeKeys::ImageAttribute,   img->GetImageFile());
+    attrs.Add(XmlNodeKeys::ImageAttribute,   FilePathToWrite(img->GetImageFile()));
     attrs.Add(XmlNodeKeys::ScaleXAttribute,  std::to_string(img->GetScaleX()));
     attrs.Add(XmlNodeKeys::ScaleYAttribute,  std::to_string(img->GetScaleY()));
     attrs.Add(XmlNodeKeys::ScaleZAttribute,  std::to_string(img->GetScaleZ()));
@@ -784,7 +784,7 @@ void BaseSerializingVisitor::Visit(const ImageModel& model) {
     AttrCollector attrs;
     CommonVisitSteps(model, attrs);
     AddBoxedScreenLocationAttributes(model, attrs);
-    attrs.Add(XmlNodeKeys::ImageAttribute,         model.GetImageFile());
+    attrs.Add(XmlNodeKeys::ImageAttribute,         FilePathToWrite(model.GetImageFile()));
     attrs.Add(XmlNodeKeys::WhiteAsAlphaAttribute,  model.IsWhiteAsAlpha() ? "True" : "False");
     attrs.Add(XmlNodeKeys::OffBrightnessAttribute, std::to_string(model.GetOffBrightness()));
     SortAttributes(attrs);
@@ -1196,7 +1196,7 @@ void BaseSerializingVisitor::Visit(const TerrainObject& object) {
     AttrCollector attrs;
     CommonObjectVisitSteps(object, attrs);
     AddBoxedScreenLocationAttributes(object, attrs);
-    attrs.Add(XmlNodeKeys::ImageAttribute,        object.GetImageFile());
+    attrs.Add(XmlNodeKeys::ImageAttribute,        FilePathToWrite(object.GetImageFile()));
     attrs.Add(XmlNodeKeys::TransparencyAttribute, std::to_string(object.GetTransparency()));
     attrs.Add(XmlNodeKeys::BrightnessAttribute,   std::to_string(object.GetBrightness()));
     attrs.Add(XmlNodeKeys::TerrainLineAttribute,  std::to_string(object.GetSpacing()));
@@ -1214,7 +1214,7 @@ void BaseSerializingVisitor::Visit(const ImageObject& object) {
     AttrCollector attrs;
     CommonObjectVisitSteps(object, attrs);
     AddBoxedScreenLocationAttributes(object, attrs);
-    attrs.Add(XmlNodeKeys::ImageAttribute,        object.GetImageFile());
+    attrs.Add(XmlNodeKeys::ImageAttribute,        FilePathToWrite(object.GetImageFile()));
     attrs.Add(XmlNodeKeys::TransparencyAttribute, std::to_string(object.GetTransparency()));
     attrs.Add(XmlNodeKeys::BrightnessAttribute,   std::to_string(object.GetBrightness()));
     WriteOpenTag(XmlNodeKeys::ViewObjectNodeName, attrs, true);
@@ -1224,7 +1224,7 @@ void BaseSerializingVisitor::Visit(const MeshObject& object) {
     AttrCollector attrs;
     CommonObjectVisitSteps(object, attrs);
     AddBoxedScreenLocationAttributes(object, attrs);
-    attrs.Add(XmlNodeKeys::ObjFileAttribute,    forExport ? object.GetObjFile() : PortableFilePath(object.GetObjFile()));
+    attrs.Add(XmlNodeKeys::ObjFileAttribute,    FilePathToWrite(object.GetObjFile()));
     attrs.Add(XmlNodeKeys::MeshOnlyAttribute,   object.IsMeshOnly() ? "1" : "0");
     attrs.Add(XmlNodeKeys::BrightnessAttribute, std::to_string(object.GetBrightness()));
     WriteOpenTag(XmlNodeKeys::ViewObjectNodeName, attrs, true);

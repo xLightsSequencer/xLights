@@ -5934,7 +5934,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (m->GetDisplayAs() == DisplayAsType::ModelGroup) return NO;
     ObtainAccessToURL([path UTF8String], true);
     XmlSerializer serializer;
-    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true);
+    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true, /*forExport*/ true);
     return doc.save_file(path.UTF8String) ? YES : NO;
 }
 

@@ -32,6 +32,11 @@ void DeserializePolyPointScreenLocationAttributes(BaseObject* object, pugi::xml_
 void SerializeModelGroupsForModel(const Model* object, pugi::xml_node docNode);
 void AddDimensions(pugi::xml_node node, const Model* m);
 
+// Rewrites relative file references in a subtree to absolute paths under baseDir.
+// Nodes read out of a base show folder carry paths relative to *that* folder, so
+// they must be anchored before being merged into a different show folder.
+void AbsolutizeFileReferences(pugi::xml_node node, const std::string& baseDir);
+
 // String-based variants (no DOM; write directly into a StringSerializingVisitor)
 // Declared here for convenience; StringSerializingVisitor is defined globally (not in this namespace).
 void SerializeModelGroupsForModelToString(const Model* model, class StringSerializingVisitor& visitor);

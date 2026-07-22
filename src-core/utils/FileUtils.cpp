@@ -71,13 +71,27 @@ static std::recursive_mutex _fixFileMutex;
 static std::vector<std::string> _fixFileNonExistent;
 static std::map<std::string, std::string> _fixFileMap;
 
+// The resolved-path cache is keyed on the path as stored, and stored paths are
+// relative wherever possible, so entries are only meaningful for the directories
+// they were resolved against.
+static void ClearFixFileCaches() {
+    _fixFileMap.clear();
+    _fixFileNonExistent.clear();
+}
+
 void SetFixFileShowDir(const std::string& showDir) {
     std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
+    if (_fixFileShowDir != showDir) {
+        ClearFixFileCaches();
+    }
     _fixFileShowDir = showDir;
 }
 
 void SetFixFileDirectories(const std::list<std::string>& dirs) {
     std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
+    if (_fixFileSearchDirs != dirs) {
+        ClearFixFileCaches();
+    }
     _fixFileSearchDirs = dirs;
 }
 
@@ -86,10 +100,18 @@ void ClearNonExistentFiles() {
     _fixFileNonExistent.clear();
 }
 
-// Get just the filename from a path, handling both / and backslash separators
-static std::string GetFilenameFromPath(const std::string& path) {
+std::string GetFilenameFromPath(const std::string& path) {
     auto pos = path.find_last_of("/\\");
     return (pos == std::string::npos) ? path : path.substr(pos + 1);
+}
+
+bool IsAbsoluteOrRootedPath(const std::string& path) {
+    if (path.empty()) return false;
+    if (path[0] == '/' || path[0] == '\\') return true;
+    // "H:\...", "H:/..." and drive-relative "H:..." are all anchored to a drive
+    if (path.size() >= 2 && path[1] == ':' &&
+        ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'))) return true;
+    return std::filesystem::path(path).is_absolute();
 }
 
 // Get directory components from a path, splitting on both / and backslash
@@ -108,17 +130,6 @@ static std::vector<std::string> GetPathComponents(const std::string& path) {
     }
     // Don't include the filename — only directory components
     return components;
-}
-
-// Only bare relative paths ("Models3D/House.obj") are portable across
-// platforms. Anything rooted — POSIX "/..." (not fs-absolute on Windows),
-// Windows drive-rooted "\..." or "H:\...", or UNC "\\server\..." — must not
-// be resolved as if it were show-relative
-static bool IsRootedOrAbsolutePath(const std::string& path) {
-    if (path.empty()) return false;
-    if (path[0] == '/' || path[0] == '\\') return true;
-    return path.size() >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/') &&
-           ((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'));
 }
 
 // Check if a file exists in a directory with the given filename
@@ -155,7 +166,11 @@ static bool doesFileExistInDirs(const std::string& baseDir, const std::string& a
 std::string FixFile(const std::string& showDir, const std::string& file) {
     if (file.empty()) return file;
 
-    if (FileExists(file, false)) return file;
+    // A bare relative path is show/media relative by construction, so it must be
+    // resolved against those directories rather than the process CWD, which is
+    // arbitrary and could bind to an unrelated same-named file.
+    const bool rooted = IsAbsoluteOrRootedPath(file);
+    if (rooted && FileExists(file, false)) return file;
 
     // Handle meshobjects special case
     auto meshPos = file.find("/meshobjects/");
@@ -187,7 +202,7 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
 
     // Relative paths (saved for portability) resolve against the show dir and
     // media dirs before any filename-based searching
-    if (!std::filesystem::path(file).is_absolute() && !IsRootedOrAbsolutePath(file) && !sd.empty()) {
+    if (!rooted && !sd.empty()) {
         std::string append;
         for (const auto& comp : GetPathComponents(file)) {
             if (!append.empty()) append += std::filesystem::path::preferred_separator;
@@ -199,6 +214,10 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
             return resultPath;
         }
     }
+
+    // Nothing under the show or media dirs matched, so fall back to the CWD the
+    // early-out above skipped for relative paths
+    if (!rooted && FileExists(file, false)) return file;
 
     // Search show dir and search dirs for the file directly
     if (doesFileExistInDirs(sd, "", filename, resultPath)) {
@@ -327,6 +346,11 @@ std::string MakeRelativeFile(const std::string& file) {
     }
 
     return {};
+}
+
+std::string MakeRelativeFileOrOriginal(const std::string& file) {
+    std::string rel = MakeRelativeFile(file);
+    return rel.empty() ? file : rel;
 }
 
 bool IsFileInShowDir(const std::string& showDir, const std::string& filename) {

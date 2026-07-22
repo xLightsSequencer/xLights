@@ -970,8 +970,7 @@ bool iPadRenderContext::SaveLayoutChanges() {
                     case DisplayAsType::Mesh: {
                         auto* m = dynamic_cast<MeshObject*>(vo);
                         if (m) {
-                            std::string relObj = FileUtils::MakeRelativeFile(m->GetObjFile());
-                            setAttr("ObjFile",    relObj.empty() ? m->GetObjFile() : relObj);
+                            setAttr("ObjFile",    FileUtils::MakeRelativeFileOrOriginal(m->GetObjFile()));
                             setInt ("Brightness", m->GetBrightness());
                             setAttr("MeshOnly",   m->IsMeshOnly() ? "1" : "0");
                         }
@@ -980,7 +979,7 @@ bool iPadRenderContext::SaveLayoutChanges() {
                     case DisplayAsType::Image: {
                         auto* i = dynamic_cast<ImageObject*>(vo);
                         if (i) {
-                            setAttr("Image",        i->GetImageFile());
+                            setAttr("Image",        FileUtils::MakeRelativeFileOrOriginal(i->GetImageFile()));
                             setInt ("Brightness",   i->GetBrightness());
                             setInt ("Transparency", i->GetTransparency());
                         }
@@ -1001,7 +1000,7 @@ bool iPadRenderContext::SaveLayoutChanges() {
                     case DisplayAsType::Terrain: {
                         auto* t = dynamic_cast<TerrainObject*>(vo);
                         if (t) {
-                            setAttr("Image",              t->GetImageFile());
+                            setAttr("Image",              FileUtils::MakeRelativeFileOrOriginal(t->GetImageFile()));
                             setInt ("Brightness",         (int)t->GetBrightness());
                             setInt ("Transparency",       t->GetTransparency());
                             // Desktop typo: "Terrian" not "Terrain"

@@ -4610,9 +4610,10 @@ void Model::deleteUIObjects()
 
 std::string Model::GetAttributesAsJSON() const
 {
-    // Serialize the model to XML using XmlSerializer
+    // Serialize the model to XML using XmlSerializer. Reported to the automation
+    // API, so file references stay absolute rather than show-relative.
     XmlSerializer serializer;
-    pugi::xml_document doc = serializer.SerializeModel(this);
+    pugi::xml_document doc = serializer.SerializeModel(this, /*includeGroups*/ false, /*forExport*/ true);
 
     // Get the root node - the model node should be the first child
     pugi::xml_node root = doc.document_element();

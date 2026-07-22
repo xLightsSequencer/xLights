@@ -1974,6 +1974,9 @@ static bool LoadBaseXmlNodes(const std::string& baseShowDir, pugi::xml_document&
 
     pugi::xml_node root = doc.document_element();
     if (root) {
+        // The base folder stores its file references relative to itself; anchor
+        // them before any of these nodes get copied into the current show.
+        XmlSerialize::AbsolutizeFileReferences(root, baseShowDir);
         for (pugi::xml_node mm = root.first_child(); mm; mm = mm.next_sibling()) {
             if (std::string_view(mm.name()) == "models") baseModels = mm;
             else if (std::string_view(mm.name()) == "modelGroups") baseGroups = mm;

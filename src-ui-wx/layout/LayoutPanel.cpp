@@ -7507,8 +7507,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
-                ? serializer.SerializeModel(selectedModels[0], true)
-                : serializer.SerializeModels(selectedModels, true);
+                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true)
+                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
@@ -10397,8 +10397,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
-                ? serializer.SerializeModel(selectedModels[0], true)
-                : serializer.SerializeModels(selectedModels, true);
+                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true)
+                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
