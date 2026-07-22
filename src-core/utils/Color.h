@@ -293,4 +293,4 @@ enum ColorDisplayMode
     MODE_BLUE
 };
 
-const std::string& GetColourName(const xlColor& c);
+const std::string& GetColorName(const xlColor& c);

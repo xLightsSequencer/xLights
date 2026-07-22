@@ -497,7 +497,7 @@ static bool FindColourByName(const std::string& name, xlColor& result) {
     return false;
 }
 
-const std::string& GetColourName(const xlColor& c)
+const std::string& GetColorName(const xlColor& c)
 {
     const NAMED_COLOUR* nc = nullptr;
     float min = 99999999999.0f;
