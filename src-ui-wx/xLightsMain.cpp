@@ -4186,14 +4186,6 @@ void xLightsFrame::CheckUnsavedChanges()
         if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
                                   "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SaveEffectsFile();
-        } else {
-            wxFileName effectsFile;
-            effectsFile.AssignDir(CurrentDir);
-            effectsFile.SetFullName(_(XLIGHTS_RGBEFFECTS_FILE));
-            wxFileName fn(effectsFile.GetFullPath());
-            if (FileExists(fn.GetFullPath())) {
-                fn.Touch();
-            }
         }
     }
 
@@ -4213,14 +4205,6 @@ void xLightsFrame::CheckUnsavedChanges()
                                   "Effect Presets Changes Confirmation",
                                   wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
             SavePresetsFile();
-        } else {
-            wxFileName presetsFile;
-            presetsFile.AssignDir(CurrentDir);
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
-            wxFileName fn(presetsFile.GetFullPath());
-            if (FileExists(fn.GetFullPath())) {
-                fn.Touch();
-            }
         }
     }
 }
