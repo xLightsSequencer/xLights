@@ -1492,7 +1492,17 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 				}
 			}
 
-			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
+			// Under an active filter the tree already holds only matches, so
+			// step through its leaves (a raw substring check against one label
+			// can never match a multi-token query). With no filter, keep the
+			// classic label substring match.
+			bool matches;
+			if (!_filterTokens.empty()) {
+				matches = TreeCtrl_Navigator->GetChildrenCount(current, false) == 0;
+			} else {
+				matches = TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower());
+			}
+			if (current != TreeCtrl_Navigator->GetRootItem() && matches)
 			{
 				// Bold the found item for visual feedback without touching the
 				// selection — SelectItem on wxTR_MULTIPLE clears all other selections
