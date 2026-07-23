@@ -1023,8 +1023,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     int listHeight = (msp > 0) ? msp : kListHeightFallback;
     layout_mgr->AddPane(FirstPanel, wxAuiPaneInfo()
         .Name("ModelList")
-        .Caption("Groups/Models List")
-        .CaptionVisible(false)
+        .Caption("")
+        .CaptionVisible(true)
         .GripperTop(true)
         .CloseButton(false)
         .Floatable(true)
@@ -1059,7 +1059,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         layout_mgr->LoadPerspective(auiPerspective);
     }
     // Always reapply settings that LoadPerspective overwrites via SafeSet()
-    layout_mgr->GetPane("ModelList").MinSize(300, kPaneMinHeight).CaptionVisible(false).Caption("Groups/Models List").GripperTop(true)
+    layout_mgr->GetPane("ModelList").MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
         .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     layout_mgr->GetPane("ModelSettings").MinSize(0, kPaneMinHeight).CaptionVisible(true).Caption("Background Properties")
         .Floatable(true).CloseButton(false).TopDockable(false).BottomDockable(false).LeftDockable(false).RightDockable(false);
@@ -11657,7 +11657,7 @@ void LayoutPanel::RestoreFloatingPanes() {
     // but preserve the visibility restored from the saved perspective.
     wxAuiPaneInfo& modelListPane = layout_mgr->GetPane("ModelList");
     if (modelListPane.IsOk()) {
-        modelListPane.MinSize(300, kPaneMinHeight).CaptionVisible(false).Caption("Groups/Models List").GripperTop(true)
+        modelListPane.MinSize(300, kPaneMinHeight).CaptionVisible(true).Caption("").GripperTop(true)
             .Floatable(true).CloseButton(false).TopDockable(true).BottomDockable(true).LeftDockable(false).RightDockable(false);
     }
     wxAuiPaneInfo& modelSettingsPane = layout_mgr->GetPane("ModelSettings");
