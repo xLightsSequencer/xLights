@@ -18,7 +18,6 @@
  //*)
 
 #include <wx/srchctrl.h>
-#include <wx/stattext.h>
 #include <wx/timer.h>
 
 #include <set>
@@ -68,9 +67,11 @@ class CheckboxSelectDialog: public wxDialog
 		void SelectHighLightedLayers(bool select = true);
 
 		void OnFilterText(wxCommandEvent& event);
+		void OnFilterEnter(wxCommandEvent& event);
 		void OnFilterCancel(wxCommandEvent& event);
 		void OnCloseWindow(wxCloseEvent& event);
 		void OnFilterTimer(wxTimerEvent& event);
+		void ApplyFilter();
 		void PopulateList();
 		void SyncCheckedFromList();
 		bool MatchesFilter(const wxString& item) const;

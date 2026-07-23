@@ -18,6 +18,7 @@
 #include <wx/font.h>
 #include <wx/menu.h>
 #include <wx/srchctrl.h>
+#include <wx/stattext.h>
 #include <wx/tokenzr.h>
 
 //(*IdInit(CheckboxSelectDialog)
@@ -100,7 +101,7 @@ CheckboxSelectDialog::CheckboxSelectDialog(wxWindow* parent, const wxString &tit
     FlexGridSizer1->AddGrowableRow(insertRow);
 
     _filterCtrl->Bind(wxEVT_TEXT, &CheckboxSelectDialog::OnFilterText, this);
-    _filterCtrl->Bind(wxEVT_TEXT_ENTER, &CheckboxSelectDialog::OnFilterText, this);
+    _filterCtrl->Bind(wxEVT_TEXT_ENTER, &CheckboxSelectDialog::OnFilterEnter, this);
     _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &CheckboxSelectDialog::OnFilterCancel, this);
 
     _filterTimer.SetOwner(this, ID_FILTERTIMER);
@@ -220,6 +221,13 @@ void CheckboxSelectDialog::OnFilterText(wxCommandEvent& event)
     _filterTimer.StartOnce(200);
 }
 
+void CheckboxSelectDialog::OnFilterEnter(wxCommandEvent& event)
+{
+    // Enter applies the pending filter immediately rather than waiting on the debounce.
+    _filterTimer.Stop();
+    ApplyFilter();
+}
+
 void CheckboxSelectDialog::OnFilterCancel(wxCommandEvent& event)
 {
     _filterTimer.Stop();
@@ -237,6 +245,11 @@ void CheckboxSelectDialog::OnCloseWindow(wxCloseEvent& event)
 }
 
 void CheckboxSelectDialog::OnFilterTimer(wxTimerEvent& event)
+{
+    ApplyFilter();
+}
+
+void CheckboxSelectDialog::ApplyFilter()
 {
     SyncCheckedFromList();
     _filter = _filterCtrl->GetValue().Trim(true).Trim(false);
