@@ -8790,7 +8790,8 @@ void EffectsGrid::CopyModelEffectsToModels(int row_number) {
         return;
     }
 
-    CheckboxSelectDialog dlg((wxWindow*)mParent, "Choose Model(s)", choices);
+    CheckboxSelectDialog dlg((wxWindow*)mParent, "Choose Model(s)", choices, wxArrayString(),
+                             _("Copying layers/submodels from: "), wxString(source_name));
     dlg.SetMinSize(wxSize(400, -1));
     dlg.SetSize(wxSize(400, dlg.GetSize().GetHeight()));
     if (dlg.ShowModal() != wxID_OK)
