@@ -1030,7 +1030,6 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\utils\ZipUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SubBufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\model\SubModelGenerateDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\SubModelsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SuperStarImportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\support\EzGrid.cpp" />
@@ -1686,7 +1685,6 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\utils\xlPoint.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SubBufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\model\SubModelGenerateDialog.h" />
-    <ClInclude Include="..\src-ui-wx\model\SubModelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\SubModelsPanel.h" />
     <ClInclude Include="..\src-ui-wx\import_export\SuperStarImportDialog.h" />
     <ClInclude Include="..\src-ui-wx\support\EzGrid.h" />

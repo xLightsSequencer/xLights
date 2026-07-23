@@ -86,7 +86,6 @@
 #include "layout/LORPreview.h"
 #include "model/ModelDefinitionsDialog.h"
 #include "model/CustomModelDialog.h"
-#include "model/SubModelsDialog.h"
 #include "color/xlColourData.h"
 #include "shared/utils/xlPropertyGrid.h"
 #include "modelproperties/ModelPropertyManager.h"

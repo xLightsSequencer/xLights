@@ -43,6 +43,28 @@ class OutputManager;
 class ModelManager;
 class xlColor;
 
+// Drag-and-drop target for reordering SubModels in the list control. The matching
+// EVT_SMDROP event and the method bodies live in SubModelsPanel.cpp.
+wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
+
+class SubModelTextDropTarget : public wxTextDropTarget
+{
+public:
+    SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
+    {
+        _owner = owner;
+        _list  = list;
+        _type  = type;
+    }
+
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+
+    wxWindow*   _owner;
+    wxListCtrl* _list;
+    wxString    _type;
+};
+
 class SubModelsPanel : public wxPanel {
     struct SubModelInfo {
         SubModelInfo() {}
@@ -102,6 +124,10 @@ class SubModelsPanel : public wxPanel {
 
     std::vector<SubModelInfo*> _subModels;
     std::vector<SubModelInfo> _originalSubModels;
+    // Aliases live on the model (not in SubModelInfo), so an alias-only edit is
+    // invisible to the _subModels/_originalSubModels diff in HasChanges(). Track
+    // it separately so the change is still reported to the caller on OK.
+    bool _aliasesChanged = false;
 
     void StartOutputToLights();
     bool StopOutputToLights();

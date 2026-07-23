@@ -40,7 +40,6 @@
 #include "../model/StrandNodeNamesDialog.h"
 #include "../model/ModelDefinitionsDialog.h"
 #include "../model/ModelDimmingCurveDialog.h"
-#include "../model/SubModelsDialog.h"
 #include "../model/EditAliasesDialog.h"
 #include "../model/ModelChainDialog.h"
 #include "../model/StartChannelDialog.h"

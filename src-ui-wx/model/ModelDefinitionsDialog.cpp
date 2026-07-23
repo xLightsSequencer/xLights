@@ -137,6 +137,17 @@ ModelDefinitionsDialog::ModelDefinitionsDialog(wxWindow* parent, OutputManager* 
 ModelDefinitionsDialog::~ModelDefinitionsDialog()
 {
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
+
+    // Stop any in-progress per-tab "Output to Lights" test before restoring the
+    // pre-dialog output state. Each panel also stops its own test output in its
+    // destructor, but those run AFTER this body (the wxWindow base tears down
+    // child panels last) - so without this the panel's StopOutput() would clobber
+    // the StartOutput() restore below and leave the show's live output off. This
+    // reproduces the old single-dialog stop-test-then-restore ordering.
+    _facesPanel->OnDeactivate();
+    _statesPanel->OnDeactivate();
+    _subModelsPanel->OnDeactivate();
+
     if (_oldOutputToLights) {
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
     }

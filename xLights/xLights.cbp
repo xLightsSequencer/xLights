@@ -605,8 +605,6 @@
 		<Unit filename="../src-ui-wx/sequencer/SubBufferPanel.h" />
 		<Unit filename="../src-ui-wx/model/SubModelGenerateDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/SubModelGenerateDialog.h" />
-		<Unit filename="../src-ui-wx/model/SubModelsDialog.cpp" />
-		<Unit filename="../src-ui-wx/model/SubModelsDialog.h" />
 		<Unit filename="../src-ui-wx/model/SubModelsPanel.cpp" />
 		<Unit filename="../src-ui-wx/model/SubModelsPanel.h" />
 		<Unit filename="../src-ui-wx/import_export/SuperStarImportDialog.cpp" />
@@ -1720,7 +1718,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/SplashDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/TipOfTheDayDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/TopEffectsPanel.wxs" />
@@ -1853,7 +1850,6 @@
 					<wxDialog wxs="../src-ui-wx/wxsmith/StartChannelDialog.wxs" src="../src-ui-wx/model/StartChannelDialog.cpp" hdr="../src-ui-wx/model/StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/StrandNodeNamesDialog.wxs" src="../src-ui-wx/model/StrandNodeNamesDialog.cpp" hdr="../src-ui-wx/model/StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" src="../src-ui-wx/model/SubModelGenerateDialog.cpp" hdr="../src-ui-wx/model/SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelsDialog.wxs" src="../src-ui-wx/model/SubModelsDialog.cpp" hdr="../src-ui-wx/model/SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" src="../src-ui-wx/import_export/SuperStarImportDialog.cpp" hdr="../src-ui-wx/import_export/SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/UpdaterDialog.wxs" src="../src-ui-wx/app-shell/UpdaterDialog.cpp" hdr="../src-ui-wx/app-shell/UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ValueCurveDialog.wxs" src="../src-ui-wx/shared/dialogs/ValueCurveDialog.cpp" hdr="../src-ui-wx/shared/dialogs/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />

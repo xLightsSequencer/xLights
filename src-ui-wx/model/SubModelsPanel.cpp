@@ -37,7 +37,6 @@
 #include <algorithm>
 
 #include "SubModelsPanel.h"
-#include "SubModelsDialog.h"
 #include <wx/progdlg.h>
 #include "models/Model.h"
 #include "models/CustomModel.h"
@@ -67,7 +66,7 @@
 
 #include <log.h>
 
-// EVT_SMDROP defined in SubModelsDialog.cpp
+wxDEFINE_EVENT(EVT_SMDROP, wxCommandEvent);
 
 const wxWindowID SubModelsPanel::ID_CHECKBOX2 = wxNewId();
 const wxWindowID SubModelsPanel::ID_STATICTEXT1 = wxNewId();
@@ -632,6 +631,7 @@ void SubModelsPanel::Save()
 
 bool SubModelsPanel::HasChanges() const
 {
+    if (_aliasesChanged) return true;
     if (_originalSubModels.size() != _subModels.size()) return true;
     for (size_t i = 0; i < _subModels.size(); ++i) {
         if (_originalSubModels[i] != *_subModels[i]) return true;
@@ -2525,12 +2525,16 @@ void SubModelsPanel::Aliases()
         SaveSubModelInfoIntoThisModel(model);
     }
 
-    if (model->GetSubModel(submodelname) == nullptr)
+    Model* sm = model->GetSubModel(submodelname);
+    if (sm == nullptr)
         return;
 
+    const std::list<std::string> before = sm->GetAliases();
     EditSubmodelAliasesDialog dlg(GetParent(), model, submodelname);
-
-    dlg.ShowModal();
+    if (dlg.ShowModal() == wxID_OK && sm->GetAliases() != before) {
+        _aliasesChanged = true;
+        NotifyChange();
+    }
 }
 
 void SubModelsPanel::Generate()
@@ -2653,7 +2657,91 @@ void SubModelsPanel::OnDrop(wxCommandEvent& event)
     }
 }
 
-// SubModelTextDropTarget methods defined in SubModelsDialog.cpp
+wxDragResult SubModelTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    static int MINSCROLLDELAY = 10;
+    static int STARTSCROLLDELAY = 300;
+    static int scrollDelay = STARTSCROLLDELAY;
+    static wxLongLong lastTime = wxGetUTCTimeMillis();
+
+    if (wxGetUTCTimeMillis() - lastTime < scrollDelay)
+    {
+        // too soon to scroll again
+    }
+    else
+    {
+        if (_type == "SubModel" && _list->GetItemCount() > 0)
+        {
+            int flags = wxLIST_HITTEST_ONITEM;
+            int lastItem = _list->HitTest(wxPoint(x, y), flags, nullptr);
+
+            for (int i = 0; i < _list->GetItemCount(); ++i)
+            {
+                if (i == lastItem)
+                    _list->SetItemState(i, wxLIST_STATE_DROPHILITED, wxLIST_STATE_DROPHILITED);
+                else
+                    _list->SetItemState(i, 0, wxLIST_STATE_DROPHILITED);
+            }
+
+            wxRect rect;
+            _list->GetItemRect(0, rect);
+            int itemSize = rect.GetHeight();
+
+            if (y < 2 * itemSize)
+            {
+                if (_list->GetTopItem() > 0)
+                {
+                    lastTime = wxGetUTCTimeMillis();
+                    _list->EnsureVisible(_list->GetTopItem() - 1);
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
+                }
+            }
+            else if (y > _list->GetRect().GetHeight() - itemSize)
+            {
+                if (lastItem >= 0 && lastItem < _list->GetItemCount())
+                {
+                    _list->EnsureVisible(lastItem + 1);
+                    lastTime = wxGetUTCTimeMillis();
+                    scrollDelay = scrollDelay / 2;
+                    if (scrollDelay < MINSCROLLDELAY) scrollDelay = MINSCROLLDELAY;
+                }
+            }
+            else
+            {
+                scrollDelay = STARTSCROLLDELAY;
+            }
+        }
+    }
+
+    return wxDragMove;
+}
+
+bool SubModelTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
+{
+    if (data == "") return false;
+
+    long mousePos = x;
+    mousePos = mousePos << 16;
+    mousePos += y;
+    wxCommandEvent event(EVT_SMDROP);
+    event.SetString(data);
+    event.SetExtraLong(mousePos);
+
+    wxArrayString parms = wxSplit(data, ',');
+
+    if (parms[0] == "SubModel")
+    {
+        if (_type == "SubModel")
+        {
+            event.SetInt(0);
+            wxPostEvent(_owner, event);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 #pragma endregion Drag and Drop
 
