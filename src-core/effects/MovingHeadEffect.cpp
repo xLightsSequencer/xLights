@@ -348,7 +348,7 @@ xlColor MovingHeadEffect::GetMultiColorBlend(double eff_pos, const std::vector<s
         double hue {std::strtod(colors[0].c_str(), nullptr)};
         double sat {std::strtod(colors[1].c_str(), nullptr)};
         double val {std::strtod(colors[2].c_str(), nullptr)};
-        HSVValue v{hue,sat,val};
+        HSVValue v(hue, sat, val);
         return xlColor(v);
     }
     if (eff_pos >= 1.0) eff_pos = 0.99999f;
@@ -386,7 +386,7 @@ xlColor MovingHeadEffect::GetWheelColor(double eff_pos, const std::vector<std::s
         double hue {std::strtod(colors[0].c_str(), nullptr)};
         double sat {std::strtod(colors[1].c_str(), nullptr)};
         double val {std::strtod(colors[2].c_str(), nullptr)};
-        HSVValue v{hue,sat,val};
+        HSVValue v(hue, sat, val);
         return xlColor(v);
     }
     if (eff_pos >= 1.0) eff_pos = 0.99999f;
@@ -782,7 +782,7 @@ void MovingHeadEffect::CalculateColorWheelShutter(DmxColorAbility* mh_color, dou
         double hue{ std::strtod(colors[index].c_str(), nullptr) };
         double sat{ std::strtod(colors[index + 1].c_str(), nullptr) };
         double val{ std::strtod(colors[index + 2].c_str(), nullptr) };
-        HSVValue v{ hue, sat, val };
+        HSVValue v( hue, sat, val );
         return xlColor(v);
     };
     auto wheel_delay = wheel_head->GetWheelDelay();

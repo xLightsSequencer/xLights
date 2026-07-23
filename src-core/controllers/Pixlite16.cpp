@@ -954,7 +954,9 @@ bool Pixlite16::GetConfig(const std::string& localIp, std::string ip, const std:
 {
     bool res = false;
 
-    memset((void*)&_config, 0x00, sizeof(_config));
+    // Must not memset: Config holds std::string/std::vector members, so zeroing
+    // it leaks their buffers and wipes the declared defaults (subnet masks, gamma).
+    _config = Config();
 
     sockets::UDPSocket discovery;
 
@@ -1117,7 +1119,7 @@ bool Pixlite16::GetMK3Config()
             if (!jsonVal.is_null()) {
                 _config._protocol = jsonVal["result"]["config"]["pix"]["dataSrc"].get<std::string>() == "Art-Net" ? 1 : 0;
                 _config._holdLastFrame = jsonVal["result"]["config"]["pix"]["holdLastFrm"].get<bool>();
-                _config._numOutputs = jsonVal["result"]["config"]["pixPort"]["pixCount"].array().size();
+                _config._numOutputs = jsonVal["result"]["config"]["pixPort"]["pixCount"].size();
                 _config._currentDriverExpanded = jsonVal["result"]["config"]["pix"]["expand"].get<bool>();
                 _config._realOutputs = _config._numOutputs;
                 if (!_config._currentDriverExpanded) {
@@ -1137,14 +1139,14 @@ bool Pixlite16::GetMK3Config()
                     _config._outputPixels[i] = jsonVal["result"]["config"]["pixPort"]["pixCount"][i].get<int>();
                     _config._outputUniverse[i] = jsonVal["result"]["config"]["pixPort"]["startUni"][i].get<int>();
                     _config._outputStartChannel[i] = jsonVal["result"]["config"]["pixPort"]["startCh"][i].get<int>();
-                    _config._outputNullPixels[i] = jsonVal["result"]["config"]["pixPort"]["startCh"][i].get<int>();
+                    _config._outputNullPixels[i] = jsonVal["result"]["config"]["pixPort"]["nullPix"][i].get<int>();
                     _config._outputZigZag[i] = jsonVal["result"]["config"]["pixPort"]["zigZag"][i].get<int>();
                     _config._outputReverse[i] = jsonVal["result"]["config"]["pixPort"]["reverse"][i].get<bool>();
-                    _config._outputColourOrder[i] = EncodeColourOrder(jsonVal["result"]["config"]["pixPort"]["startCh"][i].get<std::string>());
+                    _config._outputColourOrder[i] = EncodeColourOrder(jsonVal["result"]["config"]["pixPort"]["colorOrder"][i].get<std::string>());
                     _config._outputGrouping[i] = jsonVal["result"]["config"]["pixPort"]["group"][i].get<int>();
                     _config._outputBrightness[i] = jsonVal["result"]["config"]["pixPort"]["intensity"][i].get<int>();
                 }
-                _config._numDMX = jsonVal["result"]["config"]["auxPort"]["uni"].array().size();
+                _config._numDMX = jsonVal["result"]["config"]["auxPort"]["uni"].size();
                 _config._dmxUniverse.resize(_config._numDMX);
                 _config._dmxOn.resize(_config._numDMX);
                 _config._realDMX = 0;
@@ -1751,8 +1753,16 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
     _config._nickname = controller->GetName();
     _config._nicknameLen = _config._nickname.size();
     _config._protocolName = std::string("ws2811"); // we do this by default
+    // The loop bound comes from our caps XML but the arrays are sized from what the
+    // controller actually reported. When those disagree (firmware reporting fewer
+    // outputs than the caps declare) the writes below would run off the end.
+    const int maxPixelPort = std::min<int>(rules->GetMaxPixelPort(), (int)_config._outputUniverse.size());
+    if (cud.GetMaxPixelPort() > maxPixelPort) {
+        check += fmt::format("ERR: Controller reported {} pixel outputs but ports up to {} are in use.\n", maxPixelPort, cud.GetMaxPixelPort());
+        success = false;
+    }
     if (success && cud.GetMaxPixelPort() > 0) {
-        for (int pp = 1; pp <= rules->GetMaxPixelPort(); pp++) {
+        for (int pp = 1; pp <= maxPixelPort; pp++) {
             if (cud.HasPixelPort(pp)) {
 
                 // always go advanced ... it doesnt hurt and it makes the config always work
@@ -1789,9 +1799,14 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         }
     }
 
+    const int maxSerialPort = std::min<int>(rules->GetMaxSerialPort(), (int)_config._dmxUniverse.size());
+    if (success && cud.GetMaxSerialPort() > maxSerialPort) {
+        check += fmt::format("ERR: Controller reported {} serial outputs but ports up to {} are in use.\n", maxSerialPort, cud.GetMaxSerialPort());
+        success = false;
+    }
     if (success) {
         if (cud.GetMaxSerialPort() > 0) {
-            for (int sp = 1; sp <= rules->GetMaxSerialPort(); sp++) {
+            for (int sp = 1; sp <= maxSerialPort; sp++) {
                 if (cud.HasSerialPort(sp)) {
                     UDControllerPort* port = cud.GetControllerSerialPort(sp);
 

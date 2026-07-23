@@ -48,7 +48,6 @@ void DmxGeneral::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
     }
 
     xlColor ccolor(xlWHITE);
-    xlColor black(xlBLACK);
     xlColor color;
     if (c != nullptr) {
         color = *c;

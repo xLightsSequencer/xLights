@@ -658,7 +658,6 @@ void xLightsFrame::LoadEffectsFile()
     layoutPanel->Set3d(is_3d);
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     // update version
     _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
@@ -672,11 +671,18 @@ void xLightsFrame::LoadEffectsFile()
 
     // Merge base show folder models into the XML nodes before building the objects
     if (_outputManager.IsAutoUpdateFromBaseShowDir() && !_outputManager.GetBaseShowDir().empty()) {
-        bool changed = false;
-        changed |= AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode);
-        changed |= AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode);
-        if (changed) {
-            UnsavedRgbEffectsChanges = true;
+        if (NeedsBaseRgbEffectsUpdate()) {
+            bool changed = false;
+            bool loadedOk = AllModels.MergeBaseXml(_outputManager.GetBaseShowDir(), modelsNode, modelGroupsNode, &changed);
+            loadedOk = AllObjects.MergeBaseXml(_outputManager.GetBaseShowDir(), viewObjectsNode, &changed) && loadedOk;
+            if (changed) {
+                UnsavedRgbEffectsChanges = true;
+            }
+            // Only record the checkpoint if the base file actually loaded; a failed
+            // load leaves it unset so the merge is retried on the next open.
+            if (loadedOk) {
+                MarkBaseRgbEffectsSynced();
+            }
         }
     }
     LoadModels(modelsNode, modelGroupsNode, viewObjectsNode);
@@ -692,7 +698,6 @@ void xLightsFrame::LoadEffectsFile()
     SetStatusText(wxString::Format(_("'%s' loaded in %4.3f sec."), effectsFile.GetFullPath(), elapsedTime));
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     if (converted) {
         UnsavedRgbEffectsChanges = true;
@@ -877,7 +882,6 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
     }
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 
     return true;
 }
@@ -913,7 +917,6 @@ void xLightsFrame::CreateDefaultEffectsXml(pugi::xml_document& doc)
     doc.append_child("xrgb");
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
 }
 
 // This ensures submodels are in the right order in the sequence elements after the user
@@ -1008,7 +1011,6 @@ bool xLightsFrame::RenameModel(const std::string OldName, const std::string& New
 
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
     return internalsChanged;
 }
 
@@ -1053,7 +1055,6 @@ bool xLightsFrame::RenameObject(const std::string OldName, const std::string& Ne
 
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
     return internalsChanged;
 }
 
@@ -1240,7 +1241,6 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
 
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 }
 
 
@@ -1290,7 +1290,6 @@ void xLightsFrame::UpdateModelsList()
     displayElementsPanel->UpdateModelsForSelectedView();
 
     UpdateLayoutSave();
-    UpdateControllerSave();
 }
 
 std::string xLightsFrame::OpenAndCheckSequence(const std::string& origFilename)
@@ -1959,15 +1958,24 @@ static void enableAllMenubarControls(wxMenuBar* parent, bool enable)
     parent->Refresh();
 }
 
+// Applies the current sequence-editing gate to the Effects toolbar. Split out of
+// EnableSequenceControls because RebuildEffectsToolbar (Preferences > Toolbars)
+// creates fresh buttons that would otherwise come up enabled.
+void xLightsFrame::EnableEffectsToolbar()
+{
+    enableAllToolbarControls(EffectsToolBar, _sequenceControlsEnabled && _seqData.NumFrames() > 0 && !IsACActive());
+}
+
 void xLightsFrame::EnableSequenceControls(bool enable)
 {
+    _sequenceControlsEnabled = enable;
     enableAllToolbarControls(MainToolBar, enable);
     //enableAllToolbarControls(PlayToolBar, enable && SeqData.NumFrames() > 0);
     SetAudioControls();
     bool enableSeq = enable && _seqData.NumFrames() > 0;
     bool enableSeqNotAC = enable && _seqData.NumFrames() > 0 && !IsACActive();
     enableAllToolbarControls(WindowMgmtToolbar, enableSeq);
-    enableAllToolbarControls(EffectsToolBar, enableSeqNotAC);
+    EnableEffectsToolbar();
     enableAllToolbarControls(EditToolBar, enableSeq);
     enableAllToolbarControls(ACToolbar, enableSeq);
     mainSequencer->CheckBox_SuspendRender->Enable(enableSeq);

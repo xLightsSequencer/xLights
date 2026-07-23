@@ -370,7 +370,6 @@ void xLightsFrame::CheckForAndCreateDefaultPerpective()
         mCurrentPerpective = &_perspectives.back();
         UnsavedRgbEffectsChanges = true;
         UpdateLayoutSave();
-        UpdateControllerSave();
     } else {
         for (auto& p : _perspectives) {
             if (!p.name.empty() && p.name == _currentPerspectiveName) {
@@ -3429,7 +3428,6 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         }
     }
     UpdateLayoutSave();
-    UpdateControllerSave();
     UpdateViewMenu();
 }
 
@@ -3504,7 +3502,6 @@ void xLightsFrame::PerspectivesChanged(wxCommandEvent& event)
     LoadPerspectivesMenu();
     UnsavedRgbEffectsChanges = true;
     UpdateLayoutSave();
-    UpdateControllerSave();
     UpdateViewMenu();
 }
 
@@ -3555,6 +3552,8 @@ void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
+    if (m_mgr == nullptr || IsExiting()) return;
+
     InitSequencer();
 
     wxAuiPaneInfo& info = m_mgr->GetPane("DisplayElements");
@@ -3625,12 +3624,16 @@ void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
 {
+    if (m_mgr == nullptr || IsExiting()) return;
+
     InitSequencer();
-    bool visible = m_mgr->GetPane("HousePreview").IsShown();
-    if (visible) {
-        m_mgr->GetPane("HousePreview").Hide();
+    wxAuiPaneInfo& info = m_mgr->GetPane("HousePreview");
+    if (!info.IsOk()) return;
+
+    if (info.IsShown()) {
+        info.Hide();
     } else {
-        m_mgr->GetPane("HousePreview").Show();
+        info.Show();
     }
     m_mgr->Update();
     UpdateViewMenu();

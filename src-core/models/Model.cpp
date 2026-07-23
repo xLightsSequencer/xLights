@@ -567,9 +567,14 @@ void Model::UpdateFaceInfoNodes()
 
 void Model::UpdateStateInfoNodes()
 {
-    stateInfoNodes.clear();
+    stateInfoNodes = ComputeStateInfoNodes(stateInfo);
+}
+
+FaceStateNodes Model::ComputeStateInfoNodes(FaceStateData const& stateInfo)
+{
+    FaceStateNodes stateInfoNodes;
     for (const auto& it : stateInfo) {
-        if (stateInfo[it.first]["Type"] == "NodeRange") {
+        if (it.second.count("Type") && it.second.at("Type") == "NodeRange") {
             for (const auto& it2 : it.second) {
                 if (it2.first != "Type" && !Contains(it2.first, "Color") && it2.second != "") {
                     std::list<int> nodes;
@@ -607,6 +612,7 @@ void Model::UpdateStateInfoNodes()
             }
         }
     }
+    return stateInfoNodes;
 }
 
 void Model::WriteStateInfo(pugi::xml_node rootXml, const FaceStateData& stateInfo, bool forceCustom) {
@@ -3263,12 +3269,6 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
     for (int n = 0; n < (int)NodeCount; ++n) {
         if (n + 1 == highlightpixel) {
             color = xlMAGENTA;
-        } else if (highlightFirst && Nodes.size() > 1) {
-            if (IsNodeFirst(n)) {
-                color = xlCYAN;
-            } else {
-                color = saveColor;
-            }
         } else if (c == nullptr && Nodes[n]) {
             // Nodes[n] can be a default-constructed (null) slot on a freshly-placed
             // model; keep SetColor(n) below in sync by only guarding the deref here.
@@ -3281,6 +3281,15 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 if (r != 0) {
                     color = xlBLACK;
                 }
+            }
+            if (highlightFirst && Nodes.size() > 1 && IsNodeFirst(n)) {
+                color = xlCYAN;
+            }
+        } else if (highlightFirst && Nodes.size() > 1) {
+            if (IsNodeFirst(n)) {
+                color = xlCYAN;
+            } else {
+                color = saveColor;
             }
         }
         ApplyTransparency(color, transparency, blackTransparency);
@@ -4610,9 +4619,10 @@ void Model::deleteUIObjects()
 
 std::string Model::GetAttributesAsJSON() const
 {
-    // Serialize the model to XML using XmlSerializer
+    // Serialize the model to XML using XmlSerializer. Reported to the automation
+    // API, so file references stay absolute rather than show-relative.
     XmlSerializer serializer;
-    pugi::xml_document doc = serializer.SerializeModel(this);
+    pugi::xml_document doc = serializer.SerializeModel(this, /*includeGroups*/ false, /*forExport*/ true);
 
     // Get the root node - the model node should be the first child
     pugi::xml_node root = doc.document_element();

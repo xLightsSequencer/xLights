@@ -152,14 +152,16 @@ struct XmlSerializer {
     }
 
 
-    // Serialize a single model into an XML document
-    pugi::xml_document SerializeModel(const Model* model, bool includeGroups = false) {
+    // Serialize a single model into an XML document.
+    // forExport keeps file references absolute so the document stands alone on
+    // another machine; leave it false for anything that stays in this show.
+    pugi::xml_document SerializeModel(const Model* model, bool includeGroups = false, bool forExport = false) {
         pugi::xml_document doc;
 
         pugi::xml_node docNode = doc.append_child(XmlNodeKeys::ModelsNodeName);
         docNode.append_attribute(XmlNodeKeys::TypeAttribute) = XmlNodeKeys::ExportedAttribute;
 
-        XmlSerializingVisitor visitor{ docNode, includeGroups };
+        XmlSerializingVisitor visitor{ docNode, forExport };
         model->Accept(visitor);
         if (includeGroups) {
             XmlSerialize::SerializeModelGroupsForModel(model, docNode);
@@ -170,7 +172,7 @@ struct XmlSerializer {
     }
 
     // Serialize multiple models into a single XML document under one <models> root
-    pugi::xml_document SerializeModels(const std::vector<const Model*>& models, bool includeGroups = false) {
+    pugi::xml_document SerializeModels(const std::vector<const Model*>& models, bool includeGroups = false, bool forExport = false) {
         pugi::xml_document doc;
 
         pugi::xml_node docNode = doc.append_child(XmlNodeKeys::ModelsNodeName);
@@ -178,7 +180,7 @@ struct XmlSerializer {
 
         for (const Model* model : models) {
             if (model == nullptr) continue;
-            XmlSerializingVisitor visitor{ docNode, includeGroups };
+            XmlSerializingVisitor visitor{ docNode, forExport };
             model->Accept(visitor);
             if (includeGroups) {
                 XmlSerialize::SerializeModelGroupsForModel(model, docNode);

@@ -494,6 +494,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\color\ColourReplaceDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\color\ColoursPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\ControllerModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\ShowDirectoriesDialog.cpp" />
     <ClCompile Include="..\src-core\controllers\AlphaPix.cpp" />
     <ClCompile Include="..\src-core\controllers\BaseController.cpp" />
     <ClCompile Include="..\src-core\controllers\ControllerCaps.cpp" />
@@ -626,6 +627,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\utils\ip_utils.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.cpp" />
     <ClCompile Include="..\src-ui-wx\graphics\wxTextDrawingContext.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ControllerListPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ControllerTreeUtils.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\TreeListColumnVisibility.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\wxUtilities.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerNullPropertyAdapter.cpp" />
@@ -879,12 +884,13 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\dependencies\midifile\src\MidiEventList.cpp" />
     <ClCompile Include="..\dependencies\midifile\src\MidiFile.cpp" />
     <ClCompile Include="..\dependencies\midifile\src\MidiMessage.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\ModelDefinitionsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\ModelDimmingCurveDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\model\ModelFaceDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\FaceMatrixHelpers.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\ModelFacesPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ModelGroupPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ModelPreview.cpp" />
-    <ClCompile Include="..\src-ui-wx\model\ModelStateDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\ModelStatesPanel.cpp" />
     <ClCompile Include="..\src-core\models\ArchesModel.cpp" />
     <ClCompile Include="..\src-core\models\CandyCaneModel.cpp" />
     <ClCompile Include="..\src-core\models\CircleModel.cpp" />
@@ -954,6 +960,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\ToolbarLayout.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.cpp" />
@@ -1022,7 +1030,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\utils\ZipUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SubBufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\model\SubModelGenerateDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\SubModelsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SuperStarImportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\support\EzGrid.cpp" />
     <ClCompile Include="..\src-ui-wx\support\FastComboEditor.cpp" />
@@ -1182,6 +1190,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\color\ColourReplaceDialog.h" />
     <ClInclude Include="..\src-ui-wx\color\ColoursPanel.h" />
     <ClInclude Include="..\src-ui-wx\setup\ControllerModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\setup\ShowDirectoriesDialog.h" />
     <ClInclude Include="..\src-core\controllers\AlphaPix.h" />
     <ClInclude Include="..\src-core\controllers\BaseController.h" />
     <ClInclude Include="..\src-core\controllers\ControllerCaps.h" />
@@ -1526,13 +1535,14 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\sequencer\LyricsDialog.h" />
     <ClInclude Include="..\src-ui-wx\media\ManageMediaPanel.h" />
     <ClInclude Include="..\src-ui-wx\media\ShaderPreviewGenerator.h" />
+    <ClInclude Include="..\src-ui-wx\model\ModelDefinitionsDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\ModelDimmingCurveDialog.h" />
-    <ClInclude Include="..\src-ui-wx\model\ModelFaceDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\FaceMatrixHelpers.h" />
+    <ClInclude Include="..\src-ui-wx\model\ModelFacesPanel.h" />
     <ClInclude Include="..\src-ui-wx\layout\ModelGroupPanel.h" />
     <ClInclude Include="..\src-ui-wx\layout\ModelPreview.h" />
     <ClInclude Include="..\src-core\graphics\IModelPreview.h" />
-    <ClInclude Include="..\src-ui-wx\model\ModelStateDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\ModelStatesPanel.h" />
     <ClInclude Include="..\src-core\models\ArchesModel.h" />
     <ClInclude Include="..\src-core\models\CandyCaneModel.h" />
     <ClInclude Include="..\src-core\models\CircleModel.h" />
@@ -1606,6 +1616,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\ToolbarLayout.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.h" />
@@ -1673,7 +1685,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\utils\xlPoint.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SubBufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\model\SubModelGenerateDialog.h" />
-    <ClInclude Include="..\src-ui-wx\model\SubModelsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\SubModelsPanel.h" />
     <ClInclude Include="..\src-ui-wx\import_export\SuperStarImportDialog.h" />
     <ClInclude Include="..\src-ui-wx\support\EzGrid.h" />
     <ClInclude Include="..\src-ui-wx\support\FastComboEditor.h" />
@@ -1757,6 +1769,10 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\shared\utils\xlSlider.h" />
     <ClInclude Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.h" />
     <ClInclude Include="..\src-ui-wx\graphics\wxTextDrawingContext.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ControllerListPanel.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ControllerTreeUtils.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\TreeListColumnVisibility.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\wxUtilities.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerNullPropertyAdapter.h" />

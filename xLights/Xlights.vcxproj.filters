@@ -300,7 +300,7 @@
     <ClCompile Include="..\src-core\models\SubModelSymmetrize.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\SubModelsPanel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\TreeModel.cpp">
@@ -315,19 +315,22 @@
     <ClCompile Include="..\src-core\models\ModelGroup.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\model\ModelFaceDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\FaceMatrixHelpers.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\model\FaceMatrixHelpers.cpp">
+    <ClCompile Include="..\src-ui-wx\model\ModelFacesPanel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\model\ModelStatesPanel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\model\ModelDefinitionsDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\ModelDimmingCurveDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\ModelScreenLocation.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\model\ModelStateDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\SingleLineModel.cpp">
@@ -655,6 +658,12 @@
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\ToolbarLayout.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -696,6 +705,7 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\setup\ControllerModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\ShowDirectoriesDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\SubModelGenerateDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -1514,6 +1524,10 @@
     <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
     <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ControllerListPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ControllerTreeUtils.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\TreeListColumnVisibility.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\wxUtilities.cpp" />
     <ClCompile Include="..\src-core\media\StemSeparator.cpp" />
   </ItemGroup>
@@ -1812,7 +1826,7 @@
     <ClInclude Include="..\src-core\models\SubModelSymmetrize.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\model\SubModelsDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\SubModelsPanel.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\TreeModel.h">
@@ -1827,19 +1841,22 @@
     <ClInclude Include="..\src-core\models\ModelGroup.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\model\ModelFaceDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\FaceMatrixHelpers.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\model\FaceMatrixHelpers.h">
+    <ClInclude Include="..\src-ui-wx\model\ModelFacesPanel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\model\ModelStatesPanel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\model\ModelDefinitionsDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\ModelDimmingCurveDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ModelScreenLocation.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\model\ModelStateDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\SingleLineModel.h">
@@ -2177,6 +2194,12 @@
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\ToolbarLayout.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
@@ -2215,6 +2238,7 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\setup\ControllerModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\setup\ShowDirectoriesDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\SubModelGenerateDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -3123,6 +3147,10 @@
     <ClInclude Include="..\src-core\controllers\PowerDMX.h" />
     <ClInclude Include="..\src-core\settings\XLightsSettings.h" />
     <ClInclude Include="..\src-ui-wx\settings\XLightsConfigAdapter.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ControllerListPanel.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ControllerTreeUtils.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ControllerFullColumnsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\TreeListColumnVisibility.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\wxUtilities.h" />
   </ItemGroup>
   <ItemGroup>

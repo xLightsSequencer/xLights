@@ -163,6 +163,10 @@ public:
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
+    // Pure computation of node ranges from state info; exposed so UI code can
+    // resolve the overlay from in-flight (not-yet-saved) state edits.
+    [[nodiscard]] static FaceStateNodes ComputeStateInfoNodes(FaceStateData const& stateInfo);
+
      static void WriteStateInfo(pugi::xml_node fiNode, const FaceStateData& stateInfo, bool customColours = false);
 
     [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
@@ -457,6 +461,7 @@ public:
     [[nodiscard]] int GetChanCountPerNode() const;
     [[nodiscard]] uint32_t GetCoordCount(size_t nodenum) const;
     [[nodiscard]] int GetNodeStringNumber(size_t nodenum) const;
+    [[nodiscard]] virtual int GetNodePhysicalStringIndex(size_t nodenum) const { return GetNodeStringNumber(nodenum); }
     void SetPosition(double posx, double posy);
     [[nodiscard]] std::string GetChannelInStartChannelFormat(OutputManager* outputManager, uint32_t channel);
     [[nodiscard]] std::string GetLastChannelInStartChannelFormat(OutputManager* outputManager);

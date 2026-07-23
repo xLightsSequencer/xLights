@@ -11,6 +11,40 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (cybercop23)            Moved the Controllers tab to the Layout tab and separated Models and Groups into
+                                 their own tab, bringing the UI into parity with the iPad; added a controller
+                                 port/model selector to see the model(s)/string selected in the layout; added
+                                 right-click single controller FPPConnect functionality
+    -enh (cybercop23)            Show/base show folder settings moved to a Directories dialog opened from the
+                                 Layout tab; controller list columns can be shown/hidden from the header
+    -enh (heffneil)              Import Previews and Models: added a filter box above the tree to
+                                 quickly find models/groups in a long list
+    -enh (heffneil)              Vendor model download: added a live filter box above the catalog tree
+                                 (debounced, tokenized case-insensitive match across vendor/category/
+                                 model/wiring names) that prunes non-matching branches
+    -enh (heffneil)              Choose Model(s) dialog (Copy Layers/SubModels to Models): added a live
+                                 filter box and a header showing the source model being copied from
+    -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
+                                 always-visible Effects toolbar, and reorder them - handy once enough
+                                 effects are registered that the toolbar no longer fits smaller screens.
+                                 Right-click the toolbar to jump straight to this page, and use
+                                 "Reset to Defaults" to restore every effect in the default order
+    -enh (cybercop23)            Show folders now skip the automatic base-show-folder merge (controllers, models,
+                                 view objects) when the base folder has not changed since the last saved sync.
+    -enh (cybercop23)            Combine the Faces, States, and SubModels editors into a single tabbed dialog with
+                                 a shared model preview, reachable from the Layout menu and the property grid
+    -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster
+                                 (sequences using them saw 2-5x faster total render times)
+    -enh (dkulp)                 Pictures: much faster when the image is larger than the model
+                                 (no-scaling mode with big photos)
+    -enh (dkulp)                 Render: effect settings and value curves are parsed once per
+                                 effect instead of every frame
+    -bug (dkulp)                 Shockwave: pixels on large (GPU-rendered) matrices now match
+                                 small models exactly - the Metal/Vulkan kernels were rounding
+                                 the ring edge differently than the CPU path
+    -enh (dkulp)                 Ripple: faster circle drawing
+    -change (dkulp)              Render: HSV colour and transition/warp geometry now compute in
+                                 float instead of double (lower memory; negligible output change)
     -enh (derwin)                Moving Head: new warmup "Link" tab can snap an effect's end Pan/Tilt to the
                                  next Moving Head effect's start
     -bug (cybercop23)            Fix Bars/Shockwave/ColorWash/Spirals/Circles effects producing no output on DMX models
@@ -21,6 +55,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  also producing no output on DMX models, same root cause as above (#6719)
     -bug (derwin12)              Effect wheel: dropping an effect near an existing effect could
                                  overwrite it instead of sizing to the available gap
+    -bug (derwin12)              Zoom out to show last effect ignored effects on submodels/strands/nodes,
+                                 so the timeline could stop short of the actual last effect (#6725)
+    -enh (dkulp)                 Render: frame-parallel windows now cover model rows that carry
+                                 submodel/strand effects (e.g. mega-trees with per-strand effects)
     -enh (dkulp)                 Sequence-level face definitions: new "Faces" tab in Sequence Settings
                                  defines matrix (image) faces stored in the .xsq, usable by any
                                  matrix/group/submodel in that sequence (no need to duplicate the face
@@ -155,6 +193,21 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  polled around a lost-wakeup race on the other)
     -bug (dkulp)                 Fix Shader effect rendering vertically flipped on the Vulkan renderer
                                  (Linux and Windows; Canvas/warp shaders over other layers appeared upside down)
+    -bug (dkulp)                 Fix crash uploading outputs to PixLite/Advatek Mk3 controllers; the Mk3
+                                 config parser always read zero ports, so the upload wrote past the end of
+                                 every output array. Null pixels and colour order are now read correctly too.
+    -bug (dkulp)                 Fix render crash after the GPU compute backend shuts down mid-session (a
+                                 Vulkan device loss/TDR, or turning GPU rendering off); render buffers kept
+                                 writing through a pointer into the released GPU memory
+    -bug (dkulp)                 Fix crash toggling Display Elements / House Preview from the Windows toolbar;
+                                 leaving the sequencer tab hid the floating panes without recording it, so a
+                                 later toggle re-showed and relaid out every pane mid-layout
+
+    -bug (wbhartmanii)           Layout: 3D object (mesh) files inside the show/media folders are now
+                                 saved with show-relative paths (forward slashes) instead of absolute
+                                 paths, so layouts survive show folders moved or synced across platforms
+    -bug (dkulp)                 Model States dialog: debug builds asserted ("invalid growable row index")
+                                 when the dialog opened
 
 2026.13  July 14, 2026
     -change (dkulp)              Render jobs now suspend and reschedule instead of blocking threads,

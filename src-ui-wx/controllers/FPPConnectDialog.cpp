@@ -119,9 +119,11 @@ static const std::string PROXY_COL = "ID_PROXY_";
 static const std::string PLAYLIST_COL = "ID_PLAYLIST_";
 static const std::string UPLOAD_CONTROLLER_COL = "ID_CONTROLLER_";
 
-FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, wxWindowID id,const wxPoint& pos,const wxSize& size)
+FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManager, const std::string& targetIp, wxWindowID id,const wxPoint& pos,const wxSize& size)
 {
     _outputManager = outputManager;
+    _targetIp = targetIp;
+    _frame = static_cast<xLightsFrame*>(parent);
 
 	//(*Initialize(FPPConnectDialog)
 	wxBoxSizer* BoxSizer1;
@@ -251,7 +253,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Show();
 
     wxDiscoveryDelegate delegate(this);
-    instances = static_cast<xLightsFrame*>(GetParent())->DiscoverFPPInstances(&delegate);
+    instances = _frame->DiscoverFPPInstances(&delegate, _targetIp);
 
     wxPanel *p1 = AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     p1->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::UploadPopupMenu, nullptr, this);
@@ -337,6 +339,9 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     Layout();
 
     UpdateSeqCount();
+    if (!_targetIp.empty()) {
+        AddFPPButton->Hide();
+    }
 }
 
 void FPPConnectDialog::UpdateSeqCount()
@@ -562,13 +567,21 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
 
     std::list<std::string> discoveredControllers;
     for (const auto& c : instances) discoveredControllers.push_back(c->ipAddress);
-    for (const auto& ctrl : this->_outputManager->GetControllers()) {
-        auto c = dynamic_cast<ControllerEthernet*>(ctrl);
-        if (c != nullptr && c->GetActive() == Controller::ACTIVESTATE::ACTIVEINXLIGHTSONLY) {
-            if (std::find(discoveredControllers.begin(), discoveredControllers.end(), c->GetResolvedIP()) == discoveredControllers.end()) {
-                FPP* missing = new FPP(c->GetResolvedIP());
-                missing->hostName = c->GetIP();
-                instances.push_back(missing);
+    if (!_targetIp.empty()) {
+        if (instances.empty()) {
+            FPP* missing = new FPP(_targetIp);
+            missing->hostName = _targetIp;
+            instances.push_back(missing);
+        }
+    } else {
+        for (const auto& ctrl : this->_outputManager->GetControllers()) {
+            auto c = dynamic_cast<ControllerEthernet*>(ctrl);
+            if (c != nullptr && c->GetActive() == Controller::ACTIVESTATE::ACTIVEINXLIGHTSONLY) {
+                if (std::find(discoveredControllers.begin(), discoveredControllers.end(), c->GetResolvedIP()) == discoveredControllers.end()) {
+                    FPP* missing = new FPP(c->GetResolvedIP());
+                    missing->hostName = c->GetIP();
+                    instances.push_back(missing);
+                }
             }
         }
     }
@@ -898,7 +911,7 @@ void FPPConnectDialog::SequenceSelector(const std::string regexKey) {
 
     if (!itcsv.IsEmpty()) {
         auto const& list = wxSplit(itcsv, ',');
-        xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+        xLightsFrame* frame = _frame;
         wxString const& showDirectory = frame->GetShowDirectory();
         wxString const& fseqDirectory = frame->GetFseqDirectory();
 
@@ -1034,7 +1047,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
             bool isSequence = info.isSequence;
             std::string mediaName = info.mediaFile;
 
-            xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+            xLightsFrame* frame = _frame;
 
             // if fpp dir and show dir match then start with the fseq in the current dir ... only if that does not exist take the one from the show dir
             // this is consistent with the code in SaveSequence
@@ -1112,8 +1125,11 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir, std::set<wxS
 void FPPConnectDialog::LoadSequences()
 {
     CheckListBox_Sequences->DeleteAllItems();
-    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+    xLightsFrame* frame = _frame;
     wxString fseqDir = frame->GetFseqDirectory();
+    if (fseqDir.IsEmpty()) {
+        fseqDir = xLightsFrame::CurrentDir;
+    }
 
     if (ChoiceFolder->GetSelection() == 0) {
         LoadSequencesFromFolder(fseqDir);
@@ -1185,13 +1201,13 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
     FPPUploadProgressDialog prgs(this);
     row = 0;
-    for (const auto& inst : instances) {
-        inst->_ui = static_cast<xLightsFrame*>(GetParent());
+    for (auto* inst : instances) {
+        inst->_ui = _frame;
         // not in discovery so we can increase the timeouts to make sure things get transferred
         inst->defaultConnectTimeout = 5000;
         inst->messages.clear();
-        std::string rowStr = std::to_string(row);
         if (doUpload[row]) {
+            std::string rowStr = std::to_string(row);
             std::string l = inst->hostName + " - " + inst->ipAddress;
             wxGauge* gauge = prgs.addGauge(l);
             inst->setProgress({
@@ -1232,7 +1248,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
 
 void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool> doUpload) {
     
-    xLightsFrame* frame = static_cast<xLightsFrame*>(GetParent());
+    xLightsFrame* frame = _frame;
     int pw, ph;
     frame->GetLayoutPreview()->GetVirtualCanvasSize(pw, ph);
     std::map<std::string, std::string> virtualDisplayData;
@@ -1588,7 +1604,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         }
         config->Flush();
     };
-    xLightsFrame* xlframe = static_cast<xLightsFrame*>(GetParent());
+    xLightsFrame* xlframe = _frame;
     if (messages != "") {
         xlframe->SetStatusText("FPP Connect Upload had errors or warnings", 0);
         wxMessageBox(messages, "Problems Uploading", wxOK | wxCENTRE, this);
@@ -1814,7 +1830,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
     std::string fppConnectIP = "";
     prgs.Show();
     wxDiscoveryDelegate delegate(this);
-    std::list<FPP*> newInstances = static_cast<xLightsFrame*>(GetParent())->DiscoverFPPInstances(&delegate);
+    std::list<FPP*> newInstances = _frame->DiscoverFPPInstances(&delegate, _targetIp);
     
     for (FPP* fpp : newInstances) {
         bool found = false;

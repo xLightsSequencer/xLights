@@ -90,6 +90,7 @@
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-ffast-math" />
 					<Add option="-Wall" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
@@ -313,6 +314,8 @@
 		<Unit filename="../src-ui-wx/setup/ControllerConnectionDialog.h" />
 		<Unit filename="../src-ui-wx/setup/ControllerModelDialog.cpp" />
 		<Unit filename="../src-ui-wx/setup/ControllerModelDialog.h" />
+		<Unit filename="../src-ui-wx/setup/ShowDirectoriesDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/ShowDirectoriesDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/ConvertDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/ConvertDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/ConvertLogDialog.cpp" />
@@ -462,12 +465,14 @@
 		<Unit filename="../src-ui-wx/sequencer/MetronomeLabelDialog.h" />
 		<Unit filename="../src-ui-wx/model/ModelChainDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ModelChainDialog.h" />
+		<Unit filename="../src-ui-wx/model/ModelDefinitionsDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelDefinitionsDialog.h" />
 		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.h" />
-		<Unit filename="../src-ui-wx/model/ModelFaceDialog.cpp" />
-		<Unit filename="../src-ui-wx/model/ModelFaceDialog.h" />
 		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.cpp" />
 		<Unit filename="../src-ui-wx/model/FaceMatrixHelpers.h" />
+		<Unit filename="../src-ui-wx/model/ModelFacesPanel.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelFacesPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.h" />
 		<Unit filename="../src-ui-wx/layout/ModelPreview.cpp" />
@@ -475,8 +480,8 @@
 		<Unit filename="../src-core/graphics/IModelPreview.h" />
 		<Unit filename="../src-ui-wx/import_export/ModelRemap.cpp" />
 		<Unit filename="../src-ui-wx/import_export/ModelRemap.h" />
-		<Unit filename="../src-ui-wx/model/ModelStateDialog.cpp" />
-		<Unit filename="../src-ui-wx/model/ModelStateDialog.h" />
+		<Unit filename="../src-ui-wx/model/ModelStatesPanel.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelStatesPanel.h" />
 		<Unit filename="../src-ui-wx/layout/Mouse3DManager.cpp" />
 		<Unit filename="../src-ui-wx/layout/Mouse3DManager.h" />
 		<Unit filename="../src-ui-wx/setup/MultiControllerUploadDialog.cpp" />
@@ -600,8 +605,8 @@
 		<Unit filename="../src-ui-wx/sequencer/SubBufferPanel.h" />
 		<Unit filename="../src-ui-wx/model/SubModelGenerateDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/SubModelGenerateDialog.h" />
-		<Unit filename="../src-ui-wx/model/SubModelsDialog.cpp" />
-		<Unit filename="../src-ui-wx/model/SubModelsDialog.h" />
+		<Unit filename="../src-ui-wx/model/SubModelsPanel.cpp" />
+		<Unit filename="../src-ui-wx/model/SubModelsPanel.h" />
 		<Unit filename="../src-ui-wx/import_export/SuperStarImportDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/SuperStarImportDialog.h" />
 		<Unit filename="../src-ui-wx/app-shell/TabConvert.cpp" />
@@ -1367,6 +1372,10 @@
 		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarLayout.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarLayout.h" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarsSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ToolbarsSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.cpp" />
 		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.h" />
 		<Unit filename="../src-ui-wx/preferences/RandomEffectsSettingsPanel.cpp" />
@@ -1540,6 +1549,14 @@
 		<Unit filename="../src-ui-wx/shared/controls/MediaPickerCtrl.h" />
 		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.cpp" />
 		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.h" />
+		<Unit filename="../src-ui-wx/layout/ControllerListPanel.cpp" />
+		<Unit filename="../src-ui-wx/layout/ControllerListPanel.h" />
+		<Unit filename="../src-ui-wx/layout/ControllerTreeUtils.cpp" />
+		<Unit filename="../src-ui-wx/layout/ControllerTreeUtils.h" />
+		<Unit filename="../src-ui-wx/layout/ControllerFullColumnsDialog.cpp" />
+		<Unit filename="../src-ui-wx/layout/ControllerFullColumnsDialog.h" />
+		<Unit filename="../src-ui-wx/shared/utils/TreeListColumnVisibility.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/TreeListColumnVisibility.h" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.cpp" />
 		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.h" />
 		<Unit filename="../src-core/utils/GitUtils.cpp" />
@@ -1660,10 +1677,8 @@
 		<Unit filename="../src-ui-wx/wxsmith/MetronomeLabelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelDimmingCurveDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelGroupPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelRemap.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MovingHeadPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MultiControllerUploadDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/NewTimingDialog.wxs" />
@@ -1703,7 +1718,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/SplashDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/StartChannelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/TipOfTheDayDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/TopEffectsPanel.wxs" />
@@ -1809,8 +1823,6 @@
 							<wxDialog wxs="../src-ui-wx/wxsmith/MatrixFaceDownloadDialog.wxs" src="../src-ui-wx/model/MatrixFaceDownloadDialog.cpp" hdr="../src-ui-wx/model/MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ModelChainDialog.wxs" src="../src-ui-wx/model/ModelChainDialog.cpp" hdr="../src-ui-wx/model/ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ModelDimmingCurveDialog.wxs" src="../src-ui-wx/model/ModelDimmingCurveDialog.cpp" hdr="../src-ui-wx/model/ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelFaceDialog.wxs" src="../src-ui-wx/model/ModelFaceDialog.cpp" hdr="../src-ui-wx/model/ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelStateDialog.wxs" src="../src-ui-wx/model/ModelStateDialog.cpp" hdr="../src-ui-wx/model/ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/MultiControllerUploadDialog.wxs" src="../src-ui-wx/setup/MultiControllerUploadDialog.cpp" hdr="../src-ui-wx/setup/MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/NewTimingDialog.wxs" src="../src-ui-wx/sequencer/NewTimingDialog.cpp" hdr="../src-ui-wx/sequencer/NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/NodeSelectGrid.wxs" src="../src-ui-wx/model/NodeSelectGrid.cpp" hdr="../src-ui-wx/model/NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
@@ -1838,7 +1850,6 @@
 					<wxDialog wxs="../src-ui-wx/wxsmith/StartChannelDialog.wxs" src="../src-ui-wx/model/StartChannelDialog.cpp" hdr="../src-ui-wx/model/StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/StrandNodeNamesDialog.wxs" src="../src-ui-wx/model/StrandNodeNamesDialog.cpp" hdr="../src-ui-wx/model/StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" src="../src-ui-wx/model/SubModelGenerateDialog.cpp" hdr="../src-ui-wx/model/SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelsDialog.wxs" src="../src-ui-wx/model/SubModelsDialog.cpp" hdr="../src-ui-wx/model/SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" src="../src-ui-wx/import_export/SuperStarImportDialog.cpp" hdr="../src-ui-wx/import_export/SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/UpdaterDialog.wxs" src="../src-ui-wx/app-shell/UpdaterDialog.cpp" hdr="../src-ui-wx/app-shell/UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ValueCurveDialog.wxs" src="../src-ui-wx/shared/dialogs/ValueCurveDialog.cpp" hdr="../src-ui-wx/shared/dialogs/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />

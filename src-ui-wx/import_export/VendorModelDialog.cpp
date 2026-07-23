@@ -22,6 +22,7 @@
 #include <wx/progdlg.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/dir.h>
+#include <wx/tokenzr.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 #include <wx/regex.h>
@@ -141,6 +142,8 @@ const wxWindowID VendorModelDialog::ID_PANEL1 = wxNewId();
 const wxWindowID VendorModelDialog::ID_SPLITTERWINDOW1 = wxNewId();
 //*)
 
+const long VendorModelDialog::ID_FILTERTIMER = wxNewId();
+
 BEGIN_EVENT_TABLE(VendorModelDialog,wxDialog)
 	//(*EventTable(VendorModelDialog)
 	//*)
@@ -175,13 +178,11 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     Panel3 = new wxPanel(SplitterWindow1, ID_PANEL3, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL3"));
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
-    FlexGridSizer2->AddGrowableRow(0);
+    FlexGridSizer2->AddGrowableRow(1);
+    TextCtrl_Search = new wxSearchCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL3"));
+    FlexGridSizer2->Add(TextCtrl_Search, 0, wxALL|wxEXPAND, 5);
     TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
     FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
-    TextCtrl_Search = new wxSearchCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    TextCtrl_Search->SetDescriptiveText("Search models...");
-    TextCtrl_Search->ShowCancelButton(true);
-    FlexGridSizer2->Add(TextCtrl_Search, 0, wxALL|wxEXPAND, 5);
     Panel3->SetSizer(FlexGridSizer2);
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -259,11 +260,12 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     SetSizer(FlexGridSizer1);
     Layout();
 
+    Connect(ID_TEXTCTRL3, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&VendorModelDialog::OnTextCtrl_SearchText);
+    Connect(ID_TEXTCTRL3, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&VendorModelDialog::OnTextCtrl_SearchTextEnter);
+    Connect(ID_TEXTCTRL3, wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN, (wxObjectEventFunction)&VendorModelDialog::OnButton_SearchClick);
+    Connect(ID_TEXTCTRL3, wxEVT_COMMAND_SEARCHCTRL_CANCEL_BTN, (wxObjectEventFunction)&VendorModelDialog::OnSearchCancelClick);
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorItemActivated);
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_SEL_CHANGED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged);
-    TextCtrl_Search->Bind(wxEVT_TEXT, &VendorModelDialog::OnTextCtrl_SearchText, this);
-    TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &VendorModelDialog::OnButton_SearchClick, this);
-    TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &VendorModelDialog::OnSearchCancelClick, this);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&VendorModelDialog::OnCheckBox_DontDownloadClick);
     Connect(ID_HYPERLINKCTRL4, wxEVT_COMMAND_HYPERLINK, (wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_FacebookClick);
     Connect(ID_HYPERLINKCTRL2, wxEVT_COMMAND_HYPERLINK, (wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_WebsiteClick);
@@ -278,6 +280,11 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
 
     SetSize(800, 600);
     StaticText_Disclaimer->Wrap(std::max(1, GetClientSize().GetWidth() - 10));
+
+    TextCtrl_Search->SetDescriptiveText(_("Filter models..."));
+    TextCtrl_Search->ShowCancelButton(true);
+    _filterTimer.SetOwner(this, ID_FILTERTIMER);
+    Bind(wxEVT_TIMER, &VendorModelDialog::OnFilterTimer, this, ID_FILTERTIMER);
 
     PopulateModelPanel((MModel*)nullptr);
     PopulateVendorPanel(nullptr);
@@ -419,109 +426,225 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
         delete vd;
     }
 
-    TreeCtrl_Navigator->Freeze();
-
-    TreeCtrl_Navigator->DeleteAllItems();
-    wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
-    wxTreeItemId first = root;
-    for (const auto& it : _vendors)
-    {
-        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, it->_name, -1, -1, new MVendorTreeItemData(it));
-        if (first == root)
-        {
-            first = v;
-        }
-        if (!IsVendorSuppressed(it->_name))
-        {
-            AddHierachy(v, it, it->_categories);
-        }
-    }
-
-    if (first.IsOk() && first != root)
-    {
-        TreeCtrl_Navigator->EnsureVisible(first);
-    }
-
-    wxTreeItemIdValue cookie;
-    for (auto l1 = TreeCtrl_Navigator->GetFirstChild(root, cookie); l1.IsOk(); l1 = TreeCtrl_Navigator->GetNextChild(root, cookie))
-    {
-        UNUSED(DeleteEmptyCategories(l1));
-    }
-
-    TreeCtrl_Navigator->Thaw();
-
     if (_vendors.size() == 0)
     {
         DisplayError("Unable to retrieve any vendor information", this);
         return false;
     }
 
+    BuildModelSearchIndex();
+    RebuildTreeUI();
+
     return true;
 }
 
-bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
+void VendorModelDialog::BuildModelSearchIndex()
 {
-    VendorBaseTreeItemData* tid = (VendorBaseTreeItemData*)TreeCtrl_Navigator->GetItemData(parent);
-    if (tid->GetType() == "Category" && TreeCtrl_Navigator->GetChildrenCount(parent) == 0)
-    {
-        TreeCtrl_Navigator->Delete(parent);
-        return true;
-    }
-    else if (tid->GetType() == "Category" || tid->GetType() == "Vendor")
-    {
-        wxTreeItemIdValue cookie;
-        for (auto l1 = TreeCtrl_Navigator->GetFirstChild(parent, cookie);
-            l1.IsOk();
-            )
-        {
-            auto next = TreeCtrl_Navigator->GetNextChild(parent, cookie);
-            UNUSED(DeleteEmptyCategories(l1));
-            l1 = next;
+    _modelSearchText.clear();
+    _categorySearchText.clear();
+    _categoryModels.clear();
+    _uncategorizedModels.clear();
+    for (const auto& vendor : _vendors) {
+        // Sorted here so every per-category list built below is sorted too.
+        vendor->_models.sort([](const MModel* a, const MModel* b) {
+            return wxString::FromUTF8(a->_name).CmpNoCase(wxString::FromUTF8(b->_name)) < 0;
+        });
+
+        const wxString vendorLower = wxString::FromUTF8(vendor->_name).Lower();
+        std::unordered_map<std::string, MVendorCategory*> catById;
+        std::vector<MVendorCategory*> stack(vendor->_categories.begin(), vendor->_categories.end());
+        while (!stack.empty()) {
+            MVendorCategory* c = stack.back();
+            stack.pop_back();
+            if (c == nullptr) continue;
+            catById[c->_id] = c;
+            _categorySearchText[c] = vendorLower + " / " + wxString::FromUTF8(c->GetPath()).Lower();
+            stack.insert(stack.end(), c->_categories.begin(), c->_categories.end());
+        }
+
+        for (const auto& m : vendor->_models) {
+            if (m == nullptr) continue;
+            wxString hay = wxString::FromUTF8(m->_name);
+            for (const auto& w : m->_wiring) {
+                if (w != nullptr) {
+                    hay << " / " << wxString::FromUTF8(w->_name);
+                }
+            }
+            _modelSearchText[m] = hay.Lower();
+
+            bool categorized = false;
+            for (const auto& cid : m->_categoryIds) {
+                auto it = catById.find(cid);
+                if (it != catById.end()) {
+                    _categoryModels[it->second].push_back(m);
+                    categorized = true;
+                }
+            }
+            if (!categorized) {
+                // Models with no (resolvable) category would otherwise never
+                // appear anywhere; list them directly under the vendor.
+                _uncategorizedModels[vendor].push_back(m);
+            }
         }
     }
-    return false;
 }
 
-void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<MVendorCategory*> categories)
+// Every token must appear in at least one of the two haystacks (the
+// category path text and the model text are kept separate so matching
+// never has to concatenate strings per model per rebuild).
+bool VendorModelDialog::FilterMatches(const wxString& hayLowerA, const wxString& hayLowerB) const
 {
-    for (const auto& it : categories)
-    {
-        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, it->_name, -1, -1, new MCategoryTreeItemData(it));
-        AddHierachy(tid, vendor, it->_categories);
+    for (const auto& token : _filterTokens) {
+        if (hayLowerA.Find(token) == wxNOT_FOUND && hayLowerB.Find(token) == wxNOT_FOUND) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Same node shapes as the original tree: a multi-wiring model is a Model
+// node with one Wiring child per downloadable .xmodel; otherwise a single
+// model or wiring leaf.
+void VendorModelDialog::AppendModelNodes(wxTreeItemId parent, MModel* model)
+{
+    const wxColour colour = TreeItemColourForModel(model);
+    if (model->_wiring.size() > 1) {
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(model->_name), -1, -1, new MModelTreeItemData(model));
+        for (const auto& w : model->_wiring) {
+            wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, wxString::FromUTF8(w->_name), -1, -1, new MWiringTreeItemData(w));
+            TreeCtrl_Navigator->SetItemTextColour(id, colour);
+        }
+    } else if (model->_wiring.size() == 0) {
+        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(model->_name), -1, -1, new MModelTreeItemData(model));
+        TreeCtrl_Navigator->SetItemTextColour(id, colour);
+    } else {
+        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(model->_name), -1, -1, new MWiringTreeItemData(model->_wiring.front()));
+        TreeCtrl_Navigator->SetItemTextColour(id, colour);
+    }
+}
+
+int VendorModelDialog::AddModels(wxTreeItemId parent, const std::vector<MModel*>& models, const wxString& pathTextLower)
+{
+    int added = 0;
+    for (auto* m : models) {
+        if (!_filterTokens.empty()) {
+            // Every model is indexed at load; a miss shouldn't happen, but if
+            // it does treat it as non-matching rather than leaking it past the filter.
+            auto it = _modelSearchText.find(m);
+            if (it == _modelSearchText.end() || !FilterMatches(pathTextLower, it->second)) {
+                continue;
+            }
+        }
+        AppendModelNodes(parent, m);
+        ++added;
+    }
+    return added;
+}
+
+int VendorModelDialog::AddHierarchy(wxTreeItemId parent, MVendor* vendor, const std::list<MVendorCategory*>& categories)
+{
+    int total = 0;
+    for (const auto& it : categories) {
+        if (it == nullptr) continue;
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(parent, wxString::FromUTF8(it->_name), -1, -1, new MCategoryTreeItemData(it));
+        int here = AddHierarchy(tid, vendor, it->_categories);
+        auto cm = _categoryModels.find(it);
+        if (cm != _categoryModels.end()) {
+            auto cs = _categorySearchText.find(it);
+            here += AddModels(tid, cm->second, cs != _categorySearchText.end() ? cs->second : wxString());
+        }
+        if (here == 0) {
+            // Empty categories were never shown (master pruned them post-build);
+            // under a filter this is also what removes non-matching branches.
+            TreeCtrl_Navigator->Delete(tid);
+            continue;
+        }
         TreeCtrl_Navigator->Expand(tid);
-        AddModels(tid, vendor, it->_id);
+        total += here;
     }
+    return total;
 }
 
-void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId)
+// Rebuilds the tree from the cached _vendors data honouring the current
+// filter. The Vendor -> Category -> Model hierarchy is preserved; a filter
+// prunes branches with no matching models. Called once at the end of
+// LoadTree() and whenever the filter changes (debounced).
+void VendorModelDialog::RebuildTreeUI()
 {
-    auto models = vendor->GetModels(categoryId);
+    if (_treeRebuilding) {
+        return;
+    }
+    struct RebuildScope {
+        bool& flag;
+        wxTreeCtrl* tree;
+        RebuildScope(bool& f, wxTreeCtrl* t) : flag(f), tree(t) {
+            flag = true;
+            tree->Freeze();
+        }
+        ~RebuildScope() {
+            tree->Thaw();
+            flag = false;
+        }
+    } guard(_treeRebuilding, TreeCtrl_Navigator);
 
-    for (const auto& it : models)
-    {
-        if (it->_wiring.size() > 1)
-        {
-            wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MModelTreeItemData(it));
-            for (const auto& it2 : it->_wiring)
-            {
-                wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, it2->_name, -1, -1, new MWiringTreeItemData(it2));
-                TreeCtrl_Navigator->SetItemTextColour(id, TreeItemColourForModel(it));
+    // The tree about to be deleted may contain _lastSearchItem; using the
+    // stale id after DeleteAllItems reads a deleted item.
+    _lastSearchItem = wxTreeItemId();
+
+    // Hoist the suppress-list read; IsVendorSuppressed hits wxConfig per call.
+    std::string const suppressList = GetXLightsConfig()->Read("xLightsVendorSuppress", "DMX Fixture Library|");
+
+    TreeCtrl_Navigator->UnselectAll();
+    TreeCtrl_Navigator->DeleteAllItems();
+    wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
+    wxTreeItemId first;
+    for (const auto& it : _vendors) {
+        const wxString vendorLower = wxString::FromUTF8(it->_name).Lower();
+        wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, wxString::FromUTF8(it->_name), -1, -1, new MVendorTreeItemData(it));
+        int added = 0;
+        if (!Contains(suppressList, it->_name)) {
+            added = AddHierarchy(v, it, it->_categories);
+            auto um = _uncategorizedModels.find(it);
+            if (um != _uncategorizedModels.end()) {
+                added += AddModels(v, um->second, vendorLower);
             }
         }
-        else
-        {
-            if (it->_wiring.size() == 0)
-            {
-                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MModelTreeItemData(it));
-                TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(it));
-            }
-            else
-            {
-                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MWiringTreeItemData(it->_wiring.front()));
-                TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(it));
-            }
+        // With a filter active, hide vendors with nothing matching unless
+        // the vendor name itself matches (keeps suppressed and model-less
+        // vendors reachable when searched for by name). With no filter,
+        // every vendor is shown.
+        if (!_filterTokens.empty() && added == 0 && !FilterMatches(vendorLower)) {
+            TreeCtrl_Navigator->Delete(v);
+            continue;
+        }
+        if (!first.IsOk()) {
+            first = v;
+        }
+        // Under an active filter, expand the surviving vendors so matches
+        // are visible without a click — a bounded set, unlike expanding the
+        // whole catalog. With no filter, vendors stay collapsed as before.
+        if (!_filterTokens.empty()) {
+            TreeCtrl_Navigator->Expand(v);
         }
     }
+
+    // Only scroll to the first vendor on the initial build so filter
+    // rebuilds don't yank the scroll position.
+    if (_initialBuild && first.IsOk()) {
+        TreeCtrl_Navigator->EnsureVisible(first);
+    }
+    _initialBuild = false;
+
+    // The rebuild dropped any selection; keep the detail panels in step.
+    PopulateVendorPanel(nullptr);
+    PopulateModelPanel((MModel*)nullptr);
+
+    // Refresh after the RebuildScope destructor runs Thaw — repainting
+    // inside the freeze leaves the visible area showing a stale frame.
+    CallAfter([this]() {
+        TreeCtrl_Navigator->Refresh();
+        TreeCtrl_Navigator->Update();
+    });
 }
 
 VendorModelDialog::~VendorModelDialog()
@@ -718,7 +841,6 @@ std::vector<MModelWiring*> VendorModelDialog::GetSelectedWirings()
             }
         }
 
-        // Avoid duplicates (e.g. user selects both a Model node and its child Wiring node)
         if (wiring != nullptr && std::find(wirings.begin(), wirings.end(), wiring) == wirings.end()) {
             wirings.push_back(wiring);
         }
@@ -820,6 +942,10 @@ void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 
 void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 {
+    // Fired synchronously by DeleteAllItems during a rebuild — the item is doomed.
+    if (_treeRebuilding) {
+        return;
+    }
     wxTreeItemId startid = event.GetItem();
     if (!startid.IsOk()) {
         startid = GetFocusedItem();
@@ -872,13 +998,18 @@ void VendorModelDialog::UpdatePanelForItem(wxTreeItemId item)
                 PopulateModelPanel(((MWiringTreeItemData*)tid)->GetWiring());
                 PopulateVendorPanel(((MWiringTreeItemData*)tid)->GetWiring()->_model->_vendor);
             }
-            else
+            else if (type == "Category")
             {
                 NotebookPanels->GetPage(0)->Show();
                 NotebookPanels->GetPage(1)->Hide();
                 NotebookPanels->SetSelection(0);
                 PopulateVendorPanel(((MCategoryTreeItemData*)tid)->GetCategory()->_vendor);
                 PopulateModelPanel((MModel*)nullptr);
+            }
+            else
+            {
+                NotebookPanels->GetPage(0)->Hide();
+                NotebookPanels->GetPage(1)->Hide();
             }
         }
         else
@@ -1202,6 +1333,7 @@ void VendorModelDialog::PopulateModelPanel(MModelWiring* wiring)
 
 void VendorModelDialog::OnClose(wxCloseEvent& event)
 {
+    _filterTimer.Stop();
     EndDialog(wxID_CLOSE);
 }
 
@@ -1300,22 +1432,58 @@ void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
 	}
 	_lastSearchItem = wxTreeItemId();
-	ValidateWindow();
+	_filterTimer.StartOnce(kFilterDebounceMs);
+}
+
+void VendorModelDialog::OnTextCtrl_SearchTextEnter(wxCommandEvent& event)
+{
+	ApplyFilterNow();
+}
+
+void VendorModelDialog::OnFilterTimer(wxTimerEvent& event)
+{
+	ApplyFilterNow();
 }
 
 void VendorModelDialog::OnSearchCancelClick(wxCommandEvent& event)
 {
-	if (_lastSearchItem.IsOk()) {
-		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
-	}
-	_lastSearchItem = wxTreeItemId();
-	TextCtrl_Search->SetValue("");
+	TextCtrl_Search->ChangeValue(wxEmptyString);
+	ApplyFilterNow();
 	TreeCtrl_Navigator->SetFocus();
+}
+
+void VendorModelDialog::ApplyFilterNow()
+{
+	_filterTimer.Stop();
+	_filterTokens.clear();
+	wxStringTokenizer tk(TextCtrl_Search->GetValue().Lower());
+	while (tk.HasMoreTokens()) {
+		_filterTokens.push_back(tk.GetNextToken());
+	}
+	const bool filterHadFocus = (FindFocus() == TextCtrl_Search);
+	RebuildTreeUI();
+	if (filterHadFocus) {
+		TextCtrl_Search->SetFocus();
+		// Windows fires WM_SETFOCUS asynchronously and select-alls the edit
+		// text after SetFocus() returns; defer the caret-to-end fix so it
+		// runs after that, or the next keystroke replaces the typed text.
+		CallAfter([this]() {
+			const long pos = TextCtrl_Search->GetLastPosition();
+			TextCtrl_Search->SetSelection(pos, pos);
+			TextCtrl_Search->SetInsertionPointEnd();
+		});
+	}
 	ValidateWindow();
 }
 
 void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
+	// A debounced filter change may still be pending; apply it first so the
+	// tree and _filterTokens reflect what's currently typed before we step.
+	if (_filterTimer.IsRunning()) {
+		ApplyFilterNow();
+	}
+
 	// cant search if tree is empty
 	if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0)
 	{
@@ -1390,7 +1558,17 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 				}
 			}
 
-			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
+			// Under an active filter the tree already holds only matches, so
+			// step through its leaves (a raw substring check against one label
+			// can never match a multi-token query). With no filter, keep the
+			// classic label substring match.
+			bool matches;
+			if (!_filterTokens.empty()) {
+				matches = TreeCtrl_Navigator->GetChildrenCount(current, false) == 0;
+			} else {
+				matches = TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower());
+			}
+			if (current != TreeCtrl_Navigator->GetRootItem() && matches)
 			{
 				// Bold the found item for visual feedback without touching the
 				// selection — SelectItem on wxTR_MULTIPLE clears all other selections

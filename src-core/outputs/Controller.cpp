@@ -18,6 +18,7 @@
 #include "ControllerEthernet.h"
 #include "ControllerNull.h"
 #include "ControllerSerial.h"
+#include "DDPOutput.h"
 #include "../models/Model.h"
 
 #include <numeric>
@@ -330,6 +331,33 @@ std::string Controller::DecodeActiveState(Controller::ACTIVESTATE state)
         return "Inactive";
     }
     return "Active";
+}
+
+// Mirrors the show/hide logic ControllerPropertyAdapter::UpdateProperties applies
+// to the matching property-grid entries.
+static bool ShowsFullControlDefaults(const Controller* c) {
+    return c->SupportsFullxLightsControl() && c->IsFullxLightsControl();
+}
+
+std::string Controller::GetColumn13Label() const {
+    if (!ShowsFullControlDefaults(this) || !SupportsDefaultBrightness()) return "";
+    return std::to_string(GetDefaultBrightnessUnderFullControl());
+}
+
+std::string Controller::GetColumn14Label() const {
+    if (!ShowsFullControlDefaults(this) || !SupportsDefaultGamma()) return "";
+    return fmt::format("{:.1f}", GetDefaultGammaUnderFullControl());
+}
+
+std::string Controller::GetColumn16Label() const {
+    if (GetOutputCount() == 0) return "";
+    DDPOutput* ddp = dynamic_cast<DDPOutput*>(GetFirstOutput());
+    if (ddp == nullptr) return "";
+    return toStr(ddp->IsKeepChannelNumbers());
+}
+
+std::string Controller::GetColumn17Label() const {
+    return SupportsFullxLightsControl() ? toStr(IsFullxLightsControl()) : "";
 }
 
 Controller* Controller::Create(OutputManager* om, pugi::xml_node node, std::string showDir) {

@@ -93,10 +93,48 @@ namespace {
             }
         }
     };
+
+    // Closes a Discovery object; if curl requests are still outstanding, hands it
+    // off to the cleanup timer instead of deleting it immediately.
+    void CloseAndScheduleDiscoveryCleanup(Discovery* discovery) {
+        discovery->Close(false);
+        if (CurlManager::INSTANCE.processCurls()) {
+            if (!s_cleanupTimer) s_cleanupTimer = new DiscoveryCleanupTimer();
+            s_cleanupTimer->discs.push_back(discovery);
+            s_cleanupTimer->Start(500);
+        } else {
+            delete discovery;
+        }
+    }
 }
 
-std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate) {
+std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate, const std::string& targetIp) {
     std::list<FPP*> instances;
+    if (!targetIp.empty()) {
+        Discovery* discovery = new Discovery(&_outputManager, delegate);
+        FPP::PrepareSingleDiscovery(*discovery, targetIp);
+        discovery->Discover();
+        FPP::MapToFPPInstances(*discovery, instances, &_outputManager);
+        // PrepareSingleDiscovery still joins the FPP multicast group, so any
+        // instance that happens to announce itself during the window also lands
+        // here. MapToFPPInstances hands us ownership, so drop the strays rather
+        // than just unlinking them.
+        for (auto it = instances.begin(); it != instances.end();) {
+            if ((*it)->ipAddress != targetIp) {
+                delete *it;
+                it = instances.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        for (auto* fpp : instances) {
+            fpp->_authDelegate = delegate;
+        }
+
+        CloseAndScheduleDiscoveryCleanup(discovery);
+        return instances;
+    }
+
     std::list<std::string> forcedAddresses;
     auto addresses = GetDiscoveryAddresses(&forcedAddresses);
 
@@ -129,15 +167,7 @@ std::list<FPP*> xLightsFrame::DiscoverFPPInstances(DiscoveryDelegate* delegate) 
         config->Flush();
     }
 
-    // Clean up discovery - use timer for outstanding curl requests
-    discovery->Close(false);
-    if (CurlManager::INSTANCE.processCurls()) {
-        if (!s_cleanupTimer) s_cleanupTimer = new DiscoveryCleanupTimer();
-        s_cleanupTimer->discs.push_back(discovery);
-        s_cleanupTimer->Start(500);
-    } else {
-        delete discovery;
-    }
+    CloseAndScheduleDiscoveryCleanup(discovery);
 
     spdlog::info("FPP Discovery Complete. Found {} instances.", instances.size());
     return instances;

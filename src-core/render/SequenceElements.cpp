@@ -112,15 +112,49 @@ int SequenceElements::GetMaxEffectEndTimeMS() const
 {
     int maxEndMS = 0;
 
+    auto scanElement = [&maxEndMS](Element* e) {
+        for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
+            EffectLayer* el = e->GetEffectLayer(j);
+            for (int k = 0; k < el->GetEffectCount(); k++) {
+                Effect* eff = el->GetEffect(k);
+                if (eff->GetEndTimeMS() > maxEndMS) {
+                    maxEndMS = eff->GetEndTimeMS();
+                }
+            }
+        }
+    };
+
     for (size_t i = 0; i < GetElementCount(); i++) {
         Element* e = GetElement(i);
-        if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
-            for (size_t j = 0; j < e->GetEffectLayerCount(); j++) {
-                EffectLayer* el = e->GetEffectLayer(j);
-                for (int k = 0; k < el->GetEffectCount(); k++) {
-                    Effect* eff = el->GetEffect(k);
-                    if (eff->GetEndTimeMS() > maxEndMS) {
-                        maxEndMS = eff->GetEndTimeMS();
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            continue;
+        }
+        scanElement(e);
+
+        if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(e);
+            if (me != nullptr) {
+                for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+                    SubModelElement* sme = me->GetSubModel(s);
+                    if (sme == nullptr) {
+                        continue;
+                    }
+                    scanElement(sme);
+
+                    StrandElement* se = dynamic_cast<StrandElement*>(sme);
+                    if (se != nullptr) {
+                        for (int n = 0; n < se->GetNodeLayerCount(); n++) {
+                            NodeLayer* nl = se->GetNodeLayer(n);
+                            if (nl == nullptr) {
+                                continue;
+                            }
+                            for (int k = 0; k < nl->GetEffectCount(); k++) {
+                                Effect* eff = nl->GetEffect(k);
+                                if (eff->GetEndTimeMS() > maxEndMS) {
+                                    maxEndMS = eff->GetEndTimeMS();
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -21,7 +21,9 @@
 
 #include <wx/menu.h>
 #include <wx/treebase.h>
-#include <wx/dataview.h>
+#include <wx/tokenzr.h>
+#include <algorithm>
+#include <vector>
 
 #include "layout/LayoutGroup.h"
 #include "UtilFunctions.h"
@@ -96,46 +98,29 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
     Connect(idd, wxEVT_TREELIST_ITEM_CONTEXT_MENU, (wxObjectEventFunction)& ImportPreviewsModelsDialog::OnContextMenu);
     Connect(idd, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)& ImportPreviewsModelsDialog::OnTreeListCtrlCheckboxtoggled);
 
-    wxTreeListItem defaultItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Default");
-    wxTreeListItem unassignedItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Unassigned");
+    // Live filter above the tree (manual code, no wxSmith/.wxs change needed).
+    // Debounced so typing in a large model list does not rebuild every keystroke.
+    _filterCtrl = new wxSearchCtrl(this, wxID_ANY);
+    _filterCtrl->ShowCancelButton(true);
+    _filterCtrl->SetDescriptiveText(_("Filter models"));
+    FlexGridSizer2->Insert(0, _filterCtrl, 0, wxALL | wxEXPAND, 2);
+    FlexGridSizer2->RemoveGrowableRow(0);
+    FlexGridSizer2->AddGrowableRow(1);
+    _filterTimer.SetOwner(this, wxNewId());
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { PopulateTree(); }, _filterTimer.GetId());
+    _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
+        _filter = _filterCtrl->GetValue().Lower().Trim().Trim(false);
+        _filterTimer.StartOnce(200);
+    });
+    _filterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [this](wxCommandEvent&) {
+        ClearFilter();
+    });
 
     pugi::xml_parse_result parseResult = _doc.load_file(filename.ToStdString().c_str());
-    if (parseResult)
-    {
-        pugi::xml_node root = _doc.document_element();
-        pugi::xml_node models = root.child("models");
-        pugi::xml_node modelgroups = root.child("modelGroups");
-
-        if (models || modelgroups)
-        {
-            AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default");
-            AddModels(TreeListCtrl1, unassignedItem, models, modelgroups, "Unassigned");
-
-            pugi::xml_node layoutGroupsNode = root.child("layoutGroups");
-            if (layoutGroupsNode)
-            {
-                for (pugi::xml_node nnn = layoutGroupsNode.first_child(); nnn; nnn = nnn.next_sibling())
-                {
-                    if (std::string_view(nnn.name()) == "layoutGroup") {
-                        wxString lg = nnn.attribute("name").as_string();
-                        if (lg != "")
-                        {
-                            wxTreeListItem t = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), lg);
-                            AddModels(TreeListCtrl1, t, models, modelgroups, lg);
-                        }
-                    }
-                }
-            }
-        }
-        
-        // set tree sort after it's populated or it is really slow when adding items above
-        TreeListCtrl1->Freeze();
-        TreeListCtrl1->SetItemComparator(&previewItemComparator);
-        TreeListCtrl1->SetSortColumn(0);
-        TreeListCtrl1->GetDataView()->GetModel()->Resort();
-        TreeListCtrl1->Thaw();
-        TreeListCtrl1->Refresh();
+    if (!parseResult) {
+        spdlog::warn("ImportPreviewsModelsDialog: could not parse {}: {}", filename.ToStdString(), parseResult.description());
     }
+    PopulateTree();
     ValidateWindow();
 
     Fit();
@@ -198,32 +183,140 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
 }
 
 
-void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview)
+void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter)
 {
-    if (modelgroups)
-    {
-        for (pugi::xml_node m = modelgroups.first_child(); m; m = m.next_sibling())
-        {
-            if (wxString(m.attribute("LayoutGroup").as_string()) == preview)
-            {
+    // Sort here and append in order rather than handing the control a comparator:
+    // with a sort column installed every AppendItem re-sorts the parent's children,
+    // which turns populating a large layout into an O(n^2) operation - and filtering
+    // repopulates the whole tree on every keystroke.
+    std::vector<std::pair<std::string, pugi::xml_node>> groups;
+    std::vector<std::pair<std::string, pugi::xml_node>> mods;
+
+    auto collect = [&](pugi::xml_node parent, std::vector<std::pair<std::string, pugi::xml_node>>& into) {
+        for (pugi::xml_node m = parent.first_child(); m; m = m.next_sibling()) {
+            if (wxString(m.attribute("LayoutGroup").as_string()) == preview) {
                 wxString mn = m.attribute("name").as_string();
-                tree->AppendItem(item, mn + " - Group", -1, -1, new impTreeItemData(mn, m, true));
-                if (!tree->IsExpanded(item)) tree->Expand(item);
+                if (MatchesFilter(mn, filter)) into.emplace_back(mn.ToStdString(), m);
+            }
+        }
+    };
+    if (modelgroups) collect(modelgroups, groups);
+    if (models) collect(models, mods);
+
+    if (groups.empty() && mods.empty()) return;
+
+    auto byName = [](const auto& a, const auto& b) { return stdlistNumberAwareStringCompare(a.first, b.first); };
+    std::sort(groups.begin(), groups.end(), byName);
+    std::sort(mods.begin(), mods.end(), byName);
+
+    // Model groups sort ahead of models, then each block is name-ordered.
+    for (const auto& [name, node] : groups) {
+        tree->AppendItem(item, wxString(name) + " - Group", -1, -1, new impTreeItemData(wxString(name), node, true));
+    }
+    for (const auto& [name, node] : mods) {
+        tree->AppendItem(item, wxString(name), -1, -1, new impTreeItemData(wxString(name), node, false));
+    }
+    tree->Expand(item);
+}
+
+bool ImportPreviewsModelsDialog::MatchesFilter(const wxString& name, const wxString& filterLower)
+{
+    if (filterLower.empty()) return true;
+    const wxString hay = name.Lower();
+    wxStringTokenizer tok(filterLower);
+    while (tok.HasMoreTokens()) {
+        if (hay.Find(tok.GetNextToken()) == wxNOT_FOUND) return false;
+    }
+    return true;
+}
+
+void ImportPreviewsModelsDialog::SyncCheckedFromTree()
+{
+    // Merge the visible tree's check state into the persistent sets. Filtered-out
+    // rows aren't visited, so their checked state is retained.
+    for (wxTreeListItem p = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); p.IsOk(); p = TreeListCtrl1->GetNextSibling(p)) {
+        const std::string pk = TreeListCtrl1->GetItemText(p).ToStdString();
+        if (TreeListCtrl1->GetCheckedState(p) == wxCHK_CHECKED) _checkedPreviews.insert(pk);
+        else _checkedPreviews.erase(pk);
+        for (wxTreeListItem c = TreeListCtrl1->GetFirstChild(p); c.IsOk(); c = TreeListCtrl1->GetNextSibling(c)) {
+            auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(c);
+            if (d == nullptr) continue;
+            const CheckedModel ck { d->GetName().ToStdString(), d->IsModelGroup() };
+            if (TreeListCtrl1->GetCheckedState(c) == wxCHK_CHECKED) _checkedModels.insert(ck);
+            else _checkedModels.erase(ck);
+        }
+    }
+}
+
+void ImportPreviewsModelsDialog::RestoreChecksToTree()
+{
+    for (wxTreeListItem p = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); p.IsOk(); p = TreeListCtrl1->GetNextSibling(p)) {
+        if (_checkedPreviews.count(TreeListCtrl1->GetItemText(p).ToStdString()) != 0)
+            TreeListCtrl1->CheckItem(p, wxCHK_CHECKED);
+        for (wxTreeListItem c = TreeListCtrl1->GetFirstChild(p); c.IsOk(); c = TreeListCtrl1->GetNextSibling(c)) {
+            auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(c);
+            if (d == nullptr) continue;
+            if (_checkedModels.count({ d->GetName().ToStdString(), d->IsModelGroup() }) != 0)
+                TreeListCtrl1->CheckItem(c, wxCHK_CHECKED);
+        }
+    }
+}
+
+void ImportPreviewsModelsDialog::ClearFilter()
+{
+    _filterTimer.Stop();
+    if (_filterCtrl != nullptr) _filterCtrl->ChangeValue("");
+    _filter.Clear();
+    PopulateTree();
+}
+
+void ImportPreviewsModelsDialog::PopulateTree()
+{
+    SyncCheckedFromTree();
+
+    TreeListCtrl1->Freeze();
+    TreeListCtrl1->DeleteAllItems();
+
+    pugi::xml_node root = _doc.document_element();
+    pugi::xml_node models = root.child("models");
+    pugi::xml_node modelgroups = root.child("modelGroups");
+
+    if (models || modelgroups) {
+        std::vector<wxTreeListItem> previews;
+        wxTreeListItem defaultItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Default");
+        wxTreeListItem unassignedItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Unassigned");
+        AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default", _filter);
+        AddModels(TreeListCtrl1, unassignedItem, models, modelgroups, "Unassigned", _filter);
+        previews.push_back(defaultItem);
+        previews.push_back(unassignedItem);
+
+        pugi::xml_node layoutGroupsNode = root.child("layoutGroups");
+        if (layoutGroupsNode) {
+            for (pugi::xml_node nnn = layoutGroupsNode.first_child(); nnn; nnn = nnn.next_sibling()) {
+                if (std::string_view(nnn.name()) == "layoutGroup") {
+                    wxString lg = nnn.attribute("name").as_string();
+                    if (lg != "") {
+                        wxTreeListItem t = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), lg);
+                        AddModels(TreeListCtrl1, t, models, modelgroups, lg, _filter);
+                        previews.push_back(t);
+                    }
+                }
+            }
+        }
+
+        // While filtering, drop preview rows with no matching children.
+        if (!_filter.empty()) {
+            for (wxTreeListItem p : previews) {
+                if (!TreeListCtrl1->GetFirstChild(p).IsOk()) TreeListCtrl1->DeleteItem(p);
             }
         }
     }
-    if (models)
-    {
-        for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling())
-        {
-            if (wxString(m.attribute("LayoutGroup").as_string()) == preview)
-            {
-                wxString mn = m.attribute("name").as_string();
-                tree->AppendItem(item, mn, -1, -1, new impTreeItemData(mn, m, false));
-                if (!tree->IsExpanded(item)) tree->Expand(item);
-            }
-        }
-    }
+
+    RestoreChecksToTree();
+
+    TreeListCtrl1->Thaw();
+    TreeListCtrl1->Refresh();
+    _appliedFilter = _filter;
 }
 
 void ImportPreviewsModelsDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
@@ -238,6 +331,7 @@ bool ImportPreviewsModelsDialog::GetIncludeEmptyGroups() const
 
 ImportPreviewsModelsDialog::~ImportPreviewsModelsDialog()
 {
+    _filterTimer.Stop();
 	//(*Destroy(ImportPreviewsModelsDialog)
 	//*)
 }
@@ -342,6 +436,15 @@ void ImportPreviewsModelsDialog::DeselectExistingModels()
             }
         }
     }
+
+    // The walk above only sees what the filter left visible, but everything still in
+    // the sets gets imported on OK - so drop the hidden ones too. Groups are left
+    // alone, matching the tree walk (a group's row text is "<name> - Group", which
+    // never matches an existing model).
+    for (auto it = _checkedModels.begin(); it != _checkedModels.end();) {
+        if (!it->group && ModelExists(it->name)) it = _checkedModels.erase(it);
+        else ++it;
+    }
 }
 
 bool ImportPreviewsModelsDialog::ModelExists(const std::string& modelName) const
@@ -383,6 +486,11 @@ void ImportPreviewsModelsDialog::SelectSiblings(wxTreeListItem item, bool checke
 
 void ImportPreviewsModelsDialog::SelectAll(bool checked)
 {
+    // Deselect All means all of them, not just the rows the filter left visible.
+    if (!checked) {
+        _checkedModels.clear();
+        _checkedPreviews.clear();
+    }
     for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it)) {
         TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
     }
@@ -417,25 +525,31 @@ void ImportPreviewsModelsDialog::SelectAllModelGroups(bool checked)
 
 void ImportPreviewsModelsDialog::OnButton_CancelClick(wxCommandEvent& event)
 {
+    _filterTimer.Stop();
     EndDialog(wxID_CANCEL);
 }
 
 void ImportPreviewsModelsDialog::OnButton_OkClick(wxCommandEvent& event)
 {
+    // Drop any active filter so the full tree (with every checked row) is present
+    // for the caller's GetPreviews()/GetModelsInPreview() to read. This has to test
+    // what the tree actually shows, not the pending _filter: emptying the box and
+    // hitting Enter inside the debounce window leaves _filter empty while the tree
+    // is still filtered, and the hidden checks would silently not be imported.
+    if (!_appliedFilter.empty() || !_filter.empty()) {
+        ClearFilter();
+    } else {
+        _filterTimer.Stop();
+    }
     EndDialog(wxID_OK);
 }
 
 void ImportPreviewsModelsDialog::ValidateWindow()
 {
-    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
-    {
-        if (TreeListCtrl1->GetCheckedState(it) == wxCheckBoxState::wxCHK_CHECKED)
-        {
-            Button_Ok->Enable();
-            return;
-        }
-    }
-    Button_Ok->Disable();
+    // Drive the OK button off the persistent check sets so it stays correct even
+    // when checked rows are hidden by the current filter.
+    SyncCheckedFromTree();
+    Button_Ok->Enable(!_checkedModels.empty() || !_checkedPreviews.empty());
 }
 
 float ImportPreviewsModelsDialog::GetSourceRulerPerUnit() const
@@ -467,27 +581,4 @@ float ImportPreviewsModelsDialog::GetSourceRulerPerUnit() const
         }
     }
     return 0.0f;
-}
-
-int ImportPreviewsModelsDialog::PreviewItemComparator::Compare(wxTreeListCtrl *treelist, unsigned col, wxTreeListItem first, wxTreeListItem second) {
-    impTreeItemData* a = dynamic_cast<impTreeItemData*>(treelist->GetItemData(first));
-    impTreeItemData* b = dynamic_cast<impTreeItemData*>(treelist->GetItemData(second));
-
-    // don't sort previews
-    if (a == nullptr || b == nullptr) {
-        return 0;
-    }
-    
-    if (a->IsModelGroup()) {
-        if (b->IsModelGroup()) {
-            return NumberAwareStringCompare(a->GetName().ToStdString(), b->GetName().ToStdString());
-        }
-        else {
-            return -1;
-        }
-    } else if (b->IsModelGroup()) {
-        return 1;
-    }
-    
-    return NumberAwareStringCompare(a->GetName().ToStdString(), b->GetName().ToStdString());
 }

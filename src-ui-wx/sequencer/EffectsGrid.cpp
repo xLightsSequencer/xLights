@@ -7063,7 +7063,7 @@ void EffectsGrid::CancelMouseOperations() {
     mMouseOperationsCancelled = true;
 }
 bool EffectsGrid::CanDropEffect() const {
-    return (mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
+    return (mSequenceElements != nullptr && mDropStartTimeMS >= 0 && mDropRow >= mSequenceElements->GetNumberOfTimingRows());
 }
 
 void EffectsGrid::UpdateZoomPosition(int time) const {
@@ -8790,7 +8790,8 @@ void EffectsGrid::CopyModelEffectsToModels(int row_number) {
         return;
     }
 
-    CheckboxSelectDialog dlg((wxWindow*)mParent, "Choose Model(s)", choices);
+    CheckboxSelectDialog dlg((wxWindow*)mParent, "Choose Model(s)", choices, wxArrayString(),
+                             _("Copying layers/submodels from: "), wxString(source_name));
     dlg.SetMinSize(wxSize(400, -1));
     dlg.SetSize(wxSize(400, dlg.GetSize().GetHeight()));
     if (dlg.ShowModal() != wxID_OK)

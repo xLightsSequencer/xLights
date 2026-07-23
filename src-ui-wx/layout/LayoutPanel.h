@@ -58,6 +58,7 @@ class ModelPropertyAdapter;
 class ViewObjectPropertyAdapter;
 class ModelGroupPanel;
 class ViewObjectPanel;
+class ControllerListPanel;
 class ViewObject;
 class wxListEvent;
 class wxMouseEvent;
@@ -140,11 +141,29 @@ class LayoutPanel: public wxPanel
 		wxStaticText* StaticText1;
 		//*)
 
+		wxStaticText* LabelDirectoriesFooter = nullptr;
+		void UpdateDirectoriesFooter();
+
+		wxPanel* PanelGroups = nullptr;
+		wxPanel* PanelControllers = nullptr;
+
+		// Pages are identified by their window, not their label: the labels are
+		// translated, and the 3D Objects page is added/removed at runtime so
+		// positions are not stable either.
+		enum class ObjectsPage { Models, Groups, Controllers, Objects, Unknown };
+		int FindNotebookPage(ObjectsPage page) const;
+		ObjectsPage CurrentObjectsPage() const;
+		ControllerListPanel* GetControllerListPanel() const { return controllers_panel; }
+		bool IsControllersPageActive() const;
+		void UpdateSettingsPaneForPage();
+
     private:
 
 		wxScrolledWindow* ViewObjectWindow = nullptr;
 		wxScrolledWindow* ModelGroupWindow = nullptr;
         wxPanel* ModelPanelContainer = nullptr;
+        wxPanel* SettingsPaneContainer = nullptr;   // "ModelSettings" pane window: propertyEditor / ModelGroupWindow / controllerProps
+        void ShowSettingsPropGrid();
         wxAuiManager* layout_mgr = nullptr;
         wxString _savedFloatingPerspective;
         int _savedSashPos = -1;
@@ -153,6 +172,8 @@ class LayoutPanel: public wxPanel
         int LeftPanelMinWidth() const; // 18% of splitter width, floor kMinPaneWidth
 		wxTreeListCtrl* TreeListViewModels = nullptr;
         wxDataViewModel* TreeListMiewInternalModel = nullptr;
+        wxTreeListCtrl* TreeListViewGroups = nullptr;
+        wxDataViewModel* TreeListGroupsInternalModel = nullptr;
         bool ctrlFPressed = false;
         bool ctrlshiftFPressed = false;
 
@@ -180,7 +201,9 @@ class LayoutPanel: public wxPanel
 		//*)
 
         static const long ID_TREELISTVIEW_MODELS;
+        static const long ID_TREELISTVIEW_GROUPS;
         static const long ID_TEXTCTRL_MODEL_FILTER;
+        static const long ID_TEXTCTRL_GROUP_FILTER;
         static const long ID_PREVIEW_REPLACEMODEL;
         static const long ID_PREVIEW_RESET;
         static const long ID_PREVIEW_ALIGN;
@@ -329,6 +352,8 @@ class LayoutPanel: public wxPanel
         void OnPropertyGridContextMenu(wxCommandEvent& event);
         void OnModelFilterTextChanged(wxCommandEvent& event);
         void OnModelFilterCancelBtn(wxCommandEvent& event);
+        void OnGroupFilterTextChanged(wxCommandEvent& event);
+        void OnGroupFilterCancelBtn(wxCommandEvent& event);
         void DockAll();
         void ResetToDefaults();
         void HideFloatingPanes();
@@ -403,11 +428,12 @@ class LayoutPanel: public wxPanel
         int calculateNodeCountOfSelected();
 
     protected:
-        void FreezeTreeListView();
-        void ThawTreeListView(const std::list<wxTreeListItem> &toExpand);
-        void SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt);
+        void FreezeTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel);
+        void ThawTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const std::list<wxTreeListItem> &toExpand);
+        void SetTreeListViewItemText(wxTreeListCtrl* tree, wxTreeListItem &item, int col, const wxString &txt);
 
         void SaveModelsListColumns();
+        void SaveTreeListColumns(wxTreeListCtrl* tree, const std::string& configKey);
         std::string TreeModelName(const Model* model, bool fullname);
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);
         void UpdateModelsForPreview(const std::string &group, LayoutGroup* layout_grp, std::vector<Model *> &prev_models, bool filtering );
@@ -469,6 +495,7 @@ class LayoutPanel: public wxPanel
         void SetMouseStateForModels(bool value);
 
         bool ModelMatchesFilter(Model* model) const;
+        bool GroupMatchesFilter(Model* model) const;
         int ModelsSelectedCount() const;
         int ViewObjectsSelectedCount() const;
         int GetSelectedModelIndex() const;
@@ -508,7 +535,8 @@ class LayoutPanel: public wxPanel
         void PreviewModelFlipH();
         Model *CreateNewModel(const std::string &type) const;
 
-        bool _firstTreeLoad = true;
+        bool _firstTreeLoadModels = true;
+        bool _firstTreeLoadGroups = true;
         bool m_dragging = false;
         bool m_creating_bound_rect = false;
         int m_bound_start_x = 0;
@@ -581,6 +609,8 @@ class LayoutPanel: public wxPanel
         Model *_newModel = nullptr;
         ModelGroupPanel *model_grp_panel = nullptr;
         ViewObjectPanel *objects_panel = nullptr;
+        ControllerListPanel* controllers_panel = nullptr;
+        wxWindow* controllerProps = nullptr;
         std::string currentLayoutGroup = "Default";
         LayoutGroup* pGrp = nullptr;
 
@@ -617,10 +647,13 @@ class LayoutPanel: public wxPanel
         xlPropertyGrid* GetPropertyEditor() const { return propertyEditor; }
 
     private:
-        int Col_Model = 0;
-        int Col_StartChan = 1;
-        int Col_EndChan = 2;
-        int Col_ControllerConnection = 3;
+        struct TreeChanColumns {
+            int startChan = 1;
+            int endChan = 2;
+            int contConn = 3;
+        };
+        TreeChanColumns modelsTreeCols;
+        TreeChanColumns groupsTreeCols;
 
         ModelPreview *modelPreview = nullptr;
         wxImage *background = nullptr;
@@ -672,8 +705,10 @@ class LayoutPanel: public wxPanel
         void FinalizeModel();
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
-        wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel);
-        int AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded, std::list<wxTreeListItem> &toExpand, int nativeOrder, bool fullName = false);
+        wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel, long id, const wxString& windowName, const std::string& colOrderKey, const wxString& nameColTitle, TreeChanColumns& cols);
+        int AddModelToTree(wxTreeListCtrl* tree, const TreeChanColumns& cols, Model *model, wxTreeListItem* parent, bool expanded, std::list<wxTreeListItem> &toExpand, int nativeOrder, bool fullName = false);
+        void refreshOneModelList(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const TreeChanColumns& cols);
+        wxTreeListCtrl* ActiveModelTree() const;
         void RenameModelInTree(Model* model, const std::string& new_name);
         void DisplayAddObjectPopup();
         void OnAddObjectPopup(wxCommandEvent& event);
@@ -688,6 +723,13 @@ class LayoutPanel: public wxPanel
         wxString _filterString;
         wxRegEx  _filterRegex;
         bool     _filterRegexValid = false;
+
+        wxSearchCtrl* GroupFilterCtrl = nullptr;
+        wxString _groupFilterString;
+        wxRegEx  _groupFilterRegex;
+        bool     _groupFilterRegexValid = false;
+
+        static bool MatchesFilter(Model* model, const wxString& filterString, const wxRegEx& filterRegex, bool filterRegexValid);
 
         class ModelListComparator : public wxTreeListItemComparator
         {

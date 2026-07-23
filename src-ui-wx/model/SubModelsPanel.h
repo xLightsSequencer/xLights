@@ -1,5 +1,4 @@
 #pragma once
-
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -12,12 +11,23 @@
 
 #include <map>
 #include <vector>
+#include <functional>
 #include <pugixml.hpp>
-#include <wx/dnd.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/grid.h>
 #include <wx/listctrl.h>
-#include <wx/regex.h>
+#include <wx/notebook.h>
 #include <wx/spinctrl.h>
+#include <wx/srchctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
 #include <wx/timer.h>
+#include <wx/dnd.h>
+#include <wx/regex.h>
 #include <glm/glm.hpp>
 
 // Forward declaration for XmlSerialize namespace
@@ -26,91 +36,66 @@ namespace XmlSerialize {
     struct SubModelImportData;
 }
 
-//(*Headers(SubModelsDialog)
-#include <wx/dialog.h>
-class wxBoxSizer;
-class wxButton;
-class wxCheckBox;
-class wxChoice;
-class wxFlexGridSizer;
-class wxGrid;
-class wxGridEvent;
-class wxListCtrl;
-class wxNotebook;
-class wxNotebookEvent;
-class wxPanel;
-class wxSearchCtrl;
-class wxSplitterEvent;
-class wxSplitterWindow;
-class wxStaticText;
-class wxStdDialogButtonSizer;
-class wxTextCtrl;
-//*)
-
 class Model;
-class wxBookCtrlEvent;
 class ModelPreview;
 class SubBufferPanel;
-class xLightsFrame;
-class LayoutPanel;
+class OutputManager;
 class ModelManager;
 class xlColor;
-class OutputManager;
 
+// Drag-and-drop target for reordering SubModels in the list control. The matching
+// EVT_SMDROP event and the method bodies live in SubModelsPanel.cpp.
 wxDECLARE_EVENT(EVT_SMDROP, wxCommandEvent);
 
 class SubModelTextDropTarget : public wxTextDropTarget
 {
-    public:
-        SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
-        {
-            _owner = owner;
-            _list = list;
-            _type = type;
-        };
+public:
+    SubModelTextDropTarget(wxWindow* owner, wxListCtrl* list, wxString type)
+    {
+        _owner = owner;
+        _list  = list;
+        _type  = type;
+    }
 
-        virtual bool OnDropText(wxCoord x, wxCoord y, const wxString &data) override;
-        virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
+    virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& data) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
 
-        wxWindow* _owner;
-        wxListCtrl* _list;
-        wxString _type;
+    wxWindow*   _owner;
+    wxListCtrl* _list;
+    wxString    _type;
 };
 
-class SubModelsDialog : public wxDialog
-{
+class SubModelsPanel : public wxPanel {
     struct SubModelInfo {
         SubModelInfo() {}
-        SubModelInfo(const wxString &n) : name(n), oldName(n) {}
-        SubModelInfo(const SubModelInfo &n) : name(n.name), oldName(n.oldName),
+        SubModelInfo(const wxString& n) : name(n), oldName(n) {}
+        SubModelInfo(const SubModelInfo& n) : name(n.name), oldName(n.oldName),
             vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer),
             bufferStyle(n.bufferStyle), strands(n.strands) {}
 
-        bool operator==(const SubModelInfo &n) const {
+        bool operator==(const SubModelInfo& n) const {
             return (name == n.name && oldName == n.oldName && vertical == n.vertical &&
                 isRanges == n.isRanges && subBuffer == n.subBuffer &&
                 strands == n.strands && bufferStyle == n.bufferStyle);
         }
-        bool operator!=(const SubModelInfo &n) const {
+        bool operator!=(const SubModelInfo& n) const {
             return !(*this == n);
         }
 
         wxString name;
         wxString oldName;
-        bool vertical{false};
-        bool isRanges{true};
+        bool vertical{ false };
+        bool isRanges{ true };
         wxString subBuffer;
-        wxString bufferStyle{"Default"};
+        wxString bufferStyle{ "Default" };
         std::vector<std::string> strands;
     };
 
     wxTimer timer1;
-    bool _oldOutputToLights = false;
     OutputManager* _outputManager = nullptr;
     std::vector<uint32_t> _selected;
     Model* model = nullptr;
-    ModelPreview *modelPreview = nullptr;
-    SubBufferPanel *subBufferPanel = nullptr;
+    SubBufferPanel* subBufferPanel = nullptr;
     bool _isMatrix = false;
 
     using AnimRows = std::vector<std::vector<std::vector<int>>>;
@@ -123,71 +108,96 @@ class SubModelsDialog : public wxDialog
     AnimRows _animRows;
     std::vector<int> _animSubmodelNodes;
 
-    bool m_creating_bound_rect;
-    int m_bound_start_x;
-    int m_bound_start_y;
-    int m_bound_end_x;
-    int m_bound_end_y;
+    bool _isActive = false;
+    bool m_creating_bound_rect = false;
+    int m_bound_start_x = 0;
+    int m_bound_start_y = 0;
+    int m_bound_end_x = 0;
+    int m_bound_end_y = 0;
     int mPointSize;
+
+    ModelPreview* _modelPreview = nullptr;
+    std::function<void()> _changeCallback;
+
+    wxWindow* _parent = nullptr;
+    bool shouldProcessGridCellChanged = true;
+
+    std::vector<SubModelInfo*> _subModels;
+    std::vector<SubModelInfo> _originalSubModels;
+    // Aliases live on the model (not in SubModelInfo), so an alias-only edit is
+    // invisible to the _subModels/_originalSubModels diff in HasChanges(). Track
+    // it separately so the change is still reported to the caller on OK.
+    bool _aliasesChanged = false;
 
     void StartOutputToLights();
     bool StopOutputToLights();
-    
-public:
-    std::vector<SubModelInfo*> _subModels;
 
+public:
     bool ReloadLayout = false;
 
-    SubModelsDialog(wxWindow* parent, OutputManager* outputManager);
-    virtual ~SubModelsDialog();
+    SubModelsPanel(wxWindow* parent, OutputManager* om);
+    virtual ~SubModelsPanel();
 
-    void Setup(Model *m);
+    void SetModelPreview(ModelPreview* preview);
+    void SetChangeCallback(std::function<void()> cb) { _changeCallback = std::move(cb); }
+
+    void Setup(Model* m);
     void Save();
+    [[nodiscard]] bool HasChanges() const;
 
-    //(*Declarations(SubModelsDialog)
-    wxButton* AddButton;
-    wxButton* AddRowButton;
-    wxButton* ButtonCopy;
-    wxButton* ButtonImport;
-    wxButton* Button_Draw_Model;
-    wxButton* Button_Edit;
-    wxButton* Button_Export;
-    wxButton* Button_MoveDown;
-    wxButton* Button_MoveUp;
-    wxButton* Button_ReverseNodes;
-    wxButton* Button_ReverseRow;
-    wxButton* Button_ReverseRows;
-    wxButton* Button_SortRow;
-    wxButton* DeleteButton;
-    wxButton* DeleteRowButton;
-    wxCheckBox* CheckBox_OutputToLights;
-    wxCheckBox* LayoutCheckbox;
-    wxChoice* ChoiceBufferStyle;
-    wxFlexGridSizer* PreviewSizer;
-    wxFlexGridSizer* SubBufferSizer;
-    wxGrid* NodesGrid;
-    wxListCtrl* ListCtrl_SubModels;
-    wxNotebook* TypeNotebook;
-    wxPanel* ModelPreviewPanelLocation;
-    wxPanel* Panel2;
-    wxPanel* Panel3;
-    wxPanel* SubBufferPanelHolder;
-    wxSearchCtrl* SearchCtrl1;
-    wxSplitterWindow* SplitterWindow1;
-    wxStaticText* NodeNumberText;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText2;
-    wxStaticText* StaticTextName;
-    wxTextCtrl* TextCtrl_Name;
-    //*)
+    void OnActivate();
+    void OnDeactivate();
+
+    // Cross-tab access: read in-flight submodel data without committing to _model
+    std::vector<std::string> GetCurrentSubModelNames() const;
+    std::string GetSubModelRanges(const std::string& name) const;
+
+    // Preview mouse events — public so shell can rewire
+    void OnPreviewLeftDown(wxMouseEvent& event);
+    void OnPreviewLeftUp(wxMouseEvent& event);
+    void OnPreviewMouseMove(wxMouseEvent& event);
+    void OnPreviewMouseLeave(wxMouseEvent& event);
+    void OnPreviewLeftDClick(wxMouseEvent& event);
+
+    // UI controls (same names as SubModelsDialog for easy diff)
+    wxButton* AddButton = nullptr;
+    wxButton* AddRowButton = nullptr;
+    wxButton* ButtonCopy = nullptr;
+    wxButton* ButtonImport = nullptr;
+    wxButton* Button_Draw_Model = nullptr;
+    wxButton* Button_Edit = nullptr;
+    wxButton* Button_Export = nullptr;
+    wxButton* Button_MoveDown = nullptr;
+    wxButton* Button_MoveUp = nullptr;
+    wxButton* Button_ReverseNodes = nullptr;
+    wxButton* Button_ReverseRow = nullptr;
+    wxButton* Button_ReverseRows = nullptr;
+    wxButton* Button_SortRow = nullptr;
+    wxButton* DeleteButton = nullptr;
+    wxButton* DeleteRowButton = nullptr;
+    wxCheckBox* CheckBox_OutputToLights = nullptr;
+    wxCheckBox* LayoutCheckbox = nullptr;
+    wxChoice* ChoiceBufferStyle = nullptr;
+    wxFlexGridSizer* SubBufferSizer = nullptr;
+    wxGrid* NodesGrid = nullptr;
+    wxListCtrl* ListCtrl_SubModels = nullptr;
+    wxNotebook* TypeNotebook = nullptr;
+    wxPanel* Panel2 = nullptr;
+    wxPanel* Panel3 = nullptr;
+    wxPanel* SubBufferPanelHolder = nullptr;
+    wxSearchCtrl* SearchCtrl1 = nullptr;
+    wxStaticText* NodeNumberText = nullptr;
+    wxStaticText* StaticText1 = nullptr;
+    wxStaticText* StaticText2 = nullptr;
+    wxStaticText* StaticTextName = nullptr;
+    wxTextCtrl* TextCtrl_Name = nullptr;
 
     wxButton* Button_PlayAnim = nullptr;
     wxSpinCtrl* Spin_AnimSpeed = nullptr;
     wxSpinCtrl* Spin_AnimTrail = nullptr;
 
-protected:
-
-    //(*Identifiers(SubModelsDialog)
+private:
+    // wxWindow IDs
     static const wxWindowID ID_CHECKBOX2;
     static const wxWindowID ID_STATICTEXT1;
     static const wxWindowID ID_LISTCTRL_SUB_MODELS;
@@ -218,10 +228,8 @@ protected:
     static const wxWindowID ID_PANEL3;
     static const wxWindowID ID_NOTEBOOK1;
     static const wxWindowID ID_PANEL5;
-    static const wxWindowID ID_PANEL1;
     static const wxWindowID ID_SPLITTERWINDOW1;
     static const wxWindowID ID_STATICTEXT3;
-    //*)
     static const long ID_TIMER1;
 
     static const long SUBMODEL_DIALOG_IMPORT_MODEL;
@@ -275,11 +283,10 @@ protected:
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
     wxString GetSelectedNames();
-    int GetSubModelInfoIndex(const wxString &str);
-    SubModelInfo *GetSubModelInfo(const wxString &str);
+    int GetSubModelInfoIndex(const wxString& str);
+    SubModelInfo* GetSubModelInfo(const wxString& str);
     bool IsItemSelected(wxListCtrl* ctrl, int item) const;
 
-    //void AddSubModelToList(SubModelInfo *submodel, int index = -1, bool load = false);
     void MoveSelectedModelsTo(int indexTo);
     void RemoveSubModelFromList(wxString name);
     wxString GenerateSubModelName(wxString basename);
@@ -287,8 +294,7 @@ protected:
     void ImportCustomModel(std::string filename);
     void CreateSubmodel(const std::string& name, const std::list<std::string>& nodes);
     void FixNodes(pugi::xml_node n, const std::string& attribute, std::map<int, int>& nodeMap);
-    
-    // Helper methods for ImportCustomModel refactoring
+
     int CalculateAlignmentOffset(int alignment, int targetSize, int sourceSize);
     SubModelInfo* CreateSubModelFromCustomModelData(
         const struct XmlSerialize::CustomModelImportData& customModel,
@@ -311,11 +317,12 @@ protected:
     void ApplySubmodelName();
     void PopulateList();
     void ValidateWindow();
-    void Select(const wxString &name);
-    void SelectAll(const wxString &names);
+    void Select(const wxString& name);
+    void SelectAll(const wxString& names);
     void UnSelectAll();
-    void applySubmodelRowLabels(const wxString &name);
+    void applySubmodelRowLabels(const wxString& name);
 
+    void NotifyChange();
     void Generate();
     void Aliases();
     void Shift();
@@ -333,7 +340,7 @@ protected:
     void OrderPoints(bool wholemodel);
 
     void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
-    void DisplayRange(const wxString &range);
+    void DisplayRange(const wxString& range);
     void SelectRow(int r);
     bool SetNodeColor(int row, xlColor const& c, bool highlight);
     void ClearNodeColor(Model* m);
@@ -358,9 +365,7 @@ protected:
     int CountNodesInRange(const wxString& range);
     int CountLinesInRange(const wxString& range);
 
-private:
-
-    //(*Handlers(SubModelsDialog)
+    // Event handlers
     void OnAddButtonClick(wxCommandEvent& event);
     void OnDeleteButtonClick(wxCommandEvent& event);
     void OnNameChoiceSelect(wxCommandEvent& event);
@@ -393,21 +398,9 @@ private:
     void OnListCtrl_SubModelsItemRClick(wxListEvent& event);
     void OnChoiceBufferStyleSelect(wxCommandEvent& event);
     void OnButton_SearchClick(wxCommandEvent& event);
-    void OnInit(wxInitDialogEvent& event);
     void OnNodesGridCellRightClick(wxGridEvent& event);
     void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
-    void OnSplitterSashPosChanging(wxSplitterEvent& event);
-    //*)
 
-    void OnClose(wxCloseEvent& event);
-    void OnCancelButton(wxCommandEvent& event);
-    void ConfirmClose();
-    void OnOK(wxCommandEvent& event);
-    void OnPreviewLeftUp(wxMouseEvent& event);
-    void OnPreviewMouseLeave(wxMouseEvent& event);
-    void OnPreviewLeftDown(wxMouseEvent& event);
-    void OnPreviewLeftDClick(wxMouseEvent& event);
-    void OnPreviewMouseMove(wxMouseEvent& event);
     void OnTimer1Trigger(wxTimerEvent& event);
     void OnAnimTimerTick(wxTimerEvent& event);
     void OnPlayAnimClick(wxCommandEvent& event);
@@ -432,14 +425,9 @@ private:
 
     void ImportLayoutSubModel();
     void ReadRGBEffectsFile(wxString const& filename);
-
     wxString GetDownloadSubmodels();
 
-    wxWindow* _parent = nullptr;
-
     void OnDrop(wxCommandEvent& event);
-    //void OnGridChar(wxKeyEvent& event);
-    bool shouldProcessGridCellChanged = true;
 
     DECLARE_EVENT_TABLE()
 };
