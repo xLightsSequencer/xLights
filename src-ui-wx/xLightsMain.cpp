@@ -1648,8 +1648,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     layoutPanel = new LayoutPanel(PanelPreview, this, PanelSequencer);
     spdlog::debug("LayoutPanel creation done.");
     layoutPanel->LabelDirectoriesFooter->Bind(wxEVT_LEFT_DCLICK,
-                             [&](wxMouseEvent&) {
-                                 wxLaunchDefaultApplication(showDirectory);
+                             [this](wxMouseEvent&) {
+                                 wxCommandEvent evt;
+                                 OnMenuOpenFolderSelected(evt);
                              });
     FlexGridSizerPreview->Add(layoutPanel, 1, wxALL | wxEXPAND, 5);
     FlexGridSizerPreview->Fit(PanelPreview);

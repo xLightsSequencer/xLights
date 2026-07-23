@@ -1088,11 +1088,11 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         wxBoxSizer* lcbSizer = new wxBoxSizer(wxHORIZONTAL);
         lcbSizer->Add(LabelDirectoriesFooter, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->AddStretchSpacer(1);
+        lcbSizer->Add(ButtonSavePreview, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(CheckBox_3D, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(CheckBoxOverlap, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(CheckBoxShowNames, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(CheckBoxShowInfo, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
-        lcbSizer->Add(ButtonSavePreview, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->AddStretchSpacer(1);
         layoutControlsBar->SetSizer(lcbSizer);
         layoutControlsBar->SetMinSize(wxSize(-1, 68));
@@ -4706,6 +4706,13 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
         return;
     }
     if (!event.ControlDown()) {
+        OnPreviewLeftDown(event);
+        OnPreviewLeftUp(event);
+        Model* md = dynamic_cast<Model*>(selectedBaseObject);
+        if (md != nullptr && md->GetDisplayAs() != DisplayAsType::ModelGroup && md->GetDisplayAs() != DisplayAsType::SubModel) {
+            EditSubmodels();
+            return;
+        }
         if (editing_models) {
             UnSelectAllModelsInTree();
         } else {
