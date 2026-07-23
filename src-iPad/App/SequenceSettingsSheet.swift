@@ -22,7 +22,7 @@ struct SequenceSettingsSheet: View {
     @Environment(SequencerViewModel.self) var viewModel
 
     private enum Tab: String, CaseIterable, Identifiable {
-        case info, metadata, media, timings, audio, render
+        case info, metadata, media, timings, audio, faces, render
         var id: String { rawValue }
         var label: String {
             switch self {
@@ -31,6 +31,7 @@ struct SequenceSettingsSheet: View {
             case .media:    return "Media"
             case .timings:  return "Timings"
             case .audio:    return "Audio"
+            case .faces:    return "Faces"
             case .render:   return "Render"
             }
         }
@@ -41,6 +42,7 @@ struct SequenceSettingsSheet: View {
             case .media:    return "photo.stack"
             case .timings:  return "metronome"
             case .audio:    return "waveform"
+            case .faces:    return "theatermasks"
             case .render:   return "cpu"
             }
         }
@@ -77,6 +79,8 @@ struct SequenceSettingsSheet: View {
                         TimingsTab()
                     case .audio:
                         AudioTracksTab()
+                    case .faces:
+                        SequenceFacesTab()
                     case .render:
                         ScrollView { RenderTab().padding() }
                     }
@@ -1123,6 +1127,285 @@ private struct RenderTab: View {
             autosaveInterval = viewModel.autosaveIntervalMinutes
             renderMode = viewModel.document.renderMode()
         }
+    }
+}
+
+// MARK: - Faces tab (sequence-level Matrix/image face definitions)
+
+// Edits the Matrix (image) face definitions stored in the .xsq
+// (SequenceFaces on SequenceElements), so any matrix/group/submodel that
+// sings can use them without duplicating the face on every model. Mirrors
+// the desktop Sequence Settings > Faces tab (SequenceFacesPanel). Node/Coro
+// faces stay model-level (they depend on a model's node layout).
+private struct SequenceFacesTab: View {
+    @Environment(SequencerViewModel.self) private var viewModel
+
+    // canonical phoneme order (matches FaceMatrixHelpers::Phonemes())
+    private static let phonemes = ["AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ"]
+    private static let placements = ["Centered", "Scaled", "Scale Keep Aspect Ratio", "Scale Keep Aspect Ratio Crop"]
+
+    @State private var faces: [String: [String: String]] = [:]
+    @State private var selected: String = ""
+    @State private var touched: Set<String> = []
+
+    // add / rename / delete / import
+    @State private var showAdd = false
+    @State private var showRename = false
+    @State private var nameField = ""
+    @State private var showDeleteConfirm = false
+    @State private var showImport = false
+    @State private var importSources: [ImportSource] = []
+    @State private var errorMessage: String?
+
+    // per-cell image picking
+    @State private var activeKey: String?
+    @State private var showMediaPicker = false
+    @State private var showFileImporter = false
+    @State private var pendingPick: URL?
+
+    private struct ImportSource: Identifiable {
+        let id = UUID()
+        let model: String
+        let face: String
+    }
+
+    private var faceNames: [String] { faces.keys.sorted() }
+    private var currentDef: [String: String] { selected.isEmpty ? [:] : (faces[selected] ?? [:]) }
+
+    var body: some View {
+        Form {
+            faceSelectorSection
+            if selected.isEmpty {
+                Section {
+                    Text("Add a face definition to store Matrix (image) faces in this sequence. Any matrix, group, or submodel that sings can use them — no need to define the face on every model.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                placementSection
+                imagesSection
+            }
+        }
+        .onAppear(perform: reload)
+        .onDisappear(perform: applyRenders)
+        .alert("New Face", isPresented: $showAdd) {
+            TextField("Name", text: $nameField)
+            Button("Cancel", role: .cancel) {}
+            Button("Add", action: addFace)
+        }
+        .alert("Rename Face", isPresented: $showRename) {
+            TextField("New name", text: $nameField)
+            Button("Cancel", role: .cancel) {}
+            Button("Rename", action: renameFace)
+        }
+        .confirmationDialog("Delete \"\(selected)\"?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+            Button("Delete", role: .destructive, action: deleteFace)
+            Button("Cancel", role: .cancel) {}
+        }
+        .sheet(isPresented: $showImport) { importSheet }
+        .sheet(isPresented: $showMediaPicker) {
+            MediaPickerSheet(
+                title: "Choose Image",
+                mediaType: "image",
+                currentPath: activeKey.flatMap { currentDef[$0] } ?? "",
+                onPick: { commitImage($0) },
+                onBrowse: { showFileImporter = true },
+                onClear: { commitImage("") }
+            )
+            .environment(viewModel)
+        }
+        .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.image]) { result in
+            if case .success(let url) = result { pendingPick = url }
+        }
+        .mediaRelocationPrompt(picked: $pendingPick, subdirectory: "Faces") { storedPath in
+            commitImage(storedPath)
+        }
+        .alert("Error", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+
+    // MARK: sections
+
+    private var faceSelectorSection: some View {
+        Section {
+            if faceNames.isEmpty {
+                Text("No face definitions yet").foregroundStyle(.secondary)
+            } else {
+                Picker("Face", selection: $selected) {
+                    ForEach(faceNames, id: \.self) { Text($0).tag($0) }
+                }
+            }
+            HStack {
+                Button { nameField = ""; showAdd = true } label: { Label("Add", systemImage: "plus") }
+                Spacer()
+                Button { nameField = selected; showRename = true } label: { Label("Rename", systemImage: "pencil") }
+                    .disabled(selected.isEmpty)
+                Spacer()
+                Button(role: .destructive) { showDeleteConfirm = true } label: { Label("Delete", systemImage: "trash") }
+                    .disabled(selected.isEmpty)
+            }
+            .buttonStyle(.bordered)
+            Button { openImport() } label: { Label("Import from Model…", systemImage: "square.and.arrow.down") }
+        }
+    }
+
+    private var placementSection: some View {
+        Section("Image Placement") {
+            Picker("Placement", selection: Binding(
+                get: { currentDef["ImagePlacement"] ?? "Scaled" },
+                set: { setPlacement($0) }
+            )) {
+                ForEach(Self.placements, id: \.self) { Text($0).tag($0) }
+            }
+        }
+    }
+
+    private var imagesSection: some View {
+        Section("Mouth Images") {
+            Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 10) {
+                GridRow {
+                    Text("").frame(width: 44, alignment: .leading)
+                    Text("Eyes Open").font(.caption).foregroundStyle(.secondary)
+                    Text("Eyes Closed").font(.caption).foregroundStyle(.secondary)
+                }
+                ForEach(Self.phonemes, id: \.self) { p in
+                    GridRow {
+                        Text(p).font(.subheadline).frame(width: 44, alignment: .leading)
+                        cellButton(phoneme: p, col: 0)
+                        cellButton(phoneme: p, col: 1)
+                    }
+                }
+            }
+        }
+    }
+
+    private func cellButton(phoneme: String, col: Int) -> some View {
+        let key = "Mouth-\(phoneme)-\(col == 0 ? "EyesOpen" : "EyesClosed")"
+        let path = currentDef[key] ?? ""
+        return Button {
+            activeKey = key
+            showMediaPicker = true
+        } label: {
+            Text(path.isEmpty ? "Set…" : (path as NSString).lastPathComponent)
+                .font(.caption)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundStyle(path.isEmpty ? Color.accentColor : Color.primary)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private var importSheet: some View {
+        NavigationStack {
+            List(importSources) { src in
+                Button {
+                    if viewModel.document.importSequenceFace(fromModel: src.model, face: src.face) {
+                        reloadFaces()
+                        selected = src.face
+                    }
+                    showImport = false
+                } label: {
+                    HStack {
+                        Text(src.face)
+                        Spacer()
+                        Text(src.model).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Import from Model")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showImport = false }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    // MARK: actions
+
+    private func reload() {
+        reloadFaces()
+        if selected.isEmpty || faces[selected] == nil {
+            selected = faceNames.first ?? ""
+        }
+    }
+
+    private func reloadFaces() {
+        faces = (viewModel.document.sequenceFaces() as? [String: [String: String]]) ?? [:]
+    }
+
+    private func addFace() {
+        let name = nameField.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        if viewModel.document.addSequenceFace(name) {
+            reloadFaces()
+            selected = name
+        } else {
+            errorMessage = "A face named \"\(name)\" already exists."
+        }
+    }
+
+    private func renameFace() {
+        let newName = nameField.trimmingCharacters(in: .whitespacesAndNewlines)
+        let old = selected
+        guard !newName.isEmpty, newName != old, !old.isEmpty else { return }
+        if viewModel.document.renameSequenceFace(old, to: newName) {
+            touched.insert(old)
+            touched.insert(newName)
+            reloadFaces()
+            selected = newName
+        } else {
+            errorMessage = "A face named \"\(newName)\" already exists."
+        }
+    }
+
+    private func deleteFace() {
+        guard !selected.isEmpty else { return }
+        let name = selected
+        viewModel.document.removeSequenceFace(name)
+        touched.insert(name)
+        reloadFaces()
+        selected = faceNames.first ?? ""
+    }
+
+    private func setPlacement(_ placement: String) {
+        guard !selected.isEmpty else { return }
+        viewModel.document.setSequenceFacePlacement(selected, placement: placement)
+        touched.insert(selected)
+        reloadFaces()
+    }
+
+    private func commitImage(_ path: String) {
+        guard let key = activeKey, !selected.isEmpty else { return }
+        viewModel.document.setSequenceFaceImage(selected, key: key, path: path)
+        touched.insert(selected)
+        reloadFaces()
+        activeKey = nil
+    }
+
+    private func openImport() {
+        let raw = (viewModel.document.sequenceFaceImportSources() as? [[String: String]]) ?? []
+        importSources = raw.compactMap { d in
+            guard let m = d["model"], let f = d["face"] else { return nil }
+            return ImportSource(model: m, face: f)
+        }.sorted { ($0.model, $0.face) < ($1.model, $1.face) }
+        if importSources.isEmpty {
+            errorMessage = "No models have Matrix (image) face definitions."
+        } else {
+            showImport = true
+        }
+    }
+
+    private func applyRenders() {
+        guard !touched.isEmpty else { return }
+        viewModel.document.reRenderSequenceFaceEffects(Array(touched))
+        touched.removeAll()
     }
 }
 

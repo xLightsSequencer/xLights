@@ -1701,6 +1701,30 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
         dimmingInfoForModel:(NSString*)modelName;
 
+// Sequence-level (Matrix/image) face definitions — the Sequence
+// Settings > Faces editor. Stored in SequenceFaces on the .xsq;
+// shape is name -> (attr -> value), same as model faceInfo. Image
+// keys are Mouth-<PHONEME>-EyesOpen/-EyesClosed; ImagePlacement
+// holds the scaling mode. Matrix-only (node/Coro faces stay
+// model-level). All mutators mark the sequence dirty so Save lights up.
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)sequenceFaces;
+- (BOOL)addSequenceFace:(NSString*)name;
+- (BOOL)removeSequenceFace:(NSString*)name;
+// Renames the definition and repoints referencing Faces/CoroFaces effects
+// (unless the effect's model defines the old name itself).
+- (BOOL)renameSequenceFace:(NSString*)oldName to:(NSString*)newName;
+// Set (or clear, with an empty path) one phoneme x eye-state image cell.
+// Registers the image with SequenceMedia and flags it used-by-metadata.
+- (BOOL)setSequenceFaceImage:(NSString*)name key:(NSString*)key path:(NSString*)path;
+- (BOOL)setSequenceFacePlacement:(NSString*)name placement:(NSString*)placement;
+// Models carrying a Matrix face, as {@"model", @"face"} pairs.
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)sequenceFaceImportSources;
+// Copy a model's Matrix face definition into the sequence (images registered).
+- (BOOL)importSequenceFaceFromModel:(NSString*)modelName face:(NSString*)faceName;
+// Re-render models whose Faces/CoroFaces effects use any of `names`
+// (or resolve via Default/empty) after their definitions were edited.
+- (void)reRenderSequenceFaceEffects:(NSArray<NSString*>*)names;
+
 // Phase J-5 (sidebar tabs) — ModelGroups visible in the active
 // layout group. Names only, in the same order as
 // `modelsInActiveLayoutGroup` (alphabetical by ModelManager map

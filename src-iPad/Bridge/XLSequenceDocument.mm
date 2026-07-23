@@ -19,6 +19,7 @@
 #include "render/Effect.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"
+#include "render/SequenceFaces.h"
 #include "render/SequenceFile.h"
 #include "render/SequencePackage.h"
 #include "render/RenderEngine.h"
@@ -164,7 +165,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <limits>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -5565,6 +5568,213 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
     Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
     if (!m) return @{};
     return faceStateToNSDict(m->GetDimmingInfo());
+}
+
+// === Sequence-level (Matrix/image) face definitions ===
+// The Sequence Settings > Faces editor edits SequenceFaces on the
+// SequenceElements (persisted in the .xsq). Shape mirrors model faceInfo
+// (name -> attr -> value) so the shared faceStateTo/FromNSDict helpers
+// apply. Image-cell keys are Mouth-<PHONEME>-EyesOpen/-EyesClosed;
+// ImagePlacement holds the scaling mode. Definitions are Matrix-only
+// (node/Coro faces depend on a model's node layout and stay model-level).
+
+// Point referencing Faces/CoroFaces effects at a renamed sequence face,
+// skipping effects whose own model defines the old name (model definitions
+// win, so those were never using the sequence definition). Mirrors the
+// desktop SequenceFacesPanel::RenameFaceReferences.
+static void repointSequenceFaceReferences(iPadRenderContext* ctx,
+                                          const std::string& oldName,
+                                          const std::string& newName) {
+    if (ctx == nullptr) return;
+    auto& se = ctx->GetSequenceElements();
+    auto modelShadows = [&](const std::string& modelName) -> bool {
+        if (!ctx->HasModelManager()) return false;
+        Model* m = ctx->GetModelManager()[modelName];
+        if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            auto* mg = dynamic_cast<ModelGroup*>(m);
+            m = mg != nullptr ? mg->GetFirstModel() : nullptr;
+        }
+        return m != nullptr && m->GetFaceInfo().find(oldName) != m->GetFaceInfo().end();
+    };
+    auto scanLayer = [&](EffectLayer* layer) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const std::string& en = eff->GetEffectName();
+            if (en != "Faces" && en != "CoroFaces") continue;
+            if (eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "") == oldName) {
+                eff->SetSetting("E_CHOICE_Faces_FaceDefinition", newName);
+            }
+        }
+    };
+    for (int i = 0; i < (int)se.GetElementCount(); ++i) {
+        Element* e = se.GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* me = dynamic_cast<ModelElement*>(e);
+        if (me == nullptr || modelShadows(me->GetModelName())) continue;
+        for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) scanLayer(me->GetEffectLayer(j));
+        for (int j = 0; j < (int)me->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = me->GetSubModel(j);
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) scanLayer(sub->GetEffectLayer(l));
+        }
+    }
+}
+
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)sequenceFaces {
+    if (!_context || !_context->IsSequenceLoaded()) return @{};
+    return faceStateToNSDict(_context->GetSequenceElements().GetSequenceFaces().GetFaces());
+}
+
+- (BOOL)addSequenceFace:(NSString*)name {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
+    auto& faces = _context->GetSequenceElements().GetSequenceFaces();
+    std::string n([name UTF8String]);
+    if (faces.GetFace(n) != nullptr) return NO;
+    std::map<std::string, std::string> def;
+    def["ImagePlacement"] = "Scaled";
+    faces.SetFace(n, def);
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)removeSequenceFace:(NSString*)name {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
+    _context->AbortRender(5000);
+    bool ok = _context->GetSequenceElements().GetSequenceFaces().RemoveFace(std::string([name UTF8String]));
+    if (ok) bumpSequenceDirty(_context.get());
+    return ok;
+}
+
+- (BOOL)renameSequenceFace:(NSString*)oldName to:(NSString*)newName {
+    if (!_context || !_context->IsSequenceLoaded() || oldName.length == 0 || newName.length == 0) return NO;
+    _context->AbortRender(5000);
+    std::string oldN([oldName UTF8String]);
+    std::string newN([newName UTF8String]);
+    if (!_context->GetSequenceElements().GetSequenceFaces().RenameFace(oldN, newN)) return NO;
+    repointSequenceFaceReferences(_context.get(), oldN, newN);
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)setSequenceFaceImage:(NSString*)name key:(NSString*)key path:(NSString*)path {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0 || key.length == 0) return NO;
+    auto& elements = _context->GetSequenceElements();
+    auto& faces = elements.GetSequenceFaces();
+    std::string n([name UTF8String]);
+    const auto* cur = faces.GetFace(n);
+    std::map<std::string, std::string> def = cur != nullptr ? *cur : std::map<std::string, std::string>();
+    std::string value = path != nil ? std::string([path UTF8String]) : std::string();
+    def[std::string([key UTF8String])] = value;
+    _context->AbortRender(5000);
+    faces.SetFace(n, def);
+    if (!value.empty()) {
+        auto& media = elements.GetSequenceMedia();
+        // register (lazily) so the Media tab lists/embeds it and flag it
+        // used-by-metadata so unused-media cleanup keeps it - nothing in an
+        // effect's settings references a sequence-face image
+        if (!media.HasImage(value) && FileExists(FileUtils::FixFile("", value))) {
+            media.RegisterImage(value);
+        }
+        media.MarkUsedByMetadata(value);
+    }
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)setSequenceFacePlacement:(NSString*)name placement:(NSString*)placement {
+    if (!_context || !_context->IsSequenceLoaded() || name.length == 0) return NO;
+    auto& faces = _context->GetSequenceElements().GetSequenceFaces();
+    std::string n([name UTF8String]);
+    const auto* cur = faces.GetFace(n);
+    std::map<std::string, std::string> def = cur != nullptr ? *cur : std::map<std::string, std::string>();
+    def["ImagePlacement"] = placement != nil ? std::string([placement UTF8String]) : std::string("Scaled");
+    faces.SetFace(n, def);
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+// Models (incl. groups via their first model) that carry a Matrix face,
+// as {@"model", @"face"} pairs - feeds the "Import from Model" picker.
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)sequenceFaceImportSources {
+    if (!_context || !_context->HasModelManager()) return @[];
+    NSMutableArray<NSDictionary<NSString*, NSString*>*>* out = [NSMutableArray array];
+    for (const auto& [modelName, m] : _context->GetModelManager()) {
+        if (m == nullptr) continue;
+        for (const auto& [faceName, def] : m->GetFaceInfo()) {
+            auto it = def.find("Type");
+            if (it != def.end() && it->second == "Matrix") {
+                [out addObject:@{ @"model": [NSString stringWithUTF8String:modelName.c_str()],
+                                  @"face": [NSString stringWithUTF8String:faceName.c_str()] }];
+            }
+        }
+    }
+    return out;
+}
+
+- (BOOL)importSequenceFaceFromModel:(NSString*)modelName face:(NSString*)faceName {
+    if (!_context || !_context->HasModelManager() || !_context->IsSequenceLoaded()
+        || modelName.length == 0 || faceName.length == 0) return NO;
+    Model* m = _context->GetModelManager()[std::string([modelName UTF8String])];
+    if (m == nullptr) return NO;
+    std::string fn([faceName UTF8String]);
+    auto& faces = _context->GetSequenceElements().GetSequenceFaces();
+    if (faces.GetFace(fn) != nullptr) return NO; // already defined - don't overwrite
+    auto it = m->GetFaceInfo().find(fn);
+    if (it == m->GetFaceInfo().end()) return NO;
+    auto ti = it->second.find("Type");
+    if (ti == it->second.end() || ti->second != "Matrix") return NO; // Matrix-only
+    faces.SetFace(fn, it->second);
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    for (const auto& [key, value] : it->second) {
+        if (SequenceFaces::IsImageKey(key) && !value.empty()) {
+            if (!media.HasImage(value) && FileExists(FileUtils::FixFile("", value))) {
+                media.RegisterImage(value);
+            }
+            media.MarkUsedByMetadata(value);
+        }
+    }
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+// Re-render every model whose Faces/CoroFaces effect uses one of the edited
+// definitions (or resolves via Default/empty) - definition content lives
+// outside effect settings, so referencing effects need an explicit re-render.
+// Mirrors the desktop SequenceFacesPanel::ApplyPendingRenders batch.
+- (void)reRenderSequenceFaceEffects:(NSArray<NSString*>*)names {
+    if (!_context || !_context->IsSequenceLoaded() || names.count == 0) return;
+    std::set<std::string> touched;
+    for (NSString* s in names) {
+        if (s != nil) touched.insert(std::string([s UTF8String]));
+    }
+    auto& se = _context->GetSequenceElements();
+    std::map<std::string, std::pair<int, int>> dirty;
+    auto scanLayer = [&](EffectLayer* layer, const std::string& modelName) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const std::string& en = eff->GetEffectName();
+            if (en != "Faces" && en != "CoroFaces") continue;
+            std::string face = eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "Default");
+            if (face != "Default" && !face.empty() && touched.find(face) == touched.end()) continue;
+            auto& r = dirty.emplace(modelName, std::make_pair(std::numeric_limits<int>::max(), 0)).first->second;
+            r.first = std::min(r.first, eff->GetStartTimeMS());
+            r.second = std::max(r.second, eff->GetEndTimeMS());
+        }
+    };
+    for (int i = 0; i < (int)se.GetElementCount(); ++i) {
+        Element* e = se.GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* me = dynamic_cast<ModelElement*>(e);
+        if (me == nullptr) continue;
+        const std::string& mn = me->GetModelName();
+        for (int j = 0; j < (int)me->GetEffectLayerCount(); ++j) scanLayer(me->GetEffectLayer(j), mn);
+        for (int j = 0; j < (int)me->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = me->GetSubModel(j);
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) scanLayer(sub->GetEffectLayer(l), mn);
+        }
+    }
+    for (const auto& [mn, range] : dirty) {
+        _context->RenderEffectForModel(mn, range.first, range.second, true);
+    }
 }
 
 // J-23 — Custom-model 3D grid bridge. Exposes `_locations` as
