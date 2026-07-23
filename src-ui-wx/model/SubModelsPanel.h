@@ -1,0 +1,407 @@
+#pragma once
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include <map>
+#include <vector>
+#include <functional>
+#include <pugixml.hpp>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/grid.h>
+#include <wx/listctrl.h>
+#include <wx/notebook.h>
+#include <wx/spinctrl.h>
+#include <wx/srchctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/timer.h>
+#include <wx/dnd.h>
+#include <wx/regex.h>
+#include <glm/glm.hpp>
+
+// Forward declaration for XmlSerialize namespace
+namespace XmlSerialize {
+    struct CustomModelImportData;
+    struct SubModelImportData;
+}
+
+class Model;
+class ModelPreview;
+class SubBufferPanel;
+class OutputManager;
+class ModelManager;
+class xlColor;
+
+class SubModelsPanel : public wxPanel {
+    struct SubModelInfo {
+        SubModelInfo() {}
+        SubModelInfo(const wxString& n) : name(n), oldName(n) {}
+        SubModelInfo(const SubModelInfo& n) : name(n.name), oldName(n.oldName),
+            vertical(n.vertical), isRanges(n.isRanges), subBuffer(n.subBuffer),
+            bufferStyle(n.bufferStyle), strands(n.strands) {}
+
+        bool operator==(const SubModelInfo& n) const {
+            return (name == n.name && oldName == n.oldName && vertical == n.vertical &&
+                isRanges == n.isRanges && subBuffer == n.subBuffer &&
+                strands == n.strands && bufferStyle == n.bufferStyle);
+        }
+        bool operator!=(const SubModelInfo& n) const {
+            return !(*this == n);
+        }
+
+        wxString name;
+        wxString oldName;
+        bool vertical{ false };
+        bool isRanges{ true };
+        wxString subBuffer;
+        wxString bufferStyle{ "Default" };
+        std::vector<std::string> strands;
+    };
+
+    wxTimer timer1;
+    OutputManager* _outputManager = nullptr;
+    std::vector<uint32_t> _selected;
+    Model* model = nullptr;
+    SubBufferPanel* subBufferPanel = nullptr;
+    bool _isMatrix = false;
+
+    using AnimRows = std::vector<std::vector<std::vector<int>>>;
+
+    wxTimer _animTimer;
+    bool _animPlaying = false;
+    int _animStep = 0;
+    int _animTotalSteps = 0;
+    int _animMaxSteps = 0;
+    AnimRows _animRows;
+    std::vector<int> _animSubmodelNodes;
+
+    bool _isActive = false;
+    bool m_creating_bound_rect = false;
+    int m_bound_start_x = 0;
+    int m_bound_start_y = 0;
+    int m_bound_end_x = 0;
+    int m_bound_end_y = 0;
+    int mPointSize;
+
+    ModelPreview* _modelPreview = nullptr;
+    std::function<void()> _changeCallback;
+
+    wxWindow* _parent = nullptr;
+    bool shouldProcessGridCellChanged = true;
+
+    std::vector<SubModelInfo*> _subModels;
+    std::vector<SubModelInfo> _originalSubModels;
+
+    void StartOutputToLights();
+    bool StopOutputToLights();
+
+public:
+    bool ReloadLayout = false;
+
+    SubModelsPanel(wxWindow* parent, OutputManager* om);
+    virtual ~SubModelsPanel();
+
+    void SetModelPreview(ModelPreview* preview);
+    void SetChangeCallback(std::function<void()> cb) { _changeCallback = std::move(cb); }
+
+    void Setup(Model* m);
+    void Save();
+    [[nodiscard]] bool HasChanges() const;
+
+    void OnActivate();
+    void OnDeactivate();
+
+    // Cross-tab access: read in-flight submodel data without committing to _model
+    std::vector<std::string> GetCurrentSubModelNames() const;
+    std::string GetSubModelRanges(const std::string& name) const;
+
+    // Preview mouse events — public so shell can rewire
+    void OnPreviewLeftDown(wxMouseEvent& event);
+    void OnPreviewLeftUp(wxMouseEvent& event);
+    void OnPreviewMouseMove(wxMouseEvent& event);
+    void OnPreviewMouseLeave(wxMouseEvent& event);
+    void OnPreviewLeftDClick(wxMouseEvent& event);
+
+    // UI controls (same names as SubModelsDialog for easy diff)
+    wxButton* AddButton = nullptr;
+    wxButton* AddRowButton = nullptr;
+    wxButton* ButtonCopy = nullptr;
+    wxButton* ButtonImport = nullptr;
+    wxButton* Button_Draw_Model = nullptr;
+    wxButton* Button_Edit = nullptr;
+    wxButton* Button_Export = nullptr;
+    wxButton* Button_MoveDown = nullptr;
+    wxButton* Button_MoveUp = nullptr;
+    wxButton* Button_ReverseNodes = nullptr;
+    wxButton* Button_ReverseRow = nullptr;
+    wxButton* Button_ReverseRows = nullptr;
+    wxButton* Button_SortRow = nullptr;
+    wxButton* DeleteButton = nullptr;
+    wxButton* DeleteRowButton = nullptr;
+    wxCheckBox* CheckBox_OutputToLights = nullptr;
+    wxCheckBox* LayoutCheckbox = nullptr;
+    wxChoice* ChoiceBufferStyle = nullptr;
+    wxFlexGridSizer* SubBufferSizer = nullptr;
+    wxGrid* NodesGrid = nullptr;
+    wxListCtrl* ListCtrl_SubModels = nullptr;
+    wxNotebook* TypeNotebook = nullptr;
+    wxPanel* Panel2 = nullptr;
+    wxPanel* Panel3 = nullptr;
+    wxPanel* SubBufferPanelHolder = nullptr;
+    wxSearchCtrl* SearchCtrl1 = nullptr;
+    wxStaticText* NodeNumberText = nullptr;
+    wxStaticText* StaticText1 = nullptr;
+    wxStaticText* StaticText2 = nullptr;
+    wxStaticText* StaticTextName = nullptr;
+    wxTextCtrl* TextCtrl_Name = nullptr;
+
+    wxButton* Button_PlayAnim = nullptr;
+    wxSpinCtrl* Spin_AnimSpeed = nullptr;
+    wxSpinCtrl* Spin_AnimTrail = nullptr;
+
+private:
+    // wxWindow IDs
+    static const wxWindowID ID_CHECKBOX2;
+    static const wxWindowID ID_STATICTEXT1;
+    static const wxWindowID ID_LISTCTRL_SUB_MODELS;
+    static const wxWindowID ID_SEARCHCTRL1;
+    static const wxWindowID ID_BUTTON3;
+    static const wxWindowID ID_BUTTON4;
+    static const wxWindowID ID_BUTTONCOPY;
+    static const wxWindowID ID_BUTTON_EDIT;
+    static const wxWindowID ID_BUTTON_IMPORT;
+    static const wxWindowID ID_BUTTON10;
+    static const wxWindowID ID_PANEL4;
+    static const wxWindowID ID_STATICTEXT_NAME;
+    static const wxWindowID ID_TEXTCTRL_NAME;
+    static const wxWindowID ID_STATICTEXT2;
+    static const wxWindowID ID_CHOICE_BUFFER_STYLE;
+    static const wxWindowID ID_CHECKBOX1;
+    static const wxWindowID ID_GRID1;
+    static const wxWindowID ID_BUTTON6;
+    static const wxWindowID ID_BUTTON8;
+    static const wxWindowID ID_BUTTON1;
+    static const wxWindowID ID_BUTTON2;
+    static const wxWindowID ID_BUTTON_MOVE_UP;
+    static const wxWindowID ID_BUTTON_MOVE_DOWN;
+    static const wxWindowID ID_BUTTON7;
+    static const wxWindowID ID_BUTTON_SORT_ROW;
+    static const wxWindowID ID_BUTTON_DRAW_MODEL;
+    static const wxWindowID ID_PANEL2;
+    static const wxWindowID ID_PANEL3;
+    static const wxWindowID ID_NOTEBOOK1;
+    static const wxWindowID ID_PANEL5;
+    static const wxWindowID ID_SPLITTERWINDOW1;
+    static const wxWindowID ID_STATICTEXT3;
+    static const long ID_TIMER1;
+
+    static const long SUBMODEL_DIALOG_IMPORT_MODEL;
+    static const long SUBMODEL_DIALOG_IMPORT_STATE;
+    static const long SUBMODEL_DIALOG_IMPORT_FACE;
+    static const long SUBMODEL_DIALOG_IMPORT_FILE;
+    static const long SUBMODEL_DIALOG_IMPORT_CUSTOM;
+    static const long SUBMODEL_DIALOG_IMPORT_CSV;
+    static const long SUBMODEL_DIALOG_IMPORT_LAYOUT;
+    static const long SUBMODEL_DIALOG_IMPORT_DOWNLOAD;
+    static const long SUBMODEL_DIALOG_EXPORT_CSV;
+    static const long SUBMODEL_DIALOG_EXPORT_XMODEL;
+    static const long SUBMODEL_DIALOG_EXPORT_TOOTHERS;
+    static const long SUBMODEL_DIALOG_GENERATE;
+    static const long SUBMODEL_DIALOG_ALIASES;
+    static const long SUBMODEL_DIALOG_SHIFT;
+    static const long SUBMODEL_DIALOG_SHIFT_SINGLE;
+    static const long SUBMODEL_DIALOG_FLIP_HOR;
+    static const long SUBMODEL_DIALOG_FLIP_VER;
+    static const long SUBMODEL_DIALOG_REVERSE;
+    static const long SUBMODEL_DIALOG_JOIN;
+    static const long SUBMODEL_DIALOG_JOIN_SS;
+    static const long SUBMODEL_DIALOG_SPLIT;
+    static const long SUBMODEL_DIALOG_SORT_BY_NAME;
+    static const long SUBMODEL_DIALOG_REMOVE_DUPLICATE;
+    static const long SUBMODEL_DIALOG_SUPPRESS_DUPLICATE;
+    static const long SUBMODEL_DIALOG_SORT_POINTS;
+    static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_LR;
+    static const long SUBMODEL_DIALOG_REMOVE_ALL_DUPLICATE_TB;
+    static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_LR;
+    static const long SUBMODEL_DIALOG_SUPPRESS_ALL_DUPLICATE_TB;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS_FRONT;
+    static const long SUBMODEL_DIALOG_EVEN_ROWS_REAR;
+    static const long SUBMODEL_DIALOG_PIVOT_ROWS_COLUMNS;
+    static const long SUBMODEL_DIALOG_SYMMETRIZE;
+    static const long SUBMODEL_DIALOG_SORT_POINTS_ALL;
+    static const long SUBMODEL_DIALOG_COMBINE_STRANDS;
+    static const long SUBMODEL_DIALOG_EXPAND_STRANDS_ALL;
+    static const long SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL;
+    static const long SUBMODEL_DIALOG_BLANKS_AS_ZERO;
+    static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
+    static const long SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS;
+
+    static const long ID_BUTTON_PLAY_ANIM;
+    static const long ID_SLIDER_ANIM_SPEED;
+    static const long ID_SLIDER_ANIM_TRAIL;
+    static const long ID_ANIM_TIMER;
+
+    void SaveSubModelInfoIntoThisModel(Model* m);
+    wxString GetSelectedName() const;
+    int GetSelectedIndex() const;
+    wxString GetSelectedNames();
+    int GetSubModelInfoIndex(const wxString& str);
+    SubModelInfo* GetSubModelInfo(const wxString& str);
+    bool IsItemSelected(wxListCtrl* ctrl, int item) const;
+
+    void MoveSelectedModelsTo(int indexTo);
+    void RemoveSubModelFromList(wxString name);
+    wxString GenerateSubModelName(wxString basename);
+    bool IsUniqueName(wxString const& newname) const;
+    void ImportCustomModel(std::string filename);
+    void CreateSubmodel(const std::string& name, const std::list<std::string>& nodes);
+    void FixNodes(pugi::xml_node n, const std::string& attribute, std::map<int, int>& nodeMap);
+
+    int CalculateAlignmentOffset(int alignment, int targetSize, int sourceSize);
+    SubModelInfo* CreateSubModelFromCustomModelData(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const wxString& name,
+        int xStart,
+        int yStart,
+        std::map<int, int>& nodeMap);
+    void ImportCustomModelSubModels(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const wxString& baseName,
+        const std::map<int, int>& nodeMap);
+    wxString RemapNodesInStrand(const wxString& strand, const std::map<int, int>& nodeMap);
+    void ImportCustomModelFaces(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const std::map<int, int>& nodeMap);
+    void ImportCustomModelStates(
+        const struct XmlSerialize::CustomModelImportData& customModel,
+        const std::map<int, int>& nodeMap);
+
+    void ApplySubmodelName();
+    void PopulateList();
+    void ValidateWindow();
+    void Select(const wxString& name);
+    void SelectAll(const wxString& names);
+    void UnSelectAll();
+    void applySubmodelRowLabels(const wxString& name);
+
+    void NotifyChange();
+    void Generate();
+    void Aliases();
+    void Shift();
+    void ShiftSingleSubmodel();
+    void FlipHorizontal();
+    void FlipVertical();
+    void Reverse();
+    void RemoveDuplicates(bool suppress);
+    void RemoveAllDuplicates(bool leftright, bool suppress);
+    void MakeRowsUniform();
+    void MakeRowsUniformFront();
+    void MakeRowsUniformRear();
+    void PivotRowsColumns();
+    void CombineStrands();
+    void OrderPoints(bool wholemodel);
+
+    void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
+    void DisplayRange(const wxString& range);
+    void SelectRow(int r);
+    bool SetNodeColor(int row, xlColor const& c, bool highlight);
+    void ClearNodeColor(Model* m);
+    wxString ReverseRow(wxString row);
+
+    void ImportSubModel(std::string filename);
+    void RetrieveSubModelInfo(Model* model);
+    void ImportSubModelXML(pugi::xml_node xmlData);
+    void ImportSubModels(const std::vector<XmlSerialize::SubModelImportData>& subModels);
+    void ImportCSVSubModel(wxString const& filename);
+    wxArrayString getModelList(ModelManager* modelManager);
+    void ExportSubModels(wxString const& filename);
+    void ExportSubModelAsxModel(wxString const& filename, const std::string& name);
+    void ExportSubmodelToOtherModels();
+
+    void JoinSelectedModels(bool singlestrand);
+    void SplitSelectedSubmodel();
+    void SortSubModelsByName();
+    void Symmetrize();
+
+    void processAllStrands(std::string (*func)(const std::string&));
+    int CountNodesInRange(const wxString& range);
+    int CountLinesInRange(const wxString& range);
+
+    // Event handlers
+    void OnAddButtonClick(wxCommandEvent& event);
+    void OnDeleteButtonClick(wxCommandEvent& event);
+    void OnNameChoiceSelect(wxCommandEvent& event);
+    void OnNodesGridCellChange(wxGridEvent& event);
+    void OnNodesGridCellSelect(wxGridEvent& event);
+    void OnLayoutCheckboxClick(wxCommandEvent& event);
+    void OnAddRowButtonClick(wxCommandEvent& event);
+    void OnDeleteRowButtonClick(wxCommandEvent& event);
+    void OnSubBufferRangeChange(wxCommandEvent& event);
+    void OnTypeNotebookPageChanged(wxBookCtrlEvent& event);
+    void OnNodesGridLabelLeftClick(wxGridEvent& event);
+    void OnButton_ReverseNodesClick(wxCommandEvent& event);
+    void OnListCtrl_SubModelsItemSelect(wxListEvent& event);
+    void OnListCtrl_SubModelsBeginDrag(wxListEvent& event);
+    void OnListCtrl_SubModelsColumnClick(wxListEvent& event);
+    void OnListCtrl_SubModelsKeyDown(wxListEvent& event);
+    void OnTextCtrl_NameText_Change(wxCommandEvent& event);
+    void OnButton_ReverseRowsClick(wxCommandEvent& event);
+    void OnButton_ReverseRowClick(wxCommandEvent& event);
+    void OnButton_MoveDownClick(wxCommandEvent& event);
+    void OnButton_MoveUpClick(wxCommandEvent& event);
+    void OnButton_Sub_CopyClick(wxCommandEvent& event);
+    void OnButton_Draw_ModelClick(wxCommandEvent& event);
+    void OnNodesGridLabelLeftDClick(wxGridEvent& event);
+    void OnNodesGridCellLeftDClick(wxGridEvent& event);
+    void OnButton_SortRowClick(wxCommandEvent& event);
+    void OnButtonImportClick(wxCommandEvent& event);
+    void OnButton_EditClick(wxCommandEvent& event);
+    void OnButton_ExportClick(wxCommandEvent& event);
+    void OnListCtrl_SubModelsItemRClick(wxListEvent& event);
+    void OnChoiceBufferStyleSelect(wxCommandEvent& event);
+    void OnButton_SearchClick(wxCommandEvent& event);
+    void OnNodesGridCellRightClick(wxGridEvent& event);
+    void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+
+    void OnTimer1Trigger(wxTimerEvent& event);
+    void OnAnimTimerTick(wxTimerEvent& event);
+    void OnPlayAnimClick(wxCommandEvent& event);
+    void OnAnimSpeedChange(wxSpinEvent& event);
+
+    void ParseAnimRows();
+    void StopAnimation();
+
+    void OnImportBtnPopup(wxCommandEvent& event);
+    void OnEditBtnPopup(wxCommandEvent& event);
+    void OnExportBtnPopup(wxCommandEvent& event);
+    void OnListPopup(wxCommandEvent& event);
+    void OnNodesGridPopup(wxCommandEvent& event);
+
+    void RenderModel();
+    void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
+    void SelectAllInBoundingRect(bool shiftdwn, bool cdwn);
+    void RemoveNodes(bool suppress);
+
+    void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
+    void OnSubbufferSize(wxSizeEvent& event);
+
+    void ImportLayoutSubModel();
+    void ReadRGBEffectsFile(wxString const& filename);
+    wxString GetDownloadSubmodels();
+
+    void OnDrop(wxCommandEvent& event);
+
+    DECLARE_EVENT_TABLE()
+};

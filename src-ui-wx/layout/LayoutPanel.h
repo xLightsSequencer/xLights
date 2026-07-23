@@ -142,7 +142,6 @@ class LayoutPanel: public wxPanel
 		//*)
 
 		wxStaticText* LabelDirectoriesFooter = nullptr;
-		wxBitmapButton* ButtonDirectories = nullptr;
 		void UpdateDirectoriesFooter();
 
 		wxPanel* PanelGroups = nullptr;
@@ -344,7 +343,6 @@ class LayoutPanel: public wxPanel
 		void OnNotebook_ObjectsPageChanged(wxNotebookEvent& event);
 		//*)
 
-        void OnButtonDirectoriesClick(wxCommandEvent& event);
         void OnPreviewMotion3DButtonEvent(wxCommandEvent &event);
         void OnPreviewMotion3D(Motion3DEvent &event);
         void OnPropertyGridSelection(wxPropertyGridEvent& event);

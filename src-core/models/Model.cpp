@@ -567,9 +567,14 @@ void Model::UpdateFaceInfoNodes()
 
 void Model::UpdateStateInfoNodes()
 {
-    stateInfoNodes.clear();
+    stateInfoNodes = ComputeStateInfoNodes(stateInfo);
+}
+
+FaceStateNodes Model::ComputeStateInfoNodes(FaceStateData const& stateInfo)
+{
+    FaceStateNodes stateInfoNodes;
     for (const auto& it : stateInfo) {
-        if (stateInfo[it.first]["Type"] == "NodeRange") {
+        if (it.second.count("Type") && it.second.at("Type") == "NodeRange") {
             for (const auto& it2 : it.second) {
                 if (it2.first != "Type" && !Contains(it2.first, "Color") && it2.second != "") {
                     std::list<int> nodes;
@@ -607,6 +612,7 @@ void Model::UpdateStateInfoNodes()
             }
         }
     }
+    return stateInfoNodes;
 }
 
 void Model::WriteStateInfo(pugi::xml_node rootXml, const FaceStateData& stateInfo, bool forceCustom) {

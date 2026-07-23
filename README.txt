@@ -31,6 +31,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  "Reset to Defaults" to restore every effect in the default order
     -enh (cybercop23)            Show folders now skip the automatic base-show-folder merge (controllers, models,
                                  view objects) when the base folder has not changed since the last saved sync.
+    -enh (cybercop23)            Combine the Faces, States, and SubModels editors into a single tabbed dialog with
+                                 a shared model preview, reachable from the Layout menu and the property grid
     -enh (dkulp)                 Kaleidoscope: Triangle/Square styles render many times faster
                                  (sequences using them saw 2-5x faster total render times)
     -enh (dkulp)                 Pictures: much faster when the image is larger than the model

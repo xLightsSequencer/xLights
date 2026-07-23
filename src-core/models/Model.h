@@ -163,6 +163,10 @@ public:
     void UpdateFaceInfoNodes();
     void UpdateStateInfoNodes();
 
+    // Pure computation of node ranges from state info; exposed so UI code can
+    // resolve the overlay from in-flight (not-yet-saved) state edits.
+    [[nodiscard]] static FaceStateNodes ComputeStateInfoNodes(FaceStateData const& stateInfo);
+
      static void WriteStateInfo(pugi::xml_node fiNode, const FaceStateData& stateInfo, bool customColours = false);
 
     [[nodiscard]] virtual FaceStateData const& GetFaceInfo() const { return faceInfo; };
