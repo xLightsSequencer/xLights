@@ -1223,6 +1223,15 @@ void ModelStatesPanel::ValidateWindow()
 
 bool ModelStatesPanel::HasInvalidRows() const
 {
+    if (NodeRangeGrid->IsCellEditControlShown()) {
+        NodeRangeGrid->SaveEditControlValue();
+        NodeRangeGrid->HideCellEditControl();
+    }
+    if (SingleNodeGrid->IsCellEditControlShown()) {
+        SingleNodeGrid->SaveEditControlValue();
+        SingleNodeGrid->HideCellEditControl();
+    }
+
     wxGrid* grid = nullptr;
     if (StateTypeChoice->GetSelection() == SINGLE_NODE_STATE) {
         grid = SingleNodeGrid;
