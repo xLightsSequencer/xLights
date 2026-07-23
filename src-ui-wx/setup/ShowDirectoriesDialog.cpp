@@ -58,6 +58,12 @@ ShowDirectoriesDialog::ShowDirectoriesDialog(xLightsFrame* parent)
     gridBagSizer->Add(labelShowDir, wxGBPosition(0, 0), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
 
     ShowDirectoryLabel = new wxStaticText(this, ID_STATICTEXT_SHOWDIR, _("{Show Directory not set}"), wxDefaultPosition, wxDefaultSize, 0);
+    ShowDirectoryLabel->SetToolTip(_("Double-click to open in file manager"));
+    ShowDirectoryLabel->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent&) {
+        if (!_xLights->CurrentDir.IsEmpty()) {
+            wxLaunchDefaultApplication(_xLights->CurrentDir);
+        }
+    });
     gridBagSizer->Add(ShowDirectoryLabel, wxGBPosition(0, 1), wxDefaultSpan, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
 
     // Row 1: Show Directory Buttons (aligned under path)
@@ -77,6 +83,13 @@ ShowDirectoriesDialog::ShowDirectoriesDialog(xLightsFrame* parent)
     // Row 2: Base Show Directory Header & Path
     StaticText_BaseShowDirLabel = new wxStaticText(this, ID_STATICTEXT_BASE_LABEL, _("Base Show Directory:"), wxDefaultPosition, wxDefaultSize, 0);
     StaticText_BaseShowDir = new wxStaticText(this, ID_STATICTEXT_BASE_PATH, _("No base show directory"), wxDefaultPosition, wxDefaultSize, 0);
+    StaticText_BaseShowDir->SetToolTip(_("Double-click to open in file manager"));
+    StaticText_BaseShowDir->Bind(wxEVT_LEFT_DCLICK, [this](wxMouseEvent&) {
+        const std::string baseDir = _xLights->_outputManager.GetBaseShowDir();
+        if (!baseDir.empty()) {
+            wxLaunchDefaultApplication(baseDir);
+        }
+    });
 
     // Row 3: Base Show Directory Buttons (aligned under base path). Only built
     // when the base show folder feature is enabled, so there are no orphan
