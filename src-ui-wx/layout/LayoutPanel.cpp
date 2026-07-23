@@ -2859,6 +2859,59 @@ std::vector<Model*> LayoutPanel::GetSelectedModelsForSetActions() const
     return out;
 }
 
+void LayoutPanel::TranslateModelSet(ModelSet* s, float delta, float (BaseObject::*getter)(), void (BaseObject::*setter)(float))
+{
+    if (s == nullptr || delta == 0.0f) {
+        return;
+    }
+    for (const auto& name : s->GetMembers()) {
+        Model* mm = xlights->AllModels[name];
+        if (mm != nullptr) {
+            (mm->*setter)((mm->*getter)() + delta);
+        }
+    }
+}
+
+// Set-aware axis alignment used by the Align/Distribute handlers: a model
+// in a Set drags its whole Set rigidly by its own delta (the first aligned
+// member of a Set wins; later members are skipped so the Set only moves
+// once). Sets containing a locked model are skipped entirely. Loose models
+// move to the target individually as before.
+bool LayoutPanel::AlignSetAware(Model* model, float target, float (BaseObject::*getter)(), void (BaseObject::*setter)(float), std::set<ModelSet*>& doneSets, std::set<ModelSet*>& blockedSets)
+{
+    ModelSet* s = xlights->AllModels.GetSetManager().GetSetContaining(model->GetName());
+    if (s == nullptr) {
+        (model->*setter)(target);
+        return true;
+    }
+    if (doneSets.count(s) != 0 || blockedSets.count(s) != 0) {
+        return false;
+    }
+    if (ModelSetHasLockedMember(xlights->AllModels, s)) {
+        blockedSets.insert(s);
+        return false;
+    }
+    doneSets.insert(s);
+    TranslateModelSet(s, target - (model->*getter)(), getter, setter);
+    return true;
+}
+
+void LayoutPanel::ReportBlockedSets(const std::set<ModelSet*>& blockedSets, const wxString& operation)
+{
+    if (blockedSets.empty()) {
+        return;
+    }
+    wxString names;
+    for (ModelSet* s : blockedSets) {
+        if (!names.empty()) names += ", ";
+        names += wxString::Format("'%s'", wxString(s->GetName()));
+    }
+    const wxString msg = blockedSets.size() == 1
+        ? wxString::Format(_("Set %s was not moved because it contains a locked model."), names)
+        : wxString::Format(_("Sets %s were not moved because they contain a locked model."), names);
+    wxMessageBox(msg, operation, wxOK | wxICON_INFORMATION, this);
+}
+
 void LayoutPanel::AddModelSetOptionsToMenu(wxMenu& menu)
 {
     auto selected = GetSelectedModelsForSetActions();
@@ -7823,14 +7876,43 @@ void LayoutPanel::PreviewModelAlignWithGround()
 
     std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
 
+    auto& setMgr = xlights->AllModels.GetSetManager();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
-        if (modelPreview->GetModels()[i]->GroupSelected() || modelPreview->GetModels()[i]->Selected())
+        Model* m = modelPreview->GetModels()[i];
+        if (m->GroupSelected() || m->Selected())
         {
-            modelPreview->GetModels()[i]->SetBottom(0.0F);
+            ModelSet* s = setMgr.GetSetContaining(m->GetName());
+            if (s == nullptr) {
+                m->SetBottom(0.0F);
+                continue;
+            }
+            if (doneSets.count(s) != 0 || blockedSets.count(s) != 0) {
+                continue;
+            }
+            if (ModelSetHasLockedMember(xlights->AllModels, s)) {
+                blockedSets.insert(s);
+                continue;
+            }
+            doneSets.insert(s);
+            // Ground the Set as a rigid unit: shift every member by the same
+            // amount so the lowest member touches the ground.
+            float minBottom = std::numeric_limits<float>::max();
+            for (const auto& name : s->GetMembers()) {
+                Model* mm = xlights->AllModels[name];
+                if (mm != nullptr) {
+                    minBottom = std::min(minBottom, mm->GetBottom());
+                }
+            }
+            if (minBottom != std::numeric_limits<float>::max()) {
+                TranslateModelSet(s, -minBottom, &BaseObject::GetBottom, &BaseObject::SetBottom);
+            }
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align With Ground");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE, "LayoutPanel::PreviewModelAlignWithGround");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8032,14 +8114,17 @@ void LayoutPanel::PreviewModelAlignTops()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float top = modelPreview->GetModels()[selectedindex]->GetTop();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetTop(top);
+            AlignSetAware(modelPreview->GetModels()[i], top, &BaseObject::GetTop, &BaseObject::SetTop, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Tops");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignTops");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8054,14 +8139,17 @@ void LayoutPanel::PreviewModelAlignBottoms()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float bottom = modelPreview->GetModels()[selectedindex]->GetBottom();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetBottom(bottom);
+            AlignSetAware(modelPreview->GetModels()[i], bottom, &BaseObject::GetBottom, &BaseObject::SetBottom, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Bottoms");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBottoms");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8076,14 +8164,17 @@ void LayoutPanel::PreviewModelAlignLeft()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float left = modelPreview->GetModels()[selectedindex]->GetLeft();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetLeft(left);
+            AlignSetAware(modelPreview->GetModels()[i], left, &BaseObject::GetLeft, &BaseObject::SetLeft, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Left");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignLeft");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8098,14 +8189,17 @@ void LayoutPanel::PreviewModelAlignFronts()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float front = modelPreview->GetModels()[selectedindex]->GetFront();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if (modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetFront(front);
+            AlignSetAware(modelPreview->GetModels()[i], front, &BaseObject::GetFront, &BaseObject::SetFront, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Fronts");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignFronts");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8120,14 +8214,17 @@ void LayoutPanel::PreviewModelAlignBacks()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float back = modelPreview->GetModels()[selectedindex]->GetBack();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if (modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetBack(back);
+            AlignSetAware(modelPreview->GetModels()[i], back, &BaseObject::GetBack, &BaseObject::SetBack, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Backs");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignBacks");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8229,14 +8326,17 @@ void LayoutPanel::PreviewModelAlignRight()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float right = modelPreview->GetModels()[selectedindex]->GetRight();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetRight(right);
+            AlignSetAware(modelPreview->GetModels()[i], right, &BaseObject::GetRight, &BaseObject::SetRight, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Right");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignRight");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8251,14 +8351,17 @@ void LayoutPanel::PreviewModelAlignHCenter()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetHcenterPos();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i<modelPreview->GetModels().size(); i++)
     {
         if(modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetHcenterPos(center);
+            AlignSetAware(modelPreview->GetModels()[i], center, &BaseObject::GetHcenterPos, &BaseObject::SetHcenterPos, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Horizontal Centers");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelAlignHCenter");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8273,13 +8376,16 @@ void LayoutPanel::PreviewModelAlignVCenter()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetVcenterPos();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
         if (modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetVcenterPos(center);
+            AlignSetAware(modelPreview->GetModels()[i], center, &BaseObject::GetVcenterPos, &BaseObject::SetVcenterPos, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Vertical Centers");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVCenter");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8294,13 +8400,16 @@ void LayoutPanel::PreviewModelAlignDCenter()
 
     CreateUndoPoint("All", modelPreview->GetModels()[selectedindex]->name);
     float center = modelPreview->GetModels()[selectedindex]->GetDcenterPos();
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
     for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
         if (modelPreview->GetModels()[i]->GroupSelected())
         {
-            modelPreview->GetModels()[i]->SetDcenterPos(center);
+            AlignSetAware(modelPreview->GetModels()[i], center, &BaseObject::GetDcenterPos, &BaseObject::SetDcenterPos, doneSets, blockedSets);
         }
     }
 
+    ReportBlockedSets(blockedSets, "Align Depth Centers");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelDCenter");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8361,6 +8470,9 @@ void LayoutPanel::PreviewModelHDistribute()
 
     CreateUndoPoint("All", models.front()->name);
 
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
+
     float x = -1;
     for (const auto& it : models)
     {
@@ -8374,11 +8486,13 @@ void LayoutPanel::PreviewModelHDistribute()
         }
         else
         {
-            it->SetHcenterPos(x);
-            x += space;
+            if (AlignSetAware(it, x, &BaseObject::GetHcenterPos, &BaseObject::SetHcenterPos, doneSets, blockedSets)) {
+                x += space;
+            }
         }
     }
 
+    ReportBlockedSets(blockedSets, "Horizontal Distribute");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelHDistribute");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8416,6 +8530,9 @@ void LayoutPanel::PreviewModelVDistribute()
 
     CreateUndoPoint("All", models.front()->name);
 
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
+
     float y = -1;
     for (const auto& it : models)
     {
@@ -8429,11 +8546,13 @@ void LayoutPanel::PreviewModelVDistribute()
         }
         else
         {
-            it->SetVcenterPos(y);
-            y += space;
+            if (AlignSetAware(it, y, &BaseObject::GetVcenterPos, &BaseObject::SetVcenterPos, doneSets, blockedSets)) {
+                y += space;
+            }
         }
     }
 
+    ReportBlockedSets(blockedSets, "Vertical Distribute");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelVDistribute");
 
     ReselectTreeModels(selectedModelPaths);
@@ -8471,6 +8590,9 @@ void LayoutPanel::PreviewModelDDistribute()
 
     CreateUndoPoint("All", models.front()->name);
 
+    std::set<ModelSet*> doneSets;
+    std::set<ModelSet*> blockedSets;
+
     float z = -1;
     for (const auto& it : models)
     {
@@ -8484,11 +8606,13 @@ void LayoutPanel::PreviewModelDDistribute()
         }
         else
         {
-            it->SetDcenterPos(z);
-            z += space;
+            if (AlignSetAware(it, z, &BaseObject::GetDcenterPos, &BaseObject::SetDcenterPos, doneSets, blockedSets)) {
+                z += space;
+            }
         }
     }
 
+    ReportBlockedSets(blockedSets, "Depth Distribute");
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::PreviewModelDDistribute");
 
     ReselectTreeModels(selectedModelPaths);

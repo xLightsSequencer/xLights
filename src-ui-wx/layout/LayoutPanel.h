@@ -48,11 +48,13 @@ class wxStaticText;
 #include <vector>
 #include <list>
 #include <map>
+#include <set>
 
 class xLightsFrame;
 class ModelPreview;
 class BaseObject;
 class Model;
+class ModelSet;
 class ModelGroup;
 class ModelPropertyAdapter;
 class ViewObjectPropertyAdapter;
@@ -480,6 +482,9 @@ class LayoutPanel: public wxPanel
         void DoManageSet();
         // Returns models present in the current selection (canvas + tree).
         std::vector<Model*> GetSelectedModelsForSetActions() const;
+        void TranslateModelSet(ModelSet* s, float delta, float (BaseObject::*getter)(), void (BaseObject::*setter)(float));
+        bool AlignSetAware(Model* model, float target, float (BaseObject::*getter)(), void (BaseObject::*setter)(float), std::set<ModelSet*>& doneSets, std::set<ModelSet*>& blockedSets);
+        void ReportBlockedSets(const std::set<ModelSet*>& blockedSets, const wxString& operation);
         void AddAlignOptionsToMenu(wxMenu* mnuAlign);
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
         void AddResizeOptionsToMenu(wxMenu* mnuResize);
