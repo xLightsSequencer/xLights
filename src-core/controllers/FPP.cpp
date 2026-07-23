@@ -1531,6 +1531,8 @@ bool FPP::UploadUDPOut(const nlohmann::json &udp) {
             // destination controller IP so they survive universe/start-channel
             // renumbering; where a controller has several entries we keep the most
             // conservative cap (FPP itself collapses to the lowest rate per IP).
+            // Per-output pacing only exists in FPP 10+.
+            bool const supportsPacing = IsVersionAtLeast(10, 0, 0);
             std::map<std::string, int> pacingByAddress;
             for (int x = 0; x < (int)orig["channelOutputs"].size(); x++) {
                 const auto& co = orig["channelOutputs"][x];
@@ -1540,11 +1542,11 @@ bool FPP::UploadUDPOut(const nlohmann::json &udp) {
                 if (co.contains("interface")) {
                     newudp["channelOutputs"][0]["interface"] = GetJSONStringValue(co, "interface");
                 }
-                if (co.contains("pacingRate")) {
+                if (supportsPacing && co.contains("pacingRate")) {
                     // output-level global pacing default
                     newudp["channelOutputs"][0]["pacingRate"] = co["pacingRate"];
                 }
-                if (co.contains("universes")) {
+                if (supportsPacing && co.contains("universes")) {
                     for (const auto& u : co["universes"]) {
                         if (!u.contains("pacingRate")) {
                             continue;
@@ -1566,12 +1568,20 @@ bool FPP::UploadUDPOut(const nlohmann::json &udp) {
                     }
                 }
             }
-            if (!pacingByAddress.empty() && newudp.contains("channelOutputs")) {
+            if (supportsPacing && newudp.contains("channelOutputs")) {
                 for (auto& co : newudp["channelOutputs"]) {
                     if (!co.contains("universes")) {
                         continue;
                     }
                     for (auto& u : co["universes"]) {
+                        // Entries flagged authoritative (controller under full xLights
+                        // control) keep the xLights-set cap; others preserve whatever the
+                        // FPP already had. Strip the internal hint either way.
+                        bool const authoritative = u.contains("_xlPacingAuthoritative");
+                        u.erase("_xlPacingAuthoritative");
+                        if (authoritative) {
+                            continue;
+                        }
                         std::string addr = GetJSONStringValue(u, "address");
                         auto it = pacingByAddress.find(addr);
                         if (!addr.empty() && it != pacingByAddress.end()) {
@@ -2059,6 +2069,23 @@ nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, b
         }
         auto controllerEnabled = eth->GetActive();
         bool const allSameSize = eth->AllSameSize();
+
+        // Default UDP output pacing cap for a newly-generated entry (Mbps).
+        // Per-output pacing only exists in FPP 10+, so don't stamp it on older ones.
+        // When the controller is under full xLights control the cap is authoritative
+        // (xLights owns the config, so it overrides any value already on the FPP);
+        // otherwise it is only a seed for new entries and an existing FPP value wins
+        // (both resolved in UploadUDPOut).
+        int maxPacing = 0;
+        bool fullControlPacing = false;
+        if (!input && IsVersionAtLeast(10, 0, 0)) {
+            if (ControllerCaps* caps = ControllerCaps::GetControllerConfig(eth)) {
+                maxPacing = caps->GetMaxPacing();
+                fullControlPacing = caps->SupportsFullxLightsControl() && eth->IsFullxLightsControl();
+            }
+        }
+        size_t const pacingStartIdx = universes.size();
+
         // Get universes based on IP
         std::list<Output*> outputs = eth->GetOutputs();
         for (const auto& it : outputs) {
@@ -2154,6 +2181,20 @@ nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, b
                 universe["address"] = it->GetIP();
                 universe["type"] = 8;
                 universes.push_back(universe);
+            }
+        }
+
+        // Stamp the cap onto this controller's unicast entries only (pacing doesn't
+        // apply to multicast, which has an empty address). "_xlPacingAuthoritative"
+        // is an internal hint for UploadUDPOut and is stripped before the upload.
+        if (maxPacing > 0) {
+            for (size_t ui = pacingStartIdx; ui < universes.size(); ui++) {
+                if (!GetJSONStringValue(universes[ui], "address").empty()) {
+                    universes[ui]["pacingRate"] = maxPacing;
+                    if (fullControlPacing) {
+                        universes[ui]["_xlPacingAuthoritative"] = true;
+                    }
+                }
             }
         }
     }

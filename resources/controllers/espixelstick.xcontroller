@@ -9,6 +9,7 @@
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>512</MaxSerialPortChannels>
 			<MaxPixelPortChannels>4080</MaxPixelPortChannels>
+			<MaxPacing>30</MaxPacing>
 			<AllInputUniversesMustBeSameSize/>
 			<UniversesMustBeSequential/>
 			<SupportsAutoLayout/>
@@ -45,6 +46,7 @@
         <!--SupportsPixelPortCommonSettings/-->
 		<SupportsPixelPortZigZag/>
             <MaxZigZag>250</MaxZigZag>
+        <MaxPacing>30</MaxPacing>
         <SupportsUpload/>
         <SupportsInputOnlyUpload/>
         <SupportsAutoUpload/>

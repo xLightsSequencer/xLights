@@ -607,6 +607,13 @@ int ControllerCaps::GetMinInputUniverseChannels() const
     return (int)strtol(GetXmlNodeContent(_config, "MinInputUniverseChannels", "1").c_str(), nullptr, 10);
 }
 
+int ControllerCaps::GetMaxPacing() const
+{
+    // Default UDP output pacing/bandwidth cap (Mbps) suggested for this controller
+    // when generating a new FPP universe-outputs entry. 0 (or absent) = no cap.
+    return (int)strtol(GetXmlNodeContent(_config, "MaxPacing", "0").c_str(), nullptr, 10);
+}
+
 int ControllerCaps::GetNumberOfBanks() const
 {
     return (int)strtol(GetXmlNodeContent(_config, "NumberOfBanks", "1").c_str(), nullptr, 10);

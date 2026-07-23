@@ -9,6 +9,7 @@
         <MaxInputUniverses>9</MaxInputUniverses>
         <MaxSerialPortChannels>0</MaxSerialPortChannels>
         <MaxPixelPortChannels>2400</MaxPixelPortChannels>
+        <MaxPacing>30</MaxPacing>
         <AllInputUniversesMustBeSameSize/>
         <UniversesMustBeSequential/>
         <SupportsAutoLayout/>
