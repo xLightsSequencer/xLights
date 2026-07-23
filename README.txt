@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 FPP Connect: preserve per-controller UDP output pacing/bandwidth caps
+                                 already configured on FPP10 instead of wiping them out when
+                                 regenerating the universe outputs file
     -enh (dkulp)                 Import Effects: new "Import matrix face definitions into the sequence"
                                  option (on by default) stores imported models' Matrix faces in the
                                  sequence with images embedded, instead of adding them to your layout

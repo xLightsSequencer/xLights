@@ -1524,9 +1524,60 @@ bool FPP::UploadUDPOut(const nlohmann::json &udp) {
 
     if (GetURLAsJSON("/api/channel/output/universeOutputs", orig)) {
         if (orig.contains("channelOutputs")) {
+            // FPP owns a few universe-output settings that xLights doesn't model
+            // (the network interface, and the packet-pacing/bandwidth caps used to
+            // throttle slower controllers). Carry those forward so regenerating the
+            // outputs file doesn't wipe them out. Pacing overrides are keyed by
+            // destination controller IP so they survive universe/start-channel
+            // renumbering; where a controller has several entries we keep the most
+            // conservative cap (FPP itself collapses to the lowest rate per IP).
+            std::map<std::string, int> pacingByAddress;
             for (int x = 0; x < (int)orig["channelOutputs"].size(); x++) {
-                if (GetJSONStringValue(orig["channelOutputs"][x], "type") == "universes" && orig["channelOutputs"][x].contains("interface")) {
-                    newudp["channelOutputs"][0]["interface"] = GetJSONStringValue(orig["channelOutputs"][x], "interface");
+                const auto& co = orig["channelOutputs"][x];
+                if (GetJSONStringValue(co, "type") != "universes") {
+                    continue;
+                }
+                if (co.contains("interface")) {
+                    newudp["channelOutputs"][0]["interface"] = GetJSONStringValue(co, "interface");
+                }
+                if (co.contains("pacingRate")) {
+                    // output-level global pacing default
+                    newudp["channelOutputs"][0]["pacingRate"] = co["pacingRate"];
+                }
+                if (co.contains("universes")) {
+                    for (const auto& u : co["universes"]) {
+                        if (!u.contains("pacingRate")) {
+                            continue;
+                        }
+                        std::string addr = GetJSONStringValue(u, "address");
+                        if (addr.empty()) {
+                            continue; // pacing only applies to unicast destinations
+                        }
+                        int rate = GetJSONIntValue(u, "pacingRate", -1);
+                        if (rate < 0) {
+                            continue;
+                        }
+                        auto it = pacingByAddress.find(addr);
+                        if (it == pacingByAddress.end()) {
+                            pacingByAddress[addr] = rate;
+                        } else if (rate > 0 && (it->second <= 0 || rate < it->second)) {
+                            it->second = rate; // a real cap beats "unlimited" (0); lower Mbps wins
+                        }
+                    }
+                }
+            }
+            if (!pacingByAddress.empty() && newudp.contains("channelOutputs")) {
+                for (auto& co : newudp["channelOutputs"]) {
+                    if (!co.contains("universes")) {
+                        continue;
+                    }
+                    for (auto& u : co["universes"]) {
+                        std::string addr = GetJSONStringValue(u, "address");
+                        auto it = pacingByAddress.find(addr);
+                        if (!addr.empty() && it != pacingByAddress.end()) {
+                            u["pacingRate"] = it->second;
+                        }
+                    }
                 }
             }
         }
