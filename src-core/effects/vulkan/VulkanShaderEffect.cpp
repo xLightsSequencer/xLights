@@ -118,6 +118,36 @@ static std::string emitUBOBlock(const std::vector<UBOMember>& members) {
     return b;
 }
 
+// Many ISF/glslsandbox-converted shaders define their own version of a function
+// that is a GLSL built-in — most commonly the hyperbolic sinh/cosh/tanh, which
+// were absent from GLSL ES 1.00 / WebGL1.  The old direct-OpenGL path and the
+// Metal path (glslang EShClientOpenGL) both let a user function hide a built-in,
+// but glslang's Vulkan semantics reject the redefinition with "overloaded
+// functions must have the same parameter precision qualifiers", failing the
+// whole translation -> the effect renders solid yellow.  When the shader
+// actually DEFINES one of these names, rename every occurrence so it no longer
+// collides with the built-in.  Renaming is gated on the presence of a real
+// definition, so a bare built-in call is never turned into an undefined one.
+static std::string renameBuiltinFunctionCollisions(std::string body) {
+    static const char* const kBuiltins[] = {
+        "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"
+    };
+    static const char* const kRetType =
+        "(void|float|int|uint|bool|vec2|vec3|vec4|ivec2|ivec3|ivec4|"
+        "uvec2|uvec3|uvec4|bvec2|bvec3|bvec4|mat2|mat3|mat4)";
+    for (const char* name : kBuiltins) {
+        // A definition/prototype looks like "<returnType> <name>(" at any scope;
+        // a plain call ("y = sinh(x)") never matches because the name is not
+        // immediately preceded by a return type.
+        std::regex def(std::string("\\b") + kRetType + "\\s+" + name + "\\s*\\(");
+        if (!std::regex_search(body, def))
+            continue;
+        body = std::regex_replace(body, std::regex(std::string("\\b") + name + "\\b"),
+                                  std::string("xl_") + name);
+    }
+    return body;
+}
+
 // Rewrite the ShaderConfig-assembled fragment GLSL (desktop 330 / ES 300, loose
 // uniforms) into Vulkan-dialect GLSL, collecting the UBO member list in
 // declaration order.  Returns false only if no member list could be built.
@@ -214,6 +244,9 @@ static bool assembleVulkanGLSL(const std::string& code,
     // Strip precision qualifiers (highp/mediump/lowp) — Vulkan doesn't need them
     // and mismatched qualifiers on overloaded ISF helpers are a hard error there.
     body = std::regex_replace(body, std::regex("\\b(highp|mediump|lowp)\\s+"), "");
+    // Rename user functions that shadow GLSL built-ins (sinh/cosh/tanh/...) —
+    // legal on the GL/Metal paths but a hard error under glslang Vulkan semantics.
+    body = renameBuiltinFunctionCollisions(body);
 
     if (members.empty()) {
         return false;

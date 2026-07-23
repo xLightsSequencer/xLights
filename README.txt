@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Shader effect: ISF/GLSL shaders that define their own copy of a GLSL
+                                 built-in function (e.g. sinh/cosh/tanh) no longer fail to translate on
+                                 the Vulkan (Windows/Linux) path and render solid yellow; such user
+                                 functions are renamed so they no longer collide with the built-in
     -enh (dkulp)                 FPP Connect: preserve per-controller UDP output pacing/bandwidth caps
                                  already configured on FPP10 instead of wiping them out when
                                  regenerating the universe outputs file; new optional <MaxPacing>
