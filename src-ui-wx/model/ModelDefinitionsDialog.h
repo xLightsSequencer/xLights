@@ -12,6 +12,7 @@
 
 #include <wx/dialog.h>
 #include <wx/notebook.h>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -36,8 +37,11 @@ public:
                            Model* model, int initialTab = TAB_FACES);
     virtual ~ModelDefinitionsDialog();
 
-    bool ReloadLayout = false;
     bool IsDirty() const { return _isDirty; }
+    [[nodiscard]] bool HasContentChanged() const { return _contentChanged; }
+    // Reads live from the SubModels panel so it reflects other-model mutations
+    // (e.g. Export SubModels To Other Models) regardless of OK/Cancel outcome.
+    [[nodiscard]] bool GetReloadLayout() const;
     [[nodiscard]] const std::vector<std::pair<std::string, std::string>>& GetRenamedFaces() const;
 
 private:
@@ -59,7 +63,11 @@ private:
     OutputManager*   _outputManager     = nullptr;
     Model*           _model             = nullptr;
     bool             _isDirty           = false;
+    bool             _contentChanged    = false;
     bool             _oldOutputToLights = false;
+
+    std::map<std::string, std::map<std::string, std::string>> _originalFaceInfo;
+    std::map<std::string, std::map<std::string, std::string>> _originalStateInfo;
 
     DECLARE_EVENT_TABLE()
 };

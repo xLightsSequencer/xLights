@@ -216,7 +216,6 @@ private:
     bool _stateAnimPlaying = false;
     int _stateAnimStep = 0;
     std::vector<std::vector<int>> _stateAnimSteps;
-    bool _oldOutputToLights = false;
     OutputManager* _outputManager = nullptr;
     ModelPreview* _modelPreview = nullptr;
     std::function<void()> _changeCallback;

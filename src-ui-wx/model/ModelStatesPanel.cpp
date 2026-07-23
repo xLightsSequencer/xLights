@@ -314,21 +314,12 @@ ModelStatesPanel::ModelStatesPanel(wxWindow* parent, OutputManager* outputManage
     Bind(wxEVT_TIMER, &ModelStatesPanel::OnTimer1Trigger,       this, ID_TIMER1);
     _stateAnimTimer.SetOwner(this, ID_STATE_ANIM_TIMER);
     Bind(wxEVT_TIMER, &ModelStatesPanel::OnStateAnimTimerTick,  this, ID_STATE_ANIM_TIMER);
-
-    _oldOutputToLights = _outputManager->IsOutputting();
-    if (_oldOutputToLights) {
-        _outputManager->StopOutput();
-        SetConfigBool("OutputActive", false);
-    }
 }
 
 ModelStatesPanel::~ModelStatesPanel()
 {
     StopStateAnimation();
     StopOutputToLights();
-    if (_oldOutputToLights) {
-        if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
-    }
 }
 
 void ModelStatesPanel::SetModelPreview(ModelPreview* preview)
@@ -380,6 +371,11 @@ void ModelStatesPanel::OnDeactivate()
         _modelPreview->Unbind(wxEVT_LEAVE_WINDOW, &ModelStatesPanel::OnPreviewMouseLeave, this);
         _modelPreview->Unbind(wxEVT_LEFT_DCLICK,  &ModelStatesPanel::OnPreviewLeftDClick, this);
     }
+    // Don't leave this tab's timers driving state playback or the real
+    // controller output once it's no longer visible.
+    StopStateAnimation();
+    StopOutputToLights();
+    CheckBox_OutputToLights->SetValue(false);
 }
 
 void ModelStatesPanel::OnSingleNodeGridResize(wxSizeEvent& event)

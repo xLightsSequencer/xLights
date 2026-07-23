@@ -36,7 +36,6 @@ class OutputManager;
 class ModelManager;
 
 class ModelFacesPanel : public wxPanel {
-    const std::list<std::string> _phonemes = { "AI", "E", "etc", "FV", "L", "MBP", "O", "rest", "U", "WQ" };
 public:
     ModelFacesPanel(wxWindow* parent, OutputManager* outputManager, wxWindowID id = wxID_ANY);
     ~ModelFacesPanel();
@@ -45,6 +44,9 @@ public:
     void SetChangeCallback(std::function<void()> cb) { _changeCallback = std::move(cb); }
     void SetSubModelCallbacks(std::function<std::vector<std::string>()> getNames,
                               std::function<std::string(const std::string&)> getRanges);
+    // Live (in-flight, not-yet-saved) state info from the States tab, used by
+    // the state-outline overlay so it reflects unsaved edits.
+    void SetStateInfoCallback(std::function<std::map<std::string, std::map<std::string, std::string>>()> getStateInfo) { _getStateInfo = std::move(getStateInfo); }
     void RefreshStateOutlineChoice(const std::map<std::string, std::map<std::string, std::string>>& stateInfo);
 
     void SetFaceInfo(Model* cls, std::map<std::string, std::map<std::string, std::string>> const& info);
@@ -168,12 +170,7 @@ private:
 
     void NotifyChange();
     void PaintFace(wxDC& dc, int x, int y, const char* xpm[]);
-    void DoSetPhonemes(wxFileName fn, std::string actualkey, std::string key, int count, int row, int col,
-                       std::string name, std::list<std::string> phonemes, std::string setPhoneme);
-    void DoSetMatrixModels(wxFileName fn, std::string actualkey, std::string key, int count, int col, std::string name);
     void TryToSetAllMatrixModels(std::string name, std::string key, std::string new_filename, int row, int col);
-    bool IsValidPhoneme(const std::string phoneme) const;
-    int GetRowForPhoneme(const std::string phoneme) const;
     void TryToFindPath(wxString& filename) const;
     void ValidateMatrixGrid(int r, int c) const;
     void StartOutputToLights();
@@ -204,12 +201,12 @@ private:
     void ExportFacesToOtherModels();
 
     wxTimer timer1;
-    bool _oldOutputToLights = false;
     OutputManager* _outputManager = nullptr;
     ModelPreview* _modelPreview = nullptr;
     std::function<void()> _changeCallback;
     std::function<std::vector<std::string>()> _getSubModelNames;
     std::function<std::string(const std::string&)> _getSubModelRanges;
+    std::function<std::map<std::string, std::map<std::string, std::string>>()> _getStateInfo;
     std::vector<uint32_t> _selected;
     bool _isActive = false;
     bool m_creating_bound_rect = false;

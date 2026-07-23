@@ -70,7 +70,6 @@ class SubModelsPanel : public wxPanel {
     };
 
     wxTimer timer1;
-    bool _oldOutputToLights = false;
     OutputManager* _outputManager = nullptr;
     std::vector<uint32_t> _selected;
     Model* model = nullptr;
@@ -102,6 +101,7 @@ class SubModelsPanel : public wxPanel {
     bool shouldProcessGridCellChanged = true;
 
     std::vector<SubModelInfo*> _subModels;
+    std::vector<SubModelInfo> _originalSubModels;
 
     void StartOutputToLights();
     bool StopOutputToLights();
@@ -117,6 +117,7 @@ public:
 
     void Setup(Model* m);
     void Save();
+    [[nodiscard]] bool HasChanges() const;
 
     void OnActivate();
     void OnDeactivate();

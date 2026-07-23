@@ -303,6 +303,9 @@
     <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\model\SubModelsPanel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\models\TreeModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -316,6 +319,15 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\FaceMatrixHelpers.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\model\ModelFacesPanel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\model\ModelStatesPanel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\model\ModelDefinitionsDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\ModelDimmingCurveDialog.cpp">
@@ -1820,6 +1832,9 @@
     <ClInclude Include="..\src-ui-wx\model\SubModelsDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\model\SubModelsPanel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\models\TreeModel.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -1833,6 +1848,15 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\FaceMatrixHelpers.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\model\ModelFacesPanel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\model\ModelStatesPanel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\model\ModelDefinitionsDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\ModelDimmingCurveDialog.h">

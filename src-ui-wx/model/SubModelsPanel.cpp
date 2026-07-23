@@ -8,7 +8,6 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
- //(*InternalHeaders(SubModelsDialog)
  #include <wx/settings.h>
 #include <wx/button.h>
  #include <wx/checkbox.h>
@@ -24,7 +23,6 @@
  #include <wx/stattext.h>
  #include <wx/string.h>
  #include <wx/textctrl.h>
- //*)
 
 #include <wx/dnd.h>
 #include <wx/menu.h>
@@ -71,7 +69,6 @@
 
 // EVT_SMDROP defined in SubModelsDialog.cpp
 
-//(*IdInit(SubModelsDialog)
 const wxWindowID SubModelsPanel::ID_CHECKBOX2 = wxNewId();
 const wxWindowID SubModelsPanel::ID_STATICTEXT1 = wxNewId();
 const wxWindowID SubModelsPanel::ID_LISTCTRL_SUB_MODELS = wxNewId();
@@ -105,7 +102,6 @@ const wxWindowID SubModelsPanel::ID_PANEL5 = wxNewId();
 // ID_PANEL1 was for ModelPreviewPanelLocation which lives in the shell, not the panel
 const wxWindowID SubModelsPanel::ID_SPLITTERWINDOW1 = wxNewId();
 const wxWindowID SubModelsPanel::ID_STATICTEXT3 = wxNewId();
-//*)
 const long SubModelsPanel::ID_TIMER1 = wxNewId();
 
 const long SubModelsPanel::SUBMODEL_DIALOG_IMPORT_MODEL = wxNewId();
@@ -157,8 +153,6 @@ const long SubModelsPanel::ID_ANIM_TIMER = wxNewId();
 
 
 BEGIN_EVENT_TABLE(SubModelsPanel,wxPanel)
-	//(*EventTable(SubModelsDialog)
-    //*)
 END_EVENT_TABLE()
 
 SubModelsPanel::SubModelsPanel(wxWindow* parent, OutputManager* om) :
@@ -424,11 +418,6 @@ SubModelsPanel::SubModelsPanel(wxWindow* parent, OutputManager* om) :
     NodesGrid->SetCellHighlightPenWidth(3);
     NodesGrid->DeleteRows(0, NodesGrid->GetNumberRows());
 
-    _oldOutputToLights = _outputManager->IsOutputting();
-    if (_oldOutputToLights) {
-        _outputManager->StopOutput();
-        SetConfigBool("OutputActive", false);
-    }
 }
 
 void SubModelsPanel::OnActivate()
@@ -459,6 +448,11 @@ void SubModelsPanel::OnDeactivate()
         _modelPreview->Unbind(wxEVT_LEAVE_WINDOW, &SubModelsPanel::OnPreviewMouseLeave, this);
         _modelPreview->Unbind(wxEVT_LEFT_DCLICK,  &SubModelsPanel::OnPreviewLeftDClick, this);
     }
+    // Don't leave this tab's timers driving the animation preview or the
+    // real controller output once it's no longer visible.
+    StopAnimation();
+    StopOutputToLights();
+    CheckBox_OutputToLights->SetValue(false);
 }
 
 void SubModelsPanel::SetModelPreview(ModelPreview* preview)
@@ -485,9 +479,6 @@ SubModelsPanel::~SubModelsPanel()
 
     StopAnimation();
     StopOutputToLights();
-    if (_oldOutputToLights) {
-        if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
-    }
 }
 
 int SubModelsPanel::CountNodesInRange(const wxString& range) {
@@ -637,6 +628,15 @@ int SubModelsPanel::GetSubModelInfoIndex(const wxString &name) {
 void SubModelsPanel::Save()
 {
     SaveSubModelInfoIntoThisModel(model);
+}
+
+bool SubModelsPanel::HasChanges() const
+{
+    if (_originalSubModels.size() != _subModels.size()) return true;
+    for (size_t i = 0; i < _subModels.size(); ++i) {
+        if (_originalSubModels[i] != *_subModels[i]) return true;
+    }
+    return false;
 }
 
 std::vector<std::string> SubModelsPanel::GetCurrentSubModelNames() const
@@ -3253,6 +3253,12 @@ void SubModelsPanel::RetrieveSubModelInfo(Model* model)
         }
         _subModels.push_back(sm);
     }
+
+    _originalSubModels.clear();
+    for (const auto* sm : _subModels) {
+        _originalSubModels.push_back(*sm);
+    }
+
     PopulateList();
     ValidateWindow();
 }

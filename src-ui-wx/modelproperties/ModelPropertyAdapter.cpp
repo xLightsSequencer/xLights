@@ -81,7 +81,7 @@ public:
     FacesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
         ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_FACES);
-        if (dlg.ShowModal() == wxID_OK) {
+        if (dlg.ShowModal() == wxID_OK && dlg.HasContentChanged()) {
             if (xLightsApp::GetFrame() != nullptr) {
                 for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
                     xLightsApp::GetFrame()->GetSequenceElements().RenameModelFaceReferences(m_model->GetName(), oldName, newName);
@@ -119,7 +119,7 @@ public:
     StatesDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
         ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_STATES);
-        if (dlg.ShowModal() == wxID_OK) {
+        if (dlg.ShowModal() == wxID_OK && dlg.HasContentChanged()) {
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;
@@ -161,14 +161,17 @@ public:
     SubModelsDialogAdapter(Model* model, OutputManager* om) : wxPGEditorDialogAdapter(), m_model(model), _outputManager(om) {}
     virtual bool DoShowDialog(wxPropertyGrid* propGrid, wxPGProperty* WXUNUSED(property)) override {
         ModelDefinitionsDialog dlg(propGrid, _outputManager, m_model, TAB_SUBMODELS);
-        if (dlg.ShowModal() == wxID_OK) {
-            if (dlg.ReloadLayout) {
-                wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
-                wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
-                m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                     OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                     OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
-            }
+        bool const ok = dlg.ShowModal() == wxID_OK;
+        // Export SubModels To Other Models mutates other models immediately, so this
+        // must fire regardless of OK/Cancel - not gated inside the OK branch.
+        if (dlg.GetReloadLayout()) {
+            wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
+            wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
+            m_model->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                 OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                 OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SubModelsDialog::SubModels");
+        }
+        if (ok && dlg.HasContentChanged()) {
             wxVariant v(CLICK_TO_EDIT);
             SetValue(v);
             return true;

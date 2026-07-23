@@ -1083,14 +1083,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     CheckBoxShowNames->Reparent(layoutControlsBar);
     CheckBoxShowInfo->Reparent(layoutControlsBar);
     ButtonSavePreview->Reparent(layoutControlsBar);
-    ButtonDirectories = new wxBitmapButton(layoutControlsBar, wxID_ANY, wxArtProvider::GetBitmapBundle("wxART_FOLDER_OPEN", wxART_OTHER, FromDIP(wxSize(40, 40))), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    ButtonDirectories->SetToolTip(_("Change Directories"));
-    Connect(ButtonDirectories->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnButtonDirectoriesClick);
 
     LabelDirectoriesFooter = new wxStaticText(layoutControlsBar, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     {
         wxBoxSizer* lcbSizer = new wxBoxSizer(wxHORIZONTAL);
-        lcbSizer->Add(ButtonDirectories, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(LabelDirectoriesFooter, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->AddStretchSpacer(1);
         lcbSizer->Add(CheckBox_3D, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
@@ -1363,7 +1359,7 @@ void LayoutPanel::UpdateDirectoriesFooter()
     wxString show_dir = get_last_folder(xlights->CurrentDir);
     wxString base_dir = get_last_folder(xlights->_outputManager.GetBaseShowDir());
 
-    wxString label = "Directories:\n";
+    wxString label;
     if (xlights->IsShowBaseShowFolder()) {
         if (!base_dir.IsEmpty()) {
             label += wxString::Format("Base: %s\n", base_dir);
@@ -4329,12 +4325,6 @@ void LayoutPanel::OnButtonSavePreviewClick(wxCommandEvent& event)
     SaveEffects();
     xlights->SaveNetworksFile();
     xlights->UpdateLayoutSave(); // SaveEffects tried to do this, but if the saves are linked it is marked dirty til nets are saved.
-}
-
-void LayoutPanel::OnButtonDirectoriesClick(wxCommandEvent& event)
-{
-    wxCommandEvent dummy;
-    xlights->OnMenuOpenFolderSelected(dummy);
 }
 
 int LayoutPanel::ModelListComparator::SortElementsFunction(wxTreeListCtrl* treelist, wxTreeListItem item1, wxTreeListItem item2, unsigned sortColumn)
@@ -7848,13 +7838,13 @@ void LayoutPanel::EditSubmodels()
 
     ModelDefinitionsDialog dlg(this, &xlights->_outputManager, md, TAB_SUBMODELS);
     if (dlg.ShowModal() == wxID_OK) {
-        if (dlg.IsDirty()) {
+        if (dlg.HasContentChanged()) {
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditSubmodels");
         }
         updatePropertyGrid();
     }
-    if (dlg.ReloadLayout) {
+    if (dlg.GetReloadLayout()) {
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
         wxPostEvent(xLightsApp::GetFrame(), eventForceRefresh);
         md->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
@@ -7870,7 +7860,7 @@ void LayoutPanel::EditFaces()
 
     ModelDefinitionsDialog dlg(this, &xlights->_outputManager, md, TAB_FACES);
     if (dlg.ShowModal() == wxID_OK) {
-        if (dlg.IsDirty()) {
+        if (dlg.HasContentChanged()) {
             for (const auto& [oldName, newName] : dlg.GetRenamedFaces()) {
                 xlights->GetSequenceElements().RenameModelFaceReferences(md->GetName(), oldName, newName);
             }
@@ -7889,7 +7879,7 @@ void LayoutPanel::EditStates()
 
     ModelDefinitionsDialog dlg(this, &xlights->_outputManager, md, TAB_STATES);
     if (dlg.ShowModal() == wxID_OK) {
-        if (dlg.IsDirty()) {
+        if (dlg.HasContentChanged()) {
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditStates");
         }

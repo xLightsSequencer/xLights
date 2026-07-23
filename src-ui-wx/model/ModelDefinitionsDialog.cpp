@@ -100,13 +100,24 @@ ModelDefinitionsDialog::ModelDefinitionsDialog(wxWindow* parent, OutputManager* 
     _facesPanel->SetSubModelCallbacks(getSubModelNames, getSubModelRanges);
     _statesPanel->SetSubModelCallbacks(getSubModelNames, getSubModelRanges);
 
+    // Wire cross-tab state access so the Faces state-outline overlay reflects
+    // in-flight (not-yet-saved) States tab edits.
+    _facesPanel->SetStateInfoCallback([this] { return _statesPanel->GetStateInfo(); });
+
     // Load data into panels
-    _facesPanel->SetFaceInfo(_model, _model->GetFaceInfo());
-    _statesPanel->SetStateInfo(_model, _model->GetStateInfo());
+    _originalFaceInfo = _model->GetFaceInfo();
+    _originalStateInfo = _model->GetStateInfo();
+    _facesPanel->SetFaceInfo(_model, _originalFaceInfo);
+    _statesPanel->SetStateInfo(_model, _originalStateInfo);
+    // Seed the state-outline dropdown up front - it's otherwise only refreshed
+    // on a tab switch into Faces, leaving it empty when Faces is the initial tab.
+    _facesPanel->RefreshStateOutlineChoice(_statesPanel->GetStateInfo());
     _subModelsPanel->Setup(_model);
 
-    // Select initial tab and activate it
-    _notebook->SetSelection(initialTab);
+    // Select initial tab and activate it. ChangeSelection() (unlike SetSelection())
+    // does not fire EVT_NOTEBOOK_PAGE_CHANGED, so OnActivate() below is the only
+    // trigger - avoiding a double-bind of the preview mouse handlers.
+    _notebook->ChangeSelection(initialTab);
     switch (initialTab) {
         case TAB_FACES:     _facesPanel->OnActivate();     break;
         case TAB_STATES:    _statesPanel->OnActivate();    break;
@@ -119,6 +130,7 @@ ModelDefinitionsDialog::ModelDefinitionsDialog(wxWindow* parent, OutputManager* 
     _oldOutputToLights = _outputManager->IsOutputting();
     if (_oldOutputToLights) {
         _outputManager->StopOutput();
+        SetConfigBool("OutputActive", false);
     }
 }
 
@@ -126,7 +138,7 @@ ModelDefinitionsDialog::~ModelDefinitionsDialog()
 {
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
     if (_oldOutputToLights) {
-        _outputManager->StartOutput();
+        if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
     }
 }
 
@@ -156,12 +168,22 @@ const std::vector<std::pair<std::string, std::string>>& ModelDefinitionsDialog::
     return _facesPanel->GetRenamedFaces();
 }
 
+bool ModelDefinitionsDialog::GetReloadLayout() const
+{
+    return _subModelsPanel->ReloadLayout;
+}
+
 void ModelDefinitionsDialog::CommitAllChanges()
 {
+    bool facesChanged = _facesPanel->GetFaceInfo() != _originalFaceInfo;
+    bool statesChanged = _statesPanel->GetStateInfo() != _originalStateInfo;
+    bool subModelsChanged = _subModelsPanel->HasChanges();
+
     _model->SetFaceInfo(_facesPanel->GetFaceInfo());
     _model->SetStateInfo(_statesPanel->GetStateInfo());
     _subModelsPanel->Save();
-    ReloadLayout = _subModelsPanel->ReloadLayout;
+
+    _contentChanged = facesChanged || statesChanged || subModelsChanged;
 }
 
 void ModelDefinitionsDialog::OnNotebookPageChanged(wxBookCtrlEvent& event)
