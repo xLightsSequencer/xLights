@@ -1,14 +1,12 @@
 #pragma once
 
-// A8: HTDemucs-based 4-stem source separation. Splits the
-// AudioManager's stereo signal into drums / bass / other / vocals
-// streams via an on-device CoreML model (download-on-first-use, see
-// `AIModelStore`). Apple-only; the `.mm` implementation isn't
-// compiled on non-Apple targets and callers must guard with
-// `#ifdef __APPLE__`.
+// HTDemucs-based 4-stem source separation. Splits the AudioManager's
+// stereo signal into drums / bass / other / vocals. The build selects
+// CoreML on Apple platforms, OpenVINO where available, or ONNX Runtime
+// with DirectML/CPU on Windows.
 //
-// Model source: https://github.com/john-rocky/CoreML-Models/releases/tag/demucs-v1
-// Filename:     HTDemucs_SourceSeparation_F32.mlpackage
+// CoreML model source: https://github.com/john-rocky/CoreML-Models/releases/tag/demucs-v1
+// CoreML filename:     HTDemucs_SourceSeparation_F32.mlpackage
 // Input:        `mix` [1, 2, 343980]  stereo float @ 44.1 kHz (~7.8 s)
 // Output:       `time_output` [1, 8, 343980]  (drums L/R, bass L/R, other L/R, vocals L/R)
 

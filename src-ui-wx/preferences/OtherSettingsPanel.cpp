@@ -255,6 +255,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 #if defined(__WXMSW__) && defined(HAVE_ORT)
     {
         wxFlexGridSizer* stemSizer = new wxFlexGridSizer(0, 2, 0, 0);
+        stemSizer->AddGrowableCol(1);
         stemSizer->Add(new wxStaticText(this, wxID_ANY, _("Stem separation backend:")), 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
         StemBackendChoice = new wxChoice(this, ID_CHOICE_StemBackend);
         StemBackendChoice->Append(_("Auto"));
