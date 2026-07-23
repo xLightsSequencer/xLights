@@ -457,7 +457,7 @@ class LayoutPanel: public wxPanel
         // Returns models present in the current selection (canvas + tree).
         std::vector<Model*> GetSelectedModelsForSetActions() const;
         void TranslateModelSet(ModelSet* s, float delta, float (BaseObject::*getter)(), void (BaseObject::*setter)(float));
-        void AlignSetAware(Model* model, float target, float (BaseObject::*getter)(), void (BaseObject::*setter)(float), std::set<ModelSet*>& doneSets, std::set<ModelSet*>& blockedSets);
+        bool AlignSetAware(Model* model, float target, float (BaseObject::*getter)(), void (BaseObject::*setter)(float), std::set<ModelSet*>& doneSets, std::set<ModelSet*>& blockedSets);
         void ReportBlockedSets(const std::set<ModelSet*>& blockedSets, const wxString& operation);
         void AddAlignOptionsToMenu(wxMenu* mnuAlign);
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);

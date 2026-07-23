@@ -2716,22 +2716,23 @@ void LayoutPanel::TranslateModelSet(ModelSet* s, float delta, float (BaseObject:
 // member of a Set wins; later members are skipped so the Set only moves
 // once). Sets containing a locked model are skipped entirely. Loose models
 // move to the target individually as before.
-void LayoutPanel::AlignSetAware(Model* model, float target, float (BaseObject::*getter)(), void (BaseObject::*setter)(float), std::set<ModelSet*>& doneSets, std::set<ModelSet*>& blockedSets)
+bool LayoutPanel::AlignSetAware(Model* model, float target, float (BaseObject::*getter)(), void (BaseObject::*setter)(float), std::set<ModelSet*>& doneSets, std::set<ModelSet*>& blockedSets)
 {
     ModelSet* s = xlights->AllModels.GetSetManager().GetSetContaining(model->GetName());
     if (s == nullptr) {
         (model->*setter)(target);
-        return;
+        return true;
     }
     if (doneSets.count(s) != 0 || blockedSets.count(s) != 0) {
-        return;
+        return false;
     }
     if (ModelSetHasLockedMember(xlights->AllModels, s)) {
         blockedSets.insert(s);
-        return;
+        return false;
     }
     doneSets.insert(s);
     TranslateModelSet(s, target - (model->*getter)(), getter, setter);
+    return true;
 }
 
 void LayoutPanel::ReportBlockedSets(const std::set<ModelSet*>& blockedSets, const wxString& operation)
@@ -2744,8 +2745,10 @@ void LayoutPanel::ReportBlockedSets(const std::set<ModelSet*>& blockedSets, cons
         if (!names.empty()) names += ", ";
         names += wxString::Format("'%s'", wxString(s->GetName()));
     }
-    wxMessageBox(wxString::Format(_("Set %s was not moved because it contains a locked model."), names),
-                 operation, wxOK | wxICON_INFORMATION, this);
+    const wxString msg = blockedSets.size() == 1
+        ? wxString::Format(_("Set %s was not moved because it contains a locked model."), names)
+        : wxString::Format(_("Sets %s were not moved because they contain a locked model."), names);
+    wxMessageBox(msg, operation, wxOK | wxICON_INFORMATION, this);
 }
 
 void LayoutPanel::AddModelSetOptionsToMenu(wxMenu& menu)
@@ -8308,8 +8311,9 @@ void LayoutPanel::PreviewModelHDistribute()
         }
         else
         {
-            AlignSetAware(it, x, &BaseObject::GetHcenterPos, &BaseObject::SetHcenterPos, doneSets, blockedSets);
-            x += space;
+            if (AlignSetAware(it, x, &BaseObject::GetHcenterPos, &BaseObject::SetHcenterPos, doneSets, blockedSets)) {
+                x += space;
+            }
         }
     }
 
@@ -8367,8 +8371,9 @@ void LayoutPanel::PreviewModelVDistribute()
         }
         else
         {
-            AlignSetAware(it, y, &BaseObject::GetVcenterPos, &BaseObject::SetVcenterPos, doneSets, blockedSets);
-            y += space;
+            if (AlignSetAware(it, y, &BaseObject::GetVcenterPos, &BaseObject::SetVcenterPos, doneSets, blockedSets)) {
+                y += space;
+            }
         }
     }
 
@@ -8426,8 +8431,9 @@ void LayoutPanel::PreviewModelDDistribute()
         }
         else
         {
-            AlignSetAware(it, z, &BaseObject::GetDcenterPos, &BaseObject::SetDcenterPos, doneSets, blockedSets);
-            z += space;
+            if (AlignSetAware(it, z, &BaseObject::GetDcenterPos, &BaseObject::SetDcenterPos, doneSets, blockedSets)) {
+                z += space;
+            }
         }
     }
 
