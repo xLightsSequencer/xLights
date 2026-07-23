@@ -1768,6 +1768,10 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsEnablePositionZones", &_enablePositionZones, true);
     config->Read("xLightsShowZoneIndicator", &_showZoneIndicator, false);
 
+    // Read before the initial SetDir() call below so the preference is honored on the first show folder load.
+    config->Read("xLightsKeybindingsLocation", &_keybindingsLocation, "Show Folder");
+    spdlog::debug("Keybindings location: {}.", _keybindingsLocation.ToStdString());
+
     config->Read("xLightsVideoExportCodec", &_videoExportCodec, "H.264");
     spdlog::debug("Video Export Codec: {}.", (const char*)_videoExportCodec.c_str());
 
@@ -3256,16 +3260,21 @@ void xLightsFrame::DoBackup(bool prompt, bool startup, bool forceallfiles)
     std::string errors = "";
     BackupDirectory(CurrentDir, newDir, newDir, forceallfiles, _backupSubfolders, errors);
 
-    // Key bindings live in AppData, not the show folder — copy them into the backup too
+    // Key bindings can live in the show folder and/or AppData
     {
-        wxFileName appDataKbf;
-        appDataKbf.AssignDir(wxString(GetSettingsFilePath().parent_path().wstring()));
-        appDataKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
-        if (appDataKbf.FileExists()) {
+        bool useAppData = (GetKeybindingsLocation() == "AppData-shared");
+        wxFileName preferredKbf;
+        preferredKbf.AssignDir(useAppData ? wxString(GetSettingsFilePath().parent_path().wstring()) : CurrentDir);
+        preferredKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+        wxFileName otherKbf;
+        otherKbf.AssignDir(useAppData ? CurrentDir : wxString(GetSettingsFilePath().parent_path().wstring()));
+        otherKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+
+        wxFileName backupSource = FileExists(preferredKbf) ? preferredKbf : otherKbf;
+        if (FileExists(backupSource)) {
             wxString kbfDest = newDir + GetPathSeparator() + XLIGHTS_KEYBINDING_FILE;
-            if (!wxCopyFile(appDataKbf.GetFullPath(), kbfDest)) {
-                spdlog::warn("Failed to backup key bindings from AppData: {}",
-                             appDataKbf.GetFullPath().ToStdString());
+            if (!wxCopyFile(backupSource.GetFullPath(), kbfDest)) {
+                spdlog::warn("Failed to backup key bindings from {}", backupSource.GetFullPath().ToStdString());
             }
         }
     }
@@ -8604,12 +8613,40 @@ void xLightsFrame::SetUserEMAIL(const wxString& e)
 
 void xLightsFrame::SetRenameModelAliasPromptBehavior(const wxString& e)
 {
-    
+
     _aliasRenameBehavior = e;
     auto* config = GetXLightsConfig();
     config->Write("xLightsModelRename", _aliasRenameBehavior);
     config->Flush();
     spdlog::info("Rename Alias Prompt Behavior set to {}", _aliasRenameBehavior.ToStdString());
+}
+
+void xLightsFrame::SetKeybindingsLocation(const wxString& e)
+{
+    // If switching to a location that has no keybindings file yet, seed it with a
+    // one-time copy from the other (existing) location, so we don't lose bindings
+    bool useAppData = (e == "AppData-shared");
+    wxFileName showFolderKbf;
+    showFolderKbf.AssignDir(CurrentDir);
+    showFolderKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+    wxFileName appDataKbf;
+    appDataKbf.AssignDir(wxString(GetSettingsFilePath().parent_path().wstring()));
+    appDataKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+
+    const wxFileName& newKbf = useAppData ? appDataKbf : showFolderKbf;
+    const wxFileName& otherKbf = useAppData ? showFolderKbf : appDataKbf;
+    if (!FileExists(newKbf) && FileExists(otherKbf)) {
+        if (!wxCopyFile(otherKbf.GetFullPath(), newKbf.GetFullPath())) {
+            spdlog::warn("Failed to seed key bindings file {} from {}",
+                         newKbf.GetFullPath().ToStdString(), otherKbf.GetFullPath().ToStdString());
+        }
+    }
+
+    _keybindingsLocation = e;
+    auto* config = GetXLightsConfig();
+    config->Write("xLightsKeybindingsLocation", _keybindingsLocation);
+    config->Flush();
+    spdlog::info("Keybindings location set to {}", _keybindingsLocation.ToStdString());
 }
 
 void xLightsFrame::CollectUserEmail()
@@ -9041,13 +9078,20 @@ void xLightsFrame::OnMenuItemRestoreBackupSelected(wxCommandEvent& event)
         std::string errors;
         for (auto const& file : restoreFiles) {
             prgs.Pulse("Restoring '" + file + "'...");
-            // Key bindings are stored in AppData, not the show folder
-            wxString destDir = showDirectory;
             if (file == XLIGHTS_KEYBINDING_FILE) {
-                destDir = wxString(GetSettingsFilePath().parent_path().wstring());
+                // Key bindings are kept in sync in both the show folder and AppData
+                wxString appDataDir = wxString(GetSettingsFilePath().parent_path().wstring());
+                bool successShowFolder = wxCopyFile(restoreFolder + GetPathSeparator() + file,
+                                                     showDirectory + GetPathSeparator() + file);
+                bool successAppData = wxCopyFile(restoreFolder + GetPathSeparator() + file,
+                                                  appDataDir + GetPathSeparator() + file);
+                if (!successShowFolder || !successAppData) {
+                    errors += "Unable to copy file \"" + file + "\"\n";
+                }
+                continue;
             }
             bool success = wxCopyFile(restoreFolder + GetPathSeparator() + file,
-                                      destDir + GetPathSeparator() + file);
+                                      showDirectory + GetPathSeparator() + file);
             if (!success) {
                 errors += "Unable to copy file \"" + file + "\"\n";
             }

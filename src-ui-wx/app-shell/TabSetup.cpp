@@ -439,24 +439,21 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir");
     spdlog::debug("    Networks updated.");
 
-    wxFileName kbf;
-    kbf.AssignDir(wxString(GetSettingsFilePath().parent_path().wstring()));
-    kbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+    wxFileName showFolderKbf;
+    showFolderKbf.AssignDir(CurrentDir);
+    showFolderKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
 
-    // One-time migration: copy from show folder to AppData if not yet there
-    if (!kbf.FileExists()) {
-        wxFileName legacy;
-        legacy.AssignDir(CurrentDir);
-        legacy.SetFullName(XLIGHTS_KEYBINDING_FILE);
-        if (legacy.FileExists()) {
-            if (!wxCopyFile(legacy.GetFullPath(), kbf.GetFullPath())) {
-                spdlog::warn("Failed to migrate key bindings from show folder to AppData: {}",
-                             legacy.GetFullPath().ToStdString());
-            }
-        }
-    }
+    wxFileName appDataKbf;
+    appDataKbf.AssignDir(wxString(GetSettingsFilePath().parent_path().wstring()));
+    appDataKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
 
-    mainSequencer->keyBindings.Load(kbf);
+    // Key bindings can live in the show folder and/or AppData
+    bool useAppData = (GetKeybindingsLocation() == "AppData-shared");
+    const wxFileName& preferredKbf = useAppData ? appDataKbf : showFolderKbf;
+    const wxFileName& otherKbf = useAppData ? showFolderKbf : appDataKbf;
+
+    mainSequencer->keyBindings.SetAdditionalSaveLocation(otherKbf);
+    mainSequencer->keyBindings.Load(preferredKbf);
 
     // Merge controllers from base show folder before loading effects file
     // (model/view object XML merging now happens inside LoadEffectsFile before LoadModels)
