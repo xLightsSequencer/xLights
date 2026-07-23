@@ -153,7 +153,20 @@ void LifeEffect::RenderLifeGenerationISPC(RenderBuffer& buffer, int type)
         }
     });
 
+    // Snapshot the clean generation for the next frame before the DMX routing
+    // below repurposes pixelVector entries as channel values.
     buffer.CopyPixelsToTempBuf();
+
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel(); the raw uint32_t
+        // write above touched every channel in the buffer (sized to the DMX
+        // channel count, not just node 0), so clear it back to transparent first —
+        // otherwise leftover generation colors leak into unrelated channels
+        // (pan/tilt, shutter, etc.) that SetPixelDMXModel doesn't itself set.
+        xlColor c = buffer.GetPixel(0, 0);
+        buffer.Clear();
+        buffer.SetPixel(0, 0, c);
+    }
 }
 
 void LifeEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)

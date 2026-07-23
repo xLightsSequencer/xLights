@@ -51,6 +51,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (floodlights, moving heads, etc.); the ISPC-accelerated render path wrote raw pixel data
                                  instead of routing through SetPixel(), which is what spreads a colour across a DMX
                                  fixture's channels (#6719)
+    -bug (cybercop23)            Fix Candle/Fan/Garlands/Kaleidoscope/Life/Meteors/Shimmer/Tree/Twinkle/Wave effects
+                                 also producing no output on DMX models, same root cause as above (#6719)
     -bug (derwin12)              Effect wheel: dropping an effect near an existing effect could
                                  overwrite it instead of sizing to the available gap
     -bug (derwin12)              Zoom out to show last effect ignored effects on submodels/strands/nodes,

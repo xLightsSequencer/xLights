@@ -163,6 +163,15 @@ void ShimmerEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Rende
     sdata.colorCount = colorcnt;
     sdata.frameSeed = buffer.hashRandomFrameSeed();
 
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel()
+        const ispc::uint8_t4* singleLut = reinterpret_cast<const ispc::uint8_t4*>(lut.data());
+        ispc::uint8_t4 single = {};
+        ispc::ShimmerEffectISPC(&sdata, 0, 1, singleLut, &single);
+        buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+        return;
+    }
+
     // Bound the ISPC writes by the actual pixel allocation, not the logical
     // dimensions (variable sub-buffers can leave GetPixelCount() smaller
     // than BufferWi*BufferHt) — the kernel has no bounds check.

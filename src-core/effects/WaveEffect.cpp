@@ -430,10 +430,19 @@ void WaveEffect::RenderWaveISPC(const WaveKernelConfig &cfg, const std::vector<i
         wd.palColors[i].v[3] = cfg.palColors[i].alpha;
     }
 
+    const int32_t *colsPtr = cols.data();
+
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel()
+        ispc::uint8_t4 single = {};
+        ispc::WaveEffectISPC(&wd, colsPtr, 0, 1, &single);
+        buffer.SetPixel(0, 0, xlColor(single.v[0], single.v[1], single.v[2], single.v[3]));
+        return;
+    }
+
     // Clamp to the real allocation: a variable sub-buffer can have
     // GetPixelCount() < BufferWi*BufferHt and the kernel writes unguarded.
     int max = std::min<int>(buffer.GetPixelCount(), buffer.BufferWi * buffer.BufferHt);
-    const int32_t *colsPtr = cols.data();
     constexpr int waveBlockSize = 4096;
     int blocks = max / waveBlockSize + 1;
     parallel_for(0, blocks, [&wd, &buffer, max, colsPtr](int block) {

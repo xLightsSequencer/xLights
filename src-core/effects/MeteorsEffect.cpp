@@ -313,6 +313,17 @@ void MeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParam
             renderLine(line);
         }
     }
+
+    if (buffer.dmx_buffer) {
+        // DMX fixtures need the colour routed through SetPixel(); the raw uint8_t4
+        // writes above touched every channel in the buffer (sized to the DMX
+        // channel count, not just node 0), so clear it back to transparent first —
+        // otherwise leftover meteor/trail colors leak into unrelated channels
+        // (pan/tilt, shutter, etc.) that SetPixelDMXModel doesn't itself set.
+        xlColor c = buffer.GetPixel(0, 0);
+        buffer.Clear();
+        buffer.SetPixel(0, 0, c);
+    }
 }
 
 
