@@ -163,12 +163,7 @@ class LayoutPanel: public wxPanel
 		wxScrolledWindow* ViewObjectWindow = nullptr;
 		wxScrolledWindow* ModelGroupWindow = nullptr;
         wxPanel* ModelPanelContainer = nullptr;
-        wxPanel* SettingsPaneContainer = nullptr;   // "ModelSettings" pane window: propertyEditor + no-selection placeholder
-        wxPanel* _noSelectionPanel = nullptr;
-        wxStaticText* _noSelectionTitle = nullptr;
-        wxStaticText* _noSelectionBody = nullptr;
-        wxString _noSelectionBodyText;
-        void ShowSettingsEmptyState(const wxString& title, const wxString& body);
+        wxPanel* SettingsPaneContainer = nullptr;   // "ModelSettings" pane window: propertyEditor / ModelGroupWindow / controllerProps
         void ShowSettingsPropGrid();
         wxAuiManager* layout_mgr = nullptr;
         wxString _savedFloatingPerspective;

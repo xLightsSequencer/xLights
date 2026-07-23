@@ -993,36 +993,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     FirstPanel->Reparent(ModelPanelContainer);
 
-    // The settings pane hosts either the property grid or, when the active
-    // notebook page has nothing selected, an iPad-style placeholder telling
-    // the user what to pick.  Only one of the two children is shown at a time.
+    // The settings pane hosts the property grid, the model-group editor, or
+    // the controller properties panel — only one is shown at a time.
     SettingsPaneContainer = new wxPanel(ModelPanelContainer, wxID_ANY);
     propertyEditor->Reparent(SettingsPaneContainer);
-    _noSelectionPanel = new wxPanel(SettingsPaneContainer, wxID_ANY);
-    {
-        wxBoxSizer* vs = new wxBoxSizer(wxVERTICAL);
-        _noSelectionTitle = new wxStaticText(_noSelectionPanel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
-        wxFont f = _noSelectionTitle->GetFont();
-        f.MakeBold();
-        f.SetPointSize(f.GetPointSize() + 2);
-        _noSelectionTitle->SetFont(f);
-        _noSelectionBody = new wxStaticText(_noSelectionPanel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
-        _noSelectionBody->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-        vs->AddStretchSpacer(1);
-        vs->Add(_noSelectionTitle, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 6);
-        vs->Add(_noSelectionBody, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxBOTTOM, 12);
-        vs->AddStretchSpacer(2);
-        _noSelectionPanel->SetSizer(vs);
-        // wxStaticText doesn't auto-wrap; re-wrap the body to the pane width
-        _noSelectionPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
-            e.Skip();
-            if (!_noSelectionBodyText.empty()) {
-                _noSelectionBody->SetLabel(_noSelectionBodyText);
-                _noSelectionBody->Wrap(std::max(120, e.GetSize().GetWidth() - 24));
-                _noSelectionPanel->Layout();
-            }
-        });
-    }
     ModelGroupWindow->Reparent(SettingsPaneContainer);
 
     ModelSplitter->Destroy();
@@ -1033,10 +1007,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     {
         wxBoxSizer* spSizer = new wxBoxSizer(wxVERTICAL);
         spSizer->Add(propertyEditor, 1, wxEXPAND);
-        spSizer->Add(_noSelectionPanel, 1, wxEXPAND);
         spSizer->Add(ModelGroupWindow, 1, wxEXPAND);
         spSizer->Add(controllerProps, 1, wxEXPAND);
-        spSizer->Hide(_noSelectionPanel);
         spSizer->Hide(ModelGroupWindow);
         spSizer->Hide(controllerProps);
         SettingsPaneContainer->SetSizer(spSizer);
@@ -3865,51 +3837,30 @@ void LayoutPanel::ShowSettingsPropGrid()
 {
     if (SettingsPaneContainer == nullptr) return;
     wxSizer* s = SettingsPaneContainer->GetSizer();
-    s->Hide(_noSelectionPanel);
     s->Hide(ModelGroupWindow);
     s->Hide(controllerProps);
     s->Show(propertyEditor);
     SettingsPaneContainer->Layout();
 }
 
-void LayoutPanel::ShowSettingsEmptyState(const wxString& title, const wxString& body)
-{
-    if (SettingsPaneContainer == nullptr) return;
-    _noSelectionTitle->SetLabel(title);
-    _noSelectionBodyText = body;
-    _noSelectionBody->SetLabel(body);
-    _noSelectionBody->Wrap(std::max(120, _noSelectionPanel->GetClientSize().GetWidth() - 24));
-    wxSizer* s = SettingsPaneContainer->GetSizer();
-    s->Hide(propertyEditor);
-    s->Hide(ModelGroupWindow);
-    s->Hide(controllerProps);
-    s->Show(_noSelectionPanel);
-    SettingsPaneContainer->Layout();
-    _noSelectionPanel->Layout();
-}
-
 void LayoutPanel::showBackgroundProperties()
 {
-    // The bottom pane content is page-dependent: background properties only
-    // belong to the 3D Objects page; Models/Groups get a "nothing selected"
-    // placeholder and the Controllers page manages its own pane entirely.
+    // With nothing selected, the bottom pane shows the global layout/background
+    // properties for whichever page is active (Models, Groups, 3D Objects).
+    // The Controllers page manages its own pane entirely.
     const ObjectsPage page = CurrentObjectsPage();
     if (page == ObjectsPage::Controllers) {
         return;
     }
 
-    // Ensure ModelSettings is visible with a page-appropriate caption
+    // Ensure ModelSettings is visible. Nothing is selected on any of these
+    // pages, so the pane always shows the global background/layout
+    // properties — caption it accordingly rather than per-page.
     if (layout_mgr != nullptr) {
         bool needUpdate = false;
         wxAuiPaneInfo& ms = layout_mgr->GetPane("ModelSettings");
         if (ms.IsOk()) {
-            if (page == ObjectsPage::Models) {
-                ms.Caption("Model Properties");
-            } else if (page == ObjectsPage::Groups) {
-                ms.Caption("Group Properties");
-            } else {
-                ms.Caption("Background Properties");
-            }
+            ms.Caption("Background Properties");
             if (!ms.IsShown()) { ms.Show(); needUpdate = true; }
             else needUpdate = true; // caption change still needs Update()
         }
@@ -3921,17 +3872,6 @@ void LayoutPanel::showBackgroundProperties()
             UpdateLayoutSplitter();
         }
         mPropGridActive = true;
-    }
-
-    if (page == ObjectsPage::Models) {
-        ShowSettingsEmptyState("No model selected",
-            "Select a model in the list above — or click one in the preview — to view and edit its properties here.");
-        return;
-    }
-    if (page == ObjectsPage::Groups) {
-        ShowSettingsEmptyState("No group selected",
-            "Select a group in the list above to edit its settings and the models it contains.");
-        return;
     }
 
     ShowSettingsPropGrid();
@@ -11803,7 +11743,6 @@ void LayoutPanel::UpdateSettingsPaneForPage() {
         if (SettingsPaneContainer != nullptr) {
             wxSizer* s = SettingsPaneContainer->GetSizer();
             s->Hide(propertyEditor);
-            s->Hide(_noSelectionPanel);
             s->Hide(ModelGroupWindow);
             s->Show(controllerProps);
             SettingsPaneContainer->Layout();
@@ -11816,7 +11755,7 @@ void LayoutPanel::UpdateSettingsPaneForPage() {
     } else {
         controllers_panel->ClearPreviewHighlights();
         if (selectedBaseObject == nullptr) {
-            // nothing selected on the new page — show its placeholder /
+            // nothing selected on the new page — show its global layout /
             // background properties rather than whatever was there before
             showBackgroundProperties();
         } else {
@@ -11840,7 +11779,6 @@ void LayoutPanel::ShowPropGrid(bool show) {
     if (show) {
         if (SettingsPaneContainer != nullptr) {
             wxSizer* s = SettingsPaneContainer->GetSizer();
-            s->Hide(_noSelectionPanel);
             s->Hide(ModelGroupWindow);
             s->Hide(controllerProps);
             s->Show(propertyEditor);
@@ -11854,7 +11792,6 @@ void LayoutPanel::ShowPropGrid(bool show) {
         if (SettingsPaneContainer != nullptr) {
             wxSizer* s = SettingsPaneContainer->GetSizer();
             s->Hide(propertyEditor);
-            s->Hide(_noSelectionPanel);
             s->Hide(controllerProps);
             s->Show(ModelGroupWindow);
             SettingsPaneContainer->Layout();
