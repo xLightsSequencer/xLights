@@ -19,6 +19,12 @@
 
 class AudioManager;
 
+enum class StemSeparatorBackend {
+    Auto = 0,
+    Cpu = 1,
+    Gpu = 2
+};
+
 struct StemOutput {
     std::vector<float> drumsL, drumsR;
     std::vector<float> bassL, bassR;
@@ -37,6 +43,7 @@ struct StemSeparatorOptions {
     // with a linear taper keeps chunk boundaries from clicking.
     // 0 = pure concatenation (fastest, audible click at seams).
     int overlapSamples = 4410; // 100 ms
+    StemSeparatorBackend backend = StemSeparatorBackend::Auto;
 };
 
 // Synchronous. Loads the model at `modelPath`, runs inference, and

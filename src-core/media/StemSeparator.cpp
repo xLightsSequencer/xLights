@@ -11,8 +11,12 @@
 #include "kiss_fft/tools/kiss_fftr.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <cctype>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <string>
 #include <vector>
 
 #ifdef __APPLE__
@@ -366,29 +370,65 @@ bool SeparateStems(AudioManager* audio,
     const int64_t waveformShape[] = {1, 2, (int64_t)chunkFrames};
     auto memInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
+    std::string requestedBackend;
+    switch (opts.backend) {
+    case StemSeparatorBackend::Cpu: requestedBackend = "cpu"; break;
+    case StemSeparatorBackend::Gpu: requestedBackend = "gpu"; break;
+    case StemSeparatorBackend::Auto: requestedBackend = "auto"; break;
+    }
+    if (const char* value = std::getenv("XLIGHTS_STEM_BACKEND")) {
+        requestedBackend = value;
+        std::transform(requestedBackend.begin(), requestedBackend.end(), requestedBackend.begin(),
+                       [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    }
+
+    bool useDML = requestedBackend != "cpu";
+    bool allowCpuFallback = requestedBackend == "auto" || requestedBackend.empty();
+    if (requestedBackend != "auto" && requestedBackend != "cpu" &&
+        requestedBackend != "gpu" && requestedBackend != "directml" && !requestedBackend.empty()) {
+        spdlog::warn("SeparateStems: unknown XLIGHTS_STEM_BACKEND='{}'; using auto", requestedBackend);
+        requestedBackend = "auto";
+        useDML = true;
+        allowCpuFallback = true;
+    }
+    spdlog::info("SeparateStems: requested Windows backend '{}'", requestedBackend.empty() ? "auto" : requestedBackend);
+
     auto makeSession = [&](bool withDML) {
         Ort::SessionOptions sopts;
         sopts.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
         sopts.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
         if (withDML) {
-            try {
-                Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_DML(sopts, 0));
-                spdlog::info("SeparateStems: DirectML GPU provider enabled (device 0)");
-            } catch (const Ort::Exception& e) {
-                spdlog::warn("SeparateStems: DirectML unavailable ({}), using CPU", e.what());
-            }
+            sopts.DisableMemPattern();
+            Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_DML(sopts, 0));
+            spdlog::info("SeparateStems: DirectML GPU provider enabled (device 0)");
         } else {
             spdlog::info("SeparateStems: running on CPU");
         }
         return Ort::Session(env, wpath.c_str(), sopts);
     };
 
-    Ort::Session session = makeSession(true);
+    std::unique_ptr<Ort::Session> session;
+    try {
+        session = std::make_unique<Ort::Session>(makeSession(useDML));
+    } catch (const Ort::Exception& e) {
+        if (!useDML || !allowCpuFallback) {
+            spdlog::error("SeparateStems: {} session creation failed: {}", useDML ? "DirectML" : "CPU", e.what());
+            return false;
+        }
+        spdlog::warn("SeparateStems: DirectML session creation failed ({}), using CPU", e.what());
+        useDML = false;
+        try {
+            session = std::make_unique<Ort::Session>(makeSession(false));
+        } catch (const Ort::Exception& cpuError) {
+            spdlog::error("SeparateStems: CPU session creation failed: {}", cpuError.what());
+            return false;
+        }
+    }
 
     Ort::AllocatorWithDefaultOptions allocator;
-    auto inputName0  = session.GetInputNameAllocated(0, allocator);
-    auto outputName0 = session.GetOutputNameAllocated(0, allocator);
-    auto outShape    = session.GetOutputTypeInfo(0).GetTensorTypeAndShapeInfo().GetShape();
+    auto inputName0  = session->GetInputNameAllocated(0, allocator);
+    auto outputName0 = session->GetOutputNameAllocated(0, allocator);
+    auto outShape    = session->GetOutputTypeInfo(0).GetTensorTypeAndShapeInfo().GetShape();
     // [1, S, 2, N] where S = number of stems (4 or 6). We map first 4: drums/bass/other/vocals.
     const bool isFourDim = (outShape.size() == 4);
     spdlog::info("SeparateStems: output '{}' {} stems, {} dims",
@@ -398,7 +438,8 @@ bool SeparateStems(AudioManager* audio,
     const char* outputNames[] = {outputName0.get()};
     const long totalChunks = (trackSize + stride - 1) / stride;
 
-    for (int attempt = 0; attempt < 2; attempt++) {
+    const int attemptCount = useDML && allowCpuFallback ? 2 : 1;
+    for (int attempt = 0; attempt < attemptCount; attempt++) {
         out.drumsL.assign(trackSize, 0.0f);  out.drumsR.assign(trackSize, 0.0f);
         out.bassL.assign(trackSize, 0.0f);   out.bassR.assign(trackSize, 0.0f);
         out.otherL.assign(trackSize, 0.0f);  out.otherR.assign(trackSize, 0.0f);
@@ -423,9 +464,9 @@ bool SeparateStems(AudioManager* audio,
                 Ort::Value inputTensor = Ort::Value::CreateTensor<float>(
                     memInfo, waveformBuf.data(), waveformBuf.size(), waveformShape, 3);
 
-                auto outputs = session.Run(Ort::RunOptions{nullptr},
-                                           inputNames, &inputTensor, 1,
-                                           outputNames, 1);
+                auto outputs = session->Run(Ort::RunOptions{nullptr},
+                                            inputNames, &inputTensor, 1,
+                                            outputNames, 1);
 
                 const float* outData = outputs[0].GetTensorMutableData<float>();
 
@@ -469,12 +510,18 @@ bool SeparateStems(AudioManager* audio,
             if (cancelled) {
                 return false;
             }
-            if (attempt == 0) {
+            if (useDML && allowCpuFallback && attempt == 0) {
                 spdlog::warn("SeparateStems: DirectML inference failed ({}), retrying on CPU", e.what());
-                session = makeSession(false);
+                try {
+                    session = std::make_unique<Ort::Session>(makeSession(false));
+                } catch (const Ort::Exception& cpuError) {
+                    spdlog::error("SeparateStems: CPU session creation failed: {}", cpuError.what());
+                    return false;
+                }
+                useDML = false;
                 needRetry = true;
             } else {
-                spdlog::error("SeparateStems: CPU inference failed: {}", e.what());
+                spdlog::error("SeparateStems: {} inference failed: {}", useDML ? "DirectML" : "CPU", e.what());
                 return false;
             }
         }

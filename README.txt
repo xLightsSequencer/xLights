@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  built-in function (e.g. sinh/cosh/tanh) no longer fail to translate on
                                  the Vulkan (Windows/Linux) path and render solid yellow; such user
                                  functions are renamed so they no longer collide with the built-in
+    -enh (mpl13)                 Windows stem separation can select Auto, CPU, or GPU in Preferences;
+                                 CPU avoids graphics-driver crashes that cannot be caught by automatic fallback
     -enh (dkulp)                 FPP Connect: preserve per-controller UDP output pacing/bandwidth caps
                                  already configured on FPP10 instead of wiping them out when
                                  regenerating the universe outputs file; new optional <MaxPacing>
