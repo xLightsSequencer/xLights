@@ -418,6 +418,12 @@ public:
     void AddEmbeddedImage(const std::string& name, const xlImage& image);
     void AddEmbeddedImage(const std::string& name, const std::string& imageData);
     void AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs);
+    // Embed an image directly from a file on disk, keyed by `name` (which need
+    // not equal `sourceFilePath` - used by import to embed under the path the
+    // definition references while reading the bytes from an extracted/resolved
+    // physical file). Preserves the original file bytes/format. No-op if `name`
+    // is already cached or the file can't be read.
+    void AddEmbeddedImageFromFile(const std::string& name, const std::string& sourceFilePath);
     void ExtractImage(const std::string& filepath);
     void ExtractAllImages();
     bool ExtractImageToFile(const std::string& oldPath, const std::string& newPath);

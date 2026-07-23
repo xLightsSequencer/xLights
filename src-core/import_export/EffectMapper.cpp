@@ -122,6 +122,14 @@ void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                         }
                     }
                 }
+                // Optionally bring a source *model* Matrix face definition into the
+                // target sequence (embedded) instead of onto the mapped model. Runs
+                // for plain .xsq imports too (FixAndImportMedia isn't called there).
+                // No-op when the source rendered a sequence-level def (handled above)
+                // or a node/Coro face; idempotent across effects.
+                if (xsqPkg.IsImportFacesToSequence()) {
+                    xsqPkg.ImportModelFaceToSequence(ef, target, settings.Get("E_CHOICE_Faces_FaceDefinition", ""));
+                }
             }
 
             // if we are mapping the effect onto a group and it is a per preview render buffer then use the group's default camera

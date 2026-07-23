@@ -508,6 +508,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX4 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX5 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX2 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_STATICTEXT_BLEND_TYPE = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX_IMPORT_FACES_SEQ = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKBOX3 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON_IMPORT_OPTIONS = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_CHECKLISTBOX1 = wxNewId();
@@ -618,6 +619,12 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     StaticText_Blend_Type = new wxStaticText(Panel1, ID_STATICTEXT_BLEND_TYPE, _("Blend Mode"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_BLEND_TYPE"));
     FlexGridSizer_Blend_Mode->Add(StaticText_Blend_Type, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer_Blend_Mode, 1, wxALL|wxEXPAND, 1);
+    FlexGridSizerImportFaces = new wxFlexGridSizer(0, 1, 0, 0);
+    CheckBox_ImportFacesToSequence = new wxCheckBox(Panel1, ID_CHECKBOX_IMPORT_FACES_SEQ, _("Import matrix face definitions into the sequence (embedded)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_IMPORT_FACES_SEQ"));
+    CheckBox_ImportFacesToSequence->SetValue(true);
+    CheckBox_ImportFacesToSequence->SetToolTip(_("When on, Matrix (image) face definitions on the imported models are stored in this sequence (with images embedded) instead of being added to the mapped models in your layout. Node/Coro faces are unaffected."));
+    FlexGridSizerImportFaces->Add(CheckBox_ImportFacesToSequence, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    Sizer1->Add(FlexGridSizerImportFaces, 1, wxALL|wxEXPAND, 1);
     FlexGridSizerImportMedia = new wxFlexGridSizer(0, 3, 0, 0);
     CheckBoxImportMedia = new wxCheckBox(Panel1, ID_CHECKBOX3, _("Import Media"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
     CheckBoxImportMedia->SetValue(true);
@@ -1165,6 +1172,11 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         _xsqPkg->GetImportOptions()->SetImportActive(CheckBoxImportMedia->IsChecked());
     } else {
         Sizer1->Hide(FlexGridSizerImportMedia, true);
+    }
+    // The sequence-face option only applies to xLights imports (which carry a
+    // source rgbeffects with model face definitions); hide it for other formats.
+    if (_xsqPkg == nullptr || !_xsqPkg->HasRGBEffects()) {
+        Sizer1->Hide(FlexGridSizerImportFaces, true);
     }
     if (_xsqPkg != nullptr && _xsqPkg->HasRGBEffects()) {
         LoadRgbEffectsFile();
@@ -2090,6 +2102,9 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
     if (data.contains("eraseexisting")) {
         CheckBox_EraseExistingEffects->SetValue(data.at("eraseexisting").get<bool>());
     }
+    if (data.contains("importfacestosequence")) {
+        CheckBox_ImportFacesToSequence->SetValue(data.at("importfacestosequence").get<bool>());
+    }
     if (_allowCCRStrand && data.contains("mapccrstrand")) {
         CheckBox_MapCCRStrand->SetValue(data.at("mapccrstrand").get<bool>());
     }
@@ -2534,6 +2549,7 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
     //other settings
     data["mapccrstrand"] = CheckBox_MapCCRStrand->IsChecked();
     data["eraseexisting"] = CheckBox_EraseExistingEffects->IsChecked();
+    data["importfacestosequence"] = CheckBox_ImportFacesToSequence->IsChecked();
     data["importblendmode"] = CheckBox_Import_Blend_Mode->IsChecked();
 
     //package sequence folders

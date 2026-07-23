@@ -125,6 +125,18 @@ class SequencePackage {
 
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
+        // When set, a source model's Matrix (image) face definition is imported
+        // into the target sequence's SequenceFaces store (images embedded in the
+        // .xsq) instead of onto the mapped target model in the layout. Applies to
+        // both packages and plain .xsq imports. Node/Coro (non-Matrix) faces are
+        // unaffected and continue through the legacy layout path.
+        void SetImportFacesToSequence(bool b) { _importFacesToSequence = b; }
+        bool IsImportFacesToSequence() const { return _importFacesToSequence; }
+        // Import the source model's Matrix face definition named faceName ("Default"
+        // or empty resolves to the model's first Matrix face) into the target
+        // sequence, embedding each referenced image. Returns true when a Matrix
+        // definition was found and imported (or was already present on the target).
+        bool ImportModelFaceToSequence(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);
         // Returns true when the definition resolved at the sequence level in
         // the source (imported or already present) - callers then skip the
         // model-level ImportFaceInfo path.
@@ -161,6 +173,7 @@ class SequencePackage {
         std::list<std::string> _missingMedia;
         std::map<std::string, std::filesystem::path> _media;
         bool _modelsChanged = false;
+        bool _importFacesToSequence = false;
         SeqPkgImportOptions _importOptions;
         SequenceElements *sequenceElements;
         ProgressCallback _progressCb;

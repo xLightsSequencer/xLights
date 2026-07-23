@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 Import Effects: new "Import matrix face definitions into the sequence"
+                                 option (on by default) stores imported models' Matrix faces in the
+                                 sequence with images embedded, instead of adding them to your layout
     -enh (cybercop23)            Moved the Controllers tab to the Layout tab and separated Models and Groups into
                                  their own tab, bringing the UI into parity with the iPad; added a controller
                                  port/model selector to see the model(s)/string selected in the layout; added

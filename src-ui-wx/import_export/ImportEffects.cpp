@@ -371,6 +371,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
 
     bool lock = dlg.IsLockEffects();
     bool convertRender = dlg.IsConvertRender();
+    xsqPkg.SetImportFacesToSequence(dlg.CheckBox_ImportFacesToSequence->GetValue());
 
     // if the user is importing at least one timing element and the current sequence only has one timing track called New Timing with no timing marks in it ...
     if (dlg.TimingTrackListBox->GetCount() > 0 && _sequenceElements.GetNumberOfTimingElements() == 1 && _sequenceElements.GetTimingElement("New Timing") != nullptr && !_sequenceElements.GetTimingElement("New Timing")->HasEffects()) {

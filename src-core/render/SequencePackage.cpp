@@ -490,7 +490,11 @@ std::string SequencePackage::FixAndImportMedia(Effect* mappedEffect, EffectLayer
     } else if (effName == "Faces") {
         std::string faceName = settings["E_CHOICE_Faces_FaceDefinition"];
         if (!ImportSequenceFaceInfo(mappedEffect, target, faceName)) {
-            if (!faceName.empty()) {
+            // When importing Matrix faces into the sequence, the model->sequence
+            // copy is done in MapXLightsEffects (covers plain .xsq too), so skip
+            // the legacy model->layout import here. ImportFaceInfo is Matrix-only,
+            // so node/Coro faces are unaffected either way.
+            if (!_importFacesToSequence && !faceName.empty()) {
                 ImportFaceInfo(mappedEffect, target, faceName);
             }
         }
@@ -715,6 +719,113 @@ bool SequencePackage::ImportSequenceFaceInfo(Effect* mappedEffect, EffectLayer* 
             _missingMedia.push_back(faceFileName);
         }
     }
+
+    tgtSE->GetSequenceFaces().SetFace(resolved, def);
+    return true;
+}
+
+bool SequencePackage::ImportModelFaceToSequence(Effect* mappedEffect, EffectLayer* target, const std::string& faceName)
+{
+    if (!_hasRGBEffects) {
+        return false;
+    }
+    auto* srcSE = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements();
+    auto* tgtSE = target->GetParentElement()->GetSequenceElements();
+    if (tgtSE == nullptr) {
+        return false;
+    }
+    const std::string srcModelName = mappedEffect->GetParentEffectLayer()->GetParentElement()->GetModelName();
+    const bool wantDefault = faceName.empty() || faceName == "Default";
+
+    // Locate the source model's matching Matrix faceInfo node in the rgbeffects.
+    pugi::xml_node faceNode;
+    for (pugi::xml_node node = _rgbEffects.document_element().first_child(); node && !faceNode; node = node.next_sibling()) {
+        if (std::string_view(node.name()) != "models") {
+            continue;
+        }
+        for (pugi::xml_node model = node.first_child(); model && !faceNode; model = model.next_sibling()) {
+            if (std::string_view(model.attribute("name").as_string()) != srcModelName) {
+                continue;
+            }
+            for (pugi::xml_node child = model.first_child(); child; child = child.next_sibling()) {
+                if (std::string_view(child.name()) != "faceInfo") {
+                    continue;
+                }
+                if (std::string_view(child.attribute("Type").as_string("")) != "Matrix") {
+                    continue;
+                }
+                if (wantDefault || std::string_view(child.attribute("Name").as_string()) == faceName) {
+                    faceNode = child;
+                    break;
+                }
+            }
+        }
+    }
+    if (!faceNode) {
+        return false; // no Matrix definition on the source model (node/Coro face falls back to the layout path)
+    }
+
+    const std::string resolved = faceNode.attribute("Name").as_string();
+    if (resolved.empty()) {
+        return false;
+    }
+
+    // model-level definitions win on the target - don't shadow one
+    if (_modelManager != nullptr) {
+        Model* targetModel = (*_modelManager)[target->GetParentElement()->GetModelName()];
+        if (targetModel != nullptr && targetModel->GetFaceInfo().find(resolved) != targetModel->GetFaceInfo().end()) {
+            return true;
+        }
+    }
+    if (tgtSE->GetSequenceFaces().GetFace(resolved) != nullptr) {
+        return true; // already imported (e.g. by an earlier effect)
+    }
+
+    auto& tgtMedia = tgtSE->GetSequenceMedia();
+    const std::string sourceShowFolder = _xsqFile.parent_path().string();
+    std::map<std::string, std::string> def;
+    for (pugi::xml_attribute att = faceNode.first_attribute(); att; att = att.next_attribute()) {
+        std::string attName = att.name();
+        if (attName == "Name") {
+            continue;
+        }
+        std::string value = att.value();
+        if (SequenceFaces::IsImageKey(attName) && !value.empty() && !tgtMedia.HasImage(value)) {
+            // Embed the image keyed by the path the definition references, reading
+            // the bytes from wherever they physically live for this import:
+            //   1) an embedded entry in the source sequence (rare for model faces)
+            //   2) the extracted package media (_media, keyed by filename)
+            //   3) resolved on disk relative to the source show folder (plain .xsq)
+            if (srcSE != nullptr && srcSE->GetSequenceMedia().HasImage(value)) {
+                auto img = srcSE->GetSequenceMedia().GetImage(value);
+                if (img != nullptr && img->IsEmbedded()) {
+                    tgtMedia.AddEmbeddedImage(value, img->GetEmbeddedData());
+                }
+            }
+            if (!tgtMedia.HasImage(value)) {
+                std::string physical;
+                auto it = _media.find(ExtractFilename(value));
+                if (it != _media.end() && FileExists(it->second.string())) {
+                    physical = it->second.string();
+                } else {
+                    std::string resolvedPath = FileUtils::FixFile(sourceShowFolder, value);
+                    if (FileExists(resolvedPath)) {
+                        physical = resolvedPath;
+                    }
+                }
+                if (!physical.empty()) {
+                    tgtMedia.AddEmbeddedImageFromFile(value, physical);
+                } else {
+                    _missingMedia.push_back(ExtractFilename(value));
+                }
+            }
+        }
+        if (SequenceFaces::IsImageKey(attName) && !value.empty()) {
+            tgtMedia.MarkUsedByMetadata(value);
+        }
+        def[attName] = value;
+    }
+    def["Type"] = "Matrix";
 
     tgtSE->GetSequenceFaces().SetFace(resolved, def);
     return true;

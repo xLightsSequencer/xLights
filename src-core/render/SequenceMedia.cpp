@@ -810,6 +810,38 @@ void SequenceMedia::AddEmbeddedImage(const std::string& name, const xlImage& ima
     entry->Load();
 }
 
+void SequenceMedia::AddEmbeddedImageFromFile(const std::string& name, const std::string& sourceFilePath)
+{
+    if (name.empty() || sourceFilePath.empty()) {
+        return;
+    }
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (_imageCache.find(name) != _imageCache.end()) {
+            return; // already present
+        }
+    }
+    ObtainAccessToURL(sourceFilePath);
+    std::ifstream stream(sourceFilePath, std::ios::binary | std::ios::ate);
+    if (!stream.is_open()) {
+        spdlog::warn("SequenceMedia::AddEmbeddedImageFromFile: could not open '{}'", sourceFilePath);
+        return;
+    }
+    auto size = stream.tellg();
+    if (size <= 0) {
+        return;
+    }
+    stream.seekg(0);
+    std::vector<uint8_t> buffer(static_cast<size_t>(size));
+    stream.read(reinterpret_cast<char*>(buffer.data()), size);
+    if (!stream) {
+        spdlog::warn("SequenceMedia::AddEmbeddedImageFromFile: read failed for '{}'", sourceFilePath);
+        return;
+    }
+    // base64 of the raw file bytes is the on-xsq embedded representation
+    AddEmbeddedImage(name, Base64::Encode(buffer.data(), buffer.size()));
+}
+
 void SequenceMedia::AddEmbeddedImage(const std::string& name, const std::vector<xlImage>& frames, int frameTimeMs)
 {
     if (frames.empty()) return;
