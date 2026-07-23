@@ -1,0 +1,91 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Icicles",
+    "description": "A row of hanging icicle drops of varying lengths, repeating a configurable drop-length pattern across the row. Does not support the ThreePoint Angle/tilt control (always 0) but does support Shear.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "IciclesStrings",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (IciclesModel::_numStrings; IciclesPropertyAdapter help text: \"typically the number of connections from the prop to your controller\")."
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "IciclesLights",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 2000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string (IciclesModel::_lightsPerString, despite the generic xmlAttribute name NodesPerString shared with Circle/SingleLine/Wreath in their own separate documents). Grid label is \"Lights/String\" for SingleNode string types, \"Nodes/String\" otherwise; same xmlAttribute/gridKey either way."
+        },
+        {
+            "xmlAttribute": "AlternateNodes",
+            "label": "Alternate Nodes",
+            "gridKey": "AlternateNodes",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", interleaves buffer Y-positions within each drop (staggered wiring) instead of assigning them top-to-bottom in simple sequential order (IciclesModel::_alternateNodes; IciclesModel::InitModel). Persisted as the lowercase literal true/false. See Arches.json's matching note for the full rationale (same pattern recurs on CandyCanes.json's Reverse/Sticks/AlternateNodes). Always written (unconditional, both values)."
+        },
+        {
+            "xmlAttribute": "DropPattern",
+            "label": "Drop Pattern",
+            "gridKey": "IciclesDrops",
+            "type": "string",
+            "default": "3,4,5,4",
+            "encoding": "Comma-separated list of non-negative integers, one per drop position, cycled repeatedly across the row's NodesPerString x NumStrings total lights (IciclesModel::ParseDropSizes/SetDropPattern; ModelFaceDialog-style custom editor wxDropPatternProperty, IciclesPropertyAdapter::AddTypeProperties). Each value is the node/light count of that drop; an all-invalid or empty pattern falls back in-memory to a single drop of length 5 (IciclesModel::ParseDropSizes), though the on-disk default when the attribute is absent is \"3,4,5,4\".",
+            "description": "Repeating pattern of icicle drop lengths, longest-to-shortest as authored by the user (e.g. the default \"3,4,5,4\" draws a short-long-longest-long repeating icicle shape)."
+        }
+    ],
+    "notes": [
+        "Starting Location: the \"IciclesStart\" property-grid enum (gridKey \"IciclesStart\") is a 2-value Green Square/Blue Square picker that sets only the shared Dir attribute (shared/Common.json); StartSide is not involved for this model type (IciclesPropertyAdapter::OnPropertyGridChange \"IciclesStart\" only calls SetDirection/SetIsLtoR). No property object for it appears above since Dir itself is owned by shared/Common.json.",
+        "Angle (shared/ScreenLocation.json) is always written (AddThreePointScreenLocationAttributes runs unconditionally for every ThreePoint model) but Icicles never calls SetSupportsAngle(true) in its constructor, so its value is always 0 and there is no \"Arch Tilt\"-style property-grid control for it (IciclesModel::IciclesModel; contrast with Arches/CandyCanes, which do expose it). Icicles does call SetSupportsShear(true) and SetMHeight(-0.5), so Shear is meaningful/adjustable for this model type even though Angle is not."
+    ]
+}

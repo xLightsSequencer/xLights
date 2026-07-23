@@ -1,0 +1,97 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "xLights Model Metadata",
+    "description": "XML-first description of model/group object attributes persisted to xlights_rgbeffects.xml. Canonical property ids are XML attribute names.",
+    "type": "object",
+    "required": ["schemaVersion", "description", "properties"],
+    "additionalProperties": false,
+    "properties": {
+        "schemaVersion": { "const": 1 },
+        "objectType": { "enum": ["model", "modelGroup", "controller", "output"] },
+        "displayAs": {
+            "oneOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+            ],
+            "description": "Exact DisplayAs XML value(s) this document describes. Array when several DisplayAs values share one property set (e.g. Horiz/Vert Matrix)."
+        },
+        "protocol": { "type": "string", "description": "Output protocol discriminator (controllersmetadata protocols/*.json only)" },
+        "description": { "type": "string", "minLength": 1 },
+        "extends": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Relative paths (from the tree root) of shared fragment files whose properties also apply. Composition is concatenation only."
+        },
+        "storage": { "$ref": "#/definitions/storage" },
+        "properties": { "type": "array", "items": { "$ref": "#/definitions/property" } },
+        "childElements": { "type": "array", "items": { "$ref": "#/definitions/childElement" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+    },
+    "definitions": {
+        "storage": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "file": { "enum": ["xlights_rgbeffects.xml", "xlights_networks.xml"] },
+                "node": { "type": "string", "description": "Node path under the document root, e.g. 'models/model' or 'Controller/network'" },
+                "element": { "type": "string", "description": "Document-level child-element override: all properties in this file live on this child element" }
+            }
+        },
+        "condition": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "attribute": { "type": "string", "description": "XML attribute name (in the assembled object scope) this condition tests" },
+                "equals": {},
+                "notEquals": {},
+                "oneOf": { "type": "array" },
+                "notOneOf": { "type": "array" },
+                "greaterThan": { "type": "number" },
+                "startsWith": { "type": "string" },
+                "allOf": { "type": "array", "items": { "$ref": "#/definitions/condition" } }
+            }
+        },
+        "childElement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description"],
+            "properties": {
+                "name": { "type": "string", "description": "XML element name, e.g. 'faceInfo'" },
+                "ref": { "type": "string", "description": "Relative path of the fragment file describing this element's attributes" },
+                "description": { "type": "string" },
+                "encoding": { "type": "string", "description": "Format note for non-attribute content (text nodes, compressed blobs)" }
+            }
+        },
+        "property": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["xmlAttribute", "type", "description"],
+            "properties": {
+                "xmlAttribute": { "type": "string", "minLength": 1 },
+                "label": { "type": "string" },
+                "gridKey": { "type": "string" },
+                "type": { "enum": ["int", "uint", "float", "bool", "string", "enum", "color", "filepath"] },
+                "default": {},
+                "min": { "type": "number" },
+                "max": { "type": "number" },
+                "step": { "type": "number" },
+                "precision": { "type": "integer" },
+                "enum": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+                "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+                "boolFormat": { "enum": ["01", "TRUEFALSE", "truefalse", "TrueFalse", "presentOnly"] },
+                "legacyAttributes": { "type": "array", "items": { "type": "string" } },
+                "storage": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["element"],
+                    "properties": { "element": { "type": "string" } }
+                },
+                "appliesWhen": { "$ref": "#/definitions/condition" },
+                "capsGate": { "type": "string" },
+                "relatedTo": { "type": "array", "items": { "type": "string" } },
+                "encoding": { "type": "string" },
+                "description": { "type": "string", "minLength": 1 }
+            }
+        }
+    }
+}

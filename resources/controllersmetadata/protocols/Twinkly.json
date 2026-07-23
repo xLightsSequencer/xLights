@@ -1,0 +1,55 @@
+{
+    "schemaVersion": 1,
+    "objectType": "output",
+    "protocol": "Twinkly",
+    "description": "The single <network> child node under an ethernet <Controller Protocol=\"Twinkly\">. Twinkly controllers are addressed over HTTP (for auth/layout/mode control) and UDP (for realtime channel data); there is exactly one Output/one <network> node per controller. Source of truth: src-core/outputs/Output.cpp Output::SaveAttr (@42, base writer) and IPOutput.cpp IPOutput::SaveAttr (@27, IP-output writer) for the attributes shared by every IP-based protocol document in this tree, plus TwinklyOutput.cpp constructor (@32, reader) / Save (@54, writer) for the Twinkly-specific extra. Cross-checked against OutputPropertyAdapters.cpp TwinklyOutputPropertyAdapter::AddProperties (@732) for grid labels and ranges.",
+    "storage": { "file": "xlights_networks.xml", "node": "Controller/network" },
+    "properties": [
+        {
+            "xmlAttribute": "NetworkType",
+            "type": "string",
+            "default": "Twinkly",
+            "description": "Protocol discriminator for this <network> node; always the literal \"Twinkly\" (TwinklyOutput::GetType(), matching the OUTPUT_TWINKLY constant in Output.h @48). Written unconditionally by Output::SaveAttr (Output.cpp @44). No property-grid row (fixed by the controller's Protocol selection)."
+        },
+        {
+            "xmlAttribute": "ComPort",
+            "type": "string",
+            "default": "",
+            "description": "IP address/hostname of the Twinkly device: used for both the HTTP control calls (TwinklyOutput::MakeCall, TwinklyOutput.cpp @332,@350) and the realtime UDP data socket (TwinklyOutput::EndFrame, TwinklyOutput.cpp @262). Verified trap: legacy attribute name \"ComPort\" holds an IP address, not a serial port (IPOutput::SaveAttr, IPOutput.cpp @29-31 writer / @40 reader). Only written when non-empty. No property-grid row of its own: mirrors the parent <Controller>'s IP attribute, cascaded by ControllerEthernet::SetIP (ControllerEthernet.cpp @153-177)."
+        },
+        {
+            "xmlAttribute": "BaudRate",
+            "type": "uint",
+            "default": 1,
+            "description": "Verified trap: for Twinkly this is NOT a universe or channel count - it is an internal id (TwinklyOutput::GetId()/SetId(), TwinklyOutput.h @49-57), assigned OutputManager::UniqueId() when the protocol is switched to Twinkly (ControllerEthernet::SetProtocol, ControllerEthernet.cpp @268-277). There is no \"Universe\" property-grid row for Twinkly (TwinklyOutputPropertyAdapter::AddProperties has no Universe entry, OutputPropertyAdapters.cpp @732-742). Read with the base IPOutput fallback of 1 if the attribute is missing (IPOutput.cpp @47)."
+        },
+        {
+            "xmlAttribute": "MaxChannels",
+            "label": "Channels",
+            "gridKey": "Channels",
+            "type": "uint",
+            "min": 1,
+            "max": 8000,
+            "description": "Total channel count for this Twinkly output (Output::SaveAttr, Output.cpp @46 writer / @76 reader). Written unconditionally. Grid range 1 to TwinklyOutput::GetMaxChannels() = MAX_CHANNELS = 4*2000 = 8000 (TwinklyOutput.h @98, OutputPropertyAdapters.cpp @739-741) - a single Twinkly connection is documented in code as having 'unlimited channels' but the class caps it at 8000. Typically auto-sized from the device's reported pixel layout during discovery (TwinklyOutput::GetLayout, TwinklyOutput.cpp @845-847: `controller->SetChannelSize(pixels.size() * 3)`)."
+        },
+        {
+            "xmlAttribute": "FPPProxy",
+            "type": "string",
+            "default": "",
+            "description": "IP/hostname of an FPP proxy this output's data is routed through. Written only when non-empty (Output::SaveAttr, Output.cpp @48-51). No property-grid row of its own: mirrors the parent <Controller>'s FPPProxy attribute, cascaded by ControllerEthernet::SetFPPProxy (ControllerEthernet.cpp @407-411). Twinkly is one of the protocols IsFPPProxyable() supports (ControllerEthernet.h @76, see Ethernet.json)."
+        },
+        {
+            "xmlAttribute": "HTTPPort",
+            "gridKey": "HTTPPort",
+            "label": "HTTP Port",
+            "type": "uint",
+            "min": 1,
+            "max": 65535,
+            "default": 80,
+            "description": "TCP port for the Twinkly device's HTTP control API (login/verify/led-mode/layout calls, TwinklyOutput::MakeCall, TwinklyOutput.cpp @329-377). Written unconditionally (TwinklyOutput::Save, TwinklyOutput.cpp @58); read with default 80 (TwinklyOutput.cpp @35). Grid help text: 'Twinkly normally listens on port 80 but you may want to change the port if using Artnet To Twinkly.' (OutputPropertyAdapters.cpp @733-737). Note the realtime UDP data channel always uses the fixed port 7777 (TwinklyOutput.h UDP_PORT @102) regardless of this attribute - HTTPPort only affects the HTTP control calls."
+        }
+    ],
+    "notes": [
+        "Twinkly has exactly one <network> child per controller (like DDP/ZCPP/OPC) - there is no per-node universe concept and no Universes/UniversesDisplay/IndivSizes/Sizes rows, and BaudRate is repurposed as an internal id rather than a channel-addressing value."
+    ]
+}

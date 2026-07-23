@@ -1,0 +1,172 @@
+{
+    "schemaVersion": 1,
+    "description": "Attributes common to every <Controller> node in xlights_networks.xml, regardless of Type. Extended by every top-level controller document in this tree. Source of truth: src-core/outputs/Controller.cpp constructor (@84, reader) and Controller::Save (@166, writer), cross-checked against src-ui-wx/controllerproperties/ControllerPropertyAdapter.cpp AddProperties (@187) / UpdateProperties (@115) / ValidateProperties (@444) for labels, ranges and grid gating.",
+    "storage": { "file": "xlights_networks.xml", "node": "Controller" },
+    "properties": [
+        {
+            "xmlAttribute": "Name",
+            "label": "Name",
+            "gridKey": "ControllerName",
+            "type": "string",
+            "description": "Unique controller name. Trimmed on read/set; must be unique across all controllers, non-blank, must not contain ':' (used as a separator in \"!ControllerName:N\" model start-channel references) and must not equal the NO_CONTROLLER sentinel \"No Controller\" (ControllerPropertyAdapter::HandlePropertyEvent / ValidateProperties). Written unconditionally; on read a missing Name gets a generated unique default."
+        },
+        {
+            "xmlAttribute": "Description",
+            "label": "Description",
+            "gridKey": "ControllerDescription",
+            "type": "string",
+            "default": "",
+            "description": "Free-text user note about the controller. Trimmed. Written unconditionally, including when empty (Controller::Save)."
+        },
+        {
+            "xmlAttribute": "Type",
+            "label": "Type",
+            "type": "enum",
+            "enum": ["Null", "Ethernet", "Serial"],
+            "description": "Controller sub-type discriminator (CONTROLLER_NULL/CONTROLLER_ETHERNET/CONTROLLER_SERIAL constants in src-core/outputs/Controller.h @31-33). Fixed at creation time; selects the concrete class in Controller::Create and therefore which top-level document in this tree applies. Only \"Ethernet\" (Ethernet.json) is covered by this metadata tree so far; \"Null\" and \"Serial\" documents are a known coverage gap. Not editable in the property grid."
+        },
+        {
+            "xmlAttribute": "Vendor",
+            "label": "Vendor",
+            "gridKey": "Vendor",
+            "type": "string",
+            "default": "",
+            "description": "Controller vendor name. Not a fixed enum: the property grid offers the vendor list from ControllerCaps::GetVendors(type), sourced from the controller capability XML files shipped in resources/controllers. Empty means a generic/unknown controller (no ControllerCaps). Legacy vendor/model spellings are migrated on load by Controller::SearchForNewVendor (__controllerNameMap, Controller.cpp @45)."
+        },
+        {
+            "xmlAttribute": "Model",
+            "label": "Model/Category",
+            "gridKey": "Model",
+            "type": "string",
+            "default": "",
+            "description": "Controller model within the selected Vendor. Choices come from ControllerCaps::GetModels(type, vendor); empty when no vendor/model selected. Together with Vendor and Variant this keys the ControllerCaps capability definition that gates several other properties (see capsGate fields)."
+        },
+        {
+            "xmlAttribute": "Variant",
+            "label": "Variant",
+            "gridKey": "Variant",
+            "type": "string",
+            "default": "",
+            "description": "Controller variant within the selected Vendor/Model (e.g. firmware generation or expansion configuration). Choices from ControllerCaps::GetVariants(type, vendor, model); empty when the model has no variants."
+        },
+        {
+            "xmlAttribute": "Id",
+            "label": "Id",
+            "gridKey": "ControllerId",
+            "type": "uint",
+            "default": 64001,
+            "min": 1,
+            "max": 65335,
+            "description": "Controller id, used with some start-channel addressing modes for controllers that do not support universes. Read default is 64001 (Controller.cpp @109); new controllers get OutputManager::UniqueId(). Should be unique across controllers (ValidateProperties flags duplicates red but does not block saving). The grid hides it when Controller::IsNeedsId() is false. Note the grid max really is 65335, not 65535 (ControllerPropertyAdapter.cpp @212)."
+        },
+        {
+            "xmlAttribute": "AutoLayout",
+            "label": "Auto Layout Models",
+            "gridKey": "AutoLayout",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "capsGate": "SupportsAutoLayout",
+            "description": "When true xLights may move models around within the controller's channel range to optimise them, and models can be moved between controllers in the visualiser. Written unconditionally. On read, disabling AutoLayout also forces AutoSize off (Controller.cpp @120)."
+        },
+        {
+            "xmlAttribute": "AutoUpload",
+            "label": "Auto Upload Configuration",
+            "gridKey": "AutoUpload",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "capsGate": "SupportsAutoUpload",
+            "description": "When true the controller configuration is uploaded to the controller when output-to-lights is turned on. Written unconditionally, but the writer coerces the value to \"0\" when the controller does not support auto upload (Controller::Save @186: `_autoUpload && SupportsAutoUpload()`). Controller::SupportsAutoUpload additionally hard-returns false for the ZCPP protocol regardless of caps (Controller.cpp @586)."
+        },
+        {
+            "xmlAttribute": "AutoSize",
+            "label": "Auto Size",
+            "gridKey": "AutoSize",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "When true xLights dynamically resizes the controller's channel/universe count to exactly fit the models assigned to it. Written unconditionally. Gating is NOT a ControllerCaps method (no capsGate): Controller::SupportsAutoSize() is a C++ virtual, false in the base class and overridden by ControllerEthernet to `managed && AutoLayout && Protocol != \"Player Only\"` (ControllerEthernet.h @137). On read it is forced off when AutoLayout is off (Controller.cpp @120)."
+        },
+        {
+            "xmlAttribute": "FullxLightsControl",
+            "label": "Full xLights Control",
+            "gridKey": "FullxLightsControl",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "capsGate": "SupportsFullxLightsControl",
+            "description": "When set, uploading erases the configuration of all unused ports on the controller. Written as the literal \"TRUE\" and only when true (Controller::Save @180: `if (_fullxLightsControl) ... = \"TRUE\"`); absent means false. The reader compares the value against \"TRUE\" with default \"FALSE\" (Controller.cpp @116), so presence with any other value also reads as false. Besides the caps gate, ControllerEthernet::SupportsFullxLightsControl hard-returns false for the ZCPP protocol (ControllerEthernet.cpp @588)."
+        },
+        {
+            "xmlAttribute": "DefaultBrightnessUnderFullControl",
+            "label": "Default Port Brightness",
+            "gridKey": "DefaultBrightnessUnderFullxLightsControl",
+            "type": "uint",
+            "default": 100,
+            "min": 5,
+            "max": 100,
+            "capsGate": "SupportsDefaultBrightness",
+            "appliesWhen": { "attribute": "FullxLightsControl", "equals": "TRUE" },
+            "description": "Brightness percentage applied to all ports during Full xLights Control upload unless overridden per model. Verified trap: xmlAttribute (\"DefaultBrightnessUnderFullControl\") differs from its wxPropertyGrid key (\"DefaultBrightnessUnderFullxLightsControl\"). Written unconditionally even when FullxLightsControl is off; only shown/meaningful when Full xLights Control is enabled and the caps support a default brightness."
+        },
+        {
+            "xmlAttribute": "DefaultGammaUnderFullControl",
+            "label": "Default Port Gamma",
+            "gridKey": "DefaultGammaUnderFullxLightsControl",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.1,
+            "max": 5.0,
+            "capsGate": "SupportsDefaultGamma",
+            "appliesWhen": { "attribute": "FullxLightsControl", "equals": "TRUE" },
+            "description": "Gamma applied to all ports during Full xLights Control upload unless overridden per model. Same xmlAttribute-vs-gridKey trap as DefaultBrightnessUnderFullControl. Written unconditionally; only shown/meaningful when Full xLights Control is enabled and the caps support a default gamma."
+        },
+        {
+            "xmlAttribute": "ActiveState",
+            "label": "Active",
+            "gridKey": "Active",
+            "type": "enum",
+            "enum": ["Active", "Inactive", "xLights Only"],
+            "default": "Active",
+            "legacyAttributes": ["Active"],
+            "description": "Whether this controller outputs data. \"Inactive\" outputs nothing (and uploads to FPP/xSchedule will not output either); \"xLights Only\" outputs only when played from xLights. Stored strings verified in Controller::DecodeActiveState (Controller.cpp @322). Verified trap: xmlAttribute is \"ActiveState\" while the wxPropertyGrid key is \"Active\". The legacy attribute \"Active\" (\"0\"/\"1\") is read as a fallback when ActiveState is absent (Controller.cpp @86-95) and never written by the current version. ValidateProperties flags \"Active\" red for Player-Only caps controllers (they should be \"xLights Only\" or \"Inactive\")."
+        },
+        {
+            "xmlAttribute": "Monitor",
+            "label": "Monitor",
+            "gridKey": "Monitor",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "1",
+            "description": "When true the show player monitors connectivity to the controller (ping packets or other network traffic). Disabling reduces network traffic and controller load. Written unconditionally."
+        },
+        {
+            "xmlAttribute": "SuppressDuplicates",
+            "label": "Suppress Duplicate Frames",
+            "gridKey": "SuppressDuplicates",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "When true, frames whose data is identical to the previous frame are not re-sent, trusting the controller to reuse the previous data. Written unconditionally. Gating is NOT a ControllerCaps method (no capsGate): Controller::SupportsSuppressDuplicateFrames() is a C++ virtual, true in the base class, overridden by ControllerEthernet to `Protocol != \"Player Only\"` (ControllerEthernet.h @141)."
+        },
+        {
+            "xmlAttribute": "FromBase",
+            "label": "From Base Show Folder",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "description": "Read-only provenance flag: true when this controller's definition was merged in from a linked base show folder rather than defined locally. Set programmatically during base-folder merge, not user-editable in the property grid. Written unconditionally (both \"0\" and \"1\" appear in files, Controller::Save @179)."
+        }
+    ],
+    "childElements": [
+        {
+            "name": "ExtraProperty",
+            "description": "Vendor-capability extra properties: zero or more <ExtraProperty name=\"...\" value=\"...\"/> children, written only when at least one exists (Controller::Save @192). The set of meaningful names, labels, types (String or Enum) and allowed values comes from the controller's ControllerCaps::GetExtraPropertyDefs() capability definition; unknown pairs round-trip verbatim. In the property grid each appears with key \"Controller\" + name (ControllerPropertyAdapter.cpp @262).",
+            "encoding": "One element per key/value pair; lowercase attribute names \"name\" and \"value\", both plain strings (Controller.cpp @104 reader)."
+        }
+    ],
+    "notes": [
+        "capsGate values name ControllerCaps methods (src-core/controllers/ControllerCaps.h) driven by the vendor capability XML; a property with a capsGate is hidden in the grid when the method returns false but its attribute is still persisted. CORRECTION vs the brief: ControllerCaps has no SupportsAutoSize or SupportsSuppressDuplicateFrames methods - those two gates are Controller C++ virtuals (see the AutoSize and SuppressDuplicates descriptions), so those properties intentionally carry no capsGate.",
+        "The <network> child elements (one per output/universe) are read by the base Controller constructor (Controller.cpp @97) but are documented in the concrete controller documents (see Ethernet.json childElements) because their attribute set depends on Protocol."
+    ]
+}

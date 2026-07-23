@@ -1,0 +1,86 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Single Line",
+    "description": "A single straight row of nodes, the simplest pixel model shape (a single strand of lights strung in a line). Also used internally as the per-string/per-strand representation created on the fly for other model types' \"Single Line\" buffer style (ArchesModel/CandyCaneModel::GetBufferSize).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "SingleLineCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (SingleLineModel::_numStrings; SingleLinePropertyAdapter help text: \"typically the number of connections from the prop to your controller\")."
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "SingleLineNodes",
+            "type": "uint",
+            "default": 50,
+            "min": 1,
+            "max": 10000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string (SingleLineModel::_nodesPerString). Note the read-time default is 50, not 1 (XmlDeserializingModelFactory::DeserializeSingleLine: `ReadAttrWithParmFallback(node, NodesPerStringAttribute, Parm2Attribute, \"50\")`), unlike the analogous NodesPerString attribute on Circle/Icicles/Wreath which defaults to 1. Grid label is \"Lights/String\" for SingleNode string types, \"Nodes/String\" otherwise; same xmlAttribute/gridKey either way."
+        },
+        {
+            "xmlAttribute": "LightsPerNode",
+            "label": "Lights/Node",
+            "gridKey": "SingleLineLights",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 300,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Lights represented by each node, for RGB pixel-cluster wiring (SingleLineModel::_lightsPerNode). Only shown in the property grid for non-SingleNode string types (SingleLinePropertyAdapter::AddTypeProperties), but always written/read regardless of StringType."
+        }
+    ],
+    "notes": [
+        "Starting Location: the \"SingleLineStart\" property-grid enum (gridKey \"SingleLineStart\") is a 2-value Green Square/Blue Square picker that sets only the shared Dir attribute (shared/Common.json); StartSide is not involved (SingleLinePropertyAdapter::OnPropertyGridChange \"SingleLineStart\" only calls SetDirection/SetIsLtoR). No property object for it appears above since Dir itself is owned by shared/Common.json.",
+        "TwoPoint screen-location style (shared/ScreenLocation.json): SingleLine is one of the two model types using TwoPoint (X2/Y2/Z2, no ScaleX/Y/Z, no Angle/Shear/Height) rather than Boxed or ThreePoint. It additionally supports swapping its two endpoints (SupportsSwapStartEnd/SwapStartEnd), a screen-location-only operation with no dedicated XML attribute of its own (it just swaps the already-documented WorldPos/X2Y2Z2 values in place)."
+    ]
+}
