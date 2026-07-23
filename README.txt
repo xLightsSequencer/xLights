@@ -19,6 +19,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Layout tab; controller list columns can be shown/hidden from the header
     -enh (heffneil)              Import Previews and Models: added a filter box above the tree to
                                  quickly find models/groups in a long list
+    -enh (heffneil)              Vendor model download: added a live filter box above the catalog tree
+                                 (debounced, tokenized case-insensitive match across vendor/category/
+                                 model/wiring names) that prunes non-matching branches
     -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
                                  always-visible Effects toolbar, and reorder them - handy once enough
                                  effects are registered that the toolbar no longer fits smaller screens.

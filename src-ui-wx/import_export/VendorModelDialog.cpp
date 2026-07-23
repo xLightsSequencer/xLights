@@ -528,8 +528,10 @@ int VendorModelDialog::AddModels(wxTreeItemId parent, const std::vector<MModel*>
     int added = 0;
     for (auto* m : models) {
         if (!_filterTokens.empty()) {
+            // Every model is indexed at load; a miss shouldn't happen, but if
+            // it does treat it as non-matching rather than leaking it past the filter.
             auto it = _modelSearchText.find(m);
-            if (it != _modelSearchText.end() && !FilterMatches(pathTextLower, it->second)) {
+            if (it == _modelSearchText.end() || !FilterMatches(pathTextLower, it->second)) {
                 continue;
             }
         }
@@ -1476,6 +1478,12 @@ void VendorModelDialog::ApplyFilterNow()
 
 void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
+	// A debounced filter change may still be pending; apply it first so the
+	// tree and _filterTokens reflect what's currently typed before we step.
+	if (_filterTimer.IsRunning()) {
+		ApplyFilterNow();
+	}
+
 	// cant search if tree is empty
 	if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0)
 	{
