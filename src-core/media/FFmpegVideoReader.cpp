@@ -170,7 +170,7 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
             _frameMS = _windowsHardwareVideoReader->GetFrameMS();
             _valid = true;
 
-            spdlog::info("Video loaded: " + filename);
+            spdlog::debug("Video loaded: " + filename);
             spdlog::debug("      Length MS: {}", _lengthMS);
             spdlog::debug("      _frames: {}", _frames);
             spdlog::debug("      Frames per second {}", (double)_frames * 1000.0 / _lengthMS);
@@ -303,7 +303,7 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     _packet = av_packet_alloc();
     _valid = true;
 
-    spdlog::info("Video loaded: " + filename);
+    spdlog::debug("Video loaded: " + filename);
     spdlog::debug("      Length MS: {}", _lengthMS);
     spdlog::debug("      _videoStream->time_base.num: {}", _videoStream->time_base.num);
     spdlog::debug("      _videoStream->time_base.den: {}", _videoStream->time_base.den);
