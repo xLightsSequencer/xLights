@@ -3042,20 +3042,22 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
     }
     bool created = false;
     auto cache = uiCaches[cacheKey];
-    // Circle styles bake getBackingScaleFactor() into the geometry; rebuild if it changed.
+    // Circle/Square styles bake getBackingScaleFactor() into the geometry; rebuild if it changed.
     if (cache != nullptr &&
-        (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) &&
+        (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE ||
+         _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE) &&
         cache->backingScaleFactor != (float)preview->getBackingScaleFactor()) {
         delete cache;
         uiCaches[cacheKey] = nullptr;
         cache = nullptr;
     }
 
-    // Depth sort applies to 3D previews with non-SQUARE pixel styles. The sort axis is
+    // Depth sort applies to 3D previews with real triangle geometry (Square/Circle
+    // styles); Smooth stays point-sprite based and doesn't need it. The sort axis is
     // the 3rd row of (ViewMatrix * ModelMatrix) — for any node at local (x, y, z) the
     // camera-space Z is axis.dot(x, y, z) + const, so sorting nodes by that dot product
     // gives back-to-front order for the current camera orientation.
-    const bool depthSort = is_3d && _pixelStyle != PIXEL_STYLE::PIXEL_STYLE_SQUARE;
+    const bool depthSort = is_3d && _pixelStyle != PIXEL_STYLE::PIXEL_STYLE_SMOOTH;
     glm::vec3 currentSortAxis(0.0f);
     if (depthSort) {
         glm::mat4 mv = preview->GetViewMatrix() * screenLocation.GetModelMatrix();
@@ -3096,6 +3098,8 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 f = 16;
             }
             vcount = vcount * f * 3;
+        } else if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE) {
+            vcount = vcount * 6; // two triangles per node
         }
         if (vcount > maxVertexCount) {
             maxVertexCount = vcount;
@@ -3114,8 +3118,9 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
         float modelPixelSize = pixelSize;
         // pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
-        // get the size to use for the pixelStyle 3/4 that use triangles.       
-        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
+        // get the size to use for the pixelStyles that use triangles.
+        if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE ||
+            _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE) {
             float x1 = -1, y1 = -1, z1 = -1;
             float x2 = 1, y2 = 1, z2 = 1;
             GetModelScreenLocation().TranslatePoint(x1, y1, z1);
@@ -3245,8 +3250,10 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                     cache->boundingBox[4] = std::max(sy, cache->boundingBox[4]);
                     cache->boundingBox[5] = std::max(sz, cache->boundingBox[5]);
                 }
-                if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH) {
+                if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH) {
                     cache->vica->AddVertex(sx, sy, sz, n);
+                } else if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE) {
+                    cache->vica->AddSquareAsTriangles(sx, sy, sz, ((float)modelPixelSize) / 2.0f, n);
                 } else {
                     int eidx = n;
                     if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
@@ -3257,12 +3264,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             }
         }
         cache->program->addStep([=, this](xlGraphicsContext* ctx) {
-            if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
+            if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE ||
+                _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE) {
                 ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
             } else {
                 IModelPreview* preview = static_cast<IModelPreview*>(ctx->getContextualValue("modelPreview"));
                 float pointSize = preview->calcPixelSize(pixelSize) * preview->getViewScale();
-                ctx->drawPoints(cache->vica, pointSize, _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, 0, cache->vica->getCount());
+                ctx->drawPoints(cache->vica, pointSize, true, 0, cache->vica->getCount());
             }
         });
     }

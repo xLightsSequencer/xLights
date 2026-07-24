@@ -244,6 +244,17 @@ void xlVertexIndexedColorAccumulator::AddCircleAsTriangles(float cx, float cy, f
     }
 }
 
+void xlVertexIndexedColorAccumulator::AddSquareAsTriangles(float cx, float cy, float cz, float halfSize, uint32_t cIdx) {
+    PreAlloc(6);
+    AddVertex(cx - halfSize, cy - halfSize, cz, cIdx);
+    AddVertex(cx + halfSize, cy - halfSize, cz, cIdx);
+    AddVertex(cx + halfSize, cy + halfSize, cz, cIdx);
+
+    AddVertex(cx - halfSize, cy - halfSize, cz, cIdx);
+    AddVertex(cx + halfSize, cy + halfSize, cz, cIdx);
+    AddVertex(cx - halfSize, cy + halfSize, cz, cIdx);
+}
+
 void xlVertexColorAccumulator::AddCubeAsTriangles(float x, float y, float z, float width, const xlColor &color) {
     float halfwidth = width / 2.0f;
 
