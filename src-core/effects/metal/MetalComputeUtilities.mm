@@ -43,7 +43,28 @@ MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
 
 bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
     if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
-        return false;
+        // Few nodes: a tiny GPU dispatch normally isn't worth it, so CPU-blend.
+        // BUT if the layers we're about to blend already have un-waited GPU work
+        // queued (their effects rendered on the GPU), a CPU blend must
+        // waitForCompletion on each of them anyway -- so append the blend to the
+        // GPU instead: no upload, and we skip the CPU-side sync.  Gate on a
+        // MAJORITY being GPU-resident: on a discrete GPU that is the break-even
+        // (GPU blend saves N readbacks while paying at most N-1 uploads), and it
+        // keeps CPU-rendered layers from being dragged onto the GPU.  On
+        // unified/mapped memory this is ~neutral; the win is on discrete GPUs.
+        int gpuLayers = 0, totLayers = 0;
+        for (int l = (int)validLayers.size() - 1; l >= 0; --l) {
+            if (validLayers[l]) {
+                ++totLayers;
+                MetalRenderBufferComputeData *cd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[l]->buffer);
+                if (cd && cd->hasQueuedGpuWork()) {
+                    ++gpuLayers;
+                }
+            }
+        }
+        if (totLayers == 0 || gpuLayers * 2 < totLayers) {
+            return false;
+        }
     }
     for (int l = validLayers.size() - 1; l >= 0; --l) {
         if (validLayers[l]) {

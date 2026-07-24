@@ -65,6 +65,11 @@ public:
     // command buffer).  The render cache uses this to avoid draining that queue
     // (a pipeline-breaking download) just to store a cheap-to-recompute effect.
     bool hasOpenCommandBuffer() { return commandBuffer != nil && !committed; }
+    // True when this layer has un-waited GPU work queued this frame (open OR
+    // committed-but-not-yet-fenced) -- i.e. a CPU read of its pixels would have
+    // to waitForCompletion.  Used to decide whether a small-node blend is still
+    // worth doing on the GPU (the sync is unavoidable, so append instead).
+    bool hasQueuedGpuWork() { return commandBuffer != nil; }
     void waitForCompletion();
 
     void setDataLocation(CurrentDataLocation dl) { currentDataLocation = dl; }
