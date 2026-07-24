@@ -579,19 +579,24 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier) {
     }
     return false;
 #elif defined(__APPLE__)
-    // max of 24G of swap used
-    constexpr size_t MAX = 24l * 1024 * 1024 * 1024;
-    std::error_code ec;
-    size_t totalSize = 0;
-    for (const auto& entry : std::filesystem::directory_iterator("/System/Volumes/VM", ec)) {
-        if (ec) return false;
-        auto sz = std::filesystem::file_size(entry.path(), ec);
-        if (!ec) {
-            totalSize += sz;
-        }
-        ec.clear();
+#if TARGET_OS_IPHONE
+    // iPad: check kernel memory pressure level (1=normal, 2=warning/yellow, 4=critical/red)
+    uint32_t pressureLevel = 0;
+    size_t len = sizeof(pressureLevel);
+    if (sysctlbyname("kern.memorystatus_vm_pressure_level", &pressureLevel, &len, nullptr, 0) == 0) {
+        return pressureLevel >= 2;
     }
-    return totalSize > MAX;
+    return false;
+#else
+    // macOS: use vm.swapusage (works in sandbox; max 24 GB of swap used)
+    constexpr uint64_t MAX = 24ULL * 1024 * 1024 * 1024;
+    struct xsw_usage swapUsage;
+    size_t len = sizeof(swapUsage);
+    if (sysctlbyname("vm.swapusage", &swapUsage, &len, nullptr, 0) == 0) {
+        return swapUsage.xsu_used > MAX;
+    }
+    return false;
+#endif
 #else
     return false;
 #endif
