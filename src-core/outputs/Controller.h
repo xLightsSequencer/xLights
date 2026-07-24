@@ -264,6 +264,10 @@ public:
     virtual std::string GetIP() const { return GetResolvedIP(); }
     virtual std::string GetResolvedIP(bool forceResolve = false) const { return ""; }
     virtual std::string GetFPPProxy() const { return ""; }
+    // The proxy as configured, with no DNS resolution attempted - safe to call
+    // in bulk (e.g. building the controller list) unlike GetFPPProxy(), which
+    // does a live, uncached-on-failure resolve of the proxy hostname.
+    virtual std::string GetControllerFPPProxy() const { return ""; }
     virtual std::string GetProtocol() const { return ""; }
 
     // Used in tooltip on model dialog
@@ -287,7 +291,7 @@ public:
     // default the user cannot reach.
     virtual std::string GetColumn13Label() const;
     virtual std::string GetColumn14Label() const;
-    virtual std::string GetColumn15Label() const { return GetFPPProxy(); }
+    virtual std::string GetColumn15Label() const { return GetControllerFPPProxy(); }
     virtual std::string GetColumn16Label() const;
     virtual std::string GetColumn17Label() const;
 

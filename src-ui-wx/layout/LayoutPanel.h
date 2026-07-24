@@ -148,6 +148,14 @@ class LayoutPanel: public wxPanel
 		wxBitmapButton* ButtonOpenShowFolder = nullptr;
 		void UpdateDirectoriesFooter();
 
+		// Full-tab "Loading show..." overlay shown while SetDir() synchronously
+		// rebuilds the model/controller trees and preview for a new show -
+		// that rebuild scales with show size and used to happen off-screen
+		// before Layout became the default tab; the overlay at least gives
+		// the user feedback that something is happening instead of a frozen window.
+		void ShowLoadingOverlay(const wxString& message);
+		void HideLoadingOverlay();
+
 		wxPanel* PanelGroups = nullptr;
 		wxPanel* PanelControllers = nullptr;
 
@@ -168,6 +176,8 @@ class LayoutPanel: public wxPanel
         wxPanel* ModelPanelContainer = nullptr;
         wxPanel* SettingsPaneContainer = nullptr;   // "ModelSettings" pane window: propertyEditor / ModelGroupWindow / controllerProps
         void ShowSettingsPropGrid();
+        wxPanel* _loadingOverlay = nullptr;
+        wxStaticText* _loadingOverlayLabel = nullptr;
         wxAuiManager* layout_mgr = nullptr;
         wxString _savedFloatingPerspective;
         int _savedSashPos = -1;

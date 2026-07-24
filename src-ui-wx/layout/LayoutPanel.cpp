@@ -3894,6 +3894,41 @@ void LayoutPanel::ShowSettingsPropGrid()
     SettingsPaneContainer->Layout();
 }
 
+void LayoutPanel::ShowLoadingOverlay(const wxString& message)
+{
+    if (_loadingOverlay == nullptr) {
+        _loadingOverlay = new wxPanel(this, wxID_ANY);
+        _loadingOverlay->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+        _loadingOverlayLabel = new wxStaticText(_loadingOverlay, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+        wxFont f = _loadingOverlayLabel->GetFont();
+        f.MakeBold();
+        f.SetPointSize(f.GetPointSize() + 2);
+        _loadingOverlayLabel->SetFont(f);
+        wxBoxSizer* vs = new wxBoxSizer(wxVERTICAL);
+        vs->AddStretchSpacer(1);
+        vs->Add(_loadingOverlayLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 6);
+        vs->AddStretchSpacer(1);
+        _loadingOverlay->SetSizer(vs);
+    }
+    _loadingOverlayLabel->SetLabel(message);
+    _loadingOverlay->SetSize(GetClientSize());
+    _loadingOverlay->Layout();
+    _loadingOverlay->Raise();
+    _loadingOverlay->Show();
+    // Force an immediate synchronous paint so the message is actually on
+    // screen before the (long, non-yielding) show-load work below runs -
+    // a normal Show()/Refresh() would just queue a paint event that never
+    // gets a chance to run until that work finishes.
+    _loadingOverlay->Update();
+}
+
+void LayoutPanel::HideLoadingOverlay()
+{
+    if (_loadingOverlay != nullptr) {
+        _loadingOverlay->Hide();
+    }
+}
+
 void LayoutPanel::showBackgroundProperties()
 {
     // With nothing selected, the bottom pane shows the global layout/background

@@ -208,7 +208,20 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         return false;
     }
 
-    
+    // Everything below synchronously rebuilds the Layout tab's model/controller
+    // trees and preview, which scales with show size and can take a while on
+    // large shows. Layout is the default visible tab, so without this the
+    // window just sits there looking frozen for the whole load.
+    if (layoutPanel != nullptr) {
+        layoutPanel->ShowLoadingOverlay(_("Loading show..."));
+    }
+    struct LoadingOverlayGuard {
+        LayoutPanel* panel;
+        ~LoadingOverlayGuard() {
+            if (panel != nullptr) panel->HideLoadingOverlay();
+        }
+    } loadingOverlayGuard{ layoutPanel };
+
     layoutPanel->ClearSelectedModelGroup();
 
     // delete any views that were added to the menu

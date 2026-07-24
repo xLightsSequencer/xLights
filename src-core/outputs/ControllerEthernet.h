@@ -70,7 +70,7 @@ public:
     void SetGlobalForceLocalIP(const std::string& localIP);
 
     void SetFPPProxy(const std::string& proxy);
-    std::string GetControllerFPPProxy() const { return _fppProxy; }
+    virtual std::string GetControllerFPPProxy() const override { return _fppProxy; }
     virtual std::string GetFPPProxy() const override;
 
     bool IsFPPProxyable() const

@@ -76,7 +76,7 @@ public:
     void SetProtocol(const std::string& type);
 
     void SetFPPProxy(const std::string& proxy);
-    std::string GetControllerFPPProxy() const { return _fppProxy; }
+    virtual std::string GetControllerFPPProxy() const override { return _fppProxy; }
 
     SerialOutput* GetSerialOutput() const { return _serialOutput; }
 
