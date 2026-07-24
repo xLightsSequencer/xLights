@@ -1,0 +1,45 @@
+#version 450
+// Integer box blur (the small/narrow blur case: b<=2, or a buffer <=6 in
+// either dimension).  Port of BoxBlur in RotoZoomFunctions.metal and the CPU
+// `else` branch in PixelBufferClass::Blur.  Integer accumulation + integer
+// divide (no float rounding), so the result is bit-identical to the CPU path
+// and the GPU/CPU baselines stay in sync.  Src is a snapshot of Dst (the
+// caller copies the pixels first) so reads see a stable image while Dst is
+// written.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(push_constant) uniform PC {
+    uint width;
+    uint height;
+    int d; // window is [x-d, x+u] x [y-d, y+u]
+    int u;
+} data;
+
+layout(std430, set = 0, binding = 0) writeonly buffer Dst { uint dst[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Src { uint src[]; };
+
+#include "vulkan_common.glsl"
+
+void main() {
+    uvec2 index = gl_GlobalInvocationID.xy;
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    int x = int(index.x);
+    int y = int(index.y);
+    int w = int(data.width);
+    int h = int(data.height);
+    ivec4 acc = ivec4(0);
+    int sm = 0;
+    // Same iteration order as the CPU/Metal loop: outer x, inner y.
+    for (int i = x - data.d; i <= x + data.u; i++) {
+        if (i < 0 || i >= w) continue;
+        for (int j = y - data.d; j <= y + data.u; j++) {
+            if (j < 0 || j >= h) continue;
+            acc += ivec4(unpackPx(src[j * w + i]));
+            sm++;
+        }
+    }
+    if (sm == 0) sm = 1;
+    dst[y * w + x] = packPx(uvec4(acc / sm));
+}

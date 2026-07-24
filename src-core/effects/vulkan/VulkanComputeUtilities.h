@@ -118,6 +118,10 @@ public:
 
     void commit();
     bool isCommitted() { return committed; }
+    // True when this frame's effect left GPU work queued (an open, unsubmitted
+    // command buffer).  The render cache uses this to avoid draining that queue
+    // (a pipeline-breaking readback) just to store a cheap-to-recompute effect.
+    bool hasOpenCommandBuffer() { return commandBuffer != VK_NULL_HANDLE && !committed; }
     void waitForCompletion();
 
     // Retire a buffer that is being replaced (grown). If a command buffer is in
@@ -129,6 +133,11 @@ public:
     void retireBuffer(VulkanBuffer& b);
 
     bool blur(int radius);
+    // Integer box blur (small-blur case).  Only runs when the buffer already
+    // has an open command buffer (its effect rendered on the GPU this frame);
+    // it appends to that command buffer, so there is no upload/download bounce.
+    // Returns false otherwise -> the bit-identical CPU box blur handles it.
+    bool boxBlur(int d, int u);
     bool rotoZoom(GPURenderUtils::RotoZoomSettings& settings);
 
     VulkanBuffer maskBuffer;
@@ -236,6 +245,7 @@ public:
 
     VkPipeline tentBlurHFunction = VK_NULL_HANDLE;
     VkPipeline tentBlurVFunction = VK_NULL_HANDLE;
+    VkPipeline boxBlurFunction = VK_NULL_HANDLE;
     VkPipeline xrotateFunction = VK_NULL_HANDLE;
     VkPipeline yrotateFunction = VK_NULL_HANDLE;
     VkPipeline zrotateFunction = VK_NULL_HANDLE;
@@ -340,6 +350,7 @@ public:
 
     // XL_GPU_STATS=1 dispatch counters, dumped at exit.
     std::atomic<uint64_t> statBlur{0};
+    std::atomic<uint64_t> statBoxBlur{0};
     std::atomic<uint64_t> statRotoZoom{0};
     std::atomic<uint64_t> statTransition{0};
     std::atomic<uint64_t> statBlend{0};

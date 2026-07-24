@@ -64,6 +64,14 @@ struct TentBlurData {
 };
 static_assert(sizeof(TentBlurData) == 12, "TentBlurData layout drifted from the GLSL push-constant block");
 
+struct BoxBlurData {
+    uint32_t width;
+    uint32_t height;
+    int32_t d; // window is [x-d, x+u] x [y-d, y+u]
+    int32_t u;
+};
+static_assert(sizeof(BoxBlurData) == 16, "BoxBlurData layout drifted from the GLSL push-constant block");
+
 // Mirrors TransitionData in MetalEffectDataTypes.h ("out" is renamed —
 // it is a reserved word in GLSL).
 struct TransitionData {

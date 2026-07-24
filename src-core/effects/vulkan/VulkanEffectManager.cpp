@@ -87,6 +87,13 @@ public:
             }
         }
     }
+    virtual bool doHasPendingGPUWork(RenderBuffer *c) override {
+        if (c && c->gpuRenderData) {
+            VulkanRenderBufferComputeData *d = static_cast<VulkanRenderBufferComputeData*>(c->gpuRenderData);
+            return d ? d->hasOpenCommandBuffer() : false;
+        }
+        return false;
+    }
     virtual void doCommitRenderBuffer(RenderBuffer *c) override {
         if (c && c->gpuRenderData) {
             VulkanRenderBufferComputeData *d = static_cast<VulkanRenderBufferComputeData*>(c->gpuRenderData);
@@ -101,6 +108,20 @@ public:
         if (!noGpuBlur && c && c->gpuRenderData) {
             VulkanRenderBufferComputeData *d = static_cast<VulkanRenderBufferComputeData*>(c->gpuRenderData);
             return d ? d->blur(radius) : false;
+        }
+        return false;
+    }
+    virtual bool doBoxBlur(RenderBuffer *c, int d, int u) override {
+        // boxBlur() only runs when this layer already has an open command buffer
+        // (its effect rendered on the GPU), so it appends -- no bounce. Otherwise
+        // it returns false and the bit-identical CPU box blur handles it.
+        // XL_NO_GPU_BLUR disables all GPU blur; XL_NO_GPU_BOXBLUR isolates the
+        // box-blur stage for determinism A/B.
+        static const bool noGpuBlur = (getenv("XL_NO_GPU_BLUR") != nullptr);
+        static const bool noGpuBoxBlur = (getenv("XL_NO_GPU_BOXBLUR") != nullptr);
+        if (!noGpuBlur && !noGpuBoxBlur && c && c->gpuRenderData) {
+            VulkanRenderBufferComputeData *rb = static_cast<VulkanRenderBufferComputeData*>(c->gpuRenderData);
+            return rb ? rb->boxBlur(d, u) : false;
         }
         return false;
     }

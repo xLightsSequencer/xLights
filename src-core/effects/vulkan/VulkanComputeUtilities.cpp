@@ -26,6 +26,7 @@
 
 #include "shaders/compiled/TentBlurH.spv.h"
 #include "shaders/compiled/TentBlurV.spv.h"
+#include "shaders/compiled/BoxBlur.spv.h"
 #include "shaders/compiled/RotoZoomBlank.spv.h"
 #include "shaders/compiled/RotoZoomRotateX.spv.h"
 #include "shaders/compiled/RotoZoomRotateXClaim.spv.h"
@@ -496,8 +497,8 @@ void VulkanComputeUtilities::doInit() {
         // silently fall back to CPU and would otherwise look like a pass.
         atexit([]() {
             VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
-            fprintf(stderr, "XL_GPU_STATS: blur=%llu rotozoom=%llu transitions=%llu blend=%llu effect=%llu setup=%llu blurcall=%llu\n",
-                    (unsigned long long)u.statBlur.load(), (unsigned long long)u.statRotoZoom.load(),
+            fprintf(stderr, "XL_GPU_STATS: blur=%llu boxblur=%llu rotozoom=%llu transitions=%llu blend=%llu effect=%llu setup=%llu blurcall=%llu\n",
+                    (unsigned long long)u.statBlur.load(), (unsigned long long)u.statBoxBlur.load(), (unsigned long long)u.statRotoZoom.load(),
                     (unsigned long long)u.statTransition.load(), (unsigned long long)u.statBlend.load(),
                     (unsigned long long)u.statEffect.load(),
                     (unsigned long long)u.statSetup.load(), (unsigned long long)u.statBlurCall.load());
@@ -511,7 +512,7 @@ void VulkanComputeUtilities::doInit() {
             if (u.enabled) {
                 u.enabled = false;
                 vkDeviceWaitIdle(u.device);
-                for (VkPipeline* p : { &u.tentBlurHFunction, &u.tentBlurVFunction,
+                for (VkPipeline* p : { &u.tentBlurHFunction, &u.tentBlurVFunction, &u.boxBlurFunction,
                                        &u.xrotateFunction, &u.yrotateFunction, &u.zrotateFunction,
                                        &u.xrotateClaimFunction, &u.yrotateClaimFunction, &u.zrotateClaimFunction,
                                        &u.rotateBlankFunction,
@@ -727,6 +728,7 @@ bool VulkanComputeUtilities::buildPipelines() {
 
     XLVK_PIPELINE(tentBlurHFunction, TentBlurH)
     XLVK_PIPELINE(tentBlurVFunction, TentBlurV)
+    XLVK_PIPELINE(boxBlurFunction, BoxBlur)
     XLVK_PIPELINE(rotateBlankFunction, RotoZoomBlank)
     XLVK_PIPELINE(xrotateFunction, RotoZoomRotateX)
     XLVK_PIPELINE(xrotateClaimFunction, RotoZoomRotateXClaim)
@@ -1981,6 +1983,52 @@ bool VulkanRenderBufferComputeData::blur(int radius) {
         waitForCompletion();
     }
     return true;
+}
+
+bool VulkanRenderBufferComputeData::boxBlur(int d, int u) {
+    if (renderBuffer->BufferWi < 1 || renderBuffer->BufferHt < 1) {
+        return false;
+    }
+    VulkanComputeUtilities& vu = VulkanComputeUtilities::INSTANCE;
+    if (vu.boxBlurFunction == VK_NULL_HANDLE) {
+        return false;
+    }
+    // Only stay on the GPU when there is ALREADY an open (unsubmitted) command
+    // buffer for this layer this frame -- i.e. its effect just rendered on the
+    // GPU, so the pixels are GPU-resident and the box blur simply appends to
+    // that command buffer for free.  If nothing is queued (this frame's effect
+    // ran on the CPU), starting a fresh command buffer + upload would be its own
+    // bounce, so let the CPU box blur handle it.
+    if (commandBuffer == VK_NULL_HANDLE || committed) {
+        return false;
+    }
+    // Buffers before command buffer — see blur() for why the order matters.
+    VulkanBuffer& px = getPixelBuffer();
+    VulkanBuffer& tmp = getPixelBufferCopy();
+    if (!px || !tmp) {
+        return false;
+    }
+    VkCommandBuffer cb = getCommandBuffer("-BoxBlur");
+    if (cb == VK_NULL_HANDLE) {
+        return false;
+    }
+
+    BoxBlurData data;
+    data.width = renderBuffer->BufferWi;
+    data.height = renderBuffer->BufferHt;
+    data.d = d;
+    data.u = u;
+
+    // Snapshot px -> tmp so the kernel reads a stable copy while writing px
+    // (the CPU path uses SnapshotTransformScratch for the same reason).
+    VulkanComputeUtilities::computeBarrier(cb);
+    VkBufferCopy region = { 0, 0, (VkDeviceSize)(data.width * data.height * 4) };
+    vkCmdCopyBuffer(cb, px.buffer, tmp.buffer, 1, &region);
+    VulkanComputeUtilities::computeBarrier(cb);
+    vu.statBoxBlur++;
+    // dst = px, src = tmp (snapshot)
+    return encodeDispatch(cb, vu.boxBlurFunction, "BoxBlur", &data, sizeof(data),
+                          { px.buffer, tmp.buffer }, data.width, data.height);
 }
 
 bool VulkanRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings& settings) {
