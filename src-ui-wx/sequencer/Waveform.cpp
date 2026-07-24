@@ -44,6 +44,9 @@
 #include "media/StemSeparator.h"
 #include <wx/progdlg.h>
 #include "utils/CurlManager.h"
+#if defined(HAVE_ORT)
+#include "settings/XLightsConfigAdapter.h"
+#endif
 #include <atomic>
 #include <filesystem>
 #include <thread>
@@ -771,6 +774,13 @@ bool Waveform::PrepareStemData()
     }
 
     StemOutput stems;
+    StemSeparatorOptions stemOptions;
+#if defined(HAVE_ORT)
+    const long stemBackend = GetXLightsConfig()->ReadLong("xLightsStemBackend", 0);
+    if (stemBackend >= 0 && stemBackend <= 2) {
+        stemOptions.backend = static_cast<StemSeparatorBackend>(stemBackend);
+    }
+#endif
     {
         wxProgressDialog prog("Separating Stems",
             "Running HTDemucs — drums, bass, vocals, other…",
@@ -782,7 +792,7 @@ bool Waveform::PrepareStemData()
         std::atomic<int>  pct(0);
         std::thread worker([&] {
             ok = SeparateStems(_media, modelPath, stems,
-                               StemSeparatorOptions{},
+                               stemOptions,
                                [&pct](int p) { pct.store(p); },
                                &_stemSeparationCancel);
             done.store(true);

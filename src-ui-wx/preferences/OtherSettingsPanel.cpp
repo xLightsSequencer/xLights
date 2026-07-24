@@ -57,6 +57,7 @@ const wxWindowID OtherSettingsPanel::ID_CHECKBOX11 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX_CustomColorPicker = wxNewId();
 //*)
 const wxWindowID OtherSettingsPanel::ID_CHOICE_GfxBackend = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_StemBackend = wxNewId();
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
 	//(*EventTable(OtherSettingsPanel)
@@ -251,6 +252,27 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     }
 #endif
 
+#if defined(__WXMSW__) && defined(HAVE_ORT)
+    {
+        wxFlexGridSizer* stemSizer = new wxFlexGridSizer(0, 2, 0, 0);
+        stemSizer->AddGrowableCol(1);
+        stemSizer->Add(new wxStaticText(this, wxID_ANY, _("Stem separation backend:")), 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        StemBackendChoice = new wxChoice(this, ID_CHOICE_StemBackend);
+        StemBackendChoice->Append(_("Auto"));
+        StemBackendChoice->Append(_("CPU"));
+        StemBackendChoice->Append(_("GPU"));
+        StemBackendChoice->SetSelection(0);
+        StemBackendChoice->SetToolTip(_("Auto tries the GPU first. Select CPU manually if the graphics driver crashes xLights; driver crashes cannot be caught automatically."));
+        stemSizer->Add(StemBackendChoice, 1, wxALL | wxEXPAND, 5);
+        stemSizer->AddSpacer(1);
+        wxStaticText* stemHelp = new wxStaticText(this, wxID_ANY, _("If Auto causes a graphics driver crash, select CPU manually; driver crashes cannot be caught automatically."));
+        stemHelp->Wrap(420);
+        stemSizer->Add(stemHelp, 1, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+        GridBagSizer1->Add(stemSizer, wxGBPosition(15, 0), wxDefaultSpan, wxALL | wxEXPAND, 0);
+        Connect(ID_CHOICE_StemBackend, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    }
+#endif
+
 #ifdef __LINUX__
     HardwareVideoDecodingCheckBox->Hide();
     ShaderCheckbox->Hide();
@@ -308,6 +330,13 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
         config->Flush();
     }
 #endif
+#if defined(__WXMSW__) && defined(HAVE_ORT)
+    if (StemBackendChoice != nullptr) {
+        auto* config = GetXLightsConfig();
+        config->Write("xLightsStemBackend", StemBackendChoice->GetSelection());
+        config->Flush();
+    }
+#endif
     return true;
 }
 
@@ -341,6 +370,12 @@ bool OtherSettingsPanel::TransferDataToWindow() {
         if (!GraphicsBackendChoice->SetStringSelection(backend)) {
             GraphicsBackendChoice->SetSelection(0);
         }
+    }
+#endif
+#if defined(__WXMSW__) && defined(HAVE_ORT)
+    if (StemBackendChoice != nullptr) {
+        const long backend = GetXLightsConfig()->ReadLong("xLightsStemBackend", 0);
+        StemBackendChoice->SetSelection(backend >= 0 && backend < 3 ? static_cast<int>(backend) : 0);
     }
 #endif
 

@@ -59,7 +59,7 @@
 | Waveform filter — Non-Vocals | context-menu | ✅ | ✅ | parity | P2 | medium | feasible | `Waveform.cpp:266` ↔ `WaveformFilter.nonVocals` |
 | Waveform filter — Vocals (center extract) | context-menu | ✅ | ✅ | parity | P2 | medium | feasible | `Waveform.cpp:267` ↔ `WaveformFilter.vocals` |
 | Waveform filter — Perceptual (LUFS) | context-menu | ✅ | ✅ | parity | P2 | medium | feasible | `Waveform.cpp:268` ↔ `WaveformFilter.lufs` |
-| Waveform — HTDemucs stem separation (drums/bass/other/vocals) | context-menu | ✅ | ✅ | parity | P2 | hard | feasible | `Waveform.cpp:276-284` (macOS 12+) ↔ iPad `prepareStems` + install sheet `SequencerGridV2View.swift:898,1005`; both on-device CoreML, iOS 15+ |
+| Waveform — HTDemucs stem separation (drums/bass/other/vocals) | context-menu | ✅ | ✅ | parity | P2 | hard | feasible | `Waveform.cpp:276-284` (macOS 12+) ↔ iPad `prepareStems` + install sheet `SequencerGridV2View.swift:898,1005`; both on-device CoreML, iOS 15+. Windows additionally exposes an Auto/CPU/GPU backend preference for DirectML; it is not applicable to the CoreML-based iPad path. |
 | Waveform — double-height toggle | menu | ✅ | ✅ | parity | P3 | easy | feasible | `Waveform.cpp:307` ↔ `waveformDoubleHeight` `SequencerGridV2View.swift:233,1369` (B42) |
 | Waveform — show onsets overlay | context-menu | ✅ | ✅ | parity | P1 | medium | feasible | `Waveform.cpp:308` ↔ `SequencerGridV2View.swift:918`, `SequencerViewModel.swift:239` |
 | Waveform — show pitch contour | context-menu | ✅ | ✅ | parity | P2 | medium | feasible | `Waveform.cpp:309` ↔ `SequencerGridV2View.swift:929`, `SequencerViewModel.swift:250` |
