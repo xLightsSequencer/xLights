@@ -181,6 +181,11 @@ Logs, Import Effects, all external Help links, About, crash capture).
   disabled by default).
 - **Help → Content (F1)** — no F1 key on iPad keyboards; would need a
   remapped Help sheet instead.
+- **`--fseqcmp` render-diff diagnostics** (`XL_FSEQCMP_RANGE` frame
+  window, `XL_FSEQCMP_PNG=<model>` A|B|diff buffer strips) — a
+  developer-only CLI comparison of two `.fseq` files. iOS has no command
+  line and no argv the user can set, so there is no iPad surface to
+  mirror. Infeasible by platform, not a feature gap.
 
 ## Recommended sequencing
 

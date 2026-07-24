@@ -1069,6 +1069,38 @@ bool xLightsApp::OnInit()
         // Optional: dump A vs B for one channel across frames (env, 1-based).
         const char* dumpEnv = getenv("XL_FSEQCMP_DUMPCH");
         const uint32_t dumpCh = dumpEnv ? (uint32_t)strtoul(dumpEnv, nullptr, 10) : 0;
+        // Optional frame window "first[-last]" (inclusive) for the channel dump
+        // and the PNG dump. Without it the channel dump keeps its historical
+        // first-80-frames behaviour, which cannot reach a divergence that starts
+        // thousands of frames in.
+        uint32_t rangeFirst = 0;
+        uint32_t rangeLast = 0;
+        bool haveRange = false;
+        if (const char* re = getenv("XL_FSEQCMP_RANGE")) {
+            char* endp = nullptr;
+            rangeFirst = (uint32_t)strtoul(re, &endp, 10);
+            rangeLast = rangeFirst;
+            if (endp != nullptr && *endp == '-') {
+                rangeLast = (uint32_t)strtoul(endp + 1, nullptr, 10);
+            }
+            if (rangeLast < rangeFirst) {
+                std::swap(rangeFirst, rangeLast);
+            }
+            haveRange = true;
+        }
+        // Optional: rasterise one model's render buffer to PNG for each frame in
+        // XL_FSEQCMP_RANGE, as an A | B | amplified-diff strip. Numbers localize
+        // a divergence to a channel; a picture shows its shape (a rotation
+        // blowing up, a row off by one, one hot pixel), which is usually the
+        // faster route to the mechanism.
+        const char* pngModelEnv = getenv("XL_FSEQCMP_PNG");
+        const std::string pngModel = pngModelEnv != nullptr ? pngModelEnv : "";
+        const char* pngDirEnv = getenv("XL_FSEQCMP_PNGDIR");
+        const std::string pngDir = pngDirEnv != nullptr ? pngDirEnv : ".";
+        // Frames held back for the PNG pass. Bounded so a careless range cannot
+        // balloon into gigabytes on a 190k-channel show.
+        constexpr size_t MAX_PNG_FRAMES = 64;
+        std::vector<std::pair<uint32_t, std::pair<std::vector<uint8_t>, std::vector<uint8_t>>>> pngFrames;
         // Optional: report the differing FRAME ranges (env) - the temporal
         // shape localizes window/state bugs the way per-model localizes rows.
         const bool dumpFrames = getenv("XL_FSEQCMP_FRAMES") != nullptr;
@@ -1098,7 +1130,33 @@ bool xLightsApp::OnInit()
                 }
             }
             if (dumpCh != 0 && dumpCh <= maxCh) series.emplace_back(ba[dumpCh - 1], bb[dumpCh - 1]);
+            if (!pngModel.empty() && haveRange && fr >= rangeFirst && fr <= rangeLast &&
+                pngFrames.size() < MAX_PNG_FRAMES) {
+                pngFrames.emplace_back(fr, std::make_pair(ba, bb));
+            }
         }
+        // Loaded at most once and shared by the PNG dump and the per-model
+        // channel mapping below - LoadShowFolder is seconds, not free.
+        std::unique_ptr<HeadlessRenderContext> showCtx;
+        bool showLoadFailed = false;
+        auto getShow = [&]() -> HeadlessRenderContext* {
+            if (showCtx) {
+                return showCtx.get();
+            }
+            if (showLoadFailed || showDir.IsEmpty()) {
+                return nullptr;
+            }
+            ObtainAccessToURL(showDir.ToStdString(), false);
+            auto c = std::make_unique<HeadlessRenderContext>();
+            std::list<std::string> mf;
+            if (!c->LoadShowFolder(showDir.ToStdString(), mf)) {
+                showLoadFailed = true;
+                return nullptr;
+            }
+            showCtx = std::move(c);
+            return showCtx.get();
+        };
+
         if (dumpFrames && diffSamples > 0) {
             printf("\ndiffering frame ranges (frame:samples):\n");
             long rs = -1; uint64_t rsum = 0;
@@ -1109,10 +1167,114 @@ bool xLightsApp::OnInit()
             }
         }
         if (dumpCh != 0 && !series.empty()) {
-            printf("\nchannel %u  A vs B (first 80 frames; * = differ):\n", dumpCh);
-            for (uint32_t fr = 0; fr < series.size() && fr < 80; ++fr) {
-                printf("  fr %3u  A=%3u  B=%3u  %s\n", fr, series[fr].first, series[fr].second,
+            const uint32_t dfirst = haveRange ? rangeFirst : 0;
+            const uint32_t dlast = haveRange ? rangeLast : 79;
+            printf("\nchannel %u  A vs B (frames %u-%u; * = differ):\n", dumpCh, dfirst,
+                   (uint32_t)std::min<uint64_t>(dlast, series.size() - 1));
+            for (uint32_t fr = dfirst; fr < series.size() && fr <= dlast; ++fr) {
+                printf("  fr %5u  A=%3u  B=%3u  %s\n", fr, series[fr].first, series[fr].second,
                        series[fr].first != series[fr].second ? "*" : "");
+            }
+        }
+
+        if (!pngModel.empty()) {
+            if (!haveRange) {
+                printf("\nXL_FSEQCMP_PNG needs XL_FSEQCMP_RANGE=<first>[-<last>] to pick frames\n");
+            } else if (showDir.IsEmpty()) {
+                printf("\nXL_FSEQCMP_PNG needs -s <showdir> to resolve the model's buffer\n");
+            } else {
+                HeadlessRenderContext* ctx = getShow();
+                Model* m = ctx != nullptr ? ctx->AllModels[pngModel] : nullptr;
+                if (m == nullptr) {
+                    printf("\nXL_FSEQCMP_PNG: model '%s' not found in %s\n", pngModel.c_str(),
+                           showDir.ToStdString().c_str());
+                } else {
+                    wxInitAllImageHandlers();
+                    ObtainAccessToURL(pngDir, true);
+                    std::vector<NodeBaseClassPtr> nodes;
+                    int bw = 0;
+                    int bh = 0;
+                    m->InitRenderBufferNodes("Default", "2D", "None", nodes, bw, bh, 0);
+                    if (bw <= 0 || bh <= 0 || nodes.empty()) {
+                        printf("\nXL_FSEQCMP_PNG: model '%s' has no usable render buffer\n", pngModel.c_str());
+                    } else {
+                        // Buffer Y is bottom-up; images are top-down.
+                        auto plot = [&](const std::vector<uint8_t>& buf, wxImage& img) {
+                            img.Create(bw, bh);
+                            for (const auto& n : nodes) {
+                                const uint32_t ac = n->ActChan;
+                                const uint32_t cc = n->GetChanCount();
+                                if (cc == 0 || ac >= maxCh) {
+                                    continue;
+                                }
+                                auto at = [&](uint32_t k) -> uint8_t {
+                                    const uint32_t i = ac + k;
+                                    return (k < cc && i < maxCh) ? buf[i] : 0;
+                                };
+                                const uint8_t r = at(0);
+                                const uint8_t g = cc > 1 ? at(1) : r;
+                                const uint8_t b = cc > 2 ? at(2) : r;
+                                for (const auto& c : n->Coords) {
+                                    if (c.bufX < 0 || c.bufX >= bw || c.bufY < 0 || c.bufY >= bh) {
+                                        continue;
+                                    }
+                                    img.SetRGB(c.bufX, bh - 1 - c.bufY, r, g, b);
+                                }
+                            }
+                        };
+                        // Scale small buffers up so single pixels are visible.
+                        const int scale = std::max(1, 320 / std::max(bw, bh));
+                        const int gap = 2;
+                        std::string safe = pngModel;
+                        for (char& ch : safe) {
+                            if (!isalnum((unsigned char)ch)) {
+                                ch = '_';
+                            }
+                        }
+                        int written = 0;
+                        for (const auto& f : pngFrames) {
+                            wxImage ia;
+                            wxImage ib;
+                            plot(f.second.first, ia);
+                            plot(f.second.second, ib);
+                            // Amplified |A-B|: any nonzero delta floors at 64 so a
+                            // one-step difference is still visible next to a 255.
+                            wxImage id(bw, bh);
+                            for (int y = 0; y < bh; ++y) {
+                                for (int x = 0; x < bw; ++x) {
+                                    unsigned char d[3];
+                                    for (int k = 0; k < 3; ++k) {
+                                        const int va = k == 0 ? ia.GetRed(x, y) : (k == 1 ? ia.GetGreen(x, y) : ia.GetBlue(x, y));
+                                        const int vb = k == 0 ? ib.GetRed(x, y) : (k == 1 ? ib.GetGreen(x, y) : ib.GetBlue(x, y));
+                                        const int diff = std::abs(va - vb);
+                                        d[k] = (unsigned char)(diff == 0 ? 0 : std::max(64, std::min(255, diff * 4)));
+                                    }
+                                    id.SetRGB(x, y, d[0], d[1], d[2]);
+                                }
+                            }
+                            wxImage strip(bw * 3 + gap * 2, bh);
+                            strip.Paste(ia, 0, 0);
+                            strip.Paste(ib, bw + gap, 0);
+                            strip.Paste(id, (bw + gap) * 2, 0);
+                            if (scale > 1) {
+                                strip.Rescale(strip.GetWidth() * scale, strip.GetHeight() * scale,
+                                              wxIMAGE_QUALITY_NEAREST);
+                            }
+                            const std::string path = pngDir + "/" + safe + "_fr" + std::to_string(f.first) + ".png";
+                            if (strip.SaveFile(path, wxBITMAP_TYPE_PNG)) {
+                                ++written;
+                            } else {
+                                printf("  failed to write %s\n", path.c_str());
+                            }
+                        }
+                        printf("\nXL_FSEQCMP_PNG: wrote %d strip(s) [A | B | diff] for '%s' (%dx%d buffer) to %s\n",
+                               written, pngModel.c_str(), bw, bh, pngDir.c_str());
+                        if (pngFrames.size() >= MAX_PNG_FRAMES) {
+                            printf("  (capped at %u frames; narrow XL_FSEQCMP_RANGE for more)\n",
+                                   (unsigned)MAX_PNG_FRAMES);
+                        }
+                    }
+                }
             }
         }
         if (diffSamples == 0) {
@@ -1135,10 +1297,9 @@ bool xLightsApp::OnInit()
             // GPU-context float noise from shaders/Metal. Group rows overlap real
             // models so they're skipped (each channel belongs to one top-model).
             if (!showDir.IsEmpty()) {
-                ObtainAccessToURL(showDir.ToStdString(), false);
-                HeadlessRenderContext mapCtx;
-                std::list<std::string> mf;
-                if (mapCtx.LoadShowFolder(showDir.ToStdString(), mf)) {
+                HeadlessRenderContext* mapCtxPtr = getShow();
+                if (mapCtxPtr != nullptr) {
+                    HeadlessRenderContext& mapCtx = *mapCtxPtr;
                     struct MS { std::string name; uint32_t s1; uint32_t e1; uint64_t dch; int mx; };
                     std::vector<MS> ms;
                     // Track union of channels owned by some model. Buffer/overlay

@@ -1048,6 +1048,10 @@ void VulkanPixelBufferComputeData::fillLayerBlendingData(LayerBlendingData& data
     data.mixTypeData = 0;
     data.fadeFactor = layer->fadeFactor;
     data.sparkleColor = toUchar4(layer->sparklesColour);
+    // Every field must be set: the whole struct is uploaded to the GPU, and an
+    // unset field is stack garbage. sparkleFrame is the only field not otherwise
+    // assigned here (the sparkle dispatch overrides it when sparkles are active).
+    data.sparkleFrame = 0;
 }
 
 bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {

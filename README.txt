@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Vulkan (Windows/Linux) layer blending: an uninitialized field in the
+                                 per-layer data uploaded to the GPU each frame is now set explicitly
+    -enh (dkulp)                 --fseqcmp: XL_FSEQCMP_RANGE=<first>[-<last>] picks the frame window for
+                                 the per-channel dump (was hardcoded to the first 80 frames), and
+                                 XL_FSEQCMP_PNG=<model> writes an A|B|amplified-diff PNG strip of that
+                                 model's render buffer for each frame in the range
     -bug (dkulp)                 Shader effect: ISF/GLSL shaders that define their own copy of a GLSL
                                  built-in function (e.g. sinh/cosh/tanh) no longer fail to translate on
                                  the Vulkan (Windows/Linux) path and render solid yellow; such user
