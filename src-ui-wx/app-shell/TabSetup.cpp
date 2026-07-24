@@ -243,8 +243,10 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     // already gets an equivalent reset further down once network load
     // completes; RGB effects / presets get reloaded fresh from the new show's
     // own files, so start them clean here too.
-    UnsavedRgbEffectsChanges = false;
-    UnsavedPresetChanges = false;
+    if (wxFileName::DirExists(nd)) {
+        UnsavedRgbEffectsChanges = false;
+        UnsavedPresetChanges = false;
+    }
 
     viewpoint_mgr.Clear();
 
