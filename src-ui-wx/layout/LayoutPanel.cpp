@@ -1084,8 +1084,12 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ButtonSavePreview->Reparent(layoutControlsBar);
 
     LabelDirectoriesFooter = new wxStaticText(layoutControlsBar, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
+    ButtonOpenShowFolder = new wxBitmapButton(layoutControlsBar, wxID_ANY, wxArtProvider::GetBitmapBundle("wxART_FOLDER_OPEN", wxART_BUTTON));
+    ButtonOpenShowFolder->SetToolTip("Select Show Folder");
+    ButtonOpenShowFolder->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) { xlights->OnMenuOpenFolderSelected(e); });
     {
         wxBoxSizer* lcbSizer = new wxBoxSizer(wxHORIZONTAL);
+        lcbSizer->Add(ButtonOpenShowFolder, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->Add(LabelDirectoriesFooter, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);
         lcbSizer->AddStretchSpacer(1);
         lcbSizer->Add(ButtonSavePreview, 0, wxALL|wxALIGN_CENTER_VERTICAL, 8);

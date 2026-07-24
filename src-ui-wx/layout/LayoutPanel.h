@@ -64,6 +64,7 @@ class ControllerListPanel;
 class ViewObject;
 class wxListEvent;
 class wxMouseEvent;
+class wxBitmapButton;
 class wxPropertyGrid;
 class wxPropertyGridEvent;
 class NewModelBitmapButton;
@@ -144,6 +145,7 @@ class LayoutPanel: public wxPanel
 		//*)
 
 		wxStaticText* LabelDirectoriesFooter = nullptr;
+		wxBitmapButton* ButtonOpenShowFolder = nullptr;
 		void UpdateDirectoriesFooter();
 
 		wxPanel* PanelGroups = nullptr;
