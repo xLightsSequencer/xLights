@@ -656,10 +656,38 @@ bool VulkanComputeUtilities::createDeviceBuffer(VulkanBuffer& b, size_t size, co
 }
 
 void VulkanComputeUtilities::destroyBuffer(VulkanBuffer& b) {
+    // Never free immediately: a buffer retired mid-render may still be read by an
+    // in-flight command buffer owned by a *different* VulkanRenderBufferComputeData
+    // (the blend reads each input layer's buffers), and this method is also called
+    // from within a layer's own idle window.  Freeing here let VMA re-hand the
+    // memory to another frame-parallel allocation while the GPU was still using it
+    // — a cross-clone use-after-free that non-deterministically corrupted output.
+    // Queue instead; drainDeferredFreesIfIdle releases only when the GPU is idle.
     if (b.buffer != VK_NULL_HANDLE) {
-        vmaDestroyBuffer(allocator, b.buffer, b.allocation);
+        std::lock_guard<std::mutex> lock(deferredFreeMutex);
+        deferredFree.push_back(b);
     }
     b = VulkanBuffer();
+    drainDeferredFreesIfIdle();
+}
+
+void VulkanComputeUtilities::drainDeferredFreesIfIdle() {
+    // Safe only when no command buffer is recording or in flight anywhere; a
+    // retired buffer is never bound by a later submission, so once the count is
+    // zero nothing on the GPU can reference any queued buffer's memory.
+    if (VulkanRenderBufferComputeData::anyCommandBuffersActive()) {
+        return;
+    }
+    std::vector<VulkanBuffer> toFree;
+    {
+        std::lock_guard<std::mutex> lock(deferredFreeMutex);
+        toFree.swap(deferredFree);
+    }
+    for (VulkanBuffer& b : toFree) {
+        if (b.buffer != VK_NULL_HANDLE) {
+            vmaDestroyBuffer(allocator, b.buffer, b.allocation);
+        }
+    }
 }
 
 VkPipeline VulkanComputeUtilities::createComputePipeline(const uint32_t* spirv, size_t sizeBytes, const char* name) {
@@ -1690,6 +1718,7 @@ void VulkanRenderBufferComputeData::abortCommandBuffer() {
             u.destroyBuffer(b);
         }
         pendingFree.clear();
+        u.drainDeferredFreesIfIdle();
     }
 }
 
@@ -1722,6 +1751,7 @@ void VulkanRenderBufferComputeData::commit() {
             timestamped = false;
             cbTag.reset();
             --commandBufferCount;
+            u.drainDeferredFreesIfIdle();
             return;
         }
         committed = true;
@@ -1767,6 +1797,9 @@ void VulkanRenderBufferComputeData::waitForCompletion() {
                 u.destroyBuffer(b);
             }
             pendingFree.clear();
+            // This completion may have dropped the global in-flight count to zero;
+            // release any cross-object deferred buffers now that the GPU is idle.
+            u.drainDeferredFreesIfIdle();
         }
     }
 }

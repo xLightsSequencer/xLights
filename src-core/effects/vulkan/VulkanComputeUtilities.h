@@ -75,6 +75,10 @@ public:
     VulkanRenderBufferComputeData(RenderBuffer* rb, VulkanPixelBufferComputeData* pixelBufferData, int l);
     ~VulkanRenderBufferComputeData();
 
+    // True while any command buffer is recording or in flight anywhere; gates
+    // the deferred GPU-buffer free (see VulkanComputeUtilities::deferredFree).
+    static bool anyCommandBuffersActive() { return commandBufferCount.load() != 0; }
+
     void bufferResized();
 
     VulkanPixelBufferComputeData* pixelBufferData;
@@ -232,6 +236,11 @@ public:
     int gpuCoreCount();
 
     bool createSharedBuffer(VulkanBuffer& b, size_t size, const std::string& name);
+    // Physically release any buffers queued by destroyBuffer, but only when no
+    // command buffer is in flight anywhere (commandBufferCount == 0) so a
+    // retired buffer's memory can never be reused by another frame-parallel
+    // allocation while in-flight GPU work still references it.
+    void drainDeferredFreesIfIdle();
     bool createDeviceBuffer(VulkanBuffer& b, size_t size, const std::string& name);
     void destroyBuffer(VulkanBuffer& b);
 
@@ -356,6 +365,16 @@ public:
     // synchronized); command recording happens lock-free in per-RenderBuffer
     // command buffers.
     std::mutex queueMutex;
+
+    // Deferred GPU-buffer frees.  A buffer retired mid-render may still be
+    // referenced by an in-flight command buffer belonging to a *different*
+    // VulkanRenderBufferComputeData (the blend reads the input layers' buffers),
+    // so freeing it based on one object's local state let VMA re-hand its memory
+    // to another frame-parallel allocation while the GPU was still using it — a
+    // cross-clone use-after-free that non-deterministically corrupted output.
+    // destroyBuffer queues here; drainDeferredFreesIfIdle releases only at idle.
+    std::mutex deferredFreeMutex;
+    std::vector<VulkanBuffer> deferredFree;
 
     // XL_GPU_STATS=1 dispatch counters, dumped at exit.
     std::atomic<uint64_t> statBlur{0};

@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Vulkan (Windows/Linux) GPU render: fixed a nondeterministic render where a
+                                 few models could differ slightly between two identical renders. A compute
+                                 buffer retired mid-frame could have its memory re-handed by the allocator to
+                                 another parallel-frame allocation while in-flight GPU work still referenced
+                                 it; buffer frees are now deferred until no command buffer is in flight. The
+                                 Christmas show now renders 56/56 byte-identical run to run
     -bug (dkulp)                 Headless render (--headless): the render cache is now disabled, as it
                                  always should have been. The headless path never applied the render-cache
                                  preference, so it silently defaulted to enabled with no cache folder and
