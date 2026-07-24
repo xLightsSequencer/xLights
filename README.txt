@@ -22,6 +22,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  there, instead of blocking to blur on the CPU
     -change (dkulp)              Effect settings GetBool now treats a leading 'T' ("True") as true in
                                  addition to '1', so both boolean-storage conventions read correctly
+    -bug (dkulp)                 Vulkan (Windows/Linux) layer blending: GPU-built transition masks (e.g.
+                                 Wipe) are now bound directly to the blend as the Metal path already does,
+                                 instead of being copied on the CPU from the still-in-flight GPU mask
+                                 buffer; that read-before-fence race made masked transitions render
+                                 nondeterministically (a wipe edge landing a row or two off between
+                                 otherwise-identical renders)
     -bug (dkulp)                 Vulkan (Windows/Linux) layer blending: an uninitialized field in the
                                  per-layer data uploaded to the GPU each frame is now set explicitly
     -enh (dkulp)                 Vulkan (Windows/Linux) GPU render: when a compute buffer has to be

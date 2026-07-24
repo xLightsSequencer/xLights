@@ -1127,19 +1127,38 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
         }
         VkBuffer mask = VK_NULL_HANDLE;
         if (layer->maskSize > 0) {
-            // The transition mask was built by the CPU transition path —
-            // upload it (kept in a per-layer staging buffer that outlives
-            // the command buffer).
-            VulkanBuffer& mu = layerCD->cpuMaskUpload;
-            size_t len = ((size_t)layer->maskSize + 3) & ~(size_t)3;
-            if (mu.size < len) {
-                u.destroyBuffer(layerCD->cpuMaskUpload);
-                if (!u.createSharedBuffer(layerCD->cpuMaskUpload, len, pixelBuffer->GetModelName() + "-CPUMaskUpload")) {
-                    return false;
+            // Match the Metal backend (LayerBlendingFunctions blend loop): when a
+            // GPU transition built the mask it lives in this layer's GPU
+            // maskBuffer and layer->mask aliases its mapped pointer — bind that
+            // buffer directly and let the GPU order it, exactly as the pixel and
+            // index buffers below are bound directly.  maskBuffer was written by
+            // a dispatch in the layer's own command buffer: for input layers the
+            // waitForRenderCompletion loop before commit() fences it (same as the
+            // pixel read), and for the save layer the -Map write and this
+            // GetColors read share one command buffer ordered by the computeBarrier
+            // before GetColors.  Only the CPU-fallback transition path (small /
+            // sub-threshold transitions build the mask in maskVector) needs a copy.
+            //
+            // The Vulkan port originally memcpy'd the mask unconditionally, which
+            // for GPU-built masks read the maskBuffer on the CPU while its writing
+            // dispatch was still in flight — a nondeterministic mask (the wipe edge
+            // landed a row or two off).  Host buffer hashing missed it (the GPU
+            // eventually settled the correct mask) and Vulkan sync validation does
+            // not model a host read of mapped memory.
+            if (layerCD->maskBuffer && layer->mask == static_cast<uint8_t*>(layerCD->maskBuffer.mapped)) {
+                mask = layerCD->maskBuffer.buffer;
+            } else {
+                VulkanBuffer& mu = layerCD->cpuMaskUpload;
+                size_t len = ((size_t)layer->maskSize + 3) & ~(size_t)3;
+                if (mu.size < len) {
+                    u.destroyBuffer(layerCD->cpuMaskUpload);
+                    if (!u.createSharedBuffer(layerCD->cpuMaskUpload, len, pixelBuffer->GetModelName() + "-CPUMaskUpload")) {
+                        return false;
+                    }
                 }
+                memcpy(layerCD->cpuMaskUpload.mapped, layer->mask, layer->maskSize);
+                mask = layerCD->cpuMaskUpload.buffer;
             }
-            memcpy(layerCD->cpuMaskUpload.mapped, layer->mask, layer->maskSize);
-            mask = layerCD->cpuMaskUpload.buffer;
         }
         bits.push_back({ layer, layerCD, blendBuf.buffer, pixels.buffer, indexes.buffer, mask });
     }

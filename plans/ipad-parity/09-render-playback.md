@@ -26,6 +26,15 @@
 > backend's `GPURenderUtils` implementation (blur/rotozoom/transitions/layer
 > blending). Apple platforms (desktop + iPad) keep the Metal backend — the
 > Vulkan sources compile to nothing there, so no iPad action is needed.
+>
+> **Update (2026-07-24):** fixed a Vulkan-only render-nondeterminism where
+> GPU-built transition masks (Wipe, etc.) were copied on the CPU from the
+> still-in-flight GPU mask buffer before its writing dispatch was fenced,
+> producing nondeterministic masked-transition output. The fix binds the GPU
+> mask buffer directly to the blend, which is exactly what the Metal backend
+> already does (`MetalComputeUtilities.mm` blend loop) — so this brings Vulkan
+> to parity with the already-correct Metal path; **no iPad change needed** and
+> the Metal render path was never affected.
 
 ## Parity scorecard
 
