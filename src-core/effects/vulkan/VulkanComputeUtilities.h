@@ -120,6 +120,14 @@ public:
     bool isCommitted() { return committed; }
     void waitForCompletion();
 
+    // Retire a buffer that is being replaced (grown). If a command buffer is in
+    // flight/recording it may still reference the old buffer, so instead of
+    // draining the GPU (waitForCompletion) just to free it, hand it to the
+    // deferred-free list and destroy it once this render buffer's command buffer
+    // next completes. Frees immediately when nothing is in flight. Mirrors the
+    // implicit lifetime extension Metal gets from ARC. `b` is cleared.
+    void retireBuffer(VulkanBuffer& b);
+
     bool blur(int radius);
     bool rotoZoom(GPURenderUtils::RotoZoomSettings& settings);
 
@@ -174,6 +182,10 @@ private:
     // tracking is needed.
     VulkanBuffer rotoOwnerBuffer;
     int rotoOwnerSize = 0;
+
+    // Buffers replaced while a command buffer was in flight; freed once that
+    // command buffer completes (see retireBuffer / waitForCompletion).
+    std::vector<VulkanBuffer> pendingFree;
 
     static std::atomic<uint32_t> commandBufferCount;
 };

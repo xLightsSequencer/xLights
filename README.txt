@@ -13,6 +13,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.14  July ??, 2026
     -bug (dkulp)                 Vulkan (Windows/Linux) layer blending: an uninitialized field in the
                                  per-layer data uploaded to the GPU each frame is now set explicitly
+    -enh (dkulp)                 Vulkan (Windows/Linux) GPU render: when a compute buffer has to be
+                                 grown mid-frame, the old buffer is now retired to a deferred-free list
+                                 and released once its command buffer completes, instead of stalling the
+                                 GPU pipeline to drain and free it immediately (matches the Metal path)
     -enh (dkulp)                 --fseqcmp: XL_FSEQCMP_RANGE=<first>[-<last>] picks the frame window for
                                  the per-channel dump (was hardcoded to the first 80 frames), and
                                  XL_FSEQCMP_PNG=<model> writes an A|B|amplified-diff PNG strip of that

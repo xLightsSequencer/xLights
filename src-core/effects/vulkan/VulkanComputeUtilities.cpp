@@ -881,10 +881,7 @@ bool VulkanPixelBufferComputeData::doTransitions(PixelBufferClass* pixelBuffer, 
             return false;
         }
         if (ms > li->maskMaxSize) {
-            if (bd->isCommitted()) {
-                bd->waitForCompletion();
-            }
-            u.destroyBuffer(bd->maskBuffer);
+            bd->retireBuffer(bd->maskBuffer);
             li->maskMaxSize = ms;
             // round up: the kernels write the byte mask through 32-bit words
             if (!u.createSharedBuffer(bd->maskBuffer, ((size_t)ms + 3) & ~(size_t)3,
@@ -1343,6 +1340,12 @@ VulkanRenderBufferComputeData::~VulkanRenderBufferComputeData() {
         waitForCompletion();
     }
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    // waitForCompletion drains pendingFree when it runs; free any that remain
+    // (e.g. object destroyed while already idle).
+    for (VulkanBuffer& b : pendingFree) {
+        u.destroyBuffer(b);
+    }
+    pendingFree.clear();
     u.destroyBuffer(pixelBuffer);
     u.destroyBuffer(pixelBufferCopy);
     u.destroyBuffer(blendBuffer);
@@ -1641,6 +1644,13 @@ void VulkanRenderBufferComputeData::abortCommandBuffer() {
         timestamped = false;
         cbTag.reset();
         --commandBufferCount;
+        // The recorded commands were discarded (never submitted), so nothing
+        // will ever reference the retired buffers — free them now.
+        VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+        for (VulkanBuffer& b : pendingFree) {
+            u.destroyBuffer(b);
+        }
+        pendingFree.clear();
     }
 }
 
@@ -1712,17 +1722,35 @@ void VulkanRenderBufferComputeData::waitForCompletion() {
             recording = false;
             committed = false;
             --commandBufferCount;
+            // The fence has signalled: the just-completed command buffer can no
+            // longer reference any retired buffer, so free them now.
+            for (VulkanBuffer& b : pendingFree) {
+                u.destroyBuffer(b);
+            }
+            pendingFree.clear();
         }
+    }
+}
+
+void VulkanRenderBufferComputeData::retireBuffer(VulkanBuffer& b) {
+    if (!b) {
+        return;
+    }
+    if (recording || committed) {
+        // The in-flight/recording command buffer may still reference b; defer.
+        pendingFree.push_back(b);
+        b = VulkanBuffer();
+    } else {
+        // Nothing in flight (the last command buffer's fence already signalled),
+        // so no GPU work references b — free it right away.
+        VulkanComputeUtilities::INSTANCE.destroyBuffer(b);
     }
 }
 
 VulkanBuffer& VulkanRenderBufferComputeData::getBlendBuffer() {
     size_t len = renderBuffer->GetNodeCount() * sizeof(uint32_t);
     if (blendBuffer && blendBuffer.size < len) {
-        if (recording || committed) {
-            waitForCompletion();
-        }
-        VulkanComputeUtilities::INSTANCE.destroyBuffer(blendBuffer);
+        retireBuffer(blendBuffer);
     }
     if (!blendBuffer) {
         VulkanComputeUtilities::INSTANCE.createSharedBuffer(blendBuffer, len, renderBuffer->GetModelName() + "-WorkBuffer" + std::to_string(layer));
@@ -1742,10 +1770,7 @@ VulkanBuffer& VulkanRenderBufferComputeData::getIndexBuffer() {
 VulkanBuffer& VulkanRenderBufferComputeData::getOwnerBuffer() {
     int pixelCount = renderBuffer->GetPixelCount();
     if (!ownerBuffer || ownerSize < pixelCount) {
-        if (recording || committed) {
-            waitForCompletion();
-        }
-        VulkanComputeUtilities::INSTANCE.destroyBuffer(ownerBuffer);
+        retireBuffer(ownerBuffer);
         if (!VulkanComputeUtilities::INSTANCE.createSharedBuffer(ownerBuffer, pixelCount * sizeof(int32_t), renderBuffer->GetModelName() + "OwnerBuffer")) {
             ownerSize = 0;
             return ownerBuffer;
@@ -1785,10 +1810,7 @@ VulkanBuffer& VulkanRenderBufferComputeData::getPixelBufferCopy() {
 VulkanBuffer& VulkanRenderBufferComputeData::getRotoOwnerBuffer() {
     int pixelCount = renderBuffer->BufferWi * renderBuffer->BufferHt;
     if (!rotoOwnerBuffer || rotoOwnerSize < pixelCount) {
-        if (recording || committed) {
-            waitForCompletion();
-        }
-        VulkanComputeUtilities::INSTANCE.destroyBuffer(rotoOwnerBuffer);
+        retireBuffer(rotoOwnerBuffer);
         if (VulkanComputeUtilities::INSTANCE.createDeviceBuffer(rotoOwnerBuffer, pixelCount * sizeof(int32_t), renderBuffer->GetModelName() + "RotoOwnerBuffer")) {
             rotoOwnerSize = pixelCount;
         } else {
