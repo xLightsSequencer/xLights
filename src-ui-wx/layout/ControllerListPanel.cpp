@@ -963,7 +963,7 @@ wxWindow* ControllerListPanel::CreatePropertiesPanel(wxWindow* parent) {
     });
     leftColSizer->Add(_btnAddController, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
 
-    headerSizer->Add(leftColSizer, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    headerSizer->Add(leftColSizer, 0, wxALL | wxALIGN_TOP, 2);
 
     // wraps onto extra rows when the properties column is narrow; default
     // flags include wxEXTEND_LAST_ON_EACH_LINE, which would stretch the last
