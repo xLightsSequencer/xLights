@@ -164,6 +164,16 @@ bool HeadlessRenderContext::OpenSequence(const std::string& path) {
 
 void HeadlessRenderContext::EnsureRenderEngine() {
     if (!_renderEngine) {
+        // The GUI configures the render cache from the user preference
+        // (RenderCache::Enable()/SetSequence(), both only called in src-ui-wx);
+        // the headless path never did, so RenderCache::_mode kept its hardcoded
+        // Enabled default with an empty cache folder — RenderEngine still ran the
+        // GetFrame/AddFrame cache path in the frame-parallel workers with nowhere
+        // to persist to.  A one-shot headless render has nothing to reuse a cache
+        // for, so disable it.  XL_HEADLESS_RENDERCACHE=1 opts back in.
+        if (getenv("XL_HEADLESS_RENDERCACHE") == nullptr) {
+            _renderCache.Enable("Disabled");
+        }
         jobPool.Start(RenderEngine::RecommendedPoolSize());
         _renderEngine = std::make_unique<RenderEngine>(*this, jobPool, _renderCache);
     }

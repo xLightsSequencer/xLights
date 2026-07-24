@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Headless render (--headless): the render cache is now disabled, as it
+                                 always should have been. The headless path never applied the render-cache
+                                 preference, so it silently defaulted to enabled with no cache folder and
+                                 ran the cache code path in the render workers for nothing (set
+                                 XL_HEADLESS_RENDERCACHE=1 to opt back in)
     -enh (dkulp)                 GPU render (Metal): the render cache no longer forces a GPU->CPU
                                  readback right after a GPU effect renders. That readback drained the
                                  command buffer, so a blurred layer had to bounce out to the CPU and
