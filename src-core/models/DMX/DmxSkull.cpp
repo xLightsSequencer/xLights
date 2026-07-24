@@ -254,7 +254,11 @@ float DmxSkull::GetServoPos(Servo* _servo, bool active)
 {
     float servo_pos = 0.0f;
     if (active && _servo->GetChannel() > 0) {
-        servo_pos = _servo->GetPosition(GetChannelValue(_servo->GetChannel() - 1, _servo->Is16Bit()));
+        int chan = _servo->GetChannel() - 1;
+        bool bits16 = _servo->Is16Bit();
+        bool driven = false;
+        int value = GetChannelValue(chan, bits16, &driven);
+        servo_pos = _servo->GetPosition(value, driven);
         if (_servo->IsTranslate()) {
             glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
             servo_pos /= scale.x;

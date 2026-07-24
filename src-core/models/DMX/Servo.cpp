@@ -64,9 +64,19 @@ bool Servo::IsRotate() const {
             servo_style_val == SERVO_STYLE_ROTATEZ);
 }
 
-float Servo::GetPosition(int channel_value) {
-    if (channel_value == 0) {
-        channel_value = lastValue;
+float Servo::GetPosition(int channel_value, bool driven) {
+    if (!driven) {
+        if (controller_zero == "Min") {
+            channel_value = min_limit;
+        } else if (controller_zero == "Max") {
+            channel_value = max_limit;
+        } else if (controller_zero == "Center") {
+            channel_value = (min_limit + max_limit) / 2;
+        } else {
+            // "Hold" and "Stop PWM" have no preview equivalent of their own --
+            // both just keep showing wherever the servo last was
+            channel_value = lastValue;
+        }
     }
     if (channel_value < min_limit) {
         channel_value = min_limit;

@@ -66,7 +66,7 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
     protected:
         virtual void InitModel() override;
 
-        virtual int GetChannelValue( int channel, bool bits16);
+        virtual int GetChannelValue( int channel, bool bits16, bool* driven = nullptr);
         int GetChannelValue(int channel_coarse, int channel_fine);
         void SetNodeNames(const std::string& default_names, bool force = false);
 

@@ -38,7 +38,7 @@ public:
     bool IsTranslate() const;
     bool IsRotate() const;
     void FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix);
-    float GetPosition(int channel_value);
+    float GetPosition(int channel_value, bool driven = true);
     bool Is16Bit() const { return _16bit; }
     bool Is2D() const { return is_2d; }
     

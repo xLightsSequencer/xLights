@@ -76,7 +76,7 @@ void DmxServo3d::SetNumServos(int val)
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
             auto new_name = "Servo" + std::to_string(i + 1);
-            servos[i] = std::make_unique<Servo>(new_name, true);
+            servos[i] = std::make_unique<Servo>(new_name, false);
             servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
@@ -155,7 +155,7 @@ void DmxServo3d::InitModel()
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
             std::string new_name = "Servo" + std::to_string(i + 1);
-            servos[i] = std::make_unique<Servo>(new_name, true);
+            servos[i] = std::make_unique<Servo>(new_name, false);
             servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
@@ -382,7 +382,11 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
     // Get servo positions and fill motion matrices
     for (int i = 0; i < (int)servos.size(); ++i) {
         if (servos[i]->GetChannel() > 0 && active) {
-            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
+            int chan = servos[i]->GetChannel() - 1;
+            bool bits16 = servos[i]->Is16Bit();
+            bool driven = false;
+            int value = GetChannelValue(chan, bits16, &driven);
+            servo_pos[i] = servos[i]->GetPosition(value, driven);
             if (servos[i]->IsTranslate()) {
                 glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
                 servo_pos[i] /= scale.x;
@@ -392,6 +396,24 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
         motion_matrix[i] = Identity;
         servos[i]->FillMotionMatrix(servo_pos[i], servo_matrix[i]);
     }
+
+    // apply the servo(s) that actually drive a given mesh index, honoring any
+    // custom Servo Linkage remapping -- a mesh's own index only drives it when
+    // no servo has been explicitly redirected to (or away from) it. The
+    // mesh's own servo is always applied first, then any others redirected
+    // onto it, matching the original (pre-refactor) composition order --
+    // matrix multiplication is not commutative, so this order matters for
+    // rotate-style servos.
+    auto applyMeshServos = [&](glm::mat4& matrix, int meshIdx) {
+        if (servo_links[meshIdx] == -1) {
+            matrix = matrix * servo_matrix[meshIdx];
+        }
+        for (int j = 0; j < (int)servos.size(); ++j) {
+            if (j != meshIdx && servo_links[j] == meshIdx) {
+                matrix = matrix * servo_matrix[j];
+            }
+        }
+    };
 
     // Determine motion mesh linkages
     for (int i = 0; i < num_motion; ++i) {
@@ -410,25 +432,14 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
             while (!link_list.empty()) {
                 link = link_list.back();
                 link_list.pop_back();
-                motion_matrix[i] = motion_matrix[i] * servo_matrix[link];
+                applyMeshServos(motion_matrix[i], link);
             }
         }
     }
 
     // add motion based on servo mapping
     for (int i = 0; i < (int)servos.size(); ++i) {
-        // see if servo links to his own mesh
-        if (servo_links[i] == -1) {
-            motion_matrix[i] = motion_matrix[i] * servo_matrix[i];
-        }
-        // check if any other servos map to this mesh
-        for (int j = 0; j < (int)servos.size(); ++j) {
-            if (j != i) {
-                if (servo_links[j] == i) {
-                    motion_matrix[i] = motion_matrix[i] * servo_matrix[j];
-                }
-            }
-        }
+        applyMeshServos(motion_matrix[i], i);
     }
 
     // Draw Motion Meshs
