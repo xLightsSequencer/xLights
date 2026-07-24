@@ -1832,8 +1832,6 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset) {
         }
     } else {
         // small blur
-        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
-
         int d;
         int u;
         if (b % 2 == 0) {
@@ -1843,6 +1841,15 @@ void PixelBufferClass::Blur(LayerInfo* layer, float offset) {
             d = (b - 1) / 2;
             u = (b - 1) / 2;
         }
+        // If the buffer is already on the GPU (effects rendered there), do the box
+        // blur on the GPU too so the whole chain stays in one command queue and we
+        // avoid the block/download/CPU-blur/upload bounce. The GPU kernel is
+        // bit-identical to the CPU loop below (integer window sum). Returns false
+        // (-> CPU path) when the buffer is CPU-resident or GPU is unavailable.
+        if (GPURenderUtils::BoxBlur(&layer->buffer, d, u)) {
+            return;
+        }
+        GPURenderUtils::waitForRenderCompletion(&layer->buffer);
         layer->buffer.SnapshotTransformScratch();
         for (int x = 0; x < layer->BufferWi; x++) {
             for (int y = 0; y < layer->BufferHt; y++) {

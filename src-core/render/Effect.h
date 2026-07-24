@@ -175,7 +175,7 @@ public:
     void SetColorMask(xlColor colorMask) { mColorMask = colorMask; }
 
     //gets the cached frame.   Returns true if the frame was filled into the buffer
-    bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache);
+    bool GetFrame(RenderBuffer &buffer, RenderCache &renderCache, const SettingsMap &settings);
     void AddFrame(RenderBuffer &buffer, RenderCache &renderCache);
     void PurgeCache(bool deleteCachefile = false);
     

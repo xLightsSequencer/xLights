@@ -60,6 +60,35 @@ kernel void TentBlurV(constant TentBlurData &data,
     }
     dst[index.y * data.width + index.x] = uchar4(round(acc / sumw));
 }
+
+// Small box blur. Integer math, matching PixelBufferClass::Blur's CPU "else"
+// branch bit-for-bit: sum each channel (as int) over the in-bounds window
+// [x-d, x+u] x [y-d, y+u], count valid pixels, integer-divide. src must be a
+// stable snapshot separate from dst.
+kernel void BoxBlur(constant BoxBlurData &data,
+                    device uchar4* dst,
+                    const device uchar4* src,
+                    uint2 index [[thread_position_in_grid]]) {
+    if (index.x >= data.width) return;
+    if (index.y >= data.height) return;
+    int x = int(index.x);
+    int y = int(index.y);
+    int r = 0, g = 0, b = 0, a = 0, sm = 0;
+    for (int i = x - data.d; i <= x + data.u; i++) {
+        if (i < 0 || i >= int(data.width)) continue;
+        for (int j = y - data.d; j <= y + data.u; j++) {
+            if (j < 0 || j >= int(data.height)) continue;
+            uchar4 c = src[j * data.width + i];
+            r += int(c.x);
+            g += int(c.y);
+            b += int(c.z);
+            a += int(c.w);
+            sm++;
+        }
+    }
+    if (sm == 0) sm = 1;
+    dst[y * data.width + x] = uchar4(uchar(r / sm), uchar(g / sm), uchar(b / sm), uchar(a / sm));
+}
 // The rotate kernels scatter: several source pixels can round() to the same
 // destination, and concurrent GPU threads racing for it made the output
 // non-deterministic run to run.  Each rotation therefore runs in two phases:

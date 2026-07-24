@@ -72,6 +72,13 @@ public:
             }
         }
     }
+    virtual bool doHasPendingGPUWork(RenderBuffer *c) override {
+        if (c && c->gpuRenderData) {
+            MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            return d ? d->hasOpenCommandBuffer() : false;
+        }
+        return false;
+    }
     virtual void doCommitRenderBuffer(RenderBuffer *c) override {
         if (c && c->gpuRenderData) {
             MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
@@ -85,6 +92,21 @@ public:
         if (!noGpuBlur && c && c->gpuRenderData) {
             MetalRenderBufferComputeData *d = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
             return d ? d->blur(radius) : false;
+        }
+        return false;
+    }
+    virtual bool doBoxBlur(RenderBuffer *c, int d, int u) override {
+        // boxBlur() itself only runs when this layer already has an open command
+        // buffer this frame (its effect rendered on the GPU), so the box blur just
+        // appends to it -- no bounce. Otherwise it returns false and the CPU box
+        // blur (bit-identical) handles it.
+        // XL_NO_GPU_BLUR disables all GPU blur; XL_NO_GPU_BOXBLUR isolates just
+        // the box-blur stage (leaving the tent blur on GPU) for determinism A/B.
+        static const bool noGpuBlur = (getenv("XL_NO_GPU_BLUR") != nullptr);
+        static const bool noGpuBoxBlur = (getenv("XL_NO_GPU_BOXBLUR") != nullptr);
+        if (!noGpuBlur && !noGpuBoxBlur && c && c->gpuRenderData) {
+            MetalRenderBufferComputeData *rb = static_cast<MetalRenderBufferComputeData*>(c->gpuRenderData);
+            return rb ? rb->boxBlur(d, u) : false; // boxBlur() no-ops unless GPU-resident
         }
         return false;
     }

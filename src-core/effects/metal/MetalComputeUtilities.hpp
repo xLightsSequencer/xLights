@@ -61,10 +61,17 @@ public:
 
     void commit();
     bool isCommitted() { return committed; }
+    // True when this frame's effect left GPU work queued (an open, uncommitted
+    // command buffer).  The render cache uses this to avoid draining that queue
+    // (a pipeline-breaking download) just to store a cheap-to-recompute effect.
+    bool hasOpenCommandBuffer() { return commandBuffer != nil && !committed; }
     void waitForCompletion();
-    
+
     void setDataLocation(CurrentDataLocation dl) { currentDataLocation = dl; }
     bool blur(int radius);
+    // Integer box blur (small-blur case). Only worthwhile when the buffer is
+    // already GPU-resident (no upload) -- the caller gates on that.
+    bool boxBlur(int d, int u);
     bool rotoZoom(GPURenderUtils::RotoZoomSettings &settings);
 
     id<MTLBuffer> maskBuffer;
@@ -148,6 +155,7 @@ public:
     id<MTLComputePipelineState> rotateBlankFunction;
     id<MTLComputePipelineState> tentBlurHFunction;
     id<MTLComputePipelineState> tentBlurVFunction;
+    id<MTLComputePipelineState> boxBlurFunction;
     
     id<MTLComputePipelineState> getColorsFunction;
     id<MTLComputePipelineState> putColorsFunction;

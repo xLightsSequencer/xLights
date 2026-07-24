@@ -75,6 +75,16 @@ struct TentBlurData {
     int32_t halfK; // (kernelWidth - 1) / 2, tent weights halfK+1-|i|
 };
 
+// Small box blur — mirrors PixelBufferClass::Blur's CPU "else" branch exactly
+// (integer sum of the in-bounds [x-d,x+u]x[y-d,y+u] window, integer divide by
+// the count), so the GPU result is bit-identical to the CPU path.
+struct BoxBlurData {
+    uint32_t width;
+    uint32_t height;
+    int32_t d;
+    int32_t u;
+};
+
 // allow up to 16 arms, more than that and drop to CPU render
 #define MAX_METAL_PINWHEEL_ARMS 16
 struct MetalPinwheelData {

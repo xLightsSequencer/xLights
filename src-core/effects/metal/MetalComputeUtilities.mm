@@ -985,6 +985,64 @@ bool MetalRenderBufferComputeData::blur(int radius) {
     }
 }
 
+bool MetalRenderBufferComputeData::boxBlur(int d, int u) {
+    if (renderBuffer->BufferWi < 1 || renderBuffer->BufferHt < 1) {
+        return false;
+    }
+    if (MetalComputeUtilities::INSTANCE.boxBlurFunction == nil) {
+        return false;
+    }
+    // Only stay on the GPU when there is ALREADY an open (uncommitted) command
+    // buffer for this layer this frame -- i.e. its effect just rendered on the
+    // GPU, so the pixels are GPU-resident and the box blur simply appends to that
+    // command buffer for free. If nothing is queued (this frame's effect ran on
+    // the CPU), starting a fresh command buffer + upload would be its own bounce,
+    // so let the CPU box blur handle it. This is more precise than testing the
+    // pixels pointer, which stays GPU-side once any earlier frame used the GPU.
+    if (commandBuffer == nil || committed) {
+        return false;
+    }
+    @autoreleasepool {
+        id<MTLCommandBuffer> commandBuffer = getCommandBuffer("-BoxBlur");
+        if (commandBuffer == nil) {
+            return false;
+        }
+        id<MTLBuffer> px = getPixelBuffer();
+        id<MTLBuffer> tmp = getPixelBufferCopy();
+        if (px == nil || tmp == nil) {
+            return false;
+        }
+        BoxBlurData data;
+        data.width = renderBuffer->BufferWi;
+        data.height = renderBuffer->BufferHt;
+        data.d = d;
+        data.u = u;
+
+        [commandBuffer pushDebugGroup:@"BoxBlur"];
+        // Snapshot px -> tmp so the kernel reads a stable copy while writing px
+        // (the CPU path uses SnapshotTransformScratch for the same reason).
+        id<MTLBlitCommandEncoder> blit = [commandBuffer blitCommandEncoder];
+        [blit setLabel:@"BoxBlurSnapshot"];
+        [blit copyFromBuffer:px sourceOffset:0 toBuffer:tmp destinationOffset:0
+                        size:(data.width * data.height * 4)];
+        [blit endEncoding];
+
+        id<MTLComputeCommandEncoder> enc = [commandBuffer computeCommandEncoder];
+        [enc setLabel:@"BoxBlur"];
+        [enc setComputePipelineState:MetalComputeUtilities::INSTANCE.boxBlurFunction];
+        [enc setBytes:&data length:sizeof(data) atIndex:0];
+        [enc setBuffer:px offset:0 atIndex:1];   // dst
+        [enc setBuffer:tmp offset:0 atIndex:2];  // src (snapshot)
+        int w = MetalComputeUtilities::INSTANCE.boxBlurFunction.threadExecutionWidth;
+        int h = MetalComputeUtilities::INSTANCE.boxBlurFunction.maxTotalThreadsPerThreadgroup / w;
+        [enc dispatchThreads:MTLSizeMake(data.width, data.height, 1)
+       threadsPerThreadgroup:MTLSizeMake(w, h, 1)];
+        [enc endEncoding];
+        [commandBuffer popDebugGroup];
+        return true;
+    }
+}
+
 bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &settings) {
     if ((renderBuffer->BufferWi * renderBuffer->BufferHt) < 256) {
         // Smallish buffer, overhead of sending to GPU will be more than the gain
@@ -1237,6 +1295,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
     rotateBlankFunction = FindComputeFunction("RotoZoomBlank");
     tentBlurHFunction = FindComputeFunction("TentBlurH");
     tentBlurVFunction = FindComputeFunction("TentBlurV");
+    boxBlurFunction = FindComputeFunction("BoxBlur");
     
     getColorsFunction = FindComputeFunction("GetColorsForNodes");
     putColorsFunction = FindComputeFunction("PutColorsForNodes");
@@ -1332,6 +1391,7 @@ MetalComputeUtilities::~MetalComputeUtilities() {
         rotateBlankFunction = nil;
         tentBlurHFunction = nil;
         tentBlurVFunction = nil;
+        boxBlurFunction = nil;
 
         getColorsFunction = nil;
         putColorsFunction = nil;

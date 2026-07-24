@@ -925,10 +925,10 @@ bool operator<(const Effect &e1, const Effect &e2)
     return false;
 }
 
-bool Effect::GetFrame(RenderBuffer &buffer, RenderCache &renderCache) {
+bool Effect::GetFrame(RenderBuffer &buffer, RenderCache &renderCache, const SettingsMap &settings) {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
     if (mCache == nullptr) {
-        mCache = renderCache.GetItem(this, &buffer);
+        mCache = renderCache.GetItem(this, settings, &buffer);
     }
     return mCache && mCache->GetFrame(&buffer);
 }

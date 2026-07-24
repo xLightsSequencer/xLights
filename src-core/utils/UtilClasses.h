@@ -90,7 +90,10 @@ public:
     bool getBool() const {
         uint64_t c = _cache.load(std::memory_order_relaxed);
         if ((c & 0xFF) != BOOLEAN) {
-            bool b = length() >= 1 && this->at(0) == '1';
+            // Accept both settings conventions: "1"/"0" (checkboxes) and
+            // "True"/"False" (e.g. X_Effect_Locked).  "False" starts with 'F'
+            // so it stays false.
+            bool b = length() >= 1 && (this->at(0) == '1' || this->at(0) == 'T');
             c = pack(BOOLEAN, b ? 1 : 0);
             _cache.store(c, std::memory_order_relaxed);
         }

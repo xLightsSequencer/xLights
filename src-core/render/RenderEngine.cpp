@@ -3642,7 +3642,7 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                     }
                                 }
                                 else if (effectObj != nullptr && reff->SupportsRenderCache(SettingsMap) && _renderCache.IsEnabled()) {
-                                    if (!effectObj->GetFrame(*rb, _renderCache)) {
+                                    if (!effectObj->GetFrame(*rb, _renderCache, SettingsMap)) {
                                         // Serial advance+draw: a migrated Snapshottable
                                         // effect advances here, then Render draws the
                                         // returned snapshot - identical to the draw pass.
@@ -3650,8 +3650,23 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                                         if (snap != nullptr) rb->pendingSnapshot = snap.get();
                                         reff->Render(effectObj, SettingsMap, *rb);
                                         rb->pendingSnapshot = nullptr;
-                                        GPURenderUtils::waitForRenderCompletion(rb);
-                                        effectObj->AddFrame(*rb, _renderCache);
+                                        if (GPURenderUtils::HasPendingGPUWork(rb)) {
+                                            // The effect rendered GPU-resident.  Caching it
+                                            // means waitForRenderCompletion here to read the
+                                            // pixels back, which drains + nils the command
+                                            // buffer so the following blur/rotozoom/blend
+                                            // can't append to it -- the GPU->CPU->GPU bounce
+                                            // that broke the single-command-queue design for
+                                            // every blurred layer.  A GPU re-render is cheap,
+                                            // so skip storing this frame and let the layer
+                                            // stay on one queue.  (CPU-resident effects fall
+                                            // through: their wait is a no-op since there is no
+                                            // queued GPU work, so caching them stays free --
+                                            // and that is where the cache actually pays off.)
+                                        } else {
+                                            GPURenderUtils::waitForRenderCompletion(rb);
+                                            effectObj->AddFrame(*rb, _renderCache);
+                                        }
                                     }
                                 }
                                 else {

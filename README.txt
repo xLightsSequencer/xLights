@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -enh (dkulp)                 GPU render (Metal): the render cache no longer forces a GPU->CPU
+                                 readback right after a GPU effect renders. That readback drained the
+                                 command buffer, so a blurred layer had to bounce out to the CPU and
+                                 back for its blur/blend; effect+blur+rotozoom+blend now stay in one
+                                 command queue. Cheap-to-recompute GPU effects skip the cache; slow
+                                 CPU effects still cache (their readback is free). Output is unchanged
+    -enh (dkulp)                 GPU render (Metal): the small/narrow "box" blur case now runs on the
+                                 GPU (bit-identical to the CPU path) when the layer already rendered
+                                 there, instead of blocking to blur on the CPU
+    -change (dkulp)              Effect settings GetBool now treats a leading 'T' ("True") as true in
+                                 addition to '1', so both boolean-storage conventions read correctly
     -bug (dkulp)                 Vulkan (Windows/Linux) layer blending: an uninitialized field in the
                                  per-layer data uploaded to the GPU each frame is now set explicitly
     -enh (dkulp)                 Vulkan (Windows/Linux) GPU render: when a compute buffer has to be
