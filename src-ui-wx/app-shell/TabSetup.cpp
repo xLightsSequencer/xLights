@@ -232,6 +232,20 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
 
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
+
+    // Whatever the user chose above was about the OLD show directory's files.
+    // xLightsFrame is a single long-lived instance reused across every show
+    // switch in a session (constructed once, its flags default-initialized
+    // false only that one time), so without resetting these here, declining
+    // to save above (or any other unrelated earlier edit in this session)
+    // would leave the Save button permanently red for every show loaded
+    // afterward, even ones that were never touched. UnsavedNetworkChanges
+    // already gets an equivalent reset further down once network load
+    // completes; RGB effects / presets get reloaded fresh from the new show's
+    // own files, so start them clean here too.
+    UnsavedRgbEffectsChanges = false;
+    UnsavedPresetChanges = false;
+
     viewpoint_mgr.Clear();
 
     // Force re-initialization of Effect Presets panel when show directory changes.
@@ -484,7 +498,20 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         }
     }
 
+    // Model/object deserialization calls the same public setters used for
+    // interactive edits (SetActive, ControllerConnection::SetCtrlPort, etc.),
+    // each of which queues ASAP work whenever the loaded value legitimately
+    // differs from that field's in-memory default on a freshly constructed
+    // object -- which is the common case for any real, configured model.
+    // Suppressing ASAP work for the duration of the load (mirroring the same
+    // DisableASAPWork bracket LayoutPanel.cpp already uses around other bulk
+    // operations) avoids marking the show dirty for content that hasn't
+    // actually changed since it was last saved. The channel/controller-config
+    // work that genuinely needs to run after a load is already explicitly
+    // re-queued via AddImmediateWork just below, so nothing legitimate is lost.
+    _outputModelManager.DisableASAPWork(true);
     LoadEffectsFile();
+    _outputModelManager.DisableASAPWork(false);
 
     spdlog::debug("Get start channels right.");
     // make sure these won't refire

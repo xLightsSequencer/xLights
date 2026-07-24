@@ -45,6 +45,8 @@ void Output::SaveAttr(pugi::xml_node node) {
 
     node.append_attribute("MaxChannels") = _channels;
 
+    node.append_attribute("Enabled") = _enabled ? "Yes" : "No";
+
     node.remove_attribute("FPPProxy");
     if (IsUsingFPPProxy()) {
         node.append_attribute("FPPProxy") = _fppProxy;
