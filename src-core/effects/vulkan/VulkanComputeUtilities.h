@@ -118,10 +118,19 @@ public:
 
     void commit();
     bool isCommitted() { return committed; }
-    // True when this frame's effect left GPU work queued (an open, unsubmitted
-    // command buffer).  The render cache uses this to avoid draining that queue
-    // (a pipeline-breaking readback) just to store a cheap-to-recompute effect.
-    bool hasOpenCommandBuffer() { return commandBuffer != VK_NULL_HANDLE && !committed; }
+    // NB: `commandBuffer` is sticky -- allocated once and recycled via
+    // vkResetCommandPool, never nulled -- so state is tracked by `recording`
+    // (a command buffer is begun) and `committed` (submitted, fence pending),
+    // both cleared by waitForCompletion.  Test those, not the handle.
+    //
+    // True when this frame's effect left an OPEN (begun, not yet submitted)
+    // command buffer to append to.  The render cache uses this to avoid draining
+    // that queue (a readback) just to store a cheap-to-recompute effect.
+    bool hasOpenCommandBuffer() { return recording && !committed; }
+    // True when there is un-waited GPU work queued (open or in-flight) -- a CPU
+    // read of the pixels would have to waitForCompletion.  Used to decide whether
+    // a small-node blend is still worth doing on the GPU.
+    bool hasQueuedGpuWork() { return recording; }
     void waitForCompletion();
 
     // Retire a buffer that is being replaced (grown). If a command buffer is in

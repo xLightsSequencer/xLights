@@ -1056,7 +1056,25 @@ void VulkanPixelBufferComputeData::fillLayerBlendingData(LayerBlendingData& data
 bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < (int)u.bufferSizeThreshold) {
-        return false;
+        // Few nodes: normally CPU-blend, but if a MAJORITY of the layers already
+        // have un-waited GPU work queued (their effects rendered on the GPU), a
+        // CPU blend must waitForCompletion on each anyway -- so append the blend
+        // to the GPU instead (no upload, skip the sync).  On a discrete GPU that
+        // majority is the break-even; on unified/mapped memory it is ~neutral.
+        // Mirrors MetalPixelBufferComputeData::doBlendLayers.
+        int gpuLayers = 0, totLayers = 0;
+        for (int l = (int)validLayers.size() - 1; l >= 0; --l) {
+            if (validLayers[l]) {
+                ++totLayers;
+                VulkanRenderBufferComputeData* cd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&pixelBuffer->layers[l]->buffer);
+                if (cd && cd->hasQueuedGpuWork()) {
+                    ++gpuLayers;
+                }
+            }
+        }
+        if (totLayers == 0 || gpuLayers * 2 < totLayers) {
+            return false;
+        }
     }
     for (int l = validLayers.size() - 1; l >= 0; --l) {
         if (validLayers[l]) {
@@ -1993,13 +2011,14 @@ bool VulkanRenderBufferComputeData::boxBlur(int d, int u) {
     if (vu.boxBlurFunction == VK_NULL_HANDLE) {
         return false;
     }
-    // Only stay on the GPU when there is ALREADY an open (unsubmitted) command
-    // buffer for this layer this frame -- i.e. its effect just rendered on the
-    // GPU, so the pixels are GPU-resident and the box blur simply appends to
-    // that command buffer for free.  If nothing is queued (this frame's effect
+    // Only stay on the GPU when there is ALREADY an open (begun, unsubmitted)
+    // command buffer for this layer this frame -- i.e. its effect just rendered
+    // on the GPU, so the pixels are GPU-resident and the box blur simply appends
+    // to that command buffer for free.  If nothing is queued (this frame's effect
     // ran on the CPU), starting a fresh command buffer + upload would be its own
-    // bounce, so let the CPU box blur handle it.
-    if (commandBuffer == VK_NULL_HANDLE || committed) {
+    // bounce, so let the CPU box blur handle it.  (`recording && !committed`, not
+    // the sticky `commandBuffer` handle, which stays non-null once allocated.)
+    if (!recording || committed) {
         return false;
     }
     // Buffers before command buffer — see blur() for why the order matters.
