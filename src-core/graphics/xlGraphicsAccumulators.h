@@ -136,6 +136,11 @@ public:
     }
     void AddCircleAsTriangles(float cx, float cy, float cz, float radius, uint32_t cIdx, uint32_t eIdx, int numSegments = -1);
 
+    // Flat quad in the node's local X/Y plane at a fixed Z, matching
+    // AddCircleAsTriangles' plane -- real 3D geometry (gets the full model
+    // transform + depth sort) rather than a camera-facing point sprite.
+    void AddSquareAsTriangles(float cx, float cy, float cz, float halfSize, uint32_t cIdx);
+
     
 protected:
     std::string name;
