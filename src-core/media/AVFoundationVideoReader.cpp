@@ -17,6 +17,7 @@
 
 #include "AVFoundationVideoReader.h"
 #include "media/AVFoundationVideoBridge.h"
+#include "VideoDecodeSizeRegistry.h"
 
 namespace {
 
@@ -49,9 +50,16 @@ AVFoundationVideoReader::AVFoundationVideoReader(const std::string& filename, in
                                                   bool keepaspectratio, bool usenativeresolution,
                                                   bool wantAlpha, bool bgr, bool wantsHWType)
     : _filename(filename) {
+    // Decode-time scaling: the render pre-pass records the largest size this file
+    // is used at (keyed by the resolved path we were opened with). Hand it down so
+    // the shared decoder can emit frames pre-scaled to that size instead of native.
+    // 0/0 (no pre-pass entry) means decode at native.
+    int maxDecodeW = 0, maxDecodeH = 0;
+    VideoDecodeSizeRegistry::GetMaxDecodeSize(filename, maxDecodeW, maxDecodeH);
     _bridge = AppleAVFoundationVideoBridge::CreateReader(filename, maxwidth, maxheight,
                                                           keepaspectratio, usenativeresolution,
-                                                          wantAlpha, bgr, wantsHWType);
+                                                          wantAlpha, bgr, wantsHWType,
+                                                          maxDecodeW, maxDecodeH);
 }
 
 AVFoundationVideoReader::~AVFoundationVideoReader() {

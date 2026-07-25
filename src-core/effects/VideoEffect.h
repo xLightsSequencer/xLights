@@ -39,6 +39,15 @@ public:
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     static bool IsVideoFile(std::string filename);
 
+    // Pre-render pass (called once by RenderEngine before any job runs): scans
+    // every Video effect on the given models, computes the largest render size
+    // each video FILE is used at (buffer size inflated by the tightest crop it
+    // reaches, including value-curve animation), and records it in
+    // VideoDecodeSizeRegistry so the decoder can emit frames pre-scaled to that
+    // size instead of native — big cache-memory + scale-cost savings. Clears the
+    // registry first so removed effects don't pin a stale/oversized decode.
+    static void PrepareDecodeSizes(class SequenceElements& seqElements, const std::list<class Model*>& models);
+
     // Currently not possible but I think changes could be made to make it support partial
     // virtual bool CanRenderPartialTimeInterval() const override { return true; }
 

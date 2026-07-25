@@ -14,6 +14,7 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
@@ -34,7 +35,9 @@
 #include "../render/EffectLayer.h"
 #include "../render/Element.h"
 #include "../render/SequenceElements.h"
+#include "../render/ValueCurve.h"
 #include "../models/Model.h"
+#include "../media/VideoDecodeSizeRegistry.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 
@@ -253,6 +256,135 @@ std::list<std::string> VideoEffect::CheckEffectSettings(const SettingsMap& setti
 bool VideoEffect::IsVideoFile(std::string filename)
 {
     return VideoReader::IsVideoFile(filename);
+}
+
+namespace {
+// Evaluate one crop setting at a normalized offset (0..1) across an effect's
+// period. Mirrors RenderableEffect::GetValueCurveInt but for the raw (E_-prefixed)
+// stored settings the pre-pass reads, and without the render-time memo cache.
+int EvalCropAt(const SettingsMap& s, const std::string& name, int def, float offset, long sMS, long eMS) {
+    const std::string vn = "E_VALUECURVE_" + name;
+    if (s.Contains(vn)) {
+        const std::string& vcs = s.Get(vn, xlEMPTY_STRING);
+        if (!vcs.empty()) {
+            ValueCurve vc;
+            vc.SetDivisor(1);
+            vc.SetLimits(VideoEffect::sCropMin, VideoEffect::sCropMax);
+            vc.Deserialise(vcs);
+            if (vc.IsActive()) {
+                return vc.GetOutputValueAt(offset, sMS, eMS);
+            }
+        }
+    }
+    if (s.Contains("E_SLIDER_" + name)) {
+        return s.GetInt("E_SLIDER_" + name, def);
+    }
+    if (s.Contains("E_TEXTCTRL_" + name)) {
+        return s.GetInt("E_TEXTCTRL_" + name, def);
+    }
+    return def;
+}
+
+// Accumulate the decode size one Video effect needs for its file.
+void AccumulateVideoEffectDecodeSize(Effect* eff, Model* model, SequenceElements& seqElements) {
+    const SettingsMap& s = eff->GetSettings();
+
+    // Sync-to-audio reads the sequence media file, not the settings path, and is
+    // forced Stateful — skip (it doesn't map to a stable file-path decode size).
+    if (s.GetBool("E_CHECKBOX_SynchroniseWithAudio", false)) {
+        return;
+    }
+    std::string filename = s.Get("E_FILEPICKERCTRL_Video_Filename", xlEMPTY_STRING);
+    if (filename.empty()) {
+        return;
+    }
+    auto vidEntry = seqElements.GetSequenceMedia().GetVideo(filename);
+    if (!vidEntry) {
+        return;
+    }
+    std::string resolved = vidEntry->GetResolvedPath();
+    if (resolved.empty()) {
+        return;
+    }
+
+    // Buffer size this effect renders at (mirrors CheckEffectSettings/Render).
+    std::string bufferstyle = s.Get("B_CHOICE_BufferStyle", "Default");
+    std::string transform = s.Get("B_CHOICE_BufferTransform", "None");
+    std::string camera = s.Get("B_CHOICE_PerPreviewCamera", "2D");
+    int bw = 0, bh = 0;
+    model->GetBufferSize(bufferstyle, camera, transform, bw, bh, s.GetInt("B_SPINCTRL_BufferStagger", 0));
+    if (bw < 2 || bh < 2) {
+        return;
+    }
+
+    // The reader is opened at buffer/cropSpan (a 50% crop needs 2x buffer to keep
+    // the cropped-in region at buffer resolution). Crop is value-curvable and cl/cr
+    // (and ct/cb) are independent curves, so the tightest span must be found by
+    // sampling the pair together across the effect period, not from per-curve
+    // extremes. 101 samples matches ValueCurve's own sampling density.
+    const long sMS = eff->GetStartTimeMS();
+    const long eMS = eff->GetEndTimeMS();
+    int minSpanX = VideoEffect::sCropMax;
+    int minSpanY = VideoEffect::sCropMax;
+    constexpr int kSamples = 100;
+    for (int i = 0; i <= kSamples; ++i) {
+        const float off = (float)i / (float)kSamples;
+        const int cl = EvalCropAt(s, "Video_CropLeft", VideoEffect::sCropLeftDefault, off, sMS, eMS);
+        const int cr = EvalCropAt(s, "Video_CropRight", VideoEffect::sCropRightDefault, off, sMS, eMS);
+        const int ct = EvalCropAt(s, "Video_CropTop", VideoEffect::sCropTopDefault, off, sMS, eMS);
+        const int cb = EvalCropAt(s, "Video_CropBottom", VideoEffect::sCropBottomDefault, off, sMS, eMS);
+        minSpanX = std::min(minSpanX, std::abs(cr - cl));
+        minSpanY = std::min(minSpanY, std::abs(ct - cb));
+    }
+    minSpanX = std::max(1, minSpanX);
+    minSpanY = std::max(1, minSpanY);
+
+    const int w = bw * 100 / minSpanX;
+    const int h = bh * 100 / minSpanY;
+    VideoDecodeSizeRegistry::SetMaxDecodeSize(resolved, w, h);
+}
+} // namespace
+
+void VideoEffect::PrepareDecodeSizes(SequenceElements& seqElements, const std::list<Model*>& models) {
+    const auto sw = std::chrono::steady_clock::now();
+    long scanned = 0;
+    long videos = 0;
+    VideoDecodeSizeRegistry::Clear();
+    // XL_NO_DECODE_SCALE: leave the registry empty so every video decodes at
+    // native (the pre-decode-scale behaviour) for A/B measurement.
+    static const bool disabled = (getenv("XL_NO_DECODE_SCALE") != nullptr);
+    if (disabled) {
+        return;
+    }
+    for (Model* model : models) {
+        if (model == nullptr) {
+            continue;
+        }
+        Element* el = seqElements.GetElement(model->GetName());
+        if (el == nullptr || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) {
+            continue;
+        }
+        for (int li = 0; li < (int)el->GetEffectLayerCount(); ++li) {
+            EffectLayer* layer = el->GetEffectLayer(li);
+            if (layer == nullptr) {
+                continue;
+            }
+            for (int ei = 0; ei < layer->GetEffectCount(); ++ei) {
+                Effect* eff = layer->GetEffect(ei);
+                if (eff == nullptr) {
+                    continue;
+                }
+                ++scanned;
+                if (eff->GetEffectName() == "Video") {
+                    ++videos;
+                    AccumulateVideoEffectDecodeSize(eff, model, seqElements);
+                }
+            }
+        }
+    }
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - sw).count();
+    spdlog::info("VideoEffect::PrepareDecodeSizes: {} models, {} effects scanned, {} video, {:.3f} ms",
+                 models.size(), scanned, videos, ms);
 }
 
 void VideoEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)

@@ -22,6 +22,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  preference, so it silently defaulted to enabled with no cache folder and
                                  ran the cache code path in the render workers for nothing (set
                                  XL_HEADLESS_RENDERCACHE=1 to opt back in)
+    -enh (dkulp)                 macOS video: video files are now decoded at the size they are actually
+                                 rendered at (computed once before each full render, with headroom for
+                                 downscale quality) instead of full native resolution. A 4K clip shown
+                                 on a matrix decodes far smaller, cutting peak video render memory ~40%
+                                 (a video-heavy sequence dropped from ~16GB to ~9GB) and often rendering
+                                 a little faster
     -enh (dkulp)                 GPU render (Metal): the render cache no longer forces a GPU->CPU
                                  readback right after a GPU effect renders. That readback drained the
                                  command buffer, so a blurred layer had to bounce out to the CPU and

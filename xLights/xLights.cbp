@@ -659,6 +659,8 @@
 		<Unit filename="../src-core/media/FFmpegVideoWriter.cpp" />
 		<Unit filename="../src-core/media/FFmpegVideoWriter.h" />
 		<Unit filename="../src-core/media/VideoFrame.h" />
+		<Unit filename="../src-core/media/VideoDecodeSizeRegistry.cpp" />
+		<Unit filename="../src-core/media/VideoDecodeSizeRegistry.h" />
 		<Unit filename="../src-core/media/VideoReader.cpp" />
 		<Unit filename="../src-core/media/VideoReader.h" />
 		<Unit filename="../src-core/media/VideoReaderImpl.h" />

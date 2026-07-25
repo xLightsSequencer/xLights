@@ -141,6 +141,7 @@
     <ClCompile Include="..\src-ui-wx\import_export\VendorModelDialog.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegVideoReader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegVideoWriter.cpp" />
+    <ClCompile Include="..\src-core\media\VideoDecodeSizeRegistry.cpp" />
     <ClCompile Include="..\src-core\media\VideoReader.cpp" />
     <ClCompile Include="..\src-core\media\VideoWriter.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ViewsModelsPanel.cpp" />
@@ -1668,6 +1669,7 @@
     <ClInclude Include="..\src-core\media\FFmpegVideoReader.h" />
     <ClInclude Include="..\src-core\media\FFmpegVideoWriter.h" />
     <ClInclude Include="..\src-core\media\VideoFrame.h" />
+    <ClInclude Include="..\src-core\media\VideoDecodeSizeRegistry.h" />
     <ClInclude Include="..\src-core\media\VideoReader.h" />
     <ClInclude Include="..\src-core\media\VideoReaderImpl.h" />
     <ClInclude Include="..\src-core\media\VideoWriter.h" />

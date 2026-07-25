@@ -37,6 +37,8 @@
 #include "SequenceFile.h"
 #include "effects/RenderableEffect.h"
 #include "effects/EffectManager.h"
+#include "effects/VideoEffect.h"
+#include "media/VideoDecodeSizeRegistry.h"
 #include "IRenderJobStatus.h"
 #include "IRenderProgressSink.h"
 #include "RenderProgressInfo.h"
@@ -3056,6 +3058,23 @@ void RenderEngine::Render(SequenceElements& seqElements,
                           std::function<void(bool)>&& callback)
 {
     _abortedRenderJobs = 0;
+
+#ifdef __APPLE__
+    // Precompute the largest size each video file is used at so the decoder can
+    // emit pre-scaled frames (big cache-memory + scale savings). Apple-only: the
+    // decode-time scaling is wired only for the AVFoundation reader, so on other
+    // platforms (FFmpeg reader, which decodes native) this scan would be pure
+    // overhead that nothing consumes. A full render (restrictToModels empty)
+    // always rescans to pick up added/removed/resized effects. A restricted
+    // (per-model edit) render normally reuses the warm registry, but if it's the
+    // FIRST render after loading a sequence (registry empty) it must populate too
+    // — otherwise that model would decode at native while a later full render
+    // decodes scaled, giving different bytes for the same effect. Always scan the
+    // full model set (a restricted render's `models` is only the affected subtree).
+    if (restrictToModels.empty() || VideoDecodeSizeRegistry::Empty()) {
+        VideoEffect::PrepareDecodeSizes(seqElements, GetRenderTree().GetModels());
+    }
+#endif
 
     auto logger_render = spdlog::get("render");
     if (startFrame < 0) {
