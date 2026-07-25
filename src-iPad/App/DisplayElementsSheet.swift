@@ -22,6 +22,9 @@ struct DisplayElementsSheet: View {
     @Environment(SequencerViewModel.self) var viewModel
     @State private var model = DisplayElementsVM()
     @State private var selectedViewIdx: Int = 0
+    /// Panel-local undo stack (see `PanelSnapshot`). Deliberately not the
+    /// sequencer's global undo manager — desktop scopes this to the panel.
+    @State private var undoStack: [PanelSnapshot] = []
 
     // Lightweight alert plumbing for Add / Rename / Clone / Delete.
     private enum TextAlertKind {
@@ -99,14 +102,17 @@ struct DisplayElementsSheet: View {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Menu {
                             Button {
+                                pushPanelUndo()
                                 _ = viewModel.document.setAllElementsVisible(true)
                                 model.refresh()
                             } label: { Label("Show All", systemImage: "eye") }
                             Button {
+                                pushPanelUndo()
                                 _ = viewModel.document.setAllElementsVisible(false)
                                 model.refresh()
                             } label: { Label("Hide All", systemImage: "eye.slash") }
                             Button {
+                                pushPanelUndo()
                                 _ = viewModel.document.hideUnusedElements()
                                 model.refresh()
                             } label: { Label("Hide Unused", systemImage: "eye.slash.circle") }
@@ -129,10 +135,24 @@ struct DisplayElementsSheet: View {
                         Label("Import View…", systemImage: "square.and.arrow.down")
                     }
                 }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        performPanelUndo()
+                    } label: {
+                        Label("Undo", systemImage: "arrow.uturn.backward")
+                    }
+                    .disabled(undoStack.isEmpty)
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
             }
+        }
+        .onChange(of: selectedViewIdx) { _, _ in
+            // Snapshots describe one view's membership, so they mean
+            // nothing once you switch views — desktop drops the stack the
+            // same way (`ViewsModelsPanel::ClearUndo`).
+            undoStack.removeAll()
         }
         .onAppear {
             model.attach(document: viewModel.document)
@@ -255,13 +275,14 @@ struct DisplayElementsSheet: View {
                             isPresented: $confirmRemoveUnused,
                             titleVisibility: .visible) {
             Button("Remove Unused", role: .destructive) {
+                pushPanelUndo()
                 _ = viewModel.document.removeUnusedElements()
                 model.refresh()
                 viewModel.reloadRows()
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("Deletes every element with no effects from the sequence. This cannot be undone.")
+            Text("Deletes every element with no effects from the sequence. Panel Undo puts them back.")
         }
         // Local "Add Timing Track" sheet — stacked on top of this
         // sheet so iOS doesn't reject it the way the app-level
@@ -449,6 +470,7 @@ struct DisplayElementsSheet: View {
                                         Text(item.name)
                                         Spacer()
                                         Button {
+                                            pushPanelUndo()
                                             _ = viewModel.document.addModel(toMasterView: item.name)
                                             availableFilter = ""
                                         } label: {
@@ -762,6 +784,7 @@ struct DisplayElementsSheet: View {
     private func sortMasterView(_ strategy: SortStrategy) {
         let modelNames = model.allModels
         guard modelNames.count > 1 else { return }
+        pushPanelUndo()
 
         // Fetch layout summaries for all models in one pass.
         let rawSummaries = viewModel.document.modelsListSummary() as NSArray
@@ -870,6 +893,95 @@ struct DisplayElementsSheet: View {
         applyMasterViewOrder(sorted)
     }
 
+    // MARK: - Panel-local undo
+
+    // Desktop keeps a stack scoped to *this panel*, separate from the
+    // sequencer's global undo — `ViewsModelsPanel::_undo`, a stack of the
+    // selected view's model column, pushed by `SaveUndo()` before every
+    // membership / order change and replayed by `Undo()` via
+    // `SetMasterViewModels` / `SequenceView::SetModels` +
+    // `AddViewToTimings`. iPad mirrors that, and additionally carries
+    // per-element visibility so the Show All / Hide All / Hide Unused
+    // bulk actions — the easiest ones to fire by accident — are
+    // recoverable too.
+    private struct PanelSnapshot {
+        let viewIdx: Int
+        let models: [String]
+        let timings: [String]
+        let visible: [String: Bool]
+    }
+
+    private func takeSnapshot() -> PanelSnapshot {
+        if selectedViewIdx == 0 {
+            var vis: [String: Bool] = [:]
+            for m in model.masterMembers() { vis[m.name] = m.visible }
+            return PanelSnapshot(viewIdx: 0,
+                                  models: model.allModels,
+                                  timings: model.allTimings,
+                                  visible: vis)
+        }
+        let membership = model.userViewMembership(viewIdx: selectedViewIdx)
+        return PanelSnapshot(
+            viewIdx: selectedViewIdx,
+            models: membership.members.filter { $0.kind == .model }.map(\.name),
+            timings: membership.members.filter { $0.kind == .timing }.map(\.name),
+            visible: [:])
+    }
+
+    private func pushPanelUndo() {
+        undoStack.append(takeSnapshot())
+        // Same depth desktop's stack effectively runs at in practice;
+        // keeps a long editing session from pinning every intermediate
+        // membership list in memory.
+        if undoStack.count > 32 { undoStack.removeFirst() }
+    }
+
+    private func performPanelUndo() {
+        guard let snap = undoStack.popLast() else { return }
+        guard snap.viewIdx == selectedViewIdx else { return }
+        let doc = viewModel.document
+
+        if snap.viewIdx == 0 {
+            // Re-add anything that was removed, then restore the order.
+            // Desktop's `SetMasterViewModels` does exactly this and also
+            // never removes extras, so an undo of an *add* is a no-op on
+            // both platforms. A re-added model comes back empty — its
+            // effects went with the element, which is why the remove
+            // path warns first.
+            let present = Set(model.allModels)
+            for name in snap.models where !present.contains(name) {
+                _ = doc.addModel(toMasterView: name)
+            }
+            model.refresh()
+            applyMasterViewOrder(snap.models)
+            for (name, vis) in snap.visible {
+                _ = doc.setElementVisible(name, visible: vis)
+            }
+        } else {
+            // User views only reference model names, so a full replace is
+            // safe here — nothing to lose.
+            let viewName = model.views[safe: snap.viewIdx] ?? ""
+            let current = model.userViewMembership(viewIdx: snap.viewIdx).members
+            for item in current {
+                switch item.kind {
+                case .model:
+                    _ = doc.removeModel(item.name, fromViewAtIndex: Int32(snap.viewIdx))
+                case .timing:
+                    _ = doc.removeTiming(item.name, fromViewNamed: viewName)
+                }
+            }
+            for name in snap.models {
+                _ = doc.addModel(name, toViewAtIndex: Int32(snap.viewIdx), atPosition: -1)
+            }
+            for name in snap.timings {
+                _ = doc.addTiming(name, toViewNamed: viewName)
+            }
+        }
+
+        model.refresh()
+        viewModel.reloadRows()
+    }
+
     private func applyMasterViewOrder(_ names: [String]) {
         // Move each element into its target position using the name-before variant.
         // Walk forward: after moving names[i] before names[i+1], it sits at
@@ -944,6 +1056,7 @@ struct DisplayElementsSheet: View {
                                           hasEffects: hasEffects)
         } else {
             // No effects and it's a model — safe to remove silently.
+            pushPanelUndo()
             _ = viewModel.document.removeElement(fromMasterView: item.name)
             viewModel.reloadRows()
         }
@@ -961,12 +1074,14 @@ struct DisplayElementsSheet: View {
 
     private func performMasterRemove() {
         guard let target = confirmRemove else { return }
+        pushPanelUndo()
         _ = viewModel.document.removeElement(fromMasterView: target.name)
         viewModel.reloadRows()
         confirmRemove = nil
     }
 
     private func addAllMasterAvailable(_ items: [DisplayElementsVM.Member]) {
+        pushPanelUndo()
         for item in items where item.kind == .model {
             _ = viewModel.document.addModel(toMasterView: item.name)
         }
@@ -986,9 +1101,10 @@ struct DisplayElementsSheet: View {
         }
     }
 
-    private func addItem(_ item: DisplayElementsVM.Member) {
+    private func addItem(_ item: DisplayElementsVM.Member, recordUndo: Bool = true) {
         guard selectedViewIdx > 0,
               selectedViewIdx < model.views.count else { return }
+        if recordUndo { pushPanelUndo() }
         let viewName = model.views[selectedViewIdx]
         switch item.kind {
         case .model:
@@ -1001,8 +1117,9 @@ struct DisplayElementsSheet: View {
     }
 
     private func addAllAvailable() {
+        pushPanelUndo()
         let membership = model.userViewMembership(viewIdx: selectedViewIdx)
-        for item in membership.available { addItem(item) }
+        for item in membership.available { addItem(item, recordUndo: false) }
         availableFilter = ""
     }
 
@@ -1037,9 +1154,10 @@ struct DisplayElementsSheet: View {
         .padding(.bottom, 4)
     }
 
-    private func removeItem(_ item: DisplayElementsVM.Member) {
+    private func removeItem(_ item: DisplayElementsVM.Member, recordUndo: Bool = true) {
         guard selectedViewIdx > 0,
               selectedViewIdx < model.views.count else { return }
+        if recordUndo { pushPanelUndo() }
         let viewName = model.views[selectedViewIdx]
         switch item.kind {
         case .model:
@@ -1051,7 +1169,8 @@ struct DisplayElementsSheet: View {
     }
 
     private func removeAllMembers(_ members: [DisplayElementsVM.Member]) {
-        for item in members { removeItem(item) }
+        pushPanelUndo()
+        for item in members { removeItem(item, recordUndo: false) }
     }
 
     private func moveMembers(_ members: [DisplayElementsVM.Member],
@@ -1060,6 +1179,7 @@ struct DisplayElementsSheet: View {
         // Reorder only operates on model entries. Construct the target
         // ordering and push each moved model to its new position via
         // `moveModel:inViewAtIndex:toPosition:`.
+        pushPanelUndo()
         var reordered = members
         reordered.move(fromOffsets: source, toOffset: destination)
         // Filter the reordered list to models (their stored index is

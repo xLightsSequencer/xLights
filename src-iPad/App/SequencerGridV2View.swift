@@ -546,6 +546,8 @@ struct SequencerGridV2View: View {
     @State private var createSymbolRequested: Bool = false
     @State private var createSymbolName: String = ""
     @State private var symbolErrorMessage: String?
+    /// "Convert To…" effect-type picker (desktop Effects-panel right-click).
+    @State private var convertTypeRequested: Bool = false
 
 
     /// B47 insert-N-layers prompt state.
@@ -991,6 +993,9 @@ struct SequencerGridV2View: View {
                 }
                 Button("Reset to Defaults", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
+                }
+                Button("Convert To…") {
+                    convertTypeRequested = true
                 }
                 effectSymbolMenu(rowIndex: target.rowIndex, effectIndex: target.effectIndex)
                 // PRE-1 — persistent effect presets. Save captures the
@@ -1563,6 +1568,9 @@ struct SequencerGridV2View: View {
         // PRE-1 preset library browser.
         .sheet(isPresented: Bindable(viewModel).presetBrowserPresented) {
             PresetBrowserSheet(viewModel: viewModel)
+        }
+        .sheet(isPresented: $convertTypeRequested) {
+            ConvertEffectTypeSheet(viewModel: viewModel)
         }
         .modifier(EffectSymbolAlerts(
             createRequested: $createSymbolRequested,

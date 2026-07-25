@@ -4544,6 +4544,57 @@ class SequencerViewModel {
         refreshSelectedEffectSettings()
     }
 
+    /// Retype every selected effect — desktop
+    /// `EffectsGrid::ConvertSelectedEffectsTo` (reached from the Effects
+    /// panel's right-click "Convert selected effects to"). The `E_*`
+    /// settings describe the *old* type, so they're dropped; the palette
+    /// and the shared Buffer / Blending panels (`C_` / `B_` / `T_`)
+    /// survive, and timing is untouched.
+    ///
+    /// Desktop additionally writes the new type's panel defaults into the
+    /// settings string. iPad deliberately leaves `E_` empty instead,
+    /// which is the same thing to the renderer (an absent key reads as
+    /// its default) and is exactly the state a freshly-dropped effect of
+    /// that type has here — so a converted effect and a new one are
+    /// indistinguishable, and the `.xsq` stays smaller.
+    ///
+    /// One undo step covers the whole selection. A symbol-linked effect
+    /// keeps its link: `restoreEffect` unlinks before writing so the
+    /// retype can't propagate out to every sibling, then re-links.
+    func convertSelectedEffects(to newEffectName: String) {
+        let targets: [EffectSelection]
+        if selectedEffects.count > 1 {
+            targets = Array(selectedEffects)
+        } else if let one = selectedEffect {
+            targets = [one]
+        } else { return }
+
+        undoManager.beginUndoGrouping()
+        var converted = 0
+        for sel in targets {
+            let before = captureForSymbolUndo(sel)
+            guard before.type != newEffectName else { continue }
+            var pairs = Self.parseSettingsString(before.settings)
+            pairs.removeAll { $0.key.hasPrefix("E_") }
+            guard document.restoreEffect(inRow: before.row, at: before.idx,
+                                          type: newEffectName,
+                                          settings: Self.encodeSettingsString(pairs),
+                                          palette: before.palette,
+                                          symbolId: before.symbolId) else { continue }
+            registerSymbolUndo(before)
+            renderEffectAndTrack(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
+            converted += 1
+        }
+        undoManager.endUndoGrouping()
+        guard converted > 0 else { return }
+        undoManager.setActionName(converted > 1
+                                   ? "Convert \(converted) Effects"
+                                   : "Convert Effect")
+        reloadRows()
+        refreshSelectedEffectSettings()
+        inspectorRevision &+= 1
+    }
+
     /// B15: randomise every `E_*` setting on each selected effect by
     /// walking the effect's metadata and picking a random value in
     /// range per control type. Sliders / spinners pick an int in

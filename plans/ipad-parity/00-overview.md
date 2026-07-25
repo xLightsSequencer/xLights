@@ -27,9 +27,9 @@
 | Metric | Count |
 |---|--:|
 | Features audited | 1,250 |
-| **At parity** (both platforms) | 897 (**~72%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 184 |
-| **iPad-weaker** (partial on iPad) | 72 |
+| **At parity** (both platforms) | 901 (**~72%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 182 |
+| **iPad-weaker** (partial on iPad) | 70 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
 | Restricted (closed-firmware / IAP) | 23 |
@@ -73,21 +73,21 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
-| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 75 | 50 | 67% | 12 | 8 | 6 | 5 |
+| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 75 | 52 | 69% | 12 | 6 | 6 | 5 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 120 | 98 | 82% | 9 | 5 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 74 | 89% | 2 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 82 | 91% | 1 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 83 | 92% | 0 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 147 | 112 | 76% | 13 | 15 | 7 | 4 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 97 | 74 | 76% | 14 | 5 | 3 | 11 |
 | 08 | [Import & Export](08-import-export.md) | 75 | 58 | 77% | 11 | 6 | 0 | 1 |
 | 09 | [Render & Playback](09-render-playback.md) | 61 | 51 | 84% | 4 | 2 | 1 | 3 |
-| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 89 | 68 | 76% | 13 | 7 | 0 | 8 |
+| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 89 | 69 | 78% | 12 | 7 | 0 | 8 |
 | 11 | [Preferences](11-preferences-settings.md) | 136 | 56 | 41% | 68 | 10 | 1 | 22 |
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 51 | 34 | 67% | 13 | 3 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,250** | **897** | **~72%** | **184** | **72** | **≈92** | **91** |
+| — | **Total** | **1,250** | **901** | **~72%** | **182** | **70** | **≈92** | **91** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -252,6 +252,19 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 > and the per-fixture command strings the renderer reads disagreeing, because the
 > undo path skipped the re-fan.
 
+> **Landed (2026-07-25, second batch — 4 more rows).** **Convert selected
+> effects to a different type** (theme 04 — `ConvertEffectTypeSheet`, a
+> searchable list where desktop uses a flat `wxSingleChoiceDialog`; retypes the
+> whole multi-selection in one undo step over the existing symbol-safe
+> `restoreEffect` bridge). **Display Elements panel-local Undo** (theme 10 — a
+> local snapshot stack + Undo toolbar button matching desktop's panel-scoped
+> `_undo`, extended to cover the Show All / Hide All / Hide Unused bulk
+> visibility actions desktop's stack doesn't). **First-run default show
+> folder** and **show-folder validation** (theme 01 — a "Use Default Show
+> Folder" button creating `<Documents>/xLights`, and desktop's
+> `PromptForShowDirectory` sanity heuristic on any picked folder). Theme 04 is
+> now the first theme with **zero** iPad-missing rows.
+
 ### Deferred — AC toolbar cluster (decision 2026-06-11)
 
 The entire **AC / Auto-Color toolbar** (Select / Off / On / Shimmer / Twinkle /
@@ -286,7 +299,6 @@ are declined.)
 | Feature | Theme | Ease | Feasibility | Notes |
 |---|---|---|---|---|
 | **Model Sets (link props so they move as one)** | 06 | medium | feasible | From the audit. Desktop #3703 plus rigid Align/Distribute. Previously only a prose note in theme 06 with no scorecard row. |
-| **First-run: offer a default show folder** | 01 | easy | feasible | From the audit. Desktop offers to create `Documents/xLights`; the iPad gate makes a first-time user find or create one unaided. Small, and it is the very first thing a new user hits. |
 | Playback volume *(weaker)* | 03 | easy | feasible | Functionally equivalent; iPad lacks the named radio presets (cosmetic). |
 | View toolbar (panel toggles) *(weaker)* | 10 | easy | feasible | Preview/inspector toggles covered. |
 | Preview delete | 06 | medium | feasible | Desktop ID_PREVIEW_DELETE_ACTIVE. No iPad delete-layout-group bridge. |
@@ -306,7 +318,6 @@ are declined.)
 | View > Windows > Color Dropper | 13 | medium | feasible | Dockable eyedropper to sample preview colors. iPad preview has no color sampler; add eyedropper gesture + bridge to read |
 | View > Windows > Find Effect Data | 13 | medium | feasible | Distinct from iPad Find/Replace: FindDataPanel queries effects by property values; iPad FindReplaceSheet only searches timing-mark labels. |
 | Restore Backup dialog | 01 | hard | feasible | Pick backup date, restore layouts/sequences. A narrower in-show .xsq snapshot restore is the realistic iPad substitute. |
-| Moving Head: waypoint path canvas | 04 | hard | feasible | Desktop draws Bezier paths; iPad MovingHeadPathRowView only displays + clears. |
 | Effect Assist as first-class surface *(weaker)* | 04 | hard | feasible | Only Sketch+Morph inlined on iPad; Pictures absent. No detached-window concept on iPad (acceptable touch idiom). |
 | Node Layout (node-grid visualization) | 06 | hard | feasible | Desktop ShowNodeLayout/NodeSelectGrid (LayoutPanel.cpp:6156). iPad has no node-grid view. |
 | Wiring View (model node wiring) | 06 | hard | feasible | Desktop ShowWiring (LayoutPanel.cpp:6159). iPad 'Visualize' is controller-level, not model wiring. |
@@ -325,7 +336,6 @@ evidence lives in each theme doc's scorecard.
 
 | Feature | Theme | Pri | Gap | Ease |
 |---|---|---|---|---|
-| Convert selected effects to a different type | 04 | P2 | ipad-missing | hard |
 | SubModel import: from Model / File / Layout / Downloads | 06 | P2 | ipad-missing | hard |
 | SubModels: output-to-lights live test toggle | 06 | P2 | ipad-missing | medium |
 | Real-world dimension readouts (ruler-calibrated) | 06 | P2 | ipad-missing | medium |
@@ -335,7 +345,6 @@ evidence lives in each theme doc's scorecard.
 | Display Elements: Show All / Hide All / Hide Unused models | 10 | P2 | ipad-missing | medium |
 | Display Elements: Select Used/Unused/All; Remove Unused | 10 | P2 | ipad-missing | medium |
 | Display Elements: Sort models (many strategies) | 10 | P2 | ipad-missing | hard |
-| Display Elements: Undo (panel-local) | 10 | P2 | ipad-missing | medium |
 | Image save to file with black-background removal | 12 | P2 | ipad-missing | medium |
 
 
