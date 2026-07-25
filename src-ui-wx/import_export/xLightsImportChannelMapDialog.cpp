@@ -762,6 +762,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
         ai = xlights->GetAIService();
     }
     Button_AIMap->Enable(ai != nullptr);
+    Button_AIMap->Show(ai != nullptr);
 
     EnsureWindowHeaderIsOnScreen(this);
 }
