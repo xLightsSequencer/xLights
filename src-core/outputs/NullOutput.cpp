@@ -19,6 +19,7 @@
 NullOutput::NullOutput(pugi::xml_node node) : Output(node) {
 
     SetId(node.attribute("Id").as_int(64001));
+    _dirty = false;
 }
 
 NullOutput::NullOutput(const NullOutput& from) : Output(from)
@@ -28,6 +29,7 @@ NullOutput::NullOutput(const NullOutput& from) : Output(from)
 pugi::xml_node NullOutput::Save(pugi::xml_node parent) {
 
     pugi::xml_node node = parent.append_child("network");
+    node.append_attribute("Id") = GetId();
     Output::SaveAttr(node);
 
     return node;

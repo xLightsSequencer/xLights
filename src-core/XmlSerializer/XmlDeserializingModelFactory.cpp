@@ -266,7 +266,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
     model->SetBlackTransparency(node.attribute(XmlNodeKeys::BTransparencyAttribute).as_int(0));
     model->SetDescription(node.attribute(XmlNodeKeys::DescriptionAttribute).as_string());
-    model->SetTagColourAsString(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000"));
+    model->SetModelTagColour(xlColor(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000")));
     model->SetNodeNames(node.attribute(XmlNodeKeys::NodeNamesAttribute).as_string());
     model->SetStrandNames(node.attribute(XmlNodeKeys::StrandNamesAttribute).as_string());
     model->SetCustomColor(node.attribute(XmlNodeKeys::CustomColorAttribute).as_string("#000000"));
@@ -1005,7 +1005,7 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(pugi::xml_node node, 
     }
 
     // Tag colour
-    model->SetTagColourAsString(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000"));
+    model->SetModelTagColour(xlColor(node.attribute(XmlNodeKeys::TagColourAttribute).as_string("#000000")));
 
     // Parse and add models to the group
     std::string modelsStr = node.attribute("models").as_string("");

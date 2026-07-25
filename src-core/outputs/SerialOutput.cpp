@@ -34,6 +34,8 @@
 #pragma region Private Functions
 void SerialOutput::SaveAttr(pugi::xml_node node) {
 
+    node.append_attribute("Id") = GetId();
+
     if (_commPort != "") {
         node.append_attribute("ComPort") = _commPort;
     }
@@ -61,6 +63,7 @@ SerialOutput::SerialOutput(pugi::xml_node node) : Output(node) {
         _baudRate = node.attribute("BaudRate").as_int(0);
     }
     SetId(node.attribute("Id").as_int(0));
+    _dirty = false;
 }
 
 SerialOutput::SerialOutput(const SerialOutput& from) :

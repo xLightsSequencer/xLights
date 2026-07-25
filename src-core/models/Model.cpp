@@ -4216,10 +4216,12 @@ xlColor Model::GetTagColour() {
 }
 
 void Model::SetTagColourAsString(std::string const& colour) {
-    _modelTagColourString = colour;
-    _modelTagColourValid = false;
-    IncrementChangeCount();
-    AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColourAsString");
+    if (_modelTagColourString != colour) {
+        _modelTagColourString = colour;
+        _modelTagColourValid = false;
+        IncrementChangeCount();
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetTagColourAsString");
+    }
 }
 void Model::SetTagColour(const xlColor& colour)
 {
@@ -4382,7 +4384,8 @@ void Model::AddSuperStringColour(xlColor c)
 
 void Model::SetShadowModelFor(const std::string& shadowModelFor)
 {
-    if ( shadowModelFor != name ) { // models should not be a shadow model for themselves
+    // models should not be a shadow model for themselves
+    if (shadowModelFor != name && shadowModelFor != _shadowModelFor) {
         _shadowModelFor = shadowModelFor;
         IncrementChangeCount();
         AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetShadowModelFor");

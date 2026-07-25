@@ -208,7 +208,7 @@ public:
     bool AtLeastOneOutputUsingProtocol(const std::string& protocol) const;
     std::list<std::string> GetForceIPs(const std::string& protocol) const;
 
-    void SetSuppressFrames(int suppressFrames) { _suppressFrames = suppressFrames; _dirty = true; }
+    void SetSuppressFrames(int suppressFrames) { if (_suppressFrames != suppressFrames) { _suppressFrames = suppressFrames; _dirty = true; } }
     int GetSuppressFrames() const { return _suppressFrames; }
     
     std::string GetChannelName(int32_t channel);
@@ -236,13 +236,20 @@ public:
     bool IsSyncEnabled() const { return _syncEnabled; }
     static bool IsSyncEnabled_() { return __isSync; }
     void SetSyncEnabled(bool syncEnabled) {
-        _syncEnabled = syncEnabled;
-        OutputManager::__isSync = syncEnabled;
-        _dirty = true;
-        if (!_syncEnabled) SetSyncUniverse(0);
+        if (_syncEnabled != syncEnabled) {
+            _syncEnabled = syncEnabled;
+            OutputManager::__isSync = syncEnabled;
+            _dirty = true;
+            if (!_syncEnabled) SetSyncUniverse(0);
+        }
     }
     int GetSyncUniverse() const { return _syncUniverse; }
-    void SetSyncUniverse(int syncUniverse) { _syncUniverse = syncUniverse; _dirty = true;}
+    void SetSyncUniverse(int syncUniverse) {
+        if (_syncUniverse != syncUniverse) {
+            _syncUniverse = syncUniverse;
+            _dirty = true;
+        }
+    }
     #pragma endregion 
 
     #pragma region Data Setting

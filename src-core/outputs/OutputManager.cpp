@@ -171,6 +171,24 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
     DeleteTestPreset();
 
+    // OutputManager is a single long-lived instance reused across show-folder
+    // switches within a session (unlike Controller/Output, which get freshly
+    // constructed per load). Without this reset, a stale _dirty=true left over
+    // from a prior show (e.g. from SetSyncEnabled, SetGlobalFPPProxy, the
+    // BaseShowDir fallback-resolve below, etc.) would incorrectly carry over
+    // and mark every subsequently loaded show dirty, even one loaded fresh
+    // from the command line at startup (where this constructor-default reset
+    // is still untouched).
+    _dirty = false;
+
+    // Same reasoning as _dirty above: DidConvert() drives SetDir()'s decision
+    // to mark UnsavedNetworkChanges true (see xLightsFrame::SetDir). Without
+    // resetting it here, converting one legacy-format show earlier in the
+    // session would leave every later show in that session permanently
+    // flagged as "converted" too, even ones that never went through the
+    // legacy conversion path.
+    _didConvert = false;
+
     _showDir = showdir;
     _filename = (std::filesystem::path(showdir) / GetNetworksFileName()).string();
     ObtainAccessToURL(_filename);

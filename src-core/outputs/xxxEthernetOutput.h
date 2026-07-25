@@ -62,7 +62,7 @@ public:
     virtual bool IsValidChannelCount(int32_t channelCount) const override { return channelCount > 0 && static_cast<uint32_t>(channelCount) <= xxxETHERNET_MAX_CHANNELS; }
 
     int GetId() const { return _universe; }
-    void SetId(int id) { _universe = id; _dirty = true; }
+    void SetId(int id) { if (_universe != id) { _universe = id; _dirty = true; } }
 
     virtual std::string GetLongDescription() const override;
 
