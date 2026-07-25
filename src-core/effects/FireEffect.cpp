@@ -163,6 +163,13 @@ public:
 
     std::vector<int> FireBuffer;
     xlSize maxBuffer;
+
+    // Per-frame palette-index -> colour table (see BuildFireLUT).  Rebuilt only
+    // when the hue shift or the alpha mode actually changes, which for a static
+    // Hue Shift means once per effect.
+    std::vector<xlColor> lut;
+    int lutHueShift = -1;
+    bool lutAllowAlpha = false;
 };
 
 static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
@@ -174,10 +181,34 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
     return cache;
 }
 
+// One colour per fire-palette index, folding in the hue shift and the alpha
+// mode.  The hue shift is constant across a frame, so this 200-entry table
+// replaces a per-pixel HSV->RGB conversion in DrawFire - exactly, because both
+// xlColor's HSVValue constructor and its assignment operator go through
+// fromHSV(), and SetPixel stores an xlColor verbatim when useAlpha is false.
+static void BuildFireLUT(int HueShift, bool allowAlpha, std::vector<xlColor>& lut) {
+    lut.resize(FirePalette.size());
+    for (int i = 0; i < FirePalette.size(); ++i) {
+        if (HueShift > 0) {
+            HSVValue hsv = FirePalette[i];
+            hsv.hue = hsv.hue + (HueShift / 100.0);
+            if (hsv.hue > 1.0)
+                hsv.hue = 1.0;
+            xlColor c(hsv);
+            if (allowAlpha) {
+                c.alpha = FirePalette.asAlphaColor(i).Alpha();
+            }
+            lut[i] = c;
+        } else {
+            lut[i] = allowAlpha ? FirePalette.asAlphaColor(i) : FirePalette.asColor(i);
+        }
+    }
+}
+
 // Advance/draw split of the fire grid render: Render rebuilds the grid, DrawFire
 // rasterises it.  (Kept separate for clarity; frame-parallel does not engage -
 // see FireEffect.h - because the advance dominates Fire's cost.)
-static void DrawFire(RenderBuffer& buffer, const std::vector<int>& fireBuffer, int maxMWi, int maxMHt, int curWi, int curHt, int loc, int HueShift) {
+static void DrawFire(RenderBuffer& buffer, const std::vector<int>& fireBuffer, int maxMWi, int maxMHt, int curWi, int curHt, int loc, const std::vector<xlColor>& lut) {
     for (int y = 0; y < curHt; ++y) {
         for (int x = 0; x < curWi; ++x) {
             int xp = x;
@@ -188,25 +219,10 @@ static void DrawFire(RenderBuffer& buffer, const std::vector<int>& fireBuffer, i
             if (loc == 2 || loc == 3) {
                 std::swap(xp, yp);
             }
-            if (HueShift > 0) {
-                HSVValue hsv = FirePalette[GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)];
-                hsv.hue = hsv.hue + (HueShift / 100.0);
-                if (hsv.hue > 1.0)
-                    hsv.hue = 1.0;
-                if (buffer.allowAlpha) {
-                    xlColor c(hsv);
-                    c.alpha = FirePalette.asAlphaColor(GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)).Alpha();
-                    buffer.SetPixel(xp, yp, c);
-                } else {
-                    buffer.SetPixel(xp, yp, hsv);
-                }
-            } else {
-                if (buffer.allowAlpha) {
-                    buffer.SetPixel(xp, yp, FirePalette.asAlphaColor(GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)));
-                } else {
-                    buffer.SetPixel(xp, yp, FirePalette.asColor(GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt)));
-                }
-            }
+            // GetFireBuffer returns -1 outside the grid, which the drawn area can
+            // reach when the effect's max buffer is smaller than the current one.
+            int idx = GetFireBuffer(x, y, fireBuffer, maxMWi, maxMHt);
+            buffer.SetPixel(xp, yp, lut[idx < 0 ? 0 : idx]);
         }
     }
 }
@@ -286,7 +302,16 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         SetFireBuffer(x, 0, r, cache->FireBuffer, maxMWi, maxMHt);
     }
     int step = std::max(1, 255 * 100 / curHt / HeightPct);
+    // Rows [firstDeadRow, maxMHt) are provably all zero once two consecutive rows
+    // come out all zero: row y+1's taps are rows y and y-1, so a zero sum gives
+    // new_index == 0 and the `new_index > 0` gate below suppresses the noise term.
+    // One all-zero row is NOT enough - row y-1 still feeds row y+1 through the
+    // (x, y-2) tap.  randInt() is only called inside that gate, so stopping early
+    // consumes no randomness and leaves the RNG stream identical.
+    int firstDeadRow = maxMHt;
+    int zeroRun = 0;
     for (int y = 1; y < maxMHt; ++y) {
+        bool allZero = true;
         for (int x = 0; x < maxMWi; ++x) {
             int v1 = GetFireBuffer(x - 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
             int v2 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
@@ -319,9 +344,27 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
                     new_index = FirePalette.size() - 1;
             }
             SetFireBuffer(x, y, new_index, cache->FireBuffer, maxMWi, maxMHt);
+            if (new_index != 0) {
+                allZero = false;
+            }
         }
+        zeroRun = allZero ? zeroRun + 1 : 0;
+        if (zeroRun == 2) {
+            firstDeadRow = y + 1;
+            break;
+        }
+    }
+    if (firstDeadRow < maxMHt) {
+        std::fill(cache->FireBuffer.begin() + (size_t)firstDeadRow * maxMWi,
+                  cache->FireBuffer.begin() + (size_t)maxMHt * maxMWi, 0);
+    }
+
+    if (cache->lut.empty() || cache->lutHueShift != HueShift || cache->lutAllowAlpha != buffer.allowAlpha) {
+        BuildFireLUT(HueShift, buffer.allowAlpha, cache->lut);
+        cache->lutHueShift = HueShift;
+        cache->lutAllowAlpha = buffer.allowAlpha;
     }
 
     //  Now play fire
-    DrawFire(buffer, cache->FireBuffer, maxMWi, maxMHt, curWi, curHt, loc, HueShift);
+    DrawFire(buffer, cache->FireBuffer, maxMWi, maxMHt, curWi, curHt, loc, cache->lut);
 }
