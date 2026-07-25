@@ -82,6 +82,8 @@
 | Help → About | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1296`, `OnAbout`; iPad `AboutSheet.swift` / `showingAbout`. |
 | Diagnostics: spdlog rotation | other | ✅ | ✅ | parity | P1 | easy | feasible | Same rotating-file config in core + `XLiPadInit.mm`. |
 | Diagnostics: crash capture + auto-upload | other | ✅ | ✅ | parity | P1 | easy | feasible | Desktop uploads to dankulp.com/crashUpload; iPad `XLDiagnosticUploader.swift` + MetricKit auto-stages & POSTs to the same endpoint, with Settings opt-in (`XLSendCrashReports`). iPad slightly ahead (automatic MetricKit). |
+| Crash reports record the C++ exception type + message | diagnostics | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop crash reports now capture the demangled C++ exception type and message, including error code and file paths for filesystem/system errors. The iPad has its own crash/diagnostic upload path (`XLDiagnosticUploader`, `XLLogPackager`); confirm whether its handler captures the same exception detail, since the terminate-handler side of this is shared C++ (`src-core/utils/JobPool.cpp:69` shows the "non-std exception type" fallback both platforms hit). |
+| Tip of the Day: entries for recent releases | help | ✅ | ✅ | parity | P3 | easy | feasible | New tip content covering recent release items. Tips are data files consumed by both apps (iPad `XLTipOfDay`), so the additions appear on iPad without code changes. |
 
 ## iPad gaps (desktop has, iPad missing)
 

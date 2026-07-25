@@ -26,10 +26,10 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,201 |
-| **At parity** (both platforms) | 875 (**~73%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 172 |
-| **iPad-weaker** (partial on iPad) | 62 |
+| Features audited | 1,250 |
+| **At parity** (both platforms) | 893 (**~71%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 188 |
+| **iPad-weaker** (partial on iPad) | 72 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
 | Restricted (closed-firmware / IAP) | 23 |
@@ -39,8 +39,21 @@
 
 Each feature's gap is derived from its desktop/iPad status (✅/🟡/❌); the
 **% Parity** column in the scorecard below is *parity ÷ features* per theme.
-Overall the iPad sits at **~73% parity** with the desktop, with the biggest
+Overall the iPad sits at **~71% parity** with the desktop, with the biggest
 remaining backlogs in Preferences (theme 11), Layout (06), and Tools (13).
+
+> **Desktop-churn audit, 2026-07-25.** The previous numbers covered the
+> desktop only up to roughly the end of May. A sweep of every `-enh` /
+> `-change` release-note entry added between 2026-05-25 and 2026-07-25
+> (140 entries, drawn from the 446 commits that touched `src-ui-wx/` or
+> `src-core/`) added **49 rows** that no theme had recorded: 18 already at
+> parity, 16 iPad-missing, 10 iPad-weaker, 5 not-applicable. Headline parity
+> therefore *drops* from ~73% to ~71% — the denominator grew faster than the
+> parity column, which is the honest result of two months of desktop work
+> outpacing the iPad, not a regression. Biggest single additions: Setup
+> (+11, mostly controller/FPP/vendor), Render (+8, nearly all shared-core
+> and inherited), and Layout (+6). Bug-fix entries (194 of them) were not
+> given rows — they change behaviour both platforms already share.
 
 The everyday workflow (create/open/save sequences, place/edit effects, color &
 value curves, timing, render, playback, most effect panels) is **at or near
@@ -60,21 +73,21 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
-| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 71 | 49 | 69% | 11 | 6 | 6 | 4 |
-| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 97 | 83% | 8 | 4 | 8 | 3 |
+| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 75 | 50 | 67% | 12 | 8 | 6 | 5 |
+| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 120 | 98 | 82% | 9 | 5 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 74 | 89% | 2 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 87 | 78 | 90% | 2 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 78 | 87% | 5 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
-| 06 | [Layout: Models](06-layout-models-preview.md) | 141 | 110 | 78% | 11 | 13 | 7 | 3 |
-| 07 | [Setup](07-setup-controllers-upload.md) | 86 | 68 | 79% | 12 | 3 | 3 | 11 |
-| 08 | [Import & Export](08-import-export.md) | 72 | 57 | 79% | 9 | 6 | 0 | 1 |
-| 09 | [Render & Playback](09-render-playback.md) | 53 | 46 | 87% | 4 | 2 | 1 | 0 |
-| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 85 | 67 | 79% | 12 | 5 | 0 | 7 |
-| 11 | [Preferences](11-preferences-settings.md) | 131 | 56 | 43% | 64 | 10 | 1 | 19 |
+| 06 | [Layout: Models](06-layout-models-preview.md) | 147 | 112 | 76% | 13 | 15 | 7 | 4 |
+| 07 | [Setup](07-setup-controllers-upload.md) | 97 | 74 | 76% | 14 | 5 | 3 | 11 |
+| 08 | [Import & Export](08-import-export.md) | 75 | 58 | 77% | 11 | 6 | 0 | 1 |
+| 09 | [Render & Playback](09-render-playback.md) | 61 | 51 | 84% | 4 | 2 | 1 | 3 |
+| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 89 | 68 | 76% | 13 | 7 | 0 | 8 |
+| 11 | [Preferences](11-preferences-settings.md) | 136 | 56 | 41% | 68 | 10 | 1 | 22 |
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
-| 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
+| 13 | [Tools](13-tools-diagnostics-help.md) | 51 | 34 | 67% | 13 | 3 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,201** | **875** | **~73%** | **172** | **62** | **≈92** | **82** |
+| — | **Total** | **1,250** | **893** | **~71%** | **188** | **72** | **≈92** | **91** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -256,6 +269,10 @@ are declined.)
 
 | Feature | Theme | Ease | Feasibility | Notes |
 |---|---|---|---|---|
+| **Effect Symbols (reusable linked effects)** | 04 | hard | feasible | From the 2026-07-25 desktop-churn audit. Desktop #2671: edit once, propagates to every linked effect; round-trips through `.xsq`. Highest-value new gap of the wave — and the one with a **data-safety** angle: confirm an iPad edit of a symbol-linked effect doesn't silently break the link before scheduling UI work. |
+| **Moving Head: Pattern tab (parametric pan/tilt)** | 04 | medium | feasible | From the audit. Circle/Eight/Diamond/Lissajous generators modelled on QLC+ EFX; the render side is shared core, so playback likely already works and only the authoring panel is missing. |
+| **Model Sets (link props so they move as one)** | 06 | medium | feasible | From the audit. Desktop #3703 plus rigid Align/Distribute. Previously only a prose note in theme 06 with no scorecard row. |
+| **First-run: offer a default show folder** | 01 | easy | feasible | From the audit. Desktop offers to create `Documents/xLights`; the iPad gate makes a first-time user find or create one unaided. Small, and it is the very first thing a new user hits. |
 | Playback volume *(weaker)* | 03 | easy | feasible | Functionally equivalent; iPad lacks the named radio presets (cosmetic). |
 | View toolbar (panel toggles) *(weaker)* | 10 | easy | feasible | Preview/inspector toggles covered. |
 | Preview delete | 06 | medium | feasible | Desktop ID_PREVIEW_DELETE_ACTIVE. No iPad delete-layout-group bridge. |
