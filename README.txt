@@ -14,7 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
 
 
-2026.14  July 14, 2026
+2026.14  July 25, 2026
     -change (dkulp)              ZCPP deprecation: ZCPP is no longer offered as a controller protocol unless
                                  the controller's vendor declares it or it is already in use; selecting it
                                  warns that it will be removed in a future version and asks for confirmation;
