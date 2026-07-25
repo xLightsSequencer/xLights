@@ -21,7 +21,6 @@
 #include <fstream>
 #include <spdlog/fmt/fmt.h>
 
-#include "../controllers/Falcon.h"
 #include "ZCPPOutput.h"
 #include "OutputManager.h"
 #include "UtilFunctions.h"
@@ -29,10 +28,6 @@
 #include "../models/OutputModelManager.h"
 #include "utils/ExternalHooks.h"
 #include "../utils/ip_utils.h"
-
-#ifndef EXCLUDEDISCOVERY
-#include "discovery/Discovery.h"
-#endif
 
 #include <log.h>
 
@@ -424,119 +419,6 @@ int ZCPPOutput::EncodeColourOrder(const std::string& colourOrder) {
     if (colourOrder == "BGR") return 5;
     return 0;
 }
-
-#ifndef EXCLUDEDISCOVERY
-void ZCPPOutput::PrepareDiscovery(Discovery &discovery) {
-    
-    ZCPP_packet_t packet;
-    memset(&packet, 0x00, sizeof(packet));
-    memcpy(packet.Discovery.Header.token, ZCPP_token, sizeof(ZCPP_token));
-    packet.Discovery.Header.type = ZCPP_TYPE_DISCOVERY;
-    packet.Discovery.Header.protocolVersion = ZCPP_CURRENT_PROTOCOL_VERSION;
-
-    discovery.AddBroadcast(ZCPP_PORT, [&discovery] (uint8_t *buffer, int len, const std::string &fromIP) {
-        if (len <= 0 || (size_t)len > sizeof(ZCPP_packet_t)) {
-            spdlog::debug(" Discarding malformed ZCPP discovery response (len={}).", len);
-            return;
-        }
-        ZCPP_packet_t response;
-        memset(&response, 0, sizeof(response));
-        memcpy(&response, buffer, (size_t)len);
-
-        if ((size_t)len >= sizeof(response.DiscoveryResponse.Header) + sizeof(ZCPP_token) &&
-            memcmp(&response, ZCPP_token, sizeof(ZCPP_token)) == 0 && response.DiscoveryResponse.Header.type == ZCPP_TYPE_DISCOVERY_RESPONSE) {
-            spdlog::debug(" Valid response.");
-
-            ControllerEthernet* controller = new ControllerEthernet(discovery.GetOutputManager(), false);
-            controller->SetProtocol(OUTPUT_ZCPP);
-
-            int vendor = ZCPP_FromWire16(response.DiscoveryResponse.vendor);
-            spdlog::debug("   Vendor {}", vendor);
-            int model = ZCPP_FromWire16(response.DiscoveryResponse.model);
-            spdlog::debug("   Model {}", model);
-            switch (vendor) {
-            case ZCPP_VENDOR_FALCON: {
-                controller->SetVendor("Falcon");
-                int m, v;
-                std::string mod = "";
-                Falcon::DecodeModelVersion(model, m, v);
-                if (m == 48) {
-                    mod = "F48";
-                } else {
-                    mod = fmt::format("F{}V{}", m, v);
-                }
-                controller->SetModel(mod);
-            }
-            break;
-            case ZCPP_VENDOR_ESPIXELSTICK:
-                controller->SetVendor("ESPixelStick");
-                break;
-            default:
-                break;
-            }
-
-            ZCPPOutput* o = dynamic_cast<ZCPPOutput*>(controller->GetOutputs().front());
-
-            spdlog::debug("   Firmware {}", response.DiscoveryResponse.firmwareVersion);
-
-            auto ip = fmt::format("{}.{}.{}.{}",
-                (int)(uint8_t)(response.DiscoveryResponse.ipv4Address & 0xFF),
-                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF00) >> 8),
-                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF0000) >> 16),
-                (int)(uint8_t)((response.DiscoveryResponse.ipv4Address & 0xFF000000) >> 24));
-            controller->SetIP(ip);
-            spdlog::debug("   IP {}", ip);
-
-            controller->SetName(response.DiscoveryResponse.userControllerName);
-            spdlog::debug("   Name {}", (const char*)controller->GetName().c_str());
-
-            uint32_t channels = ZCPP_FromWire32(response.DiscoveryResponse.maxTotalChannels);
-            spdlog::debug("   Channels {}", channels);
-
-            bool supportsVirtualStrings = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_VIRTUAL_STRINGS) != 0;
-            spdlog::debug("   Supports Virtual Strings {}", supportsVirtualStrings);
-            o->SetSupportsVirtualStrings(supportsVirtualStrings);
-
-            bool supportsSmartRemotes = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SUPPORTS_SMART_REMOTES) != 0;
-            spdlog::debug("   Supports Smart Remotes {}", supportsSmartRemotes);
-            o->SetSupportsSmartRemotes(supportsSmartRemotes);
-
-            bool dontConfigure = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_CONFIGURATION_LOCKED) != 0;
-            spdlog::debug("   Doesn't want to receive configuration {}", dontConfigure);
-            o->SetDontConfigure(dontConfigure);
-
-            bool multicast = (ZCPP_FromWire16(response.DiscoveryResponse.flags) & ZCPP_DISCOVERY_FLAG_SEND_DATA_AS_MULTICAST) != 0;
-            spdlog::debug("   Wants to receive data multicast {}", multicast);
-            o->SetMulticast(multicast);
-
-            spdlog::info("ZCPP Discovery found a new controller {}.", (const char*)controller->GetIP().c_str());
-
-            uint32_t mask = 0x00000001;
-            uint32_t dp = ZCPP_FromWire32(response.DiscoveryResponse.protocolsSupported);
-            for (int i = 0; i < 32; i++) {
-                if ((dp & mask) != 0) {
-                    o->AddProtocol(ZCPPOutput::DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)));
-                    spdlog::debug("   Supports Protocol {}", (const char*)ZCPPOutput::DecodeProtocol(ZCPP_ConvertDiscoveryProtocolToProtocol(dp & mask)).c_str());
-                }
-                mask = mask << 1;
-            }
-
-            controller->SetAutoSize(true, nullptr);
-            controller->SetAutoLayout(true);
-            o->SetChannels(1 /*channels*/); // Set this to one as it defaults to auto size
-
-            spdlog::info("ZCPP Discovery adding controller {}.", (const char*)controller->GetIP().c_str());
-            discovery.AddController(controller);
-        } else {
-            // non discovery response packet
-            spdlog::info("ZCPP Discovery strange packet received.");
-        }
-    });
-
-    spdlog::info("ZCPP sending discovery packet.");
-    discovery.SendData(ZCPP_PORT, ZCPP_MULTICAST_ADDRESS, (uint8_t*)&packet, ZCPP_GetPacketActualSize(packet));
-}
-#endif
 
 std::vector<std::string> ZCPPOutput::GetVendors() {
 

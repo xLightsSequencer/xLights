@@ -39,35 +39,31 @@
 
 #include <log.h>
 
-static wxPGChoices __ethernetTypes;
-
-static void InitialiseEthernetTypes(bool forceXXX) {
-    if (__ethernetTypes.GetCount() == 0) {
-        __ethernetTypes.Add(OUTPUT_E131);
-        __ethernetTypes.Add(OUTPUT_ZCPP);
-        __ethernetTypes.Add(OUTPUT_ARTNET);
-        __ethernetTypes.Add(OUTPUT_DDP);
-        __ethernetTypes.Add(OUTPUT_OPC);
-        __ethernetTypes.Add(OUTPUT_KINET);
-        if (SpecialOptions::GetOption("xxx") == "true" || forceXXX) {
-            __ethernetTypes.Add(OUTPUT_xxxETHERNET);
-        }
-        __ethernetTypes.Add(OUTPUT_TWINKLY);
-        __ethernetTypes.Add(OUTPUT_PLAYER_ONLY);
-    } else if (forceXXX) {
-        bool found = false;
-        for (size_t i = 0; i < __ethernetTypes.GetCount(); i++) {
-            if (__ethernetTypes.GetLabel(i) == OUTPUT_xxxETHERNET) { found = true; break; }
-        }
-        if (!found) __ethernetTypes.Add(OUTPUT_xxxETHERNET);
+// The protocols offered when the vendor/model has no caps definition. Built
+// per controller rather than cached because the deprecated/hidden entries are
+// only offered to a controller already using them.
+static wxPGChoices GetDefaultEthernetTypes(const ControllerEthernet& ethernet) {
+    wxPGChoices types;
+    types.Add(OUTPUT_E131);
+    if (ethernet.GetProtocol() == OUTPUT_ZCPP) {
+        types.Add(OUTPUT_ZCPP);
     }
+    types.Add(OUTPUT_ARTNET);
+    types.Add(OUTPUT_DDP);
+    types.Add(OUTPUT_OPC);
+    types.Add(OUTPUT_KINET);
+    if (SpecialOptions::GetOption("xxx") == "true" || ethernet.GetProtocol() == OUTPUT_xxxETHERNET) {
+        types.Add(OUTPUT_xxxETHERNET);
+    }
+    types.Add(OUTPUT_TWINKLY);
+    types.Add(OUTPUT_PLAYER_ONLY);
+    return types;
 }
 
 static wxPGChoices GetEthernetProtocols(const ControllerEthernet& ethernet) {
     ControllerCaps* caps = ControllerCaps::GetControllerConfig(&ethernet);
     if (caps == nullptr) {
-        InitialiseEthernetTypes(ethernet.GetProtocol() == OUTPUT_xxxETHERNET);
-        return __ethernetTypes;
+        return GetDefaultEthernetTypes(ethernet);
     }
     wxPGChoices types;
     for (const auto& it : caps->GetInputProtocols()) {
@@ -463,8 +459,21 @@ bool ControllerEthernetPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent&
         return true;
     } else if (name == "Protocol") {
         auto protocols = GetEthernetProtocols(_ethernet);
+        auto newProtocol = DecodeChoices(protocols, event.GetValue().GetLong());
+        if (newProtocol == OUTPUT_ZCPP && _ethernet.GetProtocol() != OUTPUT_ZCPP) {
+            if (wxMessageBox("ZCPP is deprecated and will be removed in a future version.\n\n"
+                             "Please use DDP (preferred) or E1.31 instead.\n\n"
+                             "Are you sure you want to use ZCPP?",
+                             "ZCPP Deprecated", wxICON_WARNING | wxYES_NO | wxNO_DEFAULT) != wxYES) {
+                int revert = EncodeChoices(protocols, _ethernet.GetProtocol());
+                if (revert >= 0) {
+                    event.GetProperty()->SetValue(wxVariant((long)revert));
+                }
+                return true;
+            }
+        }
         wxPropertyGrid* grid = dynamic_cast<wxPropertyGrid*>(event.GetEventObject());
-        SetProtocolAndRebuildProperties(DecodeChoices(protocols, event.GetValue().GetLong()), grid, outputModelManager);
+        SetProtocolAndRebuildProperties(newProtocol, grid, outputModelManager);
         return true;
     } else if (name == "Universe") {
         int univ = event.GetValue().GetLong();

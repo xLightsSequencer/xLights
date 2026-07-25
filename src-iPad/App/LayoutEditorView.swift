@@ -329,6 +329,9 @@ struct LayoutEditorView: View {
     /// universe size is not one of the common values (170, 510, 512).
     @State private var autoSizeUniverseWarning: String? = nil
 
+    /// Deprecation nag shown when a controller's protocol is set to ZCPP.
+    @State private var zcppDeprecatedWarning: String? = nil
+
     /// J-7 (group CRUD) — sheet visibility flags + targets.
     @State private var newGroupSheetVisible: Bool = false
     @State private var addMemberSheetVisible: Bool = false
@@ -979,8 +982,9 @@ struct LayoutEditorView: View {
             housekeepingMessage: $layoutHousekeepingMessage))
         .modifier(ControllerActionAlertModifier(
             message: $pendingControllerActionAlert))
-        .modifier(AutoSizeUniverseWarningModifier(
-            message: $autoSizeUniverseWarning))
+        .modifier(ControllerWarningAlertsModifier(
+            autoSizeUniverse: $autoSizeUniverseWarning,
+            zcppDeprecated: $zcppDeprecatedWarning))
         .modifier(ControllerDeleteAlertModifier(
             pendingName: $pendingDeleteControllerName,
             modelCount: { name in
@@ -2789,6 +2793,14 @@ struct LayoutEditorView: View {
             if key == "AutoSize", let v = value as? Bool, v {
                 autoSizeUniverseWarning =
                     viewModel.document.controllerAutoSizeUniverseWarning(name: name)
+            }
+            // ZCPP is deprecated — nag whenever a controller lands on it.
+            if key == "Protocol",
+               let detail = viewModel.document.controllerDetail(forName: name) as [String: Any]?,
+               (detail["protocol"] as? String) == "ZCPP" {
+                zcppDeprecatedWarning =
+                    "ZCPP is deprecated and will be removed in a future version.\n\n"
+                    + "Please use DDP (preferred) or E1.31 instead."
             }
         }
     }
@@ -10650,19 +10662,31 @@ private struct ControllerActionAlertModifier: ViewModifier {
     }
 }
 
-/// #4123 — AutoSize uncommon universe warning modifier.
-private struct AutoSizeUniverseWarningModifier: ViewModifier {
-    @Binding var message: String?
+/// Controller-property warning alerts: #4123's AutoSize uncommon-universe
+/// warning and the ZCPP deprecation nag. Bundled into one modifier so the
+/// outer body's chain stays within Swift's type-checker budget.
+private struct ControllerWarningAlertsModifier: ViewModifier {
+    @Binding var autoSizeUniverse: String?
+    @Binding var zcppDeprecated: String?
 
     func body(content: Content) -> some View {
-        content.alert("Universe Size Warning",
-                       isPresented: Binding(
-                            get: { message != nil },
-                            set: { if !$0 { message = nil } })) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(message ?? "")
-        }
+        content
+            .alert("Universe Size Warning",
+                   isPresented: Binding(
+                        get: { autoSizeUniverse != nil },
+                        set: { if !$0 { autoSizeUniverse = nil } })) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(autoSizeUniverse ?? "")
+            }
+            .alert("ZCPP Deprecated",
+                   isPresented: Binding(
+                        get: { zcppDeprecated != nil },
+                        set: { if !$0 { zcppDeprecated = nil } })) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(zcppDeprecated ?? "")
+            }
     }
 }
 

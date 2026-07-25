@@ -19,7 +19,6 @@
 #include <vector>
 
 class ControllerEthernet;
-class Discovery;
 
 #define ZCPP_MAXCHANNELS (16 * 1024)
 
@@ -76,10 +75,6 @@ public:
     static int EncodeProtocol(const std::string& protocol);
 
     static int EncodeColourOrder(const std::string& colourOrder);
-
-    #ifndef EXCLUDEDISCOVERY
-    static void PrepareDiscovery(Discovery &discovery);
-    #endif
 
     static std::vector<std::string> GetVendors();
     static int EncodeVendor(const std::string& vendor);

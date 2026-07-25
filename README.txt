@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -change (dkulp)              ZCPP deprecation: ZCPP is no longer offered as a controller protocol unless
+                                 the controller's vendor declares it or it is already in use; selecting it
+                                 warns that it will be removed in a future version and asks for confirmation;
+                                 and ZCPP is no longer probed during controller discovery
     -change (dkulp)              Render: sparkles are now placed by a frame-deterministic phase (per-node
                                  hash + frame) instead of a counter advanced each render, so placement no
                                  longer depends on render order (full vs partial re-render); slightly changes

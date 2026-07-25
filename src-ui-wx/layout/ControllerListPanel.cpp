@@ -614,7 +614,7 @@ void ControllerListPanel::OnItemActivated(wxTreeListEvent& event) {
 
 void ControllerListPanel::OnContextMenu(wxContextMenuEvent& event) {
     wxMenu mnu;
-    std::string ethernet = "Insert E1.31/ArtNET/ZCPP/DDP";
+    std::string ethernet = "Insert E1.31/ArtNET/DDP";
     if (SpecialOptions::GetOption("xxx") == "true") {
         ethernet += "xxx";
     }
@@ -950,7 +950,7 @@ wxWindow* ControllerListPanel::CreatePropertiesPanel(wxWindow* parent) {
     _btnAddController->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         if (!NetworkChangesAllowed()) return;
         wxMenu mnu;
-        std::string ethernet = "Add E1.31/ArtNET/ZCPP/DDP";
+        std::string ethernet = "Add E1.31/ArtNET/DDP";
         if (SpecialOptions::GetOption("xxx") == "true") {
             ethernet += "xxx";
         }

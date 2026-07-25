@@ -14977,11 +14977,14 @@ static NSArray<NSString*>* EthernetProtocolOptions(const ControllerEthernet* eth
     }
     if (out.count == 0) {
         // No caps definition for this fixture — surface the
-        // common set so the picker isn't blank.
+        // common set so the picker isn't blank. ZCPP is deprecated,
+        // so it is only offered to a controller already using it.
         [out addObjectsFromArray:@[@(OUTPUT_E131), @(OUTPUT_ARTNET),
                                     @(OUTPUT_DDP),  @(OUTPUT_OPC),
-                                    @(OUTPUT_ZCPP), @(OUTPUT_KINET),
-                                    @(OUTPUT_TWINKLY)]];
+                                    @(OUTPUT_KINET), @(OUTPUT_TWINKLY)]];
+        if (eth && eth->GetProtocol() == OUTPUT_ZCPP) {
+            [out addObject:@(OUTPUT_ZCPP)];
+        }
     }
     return out;
 }
