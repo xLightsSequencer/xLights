@@ -586,7 +586,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Panel1->SetMinSize(wxSize(500,-1));
     Sizer1 = new wxFlexGridSizer(0, 1, 0, 0);
     Sizer1->AddGrowableCol(0);
-    Sizer1->AddGrowableRow(7);
+    Sizer1->AddGrowableRow(8);
     Sizer_TimeAdjust = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText_TimeAdjust = new wxStaticText(Panel1, wxID_ANY, _("Time Adjust (ms)"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     Sizer_TimeAdjust->Add(StaticText_TimeAdjust, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
