@@ -25,6 +25,8 @@
 #include <wx/colour.h>
 #include <wx/prntbase.h>
 
+#include <algorithm>
+
 #include "controllers/ControllerUploadData.h"
 
 class ControllerModelDialog;
@@ -34,6 +36,8 @@ class xLightsFrame;
 class ModelCMObject;
 class SRCMObject;
 class PortCMObject;
+class wxScrolledWindow;
+class wxStaticBitmap;
 
 class ControllerModelPrintout : public wxPrintout
 {
@@ -61,8 +65,33 @@ public:
 	}
 };
 
+// A self-rendered print preview: reuses ControllerModelDialog::RenderPicture()
+// (the same drawing code the real print job uses) into a scrollable bitmap
+// view, with a live box-size slider. Deliberately not built on wxPrintPreview/
+// wxPreviewFrame - that API only computes its page count once and caches it
+// internally with no public way to invalidate it, which forced a jarring
+// close-and-reopen of the whole preview window on every scale change.
+class ControllerModelPrintPreviewDialog : public wxDialog
+{
+public:
+	ControllerModelPrintPreviewDialog(ControllerModelDialog* owner, wxWindow* parent, const wxString& title);
+
+private:
+	ControllerModelDialog* _owner;
+	wxScrolledWindow* _canvas;
+	wxStaticBitmap* _bitmapCtrl;
+	wxSlider* _boxSizeSlider;
+
+	void RefreshPreview();
+	void OnBoxSizeChanged(wxCommandEvent& event);
+	void OnFitToPage(wxCommandEvent& event);
+	void OnPrint(wxCommandEvent& event);
+};
+
 class ControllerModelDialog: public wxDialog
 {
+	friend class ControllerModelPrintPreviewDialog;
+
 	#pragma region Member Variables
 	std::string _title;
     UDController* _cud = nullptr;
@@ -80,6 +109,7 @@ class ControllerModelDialog: public wxDialog
 	int _controllersy = 1;
 	int _controllersx = 1;
 	double _scale = 1;
+	double _printScale = 1; // box size scale used only for print/print-preview, independent of _scale
 	Model* _lastDropped = nullptr;
 	#pragma endregion
 
@@ -124,7 +154,7 @@ class ControllerModelDialog: public wxDialog
 		wxSearchCtrl* TextCtrl_ModelFilter;
 		//*)
 
-        static const long CONTROLLERModel_PRINT;
+        static const long CONTROLLERModel_PRINT_PREVIEW;
 		static const long CONTROLLERModel_SAVE_CSV;
 		static const long CONTROLLER_REMOVEALLMODELS;
 		static const long CONTROLLER_DMXCHANNEL;
@@ -220,6 +250,14 @@ class ControllerModelDialog: public wxDialog
 		void ScrollToKey(int keyCode);
 		void OnKeyDown(wxKeyEvent& event);
 		void PrintScreen();
+		void PrintPreviewScreen();
+		ControllerModelPrintout* CreatePrintout();
+		wxBitmap RenderFullPreview();
+		double GetPrintRatio() const;
+		wxSize GetControllersExtent() const;
+		void FitPrintScaleToPage();
+		double GetPrintScale() const { return _printScale; }
+		void SetPrintScale(double scale) { _printScale = std::clamp(scale, 0.1, 5.0); }
 		void SaveCSV();
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
