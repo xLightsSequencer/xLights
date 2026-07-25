@@ -259,6 +259,8 @@ struct EffectPropertyView: View {
             MovingHeadDimmerRowView()
         case "MHPathRow":
             MovingHeadPathEditorRowView()
+        case "MHLinkRow":
+            MovingHeadLinkRowView()
         case "Sketch_BackgroundRow":
             SketchBackgroundRowView()
         case "Video_DurationRow":

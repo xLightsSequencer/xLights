@@ -3577,16 +3577,24 @@ class SequencerViewModel {
         }
 
         if changed {
-            // Moving Head post-write sync (G3 — C7). The renderer
-            // reads position commands out of `MH*_Settings`, not
-            // the JSON-backed sliders, so whenever the user edits
-            // a position slider we re-assemble every active
-            // fixture's command string.
-            if Self.isMovingHeadPositionKey(key),
-               sel.name == "Moving Head" {
-                _ = document.syncMovingHeadPosition(
-                    forRow: Int32(sel.rowIndex),
-                    at: Int32(sel.effectIndex))
+            if key == "E_CHECKBOX_MHLinkToNext" && sel.name == "Moving Head" {
+                // Link is a destructive rewrite of the head settings —
+                // it strips whatever was driving Pan/Tilt — so the
+                // checkbox's own undo can't put them back. Snapshot the
+                // fixture strings and restore them alongside it; both
+                // registrations land in the same run-loop undo group.
+                registerMovingHeadFixtureUndo(rowIndex: sel.rowIndex,
+                                               effectIndex: sel.effectIndex)
+            }
+            syncMovingHeadCommands(forKey: key,
+                                    rowIndex: sel.rowIndex,
+                                    effectIndex: sel.effectIndex)
+            if key == "E_CHECKBOX_MHLinkToNext" && sel.name == "Moving Head" {
+                if value == "1" {
+                    syncMovingHeadLinkToNext(registerUndo: false)
+                } else {
+                    movingHeadLinkResult = nil
+                }
             }
 
             renderEffectAndTrack(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
@@ -3608,6 +3616,56 @@ class SequencerViewModel {
         }
     }
 
+    /// Moving Head post-write sync (G3 — C7). The renderer reads the
+    /// per-fixture `MH*_Settings` command strings, never the JSON-backed
+    /// controls, so every write to a Moving Head panel key has to be
+    /// re-fanned into them. Shared by the forward edit and the undo
+    /// restore — the bridge calls no-op when the effect isn't a Moving
+    /// Head, and the key tests are already MH-specific.
+    private func syncMovingHeadCommands(forKey key: String,
+                                         rowIndex: Int, effectIndex: Int) {
+        if Self.isMovingHeadPositionKey(key) {
+            _ = document.syncMovingHeadPosition(forRow: Int32(rowIndex),
+                                                 at: Int32(effectIndex))
+        }
+        // Link strips the pattern block while it's on and hands it back
+        // when it's off, so its checkbox re-fans the pattern too.
+        if Self.isMovingHeadPatternKey(key) || key == "E_CHECKBOX_MHLinkToNext" {
+            _ = document.syncMovingHeadPattern(forRow: Int32(rowIndex),
+                                                atIndex: Int32(effectIndex))
+        }
+        if key == "E_CHECKBOX_MHShutterEnable" || key == "E_CHECKBOX_AUTO_SHUTTER" {
+            _ = document.syncMovingHeadShutter(forRow: Int32(rowIndex),
+                                                atIndex: Int32(effectIndex))
+        }
+    }
+
+    /// Snapshot the eight `MH<n>_Settings` strings and register an undo
+    /// that puts them back verbatim. For operations that rewrite them
+    /// destructively (Link), where replaying the panel key alone can't
+    /// reconstruct what was there.
+    private func registerMovingHeadFixtureUndo(rowIndex: Int, effectIndex: Int) {
+        let keys = (1...8).map { "E_TEXTCTRL_MH\($0)_Settings" }
+        let before = keys.map {
+            document.effectSettingValue(forKey: $0,
+                                         inRow: Int32(rowIndex),
+                                         at: Int32(effectIndex))
+        }
+        undoManager.registerUndo(withTarget: self) { vm in
+            vm.registerMovingHeadFixtureUndo(rowIndex: rowIndex,
+                                              effectIndex: effectIndex)
+            for (k, v) in zip(keys, before) {
+                _ = vm.document.setEffectSettingValue(v, forKey: k,
+                                                       inRow: Int32(rowIndex),
+                                                       at: Int32(effectIndex))
+            }
+            vm.refreshSelectedEffectSettings()
+            vm.movingHeadLinkResult = nil
+            vm.inspectorRevision &+= 1
+            vm.renderEffectAndTrack(rowIndex: rowIndex, effectIndex: effectIndex)
+        }
+    }
+
     /// Keys the Moving Head bridge sync needs to re-fan into
     /// `MH*_Settings`. Covers the float-slider TEXTCTRL storage,
     /// the int-slider SLIDER storage, and the value-curve sibling
@@ -3621,6 +3679,54 @@ class SequencerViewModel {
             if key == "E_VALUECURVE_MH\(cmd)" { return true }
         }
         return false
+    }
+
+    /// Pattern-tab keys — the enable gate, the shape choice, the eleven
+    /// int sliders and the Rotation value curve. All of them re-fan
+    /// through `syncMovingHeadPattern`.
+    private static func isMovingHeadPatternKey(_ key: String) -> Bool {
+        return key == "E_CHECKBOX_MHPatternEnable"
+            || key == "E_CHOICE_MHPattern"
+            || key.hasPrefix("E_SLIDER_MHPattern")
+            || key.hasPrefix("E_VALUECURVE_MHPattern")
+    }
+
+    /// Outcome of the most recent Moving Head Link sync, surfaced by
+    /// `MovingHeadLinkRowView` (desktop shows the same text in
+    /// `StaticText_MHLinkPreview`). Carries the effect it describes so a
+    /// stale result never bleeds onto the next selection — the panel is
+    /// rebuilt on selection change but this value outlives it.
+    struct MovingHeadLinkResult {
+        let rowIndex: Int
+        let effectIndex: Int
+        let status: String
+        let lines: [String]
+    }
+    var movingHeadLinkResult: MovingHeadLinkResult? = nil
+
+    /// Run the Link sync against the current selection and stash the
+    /// preview. Shared by the Link checkbox — which has already taken
+    /// its own fixture snapshot, hence `registerUndo: false` — and the
+    /// row's Re-sync button.
+    @discardableResult
+    func syncMovingHeadLinkToNext(registerUndo: Bool = true) -> MovingHeadLinkResult? {
+        guard let sel = selectedEffect else { return nil }
+        if registerUndo {
+            registerMovingHeadFixtureUndo(rowIndex: sel.rowIndex,
+                                           effectIndex: sel.effectIndex)
+            undoManager.setActionName("Link Moving Head")
+        }
+        let raw = document.syncMovingHeadLinkToNext(forRow: Int32(sel.rowIndex),
+                                                     atIndex: Int32(sel.effectIndex))
+        let result = MovingHeadLinkResult(
+            rowIndex: sel.rowIndex,
+            effectIndex: sel.effectIndex,
+            status: raw["status"] as? String ?? "none",
+            lines: raw["lines"] as? [String] ?? [])
+        movingHeadLinkResult = result
+        refreshSelectedEffectSettings()
+        inspectorRevision &+= 1
+        return result
     }
 
     // MARK: - Multi-effect bulk edit (G11 / G14)
@@ -3892,6 +3998,12 @@ class SequencerViewModel {
                 && selectedEffect?.effectIndex == effectIndex {
                 selectedEffectSettings[key] = value
             }
+            // Restoring a Moving Head panel key has to re-fan the same
+            // way the forward edit did, or undo leaves the control and
+            // the fixture command strings the renderer reads disagreeing.
+            syncMovingHeadCommands(forKey: key,
+                                    rowIndex: rowIndex,
+                                    effectIndex: effectIndex)
             renderEffectAndTrack(rowIndex: rowIndex, effectIndex: effectIndex)
             inspectorRevision &+= 1
             undoManager.registerUndo(withTarget: self) { vm in

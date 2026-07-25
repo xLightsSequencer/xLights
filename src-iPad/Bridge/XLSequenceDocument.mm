@@ -38,6 +38,7 @@
 #include "effects/SketchSVGImport.h"
 #include "effects/EffectManager.h"
 #include "effects/ShaderEffect.h"
+#include "effects/MovingHeadEffect.h"
 #include "graphics/xlGraphicsAccumulators.h"
 #include "media/AudioManager.h"
 #include "media/NoteImporter.h"
@@ -14455,6 +14456,184 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
     return any;
 }
 
+/// Parametric-pattern parameters the renderer reads
+/// (`MovingHeadEffect.cpp:198-223`). `Pattern` itself carries the shape
+/// name and is what flips `pattern_parsed`.
+static constexpr std::array<const char*, 11> kMovingHeadPatternParams = {
+    "PatternWidth", "PatternHeight", "PatternXOffset", "PatternYOffset",
+    "PatternRotation", "PatternStartOffset", "PatternPhaseOffset",
+    "PatternXFreq", "PatternYFreq", "PatternXPhase", "PatternYPhase"
+};
+
+/// Every `Pattern*` command, including the ` VC` variants — the whole
+/// block is rewritten as a unit.
+static bool isMHPatternCommand(const std::string& cmd) {
+    return cmd.rfind("Pattern", 0) == 0;
+}
+
+/// Slider defaults, matching both the renderer's own fallbacks
+/// (`MovingHeadEffect.cpp:116-126`) and `MovingHead.json`.
+static const char* defaultMHPatternParam(const std::string& cmd) {
+    if (cmd == "PatternWidth")  return "90";
+    if (cmd == "PatternHeight") return "45";
+    if (cmd == "PatternXFreq")  return "2";
+    if (cmd == "PatternYFreq")  return "3";
+    if (cmd == "PatternXPhase") return "90";
+    return "0";
+}
+
+/// Re-fan the Pattern tab's sliders into every active fixture. The
+/// renderer only ever reads `MH*_Settings`, so a slider edit is inert
+/// until this runs. Mirrors `MovingHeadPanel::UpdatePatternSettings`:
+/// the whole block is stripped first and re-appended only while the
+/// enable checkbox is on.
+static bool syncMHPatternCommands(Effect& eff) {
+    auto& settings = eff.GetSettings();
+    // Link owns Pan/Tilt outright and strips the pattern block on every
+    // resync, so re-emitting it while linked would only fight that.
+    const bool enabled = settings.GetBool("E_CHECKBOX_MHPatternEnable", false)
+        && !settings.GetBool("E_CHECKBOX_MHLinkToNext", false);
+    std::string algorithm = settings.Get("E_CHOICE_MHPattern", "");
+    if (algorithm.empty()) {
+        algorithm = "Circle";
+    }
+
+    bool any = false;
+    for (int i = 1; i <= 8; ++i) {
+        std::string key = std::string("E_TEXTCTRL_MH") + std::to_string(i) + "_Settings";
+        if (!settings.Contains(key)) continue;
+        std::string existing = settings.Get(key, "");
+        if (existing.empty()) continue;
+
+        MHCommandList rebuilt;
+        for (auto& [c, v] : parseMovingHeadSettings(existing)) {
+            if (!isMHPatternCommand(c)) {
+                rebuilt.emplace_back(c, v);
+            }
+        }
+        if (enabled) {
+            rebuilt.emplace_back("Pattern", algorithm);
+            for (const auto* p : kMovingHeadPatternParams) {
+                std::string param(p);
+                std::string val = settings.Get("E_SLIDER_MH" + param, "");
+                if (val.empty()) {
+                    val = defaultMHPatternParam(param);
+                }
+                rebuilt.emplace_back(param, val);
+                std::string vc = readMHValueCurve(eff, param);
+                if (!vc.empty()) {
+                    rebuilt.emplace_back(param + " VC", escapeForCommand(vc));
+                }
+            }
+        }
+
+        std::string serialised = serialiseMovingHeadSettings(rebuilt);
+        if (serialised != existing) {
+            settings[key] = SettingValue(serialised);
+            any = true;
+        }
+    }
+    return any;
+}
+
+/// Re-fan the Control tab's two shutter checkboxes. `Shutter: On` holds
+/// the shutter open for the whole effect; `AutoShutter: true` only means
+/// anything alongside a colour-wheel pick, which is why desktop appends
+/// it inside its wheel branch (`MovingHeadPanel::UpdateColorSettings`) —
+/// match that and leave it off fixtures with no `Wheel` command.
+static bool syncMHShutterCommands(Effect& eff) {
+    auto& settings = eff.GetSettings();
+    const bool shutterOn = settings.GetBool("E_CHECKBOX_MHShutterEnable", false);
+    const bool autoShutter = settings.GetBool("E_CHECKBOX_AUTO_SHUTTER", false);
+
+    bool any = false;
+    for (int i = 1; i <= 8; ++i) {
+        std::string key = std::string("E_TEXTCTRL_MH") + std::to_string(i) + "_Settings";
+        if (!settings.Contains(key)) continue;
+        std::string existing = settings.Get(key, "");
+        if (existing.empty()) continue;
+
+        MHCommandList parsed = parseMovingHeadSettings(existing);
+        bool hasWheel = false;
+        for (auto& [c, v] : parsed) {
+            if (c == "Wheel" && !v.empty()) hasWheel = true;
+        }
+
+        MHCommandList rebuilt;
+        for (auto& [c, v] : parsed) {
+            if (c != "Shutter" && c != "AutoShutter") {
+                rebuilt.emplace_back(c, v);
+            }
+        }
+        if (autoShutter && hasWheel) {
+            rebuilt.emplace_back("AutoShutter", "true");
+        }
+        if (shutterOn) {
+            rebuilt.emplace_back("Shutter", "On");
+        }
+
+        std::string serialised = serialiseMovingHeadSettings(rebuilt);
+        if (serialised != existing) {
+            settings[key] = SettingValue(serialised);
+            any = true;
+        }
+    }
+    return any;
+}
+
+/// Commands that define a head's Pan/Tilt at all — raw value, VC,
+/// offsets, path- or pattern-driven. Link strips every one of them
+/// before splicing in its static Pan/Tilt so the head ends the effect at
+/// the next effect's start position however this effect drove it.
+/// Verbatim from `MovingHeadPanel.cpp`'s
+/// `linkedPositionOverrideSettings`.
+static const std::array<const char*, 28> kMHLinkedPositionOverrides = {
+    "Pan", "Tilt", "Pan VC", "Tilt VC", "PanOffset", "TiltOffset",
+    "PanOffset VC", "TiltOffset VC", "Path", "PathScale", "PathScale VC",
+    "TimeOffset", "TimeOffset VC", "IgnorePan", "IgnoreTilt",
+    "Pattern", "PatternWidth", "PatternHeight", "PatternXOffset",
+    "PatternYOffset", "PatternRotation", "PatternRotation VC",
+    "PatternStartOffset", "PatternPhaseOffset", "PatternXFreq",
+    "PatternYFreq", "PatternXPhase", "PatternYPhase"
+};
+
+/// Splice a linked static Pan/Tilt + a flat-zero Dimmer into one head's
+/// command string. The Dimmer goes too, not just its last handle: the
+/// point of Link is that the head travels to its next cue in the dark.
+/// Mirrors `MovingHeadPanel::ApplyLinkedHeadPosition`.
+static void applyMHLinkedHeadPosition(Effect& eff, int headNum,
+                                       float pan, float tilt) {
+    auto& settings = eff.GetSettings();
+    std::string key = std::string("E_TEXTCTRL_MH") + std::to_string(headNum) + "_Settings";
+    if (!settings.Contains(key)) return;
+    std::string existing = settings.Get(key, "");
+    if (existing.empty()) return;
+
+    MHCommandList rebuilt;
+    for (auto& [c, v] : parseMovingHeadSettings(existing)) {
+        if (c == "Dimmer") continue;
+        bool overridden = std::find_if(kMHLinkedPositionOverrides.begin(),
+                                        kMHLinkedPositionOverrides.end(),
+                                        [&c](const char* o) { return c == o; })
+                          != kMHLinkedPositionOverrides.end();
+        if (!overridden) {
+            rebuilt.emplace_back(c, v);
+        }
+    }
+
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%.1f", pan);
+    rebuilt.emplace_back("Pan", buf);
+    snprintf(buf, sizeof(buf), "%.1f", tilt);
+    rebuilt.emplace_back("Tilt", buf);
+    rebuilt.emplace_back("Dimmer", "0.0,0.0,1.0,0.0");
+
+    std::string serialised = serialiseMovingHeadSettings(rebuilt);
+    if (serialised != existing) {
+        settings[key] = SettingValue(serialised);
+    }
+}
+
 } // namespace
 
 - (int)movingHeadActiveFixturesForRow:(int)rowIndex
@@ -14520,6 +14699,12 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
         rewriteMovingHeadFixture(*look.effect, i);
     }
 
+    // `rewriteMovingHeadFixture` only rebuilds the position block, so a
+    // freshly-activated fixture would otherwise miss the Pattern and
+    // shutter commands the other fixtures already carry.
+    syncMHPatternCommands(*look.effect);
+    syncMHShutterCommands(*look.effect);
+
     look.effect->IncrementChangeCount();
     return YES;
 }
@@ -14548,6 +14733,9 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
     std::string v = value ? std::string([value UTF8String]) : std::string();
     bool changed = writeMHCommandToActiveFixtures(*look.effect, cn, v);
     if (changed) {
+        // `AutoShutter: true` is only emitted alongside a `Wheel` colour,
+        // so picking or clearing one has to re-evaluate it.
+        syncMHShutterCommands(*look.effect);
         look.effect->IncrementChangeCount();
         // Force a re-render of the active model so the new colour /
         // dimmer takes effect in the preview immediately.
@@ -14611,6 +14799,133 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
         return out;
     }
     return nil;
+}
+
+- (BOOL)syncMovingHeadPatternForRow:(int)rowIndex
+                             atIndex:(int)effectIndex {
+    if (!_context) return NO;
+    auto look = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!look.ok()) return NO;
+    if (look.effect->GetEffectName() != kMovingHeadEffectName) return NO;
+    if (!syncMHPatternCommands(*look.effect)) return NO;
+    look.effect->IncrementChangeCount();
+    return YES;
+}
+
+- (BOOL)syncMovingHeadShutterForRow:(int)rowIndex
+                             atIndex:(int)effectIndex {
+    if (!_context) return NO;
+    auto look = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!look.ok()) return NO;
+    if (look.effect->GetEffectName() != kMovingHeadEffectName) return NO;
+    if (!syncMHShutterCommands(*look.effect)) return NO;
+    look.effect->IncrementChangeCount();
+    return YES;
+}
+
+- (NSDictionary*)syncMovingHeadLinkToNextForRow:(int)rowIndex
+                                         atIndex:(int)effectIndex {
+    NSMutableArray<NSString*>* lines = [NSMutableArray array];
+    if (!_context) {
+        return @{ @"status": @"none", @"lines": lines };
+    }
+    auto look = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!look.ok()) {
+        return @{ @"status": @"none", @"lines": lines };
+    }
+    if (look.effect->GetEffectName() != kMovingHeadEffectName) {
+        return @{ @"status": @"none", @"lines": lines };
+    }
+
+    // Nothing to link to: desktop walks to the effect after the selected
+    // one on the same layer via CallOnEffectAfterSelected.
+    if (effectIndex + 1 >= look.layer->GetEffectCount()) {
+        return @{ @"status": @"noNext", @"lines": lines };
+    }
+    Effect* next = look.layer->GetEffect(effectIndex + 1);
+    if (!next) {
+        return @{ @"status": @"noNext", @"lines": lines };
+    }
+    if (next->GetEffectName() != kMovingHeadEffectName) {
+        return @{ @"status": @"notMovingHead", @"lines": lines };
+    }
+
+    // A single fixture model owns exactly one head slot, so trust the
+    // model's own fixture number; a group has no such single answer, so
+    // fall back to "every head this effect actually defines". Desktop
+    // additionally unions in the fixture checkboxes to cover a blank
+    // warm-up effect, but iPad derives its fixture buttons from the
+    // settings strings themselves — the two signals are the same thing
+    // here, so the union collapses to the settings scan.
+    std::vector<int> heads;
+    Model* model = nullptr;
+    if (auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+        row && row->element) {
+        model = _context->GetModel(row->element->GetModelName());
+    }
+    bool singleModel = model != nullptr
+        && model->GetDisplayAs() != DisplayAsType::ModelGroup;
+    if (singleModel) {
+        if (auto* mh = dynamic_cast<const DmxMovingHeadComm*>(model)) {
+            heads.push_back(mh->GetFixtureVal());
+        }
+    }
+    auto& settings = look.effect->GetSettings();
+    if (heads.empty()) {
+        singleModel = false;
+        for (int i = 1; i <= 8; ++i) {
+            std::string k = std::string("E_TEXTCTRL_MH") + std::to_string(i) + "_Settings";
+            if (settings.Contains(k) && !settings.Get(k, "").empty()) {
+                heads.push_back(i);
+            }
+        }
+    }
+    if (heads.empty()) {
+        return @{ @"status": @"noHeads", @"lines": lines };
+    }
+
+    bool changed = false;
+    auto& nextSettings = next->GetSettings();
+    for (int head : heads) {
+        std::string nextHead = nextSettings.Get(
+            "E_TEXTCTRL_MH" + std::to_string(head) + "_Settings", "");
+        if (nextHead.empty() && singleModel) {
+            // The next effect may be an un-remapped copy/paste from a
+            // different fixture model, leaving its data in some other
+            // slot. A single-model row only ever has one real head, so
+            // take whichever slot actually holds data rather than
+            // reporting a false "no defined position".
+            for (int j = 1; j <= 8 && nextHead.empty(); ++j) {
+                if (j == head) continue;
+                nextHead = nextSettings.Get(
+                    "E_TEXTCTRL_MH" + std::to_string(j) + "_Settings", "");
+            }
+        }
+        float pan = 0.0f, tilt = 0.0f;
+        if (MovingHeadEffect::GetHeadStartPosition(nextHead, head,
+                                                    next->GetStartTimeMS(),
+                                                    next->GetEndTimeMS(),
+                                                    pan, tilt)) {
+            applyMHLinkedHeadPosition(*look.effect, head, pan, tilt);
+            changed = true;
+            [lines addObject:[NSString stringWithFormat:
+                @"Head %d: Pan %.1f° / Tilt %.1f°", head, pan, tilt]];
+        } else {
+            [lines addObject:[NSString stringWithFormat:
+                @"Head %d: next effect has no defined position", head]];
+        }
+    }
+
+    if (changed) {
+        look.effect->IncrementChangeCount();
+        if (auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+            row && row->element) {
+            _context->RenderEffectForModel(row->element->GetModelName(),
+                                            look.effect->GetStartTimeMS(),
+                                            look.effect->GetEndTimeMS(), true);
+        }
+    }
+    return @{ @"status": @"linked", @"lines": lines };
 }
 
 // MARK: - DMX state + remap (G8 — C7)

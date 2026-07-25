@@ -2766,6 +2766,37 @@ NS_ASSUME_NONNULL_BEGIN
                                                        atIndex:(int)effectIndex
     NS_SWIFT_NAME(movingHeadWheelColors(forRow:atIndex:));
 
+/// Re-fan the Pattern tab's parametric-shape settings
+/// (`E_CHECKBOX_MHPatternEnable`, `E_CHOICE_MHPattern`,
+/// `E_SLIDER_MHPattern*`) into every active fixture's command string.
+/// The renderer reads only `MH*_Settings`, so a slider edit is inert
+/// until this runs. Removes the whole `Pattern*` block when the enable
+/// checkbox is off (or while Link owns the position). Returns YES on
+/// change.
+- (BOOL)syncMovingHeadPatternForRow:(int)rowIndex
+                             atIndex:(int)effectIndex
+    NS_SWIFT_NAME(syncMovingHeadPattern(forRow:atIndex:));
+
+/// Re-fan the Control tab's shutter checkboxes: `Shutter: On` while
+/// `E_CHECKBOX_MHShutterEnable` is set, and `AutoShutter: true` while
+/// `E_CHECKBOX_AUTO_SHUTTER` is set *and* the fixture has a `Wheel`
+/// colour (desktop only emits it inside its wheel branch). Returns YES
+/// on change.
+- (BOOL)syncMovingHeadShutterForRow:(int)rowIndex
+                             atIndex:(int)effectIndex
+    NS_SWIFT_NAME(syncMovingHeadShutter(forRow:atIndex:));
+
+/// Snap every active head's end position to where the next Moving Head
+/// effect on this layer starts, forcing the Dimmer to 0 so the head
+/// travels dark — desktop's Link tab (`MovingHeadPanel::SyncLinkToNext`).
+/// Reads the next effect only; never mutates it. Returns
+/// `{"status": ..., "lines": [...]}` where status is one of `none`,
+/// `noNext`, `notMovingHead`, `noHeads`, `linked`, and `lines` holds the
+/// per-head preview strings desktop shows in `StaticText_MHLinkPreview`.
+- (NSDictionary*)syncMovingHeadLinkToNextForRow:(int)rowIndex
+                                         atIndex:(int)effectIndex
+    NS_SWIFT_NAME(syncMovingHeadLinkToNext(forRow:atIndex:));
+
 // MARK: - DMX state + remap plumbing (G8 — C7)
 //
 // Model states live on the `Model` object's in-memory

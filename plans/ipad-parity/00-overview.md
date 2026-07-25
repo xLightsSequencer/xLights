@@ -27,8 +27,8 @@
 | Metric | Count |
 |---|--:|
 | Features audited | 1,250 |
-| **At parity** (both platforms) | 894 (**~72%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 187 |
+| **At parity** (both platforms) | 897 (**~72%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 184 |
 | **iPad-weaker** (partial on iPad) | 72 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
@@ -76,7 +76,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 75 | 50 | 67% | 12 | 8 | 6 | 5 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 120 | 98 | 82% | 9 | 5 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 74 | 89% | 2 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 79 | 88% | 4 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 82 | 91% | 1 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 147 | 112 | 76% | 13 | 15 | 7 | 4 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 97 | 74 | 76% | 14 | 5 | 3 | 11 |
@@ -87,7 +87,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 51 | 34 | 67% | 13 | 3 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,250** | **894** | **~72%** | **187** | **72** | **≈92** | **91** |
+| — | **Total** | **1,250** | **897** | **~72%** | **184** | **72** | **≈92** | **91** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -236,6 +236,22 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 > is an audio re-encode (feasible via Wave-5 encode path, P3); Effect
 > Wheel declined (touch idiom); Data Layers has a 5-step plan recorded.
 
+> **Landed (2026-07-25): Moving Head panel completed (theme 04, 3 rows).** The
+> parametric **Pattern** tab (enable gate, 10 QLC+-style shapes, 11 parameters,
+> rotation value curve, Lissajous-only fields gated by `visibilityRules`), the
+> **Link** tab (snap every active head's end Pan/Tilt to where the next Moving
+> Head effect on the row starts and force the Dimmer to zero, with a per-head
+> preview and a Re-sync button desktop lacks), and the Control-tab **Enable
+> Shutter** checkbox. All three are pure authoring surfaces — the generators and
+> command parsing already live in shared `src-core/effects/MovingHeadEffect.cpp`
+> — landing as `MovingHead.json` entries plus three bridge re-fans
+> (`syncMovingHeadPattern` / `syncMovingHeadShutter` /
+> `syncMovingHeadLinkToNext`). Two latent bugs fixed alongside: the iPad **Auto
+> Shutter** checkbox never wrote `AutoShutter: true` into `MH*_Settings` (inert
+> since it shipped), and *undoing* any Moving Head panel edit left the control
+> and the per-fixture command strings the renderer reads disagreeing, because the
+> undo path skipped the re-fan.
+
 ### Deferred — AC toolbar cluster (decision 2026-06-11)
 
 The entire **AC / Auto-Color toolbar** (Select / Off / On / Shimmer / Twinkle /
@@ -269,7 +285,6 @@ are declined.)
 
 | Feature | Theme | Ease | Feasibility | Notes |
 |---|---|---|---|---|
-| **Moving Head: Pattern tab (parametric pan/tilt)** | 04 | medium | feasible | From the audit. Circle/Eight/Diamond/Lissajous generators modelled on QLC+ EFX; the render side is shared core, so playback likely already works and only the authoring panel is missing. |
 | **Model Sets (link props so they move as one)** | 06 | medium | feasible | From the audit. Desktop #3703 plus rigid Align/Distribute. Previously only a prose note in theme 06 with no scorecard row. |
 | **First-run: offer a default show folder** | 01 | easy | feasible | From the audit. Desktop offers to create `Documents/xLights`; the iPad gate makes a first-time user find or create one unaided. Small, and it is the very first thing a new user hits. |
 | Playback volume *(weaker)* | 03 | easy | feasible | Functionally equivalent; iPad lacks the named radio presets (cosmetic). |
@@ -311,7 +326,6 @@ evidence lives in each theme doc's scorecard.
 | Feature | Theme | Pri | Gap | Ease |
 |---|---|---|---|---|
 | Convert selected effects to a different type | 04 | P2 | ipad-missing | hard |
-| Moving Head: "Link" tab (snap end Pan/Tilt to next effect + force Dimmer to 0) | 04 | P2 | ipad-missing | medium |
 | SubModel import: from Model / File / Layout / Downloads | 06 | P2 | ipad-missing | hard |
 | SubModels: output-to-lights live test toggle | 06 | P2 | ipad-missing | medium |
 | Real-world dimension readouts (ruler-calibrated) | 06 | P2 | ipad-missing | medium |
