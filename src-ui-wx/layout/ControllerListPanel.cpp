@@ -325,13 +325,17 @@ void ControllerListPanel::CreateTree() {
     _tree->Bind(wxEVT_TREELIST_SELECTION_CHANGED, &ControllerListPanel::OnSelectionChanged, this);
     _tree->Bind(wxEVT_TREELIST_ITEM_EXPANDING, &ControllerListPanel::OnItemExpanding, this);
     _tree->Bind(wxEVT_TREELIST_ITEM_ACTIVATED, &ControllerListPanel::OnItemActivated, this);
-    _tree->GetView()->Bind(wxEVT_CONTEXT_MENU, &ControllerListPanel::OnContextMenu, this);
     _tree->GetView()->Bind(wxEVT_CHAR_HOOK, &ControllerListPanel::OnCharHook, this);
-    // We are a descendant of LayoutPanel, whose event table catches
-    // EVT_TREELIST_ITEM_CONTEXT_MENU for wxID_ANY and would pop up the
-    // model-tree menu on top of ours. Swallow it here; wxEVT_CONTEXT_MENU above
-    // is what actually shows the controller menu.
-    _tree->Bind(wxEVT_TREELIST_ITEM_CONTEXT_MENU, [](wxTreeListEvent&) {});
+    // wxTreeListCtrl's internal wxDataViewCtrl fully consumes right-clicks to
+    // generate wxEVT_DATAVIEW_ITEM_CONTEXT_MENU (re-published here as
+    // wxEVT_TREELIST_ITEM_CONTEXT_MENU) without ever calling event.Skip(), so
+    // a generic wxEVT_CONTEXT_MENU is never actually generated for this
+    // control - bind the real handler to the event that fires. Binding it
+    // directly on _tree also has it run (and stop propagation, since it
+    // doesn't Skip()) before LayoutPanel's own event table entry for
+    // EVT_TREELIST_ITEM_CONTEXT_MENU(wxID_ANY, ...), which would otherwise
+    // pop up the model-tree menu on top of ours.
+    _tree->Bind(wxEVT_TREELIST_ITEM_CONTEXT_MENU, &ControllerListPanel::OnContextMenu, this);
 }
 
 int ControllerListPanel::ColIndex(const wxString& title) const {
@@ -612,7 +616,7 @@ void ControllerListPanel::OnItemActivated(wxTreeListEvent& event) {
     }
 }
 
-void ControllerListPanel::OnContextMenu(wxContextMenuEvent& event) {
+void ControllerListPanel::OnContextMenu(wxTreeListEvent& event) {
     wxMenu mnu;
     std::string ethernet = "Insert E1.31/ArtNET/DDP";
     if (SpecialOptions::GetOption("xxx") == "true") {

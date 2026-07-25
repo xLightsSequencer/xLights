@@ -61,7 +61,7 @@ private:
     int ColIndex(const wxString& title) const;
     void OnSelectionChanged(wxTreeListEvent& event);
     void OnItemActivated(wxTreeListEvent& event);
-    void OnContextMenu(wxContextMenuEvent& event);
+    void OnContextMenu(wxTreeListEvent& event);
     void ExpandAllControllers();
     void CollapseAll();
     wxTreeListItem TopLevelItem(wxTreeListItem item) const;
