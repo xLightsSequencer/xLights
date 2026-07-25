@@ -35,6 +35,7 @@
 #include "WQ.xpm"
 
 #include "ModelFacesPanel.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 #include "FaceMatrixHelpers.h"
 #include "render/SequenceFile.h"
 #include "shared/utils/NodesGridCellEditor.h"
@@ -2380,13 +2381,13 @@ void ModelFacesPanel::ExportFacesToOtherModels()
     xLightsFrame* xlights = xLightsApp::GetFrame();
     wxArrayString choices = getModelList(&xlights->AllModels);
 
-    wxMultiChoiceDialog dlg(this, "Export Face Definitions to Other Models", "Choose Model(s)", choices);
+    CheckboxSelectDialog dlg(this, "Export Face Definitions to Other Models", choices);
     OptimiseDialogPosition(&dlg);
 
     if (dlg.ShowModal() == wxID_OK) {
         std::map<std::string, std::map<std::string, std::string>> sourceFaces = GetFaceInfo();
-        for (auto const& idx : dlg.GetSelections()) {
-            Model* targetModel = xlights->GetModel(choices.at(idx));
+        for (auto const& name : dlg.GetSelectedItems()) {
+            Model* targetModel = xlights->GetModel(name);
             targetModel->SetFaceInfo(sourceFaces);
             targetModel->IncrementChangeCount();
         }
