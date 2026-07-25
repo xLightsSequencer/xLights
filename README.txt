@@ -25,8 +25,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 macOS video: video files are now decoded at the size they are actually
                                  rendered at (computed once before each full render, with headroom for
                                  downscale quality) instead of full native resolution. A 4K clip shown
-                                 on a matrix decodes far smaller, cutting peak video render memory ~40%
-                                 (a video-heavy sequence dropped from ~16GB to ~9GB) and often rendering
+                                 on a matrix decodes far smaller, cutting peak video render memory ~25-35%
+                                 (a video-heavy sequence dropped from ~16GB to ~12GB) and often rendering
                                  a little faster
     -enh (dkulp)                 GPU render (Metal): the render cache no longer forces a GPU->CPU
                                  readback right after a GPU effect renders. That readback drained the

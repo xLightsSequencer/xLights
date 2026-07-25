@@ -48,9 +48,4 @@ bool GetMaxDecodeSize(const std::string& resolvedPath, int& w, int& h) {
     return true;
 }
 
-bool Empty() {
-    std::lock_guard<std::mutex> lk(g_mutex);
-    return g_sizes.empty();
-}
-
 } // namespace VideoDecodeSizeRegistry

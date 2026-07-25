@@ -19,8 +19,9 @@
 //
 // Keyed by the resolved absolute path (the same key the AVFoundation
 // SharedDecoder is pooled under), so one entry governs all consumers of a file.
-// Deliberately depends on nothing but the standard library so both src-core and
-// the Apple-core bridge can use it across the include boundary.
+// Written by the render pre-pass; read by AVFoundationVideoReader, which passes
+// the size down to the Apple-core decoder as a CreateReader parameter — the
+// decoder never depends on src-core. Depends on nothing but the standard library.
 
 #include <string>
 
@@ -38,10 +39,5 @@ void SetMaxDecodeSize(const std::string& resolvedPath, int w, int h);
 // Returns the recorded max (w,h) for the file, or false if the pre-pass recorded
 // nothing (decoder then decodes at native). Thread-safe.
 bool GetMaxDecodeSize(const std::string& resolvedPath, int& w, int& h);
-
-// True when nothing has been recorded — i.e. no pre-pass has run this session
-// (e.g. a fresh sequence load whose first render is a per-model edit). Callers
-// use it to trigger a populate before that first restricted render.
-bool Empty();
 
 } // namespace VideoDecodeSizeRegistry

@@ -259,30 +259,47 @@ bool VideoEffect::IsVideoFile(std::string filename)
 }
 
 namespace {
-// Evaluate one crop setting at a normalized offset (0..1) across an effect's
-// period. Mirrors RenderableEffect::GetValueCurveInt but for the raw (E_-prefixed)
-// stored settings the pre-pass reads, and without the render-time memo cache.
-int EvalCropAt(const SettingsMap& s, const std::string& name, int def, float offset, long sMS, long eMS) {
+// Oversized sentinel recorded for a file that must decode at native (e.g. a
+// SampleSpacing effect): larger than any real video, so the per-file max clamps
+// to native in the bridge. Kept well below INT_MAX/headroom so the bridge's
+// `size * headroom` can't overflow.
+constexpr int kDecodeSizeForceNative = 1 << 24;
+
+// One crop setting resolved once per effect: either an active value curve or a
+// constant. Mirrors RenderableEffect::GetValueCurveInt for the raw (E_-prefixed)
+// stored settings the pre-pass reads, but built outside the sampling loop.
+struct CropSetting {
+    std::unique_ptr<ValueCurve> curve; // null => constant `scalar`
+    int scalar = 0;
+    int at(float offset, long sMS, long eMS) const {
+        return curve ? (int)curve->GetOutputValueAt(offset, sMS, eMS) : scalar;
+    }
+};
+
+CropSetting MakeCropSetting(const SettingsMap& s, const std::string& name, int def) {
+    CropSetting cc;
     const std::string vn = "E_VALUECURVE_" + name;
     if (s.Contains(vn)) {
         const std::string& vcs = s.Get(vn, xlEMPTY_STRING);
         if (!vcs.empty()) {
-            ValueCurve vc;
-            vc.SetDivisor(1);
-            vc.SetLimits(VideoEffect::sCropMin, VideoEffect::sCropMax);
-            vc.Deserialise(vcs);
-            if (vc.IsActive()) {
-                return vc.GetOutputValueAt(offset, sMS, eMS);
+            auto vc = std::make_unique<ValueCurve>();
+            vc->SetDivisor(1);
+            vc->SetLimits(VideoEffect::sCropMin, VideoEffect::sCropMax);
+            vc->Deserialise(vcs);
+            if (vc->IsActive()) {
+                cc.curve = std::move(vc);
+                return cc;
             }
         }
     }
     if (s.Contains("E_SLIDER_" + name)) {
-        return s.GetInt("E_SLIDER_" + name, def);
+        cc.scalar = s.GetInt("E_SLIDER_" + name, def);
+    } else if (s.Contains("E_TEXTCTRL_" + name)) {
+        cc.scalar = s.GetInt("E_TEXTCTRL_" + name, def);
+    } else {
+        cc.scalar = def;
     }
-    if (s.Contains("E_TEXTCTRL_" + name)) {
-        return s.GetInt("E_TEXTCTRL_" + name, def);
-    }
-    return def;
+    return cc;
 }
 
 // Accumulate the decode size one Video effect needs for its file.
@@ -307,6 +324,15 @@ void AccumulateVideoEffectDecodeSize(Effect* eff, Model* model, SequenceElements
         return;
     }
 
+    // SampleSpacing > 0 samples native pixels directly (VideoEffectProcessSample)
+    // to avoid washing colours out — any decode downscale defeats that, so the
+    // whole file must decode native. Record the sentinel and stop; because the
+    // decoder is shared per file this also protects other consumers of it.
+    if (s.GetInt("E_TEXTCTRL_SampleSpacing", VideoEffect::sSampleSpacingDefault) > 0) {
+        VideoDecodeSizeRegistry::SetMaxDecodeSize(resolved, kDecodeSizeForceNative, kDecodeSizeForceNative);
+        return;
+    }
+
     // Buffer size this effect renders at (mirrors CheckEffectSettings/Render).
     std::string bufferstyle = s.Get("B_CHOICE_BufferStyle", "Default");
     std::string transform = s.Get("B_CHOICE_BufferTransform", "None");
@@ -318,23 +344,31 @@ void AccumulateVideoEffectDecodeSize(Effect* eff, Model* model, SequenceElements
     }
 
     // The reader is opened at buffer/cropSpan (a 50% crop needs 2x buffer to keep
-    // the cropped-in region at buffer resolution). Crop is value-curvable and cl/cr
-    // (and ct/cb) are independent curves, so the tightest span must be found by
-    // sampling the pair together across the effect period, not from per-curve
-    // extremes. 101 samples matches ValueCurve's own sampling density.
-    const long sMS = eff->GetStartTimeMS();
-    const long eMS = eff->GetEndTimeMS();
-    int minSpanX = VideoEffect::sCropMax;
-    int minSpanY = VideoEffect::sCropMax;
-    constexpr int kSamples = 100;
-    for (int i = 0; i <= kSamples; ++i) {
-        const float off = (float)i / (float)kSamples;
-        const int cl = EvalCropAt(s, "Video_CropLeft", VideoEffect::sCropLeftDefault, off, sMS, eMS);
-        const int cr = EvalCropAt(s, "Video_CropRight", VideoEffect::sCropRightDefault, off, sMS, eMS);
-        const int ct = EvalCropAt(s, "Video_CropTop", VideoEffect::sCropTopDefault, off, sMS, eMS);
-        const int cb = EvalCropAt(s, "Video_CropBottom", VideoEffect::sCropBottomDefault, off, sMS, eMS);
-        minSpanX = std::min(minSpanX, std::abs(cr - cl));
-        minSpanY = std::min(minSpanY, std::abs(ct - cb));
+    // the cropped-in region at buffer resolution). CropLeft/Right (and Top/Bottom)
+    // are independent value curves, so the tightest span must be found by sampling
+    // the pair together across the effect period, not from per-curve extremes.
+    // Resolve the four curves once; when all four are constant (the common case)
+    // skip the sampling loop entirely.
+    const CropSetting cl = MakeCropSetting(s, "Video_CropLeft", VideoEffect::sCropLeftDefault);
+    const CropSetting cr = MakeCropSetting(s, "Video_CropRight", VideoEffect::sCropRightDefault);
+    const CropSetting ct = MakeCropSetting(s, "Video_CropTop", VideoEffect::sCropTopDefault);
+    const CropSetting cb = MakeCropSetting(s, "Video_CropBottom", VideoEffect::sCropBottomDefault);
+    int minSpanX;
+    int minSpanY;
+    if (!cl.curve && !cr.curve && !ct.curve && !cb.curve) {
+        minSpanX = std::abs(cr.scalar - cl.scalar);
+        minSpanY = std::abs(ct.scalar - cb.scalar);
+    } else {
+        const long sMS = eff->GetStartTimeMS();
+        const long eMS = eff->GetEndTimeMS();
+        minSpanX = VideoEffect::sCropMax;
+        minSpanY = VideoEffect::sCropMax;
+        constexpr int kSamples = 101; // matches ValueCurve's sampling density
+        for (int i = 0; i < kSamples; ++i) {
+            const float off = (float)i / (float)(kSamples - 1);
+            minSpanX = std::min(minSpanX, std::abs(cr.at(off, sMS, eMS) - cl.at(off, sMS, eMS)));
+            minSpanY = std::min(minSpanY, std::abs(ct.at(off, sMS, eMS) - cb.at(off, sMS, eMS)));
+        }
     }
     minSpanX = std::max(1, minSpanX);
     minSpanY = std::max(1, minSpanY);
@@ -383,8 +417,8 @@ void VideoEffect::PrepareDecodeSizes(SequenceElements& seqElements, const std::l
         }
     }
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - sw).count();
-    spdlog::info("VideoEffect::PrepareDecodeSizes: {} models, {} effects scanned, {} video, {:.3f} ms",
-                 models.size(), scanned, videos, ms);
+    spdlog::debug("VideoEffect::PrepareDecodeSizes: {} models, {} effects scanned, {} video, {:.3f} ms",
+                  models.size(), scanned, videos, ms);
 }
 
 void VideoEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
