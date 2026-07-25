@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Windows hardware video decode: the "FFmpeg auto" setting never engaged on
+                                 non-NVIDIA machines. It picked the first decoder FFmpeg recognised rather
+                                 than the first that works, so a build with CUDA compiled in always chose
+                                 cuda, failed to open it, and fell back to software without ever trying
+                                 qsv/d3d11va/vulkan. Candidates are now probed until one actually opens
     -bug (dkulp)                 Vulkan (Windows/Linux) GPU render: fixed a nondeterministic render where a
                                  few models could differ slightly between two identical renders. A compute
                                  buffer retired mid-frame could have its memory re-handed by the allocator to

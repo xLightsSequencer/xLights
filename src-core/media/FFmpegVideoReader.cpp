@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <list>
 #include <mutex>
+#include <set>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -333,6 +334,40 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     _firstFramePos = -1;
 }
 
+// Whether a hardware device of this type can actually be opened on this machine.
+// Absence is machine-global, so it is remembered: a render creates dozens of
+// readers and re-probing a device that isn't there costs a driver round trip
+// apiece while holding the serialising lock.  A type that has opened at least
+// once is never written off, because a later failure there is resource
+// exhaustion under load rather than absent hardware, and that does recover.
+static bool CreateHWDeviceContext(AVHWDeviceType type, AVBufferRef*& ctx, const std::string& filename)
+{
+    // Serialize HW device creation: concurrent CUDA/NVDEC init from many
+    // render threads exhausts driver session limits and corrupts shared state.
+    static std::mutex s_hwDeviceCreateMutex;
+    static std::set<AVHWDeviceType> s_everOpened;
+    static std::set<AVHWDeviceType> s_absent;
+    std::lock_guard<std::mutex> hwLock(s_hwDeviceCreateMutex);
+
+    if (s_absent.find(type) != s_absent.end()) {
+        return false;
+    }
+    if (av_hwdevice_ctx_create(&ctx, type, nullptr, nullptr, 0) < 0) {
+        ctx = nullptr;
+        if (s_everOpened.find(type) == s_everOpened.end()) {
+            spdlog::warn("VideoReader: HW device '{}' unavailable ({}) - not retrying it this session.",
+                         av_hwdevice_get_type_name(type), filename);
+            s_absent.insert(type);
+        } else {
+            spdlog::warn("VideoReader: HW device '{}' temporarily unavailable for {} - falling back to software decode for this file.",
+                         av_hwdevice_get_type_name(type), filename);
+        }
+        return false;
+    }
+    s_everOpened.insert(type);
+    return true;
+}
+
 void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     spdlog::debug("VideoReader: reopenContext({}) for {}", allowHWDecoder, _filename);
 
@@ -377,25 +412,41 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         std::list<std::string> hwdecoders = { "vaapi", "vdpau" };
 #endif
 
+        // Take the first candidate that is usable end to end: the name has to
+        // resolve, this decoder has to advertise a matching hw config, and the
+        // device has to actually open.  Accepting the first merely *recognised*
+        // name instead meant any FFmpeg build with CUDA compiled in always chose
+        // cuda and then fell back to software on non-NVIDIA machines, never
+        // reaching qsv/d3d11va/vulkan.
         for (const auto& it : hwdecoders) {
-            type = av_hwdevice_find_type_by_name(it.c_str());
-            if (type != AV_HWDEVICE_TYPE_NONE) {
-                break;
+            const AVHWDeviceType candidate = av_hwdevice_find_type_by_name(it.c_str());
+            if (candidate == AV_HWDEVICE_TYPE_NONE) {
+                continue;
             }
-        }
-        if (type != AV_HWDEVICE_TYPE_NONE) {
+
+            AVPixelFormat candidatePixFmt = AV_PIX_FMT_NONE;
             for (int i = 0;; i++) {
                 const AVCodecHWConfig* config = avcodec_get_hw_config(_decoder, i);
                 if (!config) {
-                    type = AV_HWDEVICE_TYPE_NONE;
                     break;
                 }
                 if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX &&
-                    config->device_type == type) {
-                    __hw_pix_fmt = config->pix_fmt;
+                    config->device_type == candidate) {
+                    candidatePixFmt = config->pix_fmt;
                     break;
                 }
             }
+            if (candidatePixFmt == AV_PIX_FMT_NONE) {
+                continue;
+            }
+
+            if (!CreateHWDeviceContext(candidate, _hw_device_ctx, _filename)) {
+                continue;
+            }
+
+            type = candidate;
+            __hw_pix_fmt = candidatePixFmt;
+            break;
         }
     }
 
@@ -434,30 +485,14 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     }
 
     _codecContext->hwaccel_context = nullptr;
-    {
-        if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE) {
-            // Serialize HW device creation: concurrent CUDA/NVDEC init from many
-            // render threads exhausts driver session limits and corrupts shared state.
-            static std::mutex s_hwDeviceCreateMutex;
-            std::lock_guard<std::mutex> hwLock(s_hwDeviceCreateMutex);
-            const char* opt = nullptr;
-            if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0) {
-                spdlog::warn("VideoReader: Failed to create HW device '{}' for {} - falling back to software decode.", av_hwdevice_get_type_name(type), _filename.c_str());
-                type = AV_HWDEVICE_TYPE_NONE;
-            } else {
-                _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
-                if (!usingCuvid) {
-                    _codecContext->get_format = get_hw_format;
-                }
-                const char *devName = "";
-#if __has_include(<libavdevice/avdevice.h>)
-                devName = av_hwdevice_get_type_name(type);
-#endif
-                spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", devName, decoderToUse->long_name);
-            }
-        } else {
-            spdlog::debug("Software decoding enabled for codec '{}'", decoderToUse->long_name);
+    if (_hw_device_ctx != nullptr) {
+        _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
+        if (!usingCuvid) {
+            _codecContext->get_format = get_hw_format;
         }
+        spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", av_hwdevice_get_type_name(type), decoderToUse->long_name);
+    } else {
+        spdlog::debug("Software decoding enabled for codec '{}'", decoderToUse->long_name);
     }
     _videoToolboxAccelerated = AppleVideoToolboxBridge::SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
