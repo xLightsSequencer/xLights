@@ -11696,6 +11696,14 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
     Effect* e = layer->AddEffect(0, name, st, pal, startMS, endMS, 0, false);
     if (!e) return -1;
+    // The settings string handed to us came from Effect::GetSettingsAsString(),
+    // which appends X_LinkedSymbolId for a symbol-linked effect. Consume it so
+    // the copy re-joins the symbol instead of silently becoming an unlinked
+    // effect carrying a stray key that would then be written to the .xsq.
+    // Desktop does exactly this at every AddEffect-from-a-settings-string site
+    // (EffectsGrid.cpp paste / duplicate / move-a-layer). No-op when the key
+    // is absent, so new-effect creation is unaffected.
+    e->HandlePastedSymbolLink();
     // AddEffect re-sorts; find the new effect's index by identity.
     for (int i = 0; i < layer->GetEffectCount(); i++) {
         if (layer->GetEffect(i) == e) return i;

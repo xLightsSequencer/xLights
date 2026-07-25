@@ -28,8 +28,8 @@
 |---|--:|
 | Features audited | 1,250 |
 | **At parity** (both platforms) | 893 (**~71%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 188 |
-| **iPad-weaker** (partial on iPad) | 72 |
+| **iPad-missing** (desktop has, iPad doesn't) | 187 |
+| **iPad-weaker** (partial on iPad) | 73 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
 | Restricted (closed-firmware / IAP) | 23 |
@@ -76,7 +76,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 75 | 50 | 67% | 12 | 8 | 6 | 5 |
 | 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 120 | 98 | 82% | 9 | 5 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 74 | 89% | 2 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 78 | 87% | 5 | 2 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 78 | 87% | 4 | 3 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 147 | 112 | 76% | 13 | 15 | 7 | 4 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 97 | 74 | 76% | 14 | 5 | 3 | 11 |
@@ -87,7 +87,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 51 | 34 | 67% | 13 | 3 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,250** | **893** | **~71%** | **188** | **72** | **≈92** | **91** |
+| — | **Total** | **1,250** | **893** | **~71%** | **187** | **73** | **≈92** | **91** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -269,7 +269,7 @@ are declined.)
 
 | Feature | Theme | Ease | Feasibility | Notes |
 |---|---|---|---|---|
-| **Effect Symbols (reusable linked effects)** | 04 | hard | feasible | From the 2026-07-25 desktop-churn audit. Desktop #2671: edit once, propagates to every linked effect; round-trips through `.xsq`. Highest-value new gap of the wave — and the one with a **data-safety** angle: confirm an iPad edit of a symbol-linked effect doesn't silently break the link before scheduling UI work. |
+| **Effect Symbols: linked-effect indicator + link/unlink UI** | 04 | medium | feasible | Investigated 2026-07-25 (see theme 04). The data question is **answered and safe**: storage, save/load and edit-propagation are all shared core, so the iPad round-trips symbols and propagates edits correctly, and a paste/undo-of-delete/move bug that dropped the link has been fixed. What remains is UI: the iPad paints no linked indicator (desktop has a cyan corner triangle) and offers no link/unlink/convert, so an iPad user editing one effect silently rewrites every sibling linked to the same symbol. The indicator is the safety-relevant half — build it first. |
 | **Moving Head: Pattern tab (parametric pan/tilt)** | 04 | medium | feasible | From the audit. Circle/Eight/Diamond/Lissajous generators modelled on QLC+ EFX; the render side is shared core, so playback likely already works and only the authoring panel is missing. |
 | **Model Sets (link props so they move as one)** | 06 | medium | feasible | From the audit. Desktop #3703 plus rigid Align/Distribute. Previously only a prose note in theme 06 with no scorecard row. |
 | **First-run: offer a default show folder** | 01 | easy | feasible | From the audit. Desktop offers to create `Documents/xLights`; the iPad gate makes a first-time user find or create one unaided. Small, and it is the very first thing a new user hits. |
