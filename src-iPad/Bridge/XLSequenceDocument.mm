@@ -11438,6 +11438,13 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     return (e && e->IsLocked()) ? YES : NO;
 }
 
+- (BOOL)effectIsLinkedToSymbolInRow:(int)rowIndex atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    return (e && e->IsLinkedToSymbol()) ? YES : NO;
+}
+
 - (void)setEffectLocked:(BOOL)locked inRow:(int)rowIndex atIndex:(int)effectIndex {
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return;

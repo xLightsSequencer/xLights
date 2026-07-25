@@ -75,4 +75,7 @@ struct EffectCanvasActions {
 struct EffectStateLookup {
     var isLocked: (_ row: Int, _ effect: Int) -> Bool = { _,_ in false }
     var isDisabled: (_ row: Int, _ effect: Int) -> Bool = { _,_ in false }
+    /// Linked to an Effect Symbol — editing it also rewrites every sibling
+    /// linked to the same symbol, so the grid flags it.
+    var isLinkedToSymbol: (_ row: Int, _ effect: Int) -> Bool = { _,_ in false }
 }

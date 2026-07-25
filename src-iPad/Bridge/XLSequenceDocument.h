@@ -2045,6 +2045,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)effectIsRenderDisabledInRow:(int)rowIndex atIndex:(int)effectIndex;
 - (void)setEffectRenderDisabled:(BOOL)disabled inRow:(int)rowIndex atIndex:(int)effectIndex;
 
+// Is this effect linked to an Effect Symbol? Editing it rewrites the symbol
+// and every other effect linked to it (`Effect::IncrementChangeCount`), so the
+// grid marks it — the desktop draws a corner triangle for the same reason
+// (`EffectsGrid.cpp`). Read-only; the iPad has no link/unlink UI yet.
+- (BOOL)effectIsLinkedToSymbolInRow:(int)rowIndex atIndex:(int)effectIndex;
+
 // Copy: returns full settings string (xLights legacy format) and the effect's
 // palette as a separate string. Empty strings on failure.
 - (NSString*)effectSettingsStringForRow:(int)rowIndex atIndex:(int)effectIndex;

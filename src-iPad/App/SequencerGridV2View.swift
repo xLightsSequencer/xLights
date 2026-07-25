@@ -2520,6 +2520,9 @@ struct SequencerGridV2View: View {
         stateLookup.isDisabled = { [document = viewModel.document] rowIdx, effIdx in
             document.effectIsRenderDisabled(inRow: Int32(rowIdx), at: Int32(effIdx))
         }
+        stateLookup.isLinkedToSymbol = { [document = viewModel.document] rowIdx, effIdx in
+            document.effectIsLinkedToSymbol(inRow: Int32(rowIdx), at: Int32(effIdx))
+        }
         return EffectsMetalGridView(
             rows: modelRows,
             metrics: metrics,
