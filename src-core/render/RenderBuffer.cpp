@@ -251,6 +251,13 @@ void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::strin
                     indexVector[extraIdx++] = pidx;
                 }
             }
+        } else if (n->Coords.empty()) {
+            // Node with zero coords - same sentinel as a node whose single
+            // coord is out of bounds. The Metal twin of this loop
+            // (MetalRenderBufferComputeData::bufferResized) has carried this
+            // guard since eea63c430; without it Coords[0] below indexes an
+            // empty vector.
+            indexVector[idx] = 0xFFFFFFFF;
         } else if (n->Coords[0].bufY < 0 || n->Coords[0].bufY >= BufferHt ||
                    n->Coords[0].bufX < 0 || n->Coords[0].bufX >= BufferWi ) {
             indexVector[idx] = 0xFFFFFFFF;
