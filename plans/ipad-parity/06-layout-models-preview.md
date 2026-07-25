@@ -156,7 +156,7 @@
 | Mesh object file picker (.obj/.3ds/.stl/.ply) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad mesh-file picker w/ UTType filter. Obj files inside the show/media dirs save show-relative on both platforms (shared BaseSerializingVisitor + FileUtils::MakeRelativeFile; iPad in-place save matched in iPadRenderContext.cpp). |
 | Terrain object height-map / editing | dialog | ✅ | 🟡 | ipad-missing | P3 | hard | feasible | iPad terrain edit target flow; full height-map paint scope narrower than desktop TerrainObjectPropertyAdapter. |
 | DMX MovingHead / MovingHeadAdv create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad AddModelSheet + descriptor (fixture/mode), MovingHeadFixtureRowView. |
-| DMX Servo / Servo3D create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad add types + descriptor. |
+| DMX Servo / Servo3D create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad add types + descriptor. Shared-core fixes, auto-applied to both platforms (`DmxServo3D.cpp`): dynamically-added Servo3D servos are no longer flagged 2D (restores Pivot Offset Z + correct offset scale), and mesh linkage resolves a parented mesh's driving servo via `servo_links` instead of assuming servo index == mesh index. |
 | DMX Skull create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad add types + descriptor (Skulltronix preset). |
 | DMX Floodlight create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad add types + descriptor. |
 | DMX General create + props | menu/panel | ✅ | ✅ | parity | P2 | hard | feasible | iPad add types + descriptor. |

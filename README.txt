@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (pgianotto)             DMX Servo 3D: servos added by raising the servo count were created as 2D, so
+                                 they offered no Pivot Offset Z and stored their pivot offsets 100x too small
+    -bug (pgianotto)             DMX Servo 3D: a mesh parented to another mesh followed that mesh's servo
+                                 index rather than the servo its Servo Linkage actually redirects to it
     -enh (dkulp)                 Fire effect renders about 3x faster with byte-identical output. The flame
                                  grid now stops once the flame has died out (the rows above are provably all
                                  black), and the Hue Shift colour conversion is done once per frame into a

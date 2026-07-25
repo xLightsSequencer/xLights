@@ -76,7 +76,7 @@ void DmxServo3d::SetNumServos(int val)
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
             auto new_name = "Servo" + std::to_string(i + 1);
-            servos[i] = std::make_unique<Servo>(new_name, true);
+            servos[i] = std::make_unique<Servo>(new_name, false);
             servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
@@ -155,7 +155,7 @@ void DmxServo3d::InitModel()
     for (int i = 0; i < num_servos; ++i) {
         if (servos[i] == nullptr) {
             std::string new_name = "Servo" + std::to_string(i + 1);
-            servos[i] = std::make_unique<Servo>(new_name, true);
+            servos[i] = std::make_unique<Servo>(new_name, false);
             servos[i]->SetChannel(_16bit ? i * 2 + 1 : i + 1);
         }
     }
@@ -393,6 +393,21 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
         servos[i]->FillMotionMatrix(servo_pos[i], servo_matrix[i]);
     }
 
+    // Resolve which servo(s) actually drive a mesh. A servo drives its own
+    // mesh only while it hasn't been redirected elsewhere by Servo Linkage.
+    // Own servo first, then any redirected onto it -- matrix multiplication
+    // is not commutative and rotate-style servos depend on this order.
+    auto applyMeshServos = [&](glm::mat4& matrix, int meshIdx) {
+        if (servo_links[meshIdx] == -1) {
+            matrix = matrix * servo_matrix[meshIdx];
+        }
+        for (int j = 0; j < (int)servos.size(); ++j) {
+            if (j != meshIdx && servo_links[j] == meshIdx) {
+                matrix = matrix * servo_matrix[j];
+            }
+        }
+    };
+
     // Determine motion mesh linkages
     for (int i = 0; i < num_motion; ++i) {
         int link = mesh_links[i];
@@ -410,25 +425,14 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
             while (!link_list.empty()) {
                 link = link_list.back();
                 link_list.pop_back();
-                motion_matrix[i] = motion_matrix[i] * servo_matrix[link];
+                applyMeshServos(motion_matrix[i], link);
             }
         }
     }
 
     // add motion based on servo mapping
     for (int i = 0; i < (int)servos.size(); ++i) {
-        // see if servo links to his own mesh
-        if (servo_links[i] == -1) {
-            motion_matrix[i] = motion_matrix[i] * servo_matrix[i];
-        }
-        // check if any other servos map to this mesh
-        for (int j = 0; j < (int)servos.size(); ++j) {
-            if (j != i) {
-                if (servo_links[j] == i) {
-                    motion_matrix[i] = motion_matrix[i] * servo_matrix[j];
-                }
-            }
-        }
+        applyMeshServos(motion_matrix[i], i);
     }
 
     // Draw Motion Meshs
