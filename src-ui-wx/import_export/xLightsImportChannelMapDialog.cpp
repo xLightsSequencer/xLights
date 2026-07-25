@@ -756,6 +756,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     auto* config = GetXLightsConfig();
     CheckBox_LockEffects->SetValue(config->ReadBool("ImportEffectsLocked", false));
     CheckBox_ConvertRenderStyle->SetValue(config->ReadBool("ImportEffectsRenderStyle", false));
+    CheckBox_ImportFacesToSequence->SetValue(config->ReadBool("ImportFacesToSequence", true));
 
     auto ai = xlights->GetAIService(aiType::TYPE::MAPPING);
     if (ai == nullptr) {
@@ -4566,6 +4567,15 @@ bool xLightsImportChannelMapDialog::IsConvertRender() const
     auto* config = GetXLightsConfig();
     bool b = CheckBox_ConvertRenderStyle->IsChecked();
     config->Write("ImportEffectsRenderStyle", b);
+    config->Flush();
+    return b;
+}
+
+bool xLightsImportChannelMapDialog::IsImportFacesToSequence() const
+{
+    auto* config = GetXLightsConfig();
+    bool b = CheckBox_ImportFacesToSequence->IsChecked();
+    config->Write("ImportFacesToSequence", b);
     config->Flush();
     return b;
 }

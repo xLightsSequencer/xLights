@@ -48,6 +48,11 @@ struct ImportEffectsView: View {
     @AppStorage("import.eraseExisting") private var eraseExisting = false
     @AppStorage("import.lockEffects") private var lockEffects = false
     @AppStorage("import.convertRenderStyle") private var convertRenderStyle = false
+    @AppStorage("import.facesToSequence") private var importFacesToSequence = true
+    // Only an `.xsq` / package source carries an rgbeffects with model face
+    // definitions, so the faces toggle is hidden for every other reader (the
+    // desktop dialog hides its checkbox the same way).
+    @State private var sourceHasRGBEffects = false
     // IE-9 — incremental filters over the source / destination lists.
     // High leverage on large shows where the model count is in the
     // hundreds. Pure-SwiftUI over the existing snapshot arrays.
@@ -359,6 +364,10 @@ struct ImportEffectsView: View {
                 Toggle("Erase existing", isOn: $eraseExisting)
                 Toggle("Lock imported", isOn: $lockEffects)
                 Toggle("Convert render style", isOn: $convertRenderStyle)
+                if sourceHasRGBEffects {
+                    Toggle("Faces into sequence", isOn: $importFacesToSequence)
+                        .help("When on, Matrix (image) face definitions on the imported models are stored in this sequence (with images embedded) instead of being added to the mapped models in your layout. Node/Coro faces are unaffected.")
+                }
                 Spacer()
             }
             .toggleStyle(.switch)
@@ -520,6 +529,7 @@ struct ImportEffectsView: View {
             }
             mode = .xsq
             sourcePath = url.path
+            sourceHasRGBEffects = session.sourceHasRGBEffects()
             refreshSnapshots()
             checkSourceWarnings()
         } catch {
@@ -634,7 +644,8 @@ struct ImportEffectsView: View {
         do {
             try session.applyImport(withEraseExisting: eraseExisting,
                                      lock: lockEffects,
-                                     convertRenderStyle: convertRenderStyle)
+                                     convertRenderStyle: convertRenderStyle,
+                                     importFacesToSequence: importFacesToSequence)
             viewModel.reloadRows()
             // IE-7 — the source's missing-media list is only populated by the
             // SequencePackage media walk that runs during an `.xsq`/package

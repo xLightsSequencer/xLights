@@ -528,6 +528,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         [[nodiscard]] bool IsLockEffects() const;
         void SetXsqPkg(SequencePackage* xsqPkg);
         bool IsConvertRender() const;
+        bool IsImportFacesToSequence() const;
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
         void SortChannels();
