@@ -15,6 +15,51 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  they offered no Pivot Offset Z and stored their pivot offsets 100x too small
     -bug (pgianotto)             DMX Servo 3D: a mesh parented to another mesh followed that mesh's servo
                                  index rather than the servo its Servo Linkage actually redirects to it
+    -enh (MartinMueller)         ESPixelStick: added the Octa2Go and several other ESP32 variants, TLS3001
+                                 protocol support on the V4 variants, and corrected the maximum
+                                 pixel-port channel counts
+    -enh (heffneil)              Model Sets: the right-click Align options (ground, tops, bottoms, left,
+                                 right, fronts, backs, centres) and Distribute now move the whole Set
+                                 rigidly instead of pulling the clicked model out of the Set's
+                                 arrangement; a Set containing a locked model is skipped with a message
+    -enh (AGFazio)               3D Layout: Shift + scroll wheel, or a two-finger touchpad drag, now pans
+                                 the 3D view on every platform (#6699)
+    -enh (scott)                 Layout tab: shows a "Loading show..." message while a show folder loads
+                                 (it can take a while on a large show), and the controller list no longer
+                                 re-resolves the FPP proxy address on every redraw
+    -enh (scott)                 Layout tab: added a button to open the show folder
+    -enh (cybercop23)            Directories dialog: added buttons to pick a directory and to open it in
+                                 Finder/Explorer; double-clicking a model in the layout tree opens the
+                                 unified model definitions panel
+    -enh (dkulp)                 Preferences: the "Automation" port is now labelled the "API" port, and
+                                 the actual port numbers are displayed
+    -bug (derwin12)              The show was marked as having unsaved changes immediately after loading
+                                 it, because a number of model and output settings flagged the config
+                                 dirty even when the value being stored was the one already there (#6749)
+    -bug (derwin12)              Tree models: the Flat and Ribbon tree types were ignored when the model
+                                 was built, so the tree kept the plain multi-string shape (#6726)
+    -bug (derwin12)              Moving Head Advanced: fixed effect corruption copying and pasting between
+                                 fixtures (#6701)
+    -bug (derwin12)              Moving Head effect panel now refreshes correctly as you switch between
+                                 effects (#6703), and no longer spins in an endless refresh loop when a
+                                 value curve is recalled
+    -bug (derwin12)              Numeric text boxes beside sliders could get stuck while you typed in them
+                                 (#6708)
+    -bug (derwin12)              Check Sequence no longer reports a numeric effect setting as invalid just
+                                 because the stored value has spaces around it
+    -bug (derwin12)              Import Effects: imported effects could arrive locked, and the Per Model
+                                 buffer-style conversion and the duplicate-effect model remapping could
+                                 be silently skipped - those settings were edited by substring replace,
+                                 which missed the setting whenever it happened to be first in the
+                                 list (#6692)
+    -bug (scott)                 Import mapping dialog: the colour cell no longer reports the whole column
+                                 width as its own size, which sized the colour column wrongly (#6710)
+    -bug (dkulp)                 Answering "No" to the save-Models/Views/Perspectives (or Presets) prompt
+                                 no longer updates the timestamp on xlights_rgbeffects.xml or the presets
+                                 file, so declining really does leave them untouched
+    -bug (dkulp)                 Fixed a crash rendering a model that has a node with no coordinates; the
+                                 Metal and Vulkan paths already skipped such a node but the CPU path
+                                 indexed it anyway
     -enh (dkulp)                 Fire effect renders about 3x faster with byte-identical output. The flame
                                  grid now stops once the flame has died out (the rows above are provably all
                                  black), and the Hue Shift colour conversion is done once per frame into a
@@ -33,12 +78,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  than the first that works, so a build with CUDA compiled in always chose
                                  cuda, failed to open it, and fell back to software without ever trying
                                  qsv/d3d11va/vulkan. Candidates are now probed until one actually opens
-    -bug (dkulp)                 Vulkan (Windows/Linux) GPU render: fixed a nondeterministic render where a
-                                 few models could differ slightly between two identical renders. A compute
-                                 buffer retired mid-frame could have its memory re-handed by the allocator to
-                                 another parallel-frame allocation while in-flight GPU work still referenced
-                                 it; buffer frees are now deferred until no command buffer is in flight. The
-                                 Christmas show now renders 56/56 byte-identical run to run
     -bug (dkulp)                 Headless render (--headless): the render cache is now disabled, as it
                                  always should have been. The headless path never applied the render-cache
                                  preference, so it silently defaulted to enabled with no cache folder and
@@ -50,15 +89,22 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  on a matrix decodes far smaller, cutting peak video render memory ~25-35%
                                  (a video-heavy sequence dropped from ~16GB to ~12GB) and often rendering
                                  a little faster
-    -enh (dkulp)                 GPU render (Metal): the render cache no longer forces a GPU->CPU
-                                 readback right after a GPU effect renders. That readback drained the
-                                 command buffer, so a blurred layer had to bounce out to the CPU and
-                                 back for its blur/blend; effect+blur+rotozoom+blend now stay in one
-                                 command queue. Cheap-to-recompute GPU effects skip the cache; slow
-                                 CPU effects still cache (their readback is free). Output is unchanged
-    -enh (dkulp)                 GPU render (Metal): the small/narrow "box" blur case now runs on the
-                                 GPU (bit-identical to the CPU path) when the layer already rendered
-                                 there, instead of blocking to blur on the CPU
+    -enh (dkulp)                 GPU render (Metal and Vulkan): the render cache no longer forces a
+                                 GPU->CPU readback right after a GPU effect renders. That readback
+                                 drained the command buffer, so a blurred layer had to bounce out to
+                                 the CPU and back for its blur/blend; effect+blur+rotozoom+blend now
+                                 stay in one command queue. Cheap-to-recompute GPU effects skip the
+                                 cache; slow CPU effects still cache (their readback is free).
+                                 Output is unchanged
+    -enh (dkulp)                 GPU render (Metal and Vulkan): the small/narrow "box" blur case now
+                                 runs on the GPU (bit-identical to the CPU path) when the layer
+                                 already rendered there, instead of blocking to blur on the CPU
+    -enh (dkulp)                 GPU render (Metal and Vulkan): a prop with a large buffer but few
+                                 nodes renders its effects on the GPU yet blended on the CPU, which
+                                 forced a wait on every layer buffer. The blend is now appended to
+                                 the GPU when most of the layers already have GPU work queued; the
+                                 win is on discrete GPUs where that wait is a real readback. Those
+                                 props' output shifts by the usual GPU/CPU float rounding
     -change (dkulp)              Effect settings GetBool now treats a leading 'T' ("True") as true in
                                  addition to '1', so both boolean-storage conventions read correctly
     -bug (dkulp)                 Vulkan (Windows/Linux) layer blending: GPU-built transition masks (e.g.
@@ -67,16 +113,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  buffer; that read-before-fence race made masked transitions render
                                  nondeterministically (a wipe edge landing a row or two off between
                                  otherwise-identical renders)
-    -bug (dkulp)                 Vulkan (Windows/Linux) layer blending: an uninitialized field in the
-                                 per-layer data uploaded to the GPU each frame is now set explicitly
     -enh (dkulp)                 Vulkan (Windows/Linux) GPU render: when a compute buffer has to be
                                  grown mid-frame, the old buffer is now retired to a deferred-free list
                                  and released once its command buffer completes, instead of stalling the
                                  GPU pipeline to drain and free it immediately (matches the Metal path)
     -enh (dkulp)                 --fseqcmp: XL_FSEQCMP_RANGE=<first>[-<last>] picks the frame window for
-                                 the per-channel dump (was hardcoded to the first 80 frames), and
+                                 the per-channel dump (was hardcoded to the first 80 frames),
                                  XL_FSEQCMP_PNG=<model> writes an A|B|amplified-diff PNG strip of that
-                                 model's render buffer for each frame in the range
+                                 model's render buffer for each frame in the range, and
+                                 XL_FSEQCMP_FRAMES=1 reports which frame ranges differ
     -bug (dkulp)                 Shader effect: ISF/GLSL shaders that define their own copy of a GLSL
                                  built-in function (e.g. sinh/cosh/tanh) no longer fail to translate on
                                  the Vulkan (Windows/Linux) path and render solid yellow; such user
@@ -107,7 +152,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  model/wiring names) that prunes non-matching branches
     -enh (heffneil)              Choose Model(s) dialog (Copy Layers/SubModels to Models): added a live
                                  filter box and a header showing the source model being copied from
-    -enh (nick)                   Add Preferences > Toolbars: choose which effects appear in the
+    -enh (nick)                  Add Preferences > Toolbars: choose which effects appear in the
                                  always-visible Effects toolbar, and reorder them - handy once enough
                                  effects are registered that the toolbar no longer fits smaller screens.
                                  Right-click the toolbar to jump straight to this page, and use
@@ -153,8 +198,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
                                  be embedded, and SuperStar-imported scene animations silently failed to
                                  embed (frames lost on save)
-    -enh (dkulp)                 Render: render cache now saves an effect's cache to disk even when
-                                 frames complete out of order (frame-parallel windows)
     -bug (dkulp)                 macOS: Video effect on uncompressed (rawvideo) .mov files with a
                                  non-zero start time rendered blue frames (mid-file positioning
                                  failed); also fixed transient unscaled/wrong frames under heavy
@@ -167,9 +210,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (Circles radial modes are fully frame-parallel)
     -enh (dkulp)                 Stem separation: the progress dialog's Cancel now stops the run at the
                                  next chunk instead of waiting for the whole track (all backends)
-    -bug (dkulp)                 Media tab: picture-series animations (name-1.png..name-N.png) could not
-                                 be embedded, and SuperStar-imported scene animations silently failed to
-                                 embed (frames lost on save)
     -bug (dkulp)                 Circles: crash rendering into a variable/oversized sub-buffer (the SIMD
                                  kernel wrote past the pixel allocation)
     -bug (dkulp)                 Open Sequence: the remembered last-used dialog directory is now
@@ -184,11 +224,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  separation was still running
     -bug (derwin12)              Windows/Linux: GPU Rendering preference was not restored on restart (#6712)
     -bug (derwin12)              DMX Moving Head Adv / Servo 3D: editing ScaleX/Y/Z in the property grid no longer snaps it back to 1.0
-    -bug (dkulp)                 Frame-parallel rendering: Candle (per-node) rendered wrong output in
-                                 parallel windows on Metal/Vulkan (GPU path discarded the captured
-                                 simulation and re-seeded every frame)
-    -bug (dkulp)                 Frame-parallel rendering: Snowflakes could render a wrong first frame
-                                 in parallel windows (Random/"3 nodes" type or warmup frames)
     -change (dkulp)              Render: new AdvanceState API separates a Snapshottable effect's state
                                  advance from its draw (Snowstorm, Fireworks, Strobe, Lines, Snowflakes,
                                  most VU Meter modes, and the GPU effects Candle, Circles, Meteors,
@@ -201,10 +236,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Spectrogram modes are now classified Stateful (serial render) - their
                                  line-history advance is fused into the draw. The legacy capture/restore
                                  snapshot protocol is removed (AdvanceState is the only tier-2 path)
+    -enh (dkulp)                 Render: Curtain's open and close modes and 16 VU Meter modes (the ones
+                                 that read only the current frame) are now frame-parallel, so groups
+                                 using them render frames concurrently; byte-identical output
     -bug (derwin12)              Sequencer grid: dragging the shared edge between two touching effects
                                  could move a locked neighboring effect (#6696)
-    -bug (dkulp)                 Frame-parallel rendering: rows containing canvas-mode effects were not
-                                 excluded as designed (wrong settings key) and could render incorrectly
     -bug (dkulp)                 Normalize bare float settings (e.g. ".2" → "0.2") from old sequences so
                                  float text controls display and edit correctly
     -bug (dkulp)                 Fix a crash rendering a layer blur with a radius above 16, reachable from a
@@ -232,7 +268,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Stop the last compression block of an .fseq from being reported as
                                  running to the end of the file, which swept any embedded/extended
                                  header data written after the channel data into the block
-    -enh (nick)                   Media panel: offer "Bulk Find" to redirect a whole set of already-
+    -enh (nick)                  Media panel: offer "Bulk Find" to redirect a whole set of already-
                                  working media files to a new folder (e.g. a show copied to a new year),
                                  not just to fix ones that are currently missing
     -change (dkulp)              Route the macOS serial baud-rate error and some render/headless diagnostics to the
