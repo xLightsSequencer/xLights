@@ -627,17 +627,24 @@ public:
 
 bool xLightsApp::OnInit()
 {
+    // Detected straight from argv rather than from wxCmdLineParser because a
+    // parse failure has to be reported before the parser can tell us the mode.
+    bool headlessArg = false;
+    for (int i = 1; i < argc; ++i) {
+        const wxString a(argv[i]);
+        if (a == "--headless" || a == "-hl") {
+            headlessArg = true;
+            break;
+        }
+    }
+
 #ifdef __APPLE__
     // A headless render must not pop a Dock icon or steal focus. The app bundle
     // launches as a foreground (Regular) app, so demote to a background app as
     // early as possible — before the rest of startup — when --headless is on the
     // command line. (Re-asserted in the --headless branch below.)
-    for (int i = 1; i < argc; ++i) {
-        const wxString a(argv[i]);
-        if (a == "--headless" || a == "-hl") {
-            SetHeadlessNoDock();
-            break;
-        }
+    if (headlessArg) {
+        SetHeadlessNoDock();
     }
 #endif
     SetMainThreadId();
@@ -921,7 +928,14 @@ bool xLightsApp::OnInit()
         }
         break;
     default:
-        wxMessageBox(_("Unrecognized command line parameters"), "Error", wxICON_ERROR | wxOK); // pre-frame: callback not yet registered
+        // Same trap as the font mapper dialog above: --headless has no window and
+        // no human to click OK, so a modal here blocks the process forever rather
+        // than failing. Log and exit non-zero so scripts and CI see the error.
+        if (headlessArg) {
+            spdlog::error("--headless: unrecognized command line parameters");
+        } else {
+            wxMessageBox(_("Unrecognized command line parameters"), "Error", wxICON_ERROR | wxOK); // pre-frame: callback not yet registered
+        }
         return false;
     }
 
