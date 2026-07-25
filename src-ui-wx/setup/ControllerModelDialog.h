@@ -38,6 +38,7 @@ class SRCMObject;
 class PortCMObject;
 class wxScrolledWindow;
 class wxStaticBitmap;
+class wxChoice;
 
 class ControllerModelPrintout : public wxPrintout
 {
@@ -58,7 +59,8 @@ public:
 	virtual bool HasPage(int page) override;
 	virtual void OnBeginPrinting() override;
 
-	void preparePrint(const bool showPageSetupDialog = false);
+	void preparePrint();
+	void SetDefaultPageSetup(wxPaperSize paperId, int orient);
 
 	wxPrintData getPrintData() {
 		return _page_setup.GetPrintData();
@@ -81,10 +83,13 @@ private:
 	wxScrolledWindow* _canvas;
 	wxStaticBitmap* _bitmapCtrl;
 	wxSlider* _boxSizeSlider;
+	wxChoice* _paperChoice;
+	wxChoice* _orientationChoice;
 
 	void RefreshPreview();
 	void OnBoxSizeChanged(wxCommandEvent& event);
 	void OnFitToPage(wxCommandEvent& event);
+	void OnPageSetupChanged(wxCommandEvent& event);
 	void OnPrint(wxCommandEvent& event);
 };
 
@@ -110,6 +115,8 @@ class ControllerModelDialog: public wxDialog
 	int _controllersx = 1;
 	double _scale = 1;
 	double _printScale = 1; // box size scale used only for print/print-preview, independent of _scale
+	wxPaperSize _printPaperId = wxPAPER_LETTER;
+	int _printOrientation = wxPORTRAIT;
 	Model* _lastDropped = nullptr;
 	#pragma endregion
 
@@ -256,8 +263,22 @@ class ControllerModelDialog: public wxDialog
 		double GetPrintRatio() const;
 		wxSize GetControllersExtent() const;
 		void FitPrintScaleToPage();
+
+		// One page's content area and page counts, in the same print-scale
+		// pixel units as RenderFullPreview()'s bitmap - lets the preview
+		// dialog overlay page-break lines without needing a live printer DC.
+		struct PrintPageLayout {
+			wxSize pageSize;
+			int pagesWide = 1;
+			int pagesHigh = 1;
+		};
+		PrintPageLayout GetPrintPageLayout() const;
 		double GetPrintScale() const { return _printScale; }
-		void SetPrintScale(double scale) { _printScale = std::clamp(scale, 0.1, 5.0); }
+		void SetPrintScale(double scale) { _printScale = std::clamp(scale, 0.0, 1.0); }
+		wxPaperSize GetPrintPaperId() const { return _printPaperId; }
+		void SetPrintPaperId(wxPaperSize paperId) { _printPaperId = paperId; }
+		int GetPrintOrientation() const { return _printOrientation; }
+		void SetPrintOrientation(int orient) { _printOrientation = orient; }
 		void SaveCSV();
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);

@@ -17,6 +17,7 @@
 #include <wx/print.h>
 #include <wx/artprov.h>
 #include <wx/button.h>
+#include <wx/choice.h>
 #include <wx/scrolwin.h>
 #include <wx/statbmp.h>
 #include <wx/dcbuffer.h>
@@ -1965,8 +1966,11 @@ void ControllerModelPrintout::OnBeginPrinting()
         _max_y = paperSize.GetWidth() * 3.0;
     }
 
-    FitThisSizeToPageMargins(wxSize(_max_x, _max_y), _page_setup);
-
+    // Snap down to a whole number of boxes per page BEFORE calibrating the DC
+    // scale below. Calibrating first (the previous order) fit the DC to the
+    // larger, unsnapped paper area, then shrank the per-page area to a box
+    // multiple afterward - so the printed grid never actually reached the
+    // margins it was supposedly fitted to, leaving the page under-filled.
     int boxPerPageH = _max_y / _box_size.GetY();
     _max_y = (boxPerPageH)*_box_size.GetY();
     _page_count_h = std::ceil((float)_panel_size.GetY() / (float)_max_y);
@@ -1975,32 +1979,31 @@ void ControllerModelPrintout::OnBeginPrinting()
     _max_x = (boxPerPageW)*_box_size.GetX();
     _page_count_w = std::ceil((float)_panel_size.GetX() / (float)_max_x);
 
+    FitThisSizeToPageMargins(wxSize(_max_x, _max_y), _page_setup);
+
     _page_count = _page_count_w * _page_count_h;
 }
 
-void ControllerModelPrintout::preparePrint(const bool showPageSetupDialog)
+void ControllerModelPrintout::preparePrint()
 {
+    // Paper/orientation are already set via SetDefaultPageSetup() from the
+    // print preview dialog's own controls, so there's no need for the OS
+    // Page Setup dialog here - showing it was redundant with our own UI and,
+    // since it wasn't reliably pre-populated from _page_setup, could end up
+    // overriding the user's preview-dialog choice with different values right
+    // before printing.
     _page_setup.SetMarginTopLeft(wxPoint(16, 16));
     _page_setup.SetMarginBottomRight(wxPoint(16, 16));
-    if (showPageSetupDialog) {
-        wxPageSetupDialog dialog(NULL, &_page_setup);
-        if (dialog.ShowModal() == wxID_OK) {
-            _page_setup = dialog.GetPageSetupData();
-            _orient = _page_setup.GetPrintData().GetOrientation();
-            _paper_type = _page_setup.GetPrintData().GetPaperId();
-        }
-    } else {
-        // don't show page setup dialog, use default values
-        wxPrintData printdata;
-        printdata.SetPrintMode(wxPRINT_MODE_PRINTER);
-        printdata.SetOrientation(wxPORTRAIT); // wxPORTRAIT, wxLANDSCAPE
-        printdata.SetNoCopies(1);
-        printdata.SetPaperId(wxPAPER_LETTER);
+}
 
-        _page_setup = wxPageSetupDialogData(printdata);
-        _orient = printdata.GetOrientation();
-        _paper_type = printdata.GetPaperId();
-    }
+void ControllerModelPrintout::SetDefaultPageSetup(wxPaperSize paperId, int orient)
+{
+    wxPrintData printdata = _page_setup.GetPrintData();
+    printdata.SetPaperId(paperId);
+    printdata.SetOrientation(orient);
+    _page_setup = wxPageSetupDialogData(printdata);
+    _paper_type = paperId;
+    _orient = orient;
 }
 #pragma endregion
 
@@ -2723,7 +2726,9 @@ ControllerModelPrintout* ControllerModelDialog::CreatePrintout()
     wxSize boxSize(std::lround((HORIZONTAL_SIZE + HORIZONTAL_GAP) * ratio), std::lround((VERTICAL_SIZE + VERTICAL_GAP) * ratio));
     wxSize panelSize(std::lround(extent.GetWidth() * ratio), std::lround(extent.GetHeight() * ratio));
 
-    return new ControllerModelPrintout(this, _title, boxSize, panelSize);
+    ControllerModelPrintout* printout = new ControllerModelPrintout(this, _title, boxSize, panelSize);
+    printout->SetDefaultPageSetup(_printPaperId, _printOrientation);
+    return printout;
 }
 
 void ControllerModelDialog::FitPrintScaleToPage()
@@ -2733,15 +2738,24 @@ void ControllerModelDialog::FitPrintScaleToPage()
     // size (in mm), so this lines up with what actually prints without
     // needing an active print DC to ask FitThisSizeToPageMargins directly.
     wxPrintData printData;
-    printData.SetOrientation(wxPORTRAIT);
-    printData.SetPaperId(wxPAPER_LETTER);
+    printData.SetOrientation(_printOrientation);
+    printData.SetPaperId(_printPaperId);
     wxPageSetupDialogData pageSetup(printData);
     pageSetup.SetMarginTopLeft(wxPoint(16, 16));
     pageSetup.SetMarginBottomRight(wxPoint(16, 16));
 
     wxSize paperSize = pageSetup.GetPaperSize();
-    double maxX = paperSize.GetWidth() * 3.0;
-    double maxY = paperSize.GetHeight() * 3.0;
+    double maxX, maxY;
+    // GetPaperSize() always returns the paper's portrait dimensions - swap
+    // them for landscape to match ControllerModelPrintout::OnBeginPrinting(),
+    // otherwise switching orientation has no visible effect on the fit.
+    if (_printOrientation == wxPORTRAIT) {
+        maxX = paperSize.GetWidth() * 3.0;
+        maxY = paperSize.GetHeight() * 3.0;
+    } else {
+        maxX = paperSize.GetHeight() * 3.0;
+        maxY = paperSize.GetWidth() * 3.0;
+    }
     wxPoint tl = pageSetup.GetMarginTopLeft();
     wxPoint br = pageSetup.GetMarginBottomRight();
     maxX -= (tl.x + br.x) * 3.0;
@@ -2751,13 +2765,54 @@ void ControllerModelDialog::FitPrintScaleToPage()
     if (extent.GetWidth() <= 0 || extent.GetHeight() <= 0 || maxX <= 0 || maxY <= 0) return;
 
     double fit = std::min(maxX / (double)extent.GetWidth(), maxY / (double)extent.GetHeight());
-    _printScale = std::clamp(_scale * fit, 0.1, 5.0);
+    _printScale = std::clamp(_scale * fit, 0.0, 1.0);
+}
+
+ControllerModelDialog::PrintPageLayout ControllerModelDialog::GetPrintPageLayout() const
+{
+    PrintPageLayout layout;
+
+    double ratio = GetPrintRatio();
+    wxSize boxSize(std::lround((HORIZONTAL_SIZE + HORIZONTAL_GAP) * ratio), std::lround((VERTICAL_SIZE + VERTICAL_GAP) * ratio));
+    wxSize extent = GetControllersExtent();
+    wxSize panelSize(std::lround(extent.GetWidth() * ratio), std::lround(extent.GetHeight() * ratio));
+
+    wxPrintData printData;
+    printData.SetOrientation(_printOrientation);
+    printData.SetPaperId(_printPaperId);
+    wxPageSetupDialogData pageSetup(printData);
+    wxSize paperSize = pageSetup.GetPaperSize();
+
+    // Mirrors ControllerModelPrintout::OnBeginPrinting() exactly (same
+    // arbitrary "paper mm x 3" scale, no margin subtraction - margins only
+    // affect the printer DC calibration, not the box/page counts) so the
+    // preview's page breaks land exactly where the real print job puts them.
+    double maxX, maxY;
+    if (_printOrientation == wxPORTRAIT) {
+        maxX = paperSize.GetWidth() * 3.0;
+        maxY = paperSize.GetHeight() * 3.0;
+    } else {
+        maxX = paperSize.GetHeight() * 3.0;
+        maxY = paperSize.GetWidth() * 3.0;
+    }
+
+    if (boxSize.GetX() <= 0 || boxSize.GetY() <= 0 || maxX <= 0 || maxY <= 0) {
+        layout.pageSize = panelSize;
+        return layout;
+    }
+
+    int boxPerPageH = std::max(1, (int)(maxY / boxSize.GetY()));
+    int boxPerPageW = std::max(1, (int)(maxX / boxSize.GetX()));
+    layout.pageSize = wxSize(boxPerPageW * boxSize.GetX(), boxPerPageH * boxSize.GetY());
+    layout.pagesWide = std::max(1, (int)std::ceil((double)panelSize.GetX() / layout.pageSize.GetWidth()));
+    layout.pagesHigh = std::max(1, (int)std::ceil((double)panelSize.GetY() / layout.pageSize.GetHeight()));
+    return layout;
 }
 
 void ControllerModelDialog::PrintScreen()
 {
     ControllerModelPrintout* printout = CreatePrintout();
-    printout->preparePrint(true);
+    printout->preparePrint();
     wxPrintDialogData printDialogData(printout->getPrintData());
     wxPrinter printer(&printDialogData);
 
@@ -2782,13 +2837,53 @@ wxBitmap ControllerModelDialog::RenderFullPreview()
     // across print pages, where a shared boundary must only count once), so
     // an object whose scaled position rounds down to exactly 0 - routine at
     // low box sizes - would otherwise be silently dropped instead of drawn.
-    return RenderPicture(-1, -1, w + 1, h + 1, _title);
+    wxBitmap bmp = RenderPicture(-1, -1, w + 1, h + 1, _title);
+
+    // Overlay page-break lines so the preview shows how content actually
+    // splits across pages at the current paper size/orientation/box size,
+    // matching ControllerModelPrintout::OnBeginPrinting()'s pagination math.
+    PrintPageLayout layout = GetPrintPageLayout();
+    if (layout.pageSize.GetWidth() > 0 && layout.pageSize.GetHeight() > 0) {
+        wxMemoryDC dc(bmp);
+        dc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SHORT_DASH));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        int bmpW = bmp.GetWidth();
+        int bmpH = bmp.GetHeight();
+        // +1 to match RenderPicture()'s (-1,-1) origin offset above.
+        for (int py = 0; py <= layout.pagesHigh; ++py) {
+            int y = py * layout.pageSize.GetHeight() + 1;
+            if (y >= 0 && y <= bmpH) dc.DrawLine(0, y, bmpW, y);
+        }
+        for (int px = 0; px <= layout.pagesWide; ++px) {
+            int x = px * layout.pageSize.GetWidth() + 1;
+            if (x >= 0 && x <= bmpW) dc.DrawLine(x, 0, x, bmpH);
+        }
+        dc.SelectObject(wxNullBitmap);
+    }
+
+    return bmp;
 }
 
 void ControllerModelDialog::PrintPreviewScreen()
 {
     ControllerModelPrintPreviewDialog* dlg = new ControllerModelPrintPreviewDialog(this, this, "Print - " + _title);
     dlg->Show();
+}
+
+namespace
+{
+    struct PaperSizeOption {
+        const char* name;
+        wxPaperSize id;
+    };
+    const PaperSizeOption PRINT_PAPER_SIZE_OPTIONS[] = {
+        { "Letter", wxPAPER_LETTER },
+        { "Legal", wxPAPER_LEGAL },
+        { "Tabloid", wxPAPER_TABLOID },
+        { "A4", wxPAPER_A4 },
+        { "A3", wxPAPER_A3 },
+    };
+    const size_t PRINT_PAPER_SIZE_OPTION_COUNT = sizeof(PRINT_PAPER_SIZE_OPTIONS) / sizeof(PRINT_PAPER_SIZE_OPTIONS[0]);
 }
 
 ControllerModelPrintPreviewDialog::ControllerModelPrintPreviewDialog(ControllerModelDialog* owner, wxWindow* parent, const wxString& title) :
@@ -2799,12 +2894,33 @@ ControllerModelPrintPreviewDialog::ControllerModelPrintPreviewDialog(ControllerM
 
     wxBoxSizer* toolbar = new wxBoxSizer(wxHORIZONTAL);
     toolbar->Add(new wxStaticText(this, wxID_ANY, "Print Box Size:"), 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
-    _boxSizeSlider = new wxSlider(this, wxID_ANY, std::lround(std::clamp(_owner->GetPrintScale(), 0.1, 5.0) * 10), 1, 50,
+    // Print scale range is 0-1 with 0.1 precision; wxSlider is integer-only,
+    // so the internal range is scaled up by 10 (0-10) and converted below.
+    _boxSizeSlider = new wxSlider(this, wxID_ANY, std::lround(std::clamp(_owner->GetPrintScale(), 0.0, 1.0) * 10), 0, 10,
                                    wxDefaultPosition, wxSize(200, -1));
     _boxSizeSlider->SetToolTip("Print Box Size");
     toolbar->Add(_boxSizeSlider, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
     wxButton* fitButton = new wxButton(this, wxID_ANY, "Fit to Page");
     toolbar->Add(fitButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+
+    toolbar->Add(new wxStaticText(this, wxID_ANY, "Paper:"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxTOP | wxBOTTOM, 6);
+    _paperChoice = new wxChoice(this, wxID_ANY);
+    int paperSel = 0;
+    for (size_t i = 0; i < PRINT_PAPER_SIZE_OPTION_COUNT; ++i) {
+        _paperChoice->Append(PRINT_PAPER_SIZE_OPTIONS[i].name);
+        if (PRINT_PAPER_SIZE_OPTIONS[i].id == _owner->GetPrintPaperId()) {
+            paperSel = (int)i;
+        }
+    }
+    _paperChoice->SetSelection(paperSel);
+    toolbar->Add(_paperChoice, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+
+    _orientationChoice = new wxChoice(this, wxID_ANY);
+    _orientationChoice->Append("Portrait");
+    _orientationChoice->Append("Landscape");
+    _orientationChoice->SetSelection(_owner->GetPrintOrientation() == wxLANDSCAPE ? 1 : 0);
+    toolbar->Add(_orientationChoice, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
+
     toolbar->AddStretchSpacer();
     wxButton* printButton = new wxButton(this, wxID_ANY, "Print...");
     toolbar->Add(printButton, 0, wxALIGN_CENTER_VERTICAL | wxALL, 6);
@@ -2828,6 +2944,8 @@ ControllerModelPrintPreviewDialog::ControllerModelPrintPreviewDialog(ControllerM
     // not recreate a whole window like the old wxPrintPreview-based version.
     _boxSizeSlider->Bind(wxEVT_SLIDER, &ControllerModelPrintPreviewDialog::OnBoxSizeChanged, this);
     fitButton->Bind(wxEVT_BUTTON, &ControllerModelPrintPreviewDialog::OnFitToPage, this);
+    _paperChoice->Bind(wxEVT_CHOICE, &ControllerModelPrintPreviewDialog::OnPageSetupChanged, this);
+    _orientationChoice->Bind(wxEVT_CHOICE, &ControllerModelPrintPreviewDialog::OnPageSetupChanged, this);
     printButton->Bind(wxEVT_BUTTON, &ControllerModelPrintPreviewDialog::OnPrint, this);
 
     RefreshPreview();
@@ -2852,7 +2970,24 @@ void ControllerModelPrintPreviewDialog::OnBoxSizeChanged(wxCommandEvent& event)
 void ControllerModelPrintPreviewDialog::OnFitToPage(wxCommandEvent& event)
 {
     _owner->FitPrintScaleToPage();
-    _boxSizeSlider->SetValue(std::lround(std::clamp(_owner->GetPrintScale(), 0.1, 5.0) * 10));
+    _boxSizeSlider->SetValue(std::lround(std::clamp(_owner->GetPrintScale(), 0.0, 1.0) * 10));
+    RefreshPreview();
+}
+
+void ControllerModelPrintPreviewDialog::OnPageSetupChanged(wxCommandEvent& event)
+{
+    int sel = _paperChoice->GetSelection();
+    if (sel >= 0 && (size_t)sel < PRINT_PAPER_SIZE_OPTION_COUNT) {
+        _owner->SetPrintPaperId(PRINT_PAPER_SIZE_OPTIONS[sel].id);
+    }
+    _owner->SetPrintOrientation(_orientationChoice->GetSelection() == 1 ? wxLANDSCAPE : wxPORTRAIT);
+
+    // Re-fit so the box size reflects the newly selected paper/orientation
+    // immediately, rather than leaving the preview unchanged (the render
+    // itself has no page-boundary concept, so this is the only way the
+    // choice visibly does anything until the user clicks Print).
+    _owner->FitPrintScaleToPage();
+    _boxSizeSlider->SetValue(std::lround(std::clamp(_owner->GetPrintScale(), 0.0, 1.0) * 10));
     RefreshPreview();
 }
 
