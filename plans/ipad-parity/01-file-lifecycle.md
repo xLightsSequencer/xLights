@@ -78,7 +78,7 @@
 | FSEQ folder / save-on-save | preference/sheet | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `FSEQSaveCheckBox`; iPad FolderConfigView FSEQ section. |
 | FSEQ compression format + level | preference/sheet | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `FSEQVersionChoice` (V1/V2 ZSTD/…); iPad zstd/zlib/none + zstd level 1–22. |
 | Render on Save | preference | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `RenderOnSaveCheckBox`; iPad via FolderConfig.fseqEnabled (fseq write on save). |
-| Default Model Blending for new sequences | preference | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `ModelBlendDefaultChoice`; iPad sets per-sequence in Render tab only. |
+| Default Model Blending for new sequences | preference | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `ModelBlendDefaultChoice` (`SequenceFileSettingsPanel.cpp:83-85`). iPad = `FolderConfigView.swift:245` "Default Model Blending" picker under **New Sequences** (`@AppStorage("sequence.defaultModelBlending")`, Enabled/Disabled), honored in `XLSequenceDocument newSequenceAtPath:` (`.mm:531`) — it reads the pref via `CFPreferencesCopyAppValue` and calls `SetSupportsModelBlending` before the first Save, so the new `.xsq`'s `ModelBlending` attribute is written from it. Absent key keeps the prior default (Enabled). Per-sequence override lives in Sequence Settings on both platforms. |
 | Auto-Save (timed `.xbkp`) | preference | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `AutoSaveIntervalChoice` (Off/3/5/10/15/30); iPad picker (Off/2/5/10/30), default 5 min. |
 | Auto-Save recovery prompt on open | dialog | 🟡 | ✅ | desktop-missing | P2 | easy | feasible | iPad alert (Recover/Discard/Keep) when `.xbkp` newer than `.xsq`; desktop opening `.xbkp` is manual via Open dialog. |
 | Backup (manual, F10) | menu/shortcut | ✅ | ❌ | ipad-missing | P2 | hard | infeasible | Whole-show-folder dated copy; iOS has no equivalent (Files app / iCloud). |
@@ -179,8 +179,9 @@
      the load-bearing work item — scope a render-engine pass before committing UI.
   Net: medium UI, but the render-integration verification (step 5) is the risk and is why this stays
   ❌ until a focused render pass confirms data layers composite on iPad.
-- **Default Model Blending for new sequences** preference (`ModelBlendDefaultChoice`). iPad only sets
-  blending per-sequence in the Render tab. *Easy, P3.*
+- ~~**Default Model Blending for new sequences** preference (`ModelBlendDefaultChoice`)~~ — **already at
+  parity** (this entry was stale): `FolderConfigView` has the picker under "New Sequences" and
+  `newSequenceAtPath:` reads it before the first Save.
 - **Download Sequences/Lyrics** (`ID_MNU_DOWNLOADSEQUENCES`). iPad has a vendor browser for models but
   not for sequences/lyrics. *Hard, P3.*
 - **Reopen last sequence on launch** — deliberately omitted on iPad to dodge the 20-second launch
