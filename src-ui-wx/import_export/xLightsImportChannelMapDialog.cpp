@@ -600,7 +600,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     FlexGridSizer1->Add(CheckBox_MapCCRStrand, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
     FlexGridSizer11 = new wxFlexGridSizer(0, 3, 0, 0);
-    FlexGridSizer11->AddGrowableCol(0);
     CheckBox_EraseExistingEffects = new wxCheckBox(Panel1, ID_CHECKBOX11, _("Erase existing effects on imported models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX11"));
     CheckBox_EraseExistingEffects->SetValue(false);
     FlexGridSizer11->Add(CheckBox_EraseExistingEffects, 1, wxALL|wxEXPAND, 5);

@@ -64,7 +64,6 @@
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer11" member="yes">
 									<cols>3</cols>
-									<growablecols>0</growablecols>
 									<object class="sizeritem">
 										<object class="wxCheckBox" name="ID_CHECKBOX11" variable="CheckBox_EraseExistingEffects" member="yes">
 											<label>Erase existing effects on imported models</label>
