@@ -21,6 +21,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  advance from its draw (Snowstorm, Fireworks, Strobe, Lines, Snowflakes, most
                                  VU Meter modes and GPU Candle/Circles/Meteors/Twinkle/Wave converted); VU
                                  Meter's four Spectrogram modes now render serially. (Faster renders)
+    -enh (scott)                 Controller layout printing: right-click "Print..." now opens a
+                                 resizable print preview dialog (adjustable box size, fit-to-page)
+                                 before printing, replacing the old direct-to-printer menu entry
     -enh (cybercop23)            Moved the Controllers tab into the Layout tab and split Models and Groups
                                  into their own tabs, matching the iPad; added a controller port/model
                                  selector showing what is selected in the layout, plus right-click FPP
