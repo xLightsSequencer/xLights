@@ -271,6 +271,11 @@ NS_ASSUME_NONNULL_BEGIN
 // the new end stay in the XML but won't render. Returns NO when
 // unchanged/invalid.
 - (BOOL)setSequenceDurationMS:(int)ms;
+// End time (ms) of the latest effect anywhere in the sequence, which can sit
+// past the sequence/media end (shortened duration, imported sequence). The
+// timeline is drawn to max(duration, this) so those effects stay reachable,
+// matching the desktop (#6528/#6598). 0 when nothing is loaded.
+- (int)maxEffectEndTimeMS;
 - (int)frameIntervalMS;
 - (NSString*)sequenceName;
 

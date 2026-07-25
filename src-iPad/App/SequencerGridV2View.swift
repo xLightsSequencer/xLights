@@ -641,6 +641,10 @@ struct SequencerGridV2View: View {
             let modelRows = viewModel.rows.filter { !timingIdxSet.contains($0.id) }
 
             let durationMS = viewModel.sequenceDurationMS
+            // How far the timeline is drawn — past the sequence end when
+            // effects live out there. Zoom-to-fit still uses `durationMS`
+            // so a lone stray effect can't zoom the whole sequence out.
+            let extentMS = max(durationMS, viewModel.timelineExtentMS)
             let availableGridH = max(geo.size.height - metrics.topChromeHeight, 1)
             let rawTimingH = CGFloat(timingRows.count) * metrics.timingRowHeight
             // Cap timing band at ~1/3 of available grid height.
@@ -658,7 +662,7 @@ struct SequencerGridV2View: View {
                             .frame(width: metrics.rowHeaderWidth,
                                    height: metrics.topChromeHeight)
                         rowHeaderResizeHandle(height: metrics.topChromeHeight)
-                        topChromeStrip(durationMS: durationMS)
+                        topChromeStrip(durationMS: extentMS)
                             .frame(height: metrics.topChromeHeight)
                     }
                     .frame(height: metrics.topChromeHeight)
@@ -742,7 +746,7 @@ struct SequencerGridV2View: View {
                                 ScrollbarOverlay(
                                     orientation: .horizontal,
                                     viewportSize: geo.size.width - metrics.rowHeaderWidth,
-                                    contentSize: timeline.contentWidth(forDurationMS: durationMS),
+                                    contentSize: timeline.contentWidth(forDurationMS: extentMS),
                                     offset: Binding(
                                         get: { timeline.hScrollOffsetPx },
                                         set: { timeline.hScrollOffsetPx = $0 }),

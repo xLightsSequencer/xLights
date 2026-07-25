@@ -56,6 +56,12 @@ class SequencerViewModel {
     /// Drives the missing-media banner + Media Manager badge.
     var brokenMediaCount: Int = 0
     var sequenceDurationMS: Int = 0
+    /// How far the timeline is drawn: `max(duration, last effect end)`. A
+    /// sequence whose duration was shortened (or that was imported from a
+    /// longer one) keeps effects past the end, and the ruler + horizontal
+    /// scrollbar have to reach them. Desktop does the same (#6528/#6598).
+    /// Refreshed on load / duration change, like desktop's timeline length.
+    var timelineExtentMS: Int = 0
     var frameIntervalMS: Int = 50
     var rows: [RowInfo] = []
     var sequenceFiles: [SequenceEntry] = []
@@ -1362,6 +1368,7 @@ class SequencerViewModel {
             isReadOnly = false
             sequenceName = document.sequenceName()
             sequenceDurationMS = Int(document.sequenceDurationMS())
+            refreshTimelineExtent()
             frameIntervalMS = Int(document.frameIntervalMS())
             hasAudio = document.hasAudio()
             reloadAltTracks()
@@ -1465,6 +1472,7 @@ class SequencerViewModel {
         isReadOnly = readOnly
         sequenceName = document.sequenceName()
         sequenceDurationMS = Int(document.sequenceDurationMS())
+        refreshTimelineExtent()
         frameIntervalMS = Int(document.frameIntervalMS())
         hasAudio = document.hasAudio()
         reloadAltTracks()
@@ -1630,6 +1638,7 @@ class SequencerViewModel {
                 self.isReadOnly = false
                 self.sequenceName = self.document.sequenceName()
                 self.sequenceDurationMS = Int(self.document.sequenceDurationMS())
+                self.refreshTimelineExtent()
                 self.frameIntervalMS = Int(self.document.frameIntervalMS())
                 self.hasAudio = self.document.hasAudio()
                 self.reloadAltTracks()
@@ -3922,6 +3931,41 @@ class SequencerViewModel {
     /// op). If the set is mixed (some locked, some not), the bulk
     /// action locks all of them; if all are already locked it unlocks
     /// all.
+    /// Desktop binds Lock (L) and Unlock (U) to explicit states rather than
+    /// a toggle, so a multi-selection in mixed states lands all one way.
+    func setLockOnSelectedEffects(_ locked: Bool) {
+        let targets = selectedEffects.isEmpty
+            ? (selectedEffect.map { [$0] } ?? [])
+            : Array(selectedEffects)
+        guard !targets.isEmpty else { return }
+        undoManager.beginUndoGrouping()
+        for sel in targets {
+            if document.effectIsLocked(inRow: Int32(sel.rowIndex),
+                                        at: Int32(sel.effectIndex)) != locked {
+                toggleLock(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
+            }
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName(locked ? "Lock Effects" : "Unlock Effects")
+    }
+
+    /// Insert an effect layer above / below the selected effect's row — the
+    /// keyboard path to the row-header context-menu entries.
+    func insertLayerRelativeToSelection(above: Bool) {
+        guard let sel = selectedEffect else { return }
+        let ok = above
+            ? document.insertEffectLayerAbove(at: Int32(sel.rowIndex))
+            : document.insertEffectLayerBelow(at: Int32(sel.rowIndex))
+        if ok { reloadRows() }
+    }
+
+    /// Collapse / expand the element owning the selected effect's row.
+    func toggleElementExpandForSelection() {
+        guard let sel = selectedEffect else { return }
+        document.toggleElementCollapsed(at: Int32(sel.rowIndex))
+        reloadRows()
+    }
+
     func toggleLockSelectedEffects() {
         if selectedEffects.count <= 1 {
             toggleLockSelected()
@@ -8233,6 +8277,13 @@ class SequencerViewModel {
     }
 
     // MARK: - Rows
+
+    /// Recompute how far the timeline reaches. Cheap (one bridge call that
+    /// walks the effect layers), so it runs on load and whenever the
+    /// sequence duration changes — not per frame.
+    func refreshTimelineExtent() {
+        timelineExtentMS = max(sequenceDurationMS, Int(document.maxEffectEndTimeMS()))
+    }
 
     func reloadRows() {
         var newRows: [RowInfo] = []

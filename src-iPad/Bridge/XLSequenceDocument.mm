@@ -1025,6 +1025,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return YES;
 }
 
+- (int)maxEffectEndTimeMS {
+    if (!_context || !_context->IsSequenceLoaded()) return 0;
+    return _context->GetSequenceElements().GetMaxEffectEndTimeMS();
+}
+
 - (int)frameIntervalMS {
     auto* sf = _context->GetSequenceFile();
     return sf ? sf->GetFrameMS() : 50;
@@ -7742,9 +7747,12 @@ static void BuildWindowFrameProps(WindowFrameModel* w, NSMutableArray* out) {
 
 static void BuildCubeProps(CubeModel* c, NSMutableArray* out) {
     // J-20 — mirrors desktop CubePropertyAdapter:
-    // Starting Location (8 named corners), Direction (6 named
-    // styles), Strand Style (3 named), Layers All Start in Same
-    // Place toggle, Width/Height/Depth (1..100), # Strings.
+    // Shape (Cube/Cylinder), Starting Location (8 named corners),
+    // Direction (6 named styles), Strand Style (3 named), Layers All
+    // Start in Same Place toggle, Width/Height/Depth (1..100),
+    // Hollow % (cylinder) or Row Offset (cube), # Strings.
+    NSArray<NSString*>* shapes = @[ @"Cube", @"Cylinder" ];
+    NSArray<NSString*>* rowOffsets = @[ @"None", @"Positive", @"Negative" ];
     NSArray<NSString*>* starts = @[
         @"Front Bottom Left", @"Front Bottom Right",
         @"Front Top Left",    @"Front Top Right",
@@ -7759,6 +7767,8 @@ static void BuildCubeProps(CubeModel* c, NSMutableArray* out) {
     NSArray<NSString*>* strands = @[
         @"Zig Zag", @"No Zig Zag", @"Aternate Pixel",
     ];
+    [out addObject:MakeEnumProp(@"CubeShape", @"Shape",
+                                 c->GetCubeShape(), shapes)];
     [out addObject:MakeEnumProp(@"CubeStart", @"Starting Location",
                                  c->GetCubeStartIndex(), starts)];
     [out addObject:MakeEnumProp(@"CubeStyle", @"Direction",
@@ -7768,9 +7778,22 @@ static void BuildCubeProps(CubeModel* c, NSMutableArray* out) {
     [out addObject:MakeBoolProp(@"StrandPerLayer",
                                  @"Layers All Start in Same Place",
                                  c->IsStrandPerLayer())];
-    [out addObject:MakeIntProp(@"CubeWidth",  @"Width",  c->GetCubeWidth(),  1, 100)];
+    // Cylinder mode reuses Width/Depth as Circumference/Layers, so the
+    // labels change with the shape (the pane re-reads these descriptors
+    // after every commit, so switching Shape relabels immediately).
+    bool const cylinder = c->IsCylinder();
+    [out addObject:MakeIntProp(@"CubeWidth",  cylinder ? @"Circumference" : @"Width",
+                                c->GetCubeWidth(),  1, 100)];
     [out addObject:MakeIntProp(@"CubeHeight", @"Height", c->GetCubeHeight(), 1, 100)];
-    [out addObject:MakeIntProp(@"CubeDepth",  @"Depth",  c->GetCubeDepth(),  1, 100)];
+    [out addObject:MakeIntProp(@"CubeDepth",  cylinder ? @"Layers" : @"Depth",
+                                c->GetCubeDepth(),  1, 100)];
+    if (cylinder) {
+        [out addObject:MakeIntProp(@"CubeHollow", @"Hollow %",
+                                    c->GetHollowPct(), 0, 99)];
+    } else {
+        [out addObject:MakeEnumProp(@"CubeRowOffset", @"Row Offset",
+                                     c->GetRowOffset(), rowOffsets)];
+    }
     [out addObject:MakeIntProp(@"CubeStrings", @"# Strings",
                                 c->GetCubeStrings(), 1, 1000)];
 }
@@ -9240,6 +9263,18 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
         if (c && c->IsStrandPerLayer() != (v?true:false)) {
             c->SetStrandPerLayer(v?true:false); changed = YES;
         }
+    } else if (k == "CubeShape") {
+        int v = asInt(&ok); if (!ok) return NO;
+        auto* c = dynamic_cast<CubeModel*>(m);
+        if (c && c->GetCubeShape() != v) { c->SetCubeShape(v); changed = YES; }
+    } else if (k == "CubeHollow") {
+        int v = asInt(&ok); if (!ok) return NO;
+        auto* c = dynamic_cast<CubeModel*>(m);
+        if (c && c->GetHollowPct() != v) { c->SetHollowPct(v); changed = YES; }
+    } else if (k == "CubeRowOffset") {
+        int v = asInt(&ok); if (!ok) return NO;
+        auto* c = dynamic_cast<CubeModel*>(m);
+        if (c && c->GetRowOffset() != v) { c->SetRowOffset(v); changed = YES; }
     }
     // ChannelBlock
     else if (k == "ChannelBlockChannels") {

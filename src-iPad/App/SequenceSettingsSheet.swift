@@ -228,6 +228,10 @@ private struct InfoTab: View {
         let secs = Double(durationText.trimmingCharacters(in: .whitespaces)) ?? 0
         let ms = Int(secs * 1000.0)
         if ms > 0, viewModel.document.setSequenceDurationMS(Int32(ms)) {
+            // Shortening the duration leaves effects past the new end; the
+            // timeline has to keep reaching them, so re-read both.
+            viewModel.sequenceDurationMS = Int(viewModel.document.sequenceDurationMS())
+            viewModel.refreshTimelineExtent()
             viewModel.reloadRows()
         }
         durationText = String(format: "%.3f", Double(viewModel.sequenceDurationMS) / 1000.0)

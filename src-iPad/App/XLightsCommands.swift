@@ -198,6 +198,45 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
+            // Desktop KeyBindings LOCK_EFFECT=l / UNLOCK_EFFECT=u —
+            // explicit states, not a toggle, so a mixed multi-selection
+            // ends up all locked (or all unlocked).
+            Button("Lock Effect") { viewModel.setLockOnSelectedEffects(true) }
+                .keyboardShortcut("l", modifiers: [])
+                .disabled(viewModel.selectedEffect == nil
+                           && viewModel.selectedEffects.isEmpty)
+
+            Button("Unlock Effect") { viewModel.setLockOnSelectedEffects(false) }
+                .keyboardShortcut("u", modifiers: [])
+                .disabled(viewModel.selectedEffect == nil
+                           && viewModel.selectedEffects.isEmpty)
+
+            Divider()
+
+            // Desktop INSERT_LAYER_ABOVE=⇧i / INSERT_LAYER_BELOW=⇧a /
+            // TOGGLE_ELEMENT_EXPAND=⇧x. All three act on the selected
+            // effect's row — the keyboard route to the row-header
+            // context-menu entries.
+            Button("Insert Layer Above") {
+                viewModel.insertLayerRelativeToSelection(above: true)
+            }
+            .keyboardShortcut("i", modifiers: [.shift])
+            .disabled(viewModel.selectedEffect == nil)
+
+            Button("Insert Layer Below") {
+                viewModel.insertLayerRelativeToSelection(above: false)
+            }
+            .keyboardShortcut("a", modifiers: [.shift])
+            .disabled(viewModel.selectedEffect == nil)
+
+            Button("Toggle Element Expand") {
+                viewModel.toggleElementExpandForSelection()
+            }
+            .keyboardShortcut("x", modifiers: [.shift])
+            .disabled(viewModel.selectedEffect == nil)
+
+            Divider()
+
             // B4 modified-arrow editing — Shift stretches end, Ctrl
             // fine-nudges start+end (1 ms), Option(Alt) nudges by one
             // frame interval. Duration preserved for the nudges;
