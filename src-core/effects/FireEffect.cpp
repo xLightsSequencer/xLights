@@ -20,6 +20,7 @@
 #include "../models/Model.h"
 #include "UtilFunctions.h"
 #include "../utils/xlSize.h"
+#include "ispc/FireFunctions.ispc.h"
 
 #include "../../include/fire-16.xpm"
 #include "../../include/fire-24.xpm"
@@ -40,6 +41,7 @@ double FireEffect::sGrowthCyclesMax = 200;
 int FireEffect::sGrowthCyclesDivisor = 10;
 bool FireEffect::sGrowWithMusicDefault = false;
 std::string FireEffect::sLocationDefault = "Bottom";
+std::string FireEffect::sStyleDefault = "New Render Method";
 
 FireEffect::FireEffect(int id) : RenderableEffect(id, "Fire", fire_16, fire_24, fire_32, fire_48, fire_64)
 {
@@ -65,6 +67,7 @@ void FireEffect::OnMetadataLoaded()
     sGrowthCyclesDivisor = GetDivisorFromMetadata("Fire_GrowthCycles", sGrowthCyclesDivisor);
     sGrowWithMusicDefault = GetBoolDefault("Fire_GrowWithMusic", sGrowWithMusicDefault);
     sLocationDefault = GetStringDefault("Fire_Location", sLocationDefault);
+    sStyleDefault = GetStringDefault("Fire_Style", sStyleDefault);
 }
 
 std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -141,6 +144,34 @@ int GetFireBuffer(int x, int y, const std::vector<int>& FireBuffer, int maxWi, i
     return -1;
 }
 
+int FireEffect::FirePaletteSize() {
+    return FirePalette.size();
+}
+
+int FireEffect::GetStyle(const SettingsMap& settings) {
+    return settings.Get("CHOICE_Fire_Style", sStyleDefault) == "New Render Method" ? FIRE_STYLE_NEW : FIRE_STYLE_OLD;
+}
+
+bool FireEffect::needToAdjustSettings(const std::string& version) {
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2026.15", version);
+}
+
+void FireEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+    if (IsVersionOlder("2026.15", version)) {
+        // Fire_Style is new. Sequences saved before it existed must keep the
+        // classic look, so pin them explicitly rather than relying on the
+        // default - which lets the default be flipped later without silently
+        // restyling every old sequence.
+        SettingsMap& settings = effect->GetSettings();
+        if (!settings.Contains("E_CHOICE_Fire_Style")) {
+            settings["E_CHOICE_Fire_Style"] = "Old Render Method";
+        }
+    }
+}
+
 static int GetLocation(const std::string &location) {
     if (location == "Bottom") {
         return 0;
@@ -170,6 +201,16 @@ public:
     std::vector<xlColor> lut;
     int lutHueShift = -1;
     bool lutAllowAlpha = false;
+
+    // New Render Method only: the temporal advance needs a populated grid to
+    // carry forward, so the first frame runs the classic advance instead.
+    bool primed = false;
+    // Highest row known to be non-zero, so the next advance can skip the dead
+    // region above the flame.
+    int liveRow = 0;
+    // FireBuffer has been written on the CPU since the GPU last ran, so a GPU
+    // path must re-upload it before advancing.
+    bool cpuDirty = true;
 };
 
 static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
@@ -205,6 +246,71 @@ static void BuildFireLUT(int HueShift, bool allowAlpha, std::vector<xlColor>& lu
     }
 }
 
+// Classic advance: rebuild the whole grid bottom-up from a fresh random seed row.
+// Nothing survives from the previous frame - every row is derived from rows this
+// same call already wrote - so the flame flickers in place with no temporal
+// coherence.  Strictly serial in y, which is why it has no ISPC/GPU path.
+// Returns the first row that is provably all zero (see the comment inside).
+static int AdvanceFireClassic(RenderBuffer& buffer, std::vector<int>& fire, int maxMWi, int maxMHt, int step) {
+    for (int x = 0; x < maxMWi; ++x) {
+        int r = 150 + buffer.randInt(0, 49);
+        SetFireBuffer(x, 0, r, fire, maxMWi, maxMHt);
+    }
+    // Rows [firstDeadRow, maxMHt) are provably all zero once two consecutive rows
+    // come out all zero: row y+1's taps are rows y and y-1, so a zero sum gives
+    // new_index == 0 and the `new_index > 0` gate below suppresses the noise term.
+    // One all-zero row is NOT enough - row y-1 still feeds row y+1 through the
+    // (x, y-2) tap.  randInt() is only called inside that gate, so stopping early
+    // consumes no randomness and leaves the RNG stream identical.
+    int firstDeadRow = maxMHt;
+    int zeroRun = 0;
+    for (int y = 1; y < maxMHt; ++y) {
+        bool allZero = true;
+        for (int x = 0; x < maxMWi; ++x) {
+            int v1 = GetFireBuffer(x - 1, y - 1, fire, maxMWi, maxMHt);
+            int v2 = GetFireBuffer(x, y - 1, fire, maxMWi, maxMHt);
+            int v3 = GetFireBuffer(x + 1, y - 1, fire, maxMWi, maxMHt);
+            int v4 = GetFireBuffer(x, y - 2, fire, maxMWi, maxMHt);
+            int n = 0;
+            int sum = 0;
+            if (v1 >= 0) {
+                sum += v1;
+                n++;
+            }
+            if (v2 >= 0) {
+                sum += v2;
+                n++;
+            }
+            if (v3 >= 0) {
+                sum += v3;
+                n++;
+            }
+            if (v4 >= 0) {
+                sum += v4;
+                n++;
+            }
+            int new_index = n > 0 ? sum / n : 0;
+            if (new_index > 0) {
+                new_index += (buffer.randInt(0, 99) < 20) ? step : -step;
+                if (new_index < 0)
+                    new_index = 0;
+                if (new_index >= FirePalette.size())
+                    new_index = FirePalette.size() - 1;
+            }
+            SetFireBuffer(x, y, new_index, fire, maxMWi, maxMHt);
+            if (new_index != 0) {
+                allZero = false;
+            }
+        }
+        zeroRun = allZero ? zeroRun + 1 : 0;
+        if (zeroRun == 2) {
+            firstDeadRow = y + 1;
+            break;
+        }
+    }
+    return firstDeadRow;
+}
+
 // Advance/draw split of the fire grid render: Render rebuilds the grid, DrawFire
 // rasterises it.  (Kept separate for clarity; frame-parallel does not engage -
 // see FireEffect.h - because the advance dominates Fire's cost.)
@@ -236,6 +342,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
     float cycles = GetValueCurveDouble("Fire_GrowthCycles", sGrowthCyclesDefault, SettingsMap, offset, sGrowthCyclesMin, sGrowthCyclesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sGrowthCyclesDivisor);
     bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", sGrowWithMusicDefault);
     int loc = GetLocation(SettingsMap.Get("CHOICE_Fire_Location", sLocationDefault));
+    int style = GetStyle(SettingsMap);
 
     if (withMusic) {
         HeightPct = 10;
@@ -281,6 +388,9 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         for (size_t i = 0; i < cache->FireBuffer.size(); ++i) {
             cache->FireBuffer[i] = 0;
         }
+        cache->primed = false;
+        cache->liveRow = 0;
+        cache->cpuDirty = true;
     }
     int maxMWi = cache->maxBuffer.width == -1 ? buffer.BufferWi : cache->maxBuffer.width;
     int maxMHt = cache->maxBuffer.height == -1 ? buffer.BufferHt : cache->maxBuffer.height;
@@ -296,73 +406,56 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
         cache->FireBuffer.resize(maxMHt * maxMWi);
     }
     
-    // build fire
-    for (int x = 0; x < maxMWi; ++x) {
-        int r = 150 + buffer.randInt(0, 49);
-        SetFireBuffer(x, 0, r, cache->FireBuffer, maxMWi, maxMHt);
-    }
     int step = std::max(1, 255 * 100 / curHt / HeightPct);
-    // Rows [firstDeadRow, maxMHt) are provably all zero once two consecutive rows
-    // come out all zero: row y+1's taps are rows y and y-1, so a zero sum gives
-    // new_index == 0 and the `new_index > 0` gate below suppresses the noise term.
-    // One all-zero row is NOT enough - row y-1 still feeds row y+1 through the
-    // (x, y-2) tap.  randInt() is only called inside that gate, so stopping early
-    // consumes no randomness and leaves the RNG stream identical.
-    int firstDeadRow = maxMHt;
-    int zeroRun = 0;
-    for (int y = 1; y < maxMHt; ++y) {
-        bool allZero = true;
-        for (int x = 0; x < maxMWi; ++x) {
-            int v1 = GetFireBuffer(x - 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v2 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v3 = GetFireBuffer(x + 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v4 = GetFireBuffer(x, y - 2, cache->FireBuffer, maxMWi, maxMHt);
-            int n = 0;
-            int sum = 0;
-            if (v1 >= 0) {
-                sum += v1;
-                n++;
-            }
-            if (v2 >= 0) {
-                sum += v2;
-                n++;
-            }
-            if (v3 >= 0) {
-                sum += v3;
-                n++;
-            }
-            if (v4 >= 0) {
-                sum += v4;
-                n++;
-            }
-            int new_index = n > 0 ? sum / n : 0;
-            if (new_index > 0) {
-                new_index += (buffer.randInt(0, 99) < 20) ? step : -step;
-                if (new_index < 0)
-                    new_index = 0;
-                if (new_index >= FirePalette.size())
-                    new_index = FirePalette.size() - 1;
-            }
-            SetFireBuffer(x, y, new_index, cache->FireBuffer, maxMWi, maxMHt);
-            if (new_index != 0) {
-                allZero = false;
-            }
-        }
-        zeroRun = allZero ? zeroRun + 1 : 0;
-        if (zeroRun == 2) {
-            firstDeadRow = y + 1;
-            break;
-        }
-    }
-    if (firstDeadRow < maxMHt) {
-        std::fill(cache->FireBuffer.begin() + (size_t)firstDeadRow * maxMWi,
-                  cache->FireBuffer.begin() + (size_t)maxMHt * maxMWi, 0);
-    }
 
     if (cache->lut.empty() || cache->lutHueShift != HueShift || cache->lutAllowAlpha != buffer.allowAlpha) {
         BuildFireLUT(HueShift, buffer.allowAlpha, cache->lut);
         cache->lutHueShift = HueShift;
         cache->lutAllowAlpha = buffer.allowAlpha;
+    }
+
+    // build fire
+    if (style == FIRE_STYLE_NEW && cache->primed) {
+        FireFrameParams params;
+        params.grid = &cache->FireBuffer;
+        params.lut = cache->lut.data();
+        params.maxMWi = maxMWi;
+        params.maxMHt = maxMHt;
+        params.curWi = curWi;
+        params.curHt = curHt;
+        params.loc = loc;
+        params.step = step;
+        params.liveRow = cache->liveRow;
+        params.gridChangedOnCpu = cache->cpuDirty;
+        params.frameSeed = buffer.hashRandomFrameSeed();
+        if (RenderFireGPU(buffer, params)) {
+            // The GPU advanced AND drew, and keeps the grid resident.
+            cache->liveRow = params.liveRow;
+            cache->cpuDirty = false;
+            return;
+        }
+        ispc::FireData fd;
+        fd.width = maxMWi;
+        fd.height = maxMHt;
+        fd.step = step;
+        // +3, not +2: row y reads rows y-1 AND y-2, so the row two above the
+        // flame's top can be lit by the (x, y-2) tap alone in a single frame.
+        fd.maxRow = std::min(maxMHt, cache->liveRow + 3);
+        fd.frameSeed = params.frameSeed;
+        cache->liveRow = ispc::FireAdvanceTemporalISPC(&fd, cache->FireBuffer.data());
+        cache->cpuDirty = true;
+    } else {
+        // The classic advance also primes the New Render Method's first frame:
+        // it reaches the steady-state flame in one pass, where stepping the
+        // temporal advance up from an empty grid would take maxMHt frames.
+        int firstDeadRow = AdvanceFireClassic(buffer, cache->FireBuffer, maxMWi, maxMHt, step);
+        if (firstDeadRow < maxMHt) {
+            std::fill(cache->FireBuffer.begin() + (size_t)firstDeadRow * maxMWi,
+                      cache->FireBuffer.begin() + (size_t)maxMHt * maxMWi, 0);
+        }
+        cache->liveRow = std::max(0, firstDeadRow - 1);
+        cache->primed = true;
+        cache->cpuDirty = true;
     }
 
     //  Now play fire

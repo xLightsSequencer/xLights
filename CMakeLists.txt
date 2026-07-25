@@ -379,6 +379,7 @@ if(XLIGHTS_USE_VULKAN AND ((UNIX AND NOT APPLE) OR WIN32))
         src-core/effects/vulkan/VulkanFillEffect.cpp
         src-core/effects/vulkan/VulkanMeteorsEffect.cpp
         src-core/effects/vulkan/VulkanTwinkleEffect.cpp
+        src-core/effects/vulkan/VulkanFireEffect.cpp
         src-core/effects/vulkan/VulkanLifeEffect.cpp
         # Vulkan graphics backend (runtime-switchable OpenGL/Vulkan canvas)
         src-core/graphics/vulkan/VulkanPipelineCache.cpp

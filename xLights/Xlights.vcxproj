@@ -547,6 +547,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\effects\vulkan\VulkanGalaxyEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanGarlandsEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanKaleidoscopeEffect.cpp" />
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFireEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanLifeEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanMeteorsEffect.cpp" />
     <ClCompile Include="..\src-core\effects\vulkan\VulkanPinwheelEffect.cpp" />
@@ -1241,6 +1242,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\effects\ispc\MeteorsFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\GarlandsFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\FillFunctions.ispc.h" />
+    <ClInclude Include="..\src-core\effects\ispc\FireFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\TreeFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\TwinkleFunctions.ispc.h" />
     <ClInclude Include="..\src-core\effects\ispc\ShimmerFunctions.ispc.h" />
@@ -1982,6 +1984,17 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\FillFunctions.ispc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputPath)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename).obj</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(InputPath)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\FireFunctions.ispc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ispc.exe "%(FullPath)" -o "$(IntDir)%(Filename).obj" --target=avx2-i32x16 --target=avx1-i32x16 --target=sse4.2-i32x8 --target=sse2-i32x8 --arch=x86_64</Command>

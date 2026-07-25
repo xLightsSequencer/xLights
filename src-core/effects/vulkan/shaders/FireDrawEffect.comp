@@ -1,0 +1,62 @@
+#version 450
+// Rasterises the Fire flame grid through the per-frame palette table, applying
+// the Location transform.  Mirrors DrawFire() (FireEffect.cpp) and
+// FireDrawEffect in FireFunctions.metal: one thread per drawn pixel.
+//
+// Runs in the same command buffer as FireAdvanceEffect, separated by a
+// compute barrier, and reads the grid that dispatch just wrote.
+//
+// The LUT is an xlColorVector (RGBA bytes in r,g,b,a memory order), which
+// already matches the pixel buffer's r=low-byte packed-uint layout byte for
+// byte, so entries are copied straight through with no pack/unpack.
+//
+// PARTIAL WRITE: threads whose transformed pixel falls outside the render
+// buffer return without writing, so `result` must NOT be writeonly.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer GridB { int grid[]; };
+layout(std430, set = 0, binding = 2) readonly buffer LutB { uint lut[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    int width;
+    int height;
+    int curWi;
+    int curHt;
+    int bufferWi;
+    int bufferHt;
+    int npix;
+    int loc;
+    int step;
+    int pad;
+    uint frameSeedLo;
+    uint frameSeedHi;
+} data;
+
+void main() {
+    int x = int(gl_GlobalInvocationID.x);
+    int y = int(gl_GlobalInvocationID.y);
+    if (x >= data.curWi || y >= data.curHt) {
+        return;
+    }
+
+    int xp = x;
+    int yp = y;
+    if (data.loc == 1 || data.loc == 3) {
+        yp = data.curHt - y - 1;
+    }
+    if (data.loc == 2 || data.loc == 3) {
+        int t = xp;
+        xp = yp;
+        yp = t;
+    }
+
+    // GetFireBuffer returns -1 outside the grid, which the drawn area can reach
+    // when the effect's max buffer is smaller than the current one.
+    int idx = (x < data.width && y < data.height) ? grid[y * data.width + x] : 0;
+
+    int pix = yp * data.bufferWi + xp;
+    if (xp >= 0 && xp < data.bufferWi && yp >= 0 && yp < data.bufferHt && pix < data.npix) {
+        result[pix] = lut[idx];
+    }
+}

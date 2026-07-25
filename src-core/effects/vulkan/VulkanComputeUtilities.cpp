@@ -35,6 +35,8 @@
 #include "shaders/compiled/RotoZoomRotateZ.spv.h"
 #include "shaders/compiled/RotoZoomRotateZClaim.spv.h"
 
+#include "shaders/compiled/FireAdvanceEffect.spv.h"
+#include "shaders/compiled/FireDrawEffect.spv.h"
 #include "shaders/compiled/GetColorsForNodes.spv.h"
 #include "shaders/compiled/PutColorsForNodes.spv.h"
 #include "shaders/compiled/AdjustHSV.spv.h"
@@ -529,7 +531,8 @@ void VulkanComputeUtilities::doInit() {
                                        &u.treeEffectFunction, &u.shimmerEffectFunction,
                                        &u.candleEffectFunction, &u.waveEffectFunction,
                                        &u.garlandsEffectFunction, &u.fillEffectFunction, &u.meteorsEffectFunction,
-                                       &u.twinkleEffectFunction, &u.lifeEffectFunction }) {
+                                       &u.twinkleEffectFunction, &u.lifeEffectFunction,
+                                       &u.fireAdvanceEffectFunction, &u.fireDrawEffectFunction }) {
                     if (*p != VK_NULL_HANDLE) {
                         vkDestroyPipeline(u.device, *p, nullptr);
                         *p = VK_NULL_HANDLE;
@@ -795,6 +798,8 @@ bool VulkanComputeUtilities::buildPipelines() {
     XLVK_PIPELINE(meteorsEffectFunction, MeteorsEffect)
     XLVK_PIPELINE(twinkleEffectFunction, TwinkleEffect)
     XLVK_PIPELINE(lifeEffectFunction, LifeEffect)
+    XLVK_PIPELINE(fireAdvanceEffectFunction, FireAdvanceEffect)
+    XLVK_PIPELINE(fireDrawEffectFunction, FireDrawEffect)
 
 #define XLVK_BLEND(mix, header, ...) \
     { \

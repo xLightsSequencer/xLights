@@ -1047,6 +1047,10 @@
 			<Option link="1" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/FillFunctions.ispc.h" />
+		<Unit filename="../src-core/effects/ispc/FireFunctions.ispc">
+			<Option link="1" />
+		</Unit>
+		<Unit filename="../src-core/effects/ispc/FireFunctions.ispc.h" />
 		<Unit filename="../src-core/effects/ispc/TreeFunctions.ispc">
 			<Option link="1" />
 		</Unit>
@@ -1097,6 +1101,7 @@
 		<Unit filename="../src-core/effects/vulkan/VulkanFillEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanMeteorsEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanTwinkleEffect.cpp" />
+		<Unit filename="../src-core/effects/vulkan/VulkanFireEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanLifeEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanShaderEffect.cpp" />
 		<Unit filename="../src-core/effects/vulkan/VulkanCirclesEffect.cpp" />

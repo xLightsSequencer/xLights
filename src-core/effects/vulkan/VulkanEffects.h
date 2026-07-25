@@ -35,6 +35,7 @@
 #include "../FillEffect.h"
 #include "../MeteorsEffect.h"
 #include "../TwinkleEffect.h"
+#include "../FireEffect.h"
 #include "../LifeEffect.h"
 
 class VulkanBarsEffect : public BarsEffect {
@@ -199,6 +200,17 @@ public:
     virtual ~VulkanTwinkleEffect();
 
     virtual void Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer) override;
+};
+
+class VulkanFireEffect : public FireEffect {
+public:
+    VulkanFireEffect(int i);
+    virtual ~VulkanFireEffect();
+
+protected:
+    // "New Render Method" only; the classic advance is serial in y and has no
+    // GPU path.  Returning false hands the whole frame back to the CPU.
+    virtual bool RenderFireGPU(RenderBuffer& buffer, FireFrameParams& params) override;
 };
 
 class VulkanLifeEffect : public LifeEffect {

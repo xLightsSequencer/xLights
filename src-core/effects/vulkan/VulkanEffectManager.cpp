@@ -196,6 +196,7 @@ static bool vulkanEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_METEORS, "Meteors" },
         { EffectManager::eff_TWINKLE, "Twinkle" },
         { EffectManager::eff_LIFE, "Life" },
+        { EffectManager::eff_FIRE, "Fire" },
 #ifdef HAVE_VULKAN_SHADER
         { EffectManager::eff_SHADER, "Shader" },
 #endif
@@ -249,6 +250,8 @@ RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new VulkanTwinkleEffect(eff);
         case EffectManager::eff_LIFE:
             return new VulkanLifeEffect(eff);
+        case EffectManager::eff_FIRE:
+            return new VulkanFireEffect(eff);
 #ifdef HAVE_VULKAN_SHADER
         case EffectManager::eff_SHADER:
             return new VulkanShaderEffect(eff);

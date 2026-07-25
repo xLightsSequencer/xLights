@@ -175,6 +175,7 @@ static bool metalEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
         { EffectManager::eff_SHIMMER, "Shimmer" },
         { EffectManager::eff_CANDLE, "Candle" },
         { EffectManager::eff_LIFE, "Life" },
+        { EffectManager::eff_FIRE, "Fire" },
         { EffectManager::eff_WAVE, "Wave" },
         { EffectManager::eff_GARLANDS, "Garlands" },
         { EffectManager::eff_SPIRALS, "Spirals" },
@@ -218,6 +219,8 @@ RenderableEffect* CreateMetalEffect(EffectManager::RGB_EFFECTS_e eff) {
             return new MetalCandleEffect(eff);
         case EffectManager::eff_LIFE:
             return new MetalLifeEffect(eff);
+        case EffectManager::eff_FIRE:
+            return new MetalFireEffect(eff);
         case EffectManager::eff_WAVE:
             return new MetalWaveEffect(eff);
         case EffectManager::eff_GARLANDS:

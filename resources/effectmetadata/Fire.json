@@ -60,6 +60,18 @@
             ],
             "default": "Bottom",
             "description": "Which edge of the buffer the fire originates from."
+        },
+        {
+            "id": "Fire_Style",
+            "label": "Style",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [
+                "Old Render Method",
+                "New Render Method"
+            ],
+            "default": "New Render Method",
+            "description": "Selects the rendering algorithm. Old Render Method rebuilds the whole flame every frame, so it flickers in place. New Render Method carries the flame from frame to frame so it rises and drifts like real fire, and renders far faster because the whole grid updates at once (on the GPU where available)."
         }
     ],
     "visibilityRules": [

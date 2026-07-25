@@ -11,7 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
-
+    -enh (dkulp)                 Fire effect has a new Style setting, and new Fire effects now default to
+                                 "New Render Method". It carries the flame from frame to frame so it rises
+                                 and drifts like real fire instead of flickering in place, and renders
+                                 roughly 10x faster again because the whole flame updates at once on the
+                                 GPU (Metal on macOS/iPad, Vulkan on Windows/Linux). Existing sequences are
+                                 migrated to "Old Render Method" so their look is unchanged
 
 
 2026.14  July 25, 2026

@@ -436,6 +436,23 @@ struct MetalCandleData {
 // Mirrors ispc::LifeISPCData - Conway's Game of Life. The previous generation is
 // passed as a read-only pixel buffer (buffer 1); the palette (buffer 3) drives the
 // in-kernel GetMultiColorBlend(hashRand01(index)) birth colour.
+// Fire effect, "New Render Method" - see FireFunctions.metal. The flame grid is
+// ping-ponged between two device buffers that stay resident across frames; only
+// the drawn pixels leave the GPU.
+struct MetalFireData {
+    int32_t  width;      // flame grid extent (maxMWi/maxMHt)
+    int32_t  height;
+    int32_t  curWi;      // drawn extent
+    int32_t  curHt;
+    int32_t  bufferWi;   // RenderBuffer dimensions, for the pixel index
+    int32_t  bufferHt;
+    int32_t  npix;       // min(GetPixelCount(), bufferWi*bufferHt)
+    int32_t  loc;        // 0 bottom, 1 top, 2 left, 3 right
+    int32_t  step;       // per-row brightness change
+    int32_t  pad;
+    uint64_t frameSeed;  // RenderBuffer::hashRandomFrameSeed() for this frame
+};
+
 struct MetalLifeData {
     uint32_t width;
     uint32_t height;

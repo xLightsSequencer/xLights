@@ -1,0 +1,129 @@
+#version 450
+// Port of the Fire "New Render Method" temporal advance in FireFunctions.metal
+// (mirrors FireFunctions.ispc -- keep the integer math in lockstep).
+//
+// The classic render method rebuilds the flame bottom-up within a frame, so row
+// y depends on rows the same pass just wrote.  That is strictly serial in y and
+// does not map to a compute grid at all.  The new method derives row y from the
+// PREVIOUS frame's rows y-1/y-2, so every cell is independent and the whole
+// grid is one dispatch.
+//
+// Everything is integer, so this is bit-identical to the ISPC and Metal paths --
+// there is no GPU-vs-libm float drift to reconcile.  Both grid buffers stay
+// resident on the device between frames (VulkanFireEffect.cpp); only the drawn
+// pixels are ever read back.
+//
+// Every thread writes exactly one cell -- row 0 threads write the reseeded base
+// row, the rest write their own cell -- so `next` is a full write.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(std430, set = 0, binding = 0) readonly buffer PrevB { int prevGrid[]; };
+layout(std430, set = 0, binding = 1) writeonly buffer NextB { int nextGrid[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    int width;
+    int height;
+    int curWi;
+    int curHt;
+    int bufferWi;
+    int bufferHt;
+    int npix;
+    int loc;
+    int step;
+    int pad;
+    uint frameSeedLo;
+    uint frameSeedHi;
+} data;
+
+// A 64-bit value as a (lo, hi) uint32 pair, emulating RenderBuffer::rngMix64
+// without a native 64-bit GLSL integer type (not guaranteed available on every
+// Vulkan implementation).  Identical helpers to ShimmerEffect.comp /
+// CandleEffect.comp -- local copy, per this codebase's per-effect-kernel
+// convention.
+struct u64 { uint lo; uint hi; };
+
+u64 u64Xor(u64 a, u64 b) { return u64(a.lo ^ b.lo, a.hi ^ b.hi); }
+
+// a >> n, restricted to 0 < n < 32 -- the only shifts fireMix64 needs
+// (27, 30, 31), so a single word boundary crossing suffices.
+u64 u64Shr(u64 a, uint n) {
+    return u64((a.lo >> n) | (a.hi << (32u - n)), a.hi >> n);
+}
+
+// (a * b) mod 2^64.  aHi*bHi only contributes to bits >= 64 and is dropped;
+// the cross terms survive only in their low 32 bits, which GLSL's uint
+// arithmetic already wraps to.
+u64 u64Mul(u64 a, u64 b) {
+    uint msb, lsb;
+    umulExtended(a.lo, b.lo, msb, lsb);
+    uint cross = a.hi * b.lo + a.lo * b.hi;
+    return u64(lsb, msb + cross);
+}
+
+// Bit-identical to fireMix64 (FireFunctions.metal) / RenderBuffer::rngMix64.
+u64 fireMix64(u64 z) {
+    z = u64Xor(z, u64Shr(z, 30u));
+    z = u64Mul(z, u64(0x1CE4E5B9u, 0xBF58476Du)); // 0xBF58476D1CE4E5B9
+    z = u64Xor(z, u64Shr(z, 27u));
+    z = u64Mul(z, u64(0x133111EBu, 0x94D049BBu)); // 0x94D049BB133111EB
+    z = u64Xor(z, u64Shr(z, 31u));
+    return z;
+}
+
+// Bit-identical to fireHashRandom (FireFunctions.metal).
+uint fireHashRandom(u64 seed, uint index) {
+    u64 idxTerm = u64Mul(u64(index, 0u), u64(0xD192ED03u, 0xD1B54A32u)); // 0xD1B54A32D192ED03
+    u64 mixed = fireMix64(u64Xor(seed, idxTerm));
+    return mixed.hi; // >> 32
+}
+
+// randInt(0, range-1)'s multiply-shift mapping: the high 32 bits of the 32x32
+// product, which umulExtended's msb output supplies exactly.
+uint fireRandBelow(uint r, uint range) {
+    uint msb, lsb;
+    umulExtended(r, range, msb, lsb);
+    return msb;
+}
+
+void main() {
+    int W = data.width;
+    int H = data.height;
+    int x = int(gl_GlobalInvocationID.x);
+    int y = int(gl_GlobalInvocationID.y);
+    if (x >= W || y >= H) {
+        return;
+    }
+
+    u64 seed = u64(data.frameSeedLo, data.frameSeedHi);
+
+    if (y == 0) {
+        // The base row is reseeded every frame.  Index space x is disjoint from
+        // the noise indices below, which are all >= W for y >= 1.
+        nextGrid[x] = 150 + int(fireRandBelow(fireHashRandom(seed, uint(x)), 50u));
+        return;
+    }
+
+    // Drop the out-of-grid taps exactly as GetFireBuffer's -1 return does.
+    int base = (y - 1) * W;
+    int sum = prevGrid[base + x];
+    int n = 1;
+    if (x > 0) {
+        sum += prevGrid[base + x - 1];
+        n += 1;
+    }
+    if (x < W - 1) {
+        sum += prevGrid[base + x + 1];
+        n += 1;
+    }
+    if (y >= 2) {
+        sum += prevGrid[base - W + x];
+        n += 1;
+    }
+    int ni = sum / n;
+    if (ni > 0) {
+        uint r = fireHashRandom(seed, uint(y * W + x));
+        ni += (fireRandBelow(r, 100u) < 20u) ? data.step : -data.step;
+        ni = clamp(ni, 0, 199);
+    }
+    nextGrid[y * W + x] = ni;
+}

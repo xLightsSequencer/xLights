@@ -1184,6 +1184,9 @@
     <ClCompile Include="..\src-core\effects\vulkan\VulkanKaleidoscopeEffect.cpp">
       <Filter>Effects\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\effects\vulkan\VulkanFireEffect.cpp">
+      <Filter>Effects\vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\effects\vulkan\VulkanLifeEffect.cpp">
       <Filter>Effects\vulkan</Filter>
     </ClCompile>
@@ -2924,6 +2927,9 @@
     <ClInclude Include="..\src-core\effects\ispc\FillFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\effects\ispc\FireFunctions.ispc.h">
+      <Filter>Effects\ispc</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\TreeFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
@@ -3317,6 +3323,9 @@
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\FillFunctions.ispc">
+      <Filter>Effects\ispc</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\src-core\effects\ispc\FireFunctions.ispc">
       <Filter>Effects\ispc</Filter>
     </CustomBuild>
     <CustomBuild Include="..\src-core\effects\ispc\TreeFunctions.ispc">

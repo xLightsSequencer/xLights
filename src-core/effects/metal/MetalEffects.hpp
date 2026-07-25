@@ -17,6 +17,7 @@
 #include "../ShimmerEffect.h"
 #include "../CandleEffect.h"
 #include "../LifeEffect.h"
+#include "../FireEffect.h"
 #include "../WaveEffect.h"
 #include "../GarlandsEffect.h"
 #include "../ShaderEffect.h"
@@ -231,6 +232,20 @@ public:
 
 private:
     MetalCandleEffectData *data;
+};
+
+class MetalFireEffectData;
+
+class MetalFireEffect : public FireEffect {
+public:
+    MetalFireEffect(int i);
+    virtual ~MetalFireEffect();
+
+protected:
+    virtual bool RenderFireGPU(RenderBuffer &buffer, FireFrameParams &params) override;
+
+private:
+    MetalFireEffectData *data;
 };
 
 class MetalLifeEffectData;

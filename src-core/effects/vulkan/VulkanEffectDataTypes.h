@@ -647,4 +647,28 @@ struct VulkanLifeData {
 static_assert(offsetof(VulkanLifeData, frameSeedLo) == 20, "VulkanLifeData frameSeedLo offset drifted from std430");
 static_assert(sizeof(VulkanLifeData) == 28, "VulkanLifeData size drifted from the GLSL std430 block");
 
+// Mirrors MetalFireData.  Shared by both Fire kernels (advance and draw), so
+// the two .comp files declare the same block.  Fire is the one Vulkan effect
+// whose state buffers stay resident on the device between frames rather than
+// being uploaded and read back each frame -- the temporal advance is far
+// cheaper than a round trip of the grid would be (see VulkanFireEffect.cpp).
+// The 64-bit frame seed is split into two 32-bit halves like the other
+// hash-RNG kernels; GLSL has no guaranteed native 64-bit integer type.
+struct VulkanFireData {
+    int32_t  width;     // flame grid extent (maxMWi/maxMHt)
+    int32_t  height;
+    int32_t  curWi;     // drawn extent
+    int32_t  curHt;
+    int32_t  bufferWi;  // RenderBuffer dimensions, for the pixel index
+    int32_t  bufferHt;
+    int32_t  npix;      // min(GetPixelCount(), bufferWi*bufferHt)
+    int32_t  loc;       // 0 bottom, 1 top, 2 left, 3 right
+    int32_t  step;      // per-row brightness change
+    int32_t  pad;
+    uint32_t frameSeedLo;
+    uint32_t frameSeedHi;
+};
+static_assert(offsetof(VulkanFireData, frameSeedLo) == 40, "VulkanFireData frameSeedLo offset drifted from std430");
+static_assert(sizeof(VulkanFireData) == 48, "VulkanFireData size drifted from the GLSL std430 block");
+
 #endif

@@ -294,6 +294,10 @@ public:
     VkPipeline meteorsEffectFunction = VK_NULL_HANDLE;
     VkPipeline twinkleEffectFunction = VK_NULL_HANDLE;
     VkPipeline lifeEffectFunction = VK_NULL_HANDLE;
+    // Fire dispatches two kernels per frame: the temporal grid advance and
+    // the rasterise, separated by a compute barrier.
+    VkPipeline fireAdvanceEffectFunction = VK_NULL_HANDLE;
+    VkPipeline fireDrawEffectFunction = VK_NULL_HANDLE;
 
     VkPipeline getColorsFunction = VK_NULL_HANDLE;
     VkPipeline putColorsFunction = VK_NULL_HANDLE;
