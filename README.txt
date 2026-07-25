@@ -17,6 +17,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Moving Head effect: clicking the Dimmer panel to the right of the last
                                  handle left the active handle one past the end of the handle list, so the
                                  paint and drag handlers read and wrote off the end of it
+    -bug (dkulp)                 Base show folder: fixed a crash merging controllers when the base show
+                                 folder has a controller with the same name but a different type (serial vs
+                                 ethernet) as the local one. Such a pair is now skipped and logged
     -bug (dkulp)                 Windows hardware video decode: the "FFmpeg auto" setting never engaged on
                                  non-NVIDIA machines. It picked the first decoder FFmpeg recognised rather
                                  than the first that works, so a build with CUDA compiled in always chose

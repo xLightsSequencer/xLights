@@ -106,7 +106,10 @@ bool ControllerEthernet::UpdateFrom(Controller* from)
 {
     bool changed = Controller::UpdateFrom(from);
 
-    ControllerEthernet* fromEth = static_cast<ControllerEthernet*>(from);
+    ControllerEthernet* fromEth = dynamic_cast<ControllerEthernet*>(from);
+    if (fromEth == nullptr) {
+        return changed;
+    }
 
     if (_ip != fromEth->_ip) {
         changed = true;

@@ -390,6 +390,16 @@ bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll,
                     // this is a match
                     found = true;
 
+                    // UpdateFrom is only defined between controllers of the same
+                    // kind - the overrides downcast their argument. A base show
+                    // folder holding a different controller type under the same
+                    // name would type-confuse that cast and read wild pointers.
+                    if (it->GetType() != baseit->GetType()) {
+                        spdlog::warn("Controller '{}' NOT updated from base show folder: it is a {} controller here but a {} controller in the base show folder.",
+                                     it->GetName(), it->GetType(), baseit->GetType());
+                        continue;
+                    }
+
                     bool force = false;
                     if (prompt && !it->IsFromBase()) {
                         if (ui) {
