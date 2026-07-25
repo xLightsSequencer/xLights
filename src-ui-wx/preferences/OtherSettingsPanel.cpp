@@ -48,6 +48,8 @@ const wxWindowID OtherSettingsPanel::ID_STATICTEXT2 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHOICE2 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_STATICTEXT6 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHOICE_ALIASPROMPT = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT8 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_KEYBINDINGSLOCATION = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_TEXTCTRL1 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX9 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_STATICTEXT7 = wxNewId();
@@ -75,6 +77,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
+    wxFlexGridSizer* FlexGridSizer9;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
@@ -173,6 +176,14 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Choice_AliasPromptBehavior->Append(_("Always No"));
     FlexGridSizer7->Add(Choice_AliasPromptBehavior, 1, wxALL|wxEXPAND, 5);
     GridBagSizer1->Add(FlexGridSizer7, wxGBPosition(8, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
+    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText9 = new wxStaticText(this, ID_STATICTEXT8, _("Use keybindings from:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+    FlexGridSizer9->Add(StaticText9, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_KeybindingsLocation = new wxChoice(this, ID_CHOICE_KEYBINDINGSLOCATION, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_KEYBINDINGSLOCATION"));
+    Choice_KeybindingsLocation->SetSelection( Choice_KeybindingsLocation->Append(_("Show Folder")) );
+    Choice_KeybindingsLocation->Append(_("AppData-shared"));
+    FlexGridSizer9->Add(Choice_KeybindingsLocation, 1, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(FlexGridSizer9, wxGBPosition(6, 0), wxDefaultSpan, wxALL|wxEXPAND, 0);
     FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText1 = new wxStaticText(this, wxID_ANY, _("eMail Address:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer6->Add(StaticText1, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -220,6 +231,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CHECKBOX8, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHOICE2, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHOICE_ALIASPROMPT, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_KEYBINDINGSLOCATION, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -290,6 +302,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetShadersOnBackgroundThreads(ShaderCheckbox->IsChecked());
     frame->SetUserEMAIL(eMailTextControl->GetValue());
     frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
+    frame->SetKeybindingsLocation(Choice_KeybindingsLocation->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
     frame->SetControllerPingInterval(CtrlPingInterval->GetValue());
@@ -324,6 +337,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     eMailTextControl->ChangeValue(frame->UserEMAIL());
 	Choice_LinkControllerUpload->SetStringSelection(frame->GetLinkedControllerUpload());
     Choice_AliasPromptBehavior->SetStringSelection(frame->GetRenameModelAliasPromptBehavior());
+    Choice_KeybindingsLocation->SetStringSelection(frame->GetKeybindingsLocation());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
     CtrlPingInterval->SetValue(frame->GetControllerPingInterval());

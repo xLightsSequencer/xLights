@@ -152,6 +152,7 @@ public:
     void Load(const wxFileName& file) noexcept;
     void Save(const wxFileName& file) const noexcept;
     void Save() const noexcept;
+    void SetAdditionalSaveLocation(const wxFileName& file) noexcept { _secondaryFile = file; }
     int AddKey(const KeyBinding& kb);
     void DeleteKey(int id);
 
@@ -166,4 +167,5 @@ public:
 private:
     std::vector<KeyBinding> _bindings;
     wxFileName _openedFile;
+    wxFileName _secondaryFile;
 };

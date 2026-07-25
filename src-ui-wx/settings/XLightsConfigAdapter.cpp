@@ -30,7 +30,7 @@ XLightsConfigAdapter* GetXLightsBookmarksConfig()  { return &s_bookmarksConfig; 
 // ---------------------------------------------------------------------------
 // Platform-specific AppData path
 // ---------------------------------------------------------------------------
-static std::filesystem::path GetSettingsFilePath()
+std::filesystem::path GetSettingsFilePath()
 {
     std::filesystem::path dir;
 

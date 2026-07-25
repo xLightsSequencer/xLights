@@ -452,10 +452,21 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     _outputModelManager.AddImmediateWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir");
     spdlog::debug("    Networks updated.");
 
-    wxFileName kbf;
-    kbf.AssignDir(CurrentDir);
-    kbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
-    mainSequencer->keyBindings.Load(kbf);
+    wxFileName showFolderKbf;
+    showFolderKbf.AssignDir(CurrentDir);
+    showFolderKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+
+    wxFileName appDataKbf;
+    appDataKbf.AssignDir(wxString(GetSettingsFilePath().parent_path().wstring()));
+    appDataKbf.SetFullName(XLIGHTS_KEYBINDING_FILE);
+
+    // Key bindings can live in the show folder and/or AppData
+    bool useAppData = (GetKeybindingsLocation() == "AppData-shared");
+    const wxFileName& preferredKbf = useAppData ? appDataKbf : showFolderKbf;
+    const wxFileName& otherKbf = useAppData ? showFolderKbf : appDataKbf;
+
+    mainSequencer->keyBindings.SetAdditionalSaveLocation(otherKbf);
+    mainSequencer->keyBindings.Load(preferredKbf);
 
     // Merge controllers from base show folder before loading effects file
     // (model/view object XML merging now happens inside LoadEffectsFile before LoadModels)
