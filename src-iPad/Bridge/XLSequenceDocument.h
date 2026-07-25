@@ -2051,6 +2051,47 @@ NS_ASSUME_NONNULL_BEGIN
 // (`EffectsGrid.cpp`). Read-only; the iPad has no link/unlink UI yet.
 - (BOOL)effectIsLinkedToSymbolInRow:(int)rowIndex atIndex:(int)effectIndex;
 
+// Effect Symbols — reusable effect definitions stored in the `.xsq`
+// (`src-core/render/EffectSymbolManager`, shared with desktop). Editing any
+// linked effect rewrites the symbol and every sibling; these are the
+// management ops desktop exposes on the grid context menu + Tools menu.
+//
+// `effectSymbols` returns one dictionary per symbol: `id`, `name`,
+// `effectType`, `linkedCount` (NSNumber). Sorted by name.
+- (NSArray<NSDictionary*>*)effectSymbols;
+// Empty string when the effect isn't linked. Used to restore a link on undo.
+- (NSString*)linkedSymbolIdInRow:(int)rowIndex atIndex:(int)effectIndex;
+// Create a symbol from an effect and link that effect to it. Returns the new
+// symbol's id, or nil when the name is empty or already taken (desktop rejects
+// both). The effect's own settings become the symbol's definition.
+- (nullable NSString*)createSymbolNamed:(NSString*)name
+                          fromEffectInRow:(int)rowIndex
+                                  atIndex:(int)effectIndex;
+// Link / unlink one effect. Linking overwrites the effect's type, settings and
+// palette from the symbol (that is what `Effect::LinkToSymbol` does), so the
+// caller must capture them first if it wants undo.
+- (BOOL)linkEffectInRow:(int)rowIndex atIndex:(int)effectIndex toSymbolId:(NSString*)symbolId;
+- (BOOL)unlinkEffectFromSymbolInRow:(int)rowIndex atIndex:(int)effectIndex;
+// Put an effect back to a captured state. Linking can change an effect's type
+// as well as its settings, so undo needs to restore all of it plus the link.
+// Pass an empty `symbolId` to restore it unlinked. Unlinks before writing the
+// settings so the restore can't propagate back into the symbol and clobber
+// every sibling, then re-links last.
+- (BOOL)restoreEffectInRow:(int)rowIndex
+                   atIndex:(int)effectIndex
+                      type:(NSString*)effectType
+                  settings:(NSString*)settings
+                   palette:(NSString*)palette
+                  symbolId:(NSString*)symbolId;
+- (BOOL)renameSymbolId:(NSString*)symbolId toName:(NSString*)newName;
+// Deleting a symbol unlinks every effect that used it; the effects keep the
+// settings they currently have.
+- (BOOL)deleteSymbolId:(NSString*)symbolId;
+// Desktop Tools ▸ "Convert All Symbols to Effects" — unlink everything and drop
+// the symbol table, for sharing with older xLights. Returns
+// `{converted: N, symbols: M}` counting what it did.
+- (NSDictionary*)convertAllSymbolsToEffects;
+
 // Copy: returns full settings string (xLights legacy format) and the effect's
 // palette as a separate string. Empty strings on failure.
 - (NSString*)effectSettingsStringForRow:(int)rowIndex atIndex:(int)effectIndex;

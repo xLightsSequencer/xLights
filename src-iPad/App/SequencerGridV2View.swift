@@ -129,6 +129,37 @@ struct EditDescriptionTarget: Equatable {
     let effectIndex: Int
 }
 
+/// Effect Symbol name prompt + error alert. Extracted for the same reason
+/// as `EditDescriptionAlert` below — these two modifiers on the main view
+/// chain pushed the enclosing expression past SwiftUI's type-check budget.
+private struct EffectSymbolAlerts: ViewModifier {
+    @Binding var createRequested: Bool
+    @Binding var createName: String
+    @Binding var errorMessage: String?
+    let viewModel: SequencerViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Create Effect Symbol", isPresented: $createRequested) {
+                TextField("Symbol name", text: $createName)
+                Button("Create") {
+                    errorMessage = viewModel.createSymbolFromSelectedEffect(named: createName)
+                    createName = ""
+                }
+                Button("Cancel", role: .cancel) { createName = "" }
+            } message: {
+                Text("The effect's settings become the symbol's definition and this effect is linked to it. Editing any linked effect updates the symbol and every other effect linked to it.")
+            }
+            .alert("Effect Symbol",
+                   isPresented: Binding(get: { errorMessage != nil },
+                                        set: { if !$0 { errorMessage = nil } })) {
+                Button("OK", role: .cancel) { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
+    }
+}
+
 private struct EditDescriptionAlert: ViewModifier {
     @Binding var target: EditDescriptionTarget?
     @Binding var text: String
@@ -510,6 +541,11 @@ struct SequencerGridV2View: View {
     /// B19 save-as-preset alert state.
     @State private var savePresetRequested: Bool = false
     @State private var savePresetName: String = ""
+    // Effect Symbols — name prompt for "Create Symbol from Effect…" plus the
+    // error text when the name is empty or already taken (desktop rejects both).
+    @State private var createSymbolRequested: Bool = false
+    @State private var createSymbolName: String = ""
+    @State private var symbolErrorMessage: String?
 
 
     /// B47 insert-N-layers prompt state.
@@ -956,6 +992,7 @@ struct SequencerGridV2View: View {
                 Button("Reset to Defaults", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
+                effectSymbolMenu(rowIndex: target.rowIndex, effectIndex: target.effectIndex)
                 // PRE-1 — persistent effect presets. Save captures the
                 // current selection into the on-disk library; apply
                 // drops the chosen preset onto every selected effect.
@@ -1527,6 +1564,11 @@ struct SequencerGridV2View: View {
         .sheet(isPresented: Bindable(viewModel).presetBrowserPresented) {
             PresetBrowserSheet(viewModel: viewModel)
         }
+        .modifier(EffectSymbolAlerts(
+            createRequested: $createSymbolRequested,
+            createName: $createSymbolName,
+            errorMessage: $symbolErrorMessage,
+            viewModel: viewModel))
         .modifier(InsertLayersAlert(
             targetRow: $insertLayersTargetRow,
             countText: $insertLayersCountText,
@@ -2122,6 +2164,36 @@ struct SequencerGridV2View: View {
     /// Zoom out so the full sequence duration fits inside the available
     /// horizontal content width. Runs once per sequence load (tracked by
     /// `fitDurationMS`) so later user zoom isn't clobbered.
+    /// Effect Symbols submenu (desktop EffectsGrid.cpp:614-633). Extracted
+    /// from the effect context menu — inlining it pushed that already-large
+    /// view expression past the type-checker's budget.
+    @ViewBuilder
+    private func effectSymbolMenu(rowIndex: Int, effectIndex: Int) -> some View {
+        Menu("Effect Symbol") {
+            Button("Create Symbol from Effect…") {
+                let base = viewModel.document.effectName(forRow: Int32(rowIndex),
+                                                          at: Int32(effectIndex))
+                createSymbolName = base + " Symbol"
+                createSymbolRequested = true
+            }
+            if viewModel.selectionHasSymbolLink {
+                Button("Unlink from Symbol") {
+                    _ = viewModel.unlinkSelectedEffectsFromSymbol()
+                }
+            }
+            let symbols = viewModel.effectSymbols()
+            if !symbols.isEmpty {
+                Menu("Link to Symbol") {
+                    ForEach(symbols) { sym in
+                        Button(sym.name + " (" + sym.effectType + ")") {
+                            _ = viewModel.linkSelectedEffectsToSymbol(id: sym.id)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private func fitIfNeeded(durationMS: Int, availableWidth: CGFloat) {
         guard durationMS > 0 else { return }
         let contentAvail = availableWidth - metrics.rowHeaderWidth

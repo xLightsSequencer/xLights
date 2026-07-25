@@ -20,6 +20,8 @@
 #include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceFaces.h"
+#include "render/EffectSymbol.h"
+#include "render/EffectSymbolManager.h"
 #include "render/SequenceFile.h"
 #include "render/SequencePackage.h"
 #include "render/RenderEngine.h"
@@ -11443,6 +11445,165 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
     Effect* e = layer->GetEffect(effectIndex);
     return (e && e->IsLinkedToSymbol()) ? YES : NO;
+}
+
+- (NSArray<NSDictionary*>*)effectSymbols {
+    NSMutableArray* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded()) return out;
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    auto symbols = mgr.GetAllSymbols();
+    std::sort(symbols.begin(), symbols.end(), [](EffectSymbol* a, EffectSymbol* b) {
+        return a->GetName() < b->GetName();
+    });
+    for (EffectSymbol* s : symbols) {
+        if (s == nullptr) continue;
+        [out addObject:@{
+            @"id": [NSString stringWithUTF8String:s->GetId().c_str()],
+            @"name": [NSString stringWithUTF8String:s->GetName().c_str()],
+            @"effectType": [NSString stringWithUTF8String:s->GetEffectType().c_str()],
+            @"linkedCount": @((NSInteger)mgr.GetLinkedEffectCount(s->GetId())),
+        }];
+    }
+    return out;
+}
+
+- (NSString*)linkedSymbolIdInRow:(int)rowIndex atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return @"";
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e || !e->IsLinkedToSymbol()) return @"";
+    return [NSString stringWithUTF8String:e->GetLinkedSymbolId().c_str()];
+}
+
+- (NSString*)createSymbolNamed:(NSString*)name
+               fromEffectInRow:(int)rowIndex
+                       atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return nil;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return nil;
+
+    std::string n = name ? std::string([name UTF8String]) : std::string();
+    if (n.empty()) return nil;
+
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (mgr.GetSymbolByName(n) != nullptr) return nil;   // desktop rejects duplicates
+
+    EffectSymbol* sym = mgr.CreateSymbol(n, e);
+    if (sym == nullptr) return nil;
+    // LinkToSymbol registers the effect with the manager itself.
+    e->LinkToSymbol(sym->GetId());
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return [NSString stringWithUTF8String:sym->GetId().c_str()];
+}
+
+- (BOOL)linkEffectInRow:(int)rowIndex atIndex:(int)effectIndex toSymbolId:(NSString*)symbolId {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return NO;
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (sid.empty() || !mgr.SymbolExists(sid)) return NO;
+    // LinkToSymbol unlinks any previous symbol, registers, and copies the
+    // symbol's type/settings/palette onto the effect.
+    e->LinkToSymbol(sid);
+    e->IncrementChangeCount();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)unlinkEffectFromSymbolInRow:(int)rowIndex atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e || !e->IsLinkedToSymbol()) return NO;
+    e->UnlinkFromSymbol();   // unregisters from the manager
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)restoreEffectInRow:(int)rowIndex
+                   atIndex:(int)effectIndex
+                      type:(NSString*)effectType
+                  settings:(NSString*)settings
+                   palette:(NSString*)palette
+                  symbolId:(NSString*)symbolId {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return NO;
+
+    // Unlink first: SetSettings below calls IncrementChangeCount, which would
+    // otherwise push the restored settings into the symbol and out to every
+    // other effect linked to it.
+    e->UnlinkFromSymbol();
+
+    if (effectType && [effectType length] > 0) {
+        e->SetEffectName(std::string([effectType UTF8String]));
+    }
+    e->SetSettings(settings ? std::string([settings UTF8String]) : std::string(), true);
+    e->SetPalette(palette ? std::string([palette UTF8String]) : std::string());
+
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    if (!sid.empty()) {
+        auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+        if (mgr.SymbolExists(sid)) {
+            e->LinkToSymbol(sid);
+        }
+    }
+    e->IncrementChangeCount();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)renameSymbolId:(NSString*)symbolId toName:(NSString*)newName {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    std::string n = newName ? std::string([newName UTF8String]) : std::string();
+    if (sid.empty() || n.empty()) return NO;
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (mgr.GetSymbolByName(n) != nullptr) return NO;
+    if (!mgr.RenameSymbol(sid, n)) return NO;
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)deleteSymbolId:(NSString*)symbolId {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    std::string sid = symbolId ? std::string([symbolId UTF8String]) : std::string();
+    if (sid.empty()) return NO;
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    if (!mgr.SymbolExists(sid)) return NO;
+    // Unlink first so no effect is left pointing at a symbol that no longer
+    // exists — a stale id would be dropped at load anyway (LoadSequencerFile
+    // only links when SymbolExists), but this keeps the in-memory state honest.
+    for (Effect* e : mgr.GetLinkedEffects(sid)) {
+        if (e != nullptr) e->UnlinkFromSymbol();
+    }
+    if (!mgr.DeleteSymbol(sid)) return NO;
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (NSDictionary*)convertAllSymbolsToEffects {
+    if (!_context || !_context->IsSequenceLoaded()) return @{ @"converted": @0, @"symbols": @0 };
+    auto& mgr = _context->GetSequenceElements().GetEffectSymbolManager();
+    auto symbols = mgr.GetAllSymbols();
+    NSInteger converted = 0;
+    for (EffectSymbol* s : symbols) {
+        if (s == nullptr) continue;
+        for (Effect* e : mgr.GetLinkedEffects(s->GetId())) {
+            if (e != nullptr) {
+                e->UnlinkFromSymbol();
+                converted++;
+            }
+        }
+    }
+    NSInteger symbolCount = (NSInteger)symbols.size();
+    mgr.Clear();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return @{ @"converted": @(converted), @"symbols": @(symbolCount) };
 }
 
 - (void)setEffectLocked:(BOOL)locked inRow:(int)rowIndex atIndex:(int)effectIndex {

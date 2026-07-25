@@ -314,6 +314,12 @@ struct ContentView: View {
                 .environment(viewModel)
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingEffectSymbols },
+            set: { viewModel.showingEffectSymbols = $0 }
+        )) {
+            EffectSymbolsSheet(viewModel: viewModel)
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingAIServices },
             set: { viewModel.showingAIServices = $0 }
         )) {

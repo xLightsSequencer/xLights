@@ -572,6 +572,10 @@ class SequencerViewModel {
     // level (gated on `isSequenceLoaded` because it walks the
     // currently-loaded SequenceElements via the bridge).
     var showingCheckSequence = false
+    // Tools → Effect Symbols. Rename / delete symbols and the
+    // convert-all-to-effects escape hatch; creating and linking live on
+    // the grid's effect menu. Sheet at ContentView level.
+    var showingEffectSymbols = false
     // Tools → AI Services. Sheet at ContentView level so the user
     // can configure API keys / models even before opening a sequence.
     var showingAIServices = false
@@ -8277,6 +8281,155 @@ class SequencerViewModel {
     }
 
     // MARK: - Rows
+
+    // MARK: - Effect Symbols
+
+    /// One reusable effect definition stored in the sequence. Editing any
+    /// linked effect rewrites the symbol and every sibling linked to it.
+    struct EffectSymbolInfo: Identifiable, Equatable {
+        let id: String
+        let name: String
+        let effectType: String
+        let linkedCount: Int
+    }
+
+    func effectSymbols() -> [EffectSymbolInfo] {
+        document.effectSymbols().compactMap { entry in
+            let d = entry as NSDictionary
+            guard let id = d["id"] as? String, let name = d["name"] as? String else { return nil }
+            return EffectSymbolInfo(id: id,
+                                     name: name,
+                                     effectType: d["effectType"] as? String ?? "",
+                                     linkedCount: (d["linkedCount"] as? NSNumber)?.intValue ?? 0)
+        }
+    }
+
+    /// Effects the symbol ops act on — the multi-selection when there is one,
+    /// otherwise the single selected effect. Mirrors desktop, which folds the
+    /// right-clicked effect into the selection.
+    private var symbolOpTargets: [EffectSelection] {
+        if selectedEffects.count > 1 { return Array(selectedEffects) }
+        if let one = selectedEffect { return [one] }
+        return []
+    }
+
+    var selectionHasSymbolLink: Bool {
+        symbolOpTargets.contains {
+            document.effectIsLinkedToSymbol(inRow: Int32($0.rowIndex), at: Int32($0.effectIndex))
+        }
+    }
+
+    /// Capture everything a link/unlink can change, so undo can put it back.
+    private func captureForSymbolUndo(_ sel: EffectSelection)
+        -> (row: Int32, idx: Int32, type: String, settings: String, palette: String, symbolId: String) {
+        let row = Int32(sel.rowIndex), idx = Int32(sel.effectIndex)
+        return (row, idx,
+                document.effectName(forRow: row, at: idx),
+                document.effectSettingsString(forRow: row, at: idx),
+                document.effectPaletteString(forRow: row, at: idx),
+                document.linkedSymbolId(inRow: row, at: idx))
+    }
+
+    private func registerSymbolUndo(
+        _ before: (row: Int32, idx: Int32, type: String, settings: String, palette: String, symbolId: String)
+    ) {
+        undoManager.registerUndo(withTarget: self) { vm in
+            _ = vm.document.restoreEffect(inRow: before.row, at: before.idx,
+                                           type: before.type,
+                                           settings: before.settings,
+                                           palette: before.palette,
+                                           symbolId: before.symbolId)
+            vm.reloadRows()
+            vm.refreshSelectedEffectSettings()
+        }
+    }
+
+    /// Create a symbol from the selected effect and link that effect to it.
+    /// Returns nil on success, or a message when the name is empty/taken.
+    func createSymbolFromSelectedEffect(named name: String) -> String? {
+        guard let sel = selectedEffect else { return "Select a single effect first." }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return "Symbol name cannot be empty." }
+        let before = captureForSymbolUndo(sel)
+        guard document.createSymbolNamed(trimmed,
+                                          fromEffectInRow: Int32(sel.rowIndex),
+                                          at: Int32(sel.effectIndex)) != nil else {
+            return "A symbol named “\(trimmed)” already exists."
+        }
+        registerSymbolUndo(before)
+        undoManager.setActionName("Create Symbol")
+        reloadRows()
+        return nil
+    }
+
+    /// Link every targeted effect to `symbolId`. Each effect takes the
+    /// symbol's type, settings and palette (core `Effect::LinkToSymbol`).
+    @discardableResult
+    func linkSelectedEffectsToSymbol(id symbolId: String) -> Int {
+        let targets = symbolOpTargets
+        guard !targets.isEmpty else { return 0 }
+        undoManager.beginUndoGrouping()
+        var n = 0
+        for sel in targets {
+            let before = captureForSymbolUndo(sel)
+            if document.linkEffect(inRow: Int32(sel.rowIndex),
+                                    at: Int32(sel.effectIndex),
+                                    toSymbolId: symbolId) {
+                registerSymbolUndo(before)
+                n += 1
+            }
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName(n > 1 ? "Link \(n) Effects to Symbol" : "Link Effect to Symbol")
+        if n > 0 { reloadRows(); refreshSelectedEffectSettings() }
+        return n
+    }
+
+    /// Break the link, leaving each effect with the settings it has now.
+    @discardableResult
+    func unlinkSelectedEffectsFromSymbol() -> Int {
+        let targets = symbolOpTargets
+        guard !targets.isEmpty else { return 0 }
+        undoManager.beginUndoGrouping()
+        var n = 0
+        for sel in targets {
+            let before = captureForSymbolUndo(sel)
+            if document.unlinkEffectFromSymbol(inRow: Int32(sel.rowIndex),
+                                                at: Int32(sel.effectIndex)) {
+                registerSymbolUndo(before)
+                n += 1
+            }
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName(n > 1 ? "Unlink \(n) Effects" : "Unlink Effect")
+        if n > 0 { reloadRows() }
+        return n
+    }
+
+    @discardableResult
+    func renameEffectSymbol(id: String, to newName: String) -> Bool {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, document.renameSymbolId(id, toName: trimmed) else { return false }
+        reloadRows()
+        return true
+    }
+
+    /// Delete a symbol; effects linked to it keep the settings they have.
+    @discardableResult
+    func deleteEffectSymbol(id: String) -> Bool {
+        guard document.deleteSymbolId(id) else { return false }
+        reloadRows()
+        return true
+    }
+
+    /// Desktop Tools ▸ "Convert All Symbols to Effects" — unlink everything and
+    /// drop the symbol table so the sequence opens cleanly in older xLights.
+    func convertAllSymbolsToEffects() -> (converted: Int, symbols: Int) {
+        let d = document.convertAllSymbolsToEffects() as NSDictionary
+        reloadRows()
+        return ((d["converted"] as? NSNumber)?.intValue ?? 0,
+                (d["symbols"] as? NSNumber)?.intValue ?? 0)
+    }
 
     /// Recompute how far the timeline reaches. Cheap (one bridge call that
     /// walks the effect layers), so it runs on load and whenever the

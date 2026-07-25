@@ -386,6 +386,14 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // Desktop Tools ▸ "Effect Symbols" + "Convert All Symbols to
+            // Effects" (xLightsMain.cpp). Creating / linking is on the
+            // grid's effect menu, matching desktop's right-click.
+            Button("Effect Symbols…") {
+                viewModel.showingEffectSymbols = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
             // Find Effect Data (desktop View ▸ Windows ▸ Find Effect
             // Data). Query effects by type / settings-text / model and
             // jump to a result.

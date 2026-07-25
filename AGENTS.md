@@ -183,7 +183,7 @@ Start at [`plans/ipad-parity/README.md`](plans/ipad-parity/README.md). The
 overview ([`00-overview.md`](plans/ipad-parity/00-overview.md)) holds the live
 headline numbers, the P1/P2 roadmap, and reverse-parity candidates — **read it
 there rather than trusting any count copied here, which will rot.** As of the
-2026-07-25 desktop-churn audit the iPad sat at **~71% parity**, with the biggest
+2026-07-25 desktop-churn audit the iPad sat at **~72% parity**, with the biggest
 backlogs in Preferences (11), Layout (06), and Tools (13).
 
 The 14 theme docs:
