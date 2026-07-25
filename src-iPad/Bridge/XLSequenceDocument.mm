@@ -5382,6 +5382,114 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     return YES;
 }
 
+#pragma mark - Model Sets (desktop #3703)
+
+- (NSArray<NSDictionary*>*)modelSets {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager()) return out;
+    for (const auto& s : _context->GetModelManager().GetSetManager().GetAllSets()) {
+        NSMutableArray<NSString*>* members = [NSMutableArray array];
+        for (const auto& m : s->GetMembers()) {
+            [members addObject:[NSString stringWithUTF8String:m.c_str()]];
+        }
+        [out addObject:@{
+            @"name": [NSString stringWithUTF8String:s->GetName().c_str()],
+            @"models": members,
+        }];
+    }
+    return out;
+}
+
+- (NSString*)modelSetNameContainingModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return nil;
+    auto* s = _context->GetModelManager().GetSetManager()
+                  .GetSetContaining(modelName.UTF8String);
+    if (!s) return nil;
+    return [NSString stringWithUTF8String:s->GetName().c_str()];
+}
+
+- (NSArray<NSString*>*)modelsInSetContainingModel:(NSString*)modelName {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager() || !modelName) return out;
+    auto* s = _context->GetModelManager().GetSetManager()
+                  .GetSetContaining(modelName.UTF8String);
+    if (!s) return out;
+    for (const auto& m : s->GetMembers()) {
+        [out addObject:[NSString stringWithUTF8String:m.c_str()]];
+    }
+    return out;
+}
+
+- (NSString*)createModelSetWithModels:(NSArray<NSString*>*)modelNames
+                                 named:(NSString*)suggestedName {
+    if (!_context || !_context->HasModelManager() || modelNames.count < 2) return nil;
+    auto& mgr = _context->GetModelManager();
+    std::vector<std::string> members;
+    members.reserve(modelNames.count);
+    for (NSString* n in modelNames) {
+        std::string name = n.UTF8String;
+        // Groups and submodels have no layout position of their own, so a
+        // Set over them would have nothing to translate.
+        Model* m = mgr.GetModel(name);
+        if (!m || m->GetDisplayAs() == DisplayAsType::ModelGroup
+            || m->GetDisplayAs() == DisplayAsType::SubModel) {
+            continue;
+        }
+        members.push_back(name);
+    }
+    if (members.size() < 2) return nil;
+    auto* s = mgr.GetSetManager().CreateSet(
+        members, suggestedName ? std::string(suggestedName.UTF8String) : std::string());
+    if (!s) return nil;
+    return [NSString stringWithUTF8String:s->GetName().c_str()];
+}
+
+- (NSString*)suggestedModelSetName {
+    if (!_context || !_context->HasModelManager()) return @"Set 1";
+    return [NSString stringWithUTF8String:
+            _context->GetModelManager().GetSetManager().SuggestName().c_str()];
+}
+
+- (BOOL)renameModelSet:(NSString*)oldName to:(NSString*)newName {
+    if (!_context || !_context->HasModelManager() || !oldName || !newName) return NO;
+    auto& setMgr = _context->GetModelManager().GetSetManager();
+    auto* s = setMgr.GetSetByName(oldName.UTF8String);
+    if (!s) return NO;
+    return setMgr.RenameSet(s, newName.UTF8String) ? YES : NO;
+}
+
+- (BOOL)deleteModelSet:(NSString*)setName {
+    if (!_context || !_context->HasModelManager() || !setName) return NO;
+    auto& setMgr = _context->GetModelManager().GetSetManager();
+    auto* s = setMgr.GetSetByName(setName.UTF8String);
+    if (!s) return NO;
+    setMgr.DeleteSet(s);
+    return YES;
+}
+
+- (BOOL)addModel:(NSString*)modelName toModelSet:(NSString*)setName {
+    if (!_context || !_context->HasModelManager() || !modelName || !setName) return NO;
+    auto& mgr = _context->GetModelManager();
+    Model* m = mgr.GetModel(modelName.UTF8String);
+    if (!m || m->GetDisplayAs() == DisplayAsType::ModelGroup
+        || m->GetDisplayAs() == DisplayAsType::SubModel) {
+        return NO;
+    }
+    auto& setMgr = mgr.GetSetManager();
+    auto* s = setMgr.GetSetByName(setName.UTF8String);
+    if (!s) return NO;
+    setMgr.AddMember(s, modelName.UTF8String);
+    return YES;
+}
+
+- (BOOL)removeModelFromItsSet:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return NO;
+    auto& setMgr = _context->GetModelManager().GetSetManager();
+    if (!setMgr.GetSetContaining(modelName.UTF8String)) return NO;
+    setMgr.RemoveMember(modelName.UTF8String);
+    return YES;
+}
+
 - (BOOL)renameModel:(NSString*)oldName to:(NSString*)newName {
     if (!_context || !_context->HasModelManager()) return NO;
     if (!oldName || !newName) return NO;

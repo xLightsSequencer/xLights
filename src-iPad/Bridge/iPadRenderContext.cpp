@@ -317,6 +317,17 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                                  AllModels.GetModels().size());
                 }
 
+                // Model Sets — translation-only links between models
+                // (`<modelSets>` sibling of `<modelGroups>`; see
+                // ModelSetManager.h). Loading matters even with no Set UI
+                // on screen: the manager is what keeps a Set coherent
+                // through a model rename or delete, so without this an
+                // iPad edit would leave the desktop user's Set pointing
+                // at a name that no longer exists.
+                AllModels.GetSetManager().Load(xlightsNode.child("modelSets"));
+                spdlog::info("iPadRenderContext: Loaded {} model sets",
+                             AllModels.GetSetManager().GetAllSets().size());
+
                 // Load view objects (house meshes, ground images, gridlines, terrain, rulers)
                 auto viewObjectsNode = xlightsNode.child("view_objects");
                 if (viewObjectsNode) {
@@ -1102,6 +1113,23 @@ bool iPadRenderContext::SaveLayoutChanges() {
         patchInt("backgroundBrightness", bri);
         patchInt("backgroundAlpha", alpha);
         patchInt("scaleImage", scale ? 1 : 0);
+    }
+
+    // Model Sets. Rewritten wholesale from the manager, matching desktop's
+    // `xLightsFrame::SerializeModelSets` (including its skip of degenerate
+    // <2-member Sets). Safe to do unconditionally because the manager was
+    // populated from this same file at load: with no Set edits it writes
+    // back what it read, and after a model rename/delete it writes the
+    // repaired membership rather than a dangling name.
+    {
+        auto setsNode = root.child("modelSets");
+        const auto& sets = AllModels.GetSetManager().GetAllSets();
+        if (!setsNode && !sets.empty()) {
+            setsNode = root.append_child("modelSets");
+        }
+        if (setsNode) {
+            AllModels.GetSetManager().Save(setsNode);
+        }
     }
 
     if (!doc.save_file(rgbPath.c_str(), "  ")) {

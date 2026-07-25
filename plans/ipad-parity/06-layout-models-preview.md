@@ -202,7 +202,7 @@
 | SpaceMouse 6-DOF input | other | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | Desktop Mouse3DManager/SpaceMouseSession. No iOS HID SpaceMouse. |
 | House Preview: "Keep on Top" | context-menu | ✅ | ➖ | ipad-missing | P3 | easy | infeasible-idiom | Desktop #5533 `ModelPreview.cpp:1123` adds a right-click "Keep on Top" that floats the popped-out House Preview window above other apps. iPadOS has no always-on-top window level an app can request for itself — the closest idiom is the existing detached/Stage-Manager window. No work item. |
 | Edit Display Elements panel on the Layout tab | panel | ✅ | 🟡 | ipad-weaker | P3 | easy | feasible | Desktop #6471 adds the sequencer's Display Elements panel to the Layout tab so visibility can be edited without switching tabs. iPad has `DisplayElementsSheet` but reaches it only from the sequencer (`XLightsCommands.swift` ⌘⇧D, command palette, and mid-import per theme 08) — not from the Layout editor. Work: surface the existing sheet from a Layout toolbar button. |
-| Model Sets (link props so they move as one) | layout | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop #3703 links props into a named Set that moves rigidly; right-click **Align and Distribute** now transform the whole Set instead of pulling the clicked model out of its arrangement, and a Set containing a locked model is skipped with a message. Desktop surface in `xLightsMain.cpp` / `LayoutPanel.h`. No `ModelSet` references in `src-iPad/`. Was previously only a prose backlog note in this doc with no scorecard row — added here so it is counted. |
+| Model Sets (link props so they move as one) | layout | ✅ | ✅ | parity | P2 | medium | feasible | Desktop #3703 links props into a named Set that moves rigidly; **Align and Distribute** transform the whole Set instead of pulling the clicked model out of its arrangement, and a Set containing a locked model is frozen (skipped with a message). **Landed 2026-07-25.** The data layer was already shared — `ModelSet` / `ModelSetManager` live in `src-core/models/` and hang off `ModelManager` — but the iPad never *loaded* `<modelSets>` (`iPadRenderContext::LoadShowFolder` had no counterpart to desktop's `TabSequence.cpp:1214`) and never saved it, so a Set was invisible to the rename/delete coherence hooks inside core `ModelManager::Rename` / `Delete`: renaming or deleting a member on iPad left the desktop user's Set pointing at a name that no longer existed. Load + save are now wired (save mirrors `xLightsFrame::SerializeModelSets`, including its skip of degenerate <2-member Sets), which fixes that on its own. On top: bridge CRUD (`modelSets`, `modelSetNameContainingModel:`, `modelsInSetContainingModel:`, `createModelSetWithModels:named:`, `renameModelSet:to:`, `deleteModelSet:`, `addModel:toModelSet:`, `removeModelFromItsSet:` — groups and submodels rejected as members since they have no layout position to translate); a **Set** menu on the multi-select action bar (Link as Set… / Add to Set ▸ / Remove from Set / Rename Set… / Delete Set, labelled with the current Set name); and rigid translation on **both** drag paths — 2D `moveModel:byDeltaDX:dY:` applies the *post-snap* delta to the peers so grid snapping can't deform the Set, and the 3D body drag latches each peer's start centre at `.began` and places it at `start + primary delta` each frame rather than accumulating per-frame error. `alignModels:` and `distributeModels:` are Set-aware the same way desktop's `AlignSetAware` is (first member wins, later members of the same Set skipped, frozen Sets excluded; distribute treats a Set as one entity so spacing doesn't tear it apart). **Not ported:** desktop's `ReportBlockedSets` message box naming the frozen Sets — iPad silently leaves them put. |
 | Faces / States / SubModels unified tabbed editor | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop combined the three editors into one tabbed dialog with a shared model preview, reachable from the Layout menu and the property grid (`src-ui-wx/model/SubModelsPanel.cpp` et al). This is desktop **catching up to the iPad**, which has had the combined `FaceStateEditorSheet` (Faces/States tabs + `SubmodelPreviewPane`) throughout. Parity by convergence; no iPad work. |
 | SubModels Symmetrize: degree / direction / build order, remembered | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `SubModelsPanel.cpp:1290` "Symmetrize (Rotational)" gained Degree of Symmetry, rotation direction and build order, all remembered between openings. iPad has the same three options persisted across launches — `LayoutEditorView.swift:7207-7211` (`@AppStorage` `SymmetrizeDoS` / `SymmetrizeClockwise` / `SymmetrizeBottomToTop`) over the shared `SubModelSymmetrize` core. |
 | Vendor model download: multi-select + copyright disclaimer | dialog | ✅ | 🟡 | ipad-weaker | P3 | easy | feasible | Desktop #6073 added multi-select so several catalog models download in one go, plus a vendor copyright disclaimer at the bottom of the dialog. iPad `VendorBrowserSheet.swift` downloads one model per tap and shows no disclaimer. Work: a selection set + batch download over the existing `XLVendorCatalog` bridge, and a footer line. |
@@ -211,16 +211,16 @@
 
 ### P2
 
-- **Model Sets (layout move-linking).** Desktop links props into a
-  persistent "Set" (`<modelSets>` in `xlights_rgbeffects.xml`,
-  `src-core/models/ModelSetManager.h`) so dragging/rotating any member
-  moves the whole Set; Alt-drag repositions a single member; a Set
-  with a locked member is frozen. The data layer is in `src-core/` so
-  the iPad already loads/saves it — the gap is honoring Set membership
-  in `LayoutEditorView` drag gestures plus a management UI
-  (link/unlink, member checklist). Desktop UI: `LayoutPanel.cpp`
-  (`AddModelSetOptionsToMenu`, `DoLinkAsSet`, `DoManageSet`). See
-  `plans/layout-group-move-lock.md`. Ease: medium.
+- **Model Sets (layout move-linking).** *Landed 2026-07-25* — see the
+  scorecard row. Note the correction to this doc's earlier claim that
+  "the data layer is in `src-core/` so the iPad already loads/saves it":
+  it did **not**. Both the `<modelSets>` load and save lived in
+  desktop-only `TabSequence.cpp`, so an iPad rename or delete of a member
+  silently left the Set holding a dead name. That is fixed first; the
+  drag/align/distribute rigidity and the management UI sit on top.
+  Still open: desktop's Alt-drag "move just this member" escape hatch has
+  no touch equivalent yet (Remove from Set, move, re-add is the workaround),
+  and rotation is translation-only on both platforms for Sets.
 - **Faces / States rich editor — visual node picker landed.** iPad
   `FaceStateEditorSheet` (`LayoutEditorView.swift`) edits the
   `faceInfo` / `stateInfo` attribute maps and is fully wired

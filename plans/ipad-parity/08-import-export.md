@@ -73,7 +73,7 @@
 | Online lyric search (LRCLIB → synced LRC) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop "Search for Lyrics Online…" (`RowHeading.cpp:641`, `LRCLIBSearchDialog`); iPad `LRCLIBClient` + LRClib in `AddTimingTrackSheet`. Shared `lrc::ParseLRC` / `XLLyricsImport`. |
 | AI Speech-to-Lyrics (audio → timed lyric track) | dialog | ✅ | ✅ | parity | P2 | hard | feasible | Desktop "AI Speech 2 Lyrics" (`RowHeading.cpp:636`, `GenerateLyricsDialog`); iPad on-device speech via `addLyricTimingTrack`. |
 | Convert sequence/channel data between formats (Convert tool) | menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `ConvertDialog` (`xLightsMain.cpp:4261`) maps `_seqData` channel data across formats. No iPad UI; substantial bridge work, low demand. |
-| Export Effects to file (`<effects>` `.xsq` fragment) | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop Tools → Export Effects (`ExportEffects.cpp`, `xLightsMain.cpp:5790`). iPad lacks UI + bridge; core exists. |
+| Export Effects to file (CSV usage report) | menu | ✅ | ✅ | parity | P2 | medium | feasible | **Row corrected 2026-07-25 — this was never an `<effects>` `.xsq` fragment.** Desktop `xLightsFrame::ExportEffects` (`src-ui-wx/import_export/ExportEffects.cpp:347`) writes a **CSV**: one row per effect (name, start, end, duration, description, element, element type, files), then an effect-count line, a per-effect-type usage summary, and the list of media files referenced. The iPad shipped exactly that in the EFX-1 wave via the shared wx-free `src-core/import_export/ExportEffectsReport.cpp` — the same report, so this was already at parity and the row was mis-describing the desktop feature rather than tracking a real gap. |
 | Export Models report (`.xlsx`) | menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `ExportModels` (libxlsxwriter). iPad `exportModelsReport(toPath:)` from Layout Editor; desktop File → Export Models. |
 | Export single timing track (`.xtiming`) | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop RowHeading "Export" (pgo too); iPad `exportTimingTrack(atRow:toPath:)`. |
 | Export multiple timing tracks in one `.xtiming` (`<timings>`) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop SelectTimingsDialog multi-export; iPad `exportTimingTracks(atRows:toPath:)` ("Export Multiple Tracks"). |
@@ -183,11 +183,10 @@
   allows `.hlsIdata` in the picker. **Follow-up:** the *desktop* `ImportHLS` still
   uses its own wx parser — unify it onto the new core reader.
 
-- **Export Effects to file.** Desktop Tools → Export Effects
-  (`src-ui-wx/import_export/ExportEffects.cpp`, handler `xLightsMain.cpp:5790`)
-  writes selected/all effects as an `<effects>` `.xsq` fragment for
-  re-import elsewhere. iPad needs a Tools entry + `XLSequenceDocument`
-  exporter wrapping the existing core. Ease: medium.
+- **Export Effects to file.** ✅ **Already at parity** — and the earlier
+  description here was wrong: desktop's `ExportEffects` writes a **CSV
+  usage report**, not an `<effects>` `.xsq` fragment. The iPad shipped the
+  same report in the EFX-1 wave via core `ExportEffectsReport`.
 
 - **Per-model Video export.** ✅ **Landed.** Row-heading submenu
   "Export Model as Video ▸" (Compressed .mp4 / High Quality .mp4 /

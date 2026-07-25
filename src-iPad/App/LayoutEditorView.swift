@@ -334,6 +334,12 @@ struct LayoutEditorView: View {
 
     /// J-7 (group CRUD) — sheet visibility flags + targets.
     @State private var newGroupSheetVisible: Bool = false
+    // Model Sets — "Link as Set…" name prompt.
+    @State private var newSetSheetVisible: Bool = false
+    @State private var newSetName: String = ""
+    @State private var renameSetSheetVisible: Bool = false
+    @State private var renameSetOldName: String = ""
+
     @State private var addMemberSheetVisible: Bool = false
     // LAY-11 — "Add selection to existing group(s)": the models captured from
     // the multi-selection and the groups the user checks in the chooser sheet.
@@ -3369,11 +3375,24 @@ struct LayoutEditorView: View {
                         onDuplicate: { performDuplicate(of: Array(viewModel.layoutEditorSelection)) },
                         onGroup: { newGroupFromSelectionPrompt() },
                         onAddToGroup: { addSelectionToGroupPrompt() },
+                        setNames: modelSetNames(),
+                        selectionSetName: selectionModelSetName(),
+                        onLinkAsSet: { linkSelectionAsSetPrompt() },
+                        onAddToSet: { addSelectionToSet($0) },
+                        onUnlinkFromSet: { unlinkSelectionFromSet() },
+                        onRenameSet: { renameSelectionSetPrompt() },
+                        onDeleteSet: { deleteSelectionSet() },
                         onClear: {
                             viewModel.layoutEditorSelection.removeAll()
                             viewModel.layoutEditorSelectedModel = nil
                         })
                         .padding(.top, 12)
+                        .modifier(LinkAsSetAlert(isPresented: $newSetSheetVisible,
+                                                  name: $newSetName,
+                                                  onLink: { commitLinkSelectionAsSet() }))
+                        .modifier(RenameSetAlert(isPresented: $renameSetSheetVisible,
+                                                  name: $newSetName,
+                                                  onRename: { commitRenameSelectionSet() }))
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
@@ -4500,6 +4519,95 @@ struct LayoutEditorView: View {
         guard !viewModel.layoutEditorSelection.isEmpty else { return }
         pendingGroupFromSelection = Array(viewModel.layoutEditorSelection)
         newGroupSheetVisible = true
+    }
+
+    // MARK: - Model Sets (desktop #3703)
+
+    private func modelSetNames() -> [String] {
+        _ = summaryToken
+        return viewModel.document.modelSets()
+            .compactMap { $0["name"] as? String }
+    }
+
+    /// The Set the whole selection sits in, or nil when the selection is
+    /// loose or spans more than one Set — the same "is this one Set?"
+    /// question desktop asks before offering Unlink.
+    private func selectionModelSetName() -> String? {
+        _ = summaryToken
+        let names = Set(viewModel.layoutEditorSelection.compactMap {
+            viewModel.document.modelSetNameContainingModel($0)
+        })
+        guard names.count == 1,
+              names.first != nil,
+              viewModel.layoutEditorSelection.allSatisfy({
+                  viewModel.document.modelSetNameContainingModel($0) != nil
+              }) else { return nil }
+        return names.first
+    }
+
+    private func linkSelectionAsSetPrompt() {
+        guard viewModel.layoutEditorSelection.count >= 2 else { return }
+        newSetName = viewModel.document.suggestedModelSetName()
+        newSetSheetVisible = true
+    }
+
+    private func commitLinkSelectionAsSet() {
+        let name = newSetName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let members = Array(viewModel.layoutEditorSelection)
+        guard members.count >= 2 else { return }
+        guard viewModel.document.createModelSet(withModels: members, named: name) != nil else {
+            saveErrorMessage = "Couldn't create the Set — it needs at least two models, and groups or submodels can't be members."
+            return
+        }
+        afterModelSetChange()
+    }
+
+    private func addSelectionToSet(_ setName: String) {
+        for name in viewModel.layoutEditorSelection {
+            _ = viewModel.document.addModel(name, toModelSet: setName)
+        }
+        afterModelSetChange()
+    }
+
+    private func renameSelectionSetPrompt() {
+        guard let current = selectionModelSetName() else { return }
+        renameSetOldName = current
+        newSetName = current
+        renameSetSheetVisible = true
+    }
+
+    private func commitRenameSelectionSet() {
+        let name = newSetName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty, !renameSetOldName.isEmpty, name != renameSetOldName else { return }
+        guard viewModel.document.renameModelSet(renameSetOldName, to: name) else {
+            saveErrorMessage = "Couldn't rename the Set — a Set named “\(name)” already exists."
+            return
+        }
+        afterModelSetChange()
+    }
+
+    /// Deletes the link, not the models — matches desktop, where Delete on
+    /// a Set only dissolves the association.
+    private func deleteSelectionSet() {
+        guard let current = selectionModelSetName() else { return }
+        _ = viewModel.document.deleteModelSet(current)
+        afterModelSetChange()
+    }
+
+    private func unlinkSelectionFromSet() {
+        for name in viewModel.layoutEditorSelection {
+            _ = viewModel.document.removeModel(fromItsSet: name)
+        }
+        afterModelSetChange()
+    }
+
+    /// Sets live in `xlights_rgbeffects.xml`, not in a model's own node,
+    /// so nothing in the per-model dirty tracking notices the edit — write
+    /// it out straight away rather than leaving it staged behind a Save
+    /// button that looks idle.
+    private func afterModelSetChange() {
+        saveLayoutChanges()
+        summaryToken &+= 1
     }
 
     private func saveLayoutChanges() {
@@ -13636,6 +13744,38 @@ private struct ReplaceModelSheet: View {
     }
 }
 
+// Model Sets — "Link as Set…" name prompt, factored into a modifier so
+// the editor's already-large view chain stays type-checkable.
+private struct LinkAsSetAlert: ViewModifier {
+    @Binding var isPresented: Bool
+    @Binding var name: String
+    let onLink: () -> Void
+
+    func body(content: Content) -> some View {
+        content.alert("Link as Set", isPresented: $isPresented) {
+            TextField("Set name", text: $name)
+            Button("Link") { onLink() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Linked models move together — drag any one and the whole Set translates by the same amount. Geometry, properties and group membership are untouched.")
+        }
+    }
+}
+
+private struct RenameSetAlert: ViewModifier {
+    @Binding var isPresented: Bool
+    @Binding var name: String
+    let onRename: () -> Void
+
+    func body(content: Content) -> some View {
+        content.alert("Rename Set", isPresented: $isPresented) {
+            TextField("Set name", text: $name)
+            Button("Rename") { onRename() }
+            Button("Cancel", role: .cancel) { }
+        }
+    }
+}
+
 private struct MultiSelectActionBar: View {
     let selection: Set<String>
     let leader: String?
@@ -13647,6 +13787,17 @@ private struct MultiSelectActionBar: View {
     let onDuplicate: () -> Void
     let onGroup: () -> Void
     let onAddToGroup: () -> Void
+    /// Model Sets (desktop #3703) — nil-safe closures supplied by the
+    /// editor; `setNames` is every existing Set so "Add to Set" can list
+    /// them, and `selectionSetName` is the Set the selection already sits
+    /// in (nil / mixed → nil).
+    let setNames: [String]
+    let selectionSetName: String?
+    let onLinkAsSet: () -> Void
+    let onAddToSet: (String) -> Void
+    let onUnlinkFromSet: () -> Void
+    let onRenameSet: () -> Void
+    let onDeleteSet: () -> Void
     let onClear: () -> Void
 
     private var canDistribute: Bool { selection.count >= 3 }
@@ -13765,6 +13916,46 @@ private struct MultiSelectActionBar: View {
                 }
             } label: {
                 Label("Group", systemImage: "square.stack.3d.up")
+                    .font(.caption.weight(.medium))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.white)
+
+            // Model Sets — translation-only links. Distinct from Groups,
+            // which route effects; a Set just makes props move together.
+            Menu {
+                Button {
+                    onLinkAsSet()
+                } label: {
+                    Label("Link as Set…", systemImage: "link")
+                }
+                if !setNames.isEmpty {
+                    Menu("Add to Set") {
+                        ForEach(setNames, id: \.self) { name in
+                            Button(name) { onAddToSet(name) }
+                        }
+                    }
+                }
+                if selectionSetName != nil {
+                    Button {
+                        onUnlinkFromSet()
+                    } label: {
+                        Label("Remove from Set", systemImage: "link.badge.plus")
+                    }
+                    Divider()
+                    Button {
+                        onRenameSet()
+                    } label: {
+                        Label("Rename Set…", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        onDeleteSet()
+                    } label: {
+                        Label("Delete Set", systemImage: "trash")
+                    }
+                }
+            } label: {
+                Label(selectionSetName ?? "Set", systemImage: "link")
                     .font(.caption.weight(.medium))
             }
             .buttonStyle(.plain)

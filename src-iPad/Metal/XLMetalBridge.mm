@@ -106,6 +106,10 @@
     glm::vec3 _bodyDrag3DPlaneNormal;
     ModelScreenLocation::MSLPLANE _bodyDrag3DPlane;
     std::string _bodyDrag3DModelName;
+    // Model Sets: peers latched at drag start with their own start
+    // centres, so each frame can place them at (start + primary delta)
+    // rather than accumulating per-frame error.
+    std::vector<std::pair<std::string, glm::vec3>> _bodyDrag3DSetPeers;
     // J-2 UX — pinch-on-model = uniform scale.
     BOOL _pinchScaleActive;
     glm::vec3 _pinchScaleSavedScale;
@@ -491,6 +495,56 @@ static iPadRenderContext* ContextFromDoc(XLSequenceDocument* doc) {
     if (!doc) return nullptr;
     return static_cast<iPadRenderContext*>([doc renderContext]);
 }
+
+// Model Sets (desktop #3703) — dragging any member translates every
+// member by the same delta.
+namespace {
+
+/// The other members of `modelName`'s Set. Empty when it's in no Set.
+/// `outFrozen` is set when *any* member is locked: desktop freezes the
+/// whole Set in that case rather than letting it deform
+/// (`LayoutPanel.cpp` `ModelSetHasLockedMember`), so the drag is
+/// refused outright.
+std::vector<Model*> ModelSetPeers(iPadRenderContext* rctx,
+                                   const std::string& modelName,
+                                   bool& outFrozen) {
+    outFrozen = false;
+    std::vector<Model*> peers;
+    if (!rctx || !rctx->HasModelManager()) return peers;
+    auto& mgr = rctx->GetModelManager();
+    ModelSet* s = mgr.GetSetManager().GetSetContaining(modelName);
+    if (!s) return peers;
+    for (const auto& n : s->GetMembers()) {
+        Model* m = mgr[n];
+        if (!m) continue;
+        if (m->IsLocked()) {
+            outFrozen = true;
+            return {};
+        }
+        if (n != modelName) peers.push_back(m);
+    }
+    return peers;
+}
+
+/// Apply an already-computed world delta to the Set peers. The delta is
+/// taken from what the *primary* model actually ended up moving, so grid
+/// snapping and axis locks carry across the Set rigidly instead of each
+/// member snapping independently and pulling the arrangement apart.
+void TranslateModelSetPeers(iPadRenderContext* rctx,
+                             const std::vector<Model*>& peers,
+                             float dh, float dv, float dd) {
+    for (Model* p : peers) {
+        auto& ploc = p->GetModelScreenLocation();
+        ploc.SetHcenterPos(ploc.GetHcenterPos() + dh);
+        ploc.SetVcenterPos(ploc.GetVcenterPos() + dv);
+        if (dd != 0.0f) {
+            ploc.SetDcenterPos(ploc.GetDcenterPos() + dd);
+        }
+        rctx->MarkLayoutModelDirty(p->GetName());
+    }
+}
+
+} // namespace
 
 - (NSArray<NSString*>*)viewpointNamesForDocument:(XLSequenceDocument*)doc {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
@@ -1169,7 +1223,8 @@ namespace {
 // Translate `model` so the named edge / centre matches `target`.
 // Returns true if the move actually shifted anything (so the
 // caller can avoid marking pristine models dirty).
-bool ApplyAlign(Model* model, const std::string& edge, float target) {
+bool ApplyAlign(Model* model, const std::string& edge, float target,
+                 float* outDH = nullptr, float* outDV = nullptr, float* outDD = nullptr) {
     auto& loc = model->GetModelScreenLocation();
     if (loc.IsLocked()) return false;
     if (model->IsFromBase()) return false;
@@ -1191,6 +1246,9 @@ bool ApplyAlign(Model* model, const std::string& edge, float target) {
     if (isH) loc.SetHcenterPos(loc.GetHcenterPos() + delta);
     if (isV) loc.SetVcenterPos(loc.GetVcenterPos() + delta);
     if (isD) loc.SetDcenterPos(loc.GetDcenterPos() + delta);
+    if (outDH) *outDH = isH ? delta : 0.0f;
+    if (outDV) *outDV = isV ? delta : 0.0f;
+    if (outDD) *outDD = isD ? delta : 0.0f;
     return true;
 }
 
@@ -1236,15 +1294,38 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     }
     rctx->AbortRender(5000);
     BOOL anyMoved = NO;
+    // Model Sets: the first aligned member of a Set drags the whole Set by
+    // its own delta and later members are skipped, so aligning a
+    // selection that spans a Set moves the arrangement instead of
+    // flattening it (desktop `LayoutPanel::AlignSetAware`). A Set with a
+    // locked member is frozen and contributes nothing.
+    std::set<std::string> doneSets;
     for (NSString* n in names) {
         if (n.length == 0) continue;
         const std::string nm = n.UTF8String;
         if (!isGround && nm == leaderStd) continue;
         Model* m = rctx->GetModelManager()[nm];
         if (!m) continue;
-        if (ApplyAlign(m, edgeStr, target)) {
+
+        bool setFrozen = false;
+        std::vector<Model*> peers = ModelSetPeers(rctx, nm, setFrozen);
+        if (setFrozen) continue;
+        std::string setName;
+        if (!peers.empty()) {
+            if (auto* ms = rctx->GetModelManager().GetSetManager().GetSetContaining(nm)) {
+                setName = ms->GetName();
+            }
+            if (doneSets.count(setName) != 0) continue;
+        }
+
+        float dh = 0.0f, dv = 0.0f, dd = 0.0f;
+        if (ApplyAlign(m, edgeStr, target, &dh, &dv, &dd)) {
             rctx->MarkLayoutModelDirty(nm);
             anyMoved = YES;
+            if (!peers.empty()) {
+                doneSets.insert(setName);
+                TranslateModelSetPeers(rctx, peers, dh, dv, dd);
+            }
         }
     }
     return anyMoved;
@@ -1265,9 +1346,15 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     else return NO;
 
     // Collect editable models with their centre on the chosen axis.
-    struct Entry { Model* m; std::string name; float pos; };
+    // Model Sets: a Set contributes a single entry (its first-seen
+    // member) and translates rigidly, so distributing across a selection
+    // that spans a Set spaces the Set as one prop rather than tearing its
+    // members apart. A Set holding a locked model is frozen and is left
+    // out of the spacing entirely.
+    struct Entry { Model* m; std::string name; float pos; std::vector<Model*> peers; };
     std::vector<Entry> entries;
     entries.reserve(names.count);
+    std::set<std::string> seenSets;
     for (NSString* n in names) {
         if (n.length == 0) continue;
         const std::string nm = n.UTF8String;
@@ -1275,13 +1362,25 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         if (!m) continue;
         auto& loc = m->GetModelScreenLocation();
         if (loc.IsLocked() || m->IsFromBase()) continue;
+
+        bool setFrozen = false;
+        std::vector<Model*> peers = ModelSetPeers(rctx, nm, setFrozen);
+        if (setFrozen) continue;
+        if (!peers.empty()) {
+            std::string setName;
+            if (auto* ms = rctx->GetModelManager().GetSetManager().GetSetContaining(nm)) {
+                setName = ms->GetName();
+            }
+            if (!seenSets.insert(setName).second) continue;
+        }
+
         float pos = 0.0f;
         switch (which) {
             case A::H: pos = loc.GetHcenterPos(); break;
             case A::V: pos = loc.GetVcenterPos(); break;
             case A::D: pos = loc.GetDcenterPos(); break;
         }
-        entries.push_back({m, nm, pos});
+        entries.push_back({m, nm, pos, std::move(peers)});
     }
     if (entries.size() < 3) return NO;
     std::sort(entries.begin(), entries.end(),
@@ -1302,6 +1401,10 @@ float ReadAlignReference(Model* model, const std::string& edge) {
             case A::D: loc.SetDcenterPos(loc.GetDcenterPos() + delta); break;
         }
         rctx->MarkLayoutModelDirty(entries[i].name);
+        TranslateModelSetPeers(rctx, entries[i].peers,
+                                which == A::H ? delta : 0.0f,
+                                which == A::V ? delta : 0.0f,
+                                which == A::D ? delta : 0.0f);
         anyMoved = YES;
     }
     return anyMoved;
@@ -2130,10 +2233,17 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     if (!rctx) return NO;
     if (_preview->Is3D()) return NO;
 
-    Model* m = rctx->GetModelManager()[std::string([name UTF8String])];
+    const std::string modelName([name UTF8String]);
+    Model* m = rctx->GetModelManager()[modelName];
     if (!m) return NO;
     auto& loc = m->GetModelScreenLocation();
     if (loc.IsLocked()) return NO;
+
+    // Model Sets: refuse the drag outright when the Set is frozen by a
+    // locked member, otherwise collect the peers to carry along.
+    bool setFrozen = false;
+    std::vector<Model*> setPeers = ModelSetPeers(rctx, modelName, setFrozen);
+    if (setFrozen) return NO;
 
     rctx->AbortRender(5000);
     int canvasW = _canvas->getWidth();
@@ -2179,9 +2289,13 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         newV = std::round(newV / spacing) * spacing;
     }
 
+    const float appliedDH = newH - loc.GetHcenterPos();
+    const float appliedDV = newV - loc.GetVcenterPos();
+
     m->SetHcenterPos(newH);
     m->SetVcenterPos(newV);
-    rctx->MarkLayoutModelDirty(std::string([name UTF8String]));
+    rctx->MarkLayoutModelDirty(modelName);
+    TranslateModelSetPeers(rctx, setPeers, appliedDH, appliedDV, 0.0f);
     return YES;
 }
 
@@ -2233,6 +2347,19 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         // a delta. Fall back to camera orbit by reporting failure.
         return NO;
     }
+    // Model Sets: a Set frozen by a locked member refuses the drag, the
+    // same as desktop.
+    bool setFrozen = false;
+    auto peers = ModelSetPeers(rctx, std::string(name.UTF8String), setFrozen);
+    if (setFrozen) return NO;
+    _bodyDrag3DSetPeers.clear();
+    for (Model* p : peers) {
+        auto& ploc = p->GetModelScreenLocation();
+        _bodyDrag3DSetPeers.emplace_back(
+            p->GetName(),
+            glm::vec3(ploc.GetHcenterPos(), ploc.GetVcenterPos(), ploc.GetDcenterPos()));
+    }
+
     _bodyDrag3DActive       = YES;
     _bodyDrag3DSavedCenter  = center;
     _bodyDrag3DAnchor       = hit;
@@ -2315,6 +2442,19 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         rctx->MarkLayoutViewObjectDirty(_bodyDrag3DModelName);
     } else {
         rctx->MarkLayoutModelDirty(_bodyDrag3DModelName);
+        // Place each Set peer at its own start centre plus the delta the
+        // primary actually took (post snap / axis lock), so the Set keeps
+        // its shape.
+        const glm::vec3 applied = newCenter - _bodyDrag3DSavedCenter;
+        for (const auto& [peerName, peerStart] : _bodyDrag3DSetPeers) {
+            Model* p = rctx->GetModelManager()[peerName];
+            if (!p) continue;
+            auto& ploc = p->GetModelScreenLocation();
+            ploc.SetHcenterPos(peerStart.x + applied.x);
+            ploc.SetVcenterPos(peerStart.y + applied.y);
+            ploc.SetDcenterPos(peerStart.z + applied.z);
+            rctx->MarkLayoutModelDirty(peerName);
+        }
     }
     return YES;
 }
@@ -2323,6 +2463,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     _bodyDrag3DActive = NO;
     _bodyDrag3DModelName.clear();
     _bodyDrag3DTargetIsVO = NO;
+    _bodyDrag3DSetPeers.clear();
 }
 
 - (BOOL)setHoveredHandleAtScreenPoint:(CGPoint)point

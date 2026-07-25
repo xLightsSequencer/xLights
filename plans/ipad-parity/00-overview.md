@@ -27,8 +27,8 @@
 | Metric | Count |
 |---|--:|
 | Features audited | 1,250 |
-| **At parity** (both platforms) | 901 (**~72%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 182 |
+| **At parity** (both platforms) | 903 (**~72%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 180 |
 | **iPad-weaker** (partial on iPad) | 70 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
@@ -78,16 +78,16 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 74 | 89% | 2 | 3 | 4 | 3 |
 | 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 83 | 92% | 0 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
-| 06 | [Layout: Models](06-layout-models-preview.md) | 147 | 112 | 76% | 13 | 15 | 7 | 4 |
+| 06 | [Layout: Models](06-layout-models-preview.md) | 147 | 113 | 77% | 12 | 15 | 7 | 4 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 97 | 74 | 76% | 14 | 5 | 3 | 11 |
-| 08 | [Import & Export](08-import-export.md) | 75 | 58 | 77% | 11 | 6 | 0 | 1 |
+| 08 | [Import & Export](08-import-export.md) | 75 | 59 | 79% | 10 | 6 | 0 | 1 |
 | 09 | [Render & Playback](09-render-playback.md) | 61 | 51 | 84% | 4 | 2 | 1 | 3 |
 | 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 89 | 69 | 78% | 12 | 7 | 0 | 8 |
 | 11 | [Preferences](11-preferences-settings.md) | 136 | 56 | 41% | 68 | 10 | 1 | 22 |
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 51 | 34 | 67% | 13 | 3 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,250** | **901** | **~72%** | **182** | **70** | **≈92** | **91** |
+| — | **Total** | **1,250** | **903** | **~72%** | **180** | **70** | **≈92** | **91** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -265,6 +265,23 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 > `PromptForShowDirectory` sanity heuristic on any picked folder). Theme 04 is
 > now the first theme with **zero** iPad-missing rows.
 
+> **Landed (2026-07-25, third batch): Model Sets (theme 06).** Desktop
+> #3703 — props linked into a named Set that translates rigidly. The
+> headline here is a **data-coherence fix**: `ModelSet`/`ModelSetManager`
+> are shared `src-core/` code, but the `<modelSets>` load and save both
+> lived in desktop-only `TabSequence.cpp`, so the iPad never populated the
+> manager — and the rename/delete coherence hooks inside core
+> `ModelManager::Rename`/`Delete` therefore never ran. Renaming or deleting
+> a member on iPad silently left the desktop user's Set pointing at a name
+> that no longer existed. Load + save are now wired, with bridge CRUD, a
+> **Set** menu on the multi-select action bar, and rigid translation on the
+> 2D drag, the 3D body drag, Align and Distribute (frozen-when-a-member-is-
+> locked, matching desktop). Separately, theme 08's "Export Effects to file"
+> row was **corrected, not built**: desktop's `ExportEffects` writes a CSV
+> usage report, not an `<effects>` `.xsq` fragment, and the iPad has shipped
+> that same report since the EFX-1 wave — the row was mis-describing the
+> desktop feature.
+
 ### Deferred — AC toolbar cluster (decision 2026-06-11)
 
 The entire **AC / Auto-Color toolbar** (Select / Off / On / Shimmer / Twinkle /
@@ -298,14 +315,12 @@ are declined.)
 
 | Feature | Theme | Ease | Feasibility | Notes |
 |---|---|---|---|---|
-| **Model Sets (link props so they move as one)** | 06 | medium | feasible | From the audit. Desktop #3703 plus rigid Align/Distribute. Previously only a prose note in theme 06 with no scorecard row. |
 | Playback volume *(weaker)* | 03 | easy | feasible | Functionally equivalent; iPad lacks the named radio presets (cosmetic). |
 | View toolbar (panel toggles) *(weaker)* | 10 | easy | feasible | Preview/inspector toggles covered. |
 | Preview delete | 06 | medium | feasible | Desktop ID_PREVIEW_DELETE_ACTIVE. No iPad delete-layout-group bridge. |
 | Preview rename | 06 | medium | feasible | Desktop ID_PREVIEW_RENAME_ACTIVE. No iPad rename-layout-group bridge. |
 | Import Effects from LOR Pixel Editor .lpe | 08 | medium | feasible | wx-bound parser; needs core extraction + bridge. |
 | Import Effects from HLS .hlsIdata | 08 | medium | feasible | wx-bound; low frequency. |
-| Export Effects to file (<effects> .xsq fragment) | 08 | medium | feasible | Core exists; needs Tools entry + XLSequenceDocument exporter. |
 | Import vendor model / vendor music (online catalog) *(weaker)* | 08 | medium | feasible | Model browser present on iPad; verify music-download breadth matches desktop. |
 | Apply mode: Relative vs Using Layers | 10 | medium | feasible | Desktop passes _layerMode to ApplyEffectsPreset; iPad applyPreset has no layer-mode arg surfaced. |
 | File toolbar (Open/New/Save/SaveAs/RenderAll) *(weaker)* | 10 | medium | feasible | Equivalent via native idiom. |

@@ -1457,6 +1457,47 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)renameModel:(NSString*)oldName
                  to:(NSString*)newName;
 
+// MARK: - Model Sets (desktop #3703)
+//
+// A Model Set is a persistent, name-based link that constrains
+// *translation only*: drag any member and every member moves by the
+// same delta. Geometry, properties, effects and Model Group membership
+// are untouched, and a model belongs to at most one Set. Storage is the
+// shared wx-free `ModelSetManager` hanging off `ModelManager`, persisted
+// as `<modelSets>` in `xlights_rgbeffects.xml`, so Sets round-trip
+// between the two apps. Rename / delete coherence is handled inside
+// core `ModelManager::Rename` / `Delete`.
+
+/// Every Set as `{"name": NSString, "models": NSArray<NSString*>}`,
+/// in declaration order.
+- (NSArray<NSDictionary*>*)modelSets;
+
+/// The Set the named model belongs to, or nil when it's in none.
+- (nullable NSString*)modelSetNameContainingModel:(NSString*)modelName;
+
+/// Every member of the Set containing `modelName`, including it.
+/// Empty when the model is in no Set — the drag path's "is this a Set
+/// move?" test.
+- (NSArray<NSString*>*)modelsInSetContainingModel:(NSString*)modelName;
+
+/// Create a Set over `modelNames`. `suggestedName` may be empty for an
+/// auto-generated "Set N". Returns the created Set's name (which may be
+/// uniquified) or nil — a Set needs at least two members, and members
+/// already in another Set are moved across (dissolving that Set if it
+/// drops below two).
+- (nullable NSString*)createModelSetWithModels:(NSArray<NSString*>*)modelNames
+                                          named:(NSString*)suggestedName;
+
+/// Name to pre-fill a "new Set" prompt with.
+- (NSString*)suggestedModelSetName;
+
+- (BOOL)renameModelSet:(NSString*)oldName to:(NSString*)newName;
+- (BOOL)deleteModelSet:(NSString*)setName;
+- (BOOL)addModel:(NSString*)modelName toModelSet:(NSString*)setName;
+/// Drop the model from whatever Set holds it. Returns YES if it was in
+/// one (the Set dissolves automatically if that leaves it under two).
+- (BOOL)removeModelFromItsSet:(NSString*)modelName;
+
 // J-18 pass 2 — wholesale-replace this model's alias list with
 // `aliases`. Strings are trimmed + lowercased + de-duped on the
 // way through (matches `Model::SetAliases` semantics). The
