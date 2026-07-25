@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.14  July ??, 2026
+    -bug (dkulp)                 Moving Head effect: fixed a crash painting the Dimmer panel. It kept a raw
+                                 pointer to the active timing track, which is freed when the sequence is
+                                 closed or reopened; it now resolves the timing track on each paint
+    -bug (dkulp)                 Moving Head effect: clicking the Dimmer panel to the right of the last
+                                 handle left the active handle one past the end of the handle list, so the
+                                 paint and drag handlers read and wrote off the end of it
     -bug (dkulp)                 Windows hardware video decode: the "FFmpeg auto" setting never engaged on
                                  non-NVIDIA machines. It picked the first decoder FFmpeg recognised rather
                                  than the first that works, so a build with CUDA compiled in always chose

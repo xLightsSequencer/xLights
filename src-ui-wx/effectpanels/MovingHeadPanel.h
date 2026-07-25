@@ -439,6 +439,7 @@ public:
     void NotifyPositionUpdated() override;
     void NotifyColorUpdated() override;
     void NotifyDimmerUpdated() override;
+    const Element* GetDimmerTimingTrack() const override;
 
 private:
     bool canContinuePath() const;

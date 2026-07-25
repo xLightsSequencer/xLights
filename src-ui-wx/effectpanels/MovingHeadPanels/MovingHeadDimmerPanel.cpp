@@ -96,14 +96,15 @@ void MovingHeadDimmerPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,1.0f)), NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)));
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)), NormalizedToUI2(wxPoint2DDouble(0.0f,0.0f)));
 
-    // endTimeMs_ defaults to startTimeMs_ (both 0) and SetTimingTrack() can run
-    // without SetEffectTimeRange(), so the divisor below can be zero. A zero
-    // window would make xpos NaN; (int)NaN yields garbage coords that crash
-    // wxDC::DrawLine (Windows GDI access violation). Skip the markers instead.
-    if (timingTrack_ != nullptr && endTimeMs_ > startTimeMs_) {
+    // endTimeMs_ defaults to startTimeMs_ (both 0), so the divisor below can be
+    // zero. A zero window would make xpos NaN; (int)NaN yields garbage coords
+    // that crash wxDC::DrawLine (Windows GDI access violation). Skip the markers
+    // instead.
+    const Element* timingTrack = m_MovingHeadDimmerParent->GetDimmerTimingTrack();
+    if (timingTrack != nullptr && endTimeMs_ > startTimeMs_) {
         pdc.SetPen(*wxBLUE_PEN);
-        if (timingTrack_->GetEffectLayerCount() > 0 ) {
-            EffectLayer* el = timingTrack_->GetEffectLayer(0);
+        if (timingTrack->GetEffectLayerCount() > 0 ) {
+            EffectLayer* el = timingTrack->GetEffectLayer(0);
             for (int i = 0; i < el->GetEffectCount(); i++) {
                 Effect* e = el->GetEffect(i);
                 if (e->GetStartTimeMS() >= startTimeMs_ && e->GetStartTimeMS() <= endTimeMs_) {
@@ -148,7 +149,7 @@ void MovingHeadDimmerPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
         handle++;
     }
 
-    if (active_handle >= 0) {
+    if (active_handle >= 0 && active_handle < (int)m_handles.size()) {
         wxPoint2DDouble pos = m_handles[active_handle];
         pdc.SetPen(*wxRED_PEN);
         wxPoint2DDouble lstart_x(0, pos.m_y);
@@ -264,6 +265,17 @@ void MovingHeadDimmerPanel::OnMovingHeadLeftDown(wxMouseEvent& event)
                     break;
                 }
             }
+            if (active_handle == (int)m_handles.size()) {
+                // Click was to the right of every handle, so the loop found no
+                // insertion point and added nothing. The end handles are pinned to
+                // the edges, so there is nowhere to put a point here — leaving
+                // active_handle at size() makes the paint and drag handlers index
+                // m_handles one past the end (an out-of-bounds write while dragging).
+                active_handle = -1;
+                selected_handle = -1;
+                Refresh();
+                return;
+            }
             m_MovingHeadDimmerParent->NotifyDimmerUpdated();
         }
         if (active_handle != 0 &&
@@ -372,11 +384,6 @@ wxPoint MovingHeadDimmerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
 {
     wxPoint2DDouble pt1 = NormalizedToUI(pt);
     return wxPoint((int)pt1.m_x, (int)pt1.m_y);
-}
-
-void MovingHeadDimmerPanel::SetTimingTrack( const Element* timing )
-{
-    timingTrack_ = timing;
 }
 
 void MovingHeadDimmerPanel::SetEffectTimeRange(int startTimeMs, int endTimeMs)

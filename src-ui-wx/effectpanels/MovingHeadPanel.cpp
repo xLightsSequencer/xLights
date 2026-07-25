@@ -1441,13 +1441,8 @@ void MovingHeadPanel::ValidateWindow()
         }
     }*/
 
-    // Set current timing track in Dimmer window
-    xLightsFrame* xlights = xLightsApp::GetFrame();
-    if (xlights == nullptr) return;
-    Element* active_timing = xlights->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
-    if (active_timing == nullptr) return;
+    // The dimmer window resolves the active timing track itself on each paint
     m_movingHeadDimmerPanel->SetEffectTimeRange(startTimeMs_, endTimeMs_);
-    m_movingHeadDimmerPanel->SetTimingTrack(active_timing);
 
     // Silently re-sync to the next effect's current start position every time this
     // effect is (re)selected, per the "Link" tab's checkbox state.
@@ -2761,6 +2756,15 @@ void MovingHeadPanel::NotifyDimmerUpdated()
 {
     UpdateDimmerSettings();
     FireChangeEvent();
+}
+
+const Element* MovingHeadPanel::GetDimmerTimingTrack() const
+{
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+    if (xlights == nullptr || xlights->GetMainSequencer() == nullptr) {
+        return nullptr;
+    }
+    return xlights->GetMainSequencer()->PanelEffectGrid->GetActiveTimingElement();
 }
 
 void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
