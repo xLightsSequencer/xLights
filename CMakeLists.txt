@@ -283,6 +283,7 @@ file(GLOB_RECURSE SRC_CORE
     src-core/media/StemSeparator.cpp
     src-core/media/TempoDetector.cpp
     src-core/media/FFmpegVideoWriter.cpp
+    src-core/media/VideoDecodeSizeRegistry.cpp
     src-core/media/VideoReader.cpp
     src-core/media/VideoTranscoder.cpp
     src-core/media/VideoWriter.cpp

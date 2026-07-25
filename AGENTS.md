@@ -333,9 +333,11 @@ cmake --build build      # Build
 ```
 
 Top-level `CMakeLists.txt`, primarily used on Windows as an alternative to the
-`.sln`/`.vcxproj` files (out-of-source build dir). Source files are discovered
-via `file(GLOB_RECURSE ...)` — see §5 for when a manual CMakeLists.txt edit is
-needed.
+`.sln`/`.vcxproj` files (out-of-source build dir). This is what the **Windows
+CMake CI job** builds, so a `CMakeLists.txt` source-list gap breaks CI even
+though every local build passes. Source files come from a mix of directory
+globs and file-by-file entries — **adding a new `.cpp` often requires editing
+`CMakeLists.txt` too**; see §5 for which directories need it.
 
 ### wxSmith generated code
 
@@ -369,13 +371,33 @@ Place files in one of:
 | `xLights/xLights.cbp` | `<Unit filename="...">` with path relative to `xLights/` (e.g. `../src-core/render/Foo.cpp`) |
 | `xLights/Xlights.vcxproj` | `<ClCompile>` for `.cpp`, `<ClInclude>` for `.h`, path relative to `xLights/` (e.g. `..\src-core\render\Foo.cpp`) |
 | `xLights/Xlights.vcxproj.filters` | Filter entries for VS folder organization |
+| `CMakeLists.txt` | A `.cpp` line in `SRC_CORE` / `SRC_EFFECTS` / `SRC_UI` **unless** the file's directory is already covered by a `*.cpp` glob — see below |
+
+### CMake: check whether your directory is globbed
+
+`CMakeLists.txt` does **not** glob `src-core/` and `src-ui-wx/` wholesale. The
+source lists mix directory globs with file-by-file entries, so whether a new
+`.cpp` is picked up depends on which directory it lands in:
+
+| Directory | Covered by | New `.cpp` needs a CMake edit? |
+|---|---|---|
+| `src-core/media/`, `src-core/graphics/`, `src-ui-wx/graphics/` | explicit per-file entries | **Yes** — add the file to `SRC_CORE` / `SRC_UI` |
+| `src-core/effects/` | `file(GLOB …)`, **not** `GLOB_RECURSE` | No (but new *subdirectories* need a pattern) |
+| `src-core/models/`, `render/`, `outputs/`, `utils/`, `src-ui-wx/layout/`, `sequencer/`, … | `dir/*.cpp` glob | No |
+| A brand-new directory anywhere | nothing | **Yes** — add a `dir/*.cpp` pattern |
+
+Symptom of getting this wrong: the macOS/Xcode and `.cbp`/`.vcxproj` builds are
+fine, and only the **Windows CMake CI job** fails — at *link* time, with
+`LNK2019: unresolved external symbol` for the new file's functions. Grep the
+glob lists in `CMakeLists.txt` for a sibling file in the same directory: if the
+sibling is listed by name, yours must be too.
 
 ### Auto-discovered (no manual edit needed)
 
 | Platform | Mechanism |
 |---|---|
 | macOS (Xcode) | `PBXFileSystemSynchronizedRootGroup` for `src-core/`, `src-ui-wx/`, `src-iPad/` — files auto-discovered, no pbxproj edit |
-| CMake build | `file(GLOB_RECURSE SRC_UI ...)` / `file(GLOB_RECURSE SRC_CORE ...)` over existing dirs. New files inside the glob patterns are picked up on the next configure. Only files placed **outside** the existing glob patterns need a new `file(GLOB ...)` or `list(APPEND ...)` line. |
+| CMake build | Only for files landing inside an existing `dir/*.cpp` glob pattern (see the table above). |
 
 Windows/Linux builds intentionally don't compile `src-iPad/` — new iPad files
 never need `.cbp`/`.vcxproj` entries.
