@@ -35,11 +35,22 @@ jobs:
       # Tags only: on a workflow_dispatch run GITHUB_REF_NAME is the branch, and
       # this action would cut a stray draft release named after it.  A manual run
       # is just a build check, so it stops here.
+      # This workflow is slower than Ubuntu_Window_Release.yml, so it usually
+      # runs after that one has already published the release.  Every omit*
+      # flag below is required to keep this step purely additive: without them
+      # the action's defaults rewrite the body to empty and flip the published
+      # release back to draft.  `draft: true` still applies when this step is
+      # the one that creates the release, so an early finish can't publish an
+      # empty release ahead of the real one.
       - name: Upload snap to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           draft: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          omitDraftDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
           artifacts: ${{ steps.build.outputs.snap }}
           token: ${{ secrets.GITHUB_TOKEN }}
