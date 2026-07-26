@@ -305,6 +305,16 @@ fallback. The 2×2 matrix (`XL_SERIAL` × `XL_NO_GPU_COMPUTE`) splits a diff int
 CPU-parallel vs GPU sources; serial+noGPU byte-identical ⇒ the scheduler/blend
 chain isn't involved.
 
+**Doing render performance work?** Read
+[`plans/render-benchmarking.md`](plans/render-benchmarking.md) first — it is the
+full guide: every benchmarking/profiling/determinism env var with its real
+meaning, the `XL_RENDER_PROFILE` per-effect timing tables and how to read them
+without drawing the wrong conclusion about GPU effects, frame-parallel telemetry
+(`XL_PARALLEL_WINDOWS` / `XL_PARALLEL_BLOCKERS` / `XL_VERIFY_STATELESS`),
+`--fseqcmp` divergence localisation, and the timing methodology that makes a
+number trustworthy (which metric to quote, why process wall-clock is often the
+wrong one, and how noisy a machine has to be before a result is meaningless).
+
 ### Linux
 
 ```bash
