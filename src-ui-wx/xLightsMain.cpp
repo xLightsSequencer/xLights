@@ -74,6 +74,9 @@
 #include "EffectSymbolDialog.h"
 #include "shared/utils/wxUtilities.h"
 #include "graphics/wxTextDrawingContext.h"
+#ifdef __WXMSW__
+#include "render/D2DTextDrawingContext.h"
+#endif
 #ifdef LINUX
 #include "render/FreeTypeTextDrawingContext.h"
 #endif
@@ -2149,10 +2152,20 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // path requires the main thread).
     FreeTypeTextDrawingContext::Register();
 #else
-    TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
-                                        wxTextDrawingContext::ParseTextFont,
-                                        wxTextDrawingContext::ParseShapeFont);
-    TextDrawingContext::Initialize();
+    bool textBackendRegistered = false;
+#ifdef __WXMSW__
+    // Direct2D + DirectWrite directly. wx's D2D backend cannot clear a surface
+    // and only publishes pixels when the context is destroyed, so it pays a
+    // mutex-serialised context creation per text render; see
+    // D2DTextDrawingContext.h. Falls through to wx if D2D will not start.
+    textBackendRegistered = D2DTextDrawingContext::Register();
+#endif
+    if (!textBackendRegistered) {
+        TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
+                                           wxTextDrawingContext::ParseTextFont,
+                                           wxTextDrawingContext::ParseShapeFont);
+        TextDrawingContext::Initialize();
+    }
 #endif
 
     MenuItem_File_Save->Enable(true);

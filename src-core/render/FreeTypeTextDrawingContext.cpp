@@ -812,98 +812,6 @@ TextDrawingContext* FreeTypeTextDrawingContext::Create(int w, int h, bool aa) {
 //   "bold arial 26 utf-8"     (wxOSX/wxMSW style)
 //   "Arial 12"                (wxGTK/Pango style)
 //   "DejaVu Sans Bold 14"     (wxGTK/Pango style)
-TextFontInfo FreeTypeTextDrawingContext::ParseTextFont(const std::string& fontString) {
-    TextFontInfo info;
-    if (fontString.empty()) return info;
-
-    auto lower = [](const std::string& s) {
-        std::string out = s;
-        for (char& c : out) c = (char)std::tolower((unsigned char)c);
-        return out;
-    };
-
-    std::vector<std::string> parts;
-    std::string current;
-    for (char c : fontString) {
-        if (c == ' ' || c == '\t') {
-            if (!current.empty()) {
-                parts.push_back(current);
-                current.clear();
-            }
-        } else {
-            current += c;
-        }
-    }
-    if (!current.empty()) parts.push_back(current);
-    if (parts.empty()) return info;
-
-    int size = 0;
-    std::vector<std::string> faceParts;
-    for (const std::string& part : parts) {
-        std::string lp = lower(part);
-        if (lp == "bold" || lp == "heavy" || lp == "black" || lp == "extrabold" || lp == "ultrabold" || lp == "demibold") {
-            info.bold = true; continue;
-        }
-        if (lp == "italic" || lp == "oblique") { info.italic = true; continue; }
-        if (lp == "light" || lp == "thin" || lp == "extralight" || lp == "ultralight") {
-            info.light = true; continue;
-        }
-        if (lp == "underlined") { info.underlined = true; continue; }
-        if (lp == "strikethrough") { info.strikethrough = true; continue; }
-        if (lp == "regular" || lp == "normal" || lp == "book" || lp == "medium") continue;
-        if (lp == "condensed" || lp == "semicondensed" || lp == "expanded") continue;
-
-        // Size: accept integer ("12"), decimal ("12.0"), and Pango-style
-        // "12px" / "12pt". Round decimals; treat all units as pixels — text
-        // effects render into pixel-grid buffers, not DPI-scaled surfaces.
-        char* end = nullptr;
-        double val = std::strtod(part.c_str(), &end);
-        if (end != part.c_str() && val > 0) {
-            std::string suffix(end);
-            std::string suffixLower = lower(suffix);
-            if (suffix.empty() || suffixLower == "px" || suffixLower == "pt" || suffixLower == "em") {
-                size = (int)std::lround(val);
-                continue;
-            }
-        }
-
-        // Charset markers like "utf-8", "iso-8859-1", "windows-1252" — contain
-        // a digit and a hyphen. Discard so they don't pollute the face name.
-        bool hasDigit = false, hasHyphen = false;
-        for (char c : part) {
-            if (std::isdigit((unsigned char)c)) hasDigit = true;
-            if (c == '-') hasHyphen = true;
-        }
-        if (hasDigit && hasHyphen) continue;
-
-        faceParts.push_back(part);
-    }
-
-    info.pixelSize = size > 0 ? size : 12;
-
-    std::string faceName;
-    for (size_t i = 0; i < faceParts.size(); i++) {
-        if (i > 0) faceName += " ";
-        faceName += faceParts[i];
-    }
-    info.faceName = faceName.empty() ? "DejaVu Sans" : faceName;
-    info.antiAliased = false;
-
-    return info;
-}
-
-TextFontInfo FreeTypeTextDrawingContext::ParseShapeFont(const std::string& fontString) {
-    TextFontInfo info = ParseTextFont(fontString);
-    info.pixelSize = 12; // shape effect renders emoji at a reference size and scales
-    if (info.faceName == WIN_NATIVE_EMOJI_FONT
-        || info.faceName == OSX_NATIVE_EMOJI_FONT
-        || info.faceName == LINUX_NATIVE_EMOJI_FONT) {
-        info.faceName = NATIVE_EMOJI_FONT;
-    }
-    info.light = true;
-    return info;
-}
-
 void FreeTypeTextDrawingContext::Register() {
     TextDrawingContext::RegisterFactory(&FreeTypeTextDrawingContext::Create,
                                         &FreeTypeTextDrawingContext::ParseTextFont,
@@ -935,8 +843,16 @@ void FreeTypeTextDrawingContext::GetTextExtent(const std::string&, double*, doub
 void FreeTypeTextDrawingContext::GetTextExtents(const std::string&, std::vector<double>&) {}
 void FreeTypeTextDrawingContext::SetOverlayMode(bool) {}
 TextDrawingContext* FreeTypeTextDrawingContext::Create(int, int, bool) { return nullptr; }
-TextFontInfo FreeTypeTextDrawingContext::ParseTextFont(const std::string&) { return {}; }
-TextFontInfo FreeTypeTextDrawingContext::ParseShapeFont(const std::string&) { return {}; }
 void FreeTypeTextDrawingContext::Register() {}
 
 #endif // LINUX
+
+// Parsing needs no FreeType, so it lives outside the LINUX guard and simply
+// defers to the shared toolkit-free implementation.
+TextFontInfo FreeTypeTextDrawingContext::ParseTextFont(const std::string& fontString) {
+    return TextDrawingContext::ParseFontDescriptor(fontString, "DejaVu Sans");
+}
+
+TextFontInfo FreeTypeTextDrawingContext::ParseShapeFont(const std::string& fontString) {
+    return TextDrawingContext::ParseShapeFontDescriptor(fontString, "DejaVu Sans");
+}

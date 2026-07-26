@@ -25,6 +25,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  break-even without a rebuild
     -enh (dkulp)                 Meteors "Implode"/"Explode" render faster: the trail draw runs across
                                  cores again (the other styles already did). Output is unchanged
+    -bug (dkulp)                 Linux/iPad: fixed the font named in a Text or Shape effect being
+                                 ignored when it has a multi-word name (stored quoted, e.g. 'gill sans')
+                                 or was saved with a Mac character set, which fell back to a default font
     -enh (dkulp)                 Text effect renders much faster where the same text repeats: rendered
                                  text is now cached across rows and frames instead of per render buffer,
                                  so it survives the parallel render split (measured up to 4x faster on

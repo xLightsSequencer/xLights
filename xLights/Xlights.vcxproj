@@ -1013,6 +1013,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp" />
     <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
+    <ClCompile Include="..\src-core\render\D2DTextDrawingContext.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
     <ClCompile Include="..\src-core\render\SequenceFaces.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
@@ -1671,6 +1672,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
     <ClInclude Include="..\src-core\render\SequenceFaces.h" />
+    <ClInclude Include="..\src-core\render\D2DTextDrawingContext.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TimeLine.h" />
     <ClInclude Include="..\src-core\render\UndoManager.h" />
