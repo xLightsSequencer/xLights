@@ -273,6 +273,17 @@ pick optimisation targets from.
   loud warning if GPU is on but no GPU time could be attributed.
 - **`gpu` totals can exceed the batch wall.** Command buffers from different rows
   overlap on the GPU. Use it to *rank*, not as a budget.
+- **Per-effect totals under-report whenever frame-parallel is engaged.**
+  `perEffectNs`/`perEffectCount` are only written by the thread carrying
+  `tlsRenderProfile`, which `BeginSliceProfile` sets on the job's slice-owning
+  thread alone — so effect renders that run on frame-pool workers (or nested
+  `parallel_for` workers) are not counted at all. A sequence showing 58106 Text
+  renders serially showed ~25000 with frame-parallel on, for identical output:
+  the difference is accounting, not work. Consequences: never compare a
+  serial per-effect total against a parallel one; when comparing two parallel
+  runs, normalise to **ms per render** rather than the raw total, since the
+  owner's share of frames varies between builds. The row-level stage timers are
+  inclusive of worker time and do not have this problem.
 - Rows named `(gpu blur)`, `(gpu rotozoom)`, `(gpu transition)`, `(gpu blend)`,
   `(gpu map)` are stage work no effect owns.
 - If some GPU time ran on a command buffer shared between an effect and a later
