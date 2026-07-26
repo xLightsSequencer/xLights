@@ -34,12 +34,33 @@
 					</object>
 					<object class="sizeritem">
 						<object class="wxButton" name="ID_BUTTON_OPEN_IN_BROWSER" variable="ButtonOpenInBrower" member="yes">
-							<label>View in Browser</label>
+							<label>Open in Browser</label>
 							<handler function="OnButtonOpenInBrowerClick" entry="EVT_BUTTON" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 						<option>1</option>
+					</object>
+					<object class="sizeritem">
+						<object class="wxSlider" name="ID_SLIDER_ZOOM" variable="SliderZoom" member="yes">
+							<value>100</value>
+							<min>50</min>
+							<max>300</max>
+							<size>180,-1</size>
+							<tooltip>Zoom. Hold Ctrl and use the mouse wheel over the node layout.</tooltip>
+							<handler function="OnSliderZoomCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+					</object>
+					<object class="sizeritem">
+						<object class="wxStaticText" name="ID_STATICTEXT_ZOOM" variable="StaticTextZoom" member="yes">
+							<label>100%</label>
+							<size>50,-1</size>
+							<style>wxALIGN_RIGHT</style>
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
 					</object>
 				</object>
 				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
