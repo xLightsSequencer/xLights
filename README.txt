@@ -25,6 +25,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  break-even without a rebuild
     -enh (dkulp)                 Meteors "Implode"/"Explode" render faster: the trail draw runs across
                                  cores again (the other styles already did). Output is unchanged
+    -enh (dkulp)                 Windows: Text and Shape effects now render through Direct2D/DirectWrite
+                                 directly instead of via wxWidgets, roughly 3.6x faster on text-heavy
+                                 sequences. Text using a font not installed on the machine may pick a
+                                 different substitute than before
     -bug (dkulp)                 Linux/iPad: fixed the font named in a Text or Shape effect being
                                  ignored when it has a multi-word name (stored quoted, e.g. 'gill sans')
                                  or was saved with a Mac character set, which fell back to a default font
