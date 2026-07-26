@@ -949,6 +949,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\outputs\xxxSerialOutput.cpp" />
     <ClCompile Include="..\src-core\outputs\ZCPPOutput.cpp" />
     <ClCompile Include="..\src-core\utils\Parallel.cpp" />
+    <ClCompile Include="..\src-core\utils\RangeWorkPool.cpp" />
     <ClCompile Include="..\src-ui-wx\model\PathGenerationDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\PerspectivesPanel.cpp" />
     <ClCompile Include="..\src-core\lyrics\LRCParser.cpp" />
@@ -1607,6 +1608,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\outputs\ZCPP.h" />
     <ClInclude Include="..\src-core\outputs\ZCPPOutput.h" />
     <ClInclude Include="..\src-core\utils\Parallel.h" />
+    <ClInclude Include="..\src-core\utils\RangeWorkPool.h" />
     <ClInclude Include="..\src-ui-wx\model\PathGenerationDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\PerspectivesPanel.h" />
     <ClInclude Include="..\src-core\lyrics\LRCParser.h" />

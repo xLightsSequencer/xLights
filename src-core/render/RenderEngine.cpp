@@ -46,6 +46,7 @@
 #include "UtilFunctions.h"
 #include "PixelBuffer.h"
 #include "Parallel.h"
+#include "utils/RangeWorkPool.h"
 #include "utils/ExternalHooks.h"
 #include "GPURenderUtils.h"
 #include "RenderProfile.h"
@@ -94,11 +95,40 @@ static const bool xldbgParallelWindows = (getenv("XL_PARALLEL_WINDOWS") != nullp
 static const bool xldbgParallelFrames = (getenv("XL_NO_PARALLEL_FRAMES") == nullptr);
 static const int PAR_FRAME_MAX_CHUNK = 24;
 
-// Window length per row kind, clamped to [2, PAR_FRAME_MAX_CHUNK].  Groups
-// default shorter: their clone buffers are the big whole-house ones (window
-// length × full PixelBufferClass each), and since FrameDone streams per frame
-// a longer window no longer buys downstream latency - it only costs memory
-// and a longer straggler barrier for the row itself.
+// The frame-parallel worker pool.  Workers round-robin over every row's
+// registered frame range, so a row can hold a long window without starving the
+// other rows and no barrier is needed to hand the pool back (see RangeWorkPool).
+// Each row caps its own frame concurrency (parChunkFrames), so pool size is
+// what limits how many ROWS render frames in parallel, not how fast one row
+// can go; one long run of frames is ONE registration rather than one job per
+// frame, so it never wants more threads than there are cores.  Deliberately leaked:
+// the workers are detached and must not become a static-destruction ordering
+// dependency (same reasoning as JobPool.cpp's thread-name map).
+static RangeWorkPool& ParFramePool() {
+    static RangeWorkPool* pool = []() {
+        int c = (int)std::thread::hardware_concurrency() - 1; // 1 thread is the owner
+        const char* e = getenv("XL_PARALLEL_FRAME_WORKERS");
+        if (e != nullptr) {
+            c = (int)strtol(e, nullptr, 10);
+        }
+        return new RangeWorkPool("par_frame_pool", std::max(c, 3));
+    }();
+    return *pool;
+}
+
+// Per row kind, clamped to [2, PAR_FRAME_MAX_CHUNK].  This is no longer a
+// window LENGTH - a window now runs as long as the row's run of parallel-safe
+// frames and upstream allow (see RenderParallelWindow).  It is the row's frame
+// CONCURRENCY, which is what the old fixed window length actually controlled:
+// how many frames of one row render at once, hence how many clone buffers it
+// holds and how much nested parallelism (each frame's own parallel_fors) one
+// row can provoke on the shared pool.  Measured: raising a group row from 8 to
+// 16 concurrent frames costs ~10% more system time on IntoTheUnknown for no
+// wall-clock gain - the frames contend on the default pool rather than adding
+// throughput.  Groups stay lowest: their clone buffers are the big whole-house
+// ones.  The same number also bounds how far ahead of upstream a new window may
+// gate (ParWindowCap) and caps a Snapshottable window, whose serial capture
+// pre-pass runs up front and holds a snapshot per captured frame.
 static int ParChunkEnv(const char* name, int def) {
     const char* e = getenv(name);
     int v = e != nullptr ? (int)strtol(e, nullptr, 10) : def;
@@ -1744,41 +1774,94 @@ public:
         target.merge(local);
     }
 
-    // Grow the clone pool to n entries.  Each entry is a full per-frame render
-    // context: a main-buffer clone plus - for submodel rows (item 03 step 3) -
-    // one EffectLayerInfo+buffer per subModelInfos entry, mirroring the shapes
-    // the ctor built (submodel InitBuffer / strand InitStrandBuffer, same layer
-    // counts).  Returns false if a submodel lookup fails (the caller falls back
-    // to serial rendering for the window).
-    bool EnsureParPool(int n) {
+    // One frame's worth of clone render context - held for the duration of one
+    // frame, then returned to parFreeSlots.  parSlots owns them; the unique_ptr
+    // indirection keeps a ParSlot's address stable as the vector grows, so a
+    // thread rendering into a slot is unaffected by another thread building one.
+    struct ParSlot {
+        std::unique_ptr<PixelBufferClass> buffer;
+        std::unique_ptr<EffectLayerInfo> info;
+        // Per-submodel/strand infos (own buffers), mirroring subModelInfos -
+        // empty for rows without submodels.
+        std::vector<std::unique_ptr<EffectLayerInfo>> subs;
+    };
+
+    // Build one clone slot: a full per-frame render context - a main-buffer
+    // clone plus, for submodel rows (item 03 step 3), one EffectLayerInfo+buffer
+    // per subModelInfos entry, mirroring the shapes the ctor built (submodel
+    // InitBuffer / strand InitStrandBuffer, same layer counts).  Returns null if
+    // a submodel lookup fails (the model changed under us).
+    std::unique_ptr<ParSlot> CreateParSlot() {
         const Model* mdl = mainBuffer->GetModel();
-        while ((int)parBuffers.size() < n) {
-            auto b = std::make_unique<PixelBufferClass>(_ctx);
-            b->InitBuffer(*mdl, numLayers, seqData->FrameTime());
-            std::vector<std::unique_ptr<EffectLayerInfo>> subs;
-            for (const auto& smi : subModelInfos) {
-                auto si = std::make_unique<EffectLayerInfo>(smi->numLayers);
-                si->element = smi->element;
-                si->strand = smi->strand;
-                si->submodel = smi->submodel;
-                si->buffer.reset(new PixelBufferClass(_ctx));
-                if (smi->strand >= 0) {
-                    si->buffer->InitStrandBuffer(*mdl, smi->strand, seqData->FrameTime(), smi->numLayers - 1);
-                } else {
-                    Model* subModel = mdl->GetSubModel(smi->element->GetName());
-                    if (subModel == nullptr) {
-                        return false;
-                    }
-                    si->buffer->InitBuffer(*subModel, smi->numLayers, seqData->FrameTime());
+        auto slot = std::make_unique<ParSlot>();
+        slot->buffer = std::make_unique<PixelBufferClass>(_ctx);
+        slot->buffer->InitBuffer(*mdl, numLayers, seqData->FrameTime());
+        slot->info = std::make_unique<EffectLayerInfo>(numLayers);
+        for (const auto& smi : subModelInfos) {
+            auto si = std::make_unique<EffectLayerInfo>(smi->numLayers);
+            si->element = smi->element;
+            si->strand = smi->strand;
+            si->submodel = smi->submodel;
+            si->buffer.reset(new PixelBufferClass(_ctx));
+            if (smi->strand >= 0) {
+                si->buffer->InitStrandBuffer(*mdl, smi->strand, seqData->FrameTime(), smi->numLayers - 1);
+            } else {
+                Model* subModel = mdl->GetSubModel(smi->element->GetName());
+                if (subModel == nullptr) {
+                    return nullptr;
                 }
-                subs.push_back(std::move(si));
+                si->buffer->InitBuffer(*subModel, smi->numLayers, seqData->FrameTime());
             }
-            parBuffers.push_back(std::move(b));
-            parInfos.push_back(std::make_unique<EffectLayerInfo>(numLayers));
-            parSubInfos.push_back(std::move(subs));
+            slot->subs.push_back(std::move(si));
         }
-        return true;
+        return slot;
     }
+
+    // Claim a slot for the duration of ONE frame, building a new one if the
+    // free list is dry.  The list can only run dry while fewer slots exist than
+    // threads currently inside this row's work item, and that is capped at
+    // parChunkFrames, so a row allocates at most that many slots however long
+    // its windows are - clone memory follows the row's concurrency, not the
+    // length of the run being farmed out.  Creation stays under the lock: it is rare (once per
+    // slot for the row's whole life) and it keeps PixelBufferClass/Model
+    // initialisation for one model single-threaded, as it has always been.
+    // Returns null only if CreateParSlot failed.
+    ParSlot* AcquireParSlot() {
+        std::unique_lock<std::mutex> lock(parSlotLock);
+        if (!parFreeSlots.empty()) {
+            ParSlot* s = parFreeSlots.back();
+            parFreeSlots.pop_back();
+            return s;
+        }
+        auto slot = CreateParSlot();
+        if (slot == nullptr) {
+            return nullptr;
+        }
+        ParSlot* s = slot.get();
+        parSlots.push_back(std::move(slot));
+        return s;
+    }
+
+    void ReleaseParSlot(ParSlot* s) {
+        std::unique_lock<std::mutex> lock(parSlotLock);
+        parFreeSlots.push_back(s);
+    }
+
+    // Returns the slot even if the frame throws - otherwise an effect that
+    // throws every frame would drop a slot each time and the pool would grow
+    // without bound.
+    struct ParSlotHold {
+        RenderJob* job;
+        ParSlot* slot;
+        ParSlotHold(RenderJob* j) : job(j), slot(j->AcquireParSlot()) {}
+        ~ParSlotHold() {
+            if (slot != nullptr) {
+                job->ReleaseParSlot(slot);
+            }
+        }
+        ParSlotHold(const ParSlotHold&) = delete;
+        ParSlotHold& operator=(const ParSlotHold&) = delete;
+    };
 
     // Render frames [a,e] FULLY (produce + blur/transitions + blend/CalcOutput +
     // the seqData write) concurrently, each into its own clone buffer.  Every
@@ -1792,6 +1875,22 @@ public:
     // Each clone's EffectLayerInfo is reset so ProduceFrame re-initialises from
     // scratch (output-invariant for Pure effects).
     //
+    // The frames are registered as ONE range on the round-robin RangeWorkPool
+    // rather than submitted as a parallel_for.  Two consequences shape the rest
+    // of this function: the window no longer has to be short to keep the pool
+    // available to other rows (workers rotate between rows at frame
+    // granularity), and it can GROW while it runs (Extend) instead of ending at
+    // a barrier and being rebuilt.  So the window runs as long as the row's run
+    // of parallel-safe frames and upstream allow, and the two things that used
+    // to be implied by "short window" are now explicit: clone buffers come from
+    // a concurrency-sized free list (AcquireParSlot), and an abort / structural
+    // edit is checked per frame instead of only between windows.
+    //
+    // Returns the last frame rendered - a-1 if none, which happens only when the
+    // window was cut short immediately; the caller resumes there and its
+    // top-of-frame bail handles the abort.  May return MORE than `e` when the
+    // window extended.
+    //
     // hasSnapshot: the window covers >=1 Snapshottable layer.  A Snapshottable
     // effect can't be re-simulated independently per clone (its advance carries
     // frame-to-frame state), so a SERIAL pre-pass first advances the simulation on
@@ -1801,9 +1900,14 @@ public:
     // untouched by the pre-pass (their Render ignores captureSnapshot) and rendered
     // fresh in the parallel pass exactly as before.  Only the draw is parallel; the
     // cheap advance stays serial, so the effect is byte-identical.
-    void RenderParallelWindow(int a, int e, bool hasSnapshot) {
+    int RenderParallelWindow(int a, int e, bool hasSnapshot) {
         int n = e - a + 1;
-        if (!EnsureParPool(n)) {
+        // Build the first slot here, serially, so a submodel-lookup failure is
+        // caught before any frame is farmed out - as the pre-sized clone pool
+        // used to do.
+        if (ParSlot* probe = AcquireParSlot()) {
+            ReleaseParSlot(probe);
+        } else {
             // Clone pool unavailable (a submodel lookup failed - the model
             // changed under us).  The caller already gated upstream through e,
             // so render the window serially on the real buffers and never try
@@ -1818,7 +1922,7 @@ public:
                     FrameDone(f);
                 }
             }
-            return;
+            return e;
         }
         const int nUnits = 1 + (int)subModelInfos.size();
         if (xldbgParallelWindows && nUnits > 1) {
@@ -1903,45 +2007,66 @@ public:
                 }
             }
         }
-        for (int i = 0; i < n; ++i) {
-            parInfos[i]->resetRenderState();
-            for (auto& si : parSubInfos[i]) {
-                si->resetRenderState();
-            }
-        }
         // Streamed completion state.  FrameDone must be exact-once per frame
         // (AggregatorRenderer counts one call per upstream per frame) and in
         // increasing order (done(N) promises every frame <= N is in seqData),
         // hence the contiguous-prefix cursor under a lock rather than emitting
-        // from each worker directly.  parallel_for claims indices in order, so
-        // the prefix advances close behind the workers.  A worker exception
-        // (swallowed by parallel_for) stalls the tail emissions; the next
-        // serial FrameDone / END is monotonic and recovers the watermark.
+        // from each worker directly.  Indices are claimed in order, so the
+        // prefix advances close behind the workers.  A frame that throws (the
+        // pool swallows it) or is skipped by a cut stalls the tail emissions;
+        // the next serial FrameDone / END is monotonic and recovers the
+        // watermark, and the caller resumes from the prefix.
         std::vector<bool> finished(n, false);
         int doneCursor = 0;
         std::mutex doneLock;
         const bool relay = HasNext();
-        static ParallelJobPool PAR_FRAME_POOL("par_frame_pool", PAR_FRAME_MAX_CHUNK);
-        parallel_for(0, n, [this, a, n, hasSnapshot, relay, &snaps, &finished, &doneCursor, &doneLock](int i) {
+        // Set when the window must stop early: an abort or a structural edit
+        // landed, or a clone slot could not be built.  Windows now run long
+        // enough that waiting for the whole window to drain before noticing is
+        // not acceptable.  Already-claimed indices return immediately.
+        std::atomic<bool> cut{ false };
+        // Set by a worker; parEligible is the owner's to write (it is read on
+        // the owner's frame loop without a lock).
+        std::atomic<bool> slotFailed{ false };
+
+        auto renderOne = [&](int i) {
+            if (cut.load(std::memory_order_relaxed)) {
+                return;
+            }
+            if (abort || origChangeCount != rowToRender->getChangeCount()) {
+                cut.store(true, std::memory_order_relaxed);
+                return;
+            }
+            ParSlotHold hold(this);
+            ParSlot* slot = hold.slot;
+            if (slot == nullptr) {
+                slotFailed.store(true, std::memory_order_relaxed);
+                cut.store(true, std::memory_order_relaxed);
+                return;
+            }
             int f = a + i;
+            slot->info->resetRenderState();
+            for (auto& si : slot->subs) {
+                si->resetRenderState();
+            }
             if (hasSnapshot) {
                 for (int l = 0; l < numLayers; ++l) {
-                    if (snaps[0][l][i]) parBuffers[i]->BufferForLayer(l, -1).pendingSnapshot = snaps[0][l][i].get();
+                    if (snaps[0][l][i]) slot->buffer->BufferForLayer(l, -1).pendingSnapshot = snaps[0][l][i].get();
                 }
             }
-            ProduceFrame(f, rowToRender, *parInfos[i], parBuffers[i].get(), -1, supportsModelBlending);
+            ProduceFrame(f, rowToRender, *slot->info, slot->buffer.get(), -1, supportsModelBlending);
             if (hasSnapshot) {
                 for (int l = 0; l < numLayers; ++l) {
-                    parBuffers[i]->BufferForLayer(l, -1).pendingSnapshot = nullptr;
+                    slot->buffer->BufferForLayer(l, -1).pendingSnapshot = nullptr;
                 }
             }
             // Submodel/strand units, in subModelInfos order - the same produce
             // arguments and ordering as ProduceFrameAll on the serial path.
-            if (!parSubInfos[i].empty()) {
-                const bool cleared = parInfos[i]->produceEffectsToUpdate;
+            if (!slot->subs.empty()) {
+                const bool cleared = slot->info->produceEffectsToUpdate;
                 const std::string inh = InheritedDuplicateSourceModel(f);
-                for (size_t u = 0; u < parSubInfos[i].size(); ++u) {
-                    EffectLayerInfo* si = parSubInfos[i][u].get();
+                for (size_t u = 0; u < slot->subs.size(); ++u) {
+                    EffectLayerInfo* si = slot->subs[u].get();
                     if (hasSnapshot) {
                         for (int l = 0; l < si->numLayers; ++l) {
                             if (snaps[u + 1][l][i]) si->buffer->BufferForLayer(l, -1).pendingSnapshot = snaps[u + 1][l][i].get();
@@ -1955,13 +2080,14 @@ public:
                     }
                 }
             }
-            OutputFrame(f, rowToRender, *parInfos[i], parBuffers[i].get(), -1);
-            for (auto& si : parSubInfos[i]) {
+            OutputFrame(f, rowToRender, *slot->info, slot->buffer.get(), -1);
+            for (auto& si : slot->subs) {
                 OutputFrame(f, si->element, *si, si->buffer.get(), si->strand);
             }
+
             std::unique_lock<std::mutex> dl(doneLock);
             finished[i] = true;
-            while (doneCursor < n && finished[doneCursor]) {
+            while (doneCursor < (int)finished.size() && finished[doneCursor]) {
                 int df = a + doneCursor;
                 currentFrame = df; // UI progress advances per frame, not per window
                 if (relay) {
@@ -1969,7 +2095,81 @@ public:
                 }
                 ++doneCursor;
             }
-        }, 1, &PAR_FRAME_POOL, this->name + " - Frames");
+        };
+
+        // The item is live the moment it is registered - workers may be calling
+        // renderOne before Register returns - so everything it captures is
+        // declared above.  RunOwnerShare returns as soon as no index is
+        // unclaimed, which is the moment to try to grow the window: workers are
+        // still draining the tail, so a successful Extend keeps them fed with no
+        // barrier in between.  Snapshot windows do not extend - their frames
+        // need the serial capture pre-pass above, which has already run for
+        // exactly [a,e].
+        auto item = ParFramePool().Register(renderOne, 0, n, parChunkFrames);
+        while (true) {
+            item->RunOwnerShare();
+            if (hasSnapshot || cut.load(std::memory_order_relaxed)) {
+                break;
+            }
+            int e2 = NextParallelWindowEnd(e);
+            if (e2 <= e) {
+                break;
+            }
+            {
+                std::unique_lock<std::mutex> dl(doneLock);
+                finished.resize(e2 - a + 1, false);
+            }
+            e = e2;
+            item->Extend(e - a + 1);
+        }
+        item.reset(); // closes the range and waits for the in-flight tail
+        if (xldbgParallelWindows) {
+            std::unique_lock<std::mutex> lock(parSlotLock);
+            fprintf(stderr, "XL_PARALLEL_WINDOWS WINDOW m='%s' a=%d e=%d (asked %d) done=%d slots=%d\n",
+                    rowToRender->GetModelName().c_str(), a, e, a + n - 1, doneCursor, (int)parSlots.size());
+        }
+        if (slotFailed.load(std::memory_order_relaxed)) {
+            // A submodel lookup failed while building a clone - the model
+            // changed under us.  Never try to parallelise this row again; the
+            // caller resumes at the first unrendered frame and its top-of-frame
+            // bail sets the dirty range.
+            parEligible = false;
+        }
+        return a + doneCursor - 1;
+    }
+
+    // How far a RUNNING window may grow: the largest frame past e that keeps
+    // the run of parallel-safe frames going, never past what upstream has
+    // already delivered (the window is gated as a unit before it starts, so an
+    // extension must not need a gate) and never into a Snapshottable frame
+    // (that needs the serial capture pre-pass).
+    int NextParallelWindowEnd(int e) {
+        if (abort || origChangeCount != rowToRender->getChangeCount()) {
+            return e;
+        }
+        // GetPreviousFrameDone is END_OF_RENDER_FRAME (INT_MAX) for a row with
+        // no upstream, which is the case that gets the whole run in one window.
+        const int cap = (int)std::min<long>((long)endFrame, (long)GetPreviousFrameDone());
+        int e2 = e;
+        while (e2 + 1 <= cap) {
+            bool snap = false;
+            if (!FrameIsParallelSafe(e2 + 1, snap) || snap) {
+                break;
+            }
+            ++e2;
+        }
+        return e2;
+    }
+
+    // Where to stop growing a NEW window.  Long runs are the point - the pool
+    // round-robins over rows at frame granularity, so one row holding a long
+    // window no longer starves the others - but the window gates on upstream as
+    // a unit before it starts, so growing past what upstream has delivered
+    // means waiting for it.  Allow that only up to the classic chunk length,
+    // which is exactly what the old fixed-chunk code waited for anyway.
+    int ParWindowCap(int a) const {
+        long cap = std::max<long>((long)a + parChunkFrames - 1, (long)GetPreviousFrameDone());
+        return (int)std::min<long>(cap, (long)endFrame);
     }
 
     // True if ANY layer's produce() might read dependent/upstream data mid-loop,
@@ -2057,7 +2257,7 @@ public:
 
         // Frame-parallel eligibility (XL_PARALLEL_FRAMES).  Requires row-local
         // produce (no canvas-mix / canvas-Blend / per-model / per-node buffers);
-        // submodel and strand effect rows are cloned per window (EnsureParPool).
+        // submodel and strand effect rows are cloned per frame (CreateParSlot).
         // Per-frame Pure coverage - across main AND submodel layers - is checked
         // separately (FrameIsParallelSafe).
         // Model blending is compatible: it blends over seqData[frame] in
@@ -2085,7 +2285,7 @@ public:
             }
         }
         // Item 03 step 3: rows carrying submodel/strand effect rows also qualify
-        // - the clone pool replicates their buffers (EnsureParPool) and the
+        // - the clone slots replicate their buffers (CreateParSlot) and the
         // window produces/outputs every unit per frame.  Per-node buffers stay
         // excluded (per-node effect state lives on the job, not an
         // EffectLayerInfo, and the population is tiny).  Kill switch for
@@ -2596,8 +2796,9 @@ public:
                         rowToRender->SetDirtyRange(a * seqData->FrameTime(), endFrame * seqData->FrameTime());
                         stopped = true;
                     } else {
-                        RenderParallelWindow(a, e, parWindowHasSnapshot); // streams FrameDone + currentFrame per frame
-                        resumeFrame = e + 1;
+                        // streams FrameDone + currentFrame per frame; returns the
+                        // last frame rendered (may run past e, or stop short)
+                        resumeFrame = RenderParallelWindow(a, e, parWindowHasSnapshot) + 1;
                     }
                 }
                 while (!stopped && resumeFrame <= endFrame) {
@@ -2615,10 +2816,27 @@ public:
                         bool windowHasSnapshot = false;
                         if (FrameIsParallelSafe(resumeFrame, windowHasSnapshot)) {
                             int a = resumeFrame;
-                            int cap = std::min((int)endFrame, (int)resumeFrame + parChunkFrames - 1);
+                            int cap = ParWindowCap(a);
                             int e = a;
-                            while (e + 1 <= cap && FrameIsParallelSafe(e + 1, windowHasSnapshot)) {
+                            // A window carrying a Snapshottable frame is capped
+                            // a chunk past the first one: its capture pre-pass
+                            // is serial and holds a snapshot per frame, so the
+                            // "run it as long as the frames allow" rule that
+                            // applies to Pure frames would cost both latency and
+                            // memory here.
+                            int snapFirst = windowHasSnapshot ? a : -1;
+                            while (e + 1 <= cap) {
+                                bool snapBefore = windowHasSnapshot;
+                                if (!FrameIsParallelSafe(e + 1, windowHasSnapshot)) {
+                                    break;
+                                }
                                 ++e;
+                                if (!snapBefore && windowHasSnapshot) {
+                                    snapFirst = e;
+                                }
+                                if (snapFirst >= 0 && e - snapFirst + 1 >= parChunkFrames) {
+                                    break;
+                                }
                             }
                             if (e > a) {
                                 // Gate the whole window on upstream frame e; monotonic,
@@ -2633,8 +2851,14 @@ public:
                                         return;
                                     }
                                 }
-                                RenderParallelWindow(a, e, windowHasSnapshot); // streams FrameDone + currentFrame per frame
-                                resumeFrame = e + 1;
+                                // Streams FrameDone + currentFrame per frame, and
+                                // may render past e (it extends as upstream and
+                                // the parallel-safe run allow) or stop short of it
+                                // (abort / structural edit) - either way it
+                                // returns the last frame actually rendered, and a
+                                // short return lands on RenderFrame's top-of-frame
+                                // bail, which sets the dirty range and stops.
+                                resumeFrame = RenderParallelWindow(a, e, windowHasSnapshot) + 1;
                                 continue;
                             }
                         }
@@ -2796,17 +3020,15 @@ private:
     int origChangeCount = 0;
 
     // Frame-parallel window state (see RenderParallelWindow).  parEligible and
-    // parChunkFrames are computed once at InitializeRenderStates.  The clone
-    // pool (parBuffers + parInfos) is grown on demand (up to parChunkFrames)
-    // and reused across windows.  parWindow* preserve a gated window across an
-    // upstream suspend.
+    // parChunkFrames are computed once at InitializeRenderStates.  Clone slots
+    // are built on demand (bounded by the pool's concurrency, NOT the window
+    // length) and reused for the row's whole life.  parWindow* preserve a gated
+    // window across an upstream suspend.
     bool parEligible = false;
     int parChunkFrames = PAR_FRAME_MAX_CHUNK;
-    std::vector<std::unique_ptr<PixelBufferClass>> parBuffers;
-    std::vector<std::unique_ptr<EffectLayerInfo>> parInfos;
-    // parSubInfos[i]: clone i's per-submodel/strand infos (own buffers),
-    // mirroring subModelInfos - empty vectors for rows without submodels.
-    std::vector<std::vector<std::unique_ptr<EffectLayerInfo>>> parSubInfos;
+    std::mutex parSlotLock;
+    std::vector<std::unique_ptr<ParSlot>> parSlots;
+    std::vector<ParSlot*> parFreeSlots;
     bool parWindowPending = false;   // a gated window is suspended awaiting upstream
     bool parWindowHasSnapshot = false;  // pending window has >=1 Snapshottable layer (needs the capture pre-pass)
     int parWindowStart = 0;

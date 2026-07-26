@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Render: a row rendering frames in parallel now farms its whole run of
+                                 frames to a round-robin worker pool instead of fixed-size windows with a
+                                 barrier between them, so it is no longer resynchronised every few frames
+                                 and clone memory follows the row's concurrency, not the run length
     -enh (dkulp)                 Fire effect has a new Style setting, and new Fire effects now default to
                                  "New Render Method". It carries the flame from frame to frame so it rises
                                  and drifts like real fire instead of flickering in place, and renders
