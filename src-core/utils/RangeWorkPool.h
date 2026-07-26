@@ -74,6 +74,12 @@ public:
         // another item.
         void RunOwnerShare();
 
+        // Claim and run at most ONE index on the calling thread, returning
+        // false without blocking if the range is exhausted or the concurrency
+        // cap is reached.  For an owner that has its own serial work to get back
+        // to and only wants to fill in when the workers are not keeping up.
+        bool RunOwnerOne();
+
     private:
         friend class RangeWorkPool;
         Item(RangeWorkPool* p, std::function<void(int)>&& f, int first, int max, int concurrency) :

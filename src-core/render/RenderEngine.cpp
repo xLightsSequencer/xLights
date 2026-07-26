@@ -1847,6 +1847,90 @@ public:
         parFreeSlots.push_back(s);
     }
 
+    // One frame's captured draw snapshots, by [unit][layer] - unit 0 is the main
+    // model, unit u is subModelInfos[u-1].  Null for Pure/empty layers.  Held in
+    // a small ring (see RenderParallelWindow) rather than one entry per window
+    // frame, so a Snapshottable window's length is not bounded by how many
+    // snapshots fit in memory.
+    struct SnapFrame {
+        std::vector<std::vector<std::unique_ptr<EffectFrameState>>> byUnit;
+    };
+
+    // Advance the serial simulation by one frame on the REAL buffers and capture
+    // each Snapshottable layer's immutable draw snapshot into `sf`, without
+    // drawing.  Inherently serial - the sim state is carried frame to frame on
+    // mainBuffer and the submodel buffers - and inherently in frame order, so
+    // this is the head of the window's pipeline and only the owner runs it.
+    // Clearing `sf` first releases the snapshots of the frame that previously
+    // held this ring slot.
+    void CaptureSnapshotFrame(int f, SnapFrame& sf) {
+        const int nUnits = 1 + (int)subModelInfos.size();
+        sf.byUnit.clear();
+        sf.byUnit.resize(nUnits);
+        sf.byUnit[0].resize(numLayers);
+        // Restrict the capture to Snapshottable layers only: they advance the
+        // sim + capture.  Pure layers are skipped entirely (they may run
+        // expensive parallel_fors) and rendered fresh in the parallel pass.
+        mainModelInfo.processLayer.assign(numLayers, false);
+        for (int l = 0; l < numLayers; ++l) {
+            if (LayerIsSnapshottableAt(rowToRender->GetEffectLayer(l), f)) {
+                mainModelInfo.processLayer[l] = true;
+                mainBuffer->BufferForLayer(l, -1).captureSnapshot = &sf.byUnit[0][l];
+            }
+        }
+        ProduceFrame(f, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
+        for (int l = 0; l < numLayers; ++l) {
+            mainBuffer->BufferForLayer(l, -1).captureSnapshot = nullptr;
+        }
+        // Same over each submodel/strand unit that has a Snapshottable cover at
+        // this frame: advance the sim on the REAL submodel buffer (so serial
+        // state continuity is preserved across and after the window) and
+        // capture the draw snapshot.
+        for (int u = 1; u < nUnits; ++u) {
+            EffectLayerInfo* smi = subModelInfos[u - 1];
+            Element* se = smi->element;
+            if (se == nullptr) continue;
+            const int subLayers = std::min((int)se->GetEffectLayerCount(), smi->numLayers);
+            sf.byUnit[u].resize(smi->numLayers);
+            smi->processLayer.assign(smi->numLayers, false);
+            bool any = false;
+            for (int l = 0; l < subLayers; ++l) {
+                if (LayerIsSnapshottableAt(se->GetEffectLayer(l), f)) {
+                    smi->processLayer[l] = true;
+                    smi->buffer->BufferForLayer(l, -1).captureSnapshot = &sf.byUnit[u][l];
+                    any = true;
+                }
+            }
+            if (any) {
+                ProduceFrame(f, se, *smi, smi->buffer.get(), smi->strand, supportsModelBlending);
+            }
+            for (int l = 0; l < subLayers; ++l) {
+                smi->buffer->BufferForLayer(l, -1).captureSnapshot = nullptr;
+            }
+            smi->processLayer.clear();
+        }
+    }
+
+    // Finish capturing: restore full-layer rendering for any later serial frame,
+    // and quiesce the serial buffers' GPU state as a belt-and-suspenders
+    // backstop.  ProduceFrame SKIPs blur/rotozoom/transitions on captured layers
+    // (captureSnapshot set), so capturing should not encode any GPU work and
+    // this is expected to be a no-op (cheap when there is nothing outstanding).
+    // Kept because if an effect's capture path ever encodes GPU work, leaving it
+    // open would commit stale blits at the next serial frame's first wait,
+    // corrupting exactly that frame (then self-healing).
+    void FinishSnapshotCapture() {
+        mainModelInfo.processLayer.clear();
+        for (int l = 0; l < numLayers; ++l) {
+            GPURenderUtils::waitForRenderCompletion(&mainBuffer->BufferForLayer(l, -1));
+        }
+        for (const auto& smi : subModelInfos) {
+            for (int l = 0; l < smi->numLayers; ++l) {
+                GPURenderUtils::waitForRenderCompletion(&smi->buffer->BufferForLayer(l, -1));
+            }
+        }
+    }
+
     // Returns the slot even if the frame throws - otherwise an effect that
     // throws every frame would drop a slot each time and the pool would grow
     // without bound.
@@ -1929,84 +2013,20 @@ public:
             fprintf(stderr, "XL_PARALLEL_WINDOWS SUB-WINDOW m='%s' a=%d e=%d units=%d snap=%d\n",
                     rowToRender->GetModelName().c_str(), a, e, nUnits, hasSnapshot ? 1 : 0);
         }
-        // snaps[unit][layer][frame-a]: the captured draw snapshot, or null for
-        // Pure/empty layers.  Unit 0 is the main model; unit u is subModelInfos[u-1].
-        std::vector<std::vector<std::vector<std::unique_ptr<EffectFrameState>>>> snaps;
-        if (hasSnapshot) {
-            if (xldbgParallelWindows) {
-                fprintf(stderr, "XL_PARALLEL_WINDOWS SNAP-WINDOW m='%s' a=%d e=%d layers=%d\n",
-                        rowToRender->GetModelName().c_str(), a, e, numLayers);
-            }
-            snaps.resize(nUnits);
-            snaps[0].resize(numLayers);
-            for (int u = 1; u < nUnits; ++u) {
-                snaps[u].resize(subModelInfos[u - 1]->numLayers);
-            }
-            for (auto& uv : snaps) {
-                for (auto& lv : uv) lv.resize(n);
-            }
-            for (int f = a; f <= e; ++f) {
-                // Restrict the (serial) pre-pass to Snapshottable layers only: they
-                // advance the sim + capture.  Pure layers are skipped entirely (they
-                // may run expensive parallel_fors) and rendered fresh in the parallel
-                // pass below.
-                mainModelInfo.processLayer.assign(numLayers, false);
-                for (int l = 0; l < numLayers; ++l) {
-                    if (LayerIsSnapshottableAt(rowToRender->GetEffectLayer(l), f)) {
-                        mainModelInfo.processLayer[l] = true;
-                        mainBuffer->BufferForLayer(l, -1).captureSnapshot = &snaps[0][l][f - a];
-                    }
-                }
-                ProduceFrame(f, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
-                for (int l = 0; l < numLayers; ++l) {
-                    mainBuffer->BufferForLayer(l, -1).captureSnapshot = nullptr;
-                }
-                // Same pre-pass over each submodel/strand unit that has a
-                // Snapshottable cover at this frame: advance the sim on the REAL
-                // submodel buffer (so serial state continuity is preserved across
-                // and after the window) and capture the draw snapshot.
-                for (int u = 1; u < nUnits; ++u) {
-                    EffectLayerInfo* smi = subModelInfos[u - 1];
-                    Element* se = smi->element;
-                    if (se == nullptr) continue;
-                    const int subLayers = std::min((int)se->GetEffectLayerCount(), smi->numLayers);
-                    smi->processLayer.assign(smi->numLayers, false);
-                    bool any = false;
-                    for (int l = 0; l < subLayers; ++l) {
-                        if (LayerIsSnapshottableAt(se->GetEffectLayer(l), f)) {
-                            smi->processLayer[l] = true;
-                            smi->buffer->BufferForLayer(l, -1).captureSnapshot = &snaps[u][l][f - a];
-                            any = true;
-                        }
-                    }
-                    if (any) {
-                        ProduceFrame(f, se, *smi, smi->buffer.get(), smi->strand, supportsModelBlending);
-                    }
-                    for (int l = 0; l < subLayers; ++l) {
-                        smi->buffer->BufferForLayer(l, -1).captureSnapshot = nullptr;
-                    }
-                    smi->processLayer.clear();
-                }
-            }
-            // Restore full-layer rendering for any later serial frame on the main buffer.
-            mainModelInfo.processLayer.clear();
-            // Quiesce the serial buffers' GPU state as a belt-and-suspenders
-            // backstop.  ProduceFrame now SKIPs blur/rotozoom/transitions on
-            // captured layers (captureSnapshot set), so the pre-pass should no
-            // longer encode any GPU work here and this loop is expected to be a
-            // no-op (cheap when there is nothing outstanding).  Kept because if
-            // an effect's capture path ever encodes GPU work, leaving it open
-            // would commit stale blits at the next serial frame's first wait,
-            // corrupting exactly that frame (then self-healing).
-            for (int l = 0; l < numLayers; ++l) {
-                GPURenderUtils::waitForRenderCompletion(&mainBuffer->BufferForLayer(l, -1));
-            }
-            for (const auto& smi : subModelInfos) {
-                for (int l = 0; l < smi->numLayers; ++l) {
-                    GPURenderUtils::waitForRenderCompletion(&smi->buffer->BufferForLayer(l, -1));
-                }
-            }
+        if (hasSnapshot && xldbgParallelWindows) {
+            fprintf(stderr, "XL_PARALLEL_WINDOWS SNAP-WINDOW m='%s' a=%d e=%d layers=%d\n",
+                    rowToRender->GetModelName().c_str(), a, e, numLayers);
         }
+        // Ring of captured frames for a Snapshottable window; slot (f-a)%snapRing
+        // holds frame f.  The owner captures one frame ahead of the draws rather
+        // than pre-passing the whole window, so the serial advance overlaps the
+        // parallel draw instead of preceding all of it, and the window's length
+        // stops being bounded by how many snapshots fit in memory.  The ring must
+        // be larger than the row's frame concurrency: the finished PREFIX is what
+        // says a slot is reusable, and it lags the claimed frames by up to that
+        // many, so a ring of exactly parChunkFrames would never have free space.
+        const int snapRing = hasSnapshot ? 2 * parChunkFrames : 0;
+        std::vector<SnapFrame> snaps(snapRing);
         // Streamed completion state.  FrameDone must be exact-once per frame
         // (AggregatorRenderer counts one call per upstream per frame) and in
         // increasing order (done(N) promises every frame <= N is in seqData),
@@ -2019,6 +2039,8 @@ public:
         std::vector<bool> finished(n, false);
         int doneCursor = 0;
         std::mutex doneLock;
+        std::condition_variable doneCv;
+        bool capWaiting = false; // guarded by doneLock; see the capture drive
         const bool relay = HasNext();
         // Set when the window must stop early: an abort or a structural edit
         // landed, or a clone slot could not be built.  Windows now run long
@@ -2029,19 +2051,29 @@ public:
         // the owner's frame loop without a lock).
         std::atomic<bool> slotFailed{ false };
 
+        // Cutting must wake the capture owner: it can be parked on doneCv
+        // waiting for ring space, and a cut means no frame will ever finish to
+        // free some.  Taking doneLock to notify is what makes the owner's
+        // check-then-wait airtight.
+        auto signalCut = [&]() {
+            cut.store(true, std::memory_order_relaxed);
+            std::unique_lock<std::mutex> dl(doneLock);
+            doneCv.notify_all();
+        };
+
         auto renderOne = [&](int i) {
             if (cut.load(std::memory_order_relaxed)) {
                 return;
             }
             if (abort || origChangeCount != rowToRender->getChangeCount()) {
-                cut.store(true, std::memory_order_relaxed);
+                signalCut();
                 return;
             }
             ParSlotHold hold(this);
             ParSlot* slot = hold.slot;
             if (slot == nullptr) {
                 slotFailed.store(true, std::memory_order_relaxed);
-                cut.store(true, std::memory_order_relaxed);
+                signalCut();
                 return;
             }
             int f = a + i;
@@ -2049,9 +2081,12 @@ public:
             for (auto& si : slot->subs) {
                 si->resetRenderState();
             }
-            if (hasSnapshot) {
+            // The owner published index i only after capturing it, and will not
+            // reuse this ring slot until i is in the finished prefix.
+            const SnapFrame* sf = hasSnapshot ? &snaps[i % snapRing] : nullptr;
+            if (sf != nullptr) {
                 for (int l = 0; l < numLayers; ++l) {
-                    if (snaps[0][l][i]) slot->buffer->BufferForLayer(l, -1).pendingSnapshot = snaps[0][l][i].get();
+                    if (sf->byUnit[0][l]) slot->buffer->BufferForLayer(l, -1).pendingSnapshot = sf->byUnit[0][l].get();
                 }
             }
             ProduceFrame(f, rowToRender, *slot->info, slot->buffer.get(), -1, supportsModelBlending);
@@ -2067,9 +2102,10 @@ public:
                 const std::string inh = InheritedDuplicateSourceModel(f);
                 for (size_t u = 0; u < slot->subs.size(); ++u) {
                     EffectLayerInfo* si = slot->subs[u].get();
-                    if (hasSnapshot) {
-                        for (int l = 0; l < si->numLayers; ++l) {
-                            if (snaps[u + 1][l][i]) si->buffer->BufferForLayer(l, -1).pendingSnapshot = snaps[u + 1][l][i].get();
+                    if (sf != nullptr) {
+                        const auto& lv = sf->byUnit[u + 1];
+                        for (int l = 0; l < si->numLayers && l < (int)lv.size(); ++l) {
+                            if (lv[l]) si->buffer->BufferForLayer(l, -1).pendingSnapshot = lv[l].get();
                         }
                     }
                     ProduceFrame(f, si->element, *si, si->buffer.get(), si->strand, supportsModelBlending ? true : cleared, inh);
@@ -2095,32 +2131,94 @@ public:
                 }
                 ++doneCursor;
             }
+            if (capWaiting) {
+                doneCv.notify_all(); // the capture owner is parked on ring space
+            }
         };
 
-        // The item is live the moment it is registered - workers may be calling
-        // renderOne before Register returns - so everything it captures is
-        // declared above.  RunOwnerShare returns as soon as no index is
-        // unclaimed, which is the moment to try to grow the window: workers are
-        // still draining the tail, so a successful Extend keeps them fed with no
-        // barrier in between.  Snapshot windows do not extend - their frames
-        // need the serial capture pre-pass above, which has already run for
-        // exactly [a,e].
-        auto item = ParFramePool().Register(renderOne, 0, n, parChunkFrames);
-        while (true) {
-            item->RunOwnerShare();
-            if (hasSnapshot || cut.load(std::memory_order_relaxed)) {
-                break;
-            }
-            int e2 = NextParallelWindowEnd(e);
+        // Grow [a,e] while the parallel-safe run continues, upstream allows, and
+        // the frames keep matching the window's kind (NextParallelWindowEnd).
+        auto growWindow = [&](bool wantSnapshot) {
+            int e2 = NextParallelWindowEnd(e, wantSnapshot);
             if (e2 <= e) {
-                break;
+                return false;
             }
             {
                 std::unique_lock<std::mutex> dl(doneLock);
                 finished.resize(e2 - a + 1, false);
             }
             e = e2;
-            item->Extend(e - a + 1);
+            return true;
+        };
+
+        // The item is live the moment it is registered - workers may be calling
+        // renderOne before Register returns - so everything it captures is
+        // declared above.  A Snapshottable window starts EMPTY and is published
+        // one frame at a time by the capture below; a Pure window publishes the
+        // whole run immediately.
+        auto item = ParFramePool().Register(renderOne, 0, hasSnapshot ? 0 : n, parChunkFrames);
+        if (hasSnapshot) {
+            // Pipelined capture: capture a WAVE of frames on the serial buffers,
+            // publish it, and go straight on to the next wave while workers draw
+            // the last one.  The serial advance is then overlapped with the
+            // parallel draw instead of being a barrier in front of it.
+            //
+            // Per-wave, not per-frame, because a Snapshottable effect's advance
+            // is cheap by construction - that is what makes it worth snapshotting
+            // at all - so publishing each frame as it is captured spends more on
+            // synchronisation (~5us/frame of lock + notify) than the capture
+            // latency it hides.  Measured on Alice's Restaurant: +1.0s of CPU
+            // for 16505 frames x 13 rows, which per-wave publishing removes.  A
+            // wave is one full concurrency's worth and the ring holds two, so
+            // one wave draws while the next is captured.
+            int cap = a; // next frame to capture
+            while (!cut.load(std::memory_order_relaxed)) {
+                if (cap > e && !growWindow(true)) {
+                    break;
+                }
+                // Ring space: index idx may be captured while idx - snapRing is
+                // in the finished prefix, so its slot is no longer being read.
+                int space;
+                {
+                    std::unique_lock<std::mutex> dl(doneLock);
+                    space = doneCursor + snapRing - (cap - a);
+                    if (space <= 0) {
+                        // Draw one ourselves rather than idle - if no worker has
+                        // picked this row up, waiting would be waiting on
+                        // nothing.
+                        dl.unlock();
+                        if (!item->RunOwnerOne()) {
+                            dl.lock();
+                            if (doneCursor + snapRing - (cap - a) <= 0 && !cut.load(std::memory_order_relaxed)) {
+                                capWaiting = true;
+                                doneCv.wait(dl);
+                                capWaiting = false;
+                            }
+                        }
+                        continue;
+                    }
+                }
+                const int wave = std::min({ space, parChunkFrames, e - cap + 1 });
+                for (int k = 0; k < wave; ++k) {
+                    CaptureSnapshotFrame(cap, snaps[(cap - a) % snapRing]);
+                    ++cap;
+                }
+                item->Extend(cap - a);
+            }
+            FinishSnapshotCapture();
+            item->RunOwnerShare(); // help drain the frames still to be drawn
+        } else {
+            // RunOwnerShare returns as soon as no index is unclaimed, which is
+            // the moment to try to grow the window: workers are still draining
+            // the tail, so a successful Extend keeps them fed with no barrier in
+            // between.
+            while (true) {
+                item->RunOwnerShare();
+                if (cut.load(std::memory_order_relaxed) || !growWindow(false)) {
+                    break;
+                }
+                item->Extend(e - a + 1);
+            }
         }
         item.reset(); // closes the range and waits for the in-flight tail
         if (xldbgParallelWindows) {
@@ -2138,12 +2236,26 @@ public:
         return a + doneCursor - 1;
     }
 
-    // How far a RUNNING window may grow: the largest frame past e that keeps
-    // the run of parallel-safe frames going, never past what upstream has
-    // already delivered (the window is gated as a unit before it starts, so an
-    // extension must not need a gate) and never into a Snapshottable frame
-    // (that needs the serial capture pre-pass).
-    int NextParallelWindowEnd(int e) {
+    // HOMOGENEOUS WINDOWS.  A window either carries a Snapshottable layer at
+    // EVERY frame or at none - both window builders (here and the one in the
+    // frame loop) refuse to extend across a change in a frame's snapshot-ness.
+    // Why it matters in both directions:
+    //   - Every frame of a capturing window costs a serial CaptureSnapshotFrame
+    //     on the owner thread.  Letting one Snapshottable frame drag a long run
+    //     of Pure frames into the window puts that cost on frames that would
+    //     otherwise have had no serial component at all (measured: ~17% on
+    //     Alice's Restaurant, whose Strobe effects sit in long Pure runs).
+    //   - The capture advances the simulation on the REAL buffers and has to run
+    //     from the window's first frame, so a window that did not start
+    //     capturing must not grow into a frame that needs it.
+    // It costs nothing: a Snapshottable effect covers a contiguous span, so the
+    // boundary is where the window would have ended anyway.
+    //
+    // How far a RUNNING window may grow: the largest frame past e that keeps the
+    // run of parallel-safe frames going, matches the window's kind, and is not
+    // past what upstream has already delivered (the window is gated as a unit
+    // before it starts, so an extension must not need a gate).
+    int NextParallelWindowEnd(int e, bool wantSnapshot) {
         if (abort || origChangeCount != rowToRender->getChangeCount()) {
             return e;
         }
@@ -2153,13 +2265,14 @@ public:
         int e2 = e;
         while (e2 + 1 <= cap) {
             bool snap = false;
-            if (!FrameIsParallelSafe(e2 + 1, snap) || snap) {
+            if (!FrameIsParallelSafe(e2 + 1, snap) || snap != wantSnapshot) {
                 break;
             }
             ++e2;
         }
         return e2;
     }
+
 
     // Where to stop growing a NEW window.  Long runs are the point - the pool
     // round-robins over rows at frame granularity, so one row holding a long
@@ -2818,25 +2931,12 @@ public:
                             int a = resumeFrame;
                             int cap = ParWindowCap(a);
                             int e = a;
-                            // A window carrying a Snapshottable frame is capped
-                            // a chunk past the first one: its capture pre-pass
-                            // is serial and holds a snapshot per frame, so the
-                            // "run it as long as the frames allow" rule that
-                            // applies to Pure frames would cost both latency and
-                            // memory here.
-                            int snapFirst = windowHasSnapshot ? a : -1;
                             while (e + 1 <= cap) {
-                                bool snapBefore = windowHasSnapshot;
-                                if (!FrameIsParallelSafe(e + 1, windowHasSnapshot)) {
-                                    break;
+                                bool frameSnap = false;
+                                if (!FrameIsParallelSafe(e + 1, frameSnap) || frameSnap != windowHasSnapshot) {
+                                    break; // homogeneous windows - see NextParallelWindowEnd
                                 }
                                 ++e;
-                                if (!snapBefore && windowHasSnapshot) {
-                                    snapFirst = e;
-                                }
-                                if (snapFirst >= 0 && e - snapFirst + 1 >= parChunkFrames) {
-                                    break;
-                                }
                             }
                             if (e > a) {
                                 // Gate the whole window on upstream frame e; monotonic,

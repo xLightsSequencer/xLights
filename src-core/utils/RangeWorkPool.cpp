@@ -147,6 +147,17 @@ void RangeWorkPool::Item::Close() {
     open = false;
 }
 
+bool RangeWorkPool::Item::RunOwnerOne() {
+    std::unique_lock<std::mutex> lk(pool->mtx);
+    if (!open || next >= maxIdx || inFlight >= maxConcurrent) {
+        return false;
+    }
+    int idx = next++;
+    ++inFlight;
+    pool->RunOne(this, idx, lk);
+    return true;
+}
+
 void RangeWorkPool::Item::RunOwnerShare() {
     std::unique_lock<std::mutex> lk(pool->mtx);
     while (open && next < maxIdx) {
