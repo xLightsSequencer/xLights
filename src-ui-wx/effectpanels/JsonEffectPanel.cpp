@@ -647,9 +647,11 @@ void JsonEffectPanel::BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer,
     const auto& yProp = yIt->second;
     int xMin = xProp.value("min", 0);
     int xMax = xProp.value("max", 100);
+    if (xMax <= xMin) xMax = xMin + 1;
     int xDef = xProp.value("default", 0);
     int yMin = yProp.value("min", 0);
     int yMax = yProp.value("max", 100);
+    if (yMax <= yMin) yMax = yMin + 1;
     int yDef = yProp.value("default", 0);
     bool xHasVC = xProp.value("valueCurve", false);
     bool yHasVC = yProp.value("valueCurve", false);
@@ -929,6 +931,10 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     if (controlType == "slider") {
         int minVal = prop.value("min", 0);
         int maxVal = prop.value("max", 100);
+        // wxSlider::Create() asserts "minValue < maxValue"; a bad/narrow
+        // JSON range would trip that and leave the slider's native peer
+        // uncreated, corrupting state for whatever runs next in the panel.
+        if (maxVal <= minVal) maxVal = minVal + 1;
         int defaultInt;
         if (divisor > 1) {
             double defaultFloat = prop.value("default", 0.0);
@@ -1461,7 +1467,8 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
             readAxis(axis, axMin, axMax, axDef);
             const std::string axId = id + axis;
             const int scaledMin = static_cast<int>(axMin * (divisor > 1 ? divisor : 1));
-            const int scaledMax = static_cast<int>(axMax * (divisor > 1 ? divisor : 1));
+            int scaledMax = static_cast<int>(axMax * (divisor > 1 ? divisor : 1));
+            if (scaledMax <= scaledMin) scaledMax = scaledMin + 1;
             const int scaledDef = static_cast<int>(axDef * (divisor > 1 ? divisor : 1));
 
             PropertyInfo axInfo;
