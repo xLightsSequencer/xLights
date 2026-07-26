@@ -18,6 +18,8 @@
 //*)
 
 #include <wx/preferences.h>
+#include <wx/statbmp.h>
+#include "effectpanels/EffectIconCache.h"
 #include "effects/RenderableEffect.h"
 #include "xLightsMain.h"
 
@@ -47,12 +49,25 @@ RandomEffectsSettingsPanel::RandomEffectsSettingsPanel(wxWindow* parent, xLights
 
     const wxArrayString &selected = frame->RandomEffectsToUse();
     for (int i = 0; i < (int)frame->GetEffectManager().size(); i++) {
-        wxString n = frame->GetEffectManager()[i]->Name();
+        RenderableEffect* eff = frame->GetEffectManager()[i];
+        wxString n = eff->Name();
         bool checked = selected.Index(n) >= 0;
         wxWindowID id = wxNewId();
-        wxCheckBox *cb = new wxCheckBox(this, id, n, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, n);
+
+        wxBoxSizer* rowSizer = new wxBoxSizer(wxHORIZONTAL);
+
+        wxCheckBox *cb = new wxCheckBox(this, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, n);
         cb->SetValue(checked);
-        EffectsGridSizer->Add(cb, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+        rowSizer->Add(cb, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+
+        wxStaticBitmap* icon = new wxStaticBitmap(this, wxID_ANY, EffectIconCache::GetEffectIcon(eff, 16));
+        rowSizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+
+        wxStaticText* label = new wxStaticText(this, wxID_ANY, n);
+        rowSizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+        _effectCheckBoxes.push_back(cb);
+        EffectsGridSizer->Add(rowSizer, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
         Connect(id,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&RandomEffectsSettingsPanel::OnEffectCheckBoxClick);
     }
     EffectsGridSizer->Layout();
@@ -72,14 +87,9 @@ bool RandomEffectsSettingsPanel::TransferDataToWindow() {
 }
 bool RandomEffectsSettingsPanel::TransferDataFromWindow() {
     wxArrayString selected;
-    for (int x = 0; x < (int)EffectsGridSizer->GetItemCount(); x++) {
-        wxCheckBox *CheckBox1 = dynamic_cast<wxCheckBox*>(EffectsGridSizer->GetItem(x)->GetWindow());
-        if (CheckBox1) {
-            wxString n = CheckBox1->GetLabel();
-            bool checked = CheckBox1->IsChecked();
-            if (checked) {
-                selected.push_back(n);
-            }
+    for (wxCheckBox* cb : _effectCheckBoxes) {
+        if (cb->IsChecked()) {
+            selected.push_back(cb->GetName());
         }
     }
     frame->SetRandomEffectsToUse(selected);
