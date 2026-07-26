@@ -284,8 +284,11 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
     std::vector<VkPhysicalDevice> devices(count);
     vkEnumeratePhysicalDevices(instance, &count, devices.data());
 
-    const bool allowCpu = envSet("XL_VULKAN_ALLOW_CPU");
     const char* wanted = getenv("XL_VULKAN_DEVICE");
+    // Use a software device for COMPUTE too.  Only useful for exercising the
+    // Vulkan compute kernels on a machine with no GPU - it is much slower than
+    // the ISPC path those effects otherwise take.
+    const bool allowCpuCompute = envSet("XL_VULKAN_ALLOW_CPU");
 
     auto computeQueueFamily = [](VkPhysicalDevice d) -> int {
         uint32_t qc = 0;
@@ -335,10 +338,15 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
         if (qfi < 0) {
             continue;
         }
-        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU && !allowCpu) {
-            continue;
-        }
-
+        // A CPU implementation (lavapipe/llvmpipe) is ranked last but NOT
+        // rejected.  Rejecting it used to mean that on a machine whose only
+        // Vulkan device is software, the whole Vulkan stack stayed down - and
+        // because the graphics path is brought up through this same device
+        // selection, the Shader effect lost its only renderer and painted cyan
+        // (it has no CPU implementation, unlike every compute effect here).
+        // The scoring below still prefers any real GPU, so a software device is
+        // only ever chosen when there is nothing else; whether to use the GPU at
+        // all is the user's call via the GPU-rendering preference.
         int score;
         switch (props.deviceType) {
         case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:   score = 4; break;
@@ -368,8 +376,13 @@ bool VulkanComputeUtilities::pickPhysicalDevice() {
         }
     }
     if (physicalDevice == VK_NULL_HANDLE) {
-        spdlog::info("Vulkan compute disabled: no usable device (set XL_VULKAN_ALLOW_CPU=1 to permit CPU implementations like lavapipe)");
+        spdlog::info("Vulkan compute disabled: no usable device");
         return false;
+    }
+    computeWorthwhile = (deviceType != VK_PHYSICAL_DEVICE_TYPE_CPU) || allowCpuCompute;
+    if (!computeWorthwhile) {
+        spdlog::info("Vulkan: '{}' is a CPU implementation - using it for shaders only, compute effects stay on the CPU/ISPC path (XL_VULKAN_ALLOW_CPU=1 to use it for compute as well)",
+                     deviceName);
     }
     VkPhysicalDeviceProperties chosen;
     vkGetPhysicalDeviceProperties(physicalDevice, &chosen);

@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (dkulp)                 Linux: Shader effects rendered as solid cyan on machines whose only Vulkan
+                                 device is a software one (lavapipe/llvmpipe) and that have no usable
+                                 OpenGL - typically a headless render box. The device is now used for
+                                 shaders, which have no CPU implementation, while compute effects stay on
+                                 the faster CPU path; a headless render also enables GPU rendering if that
+                                 is the only way a shader can be drawn
     -enh (dkulp)                 Render: a row rendering frames in parallel now farms its whole run of
                                  frames to a round-robin worker pool instead of fixed-size windows with a
                                  barrier between them, so it is no longer resynchronised every few frames

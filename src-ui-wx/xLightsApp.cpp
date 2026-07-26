@@ -18,6 +18,7 @@
 #include "render/TextDrawingContext.h"
 #include "graphics/wxTextDrawingContext.h"
 #include "graphics/GLContextManager.h"
+#include "effects/OpenGLShaders.h"
 #include "render/FSEQFile.h"
 #include "render/GPURenderUtils.h"
 #include "media/VideoReader.h"
@@ -612,6 +613,23 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
 // real show sequences with an unusual Text/Shape font encoding. Forcing
 // interactive=false makes wx fall back silently (that encoding's text may
 // not render pixel-perfect) instead of blocking headless runs.
+// Can OpenGL actually render a shader here?  Exactly the test ShaderEffect
+// makes before it gives up and fills solid colour, asked up front so headless
+// can react to the answer instead of producing a bad render.  Must be called
+// after GLContextManager::Initialize; the queries need a current context, which
+// is why they run through ExecuteOnGLThread (safe even when GL init failed -
+// that is the case this exists to detect).
+static bool HeadlessOpenGLCanRenderShaders() {
+    if (getenv("XL_HEADLESS_NO_GL") != nullptr) {
+        return false;
+    }
+    bool ok = false;
+    GLContextManager::Instance().ExecuteOnGLThread([&]() {
+        ok = OpenGLShaders::HasFramebufferObjects() && OpenGLShaders::HasShaderSupport();
+    });
+    return ok;
+}
+
 class HeadlessNonInteractiveFontMapper : public wxFontMapper {
 public:
     bool GetAltForEncoding(wxFontEncoding encoding, wxNativeEncodingInfo* info,
@@ -1502,6 +1520,19 @@ bool xLightsApp::OnInit()
             if (getenv("XL_NO_GPU_COMPUTE") != nullptr) {
                 gpuRendering = false;
                 spdlog::warn("--headless: XL_NO_GPU_COMPUTE set — GPU compute disabled");
+            } else if (!gpuRendering && !HeadlessOpenGLCanRenderShaders()) {
+                // The Shader effect is the one effect with no CPU implementation:
+                // its renderers are OpenGL and the GPU (Metal/Vulkan) path, and
+                // nothing else.  With neither, it fills solid cyan - a silently
+                // wrong render rather than a slow one.  A headless box commonly
+                // has no usable GL (no display, or a server with software Mesa),
+                // so honouring the stored preference there would quietly ruin any
+                // sequence using a shader.  Turn it back on and say so.  The
+                // explicit XL_NO_GPU_COMPUTE above is NOT overridden - that one
+                // is a deliberate CPU-only A/B knob and must stay authoritative.
+                gpuRendering = true;
+                spdlog::warn("--headless: GPU rendering is disabled in preferences but OpenGL is unavailable; "
+                             "enabling it so Shader effects render (they have no CPU implementation)");
             }
             GPURenderUtils::SetEnabled(gpuRendering);
         }

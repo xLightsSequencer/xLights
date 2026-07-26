@@ -34,6 +34,9 @@ public:
     virtual bool enabled() override {
         return isEnabled && VulkanComputeUtilities::INSTANCE.computeEnabled();
     }
+    virtual bool preferenceEnabled() override {
+        return isEnabled;
+    }
     virtual void enable(bool b) override {
         isEnabled = b;
     }
@@ -206,6 +209,18 @@ static bool vulkanEffectDisabled(EffectManager::RGB_EFFECTS_e eff) {
 }
 
 RenderableEffect* CreateVulkanEffect(EffectManager::RGB_EFFECTS_e eff) {
+#ifdef HAVE_VULKAN_SHADER
+    // Shader is the one effect that must not be gated on the COMPUTE path.
+    // Every other effect below has an ISPC implementation that is faster than a
+    // software Vulkan device, so declining them when compute is off is right.
+    // Shader has no CPU implementation at all - its alternatives are the Vulkan
+    // graphics path, OpenGL, or a cyan fill - so hand it over whenever the
+    // device is up, and let SPIRVShaderEffect::Render make the final call.
+    if (eff == EffectManager::eff_SHADER && !vulkanEffectDisabled(eff)
+        && !VulkanComputeUtilities::INSTANCE.computeEnabled()) {
+        return new VulkanShaderEffect(eff);
+    }
+#endif
     if (VulkanComputeUtilities::INSTANCE.computeEnabled() && !vulkanEffectDisabled(eff)) {
         switch (eff) {
         case EffectManager::eff_BARS:
