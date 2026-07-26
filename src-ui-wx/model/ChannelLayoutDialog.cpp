@@ -16,6 +16,7 @@
 //*)
 
 #include <algorithm>
+#include <array>
 
 #include <wx/font.h>
 #include <wx/html/htmlwin.h>
@@ -25,7 +26,7 @@
 #include "shared/utils/wxUtilities.h"
 
 namespace {
-constexpr int ZOOM_MIN = 50;
+constexpr int ZOOM_MIN = 10;
 constexpr int ZOOM_MAX = 300;
 constexpr int ZOOM_STEP = 10;
 }
@@ -33,6 +34,7 @@ constexpr int ZOOM_STEP = 10;
 //(*IdInit(ChannelLayoutDialog)
 const long ChannelLayoutDialog::ID_BUTTON1 = wxNewId();
 const long ChannelLayoutDialog::ID_BUTTON_OPEN_IN_BROWSER = wxNewId();
+const long ChannelLayoutDialog::ID_BUTTON_FIT = wxNewId();
 const long ChannelLayoutDialog::ID_SLIDER_ZOOM = wxNewId();
 const long ChannelLayoutDialog::ID_STATICTEXT_ZOOM = wxNewId();
 const long ChannelLayoutDialog::ID_HTMLWINDOW1 = wxNewId();
@@ -66,6 +68,9 @@ ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wx
     BoxSizer1->Add(Button_Print, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonOpenInBrower = new wxButton(this, ID_BUTTON_OPEN_IN_BROWSER, _("Open in Browser"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_OPEN_IN_BROWSER"));
     BoxSizer1->Add(ButtonOpenInBrower, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    ButtonFit = new wxButton(this, ID_BUTTON_FIT, _("Fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_FIT"));
+    ButtonFit->SetToolTip(_("Fit the complete node layout in the window."));
+    BoxSizer1->Add(ButtonFit, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     SliderZoom = new wxSlider(this, ID_SLIDER_ZOOM, 100, ZOOM_MIN, ZOOM_MAX, wxDefaultPosition, wxSize(180,-1), 0, wxDefaultValidator, _T("ID_SLIDER_ZOOM"));
     SliderZoom->SetToolTip(_("Zoom. Hold Ctrl and use the mouse wheel over the node layout."));
     BoxSizer1->Add(SliderZoom, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -81,6 +86,7 @@ ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wx
 
     Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ChannelLayoutDialog::OnButton_PrintClick);
     Connect(ID_BUTTON_OPEN_IN_BROWSER,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ChannelLayoutDialog::OnButtonOpenInBrowerClick);
+    Connect(ID_BUTTON_FIT,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ChannelLayoutDialog::OnButtonFitClick);
     Connect(ID_SLIDER_ZOOM,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&ChannelLayoutDialog::OnSliderZoomCmdScroll);
     //*)
     HtmlEasyPrint=new wxHtmlEasyPrinting("xLights Printing", this);
@@ -104,7 +110,8 @@ void ChannelLayoutDialog::OnButton_PrintClick(wxCommandEvent& event)
 void ChannelLayoutDialog::SetHtmlSource(wxString& html)
 {
     HtmlSource=html;
-    HtmlWindow1->SetPage(html);
+    HtmlWindow1->SetPage(GetDisplayHtml());
+    ApplyZoom(_zoomPercent);
 }
 
 void ChannelLayoutDialog::OnButtonOpenInBrowerClick(wxCommandEvent& event)
@@ -115,6 +122,11 @@ void ChannelLayoutDialog::OnButtonOpenInBrowerClick(wxCommandEvent& event)
 void ChannelLayoutDialog::OnSliderZoomCmdScroll(wxCommandEvent& event)
 {
     ApplyZoom(SliderZoom->GetValue());
+}
+
+void ChannelLayoutDialog::OnButtonFitClick(wxCommandEvent& event)
+{
+    FitNodeLayoutToWindow();
 }
 
 void ChannelLayoutDialog::OnHtmlMouseWheel(wxMouseEvent& event)
@@ -140,23 +152,83 @@ void ChannelLayoutDialog::OnHtmlMouseWheel(wxMouseEvent& event)
 void ChannelLayoutDialog::ApplyZoom(int zoomPercent)
 {
     zoomPercent = std::clamp(zoomPercent, ZOOM_MIN, ZOOM_MAX);
-    if (zoomPercent == _zoomPercent) {
-        return;
-    }
 
     int viewX = 0;
     int viewY = 0;
     HtmlWindow1->GetViewStart(&viewX, &viewY);
 
-    const int previousZoom = _zoomPercent;
     _zoomPercent = zoomPercent;
-    SliderZoom->SetValue(_zoomPercent);
+    if (SliderZoom->GetValue() != _zoomPercent) {
+        SliderZoom->SetValue(_zoomPercent);
+    }
     StaticTextZoom->SetLabel(wxString::Format("%d%%", _zoomPercent));
 
     const int defaultFontSize = std::max(10, wxNORMAL_FONT->GetPointSize());
-    const int fontSize = std::max(1, (defaultFontSize * _zoomPercent + 50) / 100);
-    HtmlWindow1->SetStandardFonts(fontSize);
-    HtmlWindow1->Scroll(
-        (viewX * _zoomPercent + previousZoom / 2) / previousZoom,
-        (viewY * _zoomPercent + previousZoom / 2) / previousZoom);
+    std::array<int, 7> fontSizes {
+        defaultFontSize,
+        std::max(1, defaultFontSize * 83 / 100),
+        defaultFontSize,
+        std::max(1, defaultFontSize * 120 / 100),
+        std::max(1, defaultFontSize * 144 / 100),
+        std::max(1, defaultFontSize * 173 / 100),
+        defaultFontSize * 2
+    };
+    fontSizes[0] = std::max(1, (defaultFontSize * _zoomPercent + 50) / 100);
+    HtmlWindow1->SetFonts(wxNORMAL_FONT->GetFaceName(), wxEmptyString, fontSizes.data());
+    HtmlWindow1->Scroll(viewX, viewY);
+}
+
+void ChannelLayoutDialog::FitNodeLayoutToWindow()
+{
+    int minimum = ZOOM_MIN;
+    int maximum = ZOOM_MAX;
+    int bestFit = ZOOM_MIN;
+
+    while (minimum <= maximum) {
+        const int candidate = (minimum + maximum) / 2;
+        ApplyZoom(candidate);
+
+        const wxSize contentSize = HtmlWindow1->GetVirtualSize();
+        const wxSize windowSize = HtmlWindow1->GetClientSize();
+        if (contentSize.GetWidth() <= windowSize.GetWidth() && contentSize.GetHeight() <= windowSize.GetHeight()) {
+            bestFit = candidate;
+            minimum = candidate + 1;
+        } else {
+            maximum = candidate - 1;
+        }
+    }
+
+    ApplyZoom(bestFit);
+    HtmlWindow1->Scroll(0, 0);
+}
+
+wxString ChannelLayoutDialog::GetDisplayHtml() const
+{
+    wxString html = HtmlSource;
+    const wxString tableStartTag = "<table border=1>";
+    size_t tableStart = html.find(tableStartTag);
+    if (tableStart == wxString::npos) {
+        return html;
+    }
+
+    size_t tableEnd = html.find("</table>", tableStart + tableStartTag.length());
+    size_t cellStart = tableStart;
+    const wxString fontStartTag = "<font size=1>";
+    const wxString fontEndTag = "</font>";
+    while ((cellStart = html.find("<td", cellStart)) != wxString::npos && cellStart < tableEnd) {
+        const size_t openingTagEnd = html.find(">", cellStart);
+        const size_t cellEnd = html.find("</td>", openingTagEnd);
+        if (openingTagEnd == wxString::npos || cellEnd == wxString::npos || cellEnd > tableEnd) {
+            break;
+        }
+
+        html.insert(openingTagEnd + 1, fontStartTag);
+        tableEnd += fontStartTag.length();
+        const size_t adjustedCellEnd = cellEnd + fontStartTag.length();
+        html.insert(adjustedCellEnd, fontEndTag);
+        tableEnd += fontEndTag.length();
+        cellStart = adjustedCellEnd + fontEndTag.length() + 5;
+    }
+
+    return html;
 }
