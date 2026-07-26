@@ -484,7 +484,14 @@ void VulkanComputeUtilities::doInit() {
         enabled = false;
         return;
     }
-    spdlog::info("Vulkan compute enabled: {} (type {}, queue family {})", deviceName, (int)deviceType, queueFamilyIndex);
+    // The 2048 default was tuned on Apple unified memory.  Elsewhere the
+    // per-dispatch submit/fence cost is much higher, so the break-even buffer
+    // size differs per driver; this makes it sweepable without a rebuild.
+    long thr = envLong("XL_GPU_SIZE_THRESHOLD", -1);
+    if (thr >= 0) {
+        bufferSizeThreshold = (uint32_t)thr;
+    }
+    spdlog::info("Vulkan compute enabled: {} (type {}, queue family {}, size threshold {})", deviceName, (int)deviceType, queueFamilyIndex, bufferSizeThreshold);
 #ifdef HAVE_VULKAN_SHADER
     if (getenv("XL_VULKAN_GFXTEST") != nullptr) {
         // Bring up + self-test the graphics-pipeline foundation for headless
