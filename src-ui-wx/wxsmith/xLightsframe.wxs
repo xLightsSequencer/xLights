@@ -277,7 +277,7 @@
 				</object>
 				<name>Edit Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
-				<caption>Pane caption</caption>
+				<caption>Paste Toolbar</caption>
 				<captionvisible>0</captionvisible>
 				<minimizebutton>0</minimizebutton>
 				<maximizebutton>0</maximizebutton>
@@ -533,7 +533,7 @@
 				</object>
 				<name>View Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>
-				<caption>Pane caption</caption>
+				<caption>View Toolbar</caption>
 				<captionvisible>0</captionvisible>
 				<minimizebutton>0</minimizebutton>
 				<maximizebutton>0</maximizebutton>
@@ -973,20 +973,19 @@
 					<handler function="OnAuiToolBarItem_ZoomOutClick" entry="EVT_MENU" />
 				</object>
 				<object class="separator" />
-				<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
-					<label>Reset Toolbars</label>
-					<handler function="ResetToolbarLocations" entry="EVT_MENU" />
-				</object>
-				<object class="wxMenuItem" name="MNU_ID_ACLIGHTS" variable="MenuItem_ACLIghts" member="yes">
-					<label>AC Lights Toolbar</label>
-					<handler function="OnMenuItem_ACLIghtsSelected" entry="EVT_MENU" />
-					<checkable>1</checkable>
-				</object>
-				<object class="wxMenuItem" name="ID_MNU_SHOWRAMPS" variable="MenuItem_ShowACRamps" member="yes">
-					<label>Show AC Ramps</label>
-					<help>Show on effects and twinkle effects as ramps.</help>
-					<handler function="OnMenuItem_ShowACRampsSelected" entry="EVT_MENU" />
-					<checkable>1</checkable>
+				<object class="wxMenu" name="ID_MENUITEM_TOOLBARS" variable="MenuItemToolbars" member="yes">
+					<label>Toolbars</label>
+					<object class="wxMenuItem" name="ID_MNU_SHOWRAMPS" variable="MenuItem_ShowACRamps" member="yes">
+						<label>Show AC Ramps</label>
+						<help>Show on effects and twinkle effects as ramps.</help>
+						<handler function="OnMenuItem_ShowACRampsSelected" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
+					<object class="separator" />
+					<object class="wxMenuItem" name="ID_MENUITEM5" variable="MenuItem13" member="no">
+						<label>Reset Toolbars</label>
+						<handler function="ResetToolbarLocations" entry="EVT_MENU" />
+					</object>
 				</object>
 				<object class="separator" />
 				<object class="wxMenu" name="ID_MENUITEM7" variable="MenuItemPerspectives" member="yes">

@@ -17,6 +17,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  roughly 10x faster again because the whole flame updates at once on the
                                  GPU (Metal on macOS/iPad, Vulkan on Windows/Linux). Existing sequences are
                                  migrated to "Old Render Method" so their look is unchanged
+    -enh (cybercop23)            Added a View > Toolbars menu to independently show/hide each
+                                 dockable toolbar (Main, Play, Windows, Paste, AC, View, Effects);
+                                 visibility persists across restarts. The old standalone AC Lights
+                                 Toolbar checkbox now lives here, grouped next to Show AC Ramps
 
 
 2026.14  July 25, 2026
