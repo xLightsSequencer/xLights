@@ -17,9 +17,6 @@
 #include "render/HeadlessRenderContext.h"
 #include "render/TextDrawingContext.h"
 #include "graphics/wxTextDrawingContext.h"
-#ifdef __WXMSW__
-#include "render/D2DTextDrawingContext.h"
-#endif
 #include "graphics/GLContextManager.h"
 #include "render/FSEQFile.h"
 #include "render/GPURenderUtils.h"
@@ -1472,21 +1469,8 @@ bool xLightsApp::OnInit()
         } else {
             spdlog::warn("--headless: XL_HEADLESS_NO_GL set — skipping GL init (shaders will fall back to solid colour)");
         }
-        // Register the text backend so Text/Shape effects render. Mirrors
-        // xLightsFrame's registration - keep the two in step, or a headless
-        // render silently uses a different text backend than the GUI.
-        bool headlessTextBackend = false;
-#ifdef __WXMSW__
-        headlessTextBackend = D2DTextDrawingContext::Register();
-#endif
-        if (!headlessTextBackend) {
-            // The wx backend draws to offscreen bitmaps and is thread-safe on
-            // macOS/Windows.
-            TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
-                                                wxTextDrawingContext::ParseTextFont,
-                                                wxTextDrawingContext::ParseShapeFont);
-            TextDrawingContext::Initialize();
-        }
+        // Text/Shape effects need a backend; same choice the GUI makes.
+        RegisterPlatformTextDrawingContext();
 
         // Video decode backend: mirror the desktop's hardware-accel preference.
         // The flag defaults false, so without this headless picks FFmpeg while the

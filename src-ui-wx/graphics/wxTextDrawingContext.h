@@ -18,6 +18,12 @@
 #include <wx/dcmemory.h>
 #include <wx/image.h>
 
+// Chooses and registers this platform's text backend. Both the GUI and the
+// headless path must call exactly this: they used to each spell the choice out
+// and drifted apart, so a headless render silently used a different text
+// rasteriser than the GUI did for the same sequence.
+void RegisterPlatformTextDrawingContext();
+
 class wxTextDrawingContext : public TextDrawingContext {
 public:
     wxTextDrawingContext(int bufferWi, int bufferHt, bool allowShared);

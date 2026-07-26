@@ -74,12 +74,6 @@
 #include "EffectSymbolDialog.h"
 #include "shared/utils/wxUtilities.h"
 #include "graphics/wxTextDrawingContext.h"
-#ifdef __WXMSW__
-#include "render/D2DTextDrawingContext.h"
-#endif
-#ifdef LINUX
-#include "render/FreeTypeTextDrawingContext.h"
-#endif
 #include "utils/AppCallbacks.h"
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
@@ -2146,27 +2140,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ShaderEffect::SetBackgroundRender(bgShaders);
 #endif
 
-#ifdef LINUX
-    // FreeType + HarfBuzz + Fontconfig path. Thread-safe per-instance, which
-    // lets TextEffect/ShapeEffect render on background threads (the wx/Pango
-    // path requires the main thread).
-    FreeTypeTextDrawingContext::Register();
-#else
-    bool textBackendRegistered = false;
-#ifdef __WXMSW__
-    // Direct2D + DirectWrite directly. wx's D2D backend cannot clear a surface
-    // and only publishes pixels when the context is destroyed, so it pays a
-    // mutex-serialised context creation per text render; see
-    // D2DTextDrawingContext.h. Falls through to wx if D2D will not start.
-    textBackendRegistered = D2DTextDrawingContext::Register();
-#endif
-    if (!textBackendRegistered) {
-        TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
-                                           wxTextDrawingContext::ParseTextFont,
-                                           wxTextDrawingContext::ParseShapeFont);
-        TextDrawingContext::Initialize();
-    }
-#endif
+    RegisterPlatformTextDrawingContext();
 
     MenuItem_File_Save->Enable(true);
     MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
