@@ -8,20 +8,40 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-// Portable TextDrawingContext implementation using FreeType + HarfBuzz +
-// Fontconfig. Used on Linux to replace wxTextDrawingContext, freeing
-// TextEffect and ShapeEffect to render on the render-thread pool instead of
-// being forced to the main thread by wxGTK/Pango's lack of off-thread safety.
+// Portable TextDrawingContext implementation using FreeType + HarfBuzz. Used on
+// Linux to replace wxTextDrawingContext, freeing TextEffect and ShapeEffect to
+// render on the render-thread pool instead of being forced to the main thread by
+// wxGTK/Pango's lack of off-thread safety.
 //
 // The class is per-instance thread-safe: each context owns its own
-// FT_Library, FT_Face cache, and HarfBuzz font handles. Fontconfig is only
-// touched at face-load time, behind a process-wide mutex, and results are
+// FT_Library, FT_Face cache, and HarfBuzz font handles. Font-file lookup is
+// only done at face-load time, behind a process-wide mutex, and results are
 // cached. The TextDrawingContext pool already hands out one context per
 // render thread, so render threads never share these instances.
+//
+// Family name -> font file is the one platform-specific piece: Fontconfig on
+// Linux, DirectWrite on Windows.
+//
+// Windows: gated OFF. XL_FREETYPE_TEXT is deliberately not defined by any build,
+// so this compiles to the stubs at the bottom of the file and Direct2D stays the
+// Windows backend. The code is kept because it has been built and measured:
+// FreeType rasterises text 2-4x cheaper than Direct2D, but that never reached
+// sequence wall-clock (those renders are dependency-bound), and it would cost two
+// unmanaged Windows dependencies. To re-enable, define XL_FREETYPE_TEXT and give
+// the build FreeType + HarfBuzz; plans/freetype-windows-prototype.md has the
+// numbers, the exact build steps, and the caveats found.
 
 #include "FreeTypeTextDrawingContext.h"
 
-#ifdef LINUX
+#if defined(LINUX)
+#define XL_FT_FONTCONFIG 1
+#elif defined(_WIN32) && defined(XL_FREETYPE_TEXT)
+#define XL_FT_DIRECTWRITE 1
+// M_PI is not in MSVC's <cmath> without this, and the rotated path needs it.
+#define _USE_MATH_DEFINES
+#endif
+
+#if defined(XL_FT_FONTCONFIG) || defined(XL_FT_DIRECTWRITE)
 
 #include "Color.h"
 
@@ -33,7 +53,22 @@
 #include <hb.h>
 #include <hb-ft.h>
 
+#ifdef XL_FT_FONTCONFIG
 #include <fontconfig/fontconfig.h>
+#endif
+#ifdef XL_FT_DIRECTWRITE
+#include <windows.h>
+#include <dwrite.h>
+#pragma comment(lib, "dwrite.lib")
+#pragma comment(lib, "freetype.lib")
+#pragma comment(lib, "harfbuzz.lib")
+// windows.h defines DrawText as DrawTextW, which would rename this class's
+// DrawText overrides. The header undefines it before declaring them; this TU
+// pulls windows.h in afterwards, so it has to undefine it again.
+#ifdef DrawText
+#undef DrawText
+#endif
+#endif
 
 #include <algorithm>
 #include <cctype>
@@ -51,8 +86,23 @@
 namespace {
 
 // ---------------------------------------------------------------------------
-// Fontconfig: face name → font file path
+// Font discovery: face name → font file
 // ---------------------------------------------------------------------------
+// Fallback families. FreeType needs a real file, so an unresolvable family has
+// to be substituted with one that is actually installed rather than left to a
+// toolkit's default.
+#ifdef XL_FT_DIRECTWRITE
+constexpr char FT_GENERIC_FACE[] = "Segoe UI";
+constexpr char FT_GENERIC_FACE_ALT[] = "Arial";
+constexpr char FT_EMOJI_FACE[] = "Segoe UI Emoji";
+constexpr char FT_EMOJI_FACE_ALT[] = "Segoe UI Symbol";
+#else
+constexpr char FT_GENERIC_FACE[] = "DejaVu Sans";
+constexpr char FT_GENERIC_FACE_ALT[] = "Liberation Sans";
+constexpr char FT_EMOJI_FACE[] = "Noto Color Emoji";
+constexpr char FT_EMOJI_FACE_ALT[] = "Noto Emoji";
+#endif
+
 struct FontFileQuery {
     std::string family;
     bool bold = false;
@@ -74,59 +124,209 @@ struct FontFileQueryHash {
     }
 };
 
-static std::mutex sFcMutex;
-static std::unordered_map<FontFileQuery, std::string, FontFileQueryHash> sFcCache;
-static bool sFcInitOk = false;
-static bool sFcInitTried = false;
+// A face inside a font file. The index matters on Windows, where many families
+// ship as TrueType collections (.ttc) holding several faces.
+struct FontFileRef {
+    std::string path;
+    int index = 0;
 
-static void EnsureFcInit() {
-    if (sFcInitTried) return;
-    sFcInitTried = true;
+    bool valid() const { return !path.empty(); }
+};
+
+static std::mutex sFontEnumMutex;
+static std::unordered_map<FontFileQuery, FontFileRef, FontFileQueryHash> sFontFileCache;
+static bool sFontEnumOk = false;
+static bool sFontEnumTried = false;
+
+#ifdef XL_FT_FONTCONFIG
+static void EnsureFontEnumInit() {
+    if (sFontEnumTried) return;
+    sFontEnumTried = true;
     if (FcInit()) {
-        sFcInitOk = true;
+        sFontEnumOk = true;
     } else {
         spdlog::error("FreeTypeTextDrawingContext: FcInit() failed; font lookup will fall back to defaults.");
     }
 }
 
-// Resolve a face description to a full filesystem path. Returns "" on failure.
-static std::string ResolveFontPath(const FontFileQuery& q) {
-    std::lock_guard<std::mutex> lock(sFcMutex);
-    EnsureFcInit();
+static FontFileRef LookupFontFile(const FontFileQuery& q) {
+    FontFileRef out;
+    FcPattern* pat = FcPatternCreate();
+    if (!pat) return out;
 
-    auto it = sFcCache.find(q);
-    if (it != sFcCache.end()) return it->second;
+    if (!q.family.empty()) {
+        FcPatternAddString(pat, FC_FAMILY, (const FcChar8*)q.family.c_str());
+    }
+    int weight = FC_WEIGHT_NORMAL;
+    if (q.bold) weight = FC_WEIGHT_BOLD;
+    else if (q.light) weight = FC_WEIGHT_LIGHT;
+    FcPatternAddInteger(pat, FC_WEIGHT, weight);
+    FcPatternAddInteger(pat, FC_SLANT, q.italic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN);
 
-    std::string result;
-    if (sFcInitOk) {
-        FcPattern* pat = FcPatternCreate();
-        if (pat) {
-            if (!q.family.empty()) {
-                FcPatternAddString(pat, FC_FAMILY, (const FcChar8*)q.family.c_str());
-            }
-            int weight = FC_WEIGHT_NORMAL;
-            if (q.bold) weight = FC_WEIGHT_BOLD;
-            else if (q.light) weight = FC_WEIGHT_LIGHT;
-            FcPatternAddInteger(pat, FC_WEIGHT, weight);
-            FcPatternAddInteger(pat, FC_SLANT, q.italic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN);
+    FcConfigSubstitute(nullptr, pat, FcMatchPattern);
+    FcDefaultSubstitute(pat);
 
-            FcConfigSubstitute(nullptr, pat, FcMatchPattern);
-            FcDefaultSubstitute(pat);
-
-            FcResult fcRes = FcResultNoMatch;
-            FcPattern* match = FcFontMatch(nullptr, pat, &fcRes);
-            if (match) {
-                FcChar8* file = nullptr;
-                if (FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file) {
-                    result = (const char*)file;
-                }
-                FcPatternDestroy(match);
-            }
-            FcPatternDestroy(pat);
+    FcResult fcRes = FcResultNoMatch;
+    FcPattern* match = FcFontMatch(nullptr, pat, &fcRes);
+    if (match) {
+        FcChar8* file = nullptr;
+        if (FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && file) {
+            out.path = (const char*)file;
         }
+        int idx = 0;
+        if (FcPatternGetInteger(match, FC_INDEX, 0, &idx) == FcResultMatch) {
+            out.index = idx;
+        }
+        FcPatternDestroy(match);
+    }
+    FcPatternDestroy(pat);
+    return out;
+}
+#endif // XL_FT_FONTCONFIG
+
+#ifdef XL_FT_DIRECTWRITE
+static IDWriteFactory* sDWriteFactory = nullptr;
+
+static void EnsureFontEnumInit() {
+    if (sFontEnumTried) return;
+    sFontEnumTried = true;
+    HRESULT hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
+                                     __uuidof(IDWriteFactory),
+                                     reinterpret_cast<IUnknown**>(&sDWriteFactory));
+    if (SUCCEEDED(hr) && sDWriteFactory != nullptr) {
+        sFontEnumOk = true;
+    } else {
+        spdlog::error("FreeTypeTextDrawingContext: DWriteCreateFactory failed (hr 0x{:08x}).", (uint32_t)hr);
+    }
+}
+
+template <class T>
+static void ComRelease(T*& p) {
+    if (p != nullptr) {
+        p->Release();
+        p = nullptr;
+    }
+}
+
+static std::wstring Widen(const std::string& utf8) {
+    if (utf8.empty()) return std::wstring();
+    int need = ::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), (int)utf8.size(), nullptr, 0);
+    if (need <= 0) return std::wstring();
+    std::wstring out((size_t)need, L'\0');
+    ::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), (int)utf8.size(), &out[0], need);
+    return out;
+}
+
+static std::string Narrow(const std::wstring& w) {
+    if (w.empty()) return std::string();
+    int need = ::WideCharToMultiByte(CP_UTF8, 0, w.c_str(), (int)w.size(), nullptr, 0, nullptr, nullptr);
+    if (need <= 0) return std::string();
+    std::string out((size_t)need, '\0');
+    ::WideCharToMultiByte(CP_UTF8, 0, w.c_str(), (int)w.size(), &out[0], need, nullptr, nullptr);
+    return out;
+}
+
+static FontFileRef LookupFontFile(const FontFileQuery& q) {
+    FontFileRef out;
+
+    IDWriteFontCollection* collection = nullptr;
+    if (FAILED(sDWriteFactory->GetSystemFontCollection(&collection, FALSE)) || collection == nullptr) {
+        return out;
     }
 
-    sFcCache.emplace(q, result);
+    UINT32 familyIndex = 0;
+    BOOL exists = FALSE;
+    std::wstring family = Widen(q.family);
+    if (!family.empty()) {
+        collection->FindFamilyName(family.c_str(), &familyIndex, &exists);
+    }
+    if (!exists) {
+        // Fontconfig substitutes something installed for an unknown family;
+        // DirectWrite reports "not found" and we would hand FreeType nothing.
+        for (const char* alt : { FT_GENERIC_FACE, FT_GENERIC_FACE_ALT }) {
+            if (SUCCEEDED(collection->FindFamilyName(Widen(alt).c_str(), &familyIndex, &exists)) && exists) {
+                break;
+            }
+        }
+    }
+    if (!exists) {
+        ComRelease(collection);
+        return out;
+    }
+
+    IDWriteFontFamily* fontFamily = nullptr;
+    if (FAILED(collection->GetFontFamily(familyIndex, &fontFamily)) || fontFamily == nullptr) {
+        ComRelease(collection);
+        return out;
+    }
+
+    DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
+    if (q.bold) {
+        weight = DWRITE_FONT_WEIGHT_BOLD;
+    } else if (q.light) {
+        weight = DWRITE_FONT_WEIGHT_LIGHT;
+    }
+
+    IDWriteFont* font = nullptr;
+    if (SUCCEEDED(fontFamily->GetFirstMatchingFont(weight,
+                                                   DWRITE_FONT_STRETCH_NORMAL,
+                                                   q.italic ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
+                                                   &font))
+        && font != nullptr) {
+        IDWriteFontFace* fontFace = nullptr;
+        if (SUCCEEDED(font->CreateFontFace(&fontFace)) && fontFace != nullptr) {
+            UINT32 fileCount = 1;
+            IDWriteFontFile* fontFile = nullptr;
+            if (SUCCEEDED(fontFace->GetFiles(&fileCount, &fontFile)) && fontFile != nullptr) {
+                const void* refKey = nullptr;
+                UINT32 refKeySize = 0;
+                IDWriteFontFileLoader* loader = nullptr;
+                if (SUCCEEDED(fontFile->GetReferenceKey(&refKey, &refKeySize))
+                    && SUCCEEDED(fontFile->GetLoader(&loader)) && loader != nullptr) {
+                    IDWriteLocalFontFileLoader* localLoader = nullptr;
+                    if (SUCCEEDED(loader->QueryInterface(__uuidof(IDWriteLocalFontFileLoader),
+                                                         reinterpret_cast<void**>(&localLoader)))
+                        && localLoader != nullptr) {
+                        UINT32 pathLen = 0;
+                        if (SUCCEEDED(localLoader->GetFilePathLengthFromKey(refKey, refKeySize, &pathLen))) {
+                            std::wstring path((size_t)pathLen + 1, L'\0');
+                            if (SUCCEEDED(localLoader->GetFilePathFromKey(refKey, refKeySize, &path[0], pathLen + 1))) {
+                                path.resize(pathLen);
+                                out.path = Narrow(path);
+                                out.index = (int)fontFace->GetIndex();
+                            }
+                        }
+                        ComRelease(localLoader);
+                    }
+                    ComRelease(loader);
+                }
+                ComRelease(fontFile);
+            }
+            ComRelease(fontFace);
+        }
+        ComRelease(font);
+    }
+
+    ComRelease(fontFamily);
+    ComRelease(collection);
+    return out;
+}
+#endif // XL_FT_DIRECTWRITE
+
+// Resolve a face description to a font file. Returns an invalid ref on failure.
+static FontFileRef ResolveFontFile(const FontFileQuery& q) {
+    std::lock_guard<std::mutex> lock(sFontEnumMutex);
+    EnsureFontEnumInit();
+
+    auto it = sFontFileCache.find(q);
+    if (it != sFontFileCache.end()) return it->second;
+
+    FontFileRef result;
+    if (sFontEnumOk) {
+        result = LookupFontFile(q);
+    }
+
+    sFontFileCache.emplace(q, result);
     return result;
 }
 
@@ -260,13 +460,13 @@ struct FreeTypeTextDrawingContext::Impl {
         if (pixelSize < 1) pixelSize = 12;
 
         FontFileQuery q{family, bold, italic, light};
-        std::string path = ResolveFontPath(q);
-        if (path.empty()) {
-            spdlog::debug("FreeTypeTextDrawingContext: fontconfig returned no match for '{}'.", family);
+        FontFileRef ref = ResolveFontFile(q);
+        if (!ref.valid()) {
+            spdlog::debug("FreeTypeTextDrawingContext: no font file matched '{}'.", family);
             return {};
         }
 
-        std::string key = path + "|" + std::to_string(pixelSize);
+        std::string key = ref.path + "#" + std::to_string(ref.index) + "|" + std::to_string(pixelSize);
         auto it = faceCache.find(key);
         if (it != faceCache.end()) {
             LoadedFace lf;
@@ -278,9 +478,9 @@ struct FreeTypeTextDrawingContext::Impl {
         }
 
         FT_Face face = nullptr;
-        FT_Error err = FT_New_Face(lib, path.c_str(), 0, &face);
+        FT_Error err = FT_New_Face(lib, ref.path.c_str(), ref.index, &face);
         if (err || !face) {
-            spdlog::warn("FreeTypeTextDrawingContext: FT_New_Face('{}') failed (code {}).", path, (int)err);
+            spdlog::warn("FreeTypeTextDrawingContext: FT_New_Face('{}', {}) failed (code {}).", ref.path, ref.index, (int)err);
             return {};
         }
 
@@ -323,21 +523,21 @@ struct FreeTypeTextDrawingContext::Impl {
         if (primary.face == nullptr || primary.pixelSize != pixelSize) {
             primary = LoadFace(currentFont.faceName, currentFont.bold, currentFont.italic || currentFont.slant, currentFont.light, pixelSize);
             if (primary.face == nullptr) {
-                primary = LoadFace("DejaVu Sans", currentFont.bold, currentFont.italic || currentFont.slant, currentFont.light, pixelSize);
+                primary = LoadFace(FT_GENERIC_FACE, currentFont.bold, currentFont.italic || currentFont.slant, currentFont.light, pixelSize);
             }
         }
         // Emoji
         if (emojiFallback.face == nullptr || emojiFallback.pixelSize != pixelSize) {
-            emojiFallback = LoadFace("Noto Color Emoji", false, false, false, pixelSize);
+            emojiFallback = LoadFace(FT_EMOJI_FACE, false, false, false, pixelSize);
             if (emojiFallback.face == nullptr) {
-                emojiFallback = LoadFace("Noto Emoji", false, false, false, pixelSize);
+                emojiFallback = LoadFace(FT_EMOJI_FACE_ALT, false, false, false, pixelSize);
             }
         }
         // Generic last resort (different from primary if possible)
         if (genericFallback.face == nullptr || genericFallback.pixelSize != pixelSize) {
-            genericFallback = LoadFace("DejaVu Sans", false, false, false, pixelSize);
+            genericFallback = LoadFace(FT_GENERIC_FACE, false, false, false, pixelSize);
             if (genericFallback.face == nullptr) {
-                genericFallback = LoadFace("Liberation Sans", false, false, false, pixelSize);
+                genericFallback = LoadFace(FT_GENERIC_FACE_ALT, false, false, false, pixelSize);
             }
         }
     }
@@ -812,20 +1012,35 @@ TextDrawingContext* FreeTypeTextDrawingContext::Create(int w, int h, bool aa) {
 //   "bold arial 26 utf-8"     (wxOSX/wxMSW style)
 //   "Arial 12"                (wxGTK/Pango style)
 //   "DejaVu Sans Bold 14"     (wxGTK/Pango style)
-void FreeTypeTextDrawingContext::Register() {
+bool FreeTypeTextDrawingContext::Register() {
+#ifdef XL_FT_DIRECTWRITE
+    // Only refuse to register where the caller has somewhere better to go. On
+    // Windows that is Direct2D. On Linux the alternative is wx/Pango, which
+    // cannot render off the main thread, so registering unconditionally and
+    // letting font lookup fail per-face (as it did before) is the lesser evil —
+    // and it keeps Fontconfig initialisation lazy, as it has always been.
+    {
+        std::lock_guard<std::mutex> lock(sFontEnumMutex);
+        EnsureFontEnumInit();
+        if (!sFontEnumOk) {
+            return false;
+        }
+    }
+#endif
     TextDrawingContext::RegisterFactory(&FreeTypeTextDrawingContext::Create,
                                         &FreeTypeTextDrawingContext::ParseTextFont,
                                         &FreeTypeTextDrawingContext::ParseShapeFont);
     TextDrawingContext::Initialize();
+    return true;
 }
 
-#else // !LINUX
+#else // no FreeType backend on this platform
 
-// Non-Linux platforms don't link FreeType/HarfBuzz/Fontconfig. Provide
-// no-op stubs so the symbols exist if anything references them. xLightsMain
-// only calls Register() from inside #ifdef LINUX, so these are not exercised
-// on Apple/Windows builds, but the empty TU keeps the file compiling cleanly
-// when picked up by the macOS Xcode auto-discovery for src-core/.
+// Platforms without the FreeType backend don't link FreeType/HarfBuzz. Provide
+// no-op stubs so the symbols exist if anything references them. Register()
+// returns false so a caller falls through to another backend, and the empty TU
+// keeps the file compiling cleanly when picked up by the macOS Xcode
+// auto-discovery for src-core/.
 
 struct FreeTypeTextDrawingContext::Impl {};
 
@@ -843,16 +1058,24 @@ void FreeTypeTextDrawingContext::GetTextExtent(const std::string&, double*, doub
 void FreeTypeTextDrawingContext::GetTextExtents(const std::string&, std::vector<double>&) {}
 void FreeTypeTextDrawingContext::SetOverlayMode(bool) {}
 TextDrawingContext* FreeTypeTextDrawingContext::Create(int, int, bool) { return nullptr; }
-void FreeTypeTextDrawingContext::Register() {}
+bool FreeTypeTextDrawingContext::Register() { return false; }
 
-#endif // LINUX
+#endif // FreeType backend
 
-// Parsing needs no FreeType, so it lives outside the LINUX guard and simply
+// Parsing needs no FreeType, so it lives outside the backend guard and simply
 // defers to the shared toolkit-free implementation.
+namespace {
+#ifdef _WIN32
+constexpr char FT_DEFAULT_DESCRIPTOR_FACE[] = "Segoe UI";
+#else
+constexpr char FT_DEFAULT_DESCRIPTOR_FACE[] = "DejaVu Sans";
+#endif
+}
+
 TextFontInfo FreeTypeTextDrawingContext::ParseTextFont(const std::string& fontString) {
-    return TextDrawingContext::ParseFontDescriptor(fontString, "DejaVu Sans");
+    return TextDrawingContext::ParseFontDescriptor(fontString, FT_DEFAULT_DESCRIPTOR_FACE);
 }
 
 TextFontInfo FreeTypeTextDrawingContext::ParseShapeFont(const std::string& fontString) {
-    return TextDrawingContext::ParseShapeFontDescriptor(fontString, "DejaVu Sans");
+    return TextDrawingContext::ParseShapeFontDescriptor(fontString, FT_DEFAULT_DESCRIPTOR_FACE);
 }
