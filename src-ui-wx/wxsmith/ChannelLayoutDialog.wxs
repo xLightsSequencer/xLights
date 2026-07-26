@@ -42,9 +42,18 @@
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
+						<object class="wxButton" name="ID_BUTTON_FIT" variable="ButtonFit" member="yes">
+							<label>Fit</label>
+							<tooltip>Fit the complete node layout in the window.</tooltip>
+							<handler function="OnButtonFitClick" entry="EVT_BUTTON" />
+						</object>
+						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+						<border>5</border>
+					</object>
+					<object class="sizeritem">
 						<object class="wxSlider" name="ID_SLIDER_ZOOM" variable="SliderZoom" member="yes">
 							<value>100</value>
-							<min>50</min>
+							<min>10</min>
 							<max>300</max>
 							<size>180,-1</size>
 							<tooltip>Zoom. Hold Ctrl and use the mouse wheel over the node layout.</tooltip>
