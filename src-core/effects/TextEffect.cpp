@@ -387,7 +387,7 @@ void TextEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
         bool pixelOffsets = SettingsMap.GetBool("CHECKBOX_Text_PixelOffsets", sPixelOffsetsDefault);
         bool perWord = SettingsMap.GetBool("CHECKBOX_Text_Color_PerWord", sColorPerWordDefault);
 
-        const CachedRGBAImage* i = RenderTextLine(buffer,
+        const std::shared_ptr<const CachedRGBAImage> i = RenderTextLine(buffer,
                        buffer.GetTextDrawingContext(),
                        text,
                        SettingsMap["FONTPICKER_Text_Font"],
@@ -513,6 +513,54 @@ struct CachedTextInfoHasher {
     }
 };
 
+// Rasterised text is a pure function of (text, font, colours, rect), so one
+// bitmap serves every frame and every row that asks for the same thing.  It used
+// to live in the per-RenderBuffer TextRenderCache below, which meant
+// frame-parallel clone buffers each got an empty cache and re-rasterised their
+// own copy - the cache stopped absorbing repeats precisely when the most renders
+// were in flight.  Hoisting it out of the RenderBuffer makes clones share it.
+//
+// Capped because entries are buffer-sized (w*h*4): a whole-house matrix is ~1MB
+// per distinct string, and the key includes the rect, so distinct models do not
+// share.  Eviction is whole-cache rather than LRU: overflow means the show has
+// more distinct text than the budget, and repopulating is a rasterise each, the
+// same cost the cache exists to avoid paying repeatedly.
+class SharedTextImageCache {
+public:
+    std::shared_ptr<const CachedRGBAImage> Get(const CachedTextInfo& inf) {
+        std::lock_guard<std::mutex> lk(_lock);
+        auto it = _map.find(inf);
+        return it == _map.end() ? nullptr : it->second;
+    }
+    std::shared_ptr<const CachedRGBAImage> Put(const CachedTextInfo& inf, std::vector<uint8_t> rgbaData, int w, int h) {
+        auto img = std::make_shared<CachedRGBAImage>();
+        img->width = w;
+        img->height = h;
+        img->data = std::move(rgbaData);
+
+        std::lock_guard<std::mutex> lk(_lock);
+        if (_bytes + img->data.size() > MAX_BYTES && !_map.empty()) {
+            spdlog::debug("Text image cache over {} MB with {} entries; clearing.", MAX_BYTES / (1024 * 1024), _map.size());
+            _map.clear();
+            _bytes = 0;
+        }
+        _bytes += img->data.size();
+        _map[inf] = img;
+        return img;
+    }
+
+private:
+    static constexpr size_t MAX_BYTES = 256ull * 1024 * 1024;
+    std::mutex _lock;
+    std::unordered_map<CachedTextInfo, std::shared_ptr<const CachedRGBAImage>, CachedTextInfoHasher> _map;
+    size_t _bytes = 0;
+};
+
+static SharedTextImageCache& SharedTextImages() {
+    static SharedTextImageCache cache;
+    return cache;
+}
+
 class TextRenderCache : public EffectRenderCache {
 public:
     TextRenderCache() : timer_countdown(0), synced_textsize(xlSize(0,0)) {};
@@ -520,19 +568,13 @@ public:
     int timer_countdown;
     xlSize synced_textsize;
 
-    CachedRGBAImage *GetImage(const CachedTextInfo &inf) {
-        auto it = textCache.find(inf);
-        if (it != textCache.end()) return &it->second;
-        return nullptr;
+    std::shared_ptr<const CachedRGBAImage> GetImage(const CachedTextInfo &inf) {
+        return SharedTextImages().Get(inf);
     }
-    CachedRGBAImage* PutImage(const CachedTextInfo &inf, std::vector<uint8_t> rgbaData, int w, int h) {
-        auto& img = textCache[inf];
-        img.width = w;
-        img.height = h;
-        img.data = std::move(rgbaData);
-        return &img;
+    std::shared_ptr<const CachedRGBAImage> PutImage(const CachedTextInfo &inf, std::vector<uint8_t> rgbaData, int w, int h) {
+        return SharedTextImages().Put(inf, std::move(rgbaData), w, h);
     }
-    
+
     xlSize GetMultiLineTextExtent(const std::string &font, const std::string &msg) {
         std::pair<std::string, std::string> key(font, msg);
         auto i = textExtentCache.find(key);
@@ -547,7 +589,6 @@ public:
     }
 
     CachedRGBAImage lastRendered; // temp storage for uncached FlushAndGetImage results
-    std::unordered_map<CachedTextInfo, CachedRGBAImage, CachedTextInfoHasher> textCache;
     std::map<std::pair<std::string, std::string>, xlSize> textExtentCache;
 };
 
@@ -739,7 +780,7 @@ TextRenderCache *GetCache(RenderBuffer &buffer, int id) {
 }
 
 //jwylie - 2016-11-01  -- enhancement: add minute seconds countdown
-const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
+std::shared_ptr<const CachedRGBAImage> TextEffect::RenderTextLine(RenderBuffer &buffer,
                                     TextDrawingContext* dc,
                                     const std::string& Line_orig,
                                     const std::string &fontString,
@@ -980,7 +1021,7 @@ const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
             colors.push_back(xlWHITE);
         }
         CachedTextInfo inf(msg, fontString, colors, rect);
-        CachedRGBAImage *img = GetCache(buffer,id)->GetImage(inf);
+        std::shared_ptr<const CachedRGBAImage> img = GetCache(buffer,id)->GetImage(inf);
         if (img == nullptr) {
             dc->Clear();
             SetFont(dc, fontString, colors[0]);
@@ -1053,7 +1094,11 @@ const CachedRGBAImage *TextEffect::RenderTextLine(RenderBuffer &buffer,
     cache->lastRendered.width = iw;
     cache->lastRendered.height = ih;
     cache->lastRendered.data.assign(rgba, rgba + (size_t)iw * ih * 4);
-    return &cache->lastRendered;
+    // Non-owning: this is the uncacheable path (scrolling/animated text differs
+    // every frame), so it keeps returning a view of the render cache's scratch
+    // buffer, which outlives the caller's immediate pixel copy.  A no-op deleter
+    // lets it share the cached path's return type without an allocation per frame.
+    return std::shared_ptr<const CachedRGBAImage>(&cache->lastRendered, [](const CachedRGBAImage*) {});
 
 }
 

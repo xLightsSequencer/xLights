@@ -25,6 +25,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  break-even without a rebuild
     -enh (dkulp)                 Meteors "Implode"/"Explode" render faster: the trail draw runs across
                                  cores again (the other styles already did). Output is unchanged
+    -enh (dkulp)                 Text effect renders much faster where the same text repeats: rendered
+                                 text is now cached across rows and frames instead of per render buffer,
+                                 so it survives the parallel render split (measured up to 4x faster on
+                                 prop-heavy sequences on Windows). Output is unchanged
     -enh (dkulp)                 Pictures effect renders much faster: the image path is no longer
                                  re-resolved on every frame. On macOS that resolve reached iCloud and
                                  dominated prop-heavy sequences (one measured 7.7s -> 1.1s, and a
