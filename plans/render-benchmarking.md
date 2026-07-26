@@ -56,6 +56,11 @@ it is a plain `printf`, unaffected by log sink configuration.
   and skews every ratio.
 - **Absolute paths.** Relative `.xsq` arguments silently no-op — exit 0, no fseq,
   no error. This has burned multiple sessions.
+- **Keep the show and the output dir on local disk.** Both the `.xsq` read and
+  the fseq write are inside the reported time. A network/FUSE mount (Parallels
+  `psf`, SMB, NFS) costs a few percent on every measurement, and worse, some of
+  that cost is served by resources outside the machine under test — which
+  quietly biases a core-count or CPU-scaling study.
 - **macOS sandbox.** The binary can only read paths it holds a security-scoped
   bookmark for (dirs opened in the GUI at some point) — **not** `/private/tmp`.
   Stage comparison fseqs somewhere the GUI has opened at least once - under the
@@ -167,9 +172,19 @@ history is measuring wall-clock on a busy machine.
 
 | Metric | Where from | Use for |
 |---|---|---|
-| **Render-only time** | the binary's own `<path>     Updated in N seconds` line on **stdout** | the primary number. Excludes process start, sequence load, audio decode and fseq save |
+| **Render-only time** | the binary's own `<path>     Updated in N seconds` line on **stdout** | the primary number. Spans `OpenSequence` → `RenderAndWait` → `WriteFseq` — see the scope note below |
 | **User+sys CPU** | `/usr/bin/time -p` | detecting contention/regressions. Far less scheduling-sensitive than wall |
 | **Process wall** | `/usr/bin/time -p` real | only when the render actually dominates the process |
+
+**Know what the render-only number covers.** It is not the render alone: the
+timer starts before the sequence is opened and stops after the fseq is written,
+so the `.xsq` parse, its media load, and the fseq write are all inside it. What
+it excludes is process start, the show-folder load (models, networks,
+`xlights_rgbeffects.xml` — substantial on a large show) and teardown. Two
+consequences: putting the show or the output dir on a slow filesystem moves cost
+*into* the number you quote (measured: +3.7% just for reading the `.xsq` over a
+Parallels psf/FUSE mount), and a change to sequence I/O will show up here even
+though it changed no rendering.
 
 **Process wall is often the wrong metric.** Anything short enough that sequence
 load, audio decode and fseq save dominate will pin process wall regardless of
@@ -491,7 +506,7 @@ throughput. Higher is not better; re-measure before raising these.
 | `XL_VIDEO_PARALLEL=1` | video | opt into frame-parallel Video effects (off pending decoder-lock rework) |
 | `XL_NO_DECODE_SCALE=1` | video | decode at native size instead of render size (reverts decode-time scaling) |
 | `XL_GPU_STATS=1` | Vulkan | GPU statistics dump |
-| `XL_VULKAN_ALLOW_CPU=1` | Vulkan | permit a software/CPU Vulkan device |
+| `XL_VULKAN_ALLOW_CPU=1` | Vulkan | use a software Vulkan device (lavapipe/llvmpipe) for COMPUTE effects too. Off by default because ISPC beats a software device by 3-4x; useful only to exercise the Vulkan compute kernels on a machine with no GPU. Shader effects use a software device regardless — they have no CPU implementation |
 | `XL_VULKAN_DEVICE=<n>` | Vulkan | select physical device |
 | `XL_VULKAN_CONCURRENCY=<n>` | Vulkan | override compute concurrency |
 | `XL_VULKAN_VALIDATE` / `XL_VULKAN_GPUAV` | Vulkan | validation layers |
