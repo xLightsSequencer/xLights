@@ -1539,25 +1539,38 @@ nlohmann::json ShaderConfig::GetDynamicPropertiesJson() const
         entry["label"] = p.GetLabel();
 
         switch (p._type) {
-        case ShaderParmType::SHADER_PARM_FLOAT:
+        case ShaderParmType::SHADER_PARM_FLOAT: {
             entry["type"] = "float";
             entry["controlType"] = "slider";
             entry["settingPrefix"] = "SLIDER";
             entry["divisor"] = 100;
-            entry["min"] = static_cast<int>(p._min * 100.0);
-            entry["max"] = static_cast<int>(p._max * 100.0);
+            int minInt = static_cast<int>(p._min * 100.0);
+            int maxInt = static_cast<int>(p._max * 100.0);
+            // A narrow ISF-declared range can truncate to the same int (or
+            // the shader can just declare min >= max); wxSlider::Create()
+            // asserts "minValue < maxValue" on that and leaves the control's
+            // native peer uncreated, which then corrupts state for whatever
+            // uses the panel next. Guarantee a usable range here instead.
+            if (maxInt <= minInt) maxInt = minInt + 1;
+            entry["min"] = minInt;
+            entry["max"] = maxInt;
             entry["default"] = p._default;
             entry["valueCurve"] = true;
             break;
+        }
 
-        case ShaderParmType::SHADER_PARM_LONG:
+        case ShaderParmType::SHADER_PARM_LONG: {
             entry["type"] = "int";
             entry["controlType"] = "slider";
-            entry["min"] = static_cast<int>(p._min);
-            entry["max"] = static_cast<int>(p._max);
+            int minInt = static_cast<int>(p._min);
+            int maxInt = static_cast<int>(p._max);
+            if (maxInt <= minInt) maxInt = minInt + 1;
+            entry["min"] = minInt;
+            entry["max"] = maxInt;
             entry["default"] = static_cast<int>(p._default);
             entry["valueCurve"] = true;
             break;
+        }
 
         case ShaderParmType::SHADER_PARM_LONGCHOICE: {
             entry["type"] = "enum";
