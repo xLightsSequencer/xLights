@@ -625,8 +625,46 @@ public:
     }
 };
 
+#ifdef __WXMSW__
+// xLights links as a SubSystem=Windows binary, so a shell that launches it is
+// handed no stdout/stderr: --headless's per-sequence "Updated in" lines,
+// --fseqcmp's report and the XL_RENDER_PROFILE / XL_GPU_STATS dumps all go
+// nowhere, which silently makes the render diagnostics Windows-blind. Attach to
+// the launching console instead (there is none under Explorer, so this is a
+// no-op for normal GUI starts) and bind only the streams the caller has not
+// already redirected, so `xLights --headless > out.txt` still gets its file.
+static void AttachParentConsole()
+{
+    // Sample the handles first: AttachConsole fills in any that are unset, so
+    // afterwards there is no way to tell "the caller redirected me" from "the
+    // console just became my stdout" - and rebinding a redirected stream to
+    // CONOUT$ would throw away the caller's file.
+    auto preset = [](DWORD which) {
+        HANDLE h = GetStdHandle(which);
+        return h != nullptr && h != INVALID_HANDLE_VALUE;
+    };
+    const bool hadOut = preset(STD_OUTPUT_HANDLE);
+    const bool hadErr = preset(STD_ERROR_HANDLE);
+    if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
+        return;
+    }
+    // The CRT bound stdout/stderr at startup, before the console existed, so a
+    // stream we now own needs reopening even though GetStdHandle looks healthy.
+    FILE* f = nullptr;
+    if (!hadOut) {
+        freopen_s(&f, "CONOUT$", "w", stdout);
+    }
+    if (!hadErr) {
+        freopen_s(&f, "CONOUT$", "w", stderr);
+    }
+}
+#endif
+
 bool xLightsApp::OnInit()
 {
+#ifdef __WXMSW__
+    AttachParentConsole();
+#endif
     // Detected straight from argv rather than from wxCmdLineParser because a
     // parse failure has to be reported before the parser can tell us the mode.
     bool headlessArg = false;

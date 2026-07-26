@@ -19,6 +19,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  migrated to "Old Render Method" so their look is unchanged
     -enh (dkulp)                 XL_GPU_SIZE_THRESHOLD diagnostic to sweep the GPU/CPU buffer-size
                                  break-even without a rebuild
+    -bug (dkulp)                 Windows: command-line output (--headless timings, --fseqcmp results,
+                                 render diagnostics) now reaches the launching console instead of
+                                 being discarded
 
 
 2026.14  July 25, 2026
