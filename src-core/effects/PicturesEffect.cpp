@@ -459,18 +459,30 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             buffer.needToInit = false;
             scale_image = true;
 
-            // `FileExists(NewPictureName)` is tested on the raw stored
-            // path — desktop-saved sequences store absolute paths that
-            // don't resolve on iPad (or any machine other than the one
-            // they were saved on). Resolve through FixFile first so the
-            // existence check uses the actual target path the loader
-            // will use; otherwise this guard short-circuits to red and
-            // `GetImage` never gets a chance to run its own FixFile.
-            std::string resolvedName = FileUtils::FixFile("", NewPictureName);
-            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName) &&
-                !FileExists(resolvedName, false)) {
+            // Existence is checked on the FixFile-resolved path, not the raw
+            // stored one — desktop-saved sequences store absolute paths that
+            // don't resolve on iPad (or any machine other than the one they
+            // were saved on), and without resolving first this guard
+            // short-circuits to red and `GetImage` never gets a chance to run
+            // its own FixFile.
+            //
+            // Resolve only when the media cache doesn't already know the image:
+            // FixFile probes the filesystem, which on macOS reaches
+            // isUbiquitousItemAtURL — an iCloud FileProvider IPC round-trip
+            // costing milliseconds. This is the per-frame render path, and
+            // frame-parallel windows hand each clone a fresh cache, so an
+            // unconditional resolve turned a picture-heavy sequence into 25.6s
+            // of filesystem probing inside a 7.5s render.
+            bool missing = false;
+            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName)) {
+                const std::string resolvedName = FileUtils::FixFile("", NewPictureName);
+                if (!FileExists(resolvedName, false)) {
+                    missing = true;
+                    spdlog::warn("No image for: {}", resolvedName);
+                }
+            }
+            if (missing) {
                 noImageFile = true;
-                spdlog::warn("No image for: {}", resolvedName);
             } else {
                 cache->PictureName = NewPictureName;
                 cache->imageCache = buffer.GetSequenceMedia()->GetImage(NewPictureName);
