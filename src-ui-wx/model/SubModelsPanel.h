@@ -287,6 +287,7 @@ private:
     wxString GetSelectedName() const;
     int GetSelectedIndex() const;
     wxString GetSelectedNames();
+    wxString GetItemName(long item) const;
     int GetSubModelInfoIndex(const wxString& str);
     SubModelInfo* GetSubModelInfo(const wxString& str);
     bool IsItemSelected(wxListCtrl* ctrl, int item) const;
@@ -320,7 +321,7 @@ private:
 
     void ApplySubmodelName();
     void PopulateList();
-    wxString SubModelDimmingColumnText(const SubModelInfo* sm) const;
+    wxString SubModelDisplayText(const SubModelInfo* sm) const;
     void ValidateWindow();
     void Select(const wxString& name);
     void SelectAll(const wxString& names);

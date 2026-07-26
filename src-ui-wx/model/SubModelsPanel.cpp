@@ -380,13 +380,6 @@ SubModelsPanel::SubModelsPanel(wxWindow* parent, OutputManager* om) :
     nm0.SetText(_("SubModel"));
     ListCtrl_SubModels->InsertColumn(0, nm0);
 
-    wxListItem nm1;
-    nm1.SetId(1);
-    nm1.SetImage(-1);
-    nm1.SetAlign(wxLIST_FORMAT_LEFT);
-    nm1.SetText(_("Dim"));
-    ListCtrl_SubModels->InsertColumn(1, nm1);
-
     NodesGrid->SetColFormatNumber(1);
     NodesGrid->SetColFormatNumber(2);
     for (int row = 0; row < NodesGrid->GetNumberRows(); row++) {
@@ -595,13 +588,19 @@ void SubModelsPanel::RemoveSubModelFromList(wxString name)
     _subModels.erase(_subModels.begin() + idx);
 }
 
+wxString SubModelsPanel::GetItemName(long item) const
+{
+    SubModelInfo* sm = (SubModelInfo*)ListCtrl_SubModels->GetItemData(item);
+    return sm != nullptr ? sm->name : ListCtrl_SubModels->GetItemText(item);
+}
+
 wxString SubModelsPanel::GetSelectedName() const
 {
     for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); ++i)
     {
         if (IsItemSelected(ListCtrl_SubModels, i) )
         {
-            return ListCtrl_SubModels->GetItemText(i);
+            return GetItemName(i);
         }
     }
     return "";
@@ -626,7 +625,7 @@ wxString SubModelsPanel::GetSelectedNames()
     {
         if (IsItemSelected(ListCtrl_SubModels, i) )
         {
-            names += ListCtrl_SubModels->GetItemText(i) + ",";
+            names += GetItemName(i) + ",";
         }
     }
     if (names.EndsWith(",")) {
@@ -782,7 +781,7 @@ wxString SubModelsPanel::GenerateSubModelName(wxString basename)
 bool SubModelsPanel::IsUniqueName(wxString const& newname) const
 {
     for (int j = 0; j < ListCtrl_SubModels->GetItemCount(); j++) {
-        wxString const& name = ListCtrl_SubModels->GetItemText(j);
+        wxString const name = GetItemName(j);
 
         if (name.IsSameAs(newname)) {
             return false;
@@ -828,8 +827,7 @@ void SubModelsPanel::OnButton_Sub_CopyClick(wxCommandEvent& event)
     sm->oldName = name;
     _subModels.push_back(sm);
 
-    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
-    ListCtrl_SubModels->SetItem(index, 1, SubModelDimmingColumnText(sm));
+    long index = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), SubModelDisplayText(sm));
     ListCtrl_SubModels->SetItemPtrData(index, (wxUIntPtr)sm);
     ValidateWindow();
     NotifyChange();
@@ -875,7 +873,7 @@ void SubModelsPanel::OnDeleteButtonClick(wxCommandEvent& event)
     if (firstindex < 0) firstindex = 0;
     if (ListCtrl_SubModels->GetItemCount() > 0)
     {
-        Select(ListCtrl_SubModels->GetItemText(firstindex));
+        Select(GetItemName(firstindex));
     }
 
     ValidateWindow();
@@ -1523,7 +1521,7 @@ void SubModelsPanel::ApplySubmodelName()
     if (sm != nullptr) {
         bool clash = false;
         for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++) {
-            if (index != i && ListCtrl_SubModels->GetItemText(i) == name) {
+            if (index != i && GetItemName(i) == name) {
                 clash = true;
                 break;
             }
@@ -1531,7 +1529,7 @@ void SubModelsPanel::ApplySubmodelName()
 
         if (!clash) {
             sm->name = name;
-            ListCtrl_SubModels->SetItemText(index, name);
+            ListCtrl_SubModels->SetItemText(index, SubModelDisplayText(sm));
             NotifyChange();
         }
     }
@@ -1567,14 +1565,14 @@ void SubModelsPanel::OnButton_SearchClick(wxCommandEvent& event)
 
     for (int i = idx + 1; i < ListCtrl_SubModels->GetItemCount(); ++i)
     {
-        if (Contains(::Lower(ListCtrl_SubModels->GetItemText(i)), serachTxt)) {
+        if (Contains(::Lower(GetItemName(i)), serachTxt)) {
             UnSelectAll();
-            Select(ListCtrl_SubModels->GetItemText(i));
+            Select(GetItemName(i));
             return;
         }
     }
     if (ListCtrl_SubModels->GetItemCount() > 0) {
-        Select(ListCtrl_SubModels->GetItemText(0));
+        Select(GetItemName(0));
     }
 }
 
@@ -2108,12 +2106,22 @@ void SubModelsPanel::OrderPoints(bool wholesub)
 
 #pragma endregion actions
 
-wxString SubModelsPanel::SubModelDimmingColumnText(const SubModelInfo* sm) const
+wxString SubModelsPanel::SubModelDisplayText(const SubModelInfo* sm) const
 {
     if (sm->dimmingBrightness == 0) {
-        return "";
+        return sm->name;
     }
-    return wxString::Format("(%d)", sm->dimmingBrightness);
+
+    size_t maxNameLen = sm->name.length();
+    for (const auto* other : _subModels) {
+        if (other != nullptr) {
+            maxNameLen = std::max(maxNameLen, other->name.length());
+        }
+    }
+
+    wxString padded = sm->name;
+    padded.Pad((maxNameLen - padded.length()) + 2, ' ', true);
+    return padded + wxString::Format("(%d)", sm->dimmingBrightness);
 }
 
 void SubModelsPanel::PopulateList()
@@ -2122,8 +2130,7 @@ void SubModelsPanel::PopulateList()
     ListCtrl_SubModels->DeleteAllItems();
 
     for (int x = 0; x < (int)_subModels.size(); x++) {
-        ListCtrl_SubModels->InsertItem(x, _subModels[x]->name);
-        ListCtrl_SubModels->SetItem(x, 1, SubModelDimmingColumnText(_subModels[x]));
+        ListCtrl_SubModels->InsertItem(x, SubModelDisplayText(_subModels[x]));
         ListCtrl_SubModels->SetItemPtrData(x, (wxUIntPtr)_subModels[x]);
     }
 
@@ -2131,7 +2138,6 @@ void SubModelsPanel::PopulateList()
     if (ListCtrl_SubModels->GetColumnWidth(0) < 100) {
         ListCtrl_SubModels->SetColumnWidth(0, 100);
     }
-    ListCtrl_SubModels->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
 
     ListCtrl_SubModels->Thaw();
     ListCtrl_SubModels->Refresh();
@@ -2228,7 +2234,7 @@ void SubModelsPanel::ValidateWindow()
             bool clash = false;
             for (int i = 0; i < ListCtrl_SubModels->GetItemCount(); i++)
             {
-                if (index != i && ListCtrl_SubModels->GetItemText(i) == TextCtrl_Name->GetValue())
+                if (index != i && GetItemName(i) == TextCtrl_Name->GetValue())
                 {
                     clash = true;
                     break;
@@ -2557,14 +2563,12 @@ void SubModelsPanel::MoveSelectedModelsTo(int indexTo)
         ListCtrl_SubModels->DeleteItem(index);
         if (indexTo >= (int)_subModels.size()) {
             _subModels.push_back(sm);
-            long idx = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), sm->name);
-            ListCtrl_SubModels->SetItem(idx, 1, SubModelDimmingColumnText(sm));
+            long idx = ListCtrl_SubModels->InsertItem(ListCtrl_SubModels->GetItemCount(), SubModelDisplayText(sm));
             ListCtrl_SubModels->SetItemPtrData(idx, (wxUIntPtr)sm);
 
         } else {
             _subModels.insert(_subModels.begin()+indexTo, sm);
-            ListCtrl_SubModels->InsertItem(indexTo, sm->name);
-            ListCtrl_SubModels->SetItem(indexTo, 1, SubModelDimmingColumnText(sm));
+            ListCtrl_SubModels->InsertItem(indexTo, SubModelDisplayText(sm));
             ListCtrl_SubModels->SetItemPtrData(indexTo, (wxUIntPtr)sm);
         }
         ++indexTo;
@@ -2691,7 +2695,7 @@ void SubModelsPanel::OnListCtrl_SubModelsBeginDrag(wxListEvent& event)
     {
         if (IsItemSelected(ListCtrl_SubModels, i))
         {
-            drag += "," + ListCtrl_SubModels->GetItemText(i);
+            drag += "," + GetItemName(i);
         }
     }
 
@@ -4169,11 +4173,14 @@ void SubModelsPanel::SetDimmingCurve()
                 sm->dimmingBrightness = brightness;
                 int idx = GetSubModelInfoIndex(n);
                 if (idx != -1) {
-                    ListCtrl_SubModels->SetItem(idx, 1, SubModelDimmingColumnText(sm));
+                    ListCtrl_SubModels->SetItemText(idx, SubModelDisplayText(sm));
                 }
             }
         }
-        ListCtrl_SubModels->SetColumnWidth(1, wxLIST_AUTOSIZE_USEHEADER);
+        ListCtrl_SubModels->SetColumnWidth(0, wxLIST_AUTOSIZE);
+        if (ListCtrl_SubModels->GetColumnWidth(0) < 100) {
+            ListCtrl_SubModels->SetColumnWidth(0, 100);
+        }
         ValidateWindow();
         Select(nameList.front());
     }
