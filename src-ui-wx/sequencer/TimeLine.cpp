@@ -184,6 +184,7 @@ EVT_MOTION(TimeLine::mouseMoved)
 EVT_LEFT_DOWN(TimeLine::mouseLeftDown)
 EVT_LEFT_UP(TimeLine::mouseLeftUp)
 EVT_MOUSE_CAPTURE_LOST(TimeLine::OnLostMouseCapture)
+EVT_SIZE(TimeLine::OnResize)
 EVT_PAINT(TimeLine::Paint)
 END_EVENT_TABLE()
 
@@ -1341,6 +1342,24 @@ void TimeLine::Paint( wxPaintEvent& event )
 {
     wxPaintDC dc(this);
     render(dc);
+}
+
+void TimeLine::OnResize(wxSizeEvent& event)
+{
+    // Unlike Waveform (an xlGLCanvas, which gets this for free), TimeLine is
+    // a plain wxWindow with no resize handling of its own, so its hash-mark
+    // spacing/end-of-view were only ever computed once (at SetFitZoom() time
+    // or the last explicit zoom) and went stale whenever the control was
+    // resized by something other than a direct user zoom action -- e.g. an
+    // AUI docked pane (Colours, Layer Settings, ...) being shown/hidden,
+    // which can happen through several different code paths that don't all
+    // funnel through one place.
+    spdlog::debug("TimeLine::OnResize: new size {}x{}, mInFitZoom={}", event.GetSize().GetWidth(), event.GetSize().GetHeight(), mInFitZoom);
+    if (mInFitZoom) {
+        SetFitZoom();
+    }
+    Refresh();
+    event.Skip();
 }
 
 void TimeLine::render( wxDC& dc ) {
