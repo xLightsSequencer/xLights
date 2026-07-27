@@ -157,10 +157,6 @@ void Model::ApplySubModelDimmingToNodes()
         return;
     }
 
-    // Strongest brightness per parent node; overlapping submodels resolve to
-    // the strongest dim among negatives, the strongest brighten among
-    // positives, and the dim when signs are mixed (dimming/shadows is the
-    // primary use case for this feature).
     auto isStronger = [](int candidate, int current) {
         bool candidateDims = candidate < 0;
         bool currentDims = current < 0;

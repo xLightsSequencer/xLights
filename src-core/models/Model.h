@@ -227,10 +227,9 @@ public:
 
     // Stamp each submodel's own dimming curve onto the parent physical nodes it
     // covers, so the dimming is permanent regardless of which effect/model
-    // paints those channels. Where submodels overlap, the strongest effect
-    // wins (dim beats brighten; otherwise strongest magnitude of the same
-    // sign). The parent owns the curves (see _subModelNodeDimmingCurves) so
-    // node pointers stay valid for the parent's node lifetime.
+    // paints those channels. Strongest dim wins where submodels overlap. The
+    // parent owns the curves (see _subModelNodeDimmingCurves) so node pointers
+    // stay valid for the parent's node lifetime.
     void ApplySubModelDimmingToNodes();
     void SetSuppressDimmingCurvePreview(bool suppress) { _suppressDimmingCurvePreview = suppress; }
     [[nodiscard]] bool IsDimmingCurvePreviewSuppressed() const { return _suppressDimmingCurvePreview; }
