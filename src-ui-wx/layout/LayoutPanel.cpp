@@ -8042,9 +8042,18 @@ void LayoutPanel::ShowNodeLayout()
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel) return;
     wxString html = md->ChannelLayoutHtml(xlights->GetOutputManager(), IsDarkMode());
-    ChannelLayoutDialog dialog(this);
-    dialog.SetHtmlSource(html);
-    dialog.ShowModal();
+    // Show modeless (like Wiring View) so the user can keep working in xLights
+    // with the node-layout window open behind it. The dialog only holds the HTML
+    // string we hand it here (no Model* pointer), so it is safe to outlive the
+    // model. Parent to the top-level frame so it stacks like a normal window.
+    // Heap-allocated; it destroys itself on close.
+    ChannelLayoutDialog* dlg = new ChannelLayoutDialog(wxGetTopLevelParent(this));
+    dlg->SetHtmlSource(html);
+    dlg->Bind(wxEVT_CLOSE_WINDOW, [dlg](wxCloseEvent&) { dlg->Destroy(); });
+    // The OK button on a modeless dialog would only hide it (wxDialog's default),
+    // never firing the close event, so route it through Close() to destroy.
+    dlg->Bind(wxEVT_BUTTON, [dlg](wxCommandEvent&) { dlg->Close(); }, wxID_OK);
+    dlg->Show();
 }
 
 void LayoutPanel::ShowWiring()
