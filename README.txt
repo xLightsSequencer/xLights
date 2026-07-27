@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
     -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now checked and connected
+    -enh (dkulp)                 Shader: on Vulkan (Windows/Linux) the input upload now rides the frame's
+                                 own command buffer and the GPU wait is deferred until the pixels are
+                                 actually needed, so rows overlap on the GPU instead of serializing.
+                                 Renders a shader-heavy test sequence ~30% faster with identical output
     -bug (dkulp)                 Shader: a shader that accumulates into gl_FragColor without first
                                  assigning it (common in Shadertoy conversions) read an undefined value,
                                  so it rendered differently every run and made the whole sequence

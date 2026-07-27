@@ -36,6 +36,7 @@ struct Counters {
     std::atomic<uint64_t> submitNs{ 0 }, submitN{ 0 };
     std::atomic<uint64_t> fenceNs{ 0 }, fenceN{ 0 };
     std::atomic<uint64_t> readbackNs{ 0 }, readbackN{ 0 };
+    std::atomic<uint64_t> gpuExecNs{ 0 }, gpuExecN{ 0 };
 
     ~Counters() {
         if (!Enabled()) {
@@ -63,6 +64,15 @@ struct Counters {
             row("  queue submit", submitN, submitNs);
             row("  fence wait", fenceN, fenceNs);
             row("  readback memcpy", readbackN, readbackNs);
+            if (gpuExecN) {
+                // Device timestamps: this frame's work alone.  When waits are
+                // synchronous, (fence wait - gpu exec) is time queued behind
+                // other rows; with deferred completion the wait can drop far
+                // below exec because the GPU work overlapped other CPU work.
+                row("  gpu exec (device ts)", gpuExecN, gpuExecNs);
+                row("  wait minus exec", gpuExecN,
+                    fenceNs > gpuExecNs ? (uint64_t)(fenceNs - gpuExecNs) : 0);
+            }
         }
         fprintf(stderr, "=== end XL_SHADER_BUILD_STATS ===\n");
     }
@@ -88,6 +98,7 @@ void AddRecord(uint64_t ns) { counters().recordNs += ns; counters().recordN++; }
 void AddSubmit(uint64_t ns) { counters().submitNs += ns; counters().submitN++; }
 void AddFenceWait(uint64_t ns) { counters().fenceNs += ns; counters().fenceN++; }
 void AddReadback(uint64_t ns) { counters().readbackNs += ns; counters().readbackN++; }
+void AddGpuExec(uint64_t ns) { counters().gpuExecNs += ns; counters().gpuExecN++; }
 } // namespace ShaderBuildStats
 
 namespace {

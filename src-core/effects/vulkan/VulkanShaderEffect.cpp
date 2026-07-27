@@ -415,23 +415,23 @@ static CachedProgram buildVulkanProgram(const std::string& code, const std::stri
 class VulkanShaderNativeCache : public SPIRVShaderEffect::CacheBase {
 public:
     VulkanShaderNativeCache() {}
-    virtual ~VulkanShaderNativeCache() {
-        if (ubo) VulkanComputeUtilities::INSTANCE.destroyBuffer(ubo);
-    }
+    virtual ~VulkanShaderNativeCache() {}
 
     VkPipeline pipeline = VK_NULL_HANDLE;
     std::vector<UBOMember> members;
     uint32_t uboSize = 16;
     bool hasSampler = false;
-    VulkanBuffer ubo{};
+    // Packed uniform bytes only — the GPU-side UBO lives in the pooled render
+    // target (VulkanGraphicsTarget), so nothing tied to this cache's lifetime
+    // is referenced by a frame still in flight after Render() returns.
+    std::vector<uint8_t> uboData;
 
     virtual void platformReset() override {
         pipeline = VK_NULL_HANDLE; // owned by the process-wide programCache
         members.clear();
         uboSize = 16;
         hasSampler = false;
-        if (ubo) VulkanComputeUtilities::INSTANCE.destroyBuffer(ubo);
-        ubo = VulkanBuffer{};
+        uboData.clear();
     }
 
     bool build(RenderBuffer& buffer) {
@@ -459,22 +459,15 @@ public:
         members = prog.members;
         uboSize = prog.uboSize;
         hasSampler = prog.hasSampler;
-
-        if (!ubo || ubo.size < uboSize) {
-            if (ubo) VulkanComputeUtilities::INSTANCE.destroyBuffer(ubo);
-            ubo = VulkanBuffer{};
-            if (!VulkanComputeUtilities::INSTANCE.createSharedBuffer(ubo, uboSize, "ShaderUBO")) {
-                return false;
-            }
-        }
+        uboData.assign(uboSize, 0);
         return true;
     }
 
-    // Pack the computed uniform values into the mapped UBO per std140.  Float
-    // members take float bits; int/bool members are lround'ed to int bits.
-    // Members with no computed value stay zero.
+    // Pack the computed uniform values into uboData per std140.  Float members
+    // take float bits; int/bool members are lround'ed to int bits.  Members
+    // with no computed value stay zero.
     void packUniforms(const SPIRVShaderEffect::UniformValues& vals) {
-        uint8_t* base = (uint8_t*)ubo.mapped;
+        uint8_t* base = uboData.data();
         std::memset(base, 0, uboSize);
         for (const auto& m : members) {
             auto it = vals.find(m.name);
@@ -540,37 +533,54 @@ bool VulkanShaderEffect::nativeEncode(CacheBase* base, RenderBuffer& buffer,
                                       const UniformValues& vals, InputKind kind,
                                       const float* audio128) {
     auto* cache = static_cast<VulkanShaderNativeCache*>(base);
+    if (cache->uboData.size() < cache->uboSize) {
+        return false;
+    }
+
+    // The previous frame's deferred draw must land before its output is read
+    // back as this frame's canvas input (and before its pooled target's UBO
+    // could matter).  Normally the engine already drained it when something
+    // consumed the pixels; this covers rows where nothing did.
+    VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
+    if (rbcd != nullptr) {
+        rbcd->drainPendingShaderFrame();
+    }
+
     cache->packUniforms(vals);
 
     // Input texture (set0/binding1): audio shaders sample the 128x1 float
     // FFT/intensity texture; everything else samples the buffer's own pixels
     // (previous frame's output / canvas), matching the GL and Metal paths.
-    // On upload failure the foundation's 1x1 dummy stays bound.
     //
     // Skipped entirely for a fragment stage that declares no sampler, as Metal
-    // already does (it uploads only `if (usesTexture)`).  Unlike Metal's
-    // replaceRegion on shared storage, this upload costs a staging copy, a
-    // command buffer, a queue submit and a full fence wait, so doing it for a
-    // purely generative shader burns a whole GPU round trip per frame to
-    // populate an image nothing reads.
-    VkImageView inputView = VK_NULL_HANDLE;
+    // already does (it uploads only `if (usesTexture)`).  The upload rides the
+    // frame's own command buffer — no separate submit/fence round trip.
+    VulkanShaderInput input;
+    const VulkanShaderInput* inputPtr = nullptr;
     if (cache->hasSampler) {
-        const auto t0 = std::chrono::steady_clock::now();
         if (kind == InputKind::Audio && audio128 != nullptr) {
-            inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(128, 1, VK_FORMAT_R32_SFLOAT, audio128, 128 * sizeof(float));
+            input = { 128, 1, VK_FORMAT_R32_SFLOAT, audio128, 128 * sizeof(float) };
         } else {
-            inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(
-                (uint32_t)buffer.BufferWi, (uint32_t)buffer.BufferHt, VK_FORMAT_R8G8B8A8_UNORM,
-                buffer.GetPixels(), (size_t)buffer.BufferWi * buffer.BufferHt * 4);
+            input = { (uint32_t)buffer.BufferWi, (uint32_t)buffer.BufferHt, VK_FORMAT_R8G8B8A8_UNORM,
+                      buffer.GetPixels(), (size_t)buffer.BufferWi * buffer.BufferHt * 4 };
         }
-        if (ShaderBuildStats::Enabled()) {
-            ShaderBuildStats::AddUpload((uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                            std::chrono::steady_clock::now() - t0).count());
-        }
+        inputPtr = &input;
     }
 
-    if (!VulkanGraphicsUtilities::INSTANCE.renderShader(buffer, cache->pipeline, cache->ubo.buffer, inputView)) {
+    VulkanGraphicsTarget* frame = VulkanGraphicsUtilities::INSTANCE.submitShaderFrame(
+        buffer, cache->pipeline, cache->uboData.data(), cache->uboSize, inputPtr);
+    if (frame == nullptr) {
         return false; // transient — the shared layer fills this frame yellow
+    }
+    if (rbcd != nullptr) {
+        // Defer the fence wait + readback to whoever consumes the pixels
+        // (GPURenderUtils::waitForRenderCompletion / the next GPU op), so this
+        // thread isn't parked and rows pipeline on the shared graphics queue.
+        rbcd->setPendingShaderFrame(frame);
+    } else {
+        // No compute data (software device / compute declined): nothing will
+        // drain a pending frame, so finish synchronously as before.
+        VulkanGraphicsUtilities::INSTANCE.completeShaderFrame(frame);
     }
 
     if (sDbg && (buffer.curPeriod % 100) == 0) {

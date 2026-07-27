@@ -49,6 +49,7 @@ struct VulkanBuffer {
 };
 
 class VulkanRenderBufferComputeData;
+struct VulkanGraphicsTarget;
 
 class VulkanPixelBufferComputeData {
 public:
@@ -134,8 +135,20 @@ public:
     // True when there is un-waited GPU work queued (open or in-flight) -- a CPU
     // read of the pixels would have to waitForCompletion.  Used to decide whether
     // a small-node blend is still worth doing on the GPU.
-    bool hasQueuedGpuWork() { return recording; }
+    bool hasQueuedGpuWork() { return recording || hasPendingShaderFrame(); }
     void waitForCompletion();
+
+    // Deferred native-Shader graphics frame: the Shader effect submits its draw
+    // and registers it here instead of blocking in Render(); the fence wait and
+    // pixel readback run at waitForCompletion / the next GPU op on this buffer.
+    // That is what lets shader rows pipeline on the single shared graphics
+    // queue instead of each parking its CPU for a full submit->fence round trip
+    // per frame (which measured as ~2/3 queueing behind sibling rows).
+    void setPendingShaderFrame(VulkanGraphicsTarget* frame);
+    // discardPixels: skip the completion memcpy — teardown paths where the
+    // RenderBuffer's pixel storage may already be repointed or gone.
+    void drainPendingShaderFrame(bool discardPixels = false);
+    bool hasPendingShaderFrame() { return pendingShaderFrame.load() != nullptr; }
 
     // Retire a buffer that is being replaced (grown). If a command buffer is in
     // flight/recording it may still reference the old buffer, so instead of
@@ -208,6 +221,11 @@ private:
     // Buffers replaced while a command buffer was in flight; freed once that
     // command buffer completes (see retireBuffer / waitForCompletion).
     std::vector<VulkanBuffer> pendingFree;
+
+    // At most one in-flight Shader graphics frame per buffer (the encode path
+    // drains before submitting the next).  Atomic because the drain can run on
+    // whichever thread consumes the pixels, not just the render thread.
+    std::atomic<VulkanGraphicsTarget*> pendingShaderFrame{ nullptr };
 
     static std::atomic<uint32_t> commandBufferCount;
 };

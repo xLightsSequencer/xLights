@@ -25,14 +25,19 @@
 #include <cstdint>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "VulkanComputeUtilities.h"
+#include "../../render/RenderProfile.h"
 
 class RenderBuffer;
 
-// A per-thread offscreen render target (image + framebuffer + readback), lazily
-// sized to the largest buffer seen on that thread.  Leaked at exit like the rest
-// of the backend.
+// One in-flight shader frame's resources: offscreen render target + readback,
+// UBO, input image, command buffer and fence.  Acquired from a pool for each
+// submitted frame and recycled at completion, so a frame can stay in flight
+// after Render() returns (see submitShaderFrame/completeShaderFrame) without
+// its resources being reused underneath it.  Pooled targets are leaked at exit
+// like the rest of the backend.
 struct VulkanGraphicsTarget {
     uint32_t width = 0;
     uint32_t height = 0;
@@ -44,8 +49,45 @@ struct VulkanGraphicsTarget {
     VkCommandPool pool = VK_NULL_HANDLE;
     VkCommandBuffer cb = VK_NULL_HANDLE;
     VkFence fence = VK_NULL_HANDLE;
+    // Two-slot timestamp pool bracketing the submitted work.  The fence wait
+    // measures GPU execution PLUS time queued behind other rows' submissions on
+    // the shared graphics queue; the timestamp delta is execution alone, so the
+    // difference between the two is the queueing.  Created lazily, only when
+    // stats/profiling ask for it.
+    VkQueryPool tsPool = VK_NULL_HANDLE;
     VkDescriptorPool descPool = VK_NULL_HANDLE;  // shader-effect UBO/sampler set
     VkDescriptorSet descSet = VK_NULL_HANDLE;
+
+    // Uniforms.  Owned here (not by the effect cache) so nothing tied to an
+    // effect's cache lifetime is referenced by an in-flight frame.
+    VulkanBuffer ubo;
+
+    // Sampled input image (canvas/feedback pixels or the 128x1 audio FFT) and
+    // its staging buffer.  The upload is recorded at the head of the render
+    // command buffer — one submit per frame, not a separate round trip.
+    uint32_t inW = 0, inH = 0;
+    VkFormat inFmt = VK_FORMAT_UNDEFINED;
+    VkImage inImage = VK_NULL_HANDLE;
+    VmaAllocation inAlloc = VK_NULL_HANDLE;
+    VkImageView inView = VK_NULL_HANDLE;
+    VulkanBuffer staging;
+
+    // In-flight bookkeeping, valid between submit and completion.
+    bool inFlight = false;
+    bool timestamped = false;
+    uint8_t* dstPixels = nullptr;  // completion memcpy destination (null: skip)
+    bool flipRows = false;         // bottom-row-first destination (renderToBuffer)
+    GpuCommandBufferTag tag;       // profile attribution, captured at record time
+};
+
+// Sampled-input description for one shader frame.  `data` is copied into the
+// target's staging buffer during submit, so it only needs to live for the call.
+struct VulkanShaderInput {
+    uint32_t w = 0;
+    uint32_t h = 0;
+    VkFormat format = VK_FORMAT_UNDEFINED;
+    const void* data = nullptr;
+    size_t byteSize = 0;
 };
 
 class VulkanGraphicsUtilities {
@@ -83,21 +125,27 @@ public:
     VkDescriptorSetLayout shaderSetLayout();
     VkPipelineLayout shaderPipelineLayout();
 
-    // Render `pipeline` (built against shaderPipelineLayout) into buffer.pixels,
-    // binding `ubo` at set0/binding0 and `inputView` (or the dummy) at
-    // set0/binding1.  Returns false on failure.
-    bool renderShader(RenderBuffer& buffer, VkPipeline pipeline, VkBuffer ubo, VkImageView inputView);
+    // Submit one shader frame WITHOUT waiting: acquires a target, records the
+    // (optional) input upload + fullscreen draw + readback copy into a single
+    // command buffer, submits it, and returns the in-flight frame.  The frame
+    // MUST be finished exactly once with completeShaderFrame() before
+    // buffer.pixels is read — normally deferred through
+    // VulkanRenderBufferComputeData::drainPendingShaderFrame() so the CPU is
+    // not parked per frame and rows pipeline on the shared graphics queue
+    // instead of serializing.  Returns nullptr on failure (nothing pending).
+    VulkanGraphicsTarget* submitShaderFrame(RenderBuffer& buffer, VkPipeline pipeline,
+                                            const void* uboData, uint32_t uboSize,
+                                            const VulkanShaderInput* input);
+    // Wait for the frame's fence, book stats/profile attribution, copy the
+    // pixels to their destination, and recycle the target.  Safe to call with
+    // nullptr.  Returns true when the fence signalled and the pixels landed.
+    bool completeShaderFrame(VulkanGraphicsTarget* frame);
 
-    // Upload `data` (byteSize bytes) into a per-thread sampled input image of the
-    // given w/h/format, leaving it in SHADER_READ_ONLY_OPTIMAL, and return its
-    // view for renderShader's inputView (RGBA8 for canvas/feedback shaders,
-    // R32_SFLOAT 128x1 for audio).  VK_NULL_HANDLE on failure (caller uses dummy).
-    VkImageView prepareInputImage(uint32_t w, uint32_t h, VkFormat format, const void* data, size_t byteSize);
-
-    // Render `pipeline` (a fullscreen draw) into buffer.pixels.  Optional push
-    // constants (fragment stage) and a bound descriptor set (set 0).  Handles the
-    // RenderBuffer's bottom-row-first convention.  Returns false (caller falls
-    // back) if the graphics path is unavailable or a Vulkan call fails.
+    // Render `pipeline` (a fullscreen draw) into buffer.pixels, synchronously.
+    // Optional push constants (fragment stage) and a bound descriptor set
+    // (set 0).  Handles the RenderBuffer's bottom-row-first convention.
+    // Returns false (caller falls back) if the graphics path is unavailable or
+    // a Vulkan call fails.
     bool renderToBuffer(RenderBuffer& buffer, VkPipeline pipeline, VkPipelineLayout layout,
                         const void* pushData, uint32_t pushBytes,
                         VkDescriptorSet descSet);
@@ -108,10 +156,7 @@ public:
     bool selfTest();
 
     // XL_VULKAN_SUBMITBENCH=1: time submit+fence round trips in isolation, to
-    // separate the driver's floor from cost this code adds.  The shader path
-    // spends ~82% of its time in vkWaitForFences; this says whether that is
-    // inherent latency (only a semaphore handoff removes it) or something our
-    // per-frame command-buffer handling inflates.  Logs to stderr.
+    // separate the driver's floor from cost this code adds.  Logs to stderr.
     void submitLatencyBench();
 
     // Phase-2 in-binary proof: translate a push-constant-driven fragment shader
@@ -127,16 +172,33 @@ private:
     VkShaderModule shaderModule(const uint32_t* words, size_t bytes);
     bool ensureTarget(VulkanGraphicsTarget& t, uint32_t w, uint32_t h);
     void destroyTarget(VulkanGraphicsTarget& t);
-    // Record+submit a fullscreen draw of `pipeline` into t.readback (w*h RGBA8,
-    // top-row-first).  Blocks on the fence.  Shared by renderToBuffer/selfTest.
-    bool renderCore(VulkanGraphicsTarget& t, uint32_t w, uint32_t h,
-                    VkPipeline pipeline, VkPipelineLayout layout,
-                    const void* pushData, uint32_t pushBytes, VkDescriptorSet descSet);
+    // Pool of frame targets: acquired per submitted frame, returned at
+    // completion.  Prefers a size-matching free target to avoid re-allocating
+    // the render image every frame.
+    VulkanGraphicsTarget* acquireTarget(uint32_t w, uint32_t h);
+    void releaseTarget(VulkanGraphicsTarget* t);
+    // Ensure the target's input image/staging match `input` and memcpy the data
+    // into staging.  Returns the image view to bind (dummy when input==nullptr),
+    // or VK_NULL_HANDLE on failure.
+    VkImageView prepareInput(VulkanGraphicsTarget& t, const VulkanShaderInput* input);
+    // Record the (optional) input upload + fullscreen draw + readback copy and
+    // submit — does NOT wait.  Sets t.inFlight on success.
+    bool recordAndSubmit(VulkanGraphicsTarget& t, uint32_t w, uint32_t h,
+                         VkPipeline pipeline, VkPipelineLayout layout,
+                         const void* pushData, uint32_t pushBytes, VkDescriptorSet descSet,
+                         bool recordInputUpload);
 
     std::once_flag initOnce_;
     bool inited_ = false;
     bool ok_ = false;
     VkRenderPass renderPass_ = VK_NULL_HANDLE;
+    // ns per timestamp tick on the graphics queue family; 0 when it cannot
+    // timestamp.  Kept separate from VulkanComputeUtilities::timestampPeriod,
+    // which is validated against the (possibly different) compute family.
+    float tsPeriod_ = 0.0f;
+
+    std::mutex targetMutex_;
+    std::vector<VulkanGraphicsTarget*> freeTargets_;
 
     // Built-in gradient test pipeline (lazy).
     VkPipelineLayout emptyLayout_ = VK_NULL_HANDLE;
