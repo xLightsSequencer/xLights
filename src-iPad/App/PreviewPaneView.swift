@@ -271,9 +271,32 @@ struct PreviewPaneView: UIViewRepresentable {
                     context.coordinator.lastPushedGroup = newGroup
                     uiView.setNeedsDisplay()
                 }
-                let newObject = viewModel.layoutEditorSelectedObject ?? ""
+                // Controller placement boxes set to "Controller Tab Only"
+                // appear and disappear with the tab, so the canvas has to
+                // know which tab is active, not just which controller is
+                // picked. Pushed before the object selection below, which
+                // depends on it.
+                let ctrlTab = (viewModel.layoutEditorActiveTab ==
+                               LayoutSidebarTab.controllers.rawValue)
+                if context.coordinator.lastPushedControllersTab != ctrlTab {
+                    bridge.setControllersTabActive(ctrlTab)
+                    context.coordinator.lastPushedControllersTab = ctrlTab
+                    uiView.setNeedsDisplay()
+                }
+                // The bridge's selected-view-object is what draws handles and
+                // anchors a drag. On the Controllers tab the selection lives in
+                // `layoutEditorSelectedController` instead, so resolve it to
+                // that controller's box — writing `layoutEditorSelectedObject`
+                // would flip the sidebar to the Objects tab via the J-11 mutex.
+                let effectiveObject: String? = {
+                    if ctrlTab, let c = viewModel.layoutEditorSelectedController {
+                        return viewModel.document.controllerObjectName(forController: c)
+                    }
+                    return viewModel.layoutEditorSelectedObject
+                }()
+                let newObject = effectiveObject ?? ""
                 if context.coordinator.lastPushedObject != newObject {
-                    bridge.setSelectedViewObject(viewModel.layoutEditorSelectedObject)
+                    bridge.setSelectedViewObject(effectiveObject)
                     context.coordinator.lastPushedObject = newObject
                     uiView.setNeedsDisplay()
                 }
@@ -357,6 +380,7 @@ struct PreviewPaneView: UIViewRepresentable {
         var lastPushedGroup: String = ""
         var lastPushedObject: String = ""
         var lastPushedController: String = ""
+        var lastPushedControllersTab: Bool = false
         /// J-2 — true while a one-finger pan started on the
         /// LayoutEditor's selected model and is dragging the model
         /// rather than the camera. Set in .began, cleared in .ended.
@@ -1593,7 +1617,15 @@ struct PreviewPaneView: UIViewRepresentable {
                 if let voHit = bridge.pickViewObject(atScreenPoint: point,
                                                        viewSize: size,
                                                        for: viewModel.document) {
-                    viewModel.layoutEditorSelectedObject = voHit
+                    // A controller placement box belongs to the Controllers
+                    // tab, not the Objects tab — routing it through
+                    // layoutEditorSelectedObject would flip the sidebar to a
+                    // tab that doesn't list it.
+                    if let ctrl = viewModel.document.controllerName(forViewObject: voHit) {
+                        viewModel.layoutEditorSelectedController = ctrl
+                    } else {
+                        viewModel.layoutEditorSelectedObject = voHit
+                    }
                     return
                 }
             }

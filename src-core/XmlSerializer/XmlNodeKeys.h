@@ -109,6 +109,8 @@ namespace XmlNodeKeys {
     constexpr auto StrandNamesAttribute     = "StrandNames";
     constexpr auto ShadowModelAttribute     = "ShadowModelFor";
     constexpr auto ControllerAttribute      = "Controller";
+    constexpr auto VisibilityAttribute      = "Visibility";
+    constexpr auto ShowLabelAttribute       = "ShowLabel";
     constexpr auto xlightsVersionAttr       = "SourceVersion";
     constexpr auto versionNumberAttribute   = "versionNumber";
     constexpr auto ActiveAttribute          = "Active";
@@ -470,6 +472,7 @@ namespace XmlNodeKeys {
     constexpr auto TerrianType      = "Terrian"; // Wrong spelling from old xLights, readable for compatibility
     constexpr auto MeshType         = "Mesh";
     constexpr auto RulerType        = "Ruler";
+    constexpr auto ControllerObjectType = "Controller";
 
     //Extra Types
     constexpr auto EffectsType      = "effects";

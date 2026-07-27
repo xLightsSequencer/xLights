@@ -35,6 +35,11 @@ public:
     void OnItemContextMenu(wxTreeListEvent& event);
     void HighlightObject(ViewObject* v);
     ViewObject* GetSelectedObject() { return mSelectedObject; }
+    // Every object operation (delete, align, distribute, resize, flip) targets
+    // mSelectedObject. It is only ever set from this panel's tree, so it must be
+    // dropped when another page takes over object editing - otherwise those
+    // operations would still act on this page's last selection.
+    void ClearSelectedObject() { mSelectedObject = nullptr; }
     void refreshObjectList();
 
     void PreviewObjectAlignWithGround();

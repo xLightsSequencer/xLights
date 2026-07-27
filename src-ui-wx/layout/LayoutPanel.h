@@ -167,7 +167,10 @@ class LayoutPanel: public wxPanel
 		ObjectsPage CurrentObjectsPage() const;
 		ControllerListPanel* GetControllerListPanel() const { return controllers_panel; }
 		bool IsControllersPageActive() const;
+		bool IsObjectEditable(const ViewObject* view_object) const;
+		ViewObject* SelectSingleViewObject(int x, int y);
 		void UpdateSettingsPaneForPage();
+		void UpdateControllerObjectContext();
 
     private:
 

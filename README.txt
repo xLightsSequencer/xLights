@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Layout: controllers can be shown as a movable, resizable box in the
+                                 2D or 3D preview so they can be placed where they physically sit. Set via
+                                 Show on Layout on the Controllers tab (Off by default); Off / Controller
+                                 Tab Only / Layout Panel / Always control where the box appears. Position,
+                                 size and rotation are editable in the controller properties alongside an
+                                 optional name label (off by default)
+    -change (dkulp)              Layout: on the Controllers tab the preview now selects controller boxes
+                                 rather than models. Models remain selectable from the controller tree
+                                 and the Models tab
     -bug (dkulp)                 Layout: crash when selecting in the model tree while models are being
                                  deleted or the tree is being rebuilt. Selection now skips tree items whose
                                  model has already been freed on every platform, instead of only on Linux

@@ -70,6 +70,7 @@
 #include "models/MeshObject.h"
 #include "models/ImageObject.h"
 #include "models/GridlinesObject.h"
+#include "models/ControllerObject.h"
 #include "models/TerrainObject.h"
 #include "models/RulerObject.h"
 #include "models/BoxedScreenLocation.h"
@@ -6930,11 +6931,27 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
     for (auto it = vm.begin(); it != vm.end(); ++it) {
         ViewObject* vo = it->second;
         if (!vo) continue;
+        if (vo->GetDisplayAs() == DisplayAsType::Controller) continue;  // Controllers tab owns these
         if (MatchesActiveLayoutGroupForViewObject(vo->GetLayoutGroup(), active)) {
             [out addObject:[NSString stringWithUTF8String:vo->GetName().c_str()]];
         }
     }
     return out;
+}
+
+- (nullable NSString*)controllerNameForViewObject:(NSString*)objectName {
+    if (!_context || !objectName || !_context->HasViewObjectManager()) return nil;
+    ViewObject* vo = _context->GetAllObjects().GetViewObject(objectName.UTF8String);
+    auto* co = dynamic_cast<ControllerObject*>(vo);
+    if (co == nullptr || co->GetControllerName().empty()) return nil;
+    return [NSString stringWithUTF8String:co->GetControllerName().c_str()];
+}
+
+- (nullable NSString*)controllerObjectNameForController:(NSString*)controllerName {
+    if (!_context || !controllerName || !_context->HasViewObjectManager()) return nil;
+    auto* co = _context->GetAllObjects().GetControllerObject(controllerName.UTF8String);
+    if (co == nullptr) return nil;
+    return [NSString stringWithUTF8String:co->GetName().c_str()];
 }
 
 - (NSArray<NSDictionary<NSString*, id>*>*)viewObjectsListSummary {
@@ -6945,6 +6962,7 @@ static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
     for (auto it = vm.begin(); it != vm.end(); ++it) {
         ViewObject* vo = it->second;
         if (!vo) continue;
+        if (vo->GetDisplayAs() == DisplayAsType::Controller) continue;  // Controllers tab owns these
         if (!MatchesActiveLayoutGroupForViewObject(vo->GetLayoutGroup(), active)) continue;
         [out addObject:@{
             @"name":       [NSString stringWithUTF8String:vo->GetName().c_str()],
@@ -15769,6 +15787,19 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                                   c->IsSuppressDuplicateFrames() ? YES : NO)];
     [out addObject:CtrlBoolProp(@"Monitor", @"Monitor",
                                   c->IsMonitoring() ? YES : NO)];
+    // Layout placement box. Lives in the rgbeffects file rather than on the
+    // Controller, so it is read from AllObjects rather than `c`.
+    {
+        ControllerObject* co = _context->HasViewObjectManager()
+            ? _context->GetAllObjects().GetControllerObject(c->GetName())
+            : nullptr;
+        const int visIdx = (int)(co != nullptr ? co->GetVisibility()
+                                               : ControllerObject::Visibility::Off);
+        [out addObject:CtrlEnumProp(@"LayoutVisibility", @"Show on Layout",
+                                      visIdx,
+                                      @[@"Off", @"Controller Tab Only",
+                                        @"Layout Panel", @"Always"])];
+    }
 
     // === Vendor / Model / Variant cascade ===
     [out addObject:CtrlHeader(@"ControllerVendorHeader", @"Hardware")];
@@ -16054,8 +16085,35 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         if (newName == c->GetName()) return NO;  // no change
         // Reject if another controller already has this name.
         if (_context->GetOutputManager().GetController(newName) != nullptr) return NO;
+        const std::string oldName = c->GetName();
         c->SetName(newName);
+        // The placement box is bound by controller name and lives in the other
+        // file, so it has to follow the rename or the binding breaks.
+        if (_context->HasViewObjectManager()) {
+            _context->GetAllObjects().RenameController(oldName, newName);
+        }
         changed = YES;
+    } else if (k == "LayoutVisibility") {
+        if (![value isKindOfClass:[NSNumber class]]) return NO;
+        if (!_context->HasViewObjectManager()) return NO;
+        const auto vis = (ControllerObject::Visibility)[(NSNumber*)value intValue];
+        auto& objs = _context->GetAllObjects();
+        ControllerObject* co = objs.GetControllerObject(c->GetName());
+        if (co == nullptr) {
+            // Nothing is written until the user asks for a box, which is what
+            // keeps existing shows untouched.
+            if (vis == ControllerObject::Visibility::Off) return NO;
+            co = objs.CreateControllerObject(c->GetName());
+            if (co == nullptr) return NO;
+            co->GetObjectScreenLocation().SetPosition(
+                _context->GetPreviewWidth() / 2.0f,
+                _context->GetPreviewHeight() / 2.0f);
+        }
+        co->SetVisibility(vis);
+        // Placement lives in rgbeffects, not networks - mark the layout dirty
+        // rather than falling through to the controllers-dirty path below.
+        _context->MarkLayoutModelDirty(ControllerObject::ObjectNameFor(c->GetName()));
+        return YES;
     } else if (k == "Description") {
         if (![value isKindOfClass:[NSString class]]) return NO;
         c->SetDescription([(NSString*)value UTF8String]);
@@ -16481,6 +16539,9 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         _context->GetModelManager().DeleteController(name.UTF8String);
     }
     om.DeleteController(name.UTF8String);
+    if (_context->HasViewObjectManager()) {
+        _context->GetAllObjects().DeleteControllerObject(name.UTF8String);
+    }
     // Rework + Recalc (rather than Recalc alone): Rework rewrites
     // every remaining controller's "!Name:###" assignments so the
     // channel range freed by the deleted controller collapses,

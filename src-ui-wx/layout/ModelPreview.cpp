@@ -25,6 +25,7 @@
 #include "layout/ModelPreview.h"
 #include "models/Model.h"
 #include "models/ViewObject.h"
+#include "models/ControllerObject.h"
 #include "layout/PreviewPane.h"
 #include "color/ColorManager.h"
 #include "layout/LayoutGroup.h"
@@ -1035,13 +1036,39 @@ void ModelPreview::Render()
         }
     }
 
-    // draw all the view objects
-    if (is3d && xlights  != nullptr) {
+    // draw all the view objects. Most are 3D-only; those that opt out of
+    // GetIs3dOnly (controller boxes) also draw in the 2D preview.
+    if (xlights != nullptr && solidViewObjectProgram != nullptr && transparentViewObjectProgram != nullptr) {
         for (const auto& it : xlights->AllObjects) {
             ViewObject* view_object = it.second;
+            if (!ShouldDrawViewObject(view_object)) continue;
             view_object->Draw(this, currentContext, solidViewObjectProgram, transparentViewObjectProgram, allowSelected);
         }
     }
+}
+
+// Controller objects are the only view objects whose visibility depends on
+// which preview is drawing. Everything else always draws.
+bool ModelPreview::ShouldDrawViewObject(const ViewObject* view_object) const
+{
+    if (view_object == nullptr) {
+        return false;
+    }
+    // Terrain, gridlines, meshes and images are 3D-only; only objects that opt
+    // out are drawn in a 2D preview.
+    if (!is3d && view_object->GetIs3dOnly()) {
+        return false;
+    }
+    const ControllerObject* co = dynamic_cast<const ControllerObject*>(view_object);
+    if (co == nullptr) {
+        return true;
+    }
+    if (!co->ShouldDrawIn(_controllerObjectContext)) {
+        return false;
+    }
+    // Orphan (controller gone) - keep the object so its placement survives a
+    // later merge, but don't draw a box for a controller that isn't there.
+    return xlights != nullptr && xlights->GetOutputManager()->GetController(co->GetControllerName()) != nullptr;
 }
 
 void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers/*=true*/) {
@@ -1064,10 +1091,11 @@ void ModelPreview::Render(uint32_t frameTime, const unsigned char *data, bool sw
                 m->DisplayModelOnWindow(this, currentContext, solidProgram, transparentProgram, is3d);
             }
         }
-        // draw all the view objects
-        if (is3d) {
+        // draw all the view objects (see the note in the other Render overload)
+        if (solidViewObjectProgram != nullptr && transparentViewObjectProgram != nullptr) {
             for (const auto& it : xlights->AllObjects) {
                 ViewObject *view_object = it.second;
+                if (!ShouldDrawViewObject(view_object)) continue;
                 view_object->Draw(this, currentContext, solidViewObjectProgram, transparentViewObjectProgram, allowSelected);
             }
         }
@@ -1486,6 +1514,12 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
     currentContext->pushDebugContext(getName() + " - Prepare");
     solidProgram = currentContext->createGraphicsProgram();
     transparentProgram = currentContext->createGraphicsProgram();
+    // Created for both modes. These used to be allocated only in the 3D branch
+    // below, which was safe while the view-object draw loop was itself gated on
+    // is3d - now that 2D-capable objects exist, a 2D frame would pass a null
+    // program straight into ViewObject::Draw.
+    solidViewObjectProgram = currentContext->createGraphicsProgram();
+    transparentViewObjectProgram = currentContext->createGraphicsProgram();
 
     mPointSize = pointSize;
     mIsDrawing = true;
@@ -1584,9 +1618,6 @@ bool ModelPreview::StartDrawing(wxDouble pointSize, bool fromPaint)
             }
         }
     } else {
-        solidViewObjectProgram = currentContext->createGraphicsProgram();
-        transparentViewObjectProgram = currentContext->createGraphicsProgram();
-        
         /*****************************   3D   ********************************/
         glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(camera3d->GetPosX() + camera3d->GetPanX(), camera3d->GetPosY() + camera3d->GetPanY(), camera3d->GetPosZ() + camera3d->GetPanZ()));
         glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, camera3d->GetDistance() * camera3d->GetZoom()));
@@ -1628,11 +1659,21 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
             transparentProgram->runSteps(currentContext);
         }
     } else {
+        // 2D runs the view-object programs AFTER the main ones, the opposite of
+        // 3D above. In 3D the view objects are the ground/terrain and belong
+        // underneath the models; in 2D the first step of solidProgram is the
+        // background image, so anything drawn before it is simply painted over.
         if (solidProgram) {
             solidProgram->runSteps(currentContext);
         }
+        if (solidViewObjectProgram) {
+            solidViewObjectProgram->runSteps(currentContext);
+        }
         if (transparentProgram) {
             transparentProgram->runSteps(currentContext);
+        }
+        if (transparentViewObjectProgram) {
+            transparentViewObjectProgram->runSteps(currentContext);
         }
     }
     currentContext->PopMatrix();

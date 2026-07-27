@@ -281,6 +281,9 @@
     <ClCompile Include="..\src-core\models\MeshObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\models\ControllerObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\models\GridlinesObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -1810,6 +1813,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\MeshObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\ControllerObject.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\GridlinesObject.h">

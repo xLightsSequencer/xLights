@@ -721,6 +721,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\models\DMX\Servo.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ServoConfigDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\adapters\SkullConfigDialog.cpp" />
+    <ClCompile Include="..\src-core\models\ControllerObject.cpp" />
     <ClCompile Include="..\src-core\models\GridlinesObject.cpp" />
     <ClCompile Include="..\src-core\models\ImageModel.cpp" />
     <ClCompile Include="..\src-core\models\LabelModel.cpp" />
@@ -1376,6 +1377,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\models\DMX\Servo.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ServoConfigDialog.h" />
     <ClInclude Include="..\src-ui-wx\modelproperties\adapters\SkullConfigDialog.h" />
+    <ClInclude Include="..\src-core\models\ControllerObject.h" />
     <ClInclude Include="..\src-core\models\GridlinesObject.h" />
     <ClInclude Include="..\src-core\models\ImageModel.h" />
     <ClInclude Include="..\src-core\models\LabelModel.h" />

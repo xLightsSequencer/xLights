@@ -1828,6 +1828,19 @@ NS_ASSUME_NONNULL_BEGIN
 // ViewObjectManager iteration order.
 - (NSArray<NSString*>*)viewObjectsInActiveLayoutGroup;
 
+// The controller a view object is bound to, or nil if it isn't a controller
+// placement box. Lets a canvas pick route the selection to the Controllers tab
+// instead of the Objects tab, which never lists these.
+- (nullable NSString*)controllerNameForViewObject:(NSString*)objectName
+    NS_SWIFT_NAME(controllerName(forViewObject:));
+
+// The inverse: a controller's placement box name, or nil if it has none. Used
+// to make the box the canvas drag target while its controller is selected on
+// the Controllers tab, without writing to `layoutEditorSelectedObject` (which
+// would flip the sidebar via the tab mutex).
+- (nullable NSString*)controllerObjectNameForController:(NSString*)controllerName
+    NS_SWIFT_NAME(controllerObjectName(forController:));
+
 // Per-ViewObject summary. Keys mirror `modelLayoutSummary` where
 // the underlying BaseObject exposes the same field. All keys
 // NSString unless noted:

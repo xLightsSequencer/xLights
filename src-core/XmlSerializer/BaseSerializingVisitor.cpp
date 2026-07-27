@@ -28,6 +28,7 @@
 #include "../models/GridlinesObject.h"
 #include "../models/IciclesModel.h"
 #include "../models/ImageModel.h"
+#include "../models/ControllerObject.h"
 #include "../models/ImageObject.h"
 #include "../models/LabelModel.h"
 #include "../models/MatrixModel.h"
@@ -1227,6 +1228,16 @@ void BaseSerializingVisitor::Visit(const MeshObject& object) {
     attrs.Add(XmlNodeKeys::ObjFileAttribute,    FilePathToWrite(object.GetObjFile()));
     attrs.Add(XmlNodeKeys::MeshOnlyAttribute,   object.IsMeshOnly() ? "1" : "0");
     attrs.Add(XmlNodeKeys::BrightnessAttribute, std::to_string(object.GetBrightness()));
+    WriteOpenTag(XmlNodeKeys::ViewObjectNodeName, attrs, true);
+}
+
+void BaseSerializingVisitor::Visit(const ControllerObject& object) {
+    AttrCollector attrs;
+    CommonObjectVisitSteps(object, attrs);
+    AddBoxedScreenLocationAttributes(object, attrs);
+    attrs.Add(XmlNodeKeys::ControllerAttribute, object.GetControllerName());
+    attrs.Add(XmlNodeKeys::VisibilityAttribute, ControllerObject::VisibilityToString(object.GetVisibility()));
+    attrs.Add(XmlNodeKeys::ShowLabelAttribute, object.GetShowLabel() ? "1" : "0");
     WriteOpenTag(XmlNodeKeys::ViewObjectNodeName, attrs, true);
 }
 
