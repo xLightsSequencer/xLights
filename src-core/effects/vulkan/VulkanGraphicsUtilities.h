@@ -107,6 +107,13 @@ public:
     // automatically at init when XL_VULKAN_GFXTEST is set.
     bool selfTest();
 
+    // XL_VULKAN_SUBMITBENCH=1: time submit+fence round trips in isolation, to
+    // separate the driver's floor from cost this code adds.  The shader path
+    // spends ~82% of its time in vkWaitForFences; this says whether that is
+    // inherent latency (only a semaphore handoff removes it) or something our
+    // per-frame command-buffer handling inflates.  Logs to stderr.
+    void submitLatencyBench();
+
     // Phase-2 in-binary proof: translate a push-constant-driven fragment shader
     // at runtime (glslang GLSL->SPIR-V), build a pipeline from the fresh SPIR-V,
     // and render it twice with different uniform values, confirming the uniform

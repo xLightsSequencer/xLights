@@ -29,6 +29,14 @@ void AddBuild(uint64_t ns);
 void AddTranslate(uint64_t ns);
 void AddCacheHit();
 void AddEncode(uint64_t ns);
+// Breakdown *inside* one encode, so the per-frame cost can be attributed rather
+// than inferred. The backend that submits its own work (Vulkan today) reports
+// these; a backend that rides the engine's command buffer leaves them at zero.
+void AddUpload(uint64_t ns);   // input image staged + uploaded (own round trip)
+void AddRecord(uint64_t ns);   // pool reset + begin + record + end
+void AddSubmit(uint64_t ns);   // vkQueueSubmit, including the queue mutex
+void AddFenceWait(uint64_t ns);// vkWaitForFences - the GPU round trip proper
+void AddReadback(uint64_t ns); // host memcpy out of the mapped readback buffer
 } // namespace ShaderBuildStats
 
 // Shared native (SPIR-V based) Shader effect render lifecycle: everything that

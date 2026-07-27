@@ -9,6 +9,7 @@
 
 #include "VulkanGraphicsUtilities.h"
 
+#include <chrono>
 #include <mutex>
 #include <cstring>
 #include <spdlog/spdlog.h>
@@ -16,7 +17,15 @@
 #include "../../render/RenderBuffer.h"
 #include "../../utils/Color.h"
 
+#include "../SPIRVShaderEffect.h" // ShaderBuildStats
 #include "VulkanShaderTranslate.h"
+
+namespace {
+inline uint64_t nsSince(const std::chrono::steady_clock::time_point& t) {
+    return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+               std::chrono::steady_clock::now() - t).count();
+}
+} // namespace
 
 #include "shaders/compiled/fullscreen.vert.spv.h"
 #include "shaders/compiled/gradient_test.frag.spv.h"
@@ -111,6 +120,9 @@ void VulkanGraphicsUtilities::doInit() {
         if (getenv("XL_VULKAN_GFXTEST") != nullptr) {
             selfTest();
             runtimeShaderTest();
+        }
+        if (getenv("XL_VULKAN_SUBMITBENCH") != nullptr) {
+            submitLatencyBench();
         }
     }
 }
@@ -354,6 +366,7 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
     if (target.cb == VK_NULL_HANDLE || target.framebuffer == VK_NULL_HANDLE) {
         return false;
     }
+    const auto recordStart = std::chrono::steady_clock::now();
     vkResetCommandPool(u.device, target.pool, 0);
     VkCommandBufferBeginInfo bi = {};
     bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -408,20 +421,32 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
     if (vkEndCommandBuffer(target.cb) != VK_SUCCESS) {
         return false;
     }
+    const bool stats = ShaderBuildStats::Enabled();
+    if (stats) {
+        ShaderBuildStats::AddRecord(nsSince(recordStart));
+    }
 
     VkSubmitInfo si = {};
     si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     si.commandBufferCount = 1;
     si.pCommandBuffers = &target.cb;
     {
+        const auto submitStart = std::chrono::steady_clock::now();
         std::mutex& m = u.graphicsSubmitMutex();
         std::lock_guard<std::mutex> lock(m);
         if (vkQueueSubmit(u.graphicsQueue, 1, &si, target.fence) != VK_SUCCESS) return false;
+        if (stats) {
+            ShaderBuildStats::AddSubmit(nsSince(submitStart));
+        }
     }
     // Callers read target.readback straight after this returns true, so a failed
     // wait (device lost) must not be reported as a completed render.
+    const auto waitStart = std::chrono::steady_clock::now();
     if (vkWaitForFences(u.device, 1, &target.fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) {
         return false;
+    }
+    if (stats) {
+        ShaderBuildStats::AddFenceWait(nsSince(waitStart));
     }
     vkResetFences(u.device, 1, &target.fence);
     return true;
@@ -667,7 +692,11 @@ bool VulkanGraphicsUtilities::renderShader(RenderBuffer& buffer, VkPipeline pipe
     // Metal's quad does, and the input texture is uploaded straight, so a row flip
     // here double-compensates and renders every input-sampling (Canvas/warp)
     // shader upside down.
+    const auto readbackStart = std::chrono::steady_clock::now();
     std::memcpy(dst, target.readback.mapped, (size_t)h * w * 4);
+    if (ShaderBuildStats::Enabled()) {
+        ShaderBuildStats::AddReadback(nsSince(readbackStart));
+    }
     return true;
 }
 
@@ -813,6 +842,79 @@ VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, V
     }
     vkResetFences(u.device, 1, &t.fence);
     return t.view;
+}
+
+void VulkanGraphicsUtilities::submitLatencyBench() {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    if (!ok_ || u.graphicsQueue == VK_NULL_HANDLE) {
+        return;
+    }
+    VkCommandPool pool = VK_NULL_HANDLE;
+    VkCommandPoolCreateInfo pci = {};
+    pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    pci.queueFamilyIndex = u.graphicsQueueFamilyIndex;
+    if (vkCreateCommandPool(u.device, &pci, nullptr, &pool) != VK_SUCCESS) {
+        return;
+    }
+    VkCommandBuffer cb = VK_NULL_HANDLE;
+    VkCommandBufferAllocateInfo ai = {};
+    ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    ai.commandPool = pool;
+    ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    ai.commandBufferCount = 1;
+    VkFence fence = VK_NULL_HANDLE;
+    VkFenceCreateInfo fci = {};
+    fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    if (vkAllocateCommandBuffers(u.device, &ai, &cb) != VK_SUCCESS ||
+        vkCreateFence(u.device, &fci, nullptr, &fence) != VK_SUCCESS) {
+        vkDestroyCommandPool(u.device, pool, nullptr);
+        return;
+    }
+
+    constexpr int kIter = 500;
+    auto run = [&](const char* label, bool recordCb, bool resetPool) {
+        // Warm up so first-submit costs don't land in the average.
+        for (int i = 0; i < 20; i++) {
+            VkSubmitInfo si = {};
+            si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            vkQueueSubmit(u.graphicsQueue, 1, &si, fence);
+            vkWaitForFences(u.device, 1, &fence, VK_TRUE, UINT64_MAX);
+            vkResetFences(u.device, 1, &fence);
+        }
+        const auto t0 = std::chrono::steady_clock::now();
+        for (int i = 0; i < kIter; i++) {
+            if (resetPool) {
+                vkResetCommandPool(u.device, pool, 0);
+            }
+            VkSubmitInfo si = {};
+            si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            if (recordCb) {
+                VkCommandBufferBeginInfo bi = {};
+                bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+                bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+                vkBeginCommandBuffer(cb, &bi);
+                vkEndCommandBuffer(cb);
+                si.commandBufferCount = 1;
+                si.pCommandBuffers = &cb;
+            }
+            vkQueueSubmit(u.graphicsQueue, 1, &si, fence);
+            vkWaitForFences(u.device, 1, &fence, VK_TRUE, UINT64_MAX);
+            vkResetFences(u.device, 1, &fence);
+        }
+        const double ms = (double)nsSince(t0) / 1.0e6 / (double)kIter;
+        fprintf(stderr, "SUBMITBENCH %-40s %8.4f ms/iter\n", label, ms);
+    };
+
+    fprintf(stderr, "=== XL_VULKAN_SUBMITBENCH (%d iters, graphics family %u) ===\n",
+            kIter, u.graphicsQueueFamilyIndex);
+    run("submit(no cb) + fence wait", false, false);
+    run("submit(empty cb) + fence wait", true, false);
+    run("resetPool + submit(empty cb) + wait", true, true);
+    fprintf(stderr, "=== the shader path measures 0.5780 ms/frame in its fence wait ===\n");
+
+    vkDestroyFence(u.device, fence, nullptr);
+    vkDestroyCommandPool(u.device, pool, nullptr);
 }
 
 bool VulkanGraphicsUtilities::runtimeShaderTest() {

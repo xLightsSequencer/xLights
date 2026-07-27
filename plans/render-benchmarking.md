@@ -156,10 +156,19 @@ your noise floor. A real bug shows as `variantA-vs-variantB` ≫ `run-to-run`.
   and CPU compute. Legitimate float/shader path differences. Compare a GPU run
   only against a GPU baseline. **A GPU-vs-CPU diff proves nothing.**
 - **Physics effects** (LiquidFun/Box2D).
-- Everything else, including **Video** and **random/sparkle** effects, is
-  deterministic. Video decode variance was a real bug (dropped frames +
-  inconsistent frame selection in the AVFoundation bridge), fixed; sparkles are a
-  pure function of (model, node, frame). If either regresses, that is a bug.
+- Everything else, including **Video**, **Shader** and **random/sparkle**
+  effects, is deterministic. Video decode variance was a real bug (dropped frames
+  + inconsistent frame selection in the AVFoundation bridge), fixed; sparkles are
+  a pure function of (model, node, frame). If either regresses, that is a bug.
+- **Shader/`DATE`** was a third such bug, fixed: the ISF `DATE` uniform was
+  packed from the wall clock, so two runs seconds apart diverged from the first
+  frame of any shader reading it — and a feedback shader then stayed perturbed
+  for its whole span. One such shader in a 300-shader corpus was enough to make
+  the entire sequence fail byte-identity on Metal *and* Vulkan. `DATE` now comes
+  from the sequence timeline. The lesson generalises: **before concluding a
+  change altered output, run the same config twice.** A single wall-clock-derived
+  uniform is indistinguishable from a synchronisation bug if you only ever
+  compare variant A against variant B.
 
 ---
 
@@ -512,6 +521,7 @@ throughput. Higher is not better; re-measure before raising these.
 | `XL_VULKAN_VALIDATE` / `XL_VULKAN_GPUAV` | Vulkan | validation layers |
 | `XL_NO_NATIVE_SHADER=1` | shaders | disable the native shader path |
 | `XL_NATIVE_SHADER_DEBUG=1` | shaders | native shader debug output |
+| `XL_SHADER_BUILD_STATS=1` | shaders | dumps, at exit, where the native Shader path's CPU time went: `ParseShader`, `SourceTransforms::Apply`, `nativeBuild` split into real glslang/pipeline misses vs process-wide program-cache hits, per-frame `nativeEncode`, and (Vulkan) a breakdown *inside* `nativeEncode` — input upload / record cb / queue submit / fence wait / readback memcpy. Use it before assuming "shader compiling is slow" — on a 302-effect / 235-distinct-shader sequence the compiles are ~3%, and of the remaining per-frame cost **81.6% is the CPU parked in `vkWaitForFences`**, with record/submit/readback ~3% each. Optimising anything but the wait is capped at a few percent |
 | `XL_GRAPHICS_BACKEND=<name>` | UI | force a canvas backend (desktop UI only) |
 | `XLDBG_BLURSYNC=1` | GPU | force synchronous GPU blur |
 

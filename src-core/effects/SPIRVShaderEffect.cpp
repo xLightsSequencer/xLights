@@ -31,6 +31,11 @@ struct Counters {
     std::atomic<uint64_t> translateNs{ 0 }, translateN{ 0 };
     std::atomic<uint64_t> cacheHits{ 0 };
     std::atomic<uint64_t> encodeNs{ 0 }, encodeN{ 0 };
+    std::atomic<uint64_t> uploadNs{ 0 }, uploadN{ 0 };
+    std::atomic<uint64_t> recordNs{ 0 }, recordN{ 0 };
+    std::atomic<uint64_t> submitNs{ 0 }, submitN{ 0 };
+    std::atomic<uint64_t> fenceNs{ 0 }, fenceN{ 0 };
+    std::atomic<uint64_t> readbackNs{ 0 }, readbackN{ 0 };
 
     ~Counters() {
         if (!Enabled()) {
@@ -49,6 +54,16 @@ struct Counters {
         row("  glslang+pipeline (miss)", translateN, translateNs);
         row("  program-cache hit", cacheHits, 0);
         row("nativeEncode (per frame)", encodeN, encodeNs);
+        if (uploadN || recordN || submitN || fenceN || readbackN) {
+            // Sums to slightly less than nativeEncode: the remainder is uniform
+            // packing and descriptor writes.
+            fprintf(stderr, "  -- inside nativeEncode --\n");
+            row("  input upload (own trip)", uploadN, uploadNs);
+            row("  record cb", recordN, recordNs);
+            row("  queue submit", submitN, submitNs);
+            row("  fence wait", fenceN, fenceNs);
+            row("  readback memcpy", readbackN, readbackNs);
+        }
         fprintf(stderr, "=== end XL_SHADER_BUILD_STATS ===\n");
     }
 };
@@ -68,6 +83,11 @@ void AddBuild(uint64_t ns) { counters().buildNs += ns; counters().buildN++; }
 void AddTranslate(uint64_t ns) { counters().translateNs += ns; counters().translateN++; }
 void AddCacheHit() { counters().cacheHits++; }
 void AddEncode(uint64_t ns) { counters().encodeNs += ns; counters().encodeN++; }
+void AddUpload(uint64_t ns) { counters().uploadNs += ns; counters().uploadN++; }
+void AddRecord(uint64_t ns) { counters().recordNs += ns; counters().recordN++; }
+void AddSubmit(uint64_t ns) { counters().submitNs += ns; counters().submitN++; }
+void AddFenceWait(uint64_t ns) { counters().fenceNs += ns; counters().fenceN++; }
+void AddReadback(uint64_t ns) { counters().readbackNs += ns; counters().readbackN++; }
 } // namespace ShaderBuildStats
 
 namespace {

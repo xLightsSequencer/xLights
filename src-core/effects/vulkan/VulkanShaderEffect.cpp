@@ -555,12 +555,17 @@ bool VulkanShaderEffect::nativeEncode(CacheBase* base, RenderBuffer& buffer,
     // populate an image nothing reads.
     VkImageView inputView = VK_NULL_HANDLE;
     if (cache->hasSampler) {
+        const auto t0 = std::chrono::steady_clock::now();
         if (kind == InputKind::Audio && audio128 != nullptr) {
             inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(128, 1, VK_FORMAT_R32_SFLOAT, audio128, 128 * sizeof(float));
         } else {
             inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(
                 (uint32_t)buffer.BufferWi, (uint32_t)buffer.BufferHt, VK_FORMAT_R8G8B8A8_UNORM,
                 buffer.GetPixels(), (size_t)buffer.BufferWi * buffer.BufferHt * 4);
+        }
+        if (ShaderBuildStats::Enabled()) {
+            ShaderBuildStats::AddUpload((uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                            std::chrono::steady_clock::now() - t0).count());
         }
     }
 
