@@ -8051,9 +8051,16 @@ void LayoutPanel::ShowWiring()
 {
     Model* md = dynamic_cast<Model*>(selectedBaseObject);
     if (md == nullptr || md->GetDisplayAs() == DisplayAsType::ModelGroup || md->GetDisplayAs() == DisplayAsType::SubModel) return;
-    WiringDialog dlg(this, md->GetName());
-    dlg.SetData(md);
-    dlg.ShowModal();
+    // Show modeless so the user can keep working in xLights with the wiring
+    // window open behind it. WiringDialog::SetData snapshots everything it needs
+    // (points, rows/cols, name) and keeps no Model* pointer, so it is safe to
+    // outlive the model. Parent to the top-level frame so it stacks like a
+    // normal window (can go behind the main window) rather than floating on the
+    // layout panel. Heap-allocated; it destroys itself on close.
+    WiringDialog* dlg = new WiringDialog(wxGetTopLevelParent(this), md->GetName());
+    dlg->SetData(md);
+    dlg->Bind(wxEVT_CLOSE_WINDOW, [dlg](wxCloseEvent&) { dlg->Destroy(); });
+    dlg->Show();
 }
 
 void LayoutPanel::ExportModelAsCAD()
