@@ -42,6 +42,17 @@ void AddReadback(uint64_t ns); // host memcpy out of the mapped readback buffer
 // Device-timestamp span of the submitted command buffer (Vulkan): true GPU
 // execution of this frame's work alone, regardless of where the wait happened.
 void AddGpuExec(uint64_t ns);
+// Per-shader-file cost attribution, dumped as a top-N table at exit.  The two
+// backends report different quantities on purpose: Vulkan reports the
+// device-timestamp execution span, GL reports CPU wall for the synchronous
+// draw+glReadPixels block — comparing the tables across two runs localises
+// whether an execution-cost gap is shader-specific (codegen) or uniform
+// (structural).
+void AddPerShader(const std::string& file, uint64_t ns, uint32_t w, uint32_t h);
+// Print the table immediately (idempotent — the static destructor also calls
+// this).  The headless path calls it before std::exit because on the GL-only
+// path some earlier static teardown prevents the destructor from ever running.
+void Dump();
 } // namespace ShaderBuildStats
 
 // Shared native (SPIR-V based) Shader effect render lifecycle: everything that

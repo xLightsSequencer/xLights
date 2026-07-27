@@ -56,6 +56,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #include "utils/TraceLog.h"
 #include "utils/ExternalHooks.h"
 #include "effects/ShaderEffect.h"  // --shadertranslate spike
+#include "effects/SPIRVShaderEffect.h" // ShaderBuildStats::Dump for --headless
 #ifdef __APPLE__
 #include "effects/metal/MetalShaderTranslator.h"
 #endif
@@ -1587,6 +1588,9 @@ bool xLightsApp::OnInit()
             }
         }
         spdlog::info("--headless: done ({})", allOk ? "success" : "with errors");
+        // Dump explicitly: on the GL shader path some earlier static teardown
+        // keeps the stats destructor from running under std::exit.
+        ShaderBuildStats::Dump();
         // No window, no event loop — exit with a status a script/agent can check.
         std::exit(allOk ? 0 : 1);
     }

@@ -407,6 +407,7 @@ void VulkanGraphicsUtilities::releaseTarget(VulkanGraphicsTarget* t) {
     t->dstPixels = nullptr;
     t->flipRows = false;
     t->tag.reset();
+    t->statLabel.clear();
     std::lock_guard<std::mutex> lock(targetMutex_);
     freeTargets_.push_back(t);
 }
@@ -647,6 +648,9 @@ bool VulkanGraphicsUtilities::completeShaderFrame(VulkanGraphicsTarget* frame) {
             const uint64_t gpuNs = (uint64_t)((double)(ts[1] - ts[0]) * (double)tsPeriod_);
             if (stats) {
                 ShaderBuildStats::AddGpuExec(gpuNs);
+                if (!frame->statLabel.empty()) {
+                    ShaderBuildStats::AddPerShader(frame->statLabel, gpuNs, frame->width, frame->height);
+                }
             }
             frame->tag.complete(gpuNs);
         } else {
@@ -881,7 +885,8 @@ VkPipelineLayout VulkanGraphicsUtilities::shaderPipelineLayout() { ensureShaderI
 
 VulkanGraphicsTarget* VulkanGraphicsUtilities::submitShaderFrame(RenderBuffer& buffer, VkPipeline pipeline,
                                                                  const void* uboData, uint32_t uboSize,
-                                                                 const VulkanShaderInput* input) {
+                                                                 const VulkanShaderInput* input,
+                                                                 const std::string& statLabel) {
     ensureInit();
     if (!ok_ || pipeline == VK_NULL_HANDLE || uboData == nullptr || uboSize == 0) return nullptr;
     ensureShaderInfra();
@@ -942,6 +947,9 @@ VulkanGraphicsTarget* VulkanGraphicsUtilities::submitShaderFrame(RenderBuffer& b
     // Straight copy at completion (no row flip) — see completeShaderFrame.
     t->dstPixels = dst;
     t->flipRows = false;
+    if (ShaderBuildStats::Enabled()) {
+        t->statLabel = statLabel;
+    }
     if (!recordAndSubmit(*t, w, h, pipeline, shaderPipelineLayout_, nullptr, 0, t->descSet, input != nullptr)) {
         releaseTarget(t);
         return nullptr;

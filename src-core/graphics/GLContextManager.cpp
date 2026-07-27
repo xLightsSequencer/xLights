@@ -12,11 +12,37 @@
 
 #include <algorithm>
 #include <list>
+#include <mutex>
 #include <queue>
 #include <thread>
 #include <vector>
 
 #include <log.h>
+
+// -------------------------------------------------------------------------
+// GL entry-point loader — platform-neutral.  Registered at static-init time
+// by the GL graphics TU (xlOGL3GraphicsContext.cpp) on platforms that load
+// gl* through wglGetProcAddress/glXGetProcAddress; absent on macOS/iOS.
+// -------------------------------------------------------------------------
+static bool (*s_glFunctionLoader)() = nullptr;
+
+void GLContextManager::SetGLFunctionLoader(bool (*loader)()) {
+    s_glFunctionLoader = loader;
+}
+
+bool GLContextManager::EnsureGLFunctions() {
+    // once per share-group generation would be strictly correct after a device
+    // reset, but the pointers come from the ICD, not the context, so once per
+    // process matches how the UI canvas path has always loaded them.
+    static std::once_flag once;
+    static bool ok = true;
+    std::call_once(once, []() {
+        if (s_glFunctionLoader != nullptr) {
+            ok = s_glFunctionLoader();
+        }
+    });
+    return ok;
+}
 
 // =========================================================================
 // Apple — CGL on macOS; iOS has no GL shader path (the native Metal

@@ -78,6 +78,7 @@ struct VulkanGraphicsTarget {
     uint8_t* dstPixels = nullptr;  // completion memcpy destination (null: skip)
     bool flipRows = false;         // bottom-row-first destination (renderToBuffer)
     GpuCommandBufferTag tag;       // profile attribution, captured at record time
+    std::string statLabel;         // shader file for per-shader stats (stats-gated)
 };
 
 // Sampled-input description for one shader frame.  `data` is copied into the
@@ -135,7 +136,8 @@ public:
     // instead of serializing.  Returns nullptr on failure (nothing pending).
     VulkanGraphicsTarget* submitShaderFrame(RenderBuffer& buffer, VkPipeline pipeline,
                                             const void* uboData, uint32_t uboSize,
-                                            const VulkanShaderInput* input);
+                                            const VulkanShaderInput* input,
+                                            const std::string& statLabel = std::string());
     // Wait for the frame's fence, book stats/profile attribution, copy the
     // pixels to their destination, and recycle the target.  Safe to call with
     // nullptr.  Returns true when the fence signalled and the pixels landed.

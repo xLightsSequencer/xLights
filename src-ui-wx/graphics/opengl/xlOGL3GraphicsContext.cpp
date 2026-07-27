@@ -14,6 +14,7 @@
 #include <log.h>
 
 #include "effects/OpenGLShaders.h"
+#include "graphics/GLContextManager.h"
 #include "graphics/xlMesh.h"
 
 #include <glm/mat4x4.hpp>
@@ -179,6 +180,14 @@ static bool LoadGLFunctions() {
     return true;
 }
 #endif
+
+// Register the loader with the context manager so a headless run — where no
+// UI canvas ever calls InitializeSharedContext — still gets the gl* entry
+// points resolved the first time a pooled shader context is made current.
+static const bool s_glLoaderRegistered = []() {
+    GLContextManager::SetGLFunctionLoader(&LoadGLFunctions);
+    return true;
+}();
 
 class ShaderProgram {
 public:

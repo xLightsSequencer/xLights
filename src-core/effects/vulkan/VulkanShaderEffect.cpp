@@ -568,7 +568,7 @@ bool VulkanShaderEffect::nativeEncode(CacheBase* base, RenderBuffer& buffer,
     }
 
     VulkanGraphicsTarget* frame = VulkanGraphicsUtilities::INSTANCE.submitShaderFrame(
-        buffer, cache->pipeline, cache->uboData.data(), cache->uboSize, inputPtr);
+        buffer, cache->pipeline, cache->uboData.data(), cache->uboSize, inputPtr, cache->shaderFile);
     if (frame == nullptr) {
         return false; // transient — the shared layer fills this frame yellow
     }

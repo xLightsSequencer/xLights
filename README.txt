@@ -12,6 +12,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
     -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now checked and connected
+    -bug (dkulp)                 Shader: headless/batch rendering through the OpenGL path filled every
+                                 Shader effect solid cyan — without a UI canvas the GL entry points were
+                                 never loaded, so the capability check always failed. They now load the
+                                 first time a render context is made current
     -enh (dkulp)                 Shader: on Vulkan (Windows/Linux) the input upload now rides the frame's
                                  own command buffer and the GPU wait is deferred until the pixels are
                                  actually needed, so rows overlap on the GPU instead of serializing.

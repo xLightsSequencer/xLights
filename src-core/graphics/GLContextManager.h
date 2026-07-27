@@ -70,6 +70,18 @@ public:
     // Return the context to the pool for reuse by other threads.
     void ReleaseContext(ContextHandle ctx);
 
+    // The GL entry-point loader (Windows/Linux load gl* function pointers via
+    // wglGetProcAddress/glXGetProcAddress; they need a current context).  The
+    // GL graphics TU registers its loader at static-init time; EnsureGLFunctions
+    // runs it once, the first time a context is current.  Without this, a
+    // headless run — where no UI canvas ever initializes GL — leaves every
+    // gl* pointer null and the Shader effect silently cyan-fills.
+    static void SetGLFunctionLoader(bool (*loader)());
+    // Call with a context current (e.g. right after MakeCurrent succeeds).
+    // Returns whether the loader has succeeded (true where no loader is
+    // needed, e.g. macOS).
+    bool EnsureGLFunctions();
+
     // Run a GL-touching callable on the thread that owns GL operations
     // for this platform. Blocks until the callable returns.
     //
