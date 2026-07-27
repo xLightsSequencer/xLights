@@ -143,6 +143,6 @@ class ModelManager : public ObjectManager
     std::atomic<unsigned int> _modelGeneration{ 0 };
     mutable std::string lastGeneratedModelName = "";
     ModelSetManager _setManager;
-    bool _subModelDimmingEnabled = true;
+    std::atomic<bool> _subModelDimmingEnabled{ true };
 };
 

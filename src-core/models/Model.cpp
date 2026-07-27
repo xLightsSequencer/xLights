@@ -157,8 +157,18 @@ void Model::ApplySubModelDimmingToNodes()
         return;
     }
 
-    // Most-negative brightness per parent node; overlapping submodels resolve
-    // to the strongest dim.
+    // Strongest brightness per parent node; overlapping submodels resolve to
+    // the strongest dim among negatives, the strongest brighten among
+    // positives, and the dim when signs are mixed (dimming/shadows is the
+    // primary use case for this feature).
+    auto isStronger = [](int candidate, int current) {
+        bool candidateDims = candidate < 0;
+        bool currentDims = current < 0;
+        if (candidateDims != currentDims) {
+            return candidateDims;
+        }
+        return candidateDims ? (candidate < current) : (candidate > current);
+    };
     std::map<int, std::pair<int, const DimmingCurve*>> strongestByNode;
 
     for (auto* m : subModels) {
@@ -188,7 +198,7 @@ void Model::ApplySubModelDimmingToNodes()
         for (const auto& [parentIdx, smIdx] : sm->GetNodeIndexMap()) {
             if (parentIdx >= 0 && parentIdx < (int)Nodes.size() && Nodes[parentIdx] != nullptr) {
                 auto it = strongestByNode.find(parentIdx);
-                if (it == strongestByNode.end() || brightness < it->second.first) {
+                if (it == strongestByNode.end() || isStronger(brightness, it->second.first)) {
                     strongestByNode[parentIdx] = { brightness, owned };
                 }
             }
