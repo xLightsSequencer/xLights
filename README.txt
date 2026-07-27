@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
-    -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now connected
+    -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now checked and connected
     -bug (dkulp)                 Linux: Shader effects rendered as solid cyan on machines whose only Vulkan
                                  device is a software one (lavapipe/llvmpipe) and that have no usable
                                  OpenGL - typically a headless render box. The device is now used for
