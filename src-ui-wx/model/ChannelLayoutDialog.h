@@ -60,11 +60,15 @@ private:
     //*)
     void OnHtmlMouseWheel(wxMouseEvent& event);
     void ApplyZoom(int zoomPercent);
+    void ApplyFontSize(int fontSize);
+    int ZoomToFontSize(int zoomPercent) const;
+    int FontSizeToZoom(int fontSize) const;
     void FitNodeLayoutToWindow();
     wxString GetDisplayHtml() const;
 
     wxString HtmlSource;
     int _zoomPercent { 100 };
+    int _fontSize { 0 };
     int _wheelRotation { 0 };
 
     DECLARE_EVENT_TABLE()

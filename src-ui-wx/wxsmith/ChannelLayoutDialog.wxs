@@ -56,7 +56,7 @@
 							<min>10</min>
 							<max>300</max>
 							<size>180,-1</size>
-							<tooltip>Zoom. Hold Ctrl and use the mouse wheel over the node layout.</tooltip>
+							<tooltip>Zoom. Hold Ctrl/Cmd and use the mouse wheel over the node layout.</tooltip>
 							<handler function="OnSliderZoomCmdScroll" entry="EVT_COMMAND_SLIDER_UPDATED" />
 						</object>
 						<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>

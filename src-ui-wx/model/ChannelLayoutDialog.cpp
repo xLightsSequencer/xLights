@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <array>
+#include <string>
 
 #include <wx/font.h>
 #include <wx/html/htmlwin.h>
@@ -29,6 +30,11 @@ namespace {
 constexpr int ZOOM_MIN = 10;
 constexpr int ZOOM_MAX = 300;
 constexpr int ZOOM_STEP = 10;
+
+// mirrors wx's own wxGetDefaultHTMLFontSize() so 100% renders identically to an unzoomed page
+int DefaultHtmlFontSize() {
+    return std::max(10, wxNORMAL_FONT->GetPointSize());
+}
 }
 
 //(*IdInit(ChannelLayoutDialog)
@@ -72,7 +78,7 @@ ChannelLayoutDialog::ChannelLayoutDialog(wxWindow* parent,wxWindowID id,const wx
     ButtonFit->SetToolTip(_("Fit the complete node layout in the window."));
     BoxSizer1->Add(ButtonFit, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     SliderZoom = new wxSlider(this, ID_SLIDER_ZOOM, 100, ZOOM_MIN, ZOOM_MAX, wxDefaultPosition, wxSize(180,-1), 0, wxDefaultValidator, _T("ID_SLIDER_ZOOM"));
-    SliderZoom->SetToolTip(_("Zoom. Hold Ctrl and use the mouse wheel over the node layout."));
+    SliderZoom->SetToolTip(_("Zoom. Hold Ctrl/Cmd and use the mouse wheel over the node layout."));
     BoxSizer1->Add(SliderZoom, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     StaticTextZoom = new wxStaticText(this, ID_STATICTEXT_ZOOM, _("100%"), wxDefaultPosition, wxSize(50,-1), wxALIGN_RIGHT, _T("ID_STATICTEXT_ZOOM"));
     BoxSizer1->Add(StaticTextZoom, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -110,8 +116,10 @@ void ChannelLayoutDialog::OnButton_PrintClick(wxCommandEvent& event)
 void ChannelLayoutDialog::SetHtmlSource(wxString& html)
 {
     HtmlSource=html;
-    HtmlWindow1->SetPage(GetDisplayHtml());
+    // set the fonts while the window is still empty; SetFonts reparses the page,
+    // so doing it after SetPage would parse a large layout twice
     ApplyZoom(_zoomPercent);
+    HtmlWindow1->SetPage(GetDisplayHtml());
 }
 
 void ChannelLayoutDialog::OnButtonOpenInBrowerClick(wxCommandEvent& event)
@@ -131,13 +139,14 @@ void ChannelLayoutDialog::OnButtonFitClick(wxCommandEvent& event)
 
 void ChannelLayoutDialog::OnHtmlMouseWheel(wxMouseEvent& event)
 {
-    if (!event.ControlDown() || event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL) {
+    if (!event.CmdDown() || event.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL) {
         event.Skip();
         return;
     }
 
     const int wheelDelta = event.GetWheelDelta();
     if (wheelDelta <= 0) {
+        event.Skip();
         return;
     }
 
@@ -149,44 +158,72 @@ void ChannelLayoutDialog::OnHtmlMouseWheel(wxMouseEvent& event)
     }
 }
 
+int ChannelLayoutDialog::ZoomToFontSize(int zoomPercent) const
+{
+    return std::max(1, (DefaultHtmlFontSize() * zoomPercent + 50) / 100);
+}
+
+int ChannelLayoutDialog::FontSizeToZoom(int fontSize) const
+{
+    const int defaultFontSize = DefaultHtmlFontSize();
+    int zoomPercent = std::clamp((fontSize * 100 + defaultFontSize / 2) / defaultFontSize, ZOOM_MIN, ZOOM_MAX);
+    while (zoomPercent > ZOOM_MIN && ZoomToFontSize(zoomPercent) > fontSize) {
+        --zoomPercent;
+    }
+    while (zoomPercent < ZOOM_MAX && ZoomToFontSize(zoomPercent) < fontSize) {
+        ++zoomPercent;
+    }
+    return zoomPercent;
+}
+
 void ChannelLayoutDialog::ApplyZoom(int zoomPercent)
 {
-    zoomPercent = std::clamp(zoomPercent, ZOOM_MIN, ZOOM_MAX);
+    _zoomPercent = std::clamp(zoomPercent, ZOOM_MIN, ZOOM_MAX);
+    if (SliderZoom->GetValue() != _zoomPercent) {
+        SliderZoom->SetValue(_zoomPercent);
+    }
+    StaticTextZoom->SetLabel(wxString::Format("%d%%", _zoomPercent));
+    ApplyFontSize(ZoomToFontSize(_zoomPercent));
+}
+
+void ChannelLayoutDialog::ApplyFontSize(int fontSize)
+{
+    // SetFonts reparses and relays out the whole page, which is expensive on a large
+    // grid, and many zoom percentages map to the same point size
+    if (fontSize == _fontSize) {
+        return;
+    }
+    _fontSize = fontSize;
 
     int viewX = 0;
     int viewY = 0;
     HtmlWindow1->GetViewStart(&viewX, &viewY);
 
-    _zoomPercent = zoomPercent;
-    if (SliderZoom->GetValue() != _zoomPercent) {
-        SliderZoom->SetValue(_zoomPercent);
-    }
-    StaticTextZoom->SetLabel(wxString::Format("%d%%", _zoomPercent));
-
-    const int defaultFontSize = std::max(10, wxNORMAL_FONT->GetPointSize());
-    std::array<int, 7> fontSizes {
-        defaultFontSize,
+    // slots 2-7 reproduce wx's own wxBuildFontSizes() so everything outside the node
+    // grid keeps its normal size; only slot 1, which the grid cells use, follows the zoom
+    const int defaultFontSize = DefaultHtmlFontSize();
+    const std::array<int, 7> fontSizes {
+        fontSize,
         std::max(1, defaultFontSize * 83 / 100),
         defaultFontSize,
         std::max(1, defaultFontSize * 120 / 100),
         std::max(1, defaultFontSize * 144 / 100),
         std::max(1, defaultFontSize * 173 / 100),
-        defaultFontSize * 2
+        std::max(1, defaultFontSize * 2)
     };
-    fontSizes[0] = std::max(1, (defaultFontSize * _zoomPercent + 50) / 100);
     HtmlWindow1->SetFonts(wxNORMAL_FONT->GetFaceName(), wxEmptyString, fontSizes.data());
     HtmlWindow1->Scroll(viewX, viewY);
 }
 
 void ChannelLayoutDialog::FitNodeLayoutToWindow()
 {
-    int minimum = ZOOM_MIN;
-    int maximum = ZOOM_MAX;
-    int bestFit = ZOOM_MIN;
+    int minimum = ZoomToFontSize(ZOOM_MIN);
+    int maximum = ZoomToFontSize(ZOOM_MAX);
+    int bestFit = minimum;
 
     while (minimum <= maximum) {
         const int candidate = (minimum + maximum) / 2;
-        ApplyZoom(candidate);
+        ApplyFontSize(candidate);
 
         const wxSize contentSize = HtmlWindow1->GetVirtualSize();
         const wxSize windowSize = HtmlWindow1->GetClientSize();
@@ -198,37 +235,52 @@ void ChannelLayoutDialog::FitNodeLayoutToWindow()
         }
     }
 
-    ApplyZoom(bestFit);
+    ApplyZoom(FontSizeToZoom(bestFit));
     HtmlWindow1->Scroll(0, 0);
 }
 
 wxString ChannelLayoutDialog::GetDisplayHtml() const
 {
-    wxString html = HtmlSource;
-    const wxString tableStartTag = "<table border=1>";
-    size_t tableStart = html.find(tableStartTag);
-    if (tableStart == wxString::npos) {
-        return html;
+    const std::string src = HtmlSource.utf8_string();
+    const std::string tableStartTag = "<table border=1>";
+    const size_t tableStart = src.find(tableStartTag);
+    if (tableStart == std::string::npos) {
+        return HtmlSource;
     }
 
-    size_t tableEnd = html.find("</table>", tableStart + tableStartTag.length());
-    size_t cellStart = tableStart;
-    const wxString fontStartTag = "<font size=1>";
-    const wxString fontEndTag = "</font>";
-    while ((cellStart = html.find("<td", cellStart)) != wxString::npos && cellStart < tableEnd) {
-        const size_t openingTagEnd = html.find(">", cellStart);
-        const size_t cellEnd = html.find("</td>", openingTagEnd);
-        if (openingTagEnd == wxString::npos || cellEnd == wxString::npos || cellEnd > tableEnd) {
+    size_t tableEnd = src.find("</table>", tableStart + tableStartTag.length());
+    if (tableEnd == std::string::npos) {
+        tableEnd = src.length();
+    }
+
+    // built in one pass rather than inserting into the source: a big model has tens of
+    // thousands of cells and each insert would shift the whole remaining document
+    std::string html;
+    html.reserve(src.length() * 5 / 4);
+    html.append(src, 0, tableStart);
+
+    size_t pos = tableStart;
+    while (true) {
+        const size_t cellStart = src.find("<td", pos);
+        if (cellStart == std::string::npos || cellStart >= tableEnd) {
+            break;
+        }
+        const size_t openingTagEnd = src.find('>', cellStart);
+        if (openingTagEnd == std::string::npos) {
+            break;
+        }
+        const size_t cellEnd = src.find("</td>", openingTagEnd);
+        if (cellEnd == std::string::npos || cellEnd > tableEnd) {
             break;
         }
 
-        html.insert(openingTagEnd + 1, fontStartTag);
-        tableEnd += fontStartTag.length();
-        const size_t adjustedCellEnd = cellEnd + fontStartTag.length();
-        html.insert(adjustedCellEnd, fontEndTag);
-        tableEnd += fontEndTag.length();
-        cellStart = adjustedCellEnd + fontEndTag.length() + 5;
+        html.append(src, pos, openingTagEnd + 1 - pos);
+        html += "<font size=1>";
+        html.append(src, openingTagEnd + 1, cellEnd - (openingTagEnd + 1));
+        html += "</font>";
+        pos = cellEnd;
     }
+    html.append(src, pos, std::string::npos);
 
-    return html;
+    return wxString::FromUTF8(html);
 }
