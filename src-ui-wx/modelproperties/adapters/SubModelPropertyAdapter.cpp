@@ -52,7 +52,9 @@ void SubModelPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, O
         }
     }
     wxString dimmingValue = wxString::Format("%d", dimmingBrightness);
-    if (dimmingBrightness != 0 && !_subModel.GetParent()->IsSubModelDimmingEnabled()) {
+    if (dimmingBrightness != 0 &&
+        (!_subModel.GetParent()->IsSubModelDimmingEnabled() ||
+         !_subModel.GetParent()->GetModelManager().IsSubModelDimmingEnabled())) {
         dimmingValue += " (disabled)";
     }
     p = grid->Append(new wxStringProperty("Dimming Brightness", "SMDimmingBrightness", dimmingValue));

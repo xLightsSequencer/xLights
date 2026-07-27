@@ -2271,9 +2271,6 @@ void SubModelsPanel::ValidateWindow()
             break;
         }
     }
-    if (!anyDimming) {
-        CheckBox_EnableDimming->SetValue(true);
-    }
     if (CheckBox_EnableDimming->IsShown() != anyDimming) {
         CheckBox_EnableDimming->Show(anyDimming);
         Panel2->Layout();
