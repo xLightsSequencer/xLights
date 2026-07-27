@@ -6016,6 +6016,7 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
         }
         sm->Setup();
     }
+    parent->ApplySubModelDimmingToNodes();
     parent->IncrementChangeCount();
     _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
     return YES;

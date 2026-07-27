@@ -103,6 +103,9 @@ void SequenceElements::Clear() {
 
 void SequenceElements::SetSupportsSubModelDimming(bool b)
 {
+    if (supportsSubModelDimming == b) {
+        return;
+    }
     supportsSubModelDimming = b;
     xLightsShowContext* ctx = dynamic_cast<xLightsShowContext*>(renderContext);
     if (ctx != nullptr) {
