@@ -8,7 +8,9 @@
 #include "SPIRVShaderEffect.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 
@@ -19,6 +21,73 @@
 #include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h" // EffectLayer/Effect for EVENT parms
 #include "../media/AudioManager.h"      // FFT frame data for audio shaders
+
+namespace ShaderBuildStats {
+namespace {
+struct Counters {
+    std::atomic<uint64_t> parseNs{ 0 }, parseN{ 0 };
+    std::atomic<uint64_t> transformNs{ 0 }, transformN{ 0 };
+    std::atomic<uint64_t> buildNs{ 0 }, buildN{ 0 };
+    std::atomic<uint64_t> translateNs{ 0 }, translateN{ 0 };
+    std::atomic<uint64_t> cacheHits{ 0 };
+    std::atomic<uint64_t> encodeNs{ 0 }, encodeN{ 0 };
+
+    ~Counters() {
+        if (!Enabled()) {
+            return;
+        }
+        auto row = [](const char* name, uint64_t n, uint64_t ns) {
+            fprintf(stderr, "%-28s %10llu %12.1f %12.4f\n", name,
+                    (unsigned long long)n, ns / 1.0e6,
+                    n ? (ns / 1.0e6) / (double)n : 0.0);
+        };
+        fprintf(stderr, "\n=== XL_SHADER_BUILD_STATS ===\n");
+        fprintf(stderr, "%-28s %10s %12s %12s\n", "stage", "count", "total ms", "ms each");
+        row("ParseShader", parseN, parseNs);
+        row("SourceTransforms::Apply", transformN, transformNs);
+        row("nativeBuild (total)", buildN, buildNs);
+        row("  glslang+pipeline (miss)", translateN, translateNs);
+        row("  program-cache hit", cacheHits, 0);
+        row("nativeEncode (per frame)", encodeN, encodeNs);
+        fprintf(stderr, "=== end XL_SHADER_BUILD_STATS ===\n");
+    }
+};
+Counters& counters() {
+    static Counters c;
+    return c;
+}
+} // namespace
+
+bool Enabled() {
+    static const bool e = getenv("XL_SHADER_BUILD_STATS") != nullptr;
+    return e;
+}
+void AddParse(uint64_t ns) { counters().parseNs += ns; counters().parseN++; }
+void AddTransform(uint64_t ns) { counters().transformNs += ns; counters().transformN++; }
+void AddBuild(uint64_t ns) { counters().buildNs += ns; counters().buildN++; }
+void AddTranslate(uint64_t ns) { counters().translateNs += ns; counters().translateN++; }
+void AddCacheHit() { counters().cacheHits++; }
+void AddEncode(uint64_t ns) { counters().encodeNs += ns; counters().encodeN++; }
+} // namespace ShaderBuildStats
+
+namespace {
+// Scoped nanosecond timer. The clock is only read when the stats flag is on, so
+// the disabled path costs a predictable-branch test - this sits in the per-frame
+// encode path, which runs six figures of times in a normal render.
+struct StatTimer {
+    std::chrono::steady_clock::time_point t0;
+    StatTimer() {
+        if (ShaderBuildStats::Enabled()) {
+            t0 = std::chrono::steady_clock::now();
+        }
+    }
+    uint64_t elapsed() const {
+        return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                   std::chrono::steady_clock::now() - t0)
+            .count();
+    }
+};
+} // namespace
 
 SPIRVShaderEffect::CacheBase::~CacheBase() {
     delete config;
@@ -90,7 +159,11 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     // ---- build config + pipeline on first frame / file change / resize ----
     if (!cache->built || cache->width != buffer.BufferWi || cache->height != buffer.BufferHt) {
         if (cache->config == nullptr) {
+            StatTimer t;
             cache->config = ShaderEffect::ParseShader(shaderFile, GetSequenceElements(buffer));
+            if (ShaderBuildStats::Enabled()) {
+                ShaderBuildStats::AddParse(t.elapsed());
+            }
         }
         if (cache->config == nullptr || cache->config->GetCode().empty()) {
             delete cache->config;
@@ -100,10 +173,19 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
             return;
         }
         if (cache->transformedSource.empty()) {
+            StatTimer t;
             cache->transformedSource = ShaderSourceTransforms::Apply(cache->config->GetCode());
+            if (ShaderBuildStats::Enabled()) {
+                ShaderBuildStats::AddTransform(t.elapsed());
+            }
         }
         cache->built = false;
-        if (!nativeBuild(cache, buffer)) {
+        StatTimer buildTimer;
+        const bool buildOk = nativeBuild(cache, buffer);
+        if (ShaderBuildStats::Enabled()) {
+            ShaderBuildStats::AddBuild(buildTimer.elapsed());
+        }
+        if (!buildOk) {
             cache->failed = true; // translation/pipeline failure — like a GL compile failure
             buffer.Fill(xlYELLOW);
             return;
@@ -241,7 +323,12 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
         }
     }
 
-    if (!nativeEncode(cache, buffer, vals, kind, audio)) {
+    StatTimer encodeTimer;
+    const bool encodeOk = nativeEncode(cache, buffer, vals, kind, audio);
+    if (ShaderBuildStats::Enabled()) {
+        ShaderBuildStats::AddEncode(encodeTimer.elapsed());
+    }
+    if (!encodeOk) {
         // Transient (command buffer / descriptor exhaustion): fill this frame
         // rather than latching failure.
         buffer.Fill(xlYELLOW);

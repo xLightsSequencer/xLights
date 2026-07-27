@@ -11,8 +11,25 @@
 #include "../render/RenderBuffer.h" // EffectRenderCache
 
 #include <array>
+#include <atomic>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
+
+// XL_SHADER_BUILD_STATS=1 accumulates where the native Shader path's CPU time
+// actually goes and dumps a table to stderr at exit. Split out because "shader
+// compiling is slow" can mean any of four unrelated things: re-parsing the .fs,
+// re-running the source transforms, glslang+pipeline translation, or per-frame
+// encode. Zero cost when unset (Enabled() is read once).
+namespace ShaderBuildStats {
+bool Enabled();
+void AddParse(uint64_t ns);
+void AddTransform(uint64_t ns);
+void AddBuild(uint64_t ns);
+void AddTranslate(uint64_t ns);
+void AddCacheHit();
+void AddEncode(uint64_t ns);
+} // namespace ShaderBuildStats
 
 // Shared native (SPIR-V based) Shader effect render lifecycle: everything that
 // is identical between the Metal and Vulkan backends lives here — the

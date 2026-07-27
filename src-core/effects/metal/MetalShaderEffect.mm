@@ -22,6 +22,7 @@
 
 #import <Metal/Metal.h>
 #include <TargetConditionals.h>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
@@ -139,7 +140,15 @@ public:
             auto& cache = programCache();
             auto it = cache.find(transformedSource);
             if (it == cache.end()) {
+                const auto t0 = std::chrono::steady_clock::now();
                 it = cache.emplace(transformedSource, buildShaderProgram(transformedSource, config->GetFilename())).first;
+                if (ShaderBuildStats::Enabled()) {
+                    ShaderBuildStats::AddTranslate((uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                                       std::chrono::steady_clock::now() - t0)
+                                                       .count());
+                }
+            } else if (ShaderBuildStats::Enabled()) {
+                ShaderBuildStats::AddCacheHit();
             }
             prog = it->second;
         }
