@@ -4147,7 +4147,7 @@ void SubModelsPanel::SetDimmingCurve()
     long current = 0;
     SubModelInfo* first = GetSubModelInfo(nameList.front());
     if (first != nullptr) {
-        current = first->dimmingBrightness;
+        current = std::clamp((long)first->dimmingBrightness, -100L, 100L);
     }
 
     wxNumberEntryDialog dlg(this,
