@@ -158,6 +158,7 @@ private:
     void mouseMoved(wxMouseEvent& event);
     void OnPopup(wxCommandEvent& event);
     void OnLostMouseCapture(wxMouseCaptureLostEvent& event);
+    void OnResize(wxSizeEvent& event);
     void triggerPlay();
     void DrawTag(wxDC& dc, int tag, int position, int y_bottom);
     void RaiseSequenceChange() const;
