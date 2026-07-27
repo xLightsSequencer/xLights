@@ -179,8 +179,12 @@ public:
     bool AbortRender(int maxTimeMs = 60000) override;
 
     // Tear down the open sequence: drain the render, clear elements + seq data,
-    // drop the file/doc.
-    void CloseSequence();
+    // drop the file/doc. Returns false when the render could not be drained, in
+    // which case NOTHING was released - live workers still hold raw pointers
+    // into the elements and seq data. A caller that goes on to open/replace the
+    // sequence anyway corrupts memory under those workers, so the result must
+    // be handled rather than assumed.
+    [[nodiscard]] bool CloseSequence();
 
     // "Done" == no in-flight render jobs (must NOT key on _seqData validity —
     // CloseSequence clears it before the next open). Drains finished progress

@@ -503,8 +503,13 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 
     // Drop any current sequence state before we start. CloseSequence
     // clears SequenceElements and releases the SequenceFile unique_ptr
-    // so the fresh save below starts from a clean slate.
-    _context->CloseSequence();
+    // so the fresh save below starts from a clean slate. If it could not
+    // drain the render it released nothing, and the new-sequence setup
+    // below would overwrite storage the live workers still read.
+    if (!_context->CloseSequence()) {
+        spdlog::warn("XLSequenceDocument: refusing to create a new sequence - the current one is still rendering");
+        return NO;
+    }
 
     std::string pathStr([savePath UTF8String]);
     ObtainAccessToURL(pathStr, /*enforceWritable=*/true);
@@ -563,7 +568,9 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 }
 
 - (void)closeSequence {
-    _context->CloseSequence();
+    // A failed drain leaks the sequence storage rather than freeing it under the
+    // live workers; nothing below writes to it, so closing is still safe.
+    (void)_context->CloseSequence();
     _lastSavedChangeCount = 0;
 
     // If the current session came from a `.xsqz`, tear down the

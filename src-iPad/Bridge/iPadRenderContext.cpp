@@ -123,7 +123,8 @@ iPadRenderContext::iPadRenderContext() {
 }
 
 iPadRenderContext::~iPadRenderContext() {
-    CloseSequence();
+    // Nothing left to protect if the drain fails - we are going away either way.
+    (void)CloseSequence();
 }
 
 bool iPadRenderContext::LoadShowFolder(const std::string& showDir) {
@@ -1509,7 +1510,13 @@ std::vector<Model*> iPadRenderContext::GetModelsForActivePreview() const {
 }
 
 bool iPadRenderContext::OpenSequence(const std::string& path) {
-    CloseSequence();
+    // A close that could not drain the render released nothing. Loading over the
+    // top would clear and repopulate _sequenceElements (destroying the Elements
+    // the workers are reading) and resize _seqData, so refuse the open instead.
+    if (!CloseSequence()) {
+        spdlog::warn("iPadRenderContext::OpenSequence: refusing to open '{}' - the previous sequence is still rendering", path);
+        return false;
+    }
 
     if (!ObtainAccessToURL(path, false)) {
         spdlog::warn("iPadRenderContext::OpenSequence: ObtainAccessToURL failed for '{}' — bookmark likely stale", path);
@@ -1948,6 +1955,20 @@ void iPadRenderContext::EnsureRenderEngine() {
 
 void iPadRenderContext::RenderAll() {
     if (!_sequenceFile) return;
+
+    // Refuse to start a second pass over a live one. Every caller can reach
+    // here with the previous render still running: startBackgroundRender
+    // aborts first but discards the best-effort result and chains in anyway,
+    // the batch runner retries after its poll times out, and an edit can kick
+    // off a render while one is in flight. Starting anyway would resize
+    // _seqData and build a fresh set of PixelBuffers (PixelBufferClass::reset
+    // frees and rebuilds every LayerInfo) while the running workers still hold
+    // pointers into the old ones. AbortRender returns immediately when the
+    // render is already done, so this costs nothing on the normal path.
+    if (!AbortRender(5000)) {
+        spdlog::error("iPadRenderContext::RenderAll: previous render would not drain; skipping this pass rather than rebuilding buffers under live workers");
+        return;
+    }
 
     // SequenceData is normally allocated in OpenSequence and reused
     // across every render pass — avoids the allocation churn (and

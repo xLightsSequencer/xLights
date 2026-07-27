@@ -1435,6 +1435,24 @@ class SequencerViewModel {
         }
         openInFlight = true
 
+        // The bridge's openSequence closes the current sequence first, on the
+        // detached thread below — which destroys the Elements and reallocates
+        // the seq data that everything here still points at. Quiesce the
+        // readers first, exactly as closeSequence() does: playback/output and
+        // the poll timers run on the main runloop and call into the document,
+        // and the grid's body reads it unconditionally. Dropping
+        // isSequenceLoaded swaps the sequencer out for the picker until
+        // applyOpenResult sets it back, so no view can reach a half-closed
+        // document. It also leaves the UI honest when the open fails — the old
+        // sequence is gone by then either way.
+        if isOutputting { toggleOutput() }
+        stopPlayback()
+        stopDirtyPolling()
+        stopAutosaveTimer()
+        cancelBackgroundRender()
+        isSequenceLoaded = false
+        rows = []
+
         // Heavy: full .xsq XML parse + audio decode in the bridge.
         // On the main actor this was tripping the 0x8BADF00D
         // scene-update watchdog when `handleIncomingSequenceURL`
@@ -2253,24 +2271,14 @@ class SequencerViewModel {
             showFolderPath = ""
         }
 
-        // Tear down off the main actor: abortRenderAndWait blocks up to
-        // 5s draining render workers (they hold pointers into
-        // SequenceElements / SequenceData), and the bridge close aborts
-        // again and can re-load the show folder after a packaged open.
-        // Run synchronously on the main actor this was blowing the
-        // 0x8BADF00D watchdog. `openInFlight` is held across the await
-        // so an open can't race the teardown; the sandbox scratch dir
-        // (the "incoming copy" dir for Files-provider `.xsqz` opens —
-        // the bridge wipes the separate *extraction* dir) is removed
-        // only after the C++ close is done with it.
-        await Task.detached { [document] in
-            _ = document.abortRenderAndWait(5.0)
-            document.closeSequence()
-            if let sandbox {
-                try? FileManager.default.removeItem(at: sandbox)
-            }
-        }.value
-
+        // Drop the UI's view of the sequence BEFORE the teardown starts, not
+        // after. The main actor keeps servicing SwiftUI across the await below,
+        // and SequencerGridV2View's body reads the bridge unconditionally
+        // (timingRowIndices walks RowInformation.element on entry) — so leaving
+        // isSequenceLoaded true across the await let a body evaluation walk
+        // Elements that the detached close was destroying. Clearing first swaps
+        // SequencerView out for SequencePickerView, so nothing in the view tree
+        // can reach the document while it is being torn down.
         isSequenceLoaded = false
         isDirty = false
         isRenderDone = false
@@ -2296,6 +2304,24 @@ class SequencerViewModel {
         stemsAvailable = false
         stemsPendingFilter = nil
         stemsInstallRoot = nil
+
+        // Tear down off the main actor: abortRenderAndWait blocks up to
+        // 5s draining render workers (they hold pointers into
+        // SequenceElements / SequenceData), and the bridge close aborts
+        // again and can re-load the show folder after a packaged open.
+        // Run synchronously on the main actor this was blowing the
+        // 0x8BADF00D watchdog. `openInFlight` is held across the await
+        // so an open can't race the teardown; the sandbox scratch dir
+        // (the "incoming copy" dir for Files-provider `.xsqz` opens —
+        // the bridge wipes the separate *extraction* dir) is removed
+        // only after the C++ close is done with it.
+        await Task.detached { [document] in
+            _ = document.abortRenderAndWait(5.0)
+            document.closeSequence()
+            if let sandbox {
+                try? FileManager.default.removeItem(at: sandbox)
+            }
+        }.value
     }
 
     // MARK: - Memory Pressure

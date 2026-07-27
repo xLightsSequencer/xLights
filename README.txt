@@ -14,6 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Layout: crash when selecting in the model tree while models are being
                                  deleted or the tree is being rebuilt. Selection now skips tree items whose
                                  model has already been freed on every platform, instead of only on Linux
+    -bug (dkulp)                 Headless render: a sequence whose predecessor's render could not be drained
+                                 is now reported as a failure rather than being loaded on top of the render
+                                 workers still reading it
     -bug (dkulp)                 Crash expanding a controller with no populated ports in the All Controller
                                  Columns dialog
     -bug (dkulp)                 Crash pressing Ctrl+letter in the visualiser for a model that is not
