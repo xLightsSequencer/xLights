@@ -739,6 +739,17 @@ Controller* OutputManager::GetController(int32_t absoluteChannel, int32_t& start
     return nullptr;
 }
 
+std::vector<Controller*> OutputManager::GetControllersInRange(int32_t startChannel, int32_t endChannel) const {
+
+    std::vector<Controller*> res;
+    for (const auto& it : _controllers) {
+        if (it->GetStartChannel() <= endChannel && it->GetEndChannel() >= startChannel) {
+            res.push_back(it);
+        }
+    }
+    return res;
+}
+
 Controller* OutputManager::GetControllerWithIP(const std::string& ip)
 {
     // Finds the first controller with the ip address
