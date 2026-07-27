@@ -591,7 +591,6 @@ public:
     void OnAC_OnClick(wxCommandEvent& event);
     void OnAC_OffClick(wxCommandEvent& event);
     void OnAC_DisableClick(wxCommandEvent& event);
-    void OnMenuItem_ACLIghtsSelected(wxCommandEvent& event);
     void OnACToolbarDropdown(wxAuiToolBarEvent& event);
     void OnAC_ShimmerClick(wxCommandEvent& event);
     void OnAC_TwinkleClick(wxCommandEvent& event);
@@ -803,8 +802,8 @@ public:
     static const wxWindowID ID_MENU_USER_DICT;
     static const wxWindowID ID_MENU_FIND_SHOW_FOLDER;
     static const wxWindowID ID_MENUITEM5;
-    static const wxWindowID MNU_ID_ACLIGHTS;
     static const wxWindowID ID_MNU_SHOWRAMPS;
+    static const wxWindowID ID_MENUITEM_TOOLBARS;
     static const wxWindowID ID_MENUITEM_SAVE_PERSPECTIVE;
     static const wxWindowID ID_MENUITEM_SAVE_AS_PERSPECTIVE;
     static const wxWindowID ID_MENUITEM_LOAD_PERSPECTIVE;
@@ -901,6 +900,7 @@ public:
     wxMenu* MenuItem18;
     wxMenu* MenuItem1;
     wxMenu* MenuItemPerspectives;
+    wxMenu* MenuItemToolbars;
     wxMenu* MenuView;
     wxMenu* RecentSequencesMenu;
     wxMenu* RecentShowFoldersMenu;
@@ -949,7 +949,6 @@ public:
     wxMenuItem* MenuItemVideoPreview;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemViewSavePerspective;
-    wxMenuItem* MenuItem_ACLIghts;
     wxMenuItem* MenuItem_CleanupFileLocations;
     wxMenuItem* MenuItem_ColorReplace;
     wxMenuItem* MenuItem_CrashXLights;
@@ -1070,8 +1069,8 @@ public:
     bool _disablePromptBatchRenderIssues = false;
     bool _hwVideoAccleration = false;
     int _hwVideoRenderer = 1;
-    bool _showACLights = false;
     bool _showACRamps = false;
+    std::vector<std::pair<wxString, wxMenuItem*>> _toolbarMenuItems;
     wxString _enableRenderCache;
     size_t _renderCacheMaximumSizeMB = 0;
     bool _playControlsOnPreview = true;
@@ -1130,8 +1129,11 @@ public:
     [[nodiscard]] std::string FindSequence(const std::string& seq);
 
     void CollectUserEmail();
-    void ShowACLights();
     void UpdateLayoutSave();
+    void BuildToolbarsMenu();
+    void ToggleToolbarPane(const wxString& paneName);
+    void UpdateToolbarsMenu();
+    bool IsACToolbarVisible() const { return MainAuiManager->GetPane("ACToolbar").IsShown(); }
 
     void DoBackup(bool prompt = true, bool startup = false, bool forceallfiles = false);
     void DoBackupPurge();

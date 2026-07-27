@@ -300,8 +300,8 @@ const wxWindowID xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_USER_DICT = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_FIND_SHOW_FOLDER = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM5 = wxNewId();
-const wxWindowID xLightsFrame::MNU_ID_ACLIGHTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_SHOWRAMPS = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_TOOLBARS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SAVE_PERSPECTIVE = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SAVE_AS_PERSPECTIVE = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_LOAD_PERSPECTIVE = wxNewId();
@@ -825,7 +825,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     EditToolBar->AddTool(ID_PASTE_BY_TIME, _("Paste By Time"), GetToolbarBitmapBundle("xlART_PASTE_BY_TIME"), wxNullBitmap, wxITEM_CHECK, _("Paste By Time"), wxEmptyString, NULL);
     EditToolBar->AddTool(ID_PASTE_BY_CELL, _("Paste By Cell"), GetToolbarBitmapBundle("xlART_PASTE_BY_CELL"), wxNullBitmap, wxITEM_CHECK, _("Paste By Cell"), wxEmptyString, NULL);
     EditToolBar->Realize();
-    MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
+    MainAuiManager->AddPane(EditToolBar, wxAuiPaneInfo().Name(_T("Edit Tool Bar")).ToolbarPane().Caption(_("Paste Toolbar")).CloseButton(false).Layer(10).Position(5).Top().Gripper());
     ACToolbar = new xlAuiToolBar(this, ID_AUITOOLBAR_AC, wxPoint(1,30), wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     ChoiceParm1 = new wxChoice(ACToolbar, ID_CHOICE_PARM1, wxPoint(276,12), wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PARM1"));
     ChoiceParm1->SetSelection( ChoiceParm1->Append(_T("0")) );
@@ -886,7 +886,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ViewToolBar->AddTool(wxID_ZOOM_OUT, _("Zoom Out"), GetToolbarBitmapBundle("xlART_ZOOM_OUT"), wxNullBitmap, wxITEM_NORMAL, _("Zoom Out"), wxEmptyString, NULL);
     ViewToolBar->AddTool(ID_AUITOOLBARITEM14, _("Sequence Settings"), GetToolbarBitmapBundle("xlART_SETTINGS"), wxNullBitmap, wxITEM_NORMAL, _("Settings"), wxEmptyString, NULL);
     ViewToolBar->Realize();
-    MainAuiManager->AddPane(ViewToolBar, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("Pane caption")).CloseButton(false).Layer(10).Position(13).Top().Gripper());
+    MainAuiManager->AddPane(ViewToolBar, wxAuiPaneInfo().Name(_T("View Tool Bar")).ToolbarPane().Caption(_("View Toolbar")).CloseButton(false).Layer(10).Position(13).Top().Gripper());
     EffectsToolBar = new xlAuiToolBar(this, ID_AUIEFFECTSTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     EffectsToolBar->Realize();
     MainAuiManager->AddPane(EffectsToolBar, wxAuiPaneInfo().Name(_T("EffectsToolBar")).ToolbarPane().Caption(_("Effects")).CloseButton(false).Layer(5).Top().Gripper());
@@ -1073,12 +1073,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem_ViewZoomOut = new wxMenuItem(MenuView, wxID_ZOOM_OUT, _("Zoom Out"), wxEmptyString, wxITEM_NORMAL);
     MenuView->Append(MenuItem_ViewZoomOut);
     MenuView->AppendSeparator();
-    MenuItem13 = new wxMenuItem(MenuView, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
-    MenuView->Append(MenuItem13);
-    MenuItem_ACLIghts = new wxMenuItem(MenuView, MNU_ID_ACLIGHTS, _("AC Lights Toolbar"), wxEmptyString, wxITEM_CHECK);
-    MenuView->Append(MenuItem_ACLIghts);
-    MenuItem_ShowACRamps = new wxMenuItem(MenuView, ID_MNU_SHOWRAMPS, _("Show AC Ramps"), _("Show on effects and twinkle effects as ramps."), wxITEM_CHECK);
-    MenuView->Append(MenuItem_ShowACRamps);
+    MenuItemToolbars = new wxMenu();
+    MenuItem_ShowACRamps = new wxMenuItem(MenuItemToolbars, ID_MNU_SHOWRAMPS, _("Show AC Ramps"), _("Show on effects and twinkle effects as ramps."), wxITEM_CHECK);
+    MenuItemToolbars->Append(MenuItem_ShowACRamps);
+    MenuItemToolbars->AppendSeparator();
+    MenuItem13 = new wxMenuItem(MenuItemToolbars, ID_MENUITEM5, _("Reset Toolbars"), wxEmptyString, wxITEM_NORMAL);
+    MenuItemToolbars->Append(MenuItem13);
+    MenuView->Append(ID_MENUITEM_TOOLBARS, _("Toolbars"), MenuItemToolbars, wxEmptyString);
     MenuView->AppendSeparator();
     MenuItemPerspectives = new wxMenu();
     MenuItemViewSavePerspective = new wxMenuItem(MenuItemPerspectives, ID_MENUITEM_SAVE_PERSPECTIVE, _("Save Current"), wxEmptyString, wxITEM_NORMAL);
@@ -1314,7 +1315,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(wxID_ZOOM_IN, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemZoominClick);
     Connect(wxID_ZOOM_OUT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItem_ZoomOutClick);
     Connect(ID_MENUITEM5, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ResetToolbarLocations);
-    Connect(MNU_ID_ACLIGHTS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ACLIghtsSelected);
     Connect(ID_MNU_SHOWRAMPS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ShowACRampsSelected);
     Connect(ID_MENUITEM_SAVE_PERSPECTIVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSavePerspectiveSelected);
     Connect(ID_MENUITEM_SAVE_AS_PERSPECTIVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemViewSaveAsPerspectiveSelected);
@@ -1384,6 +1384,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // this handler when they don't handle it themselves, so one Bind here
     // covers both the toolbar background and its buttons.
     EffectsToolBar->Bind(wxEVT_CONTEXT_MENU, &xLightsFrame::OnEffectsToolBarContextMenu, this);
+    BuildToolbarsMenu();
 
     Notebook1->SetArtProvider(new wxAuiGenericTabArt());
 
@@ -1725,6 +1726,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         MainAuiManager->GetPane("Status Bar").MinSize(wxSize(-1, size));
         MainAuiManager->Update();
     }
+    UpdateToolbarsMenu();
     spdlog::debug("Perspectives loaded.");
 
     config->Read("xLightsBackupSubdirectories", &_backupSubfolders, true);
@@ -1777,10 +1779,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsExcludeAudioPkgSeq", &_excludeAudioFromPackagedSequences, false);
     spdlog::debug("Exclude Audio From Packaged Sequences: {}.", toStr(_excludeAudioFromPackagedSequences));
-
-    config->Read("xLightsShowACLights", &_showACLights, false);
-    MenuItem_ACLIghts->Check(_showACLights);
-    spdlog::debug("Show AC Lights toolbar: {}.", toStr(_showACLights));
 
     config->Read("xLightsShowACRamps", &_showACRamps, false);
     MenuItem_ShowACRamps->Check(_showACRamps);
@@ -2046,7 +2044,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     }
 
     UpdateACToolbar();
-    ShowACLights();
 
     DoBackupPurge();
 
@@ -2254,7 +2251,6 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsEnablePositionZones", _enablePositionZones);
     config->Write("xLightsShowZoneIndicator", _showZoneIndicator);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
-    config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);
     config->Write("xLightsEnableRenderCache", _enableRenderCache);
     config->Write("xLightsRenderCacheMaxSizeMB", _renderCacheMaximumSizeMB);
@@ -6557,23 +6553,53 @@ void xLightsFrame::PlayerError(const wxString& msg)
 
 #pragma region Settings Menu
 
-void xLightsFrame::ShowACLights()
+void xLightsFrame::BuildToolbarsMenu()
 {
-    wxAuiPaneInfo& tb = MainAuiManager->GetPane(_T("ACToolbar"));
-    if (tb.IsOk()) {
-        if (_showACLights) {
-            tb.Show();
-        } else {
-            tb.Hide();
-        }
-        MainAuiManager->Update();
+    static const std::pair<wxString, wxString> entries[] = {
+        { "Main Tool Bar", "Main Toolbar" },
+        { "Play Tool Bar", "Play Toolbar" },
+        { "Windows Tool Bar", "Windows Toolbar" },
+        { "Edit Tool Bar", "Paste Toolbar" },
+        { "View Tool Bar", "View Toolbar" },
+        { "EffectsToolBar", "Effects Toolbar" },
+    };
+
+    int pos = 0;
+    for (const auto& [paneName, label] : entries) {
+        wxMenuItem* item = new wxMenuItem(MenuItemToolbars, wxID_ANY, label, wxEmptyString, wxITEM_CHECK);
+        MenuItemToolbars->Insert(pos++, item);
+        wxString pane = paneName;
+        Bind(wxEVT_MENU, [this, pane](wxCommandEvent&) { ToggleToolbarPane(pane); }, item->GetId());
+        _toolbarMenuItems.emplace_back(pane, item);
     }
+    MenuItemToolbars->InsertSeparator(pos++);
+
+    // Grouped with "Show AC Ramps" (immediately below) rather than in the
+    // generic list above, since both toggle AC-editing-related UI.
+    wxMenuItem* acToolbarItem = new wxMenuItem(MenuItemToolbars, wxID_ANY, "AC Toolbar", wxEmptyString, wxITEM_CHECK);
+    MenuItemToolbars->Insert(pos, acToolbarItem);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { ToggleToolbarPane("ACToolbar"); }, acToolbarItem->GetId());
+    _toolbarMenuItems.emplace_back("ACToolbar", acToolbarItem);
 }
 
-void xLightsFrame::OnMenuItem_ACLIghtsSelected(wxCommandEvent& event)
+void xLightsFrame::ToggleToolbarPane(const wxString& paneName)
 {
-    _showACLights = MenuItem_ACLIghts->IsChecked();
-    ShowACLights();
+    wxAuiPaneInfo& pane = MainAuiManager->GetPane(paneName);
+    if (!pane.IsOk()) return;
+    if (pane.IsShown()) {
+        pane.Hide();
+    } else {
+        pane.Show();
+    }
+    MainAuiManager->Update();
+    UpdateToolbarsMenu();
+}
+
+void xLightsFrame::UpdateToolbarsMenu()
+{
+    for (auto& [paneName, item] : _toolbarMenuItems) {
+        item->Check(MainAuiManager->GetPane(paneName).IsShown());
+    }
 }
 
 void xLightsFrame::OnMenuItem_ShowACRampsSelected(wxCommandEvent& event)
@@ -6669,7 +6695,7 @@ void xLightsFrame::OnAC_OffClick(wxCommandEvent& event)
 
 void xLightsFrame::UpdateACToolbar(bool forceState)
 {
-    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && _showACLights && forceState) {
+    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && IsACToolbarVisible() && forceState) {
         wxAuiToolBarItem* button = ACToolbar->FindTool(ID_AUITOOLBARITEM_ACON);
         int state = button->GetState();
         if (state & wxAUI_BUTTON_STATE_DISABLED) {
@@ -6716,7 +6742,7 @@ void xLightsFrame::UpdateACToolbar(bool forceState)
 void xLightsFrame::OnAC_DisableClick(wxCommandEvent& event)
 {
     UpdateACToolbar();
-    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && _showACLights) {
+    if (Button_ACDisabled->IsChecked() && _seqData.NumFrames() != 0 && IsACToolbarVisible()) {
         ACToolbar->SetToolBitmap(ID_AUITOOLBARITEM_ACDISABLED, GetToolbarBitmapBundle("xlAC_ENABLED"));
         Button_ACSelect->SetValue(true);
         Button_ACIntensity->SetValue(true);
@@ -6786,7 +6812,7 @@ void xLightsFrame::OnAC_TwinkleClick(wxCommandEvent& event)
 
 bool xLightsFrame::IsACActive()
 {
-    return _seqData.NumFrames() != 0 && _showACLights && Button_ACDisabled->IsChecked();
+    return _seqData.NumFrames() != 0 && IsACToolbarVisible() && Button_ACDisabled->IsChecked();
 }
 
 void xLightsFrame::OnAC_BackgroundClick(wxCommandEvent& event)
