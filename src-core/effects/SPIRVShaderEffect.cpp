@@ -71,6 +71,12 @@ void AddEncode(uint64_t ns) { counters().encodeNs += ns; counters().encodeN++; }
 } // namespace ShaderBuildStats
 
 namespace {
+// Fixed calendar anchor for the ISF DATE uniform's y/m/d fields; its seconds
+// field carries the sequence position. See where DATE is packed.
+constexpr int kShaderDateYear = 2000;
+constexpr int kShaderDateMonth = 1;
+constexpr int kShaderDateDay = 1;
+
 // Scoped nanosecond timer. The clock is only read when the stats flag is on, so
 // the disabled path costs a predictable-branch test - this sits in the per-frame
 // encode path, which runs six figures of times in a normal render.
@@ -228,14 +234,16 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     set1("TIME", cache->timeMS / 1000.0);
     set1("TIMEDELTA", buffer.frameTimeInMs / 1000.f);
     {
-        std::time_t nowt = std::time(nullptr);
-        std::tm tmbuf;
-#ifdef _MSC_VER
-        localtime_s(&tmbuf, &nowt);
-#else
-        localtime_r(&nowt, &tmbuf);
-#endif
-        set4("DATE", tmbuf.tm_year + 1900, tmbuf.tm_mon + 1, tmbuf.tm_mday, tmbuf.tm_hour * 3600 + tmbuf.tm_min * 60 + tmbuf.tm_sec);
+        // Derived from the sequence timeline, NOT the wall clock. An .fseq is a
+        // baked artifact: a render-time clock is meaningless on playback, and it
+        // makes the render irreproducible - two runs seconds apart feed a
+        // different DATE into the shader, which is enough to break the
+        // byte-identity regression gate for the whole sequence when the shader
+        // feeds back on itself. Anchoring to the sequence also makes clock-style
+        // shaders advance with the sequence instead of sitting frozen at
+        // whatever time the render happened to start.
+        const double seqSeconds = (buffer.curPeriod * (double)buffer.frameTimeInMs) / 1000.0;
+        set4("DATE", kShaderDateYear, kShaderDateMonth, kShaderDateDay, seqSeconds);
     }
     set1("NUMCOLORS", buffer.GetColorCount());
     set1("PASSINDEX", 0);

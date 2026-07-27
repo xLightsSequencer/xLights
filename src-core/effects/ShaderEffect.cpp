@@ -882,15 +882,11 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     si->SetUniform1f("TIMEDELTA", (GLfloat)(buffer.frameTimeInMs /1000.f));
 
     if (si->HasUniform("DATE")) {
-        auto now = std::chrono::system_clock::now();
-        std::time_t nowt = std::chrono::system_clock::to_time_t(now);
-        std::tm tmbuf;
-#ifdef _MSC_VER
-        localtime_s(&tmbuf, &nowt);
-#else
-        localtime_r(&nowt, &tmbuf);
-#endif
-        si->SetUniform4f("DATE", tmbuf.tm_year + 1900, tmbuf.tm_mon + 1, tmbuf.tm_mday, tmbuf.tm_hour * 3600 + tmbuf.tm_min * 60 + tmbuf.tm_sec);
+        // Sequence timeline, not the wall clock — see the matching comment in
+        // SPIRVShaderEffect. A render-time clock is meaningless in a baked
+        // .fseq and makes the render irreproducible.
+        const double seqSeconds = (buffer.curPeriod * (double)buffer.frameTimeInMs) / 1000.0;
+        si->SetUniform4f("DATE", 2000, 1, 1, (GLfloat)seqSeconds);
     }
     si->SetUniformInt("NUMCOLORS", buffer.GetColorCount());
     si->SetUniformInt("PASSINDEX", 0);

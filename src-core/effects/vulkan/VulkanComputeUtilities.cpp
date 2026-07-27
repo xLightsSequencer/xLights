@@ -504,7 +504,7 @@ void VulkanComputeUtilities::doInit() {
     if (thr >= 0) {
         bufferSizeThreshold = (uint32_t)thr;
     }
-    spdlog::info("Vulkan compute enabled: {} (type {}, queue family {}, size threshold {})", deviceName, (int)deviceType, queueFamilyIndex, bufferSizeThreshold);
+    spdlog::info("Vulkan compute enabled: {} (type {}, queue family {}, graphics family {}, size threshold {})", deviceName, (int)deviceType, queueFamilyIndex, graphicsFamilyCandidate, bufferSizeThreshold);
 #ifdef HAVE_VULKAN_SHADER
     if (getenv("XL_VULKAN_GFXTEST") != nullptr) {
         // Bring up + self-test the graphics-pipeline foundation for headless

@@ -20,6 +20,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -change (dkulp)              Layout: on the Controllers tab the preview now selects controller boxes
                                  rather than models. Models remain selectable from the controller tree
                                  and the Models tab
+    -bug (dkulp)                 Shader: the ISF DATE uniform came from the wall clock, so any sequence
+                                 using a shader that reads it rendered differently every run. It now
+                                 follows the sequence timeline, which is both reproducible and animates
+                                 with the sequence rather than freezing at the time the render started
+    -bug (dkulp)                 Shader (Vulkan): a shader defining a function whose signature matches a
+                                 GLSL built-in failed translation and rendered solid yellow; the built-in
+                                 name is now renamed on a retry so the shader renders
     -bug (dkulp)                 Layout: crash when selecting in the model tree while models are being
                                  deleted or the tree is being rebuilt. Selection now skips tree items whose
                                  model has already been freed on every platform, instead of only on Linux
