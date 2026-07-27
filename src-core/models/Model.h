@@ -225,11 +225,6 @@ public:
     void SetDimmingInfo(const std::map<std::string, std::map<std::string, std::string>>& info);
     DimmingCurve *GetDimmingCurve() const { return modelDimmingCurve; }
 
-    // Stamp each submodel's own dimming curve onto the parent physical nodes it
-    // covers, so the dimming is permanent regardless of which effect/model
-    // paints those channels. Strongest dim wins where submodels overlap. The
-    // parent owns the curves (see _subModelNodeDimmingCurves) so node pointers
-    // stay valid for the parent's node lifetime.
     void ApplySubModelDimmingToNodes();
     void SetSuppressDimmingCurvePreview(bool suppress) { _suppressDimmingCurvePreview = suppress; }
     [[nodiscard]] bool IsDimmingCurvePreviewSuppressed() const { return _suppressDimmingCurvePreview; }
@@ -371,10 +366,7 @@ protected:
 
     std::map<std::string, std::map<std::string, std::string>> dimmingInfo;
     DimmingCurve* modelDimmingCurve = nullptr;
-    // Parent-owned dimming curves stamped onto physical nodes for submodel
-    // "shadow" dimming. Rebuilt by ApplySubModelDimmingToNodes(); owning them
-    // here keeps node->nodeDimmingCurve pointers valid for the node lifetime.
-    std::vector<std::unique_ptr<DimmingCurve>> _subModelNodeDimmingCurves;
+    std::vector<std::shared_ptr<DimmingCurve>> _subModelNodeDimmingCurves;
     bool _subModelDimmingEnabled = true;
     bool _suppressDimmingCurvePreview = false;
 

@@ -165,7 +165,7 @@ void Model::ApplySubModelDimmingToNodes()
         }
         return candidateDims ? (candidate < current) : (candidate > current);
     };
-    std::map<int, std::pair<int, const DimmingCurve*>> strongestByNode;
+    std::map<int, std::pair<int, std::shared_ptr<const DimmingCurve>>> strongestByNode;
 
     for (auto* m : subModels) {
         SubModel* sm = dynamic_cast<SubModel*>(m);
@@ -189,8 +189,8 @@ void Model::ApplySubModelDimmingToNodes()
         if (curve == nullptr) {
             continue;
         }
-        _subModelNodeDimmingCurves.push_back(std::unique_ptr<DimmingCurve>(curve));
-        const DimmingCurve* owned = _subModelNodeDimmingCurves.back().get();
+        _subModelNodeDimmingCurves.push_back(std::shared_ptr<DimmingCurve>(curve));
+        std::shared_ptr<const DimmingCurve> owned = _subModelNodeDimmingCurves.back();
         for (const auto& [parentIdx, smIdx] : sm->GetNodeIndexMap()) {
             if (parentIdx >= 0 && parentIdx < (int)Nodes.size() && Nodes[parentIdx] != nullptr) {
                 auto it = strongestByNode.find(parentIdx);

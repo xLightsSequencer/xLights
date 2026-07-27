@@ -2746,7 +2746,7 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                     // first, then the model's dimming curve on top so the
                     // two stack.
                     DimmingCurve* modelCurve = (n->model != nullptr) ? n->model->GetDimmingCurve() : nullptr;
-                    const DimmingCurve* nodeCurve = n->nodeDimmingCurve;
+                    const DimmingCurve* nodeCurve = n->nodeDimmingCurve.get();
                     if (modelCurve != nullptr || nodeCurve != nullptr) {
                         if (n->GetChanCount() == 1) {
                             uint8_t buf[3] = { 0, 0, 0 };

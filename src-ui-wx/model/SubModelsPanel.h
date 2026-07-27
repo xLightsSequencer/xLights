@@ -130,6 +130,7 @@ class SubModelsPanel : public wxPanel {
     // invisible to the _subModels/_originalSubModels diff in HasChanges(). Track
     // it separately so the change is still reported to the caller on OK.
     bool _aliasesChanged = false;
+    bool _originalEnableDimmingCurves = true;
 
     void StartOutputToLights();
     bool StopOutputToLights();

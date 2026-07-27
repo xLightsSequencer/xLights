@@ -560,7 +560,8 @@ void SubModelsPanel::Setup(Model *m)
         _isMatrix = true;
     }
 
-    CheckBox_EnableDimming->SetValue(m->IsSubModelDimmingEnabled());
+    _originalEnableDimmingCurves = m->IsSubModelDimmingEnabled();
+    CheckBox_EnableDimming->SetValue(_originalEnableDimmingCurves);
 
     RetrieveSubModelInfo(m);
 }
@@ -654,6 +655,7 @@ void SubModelsPanel::Save()
 bool SubModelsPanel::HasChanges() const
 {
     if (_aliasesChanged) return true;
+    if (CheckBox_EnableDimming->IsChecked() != _originalEnableDimmingCurves) return true;
     if (_originalSubModels.size() != _subModels.size()) return true;
     for (size_t i = 0; i < _subModels.size(); ++i) {
         if (_originalSubModels[i] != *_subModels[i]) return true;

@@ -179,11 +179,7 @@ public:
     CoordVec Coords;
     std::string* name = nullptr;
     const Model* model = nullptr;
-    // Optional per-node dimming applied in addition to the owning model's
-    // curve (used for permanent submodel "shadow" dimming). Not owned here;
-    // the owning parent Model holds the curve and keeps it alive. Propagated
-    // by the copy ctor so it rides along every clone into the render buffers.
-    const DimmingCurve* nodeDimmingCurve = nullptr;
+    std::shared_ptr<const DimmingCurve> nodeDimmingCurve;
 
     NodeBaseClass() {
         chanCnt = NODE_RGB_CHAN_CNT;
