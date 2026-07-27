@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (dkulp)                 Shader: a shader that accumulates into gl_FragColor without first
+                                 assigning it (common in Shadertoy conversions) read an undefined value,
+                                 so it rendered differently every run and made the whole sequence
+                                 irreproducible. The fragment output is now initialised before the
+                                 shader's own code runs
     -enh (dkulp)                 Layout: controllers can be shown as a movable, resizable box in the
                                  2D or 3D preview so they can be placed where they physically sit. Set via
                                  Show on Layout on the Controllers tab (Off by default); Off / Controller

@@ -10,6 +10,7 @@
 #include <array>
 #include <cctype>
 #include <cstring>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -221,12 +222,37 @@ std::string zeroInitLocals(const std::string& src) {
     return out;
 }
 
+// Assign the fragment output at the top of main().
+//
+// A shader that accumulates into it -- `gl_FragColor += ...` in a loop, common
+// in Shadertoy conversions -- never initialises it, so it reads an undefined
+// value. zeroInitLocals cannot cover this: the output is a global `out`
+// variable, and GLSL does not allow an initialiser on one.
+//
+// The consequence is not theoretical. One such shader made an entire render
+// nondeterministic: its output depended on whatever the GPU had left in that
+// register, which varies run to run once other work is interleaved on the same
+// cores. Two runs of the same sequence diverged for exactly that shader's
+// frames, on every model row at once, by up to full scale.
+//
+// Unconditional because it cannot hurt: a shader that assigns the output before
+// reading it is unaffected, and one that reads it first was undefined anyway.
+std::string initFragOutput(const std::string& src) {
+    static const std::regex mainOpen("(\\bvoid\\s+main\\s*\\([^)]*\\)\\s*\\{)");
+    std::smatch m;
+    if (!std::regex_search(src, m, mainOpen)) {
+        return src;
+    }
+    const size_t at = m.position(1) + m.length(1);
+    return src.substr(0, at) + "\n    fragmentColor = vec4(0.0, 0.0, 0.0, 0.0);" + src.substr(at);
+}
+
 } // namespace
 
 namespace ShaderSourceTransforms {
 
 std::string Apply(const std::string& assembledFragment) {
-    return zeroInitLocals(injectSafePow(assembledFragment));
+    return initFragOutput(zeroInitLocals(injectSafePow(assembledFragment)));
 }
 
 } // namespace ShaderSourceTransforms
