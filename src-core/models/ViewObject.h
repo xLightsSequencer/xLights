@@ -34,7 +34,7 @@ public:
         Setup();
     }
 
-    bool GetIs3dOnly() { return only_3d; }
+    bool GetIs3dOnly() const { return only_3d; }
 
     virtual const ModelScreenLocation &GetObjectScreenLocation() const = 0;
     virtual ModelScreenLocation &GetObjectScreenLocation() = 0;
@@ -44,6 +44,10 @@ public:
     const ObjectManager& GetObjectManager() const { return objectManager; }
 
 protected:
+    // Most view objects (terrain, gridlines, meshes) only make sense in a 3D
+    // preview and stay 3D-only. Subclasses that are meaningful in 2D clear this
+    // so the preview's draw loop includes them.
+    void SetIs3dOnly(bool b) { only_3d = b; }
 
 private:
     const ObjectManager& objectManager;

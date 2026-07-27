@@ -14,6 +14,13 @@ public:
 
 
     static bool IsEnabled() { return INSTANCE != nullptr && INSTANCE->enabled(); }
+    // The user's GPU-rendering preference ALONE, without "and the compute
+    // backend is usable" folded in.  For the one caller that needs the
+    // distinction: the Shader effect renders through the graphics pipeline and
+    // touches no compute, so a backend that declined compute (a software
+    // device - see VulkanComputeUtilities::computeWorthwhile) can still serve
+    // it, and IsEnabled() would wrongly send it to a solid-colour fill.
+    static bool IsPreferenceEnabled() { return INSTANCE != nullptr && INSTANCE->preferenceEnabled(); }
     static void SetEnabled(bool b) {
         if (INSTANCE) {
             INSTANCE->enable(b);
@@ -143,6 +150,9 @@ protected:
     GPURenderUtils() { INSTANCE = this; }
     virtual ~GPURenderUtils() { INSTANCE = nullptr; };
     virtual bool enabled() = 0;
+    // Default: same answer as enabled().  A backend whose enabled() folds in
+    // more than the preference overrides this (see VulkanRenderUtils).
+    virtual bool preferenceEnabled() { return enabled(); }
     virtual void enable(bool b) = 0;
     virtual void doCleanUp(PixelBufferClass *c) = 0;
     virtual void doCleanUp(RenderBuffer *c) = 0;

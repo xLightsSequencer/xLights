@@ -115,6 +115,13 @@ NS_ASSUME_NONNULL_BEGIN
 // ScreenLocation handles appear. Empty / nil clears.
 - (void)setSelectedViewObject:(nullable NSString*)name;
 
+// Which sidebar tab is active, for controller-box visibility. A box set to
+// "Controller Tab Only" draws only while this is YES; "Layout Panel" draws
+// anywhere in the layout editor. Only the LayoutEditor canvas consults it -
+// house preview and the model preview always count as "not the layout editor",
+// so they only ever show boxes set to Always.
+- (void)setControllersTabActive:(BOOL)active;
+
 // J-13 — hit-test view objects under a touch point. Mirrors
 // `pickModelAtScreenPoint` but searches `ViewObjectManager`
 // rather than `ModelManager`. Returns the topmost (last-drawn)

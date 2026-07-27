@@ -191,6 +191,7 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\utils\Parallel.cpp" />
+    <ClCompile Include="..\src-core\utils\RangeWorkPool.cpp" />
     <ClCompile Include="..\src-core\models\ObjectManager.cpp" />
     <ClCompile Include="..\src-core\models\ViewObjectManager.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ViewObjectPanel.cpp" />
@@ -278,6 +279,9 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\MeshObject.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\models\ControllerObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\GridlinesObject.cpp">
@@ -1723,6 +1727,7 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\utils\Parallel.h" />
+    <ClInclude Include="..\src-core\utils\RangeWorkPool.h" />
     <ClInclude Include="..\src-core\models\ObjectManager.h" />
     <ClInclude Include="..\src-core\models\ViewObjectManager.h" />
     <ClInclude Include="..\src-ui-wx\layout\ViewObjectPanel.h" />
@@ -1808,6 +1813,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\MeshObject.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\ControllerObject.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\GridlinesObject.h">

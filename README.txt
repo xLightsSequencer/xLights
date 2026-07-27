@@ -11,6 +11,38 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Layout: controllers can be shown as a movable, resizable box in the
+                                 2D or 3D preview so they can be placed where they physically sit. Set via
+                                 Show on Layout on the Controllers tab (Off by default); Off / Controller
+                                 Tab Only / Layout Panel / Always control where the box appears. Position,
+                                 size and rotation are editable in the controller properties alongside an
+                                 optional name label (off by default)
+    -change (dkulp)              Layout: on the Controllers tab the preview now selects controller boxes
+                                 rather than models. Models remain selectable from the controller tree
+                                 and the Models tab
+    -bug (dkulp)                 Layout: crash when selecting in the model tree while models are being
+                                 deleted or the tree is being rebuilt. Selection now skips tree items whose
+                                 model has already been freed on every platform, instead of only on Linux
+    -bug (dkulp)                 Headless render: a sequence whose predecessor's render could not be drained
+                                 is now reported as a failure rather than being loaded on top of the render
+                                 workers still reading it
+    -bug (dkulp)                 Crash expanding a controller with no populated ports in the All Controller
+                                 Columns dialog
+    -bug (dkulp)                 Crash pressing Ctrl+letter in the visualiser for a model that is not
+                                 assigned to a controller
+    -bug (dkulp)                 LOR: out-of-bounds write when changing a controller's unit ID or channel
+                                 count in the controller properties
+    -bug (dkulp)                 Linux: Shader effects rendered as solid cyan on machines whose only Vulkan
+                                 device is a software one (lavapipe/llvmpipe) and that have no usable
+                                 OpenGL - typically a headless render box. The device is now used for
+                                 shaders, which have no CPU implementation, while compute effects stay on
+                                 the faster CPU path; a headless render also enables GPU rendering if that
+                                 is the only way a shader can be drawn
+    -enh (mpl1337)               Node Layout grids can be zoomed from 10–300% or fitted to the window
+    -enh (dkulp)                 Render: a row rendering frames in parallel now farms its whole run of
+                                 frames to a round-robin worker pool instead of fixed-size windows with a
+                                 barrier between them, so it is no longer resynchronised every few frames
+                                 and clone memory follows the row's concurrency, not the run length
     -enh (dkulp)                 Fire effect has a new Style setting, and new Fire effects now default to
                                  "New Render Method". It carries the flame from frame to frame so it rises
                                  and drifts like real fire instead of flickering in place, and renders
@@ -21,6 +53,28 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  dockable toolbar (Main, Play, Windows, Paste, AC, View, Effects);
                                  visibility persists across restarts. The old standalone AC Lights
                                  Toolbar checkbox now lives here, grouped next to Show AC Ramps
+    -enh (dkulp)                 XL_GPU_SIZE_THRESHOLD diagnostic to sweep the GPU/CPU buffer-size
+                                 break-even without a rebuild
+    -enh (dkulp)                 Meteors "Implode"/"Explode" render faster: the trail draw runs across
+                                 cores again (the other styles already did). Output is unchanged
+    -enh (dkulp)                 Windows: Text and Shape effects now render through Direct2D/DirectWrite
+                                 directly instead of via wxWidgets, roughly 3.6x faster on text-heavy
+                                 sequences. Text using a font not installed on the machine may pick a
+                                 different substitute than before
+    -bug (dkulp)                 Linux/iPad: fixed the font named in a Text or Shape effect being
+                                 ignored when it has a multi-word name (stored quoted, e.g. 'gill sans')
+                                 or was saved with a Mac character set, which fell back to a default font
+    -enh (dkulp)                 Text effect renders much faster where the same text repeats: rendered
+                                 text is now cached across rows and frames instead of per render buffer,
+                                 so it survives the parallel render split (measured up to 4x faster on
+                                 prop-heavy sequences on Windows). Output is unchanged
+    -enh (dkulp)                 Pictures effect renders much faster: the image path is no longer
+                                 re-resolved on every frame. On macOS that resolve reached iCloud and
+                                 dominated prop-heavy sequences (one measured 7.7s -> 1.1s, and a
+                                 56-sequence show -5.9%). Output is unchanged
+    -bug (dkulp)                 Windows: command-line output (--headless timings, --fseqcmp results,
+                                 render diagnostics) now reaches the launching console instead of
+                                 being discarded
 
 
 2026.14  July 25, 2026

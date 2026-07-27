@@ -18,6 +18,7 @@
 #include "render/TextDrawingContext.h"
 #include "graphics/wxTextDrawingContext.h"
 #include "graphics/GLContextManager.h"
+#include "effects/OpenGLShaders.h"
 #include "render/FSEQFile.h"
 #include "render/GPURenderUtils.h"
 #include "media/VideoReader.h"
@@ -612,6 +613,23 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
 // real show sequences with an unusual Text/Shape font encoding. Forcing
 // interactive=false makes wx fall back silently (that encoding's text may
 // not render pixel-perfect) instead of blocking headless runs.
+// Can OpenGL actually render a shader here?  Exactly the test ShaderEffect
+// makes before it gives up and fills solid colour, asked up front so headless
+// can react to the answer instead of producing a bad render.  Must be called
+// after GLContextManager::Initialize; the queries need a current context, which
+// is why they run through ExecuteOnGLThread (safe even when GL init failed -
+// that is the case this exists to detect).
+static bool HeadlessOpenGLCanRenderShaders() {
+    if (getenv("XL_HEADLESS_NO_GL") != nullptr) {
+        return false;
+    }
+    bool ok = false;
+    GLContextManager::Instance().ExecuteOnGLThread([&]() {
+        ok = OpenGLShaders::HasFramebufferObjects() && OpenGLShaders::HasShaderSupport();
+    });
+    return ok;
+}
+
 class HeadlessNonInteractiveFontMapper : public wxFontMapper {
 public:
     bool GetAltForEncoding(wxFontEncoding encoding, wxNativeEncodingInfo* info,
@@ -625,8 +643,46 @@ public:
     }
 };
 
+#ifdef __WXMSW__
+// xLights links as a SubSystem=Windows binary, so a shell that launches it is
+// handed no stdout/stderr: --headless's per-sequence "Updated in" lines,
+// --fseqcmp's report and the XL_RENDER_PROFILE / XL_GPU_STATS dumps all go
+// nowhere, which silently makes the render diagnostics Windows-blind. Attach to
+// the launching console instead (there is none under Explorer, so this is a
+// no-op for normal GUI starts) and bind only the streams the caller has not
+// already redirected, so `xLights --headless > out.txt` still gets its file.
+static void AttachParentConsole()
+{
+    // Sample the handles first: AttachConsole fills in any that are unset, so
+    // afterwards there is no way to tell "the caller redirected me" from "the
+    // console just became my stdout" - and rebinding a redirected stream to
+    // CONOUT$ would throw away the caller's file.
+    auto preset = [](DWORD which) {
+        HANDLE h = GetStdHandle(which);
+        return h != nullptr && h != INVALID_HANDLE_VALUE;
+    };
+    const bool hadOut = preset(STD_OUTPUT_HANDLE);
+    const bool hadErr = preset(STD_ERROR_HANDLE);
+    if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
+        return;
+    }
+    // The CRT bound stdout/stderr at startup, before the console existed, so a
+    // stream we now own needs reopening even though GetStdHandle looks healthy.
+    FILE* f = nullptr;
+    if (!hadOut) {
+        freopen_s(&f, "CONOUT$", "w", stdout);
+    }
+    if (!hadErr) {
+        freopen_s(&f, "CONOUT$", "w", stderr);
+    }
+}
+#endif
+
 bool xLightsApp::OnInit()
 {
+#ifdef __WXMSW__
+    AttachParentConsole();
+#endif
     // Detected straight from argv rather than from wxCmdLineParser because a
     // parse failure has to be reported before the parser can tell us the mode.
     bool headlessArg = false;
@@ -1431,13 +1487,8 @@ bool xLightsApp::OnInit()
         } else {
             spdlog::warn("--headless: XL_HEADLESS_NO_GL set — skipping GL init (shaders will fall back to solid colour)");
         }
-        // Register the text backend so Text/Shape effects render (the wx backend
-        // draws to offscreen bitmaps and is thread-safe on macOS/Windows).
-        // Mirrors xLightsFrame's registration.
-        TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
-                                            wxTextDrawingContext::ParseTextFont,
-                                            wxTextDrawingContext::ParseShapeFont);
-        TextDrawingContext::Initialize();
+        // Text/Shape effects need a backend; same choice the GUI makes.
+        RegisterPlatformTextDrawingContext();
 
         // Video decode backend: mirror the desktop's hardware-accel preference.
         // The flag defaults false, so without this headless picks FFmpeg while the
@@ -1469,6 +1520,19 @@ bool xLightsApp::OnInit()
             if (getenv("XL_NO_GPU_COMPUTE") != nullptr) {
                 gpuRendering = false;
                 spdlog::warn("--headless: XL_NO_GPU_COMPUTE set — GPU compute disabled");
+            } else if (!gpuRendering && !HeadlessOpenGLCanRenderShaders()) {
+                // The Shader effect is the one effect with no CPU implementation:
+                // its renderers are OpenGL and the GPU (Metal/Vulkan) path, and
+                // nothing else.  With neither, it fills solid cyan - a silently
+                // wrong render rather than a slow one.  A headless box commonly
+                // has no usable GL (no display, or a server with software Mesa),
+                // so honouring the stored preference there would quietly ruin any
+                // sequence using a shader.  Turn it back on and say so.  The
+                // explicit XL_NO_GPU_COMPUTE above is NOT overridden - that one
+                // is a deliberate CPU-only A/B knob and must stay authoritative.
+                gpuRendering = true;
+                spdlog::warn("--headless: GPU rendering is disabled in preferences but OpenGL is unavailable; "
+                             "enabling it so Shader effects render (they have no CPU implementation)");
             }
             GPURenderUtils::SetEnabled(gpuRendering);
         }

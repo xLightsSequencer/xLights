@@ -219,9 +219,12 @@ public:
 
     // Lazy bring-up: unlike Metal (device created at static init), volk must
     // dlopen the loader, so all Vulkan work waits for the first real call.
+    // Is the Vulkan COMPUTE path worth using?  Separate from `enabled` (the
+    // device being up) because a software device is worth having for graphics
+    // and not for compute - see computeWorthwhile.
     bool computeEnabled() {
         ensureInit();
-        return enabled;
+        return enabled && computeWorthwhile;
     }
     bool prioritizeGraphics() {
         return pg;
@@ -357,6 +360,13 @@ public:
     std::mutex& graphicsSubmitMutex() { return graphicsQueue == queue ? queueMutex : graphicsQueueMutex; }
     VmaAllocator allocator = VK_NULL_HANDLE;
     VkPhysicalDeviceType deviceType = VK_PHYSICAL_DEVICE_TYPE_OTHER;
+    // False when the chosen device is a CPU implementation (lavapipe/llvmpipe)
+    // and XL_VULKAN_ALLOW_CPU was not set: every compute effect has an ISPC
+    // implementation that beats a software device by 3-4x, so compute declines
+    // it.  The device still comes up, because the Shader effect has no CPU
+    // implementation and a software device is the only thing standing between
+    // it and a solid-cyan fill.
+    bool computeWorthwhile = true;
     std::string deviceName;
     // minStorageBufferOffsetAlignment — arena sub-allocations for effect
     // param structs (bound as SSBOs) must start on this boundary.

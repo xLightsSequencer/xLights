@@ -167,15 +167,98 @@ public:
 typedef std::vector<MeteorClass> MeteorList;
 typedef std::vector<MeteorRadialClass> MeteorRadialList;
 
-// Meteor trails overlap, so drawing them from several threads raced for the
-// shared pixels and the winner depended on thread timing — the effect
-// rendered differently run to run.  Draw serially in container order.
-template <typename T>
-static void drawMeteorsSerially(std::vector<T>& meteors, std::function<void(T&, int)>& f) {
-    int i = 0;
-    for (auto& m : meteors) {
-        f(m, i++);
+// One deferred SetPixel from a radial trail.
+struct RadialPlot {
+    int x;
+    int y;
+    HSVValue hsv;
+    uint8_t alpha;
+};
+
+// Implode/Explode draw overlapping trails, so serial order decides which meteor
+// owns a shared pixel.  Neither SetPixel overload used here reads the old pixel,
+// so "later write wins" is the ONLY ordering that matters: have each meteor
+// compute its trail into its own slice (pure geometry + a stateless hash, no
+// buffer access), bucket the writes by buffer row, then replay each row on one
+// thread in emit order.  Every write to a pixel lands in that pixel's row bucket
+// and keeps its relative order, so the result is identical to drawing serially.
+// The axis-aligned styles get their parallelism from the ISPC line kernel; the
+// radial ones have no such kernel and were left fully serial.
+//
+// `trail(meteor, n, RadialPlot* out)` fills up to tailLength+1 plots and returns
+// how many it wrote.
+template <typename Trail>
+static void drawRadialMeteors(RenderBuffer& buffer, MeteorRadialList& meteors, int tailLength,
+                              bool allowAlpha, Trail&& trail) {
+    const size_t meteorCount = meteors.size();
+    if (meteorCount == 0) {
+        return;
     }
+    const int stride = tailLength + 1;
+
+    auto plot = [&buffer, allowAlpha](const RadialPlot& p) {
+        if (allowAlpha) {
+            xlColor c(p.hsv);
+            c.alpha = p.alpha;
+            buffer.SetPixel(p.x, p.y, c);
+        } else {
+            buffer.SetPixel(p.x, p.y, p.hsv);
+        }
+    };
+
+    // DMX buffers route SetPixel through SetPixelDMXModel, which is not a plain
+    // store into the pixel grid, so row ownership does not make it independent.
+    // Small draws are not worth the bucketing passes either.
+    if (buffer.dmx_buffer || (int64_t)meteorCount * stride < 20000) {
+        std::vector<RadialPlot> scratch(stride);
+        for (size_t n = 0; n < meteorCount; ++n) {
+            const int wrote = trail(meteors[n], (int)n, scratch.data());
+            for (int i = 0; i < wrote; ++i) {
+                plot(scratch[i]);
+            }
+        }
+        return;
+    }
+
+    std::vector<RadialPlot> plots(meteorCount * (size_t)stride);
+    std::vector<int> wrote(meteorCount, 0);
+    parallel_for(0, (int)meteorCount, [&](int n) {
+        wrote[n] = trail(meteors[n], n, &plots[(size_t)n * stride]);
+    });
+
+    // Counting sort of the in-range writes into per-row runs, walked in emit
+    // order so each run stays in emit order.  Out-of-row writes are dropped:
+    // SetPixel would have rejected them anyway.
+    const int rows = buffer.BufferHt;
+    std::vector<int> rowStart(rows + 1, 0);
+    for (size_t n = 0; n < meteorCount; ++n) {
+        const RadialPlot* pp = &plots[(size_t)n * stride];
+        for (int i = 0; i < wrote[n]; ++i) {
+            if (pp[i].y >= 0 && pp[i].y < rows) {
+                ++rowStart[pp[i].y + 1];
+            }
+        }
+    }
+    for (int r = 0; r < rows; ++r) {
+        rowStart[r + 1] += rowStart[r];
+    }
+    std::vector<int> rowItems(rowStart[rows], 0);
+    std::vector<int> fill(rowStart.begin(), rowStart.end() - 1);
+    for (size_t n = 0; n < meteorCount; ++n) {
+        const size_t base = (size_t)n * stride;
+        for (int i = 0; i < wrote[n]; ++i) {
+            const RadialPlot& p = plots[base + i];
+            if (p.y >= 0 && p.y < rows) {
+                rowItems[fill[p.y]++] = (int)(base + i);
+            }
+        }
+    }
+
+    parallel_for(0, rows, [&](int r) {
+        for (int k = rowStart[r]; k < rowStart[r + 1]; ++k) {
+            plot(plots[rowItems[k]]);
+        }
+    });
 }
 
 class MeteorsRenderCache : public EffectRenderCache {
@@ -971,8 +1054,9 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
     ImplodeAddMeteors(buffer, ColorScheme, Count, Length, xoffset, yoffset);
 
     // render meteors
-    std::function<void(MeteorRadialClass&, int)> f = [&buffer, fadeWithDistance, centerX, centerY, maxdiag, TailLength, ColorScheme](MeteorRadialClass& meteor, int n) {
+    auto trail = [&buffer, fadeWithDistance, centerX, centerY, maxdiag, TailLength, ColorScheme](const MeteorRadialClass& meteor, int n, RadialPlot* out) {
         HSVValue hsv;
+        int wrote = 0;
 
         for (int ph = 0; ph <= TailLength; ph++) {
             switch (ColorScheme) {
@@ -1003,17 +1087,17 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
                 hsv.value *= double(distance) / maxdiag;
             }
 
+            uint8_t alpha = 0;
             if (buffer.allowAlpha) {
-                xlColor c(hsv);
-                c.alpha = 255.0 * (double(ph) / TailLength);
-                buffer.SetPixel(x, y, c);
+                alpha = 255.0 * (double(ph) / TailLength);
             } else {
                 hsv.value *= double(ph) / TailLength;
-                buffer.SetPixel(x, y, hsv);
             }
+            out[wrote++] = { x, y, hsv, alpha };
         }
+        return wrote;
     };
-    drawMeteorsSerially(cache->meteorsRadial, f);
+    drawRadialMeteors(buffer, cache->meteorsRadial, TailLength, buffer.allowAlpha, trail);
 
     ImplodeMoveMeteors(buffer, speed, xoffset, yoffset, fadeWithDistance);
 
@@ -1169,8 +1253,9 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
 
     // render meteors
 
-    std::function<void(MeteorRadialClass&, int)> f = [&buffer, fadeWithDistance, centerX, centerY, maxdiag, TailLength, ColorScheme](MeteorRadialClass& meteor, int n) {
+    auto trail = [&buffer, fadeWithDistance, centerX, centerY, maxdiag, TailLength, ColorScheme](const MeteorRadialClass& meteor, int n, RadialPlot* out) {
         HSVValue hsv;
+        int wrote = 0;
         for (int ph = 0; ph <= TailLength; ph++) {
             // if (ph >= it->cnt) continue;
             switch (ColorScheme) {
@@ -1198,17 +1283,17 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
                 hsv.value *= double(distance) / maxdiag;
             }
 
+            uint8_t alpha = 0;
             if (buffer.allowAlpha) {
-                xlColor c(hsv);
-                c.alpha = 255.0 * (double(ph) / TailLength);
-                buffer.SetPixel(x, y, c);
+                alpha = 255.0 * (double(ph) / TailLength);
             } else {
                 hsv.value *= double(ph) / TailLength;
-                buffer.SetPixel(x, y, hsv);
             }
+            out[wrote++] = { x, y, hsv, alpha };
         }
+        return wrote;
     };
-    drawMeteorsSerially(cache->meteorsRadial, f);
+    drawRadialMeteors(buffer, cache->meteorsRadial, TailLength, buffer.allowAlpha, trail);
 
     ExplodeMoveMeteors(buffer, speed, xoffset, yoffset, fadeWithDistance);
 

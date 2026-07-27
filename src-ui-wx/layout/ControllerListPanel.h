@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "layout/ControllerTreeUtils.h"
+#include "models/ControllerObject.h"
 
 using namespace ControllerTree;
 
@@ -52,6 +53,9 @@ public:
     wxWindow* CreatePropertiesPanel(wxWindow* parent);
     void UpdateControllerProperties();
     void ClearPreviewHighlights();
+    void SetControllerObjectVisibility(const std::string& controllerName, ControllerObject::Visibility vis);
+    void RefreshControllerPlacementProperties(ControllerObject* co);
+    void UpdateControllerObjectStatusColors();
 
 private:
     void OnControllerPropertyGridChange(wxPropertyGridEvent& event);

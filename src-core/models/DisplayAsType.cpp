@@ -47,6 +47,7 @@ std::string DisplayAsTypeToString(DisplayAsType type) {
         case DisplayAsType::Terrain:          return XmlNodeKeys::TerrainType;
         case DisplayAsType::Mesh:             return XmlNodeKeys::MeshType;
         case DisplayAsType::Ruler:            return XmlNodeKeys::RulerType;
+        case DisplayAsType::Controller:       return XmlNodeKeys::ControllerObjectType;
         case DisplayAsType::SubModel:         return "SubModel";
         case DisplayAsType::ObjectGroup:      return "ObjectGroup";
         case DisplayAsType::Unknown:          return "";
@@ -91,6 +92,7 @@ DisplayAsType DisplayAsTypeFromString(const std::string& str) {
         {XmlNodeKeys::TerrainType,          DisplayAsType::Terrain},
         {XmlNodeKeys::MeshType,             DisplayAsType::Mesh},
         {XmlNodeKeys::RulerType,            DisplayAsType::Ruler},
+        {XmlNodeKeys::ControllerObjectType, DisplayAsType::Controller},
         // Special types
         {"SubModel",                        DisplayAsType::SubModel},
         {"ObjectGroup",                     DisplayAsType::ObjectGroup},

@@ -4039,7 +4039,9 @@ bool ControllerModelDialog::MaybeSetSmartRemote(wxKeyEvent& event)
         return false;
     }
 
-    if (_lastDropped != nullptr && _lastDropped->GetControllerCaps()->SupportsSmartRemotes() && remote <= _lastDropped->GetControllerCaps()->GetSmartRemoteCount()) {
+    // GetControllerCaps() is null for a model that is not assigned to a controller
+    ControllerCaps* caps = _lastDropped != nullptr ? _lastDropped->GetControllerCaps() : nullptr;
+    if (caps != nullptr && caps->SupportsSmartRemotes() && remote <= caps->GetSmartRemoteCount()) {
         _lastDropped->SetSmartRemote(remote);
 
         while (!_xLights->DoAllWork()) {

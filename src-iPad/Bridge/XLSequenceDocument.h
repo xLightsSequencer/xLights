@@ -51,6 +51,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString*)showFolderPath;
 - (NSArray<NSString*>*)mediaFolderPaths;
 
+// Write Library/Logs/xlShowStats.txt — model/group/node counts and the
+// rgbeffects/networks file sizes for the loaded show. Counts and sizes
+// only, never names or paths, so it is safe to include in the automatic
+// diagnostic upload (which deliberately excludes user content). Lets a
+// slow-launch or slow-load report be correlated against show size
+// without shipping the user's show. Call after a show folder loads.
+- (void)writeShowStatsSidecar;
+
 // Copy `sourcePath` into `<showFolder>/<subdirectory>`, appending `_N`
 // to the basename on collision. Returns the destination absolute path
 // on success, nil on failure (no show folder loaded, copy error).
@@ -1819,6 +1827,19 @@ NS_ASSUME_NONNULL_BEGIN
 // matches the active group (or "All Previews"), in
 // ViewObjectManager iteration order.
 - (NSArray<NSString*>*)viewObjectsInActiveLayoutGroup;
+
+// The controller a view object is bound to, or nil if it isn't a controller
+// placement box. Lets a canvas pick route the selection to the Controllers tab
+// instead of the Objects tab, which never lists these.
+- (nullable NSString*)controllerNameForViewObject:(NSString*)objectName
+    NS_SWIFT_NAME(controllerName(forViewObject:));
+
+// The inverse: a controller's placement box name, or nil if it has none. Used
+// to make the box the canvas drag target while its controller is selected on
+// the Controllers tab, without writing to `layoutEditorSelectedObject` (which
+// would flip the sidebar via the tab mutex).
+- (nullable NSString*)controllerObjectNameForController:(NSString*)controllerName
+    NS_SWIFT_NAME(controllerObjectName(forController:));
 
 // Per-ViewObject summary. Keys mirror `modelLayoutSummary` where
 // the underlying BaseObject exposes the same field. All keys

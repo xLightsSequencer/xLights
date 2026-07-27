@@ -96,6 +96,14 @@ public:
     static TextFontInfo GetTextFont(const std::string& fontString);
     static TextFontInfo GetShapeFont(const std::string& fontString);
 
+    // Descriptor parsing with no toolkit dependency, shared by every non-wx
+    // backend so a stored font string is interpreted the same way on all of
+    // them. `defaultFaceName` is used when the descriptor names no family.
+    static TextFontInfo ParseFontDescriptor(const std::string& fontString,
+                                            const std::string& defaultFaceName);
+    static TextFontInfo ParseShapeFontDescriptor(const std::string& fontString,
+                                                 const std::string& defaultFaceName);
+
     // Factory registration — called once at startup by the UI layer
     using FactoryFn = std::function<TextDrawingContext*(int, int, bool)>;
     using FontParseFn = std::function<TextFontInfo(const std::string&)>;

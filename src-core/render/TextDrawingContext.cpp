@@ -10,8 +10,12 @@
 
 #include "TextDrawingContext.h"
 
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
 #include <mutex>
 #include <queue>
+#include <vector>
 
 // ---------------------------------------------------------------------------
 // Generic thread-safe context pool
@@ -115,4 +119,167 @@ TextFontInfo TextDrawingContext::GetShapeFont(const std::string& fontString) {
         return sShapeFontParser(fontString);
     }
     return TextFontInfo{};
+}
+
+
+// ---------------------------------------------------------------------------
+// Toolkit-free font descriptor parsing
+// ---------------------------------------------------------------------------
+// The stored descriptor is a human-readable "face words + style keywords +
+// size" string (what wxFont::SetNativeFontInfoUserDesc produces). Parsing it
+// here rather than per backend keeps every non-wx backend agreeing on what a
+// saved sequence's font meant.
+TextFontInfo TextDrawingContext::ParseFontDescriptor(const std::string& fontString,
+                                                     const std::string& defaultFaceName) {
+    TextFontInfo info;
+    if (fontString.empty()) {
+        return info;
+    }
+
+    auto lower = [](const std::string& s) {
+        std::string out = s;
+        for (char& c : out) {
+            c = (char)std::tolower((unsigned char)c);
+        }
+        return out;
+    };
+
+    // Multi-word families are quoted ("'gill sans' 36 macroman"), so a quoted
+    // run is one token and is the family verbatim - splitting it on spaces
+    // leaves the quote characters embedded in the face name and the font never
+    // matches.
+    std::vector<std::string> parts;
+    std::string quotedFace;
+    std::string current;
+    char quote = '\0';
+    for (char c : fontString) {
+        if (quote != '\0') {
+            if (c == quote) {
+                quote = '\0';
+                quotedFace = current;
+                current.clear();
+            } else {
+                current += c;
+            }
+            continue;
+        }
+        if (c == '\'' || c == '"') {
+            if (!current.empty()) {
+                parts.push_back(current);
+                current.clear();
+            }
+            quote = c;
+            continue;
+        }
+        if (c == ' ' || c == '\t') {
+            if (!current.empty()) {
+                parts.push_back(current);
+                current.clear();
+            }
+        } else {
+            current += c;
+        }
+    }
+    if (!current.empty()) {
+        parts.push_back(current);
+    }
+    if (parts.empty() && quotedFace.empty()) {
+        return info;
+    }
+
+    int size = 0;
+    std::vector<std::string> faceParts;
+    for (const std::string& part : parts) {
+        std::string lp = lower(part);
+        if (lp == "bold" || lp == "heavy" || lp == "black" || lp == "extrabold" || lp == "ultrabold" || lp == "demibold") {
+            info.bold = true;
+            continue;
+        }
+        if (lp == "italic" || lp == "oblique") {
+            info.italic = true;
+            continue;
+        }
+        if (lp == "light" || lp == "thin" || lp == "extralight" || lp == "ultralight") {
+            info.light = true;
+            continue;
+        }
+        if (lp == "underlined") {
+            info.underlined = true;
+            continue;
+        }
+        if (lp == "strikethrough") {
+            info.strikethrough = true;
+            continue;
+        }
+        if (lp == "regular" || lp == "normal" || lp == "book" || lp == "medium") {
+            continue;
+        }
+        if (lp == "condensed" || lp == "semicondensed" || lp == "expanded") {
+            continue;
+        }
+
+        // Size: accept integer ("12"), decimal ("12.0"), and Pango-style
+        // "12px" / "12pt". Round decimals; treat all units as pixels — text
+        // effects render into pixel-grid buffers, not DPI-scaled surfaces.
+        char* end = nullptr;
+        double val = std::strtod(part.c_str(), &end);
+        if (end != part.c_str() && val > 0) {
+            std::string suffix(end);
+            std::string suffixLower = lower(suffix);
+            if (suffix.empty() || suffixLower == "px" || suffixLower == "pt" || suffixLower == "em") {
+                size = (int)std::lround(val);
+                continue;
+            }
+        }
+
+        // Charset markers. Most carry a digit and a hyphen ("utf-8",
+        // "iso-8859-1", "windows-1252"), but the Mac ones do not, so they need
+        // naming or they end up glued onto the face name.
+        if (lp == "macroman" || lp == "macintosh" || lp == "mac" || lp == "default") {
+            continue;
+        }
+        bool hasDigit = false, hasHyphen = false;
+        for (char c : part) {
+            if (std::isdigit((unsigned char)c)) {
+                hasDigit = true;
+            }
+            if (c == '-') {
+                hasHyphen = true;
+            }
+        }
+        if (hasDigit && hasHyphen) {
+            continue;
+        }
+
+        faceParts.push_back(part);
+    }
+
+    info.pixelSize = size > 0 ? size : 12;
+
+    std::string faceName = quotedFace;
+    if (faceName.empty()) {
+        for (size_t i = 0; i < faceParts.size(); i++) {
+            if (i > 0) {
+                faceName += " ";
+            }
+            faceName += faceParts[i];
+        }
+    }
+    info.faceName = faceName.empty() ? defaultFaceName : faceName;
+    info.antiAliased = false;
+
+    return info;
+}
+
+TextFontInfo TextDrawingContext::ParseShapeFontDescriptor(const std::string& fontString,
+                                                          const std::string& defaultFaceName) {
+    TextFontInfo info = ParseFontDescriptor(fontString, defaultFaceName);
+    info.pixelSize = 12; // shape effect renders emoji at a reference size and scales
+    if (info.faceName == WIN_NATIVE_EMOJI_FONT
+        || info.faceName == OSX_NATIVE_EMOJI_FONT
+        || info.faceName == LINUX_NATIVE_EMOJI_FONT) {
+        info.faceName = NATIVE_EMOJI_FONT;
+    }
+    info.light = true;
+    return info;
 }

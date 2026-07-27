@@ -12,10 +12,12 @@
 
 #include "RenderableEffect.h"
 
+#include <memory>
 #include <vector>
 
 class TextDrawingContext;
 class FontManager;
+
 struct CachedRGBAImage;
 
 class TextEffect : public RenderableEffect
@@ -53,7 +55,7 @@ private:
 
     void ReplaceVaribles(std::string& msg, RenderBuffer& buffer) const;
 
-    const CachedRGBAImage* RenderTextLine(RenderBuffer& buffer,
+    std::shared_ptr<const CachedRGBAImage> RenderTextLine(RenderBuffer& buffer,
         TextDrawingContext* dc,
         const std::string& Line_orig,
         const std::string& fontString,

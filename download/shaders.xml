@@ -578,14 +578,6 @@
 		<rating>3</rating>
 	</shader>
 	<shader>
-		<name>IQ Trigonometric</name>
-		<id>530</id>
-		<link>https://www.interactiveshaderformat.com/sketches/530</link>
-		<download>https://www.interactiveshaderformat.com/sketches/530/download</download>
-		<image>https://res.cloudinary.com/hrlz5rsqo/image/upload/c_fill,h_300,w_300/zhmvxdlapwddxuqvzw8m</image>
-		<rating>5</rating>
-	</shader>
-	<shader>
 		<name>Iso Lines</name>
 		<id>3219</id>
 		<link>https://www.interactiveshaderformat.com/sketches/3219</link>

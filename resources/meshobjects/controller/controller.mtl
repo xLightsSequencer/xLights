@@ -1,0 +1,25 @@
+# xLights generic controller enclosure
+newmtl body
+Ka 0.096 0.102 0.114
+Kd 0.320 0.340 0.380
+Ks 0.100 0.100 0.100
+Ns 16
+d 1.0
+illum 2
+
+newmtl lid
+Ka 0.066 0.069 0.081
+Kd 0.220 0.230 0.270
+Ks 0.160 0.160 0.160
+Ns 32
+d 1.0
+illum 2
+
+newmtl port
+Ka 0.039 0.039 0.045
+Kd 0.130 0.130 0.150
+Ks 0.050 0.050 0.050
+Ns 8
+d 1.0
+illum 2
+

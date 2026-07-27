@@ -17,15 +17,12 @@
 #include <vector>
 
 class wxBoxSizer;
+class wxButton;
 class wxCommandEvent;
-class wxRearrangeCtrl;
+class wxDataViewEvent;
+class wxDataViewListCtrl;
 class xLightsFrame;
 
-// "Toolbars" Preferences page. v1 only manages the always-visible Effects
-// toolbar (see ToolbarLayout.h for the persisted shape) - a second toolbar
-// could get its own section here later without touching the storage format.
-// Hand-written (not wxSmith), same reasoning as PluginsSettingsPanel: a
-// dynamically populated list, not a fixed settings form.
 class ToolbarsSettingsPanel : public wxPanel {
 public:
     ToolbarsSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindowID id = wxID_ANY,
@@ -35,24 +32,21 @@ public:
     virtual bool TransferDataFromWindow() override;
 
 private:
-    // wxRearrangeList exposes no API to reload its order/checked state in
-    // place (GetCurrentOrder() is the only public read path), so "Reset to
-    // Defaults" recreates the control rather than mutating it.
-    void BuildRearrangeCtrl(const std::vector<std::pair<std::string, bool>>& layout);
+    void PopulateRows(const std::vector<std::pair<std::string, bool>>& layout);
     std::vector<std::pair<std::string, bool>> DefaultEffectsToolbarLayout() const;
     void OnResetToDefaults(wxCommandEvent& event);
-    // Reorder (Up/Down) and check/uncheck are both consumed internally by
-    // wxRearrangeCtrl/wxRearrangeList before reaching us, so this is bound
-    // directly to the list's check event and the ctrl's Up/Down buttons
-    // (event.Skip()'d through so their own internal state-tracking still
-    // runs) rather than relying on one of those events bubbling up unheard.
-    void OnRearrangeChanged(wxCommandEvent& event);
+    void OnToggleChanged(wxDataViewEvent& event);
+    void OnSelectionChanged(wxDataViewEvent& event);
+    void OnMoveUp(wxCommandEvent& event);
+    void OnMoveDown(wxCommandEvent& event);
+    void MoveSelectedRow(int direction);
+    void UpdateMoveButtonState();
+    std::string GetRowName(unsigned int row) const;
 
     xLightsFrame* frame;
     wxBoxSizer* _mainSizer = nullptr;
-    wxRearrangeCtrl* _effectsToolbarRearrange = nullptr;
-    // Items passed to the rearrange control, in their original (construction-
-    // time) index order - GetCurrentOrder() returns indices into this array,
-    // not names, so it's needed to decode the result back into names.
-    std::vector<std::string> _effectsToolbarItemNames;
+    wxDataViewListCtrl* _effectsToolbarList = nullptr;
+    wxButton* _upButton = nullptr;
+    wxButton* _downButton = nullptr;
+    bool _suppressChangeEvents = false;
 };

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #import "XLiPadInit.h"
+#import "XLLaunchTiming.h"
 #import "XLAIServices.h"
 
 #import <Metal/Metal.h>
@@ -185,6 +186,8 @@ static void LogMachineConfig() {
     if (sInitialized) return;
     sInitialized = true;
 
+    [XLLaunchTiming begin];
+
     // Logs live in <sandbox>/Library/Logs/ — same relative path the
     // sandboxed desktop app uses (~/Library/Containers/.../Library/Logs).
     // Library/Logs is excluded from iCloud backup and not visible to the
@@ -273,8 +276,11 @@ static void LogMachineConfig() {
     FileUtils::SetResourcesDir(std::string([resourcesPath UTF8String]));
     spdlog::info("Resources dir: {}", FileUtils::GetResourcesDir());
 
+    [XLLaunchTiming mark:@"core-logging+metrickit"];
+
     // Initialize MetalDeviceManager (needed for Metal compute effects)
     MetalDeviceManager::instance().retain();
+    [XLLaunchTiming mark:@"metal-device"];
 
     // Construct the AI ServiceManager + iPad settings store. Built-in
     // services (chatGPT, claude, ollama, gemini, GenericClient) are
@@ -282,6 +288,7 @@ static void LogMachineConfig() {
     // from NSUserDefaults + Keychain. AI plugin loading is intentionally
     // skipped on iOS — App Store policy forbids dynamic libraries.
     (void)[XLAIServices shared];
+    [XLLaunchTiming mark:@"ai-services"];
 
     // Phase J-4 (vendor catalog) — install an NSURLSession-based
     // URL fetcher into the shared CachedFileDownloader. The
@@ -363,6 +370,8 @@ static void LogMachineConfig() {
                                   atomically:YES] ? true : false;
         }
     });
+
+    [XLLaunchTiming mark:@"core-init-done"];
 }
 
 @end

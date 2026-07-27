@@ -1306,6 +1306,16 @@ MetalComputeUtilities::MetalComputeUtilities() {
     printf("CommandQueue: %p\n", (__bridge void*)commandQueue);
 #endif
     enabled = true;
+
+    // Sweepable without a rebuild so the GPU/CPU break-even can be compared
+    // against the other backends (see the Vulkan side).
+    if (const char* thr = getenv("XL_GPU_SIZE_THRESHOLD")) {
+        char* end = nullptr;
+        long v = strtol(thr, &end, 10);
+        if (end != thr && v >= 0) {
+            metalBufferSizeThreshold = (NSUInteger)v;
+        }
+    }
     
     xrotateFunction = FindComputeFunction("RotoZoomRotateX");
     yrotateFunction = FindComputeFunction("RotoZoomRotateY");

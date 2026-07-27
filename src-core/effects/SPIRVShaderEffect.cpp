@@ -37,7 +37,7 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     // XL_NO_NATIVE_SHADER=1 falls back to the previous path (OpenGL where it
     // still exists) for diagnostics/comparison.
     static const bool nativeEnabled = getenv("XL_NO_NATIVE_SHADER") == nullptr;
-    // IsEnabled() must be tested BEFORE nativeAvailable(): the latter brings up
+    // The PREFERENCE must be tested BEFORE nativeAvailable(): the latter brings up
     // the GPU backend as a side effect (device, render pass, pipelines, and the
     // per-thread command pools/images the render path then allocates).  The GPU
     // rendering preference is the user's safety net for a misbehaving driver, so
@@ -47,9 +47,15 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     //
     // This never strands the iPad on ShaderEffect::Render (a red-fill stub
     // there, with no GL to fall back to): a MetalShaderEffect only exists at all
-    // when computeEnabled() was already true, so IsEnabled() collapses to the
+    // when computeEnabled() was already true, and IsPreferenceEnabled() is the
     // desktop-only preference flag, which the iPad never clears.
-    if (!nativeEnabled || !GPURenderUtils::IsEnabled() || !nativeAvailable()) {
+    //
+    // IsPreferenceEnabled() rather than IsEnabled() because the latter also
+    // folds in "the compute backend is usable", and this effect uses the
+    // graphics pipeline, not compute.  On a machine whose only Vulkan device is
+    // a software one, compute correctly declines it (ISPC is faster) while this
+    // effect - which has no CPU implementation - still needs it.
+    if (!nativeEnabled || !GPURenderUtils::IsPreferenceEnabled() || !nativeAvailable()) {
         ShaderEffect::Render(eff, SettingsMap, buffer);
         return;
     }

@@ -74,9 +74,6 @@
 #include "EffectSymbolDialog.h"
 #include "shared/utils/wxUtilities.h"
 #include "graphics/wxTextDrawingContext.h"
-#ifdef LINUX
-#include "render/FreeTypeTextDrawingContext.h"
-#endif
 #include "utils/AppCallbacks.h"
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
@@ -2140,17 +2137,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     ShaderEffect::SetBackgroundRender(bgShaders);
 #endif
 
-#ifdef LINUX
-    // FreeType + HarfBuzz + Fontconfig path. Thread-safe per-instance, which
-    // lets TextEffect/ShapeEffect render on background threads (the wx/Pango
-    // path requires the main thread).
-    FreeTypeTextDrawingContext::Register();
-#else
-    TextDrawingContext::RegisterFactory(wxTextDrawingContext::Create,
-                                        wxTextDrawingContext::ParseTextFont,
-                                        wxTextDrawingContext::ParseShapeFont);
-    TextDrawingContext::Initialize();
-#endif
+    RegisterPlatformTextDrawingContext();
 
     MenuItem_File_Save->Enable(true);
     MenuItem_File_Save->SetItemLabel("Save Setup\tCTRL-s");
@@ -5352,6 +5339,17 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                                  : CheckSequenceReport::ReportIssue::CRITICAL;
             LogAndTrack(report, "models", issueType, w, "settings", errcount, warncount);
         }
+    }
+
+    // Controller placement boxes reference a controller by name across two
+    // files, so a base show merge or a hand-edited file can leave one pointing
+    // at a controller that is not here. Report it; never auto-delete, since the
+    // controller may arrive on a later merge and the placement would be lost.
+    for (const auto& orphan : AllObjects.GetOrphanedControllerObjects(
+             [this](const std::string& n) { return _outputManager.GetController(n) != nullptr; })) {
+        LogAndTrack(report, "models", CheckSequenceReport::ReportIssue::WARNING,
+                    "    WARN: Controller layout object refers to controller '" + orphan + "' which does not exist. It will not be shown.",
+                    "settings", errcount, warncount);
     }
     LogCheckSequenceMsg(wxString::Format("\nSection Errors (Models): %u. Warnings: %u",
                                          (unsigned int)(report.GetTotalErrors() - sectionStartErrors),
@@ -9213,6 +9211,12 @@ void xLightsFrame::UpdateFromBaseShowFolder(bool prompt)
     // subsequent model and object prompts (and vice-versa).
     bool mergeAcceptAll = false;
     bool mergeRejectAll = false;
+
+    // ORDER IS LOAD-BEARING: controllers must merge before view objects. A
+    // ControllerObject in the base folder is bound to a controller by name and
+    // lives in the other file, so merging objects first would bind every
+    // incoming box to a controller that does not exist yet and strand it as an
+    // orphan. See plans/controller-layout-objects.md section 6.1.
 
     // bring in any controllers overwriting some of their properties ... but not all of them
     bool controllersChanged = false;

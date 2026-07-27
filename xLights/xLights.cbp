@@ -506,6 +506,8 @@
 		<Unit filename="../src-core/models/OutputModelManager.h" />
 		<Unit filename="../src-core/utils/Parallel.cpp" />
 		<Unit filename="../src-core/utils/Parallel.h" />
+		<Unit filename="../src-core/utils/RangeWorkPool.cpp" />
+		<Unit filename="../src-core/utils/RangeWorkPool.h" />
 		<Unit filename="../src-ui-wx/model/PathGenerationDialog.cpp" />
 		<Unit filename="../src-ui-wx/model/PathGenerationDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.cpp" />
@@ -1233,6 +1235,8 @@
 		<Unit filename="../src-ui-wx/modelproperties/adapters/SkullConfigDialog.h" />
 		<Unit filename="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.cpp" />
 		<Unit filename="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.h" />
+		<Unit filename="../src-core/models/ControllerObject.cpp" />
+		<Unit filename="../src-core/models/ControllerObject.h" />
 		<Unit filename="../src-core/models/GridlinesObject.cpp" />
 		<Unit filename="../src-core/models/GridlinesObject.h" />
 		<Unit filename="../src-core/models/IciclesModel.cpp" />

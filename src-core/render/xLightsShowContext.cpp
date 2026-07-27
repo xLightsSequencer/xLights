@@ -188,7 +188,7 @@ void xLightsShowContext::EnsureSequenceDataSized() {
     _seqData.init(numChannels, numFrames, frameTime);
 }
 
-void xLightsShowContext::CloseSequence() {
+bool xLightsShowContext::CloseSequence() {
     // Drain any in-flight render before destroying the elements / seq data the
     // render workers read (else a use-after-free when opening the next sequence
     // while the first is still rendering). The abort is best-effort: on timeout
@@ -196,10 +196,11 @@ void xLightsShowContext::CloseSequence() {
     // so leak it rather than free it out from under them.
     if (!AbortRender(5000)) {
         spdlog::error("xLightsShowContext: could not abort in-flight render; leaving the sequence data allocated rather than freeing it under a live render job");
-        return;
+        return false;
     }
     _sequenceElements.Clear();
     _seqData.Cleanup();
     _sequenceDoc.reset();
     _sequenceFile.reset();
+    return true;
 }

@@ -109,5 +109,13 @@ void ControllerFullColumnsDialog::PopulateAllControllers() {
 }
 
 void ControllerFullColumnsDialog::OnItemExpanding(wxTreeListEvent& event) {
-    PopulateControllerPorts(_tree, event.GetItem(), _frame);
+    wxTreeListItem item = event.GetItem();
+    PopulateControllerPorts(_tree, item, _frame);
+    if (!_tree->GetFirstChild(item).IsOk()) {
+        // No ports were added (controller has no configured/populated ports) -
+        // there's nothing to expand into, and the placeholder that made the
+        // item look expandable is gone, so cancel the expand rather than
+        // letting the tree try to expand a now-childless item.
+        event.Veto();
+    }
 }
