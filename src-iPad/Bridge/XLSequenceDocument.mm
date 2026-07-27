@@ -329,6 +329,58 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     return out;
 }
 
+- (void)writeShowStatsSidecar {
+    if (!_context || !_context->HasModelManager()) return;
+
+    size_t models = 0, groups = 0, submodels = 0;
+    size_t nodes = 0;
+    for (const auto& [name, m] : _context->GetModelManager().GetModels()) {
+        if (m == nullptr) continue;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            ++groups;
+            continue;
+        }
+        ++models;
+        submodels += m->GetSubModels().size();
+        nodes += m->GetNodeCount();
+    }
+
+    NSFileManager* fm = [NSFileManager defaultManager];
+    NSString* showDir = [NSString stringWithUTF8String:_context->GetShowDirectory().c_str()];
+    auto fileSize = ^unsigned long long(NSString* name) {
+        NSString* p = [showDir stringByAppendingPathComponent:name];
+        NSDictionary* a = [fm attributesOfItemAtPath:p error:nil];
+        return a ? [a fileSize] : 0ULL;
+    };
+
+    NSMutableString* out = [NSMutableString string];
+    [out appendString:@"# xLights iPad show size — counts and byte sizes only, no names or paths.\n"];
+    [out appendFormat:@"models %zu\n", models];
+    [out appendFormat:@"groups %zu\n", groups];
+    [out appendFormat:@"submodels %zu\n", submodels];
+    [out appendFormat:@"nodes %zu\n", nodes];
+    [out appendFormat:@"viewobjects %u\n",
+        _context->HasViewObjectManager() ? _context->GetAllObjects().size() : 0u];
+    [out appendFormat:@"mediafolders %zu\n", _context->GetMediaFolders().size()];
+    [out appendFormat:@"rgbeffects_bytes %llu\n", fileSize(@"xlights_rgbeffects.xml")];
+    [out appendFormat:@"networks_bytes %llu\n", fileSize(@"xlights_networks.xml")];
+
+    NSString* libraryPath = NSSearchPathForDirectoriesInDomains(
+        NSLibraryDirectory, NSUserDomainMask, YES).firstObject;
+    if (libraryPath.length == 0) return;
+    NSString* logsDir = [libraryPath stringByAppendingPathComponent:@"Logs"];
+    [fm createDirectoryAtPath:logsDir
+  withIntermediateDirectories:YES
+                   attributes:nil
+                        error:nil];
+    [out writeToFile:[logsDir stringByAppendingPathComponent:@"xlShowStats.txt"]
+          atomically:YES
+            encoding:NSUTF8StringEncoding
+               error:nil];
+    spdlog::info("Show size: {} models, {} groups, {} submodels, {} nodes, rgbeffects {} bytes",
+                 models, groups, submodels, nodes, (unsigned long long)fileSize(@"xlights_rgbeffects.xml"));
+}
+
 - (NSString*)moveFileToShowFolder:(NSString*)sourcePath
                         subdirectory:(NSString*)subdirectory {
     if (!_context || sourcePath.length == 0) return nil;

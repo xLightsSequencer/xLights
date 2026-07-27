@@ -51,6 +51,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString*)showFolderPath;
 - (NSArray<NSString*>*)mediaFolderPaths;
 
+// Write Library/Logs/xlShowStats.txt — model/group/node counts and the
+// rgbeffects/networks file sizes for the loaded show. Counts and sizes
+// only, never names or paths, so it is safe to include in the automatic
+// diagnostic upload (which deliberately excludes user content). Lets a
+// slow-launch or slow-load report be correlated against show size
+// without shipping the user's show. Call after a show folder loads.
+- (void)writeShowStatsSidecar;
+
 // Copy `sourcePath` into `<showFolder>/<subdirectory>`, appending `_N`
 // to the basename on collision. Returns the destination absolute path
 // on success, nil on failure (no show folder loaded, copy error).

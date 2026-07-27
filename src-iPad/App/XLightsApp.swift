@@ -53,15 +53,23 @@ struct XLightsApp: App {
         // creating the view model, since SequencerViewModel constructs an
         // iPadRenderContext whose EffectManager needs the resources directory
         // to load effectmetadata JSON files.
+        LaunchTiming.begin()
         XLiPadInit.initialize()
         XLDiagnosticUploader.shared.bootstrap()
+        LaunchTiming.mark("uploader-bootstrap")
+        // Constructing the view model builds XLSequenceDocument ->
+        // iPadRenderContext -> EffectManager, which creates every effect and
+        // parses ~57 effectmetadata JSON files off the bundle. All of it is on
+        // the pre-first-frame path, so it is timed separately.
         let vm = SequencerViewModel()
+        LaunchTiming.mark("viewmodel+effectmanager")
         // Desktop "Other ▸ Purge Download Cache at Startup" (default OFF).
         if UserDefaults.standard.bool(forKey: "purgeDownloadCacheAtStartup") {
             vm.purgeDownloadCache()
         }
         vm.startMemoryMonitoring()
         _viewModel = State(initialValue: vm)
+        LaunchTiming.mark("app-init-done")
         // restorePersistedShowFolder is deliberately NOT called here.
         // It triggers ObtainAccessToURL + xlights_rgbeffects.xml parse +
         // model construction + per-model FileExists, all synchronous. When
@@ -480,7 +488,16 @@ struct ContentView: View {
         .task {
             guard !didKickoffShowFolderRestore else { return }
             didKickoffShowFolderRestore = true
-            viewModel.restorePersistedShowFolder()
+            // First `.task` after the initial render: this is the closest we
+            // get to "first frame drawn" from inside the app, and it is the
+            // boundary MXAppLaunchDiagnostic measures to.
+            LaunchTiming.mark("first-frame")
+            // restorePersistedShowFolder returns immediately (the load
+            // detaches), so flush here to capture the boot phases even when
+            // there is no show folder to load — applyLoadResult re-flushes
+            // with the post-launch marks appended.
+            _ = viewModel.restorePersistedShowFolder()
+            LaunchTiming.flushSidecar()
         }
         // Help → Tip of the Day at startup. Show once per launch when
         // the pref is on (mirrors desktop's startup TipOfTheDayDialog).

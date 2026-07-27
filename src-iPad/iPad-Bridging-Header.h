@@ -1,4 +1,5 @@
 #import "Bridge/XLiPadInit.h"
+#import "Bridge/XLLaunchTiming.h"
 #import "Metal/XLMetalBridge.h"
 #import "Metal/XLGridMetalBridge.h"
 #import "Bridge/XLCheckSequenceIssue.h"

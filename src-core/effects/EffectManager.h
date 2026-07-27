@@ -121,6 +121,7 @@ public:
     private:
 
         std::string mMetadataDir;
+        int mMetadataLoaded = 0;
         mutable std::map<std::string, RenderableEffect *> effectsByName;
         std::vector<RenderableEffect *> effects;
 };

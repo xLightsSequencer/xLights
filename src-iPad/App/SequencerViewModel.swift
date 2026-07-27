@@ -1169,6 +1169,13 @@ class SequencerViewModel {
         self.isShowFolderLoaded = loaded
         self.sequenceFiles = sequenceFiles
         if loaded {
+            // The show load runs detached so it is off the first-frame path,
+            // but it is what the user actually waits for before the app is
+            // usable — record it separately, and stamp the show's size so a
+            // slow report can be correlated against it.
+            LaunchTiming.markPostLaunch("show-folder-loaded")
+            document.writeShowStatsSidecar()
+            LaunchTiming.flushSidecar()
             // Temporary switches don't pollute the MRU or the persisted
             // default — only ordinary loads do.
             if suppressRecentRecording {
