@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (dkulp)                 Layout: crash when selecting in the model tree while models are being
+                                 deleted or the tree is being rebuilt. Selection now skips tree items whose
+                                 model has already been freed on every platform, instead of only on Linux
+    -bug (dkulp)                 Crash expanding a controller with no populated ports in the All Controller
+                                 Columns dialog
+    -bug (dkulp)                 Crash pressing Ctrl+letter in the visualiser for a model that is not
+                                 assigned to a controller
+    -bug (dkulp)                 LOR: out-of-bounds write when changing a controller's unit ID or channel
+                                 count in the controller properties
     -bug (dkulp)                 Linux: Shader effects rendered as solid cyan on machines whose only Vulkan
                                  device is a software one (lavapipe/llvmpipe) and that have no usable
                                  OpenGL - typically a headless render box. The device is now used for

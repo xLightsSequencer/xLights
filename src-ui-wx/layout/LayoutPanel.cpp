@@ -8866,6 +8866,9 @@ std::vector<Model *> LayoutPanel::GetSelectedModelsFromGroup(wxTreeListItem grou
         {
             ModelTreeData *data = (ModelTreeData*)ActiveModelTree()->GetItemData(item);
             Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+            if (model == nullptr) {
+                continue;
+            }
 
             if (model->GetDisplayAs() == DisplayAsType::ModelGroup && nested == true) {
                 std::vector<Model *> nestedModels = GetSelectedModelsFromGroup(item, true);
@@ -12239,22 +12242,15 @@ void LayoutPanel::HandleSelectionChanged() {
         for (const auto& item : selectedItems) {
             Model* model = GetModelFromTreeItem(item);
             if (model != nullptr) {
-                #ifdef __LINUX__
-                                // This seems to happen only on Linux so prevent the crash
-                                if (!xlights->AllModels.IsModelValid(model)) {
-                                    spdlog::debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
-                                    return;
-                                }
-                #elif defined(__WXOSX__)
-                                // Given I am seeing these crashes on OSX but not windows I suspect like LINUX these crashes occur
-                                // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
-                                // This code will prove that theory
-                                if (!xlights->AllModels.IsModelValid(model)) {
-                                    spdlog::critical("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
-                                }
-                #else
-                                wxASSERT(xlights->AllModels.IsModelValid(model));
-                #endif
+                // The tree hands back models that have already been freed: the selection-changed
+                // event is queued before a delete/refresh and delivered after it, so the item data
+                // still points at the old Model. Skip that item rather than writing through the
+                // stale pointer. Only Linux used to bail here; the same crash arrives on macOS and
+                // Windows, which merely logged or asserted and then crashed anyway.
+                if (!xlights->AllModels.IsModelValid(model)) {
+                    spdlog::error("LayoutPanel::HandleSelectionChanged ignoring a selected tree item holding a stale model pointer.");
+                    continue;
+                }
                 if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     selectedTreeGroups.push_back(item);
                     SetTreeGroupModelsSelected(model, isPrimary);
@@ -12279,14 +12275,20 @@ void LayoutPanel::HandleSelectionChanged() {
         if (selectedPrimaryTreeItem == nullptr) {
             if (selectedTreeModels.size() > 0) {
                 Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
-                SetTreeModelSelected(model, true);
-                selectedPrimaryTreeItem = selectedTreeModels[0];
+                if (model != nullptr) {
+                    SetTreeModelSelected(model, true);
+                    selectedPrimaryTreeItem = selectedTreeModels[0];
+                }
             } else if (selectedTreeSubModels.size() > 0) {
                 Model* model = GetModelFromTreeItem(selectedTreeSubModels[0]);
-                SetTreeSubModelSelected(model, true);
+                if (model != nullptr) {
+                    SetTreeSubModelSelected(model, true);
+                }
             } else if (selectedTreeGroups.size() > 0){
                 Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
-                SetTreeGroupModelsSelected(model, true);
+                if (model != nullptr) {
+                    SetTreeGroupModelsSelected(model, true);
+                }
             }
         }
 
@@ -12306,7 +12308,7 @@ void LayoutPanel::HandleSelectionChanged() {
             tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n\nTotal Nodes: %d", gSize, mSize, smSize, calculateNodeCountOfSelected());
         } else if (gSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
-            if (model->IsFromBase()) {
+            if (model != nullptr && model->IsFromBase()) {
                 tooltip = "From Base Show Folder";
             } else {
                 tooltip = wxString::Format("Total Nodes in Group: %d", calculateNodeCountOfSelected());
@@ -12316,8 +12318,12 @@ void LayoutPanel::HandleSelectionChanged() {
             model_grp_panel->Show();
         } else if (smSize == 1) {
             Model* subModel = GetModelFromTreeItem(selectedTreeSubModels[0]);
-            SetupPropGrid(subModel);
-            ShowPropGrid(true);
+            if (subModel != nullptr) {
+                SetupPropGrid(subModel);
+                ShowPropGrid(true);
+            } else {
+                showBackgroundProperties();
+            }
         } else if (mSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
             if (model != nullptr) {
@@ -12328,7 +12334,7 @@ void LayoutPanel::HandleSelectionChanged() {
             } else {
                 spdlog::critical("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
-            if (selectedBaseObject->GetBaseObjectScreenLocation().hasX2()) {
+            if (selectedBaseObject != nullptr && selectedBaseObject->GetBaseObjectScreenLocation().hasX2()) {
                 const TwoPointScreenLocation& screenLoc = dynamic_cast<const TwoPointScreenLocation&>(selectedBaseObject->GetBaseObjectScreenLocation());
                 glm::vec3 loc = screenLoc.GetWorldPosition();
                 float x1 = loc.x;
@@ -12365,12 +12371,18 @@ void LayoutPanel::HandleSelectionChanged() {
         // ActiveModelTree()->SetFocus();
         // #endif
 
-        auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
-        if (Is3d()) {
+        // Nothing above is guaranteed to have latched a selection: every tree item can
+        // resolve to a null or stale model, in which case UnSelectAllModels' nulling of
+        // selectedBaseObject at the top of this function still stands.
+        if (selectedBaseObject != nullptr) {
             auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
-            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
+            if (Is3d()) {
+                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
+            } else {
+                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
+            }
         } else {
-            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
+            xlights->SetStatusText("");
         }
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");

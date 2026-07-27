@@ -30,6 +30,19 @@ void LOROptimisedOutput::InitialiseTypes() {
     // Choices initialization moved to LOROptimisedOutputPropertyAdapter
 }
 
+namespace {
+    // The unit id comes straight from the property grid and the span of ids a
+    // controller occupies is derived from its channel count, so the computed slot
+    // is not guaranteed to land inside the 256-entry table - a legacy-mode
+    // controller with a large channel count alone spans over a thousand ids.
+    // Drop the out-of-range marks rather than writing past the array.
+    inline void MarkUnitIdInUse(bool (&inUse)[256], int id) {
+        if (id >= 0 && id < 256) {
+            inUse[id] = true;
+        }
+    }
+}
+
 #pragma region Private Functions
 void LOROptimisedOutput::SaveAttr(pugi::xml_node node) {
 
@@ -53,7 +66,7 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
             channel_count = outputs_per_card * channels_per_pass;
             controller_channels_to_process = channel_count;
             for (int i = 0; i < outputs_per_card; i++) {
-                unit_id_in_use[unit_id + i] = true;
+                MarkUnitIdInUse(unit_id_in_use, unit_id + i);
             }
         }
     }
@@ -65,13 +78,13 @@ void LOROptimisedOutput::CalcChannels(int& channel_count, int& channels_per_pass
                 ++num_ids;
             }
             for (int i = 0; i < num_ids; ++i) {
-                unit_id_in_use[unit_id + i] = true;
+                MarkUnitIdInUse(unit_id_in_use, unit_id + i);
             }
         }
         else if (addr_mode == LorController::AddressMode::LOR_ADDR_MODE_SPLIT) {
             channels_per_pass = channel_count / 2;
-            unit_id_in_use[unit_id] = true;
-            unit_id_in_use[unit_id + 1] = true;
+            MarkUnitIdInUse(unit_id_in_use, unit_id);
+            MarkUnitIdInUse(unit_id_in_use, unit_id + 1);
         }
     }
 }
@@ -81,14 +94,14 @@ void LOROptimisedOutput::CalcTotalChannels() {
     int channel_count = 0;
     int controller_channels_to_process = 0;
     int channels_per_pass = 0;
-    for (size_t i = 0; i < 255; ++i) {
+    for (size_t i = 0; i < 256; ++i) {
         unit_id_in_use[i] = false;
     }
     unit_id_in_use[0] = true;  // we don't use id 0
     for (const auto& it : _controllers.GetControllers()) {
         channel_count = it->GetNumChannels();
         int unit_id = it->GetUnitId();
-        unit_id_in_use[unit_id] = true;
+        MarkUnitIdInUse(unit_id_in_use, unit_id);
         CalcChannels(channel_count, channels_per_pass, controller_channels_to_process, it);
         total_channels += channel_count;
     }
