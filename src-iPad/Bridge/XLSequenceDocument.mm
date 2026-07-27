@@ -928,7 +928,7 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 }
 
 - (BOOL)sequenceSupportsSubModelDimming {
-    if (!_context || !_context->IsSequenceLoaded()) return YES;
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
     return _context->GetSequenceElements().SupportsSubModelDimming() ? YES : NO;
 }
 

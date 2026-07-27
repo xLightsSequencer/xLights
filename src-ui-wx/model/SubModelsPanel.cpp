@@ -431,6 +431,7 @@ SubModelsPanel::SubModelsPanel(wxWindow* parent, OutputManager* om) :
 void SubModelsPanel::OnActivate()
 {
     _isActive = true;
+    if (model) model->SetSuppressDimmingCurvePreview(true);
     if (_modelPreview) {
         _modelPreview->Bind(wxEVT_LEFT_DOWN,    &SubModelsPanel::OnPreviewLeftDown,   this);
         _modelPreview->Bind(wxEVT_LEFT_UP,      &SubModelsPanel::OnPreviewLeftUp,     this);
@@ -449,6 +450,7 @@ void SubModelsPanel::OnDeactivate()
 {
     _isActive = false;
     m_creating_bound_rect = false;
+    if (model) model->SetSuppressDimmingCurvePreview(false);
     if (_modelPreview) {
         _modelPreview->Unbind(wxEVT_LEFT_DOWN,    &SubModelsPanel::OnPreviewLeftDown,   this);
         _modelPreview->Unbind(wxEVT_LEFT_UP,      &SubModelsPanel::OnPreviewLeftUp,     this);
@@ -553,7 +555,6 @@ void SubModelsPanel::Setup(Model *m)
 {
     model = m;
     if (_modelPreview) _modelPreview->SetModel(m);
-    model->SetSuppressDimmingCurvePreview(true);
 
     if (m->GetDefaultBufferWi() > 1 && m->GetDefaultBufferHt() > 1) {
         _isMatrix = true;
@@ -2111,17 +2112,7 @@ wxString SubModelsPanel::SubModelDisplayText(const SubModelInfo* sm) const
     if (sm->dimmingBrightness == 0) {
         return sm->name;
     }
-
-    size_t maxNameLen = sm->name.length();
-    for (const auto* other : _subModels) {
-        if (other != nullptr) {
-            maxNameLen = std::max(maxNameLen, other->name.length());
-        }
-    }
-
-    wxString padded = sm->name;
-    padded.Pad((maxNameLen - padded.length()) + 2, ' ', true);
-    return padded + wxString::Format("(%d)", sm->dimmingBrightness);
+    return sm->name + wxString::Format(" (%d)", sm->dimmingBrightness);
 }
 
 void SubModelsPanel::PopulateList()
