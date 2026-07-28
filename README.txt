@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
+                                 by the model, not just the one actually being exported; each exported
+                                 model group is now restricted to the model included in that export.
     -bug (dkulp)                 Fix crash opening Tools - Test when a model uses a PWM protocol on a
                                  controller whose vendor/model has no capabilities definition
     -bug (dkulp)                 Fix crash editing or deleting an LOR device in controller properties
