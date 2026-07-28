@@ -612,11 +612,16 @@ NS_ASSUME_NONNULL_BEGIN
 // `keepSizePosition` preserves the target's centre / size /
 // rotation. Models from the base show or named `source` are
 // skipped. Returns the count of targets replaced.
+// `groupMode` reconciles each replaced model's group memberships against the
+// source: 0 = leave unchanged, 1 = replace with the source's direct groups,
+// 2 = merge the source's groups in (matches ReplaceGroupMode in ModelManager.h
+// and the desktop dialog).
 - (NSInteger)replaceModels:(NSArray<NSString*>*)targets
                 withSource:(NSString*)source
           keepStartChannel:(BOOL)keepStartChannel
              keepSubmodels:(BOOL)keepSubmodels
           keepSizePosition:(BOOL)keepSizePosition
+                 groupMode:(NSInteger)groupMode
                forDocument:(XLSequenceDocument*)doc;
 
 // Phase J-7 (multi-select) — duplicate each named model. Each
