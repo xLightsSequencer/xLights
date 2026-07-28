@@ -4862,6 +4862,24 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
     }
 }
 
+Model* LayoutPanel::FindNearestModel3D(const wxMouseEvent& event) {
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    Model* nearest_model = nullptr;
+    float nearest_distance = 1000000000.0f;
+    for (const auto& it : modelPreview->GetModels()) {
+        float hit_distance = 1000000000.0f;
+        if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, hit_distance)) {
+            if (hit_distance < nearest_distance) {
+                nearest_distance = hit_distance;
+                nearest_model = it;
+            }
+        }
+    }
+    return nearest_model;
+}
+
 void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 {
     m_moving_handle = false;
@@ -5043,6 +5061,11 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         }
                     }
                 }
+                bool hitSelectedObjectBody = false;
+                if (selectedBaseObject != nullptr) {
+                    float selDistance = 1000000000.0f;
+                    hitSelectedObjectBody = selectedBaseObject->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, selDistance);
+                }
                 if (which_object != nullptr) {
                     // Clear the tree selection first; otherwise
                     // SelectBaseObjectInTree's Select() call adds
@@ -5057,7 +5080,15 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                     }
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D-SwitchModel");
+                } else if (hitSelectedObjectBody) {
+                    m_mouse_down = true;
+                } else if (IsControllersPageActive()) {
+                    if (Model* clicked = FindNearestModel3D(event)) {
+                        SelectModelInTree(clicked);
+                    }
+                    m_mouse_down = true;
                 } else {
+                    m_pending_deselect_click = true;
                     m_mouse_down = true;
                 }
             }
@@ -5078,6 +5109,13 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
         }
     }
     else {
+        if (editing_models && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
+            m_pending_deselect_click = true;
+        } else if (IsControllersPageActive() && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
+            if (Model* clicked = FindNearestModel3D(event)) {
+                SelectModelInTree(clicked);
+            }
+        }
         m_mouse_down = true;
     }
 
@@ -5563,6 +5601,24 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewLeftDown");
         }
         modelPreview->SetCameraView(0, 0, true);
+    }
+
+    if (m_pending_deselect_click) {
+        m_pending_deselect_click = false;
+        const int tx = wxSystemSettings::GetMetric(wxSYS_DRAG_X, modelPreview);
+        const int ty = wxSystemSettings::GetMetric(wxSYS_DRAG_Y, modelPreview);
+        constexpr int kDefaultDragThreshold = 4;
+        const int dragThresholdX = tx > 0 ? tx : kDefaultDragThreshold;
+        const int dragThresholdY = ty > 0 ? ty : kDefaultDragThreshold;
+        const int dx = std::abs(event.GetX() - m_last_mouse_x);
+        const int dy = std::abs(event.GetY() - m_last_mouse_y);
+        if (dx <= dragThresholdX && dy <= dragThresholdY) {
+            if (editing_models) {
+                UnSelectAllModelsInTree();
+            } else {
+                UnSelectAllModels();
+            }
+        }
     }
 
     m_mouse_down = false;
@@ -6850,7 +6906,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             {
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Not editing models - BBB");
                 if (which_object != last_selection) {
-                    UnSelectAllModels();
+                    if (highlightedBaseObject != nullptr) {
+                        highlightedBaseObject->Highlighted(false);
+                    }
                     highlightedBaseObject = which_object;
                     highlightedBaseObject->Highlighted(true);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
