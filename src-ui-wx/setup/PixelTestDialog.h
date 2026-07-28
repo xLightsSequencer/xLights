@@ -35,6 +35,7 @@
 #include <list>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "shared/utils/xLightsTimer.h"
 #include "models/ModelManager.h"
@@ -486,7 +487,7 @@ class PixelTestDialog: public wxDialog
 
         bool AreChannelsAvailable(Model* model);
         bool AreChannelsAvailable(ModelGroup* model);
-        void EnsureControllerUploaded(long absoluteChannel);
+        void EnsureControllersUploaded(const std::vector<Controller*>& controllers);
 
 		void CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem& item, wxCheckBoxState state);
         void DumpSelected();

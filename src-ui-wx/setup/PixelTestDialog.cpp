@@ -17,6 +17,7 @@
 #include <wx/dataview.h>
 #include <wx/confbase.h>
 #include <wx/numdlg.h>
+#include <wx/utils.h>
 
 //(*InternalHeaders(PixelTestDialog)
 #include <wx/intl.h>
@@ -1686,30 +1687,35 @@ bool PixelTestDialog::AreChannelsAvailable(Model* model)
     return true;
 }
 
-void PixelTestDialog::EnsureControllerUploaded(long absoluteChannel)
+void PixelTestDialog::EnsureControllersUploaded(const std::vector<Controller*>& controllers)
 {
-    if (absoluteChannel <= 0) return;
     if (!CheckBox_OutputToLights->IsChecked()) return;
 
-    int32_t startChannel = 0;
-    Controller* ctrl = _outputManager->GetController(absoluteChannel, startChannel);
-    if (ctrl == nullptr) return;
-    if (!ctrl->IsActive()) return;
-    if (_uploadedControllers.count(ctrl->GetName())) return;
+    // A selected item (eg "select all channels") can span every controller in the install,
+    // not just the one owning its first channel, so every controller passed in needs its
+    // own connection attempt.
+    for (const auto& ctrl : controllers) {
+        if (ctrl == nullptr) continue;
+        if (!ctrl->IsActive()) continue;
+        if (_uploadedControllers.count(ctrl->GetName())) continue;
 
-    // Re-resolve hostname and open outputs first so GetResolvedIP() is fresh for the upload.
-    // Don't mark as done on failure — allow retry on the next selection event.
-    if (!_outputManager->StartControllerOutputs(ctrl)) {
         xLightsFrame* f = (xLightsFrame*)GetParent();
-        f->SetStatusText(ctrl->GetName() + " - Failed to open output");
-        return;
-    }
+        f->SetStatusText("Connecting to " + ctrl->GetName() + "...");
+        if (f->GetStatusBar() != nullptr) f->GetStatusBar()->Update();
+        wxBusyCursor busy;
 
-    _uploadedControllers.insert(ctrl->GetName());
+        // Re-resolve hostname and open outputs first so GetResolvedIP() is fresh for the upload.
+        // Don't mark as done on failure — allow retry on the next selection event.
+        if (!_outputManager->StartControllerOutputs(ctrl)) {
+            f->SetStatusText(ctrl->GetName() + " - Failed to open output");
+            continue;
+        }
 
-    if (ctrl->IsAutoUpload() && ctrl->SupportsAutoUpload()) {
-        xLightsFrame* f = (xLightsFrame*)GetParent();
-        f->UploadControllerForImmediateOutput(ctrl);
+        _uploadedControllers.insert(ctrl->GetName());
+
+        if (ctrl->IsAutoUpload() && ctrl->SupportsAutoUpload()) {
+            f->UploadControllerForImmediateOutput(ctrl);
+        }
     }
 }
 
@@ -1935,7 +1941,7 @@ void PixelTestDialog::SelectVisualModel(const std::string& model)
 {
     Model* m = _modelManager->GetModel(model);
     if (m != nullptr) {
-        EnsureControllerUploaded(m->GetFirstChannel() + 1);
+        EnsureControllersUploaded(_outputManager->GetControllersInRange(m->GetFirstChannel() + 1, m->GetLastChannel() + 1));
     }
     _modelPreview->SetModel(m);
 
@@ -2365,10 +2371,12 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
             TestItemBase* tc = (TestItemBase*)tree->GetItemData(curr);
             if (tc != nullptr) {
                 if (tc->IsContiguous()) {
+                    EnsureControllersUploaded(_outputManager->GetControllersInRange(tc->GetFirstChannel(), tc->GetLastChannel()));
                     _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
                 } else {
                     long ch = tc->GetFirstChannel();
                     while (ch != -1) {
+                        EnsureControllersUploaded(_outputManager->GetControllersInRange(ch, ch));
                         _channelTracker.AddRange(ch, ch);
                         ch = tc->GetNextChannel();
                     }
@@ -2408,10 +2416,12 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
                     // check the items
                     tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
                     if (tc->IsContiguous()) {
+                        EnsureControllersUploaded(_outputManager->GetControllersInRange(tc->GetFirstChannel(), tc->GetLastChannel()));
                         _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
                     } else {
                         long ch = tc->GetFirstChannel();
                         while (ch != -1) {
+                            EnsureControllersUploaded(_outputManager->GetControllersInRange(ch, ch));
                             _channelTracker.AddRange(ch, ch);
                             ch = tc->GetNextChannel();
                         }
@@ -2453,10 +2463,12 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
                 while (count > 0 && selected.IsOk()) {
                     TestItemBase* tc = (TestItemBase*)tree->GetItemData(selected);
                     if (tc->IsContiguous()) {
+                        EnsureControllersUploaded(_outputManager->GetControllersInRange(tc->GetFirstChannel(), tc->GetLastChannel()));
                         _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
                     } else {
                         long ch = tc->GetFirstChannel();
                         while (ch != -1) {
+                            EnsureControllersUploaded(_outputManager->GetControllersInRange(ch, ch));
                             _channelTracker.AddRange(ch, ch);
                             ch = tc->GetNextChannel();
                         }
@@ -2505,6 +2517,7 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
             if (tc->IsClickable()) {
                 if (tc->GetType() == "Controller") {
                     // controller
+                    EnsureControllersUploaded(_outputManager->GetControllersInRange(tc->GetFirstChannel(), tc->GetFirstChannel()));
                     for (auto p = tree->GetFirstChild(selected); p != nullptr; p = tree->GetNextSibling(p)) {
                         tc = (TestItemBase*)tree->GetItemData(p);
                         uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
@@ -2579,6 +2592,7 @@ void PixelTestDialog::OnListPopup(wxCommandEvent& event)
                         selected = tree->GetItemParent(selected);
                         tc = (TestItemBase*)tree->GetItemData(selected);
                     }
+                    EnsureControllersUploaded(_outputManager->GetControllersInRange(tc->GetFirstChannel(), tc->GetFirstChannel()));
                     uint16_t port = ((CPR_PortTestItem*)tc)->GetPort();
                     uint16_t pixel = 0;
 
@@ -2672,12 +2686,13 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
     }
 
     if (checked == wxCheckBoxState::wxCHK_CHECKED) {
-        EnsureControllerUploaded(tc->GetFirstChannel());
         if (tc->IsContiguous()) {
+            EnsureControllersUploaded(_outputManager->GetControllersInRange(tc->GetFirstChannel(), tc->GetLastChannel()));
             _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
         } else {
             long ch = tc->GetFirstChannel();
             while (ch != -1) {
+                EnsureControllersUploaded(_outputManager->GetControllersInRange(ch, ch));
                 _channelTracker.AddRange(ch, ch);
                 ch = tc->GetNextChannel();
             }
@@ -2711,12 +2726,13 @@ void PixelTestDialog::OnTreeListCtrlCheckboxtoggled(wxTreeListEvent& event)
                 if (tree->GetCheckedState(selections[i]) == wxCHK_UNCHECKED) {
                     // check the items
                     tree->CheckItem(selections[i], wxCheckBoxState::wxCHK_CHECKED);
-                    EnsureControllerUploaded(tc->GetFirstChannel());
                     if (tc->IsContiguous()) {
+                        EnsureControllersUploaded(_outputManager->GetControllersInRange(tc->GetFirstChannel(), tc->GetLastChannel()));
                         _channelTracker.AddRange(tc->GetFirstChannel(), tc->GetLastChannel());
                     } else {
                         long ch = tc->GetFirstChannel();
                         while (ch != -1) {
+                            EnsureControllersUploaded(_outputManager->GetControllersInRange(ch, ch));
                             _channelTracker.AddRange(ch, ch);
                             ch = tc->GetNextChannel();
                         }
@@ -2801,6 +2817,7 @@ void PixelTestDialog::OnButton_LoadClick(wxCommandEvent& event)
     auto chs = preset->GetChannels();
     for (const auto& c : chs) {
         if (c > 0 && c < ChCount) {
+            EnsureControllersUploaded(_outputManager->GetControllersInRange(c, c));
             _channelTracker.AddRange(c, c);
         }
     }
