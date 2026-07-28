@@ -31,6 +31,8 @@
 
 #include "xLightsMain.h"
 #include "layout/LayoutPanel.h"
+#include "modelproperties/ScreenLocationPropertyHelper.h"
+#include "models/BoxedScreenLocation.h"
 #include "layout/ModelPreview.h"
 #include "layout/LayoutUtils.h"
 #include "layout/ControllerFullColumnsDialog.h"
@@ -74,6 +76,12 @@ const long ID_CTRL_MNU_ACTIVEXLIGHTS = wxNewId();
 const long ID_CTRL_MNU_INACTIVE = wxNewId();
 const long ID_CTRL_MNU_DELETE = wxNewId();
 const long ID_CTRL_MNU_UNLINKFROMBASE = wxNewId();
+// Contiguous block: OnPopup maps the offset from _OFF straight onto the
+// ControllerObject::Visibility enum, so these must stay in enum order.
+const long ID_CTRL_MNU_LAYOUT_OFF = wxNewId();
+const long ID_CTRL_MNU_LAYOUT_CTRLTAB = wxNewId();
+const long ID_CTRL_MNU_LAYOUT_LAYOUT = wxNewId();
+const long ID_CTRL_MNU_LAYOUT_ALWAYS = wxNewId();
 const long ID_CTRL_MNU_UPLOADOUTPUT = wxNewId();
 const long ID_CTRL_MNU_FPP_CONNECT = wxNewId();
 const long ID_CTRL_MNU_SORT_NAME = wxNewId();
@@ -440,6 +448,7 @@ void ControllerListPanel::RefreshPingIndicator(const Controller* controller) {
 }
 
 void ControllerListPanel::RefreshStatusColumn() {
+    UpdateControllerObjectStatusColors();
     auto selectedController = GetFirstSelectedController();
     for (wxTreeListItem item = _tree->GetFirstChild(_tree->GetRootItem()); item.IsOk(); item = _tree->GetNextSibling(item)) {
         auto controller = _frame->GetOutputManager()->GetController(_tree->GetItemText(item, 0).ToStdString());
@@ -528,6 +537,121 @@ bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) 
 void ControllerListPanel::OnSelectionChanged(wxTreeListEvent& event) {
     UpdateControllerProperties();
     UpdatePreviewHighlights();
+}
+
+// Size / location for the placement box, appended to the controller properties
+// so the box can be positioned numerically as well as by dragging - and so the
+// numbers track a drag live (resetPropertyGrid routes here on this page).
+// Removed again when the box is hidden, since they'd edit something invisible.
+void ControllerListPanel::RefreshControllerPlacementProperties(ControllerObject* co) {
+    if (_propGrid == nullptr) return;
+
+    static const char* kPlacementKeys[] = {
+        "LayoutShowLabel", "Locked", "ModelX", "ModelY", "ModelZ",
+        "ScaleX", "ScaleY", "ScaleZ", "RotateX", "RotateY", "RotateZ"
+    };
+
+    const bool want = (co != nullptr && co->GetVisibility() != ControllerObject::Visibility::Off);
+    const bool have = (_propGrid->GetPropertyByName("ModelX") != nullptr);
+
+    if (!want) {
+        if (have) {
+            for (const char* k : kPlacementKeys) {
+                if (auto* prop = _propGrid->GetPropertyByName(k)) {
+                    _propGrid->DeleteProperty(prop);
+                }
+            }
+        }
+        return;
+    }
+
+    if (!have) {
+        auto* lbl = _propGrid->Append(new wxBoolProperty("Show Label", "LayoutShowLabel", co->GetShowLabel()));
+        lbl->SetEditor("CheckBox");
+        lbl->SetHelpString("Draws the controller name under its box in the preview.");
+        // Base-reference overload - it dynamic_casts to the concrete location
+        // internally; the typed ones are private.
+        ScreenLocationPropertyHelper::AddSizeLocationProperties(co->GetObjectScreenLocation(), _propGrid);
+        return;
+    }
+
+    // Already present - just refresh values so a drag updates them live.
+    // Skip whichever field is being edited so typing isn't clobbered.
+    const auto& loc = dynamic_cast<const BoxedScreenLocation&>(co->GetObjectScreenLocation());
+    wxPGProperty* editing = _propGrid->GetSelection();
+    auto setIf = [&](const char* key, double v) {
+        auto* prop = _propGrid->GetPropertyByName(key);
+        if (prop != nullptr && prop != editing) prop->SetValue(v);
+    };
+    if (auto* prop = _propGrid->GetPropertyByName("LayoutShowLabel"); prop != nullptr && prop != editing) {
+        prop->SetValue(co->GetShowLabel());
+    }
+    if (auto* prop = _propGrid->GetPropertyByName("Locked"); prop != nullptr && prop != editing) {
+        prop->SetValue(loc.IsLocked());
+    }
+    setIf("ModelX", loc.GetWorldPos_X());
+    setIf("ModelY", loc.GetWorldPos_Y());
+    setIf("ModelZ", loc.GetWorldPos_Z());
+    setIf("ScaleX", loc.GetScaleX());
+    setIf("ScaleY", loc.GetScaleY());
+    setIf("ScaleZ", loc.GetScaleZ());
+    setIf("RotateX", loc.GetRotateX());
+    setIf("RotateY", loc.GetRotateY());
+    setIf("RotateZ", loc.GetRotateZ());
+}
+
+// Turning visibility on creates the placement box on demand - nothing is written
+// to the rgbeffects file until the user asks for it, which is what keeps
+// existing shows untouched. Turning it back Off keeps the object so the
+// placement survives; only deleting the controller removes it.
+void ControllerListPanel::SetControllerObjectVisibility(const std::string& controllerName, ControllerObject::Visibility vis) {
+    auto* co = _frame->AllObjects.GetControllerObject(controllerName);
+    if (co == nullptr) {
+        if (vis == ControllerObject::Visibility::Off) {
+            return;
+        }
+        co = _frame->AllObjects.CreateControllerObject(controllerName);
+        if (co == nullptr) {
+            return;
+        }
+        // Drop it in the middle of the preview so it is on screen to be dragged.
+        if (auto* preview = _layoutPanel->GetMainPreview(); preview != nullptr) {
+            int vw = 0;
+            int vh = 0;
+            preview->GetVirtualCanvasSize(vw, vh);
+            if (vw > 0 && vh > 0) {
+                co->GetObjectScreenLocation().SetPosition(vw / 2.0f, vh / 2.0f);
+            }
+        }
+    }
+    co->SetVisibility(vis);
+    UpdateControllerObjectStatusColors();
+    auto* omm = _frame->GetOutputModelManager();
+    omm->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel::SetControllerObjectVisibility");
+    omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::SetControllerObjectVisibility");
+}
+
+// Core has no notion of pinging, so the tint is pushed in from here whenever
+// the tree's own status indicators are refreshed.
+void ControllerListPanel::UpdateControllerObjectStatusColors() {
+    for (auto it = _frame->AllObjects.begin(); it != _frame->AllObjects.end(); ++it) {
+        auto* co = dynamic_cast<ControllerObject*>(it->second);
+        if (co == nullptr) {
+            continue;
+        }
+        const Controller* c = _frame->GetOutputManager()->GetController(co->GetControllerName());
+        switch (ClassifyControllerPing(c)) {
+        case ControllerPingBucket::Green:
+            co->SetStatusColor(xlColor(48, 120, 64));
+            break;
+        case ControllerPingBucket::Red:
+            co->SetStatusColor(xlColor(140, 52, 52));
+            break;
+        default:
+            co->SetStatusColor(xlColor(96, 96, 104));
+            break;
+        }
+    }
 }
 
 void ControllerListPanel::ClearPreviewHighlights() {
@@ -643,6 +767,27 @@ void ControllerListPanel::OnContextMenu(wxTreeListEvent& event) {
     mnu.Append(ID_CTRL_MNU_INACTIVE, "Inactivate")->Enable(canActivate);
     mnu.Append(ID_CTRL_MNU_DELETE, "Delete")->Enable(allowed && !selected.empty());
     mnu.Append(ID_CTRL_MNU_UNLINKFROMBASE, "Unlink from Base Show Folder")->Enable(allowed && allFromBase);
+    {
+        auto* visMenu = new wxMenu();
+        const ControllerObject* co = selected.size() == 1
+            ? _frame->AllObjects.GetControllerObject(selected.front()->GetName())
+            : nullptr;
+        const auto current = co != nullptr ? co->GetVisibility() : ControllerObject::Visibility::Off;
+        const std::pair<long, const char*> items[] = {
+            { ID_CTRL_MNU_LAYOUT_OFF,     "Off" },
+            { ID_CTRL_MNU_LAYOUT_CTRLTAB, "Controller Tab Only" },
+            { ID_CTRL_MNU_LAYOUT_LAYOUT,  "Layout Panel" },
+            { ID_CTRL_MNU_LAYOUT_ALWAYS,  "Always" },
+        };
+        int idx = 0;
+        for (const auto& [mid, label] : items) {
+            wxMenuItem* mi = visMenu->Append(mid, label, wxEmptyString, wxITEM_CHECK);
+            mi->Check(selected.size() == 1 && idx == (int)current);
+            ++idx;
+        }
+        visMenu->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ControllerListPanel::OnPopup, nullptr, this);
+        mnu.Append(wxID_ANY, "Show on Layout", visMenu)->Enable(!selected.empty());
+    }
     bool isIpController = false;
     std::string targetIp;
     if (selected.size() == 1) {
@@ -728,6 +873,12 @@ void ControllerListPanel::OnPopup(wxCommandEvent& event) {
         queueStandardWork("ControllerListPanel:INACTIVE");
     } else if (id == ID_CTRL_MNU_DELETE) {
         DeleteSelectedControllers();
+    } else if (id >= ID_CTRL_MNU_LAYOUT_OFF && id <= ID_CTRL_MNU_LAYOUT_ALWAYS) {
+        const auto vis = (ControllerObject::Visibility)(id - ID_CTRL_MNU_LAYOUT_OFF);
+        for (const auto& name : GetSelectedControllerNames()) {
+            SetControllerObjectVisibility(name, vis);
+        }
+        UpdateControllerProperties();
     } else if (id == ID_CTRL_MNU_UNLINKFROMBASE) {
         UnlinkSelectedControllers();
         omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerListPanel:UNLINK");
@@ -797,11 +948,24 @@ void ControllerListPanel::ActivateSelectedControllers(const std::string& active)
 }
 
 void ControllerListPanel::UnlinkSelectedControllers() {
+    bool objectsChanged = false;
     for (const auto& name : GetSelectedControllerNames()) {
         auto c = _frame->GetOutputManager()->GetController(name);
         if (c != nullptr) {
             c->SetFromBase(false);
         }
+        // The placement box unlinks with its controller. Otherwise it stays
+        // FromBase and the next merge snaps it back to the base folder's
+        // position, undoing wherever the user put it - the exact thing they
+        // unlinked to prevent.
+        auto* co = _frame->AllObjects.GetControllerObject(name);
+        if (co != nullptr && co->IsFromBase()) {
+            co->SetFromBase(false);
+            objectsChanged = true;
+        }
+    }
+    if (objectsChanged) {
+        _frame->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel::UnlinkSelectedControllers");
     }
 }
 
@@ -813,11 +977,17 @@ void ControllerListPanel::DeleteSelectedControllers() {
     if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) != wxYES) return;
     _frame->waitForPingsToComplete();
     _frame->AbortRender();
+    bool objectsChanged = false;
     for (const auto& it : todel) {
         _frame->AllModels.DeleteController(it);
         _frame->GetOutputManager()->DeleteController(it);
+        objectsChanged |= _frame->AllObjects.DeleteControllerObject(it);
     }
     auto* omm = _frame->GetOutputModelManager();
+    if (objectsChanged) {
+        omm->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel:DELETE-object");
+        omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel:DELETE-object");
+    }
     omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "ControllerListPanel:DELETE");
     omm->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "ControllerListPanel:DELETE");
     omm->AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "ControllerListPanel:DELETE");
@@ -1217,6 +1387,27 @@ void ControllerListPanel::UpdateControllerProperties() {
                 p->SetValue(ts);
             }
 
+            {
+                // Layout placement lives in the rgbeffects file, not on the
+                // Controller, so it is appended here rather than in the adapter
+                // (which only has the Controller).
+                wxPGProperty* p = _propGrid->GetProperty("LayoutVisibility");
+                if (!p) {
+                    wxPGChoices vis;
+                    vis.Add("Off");
+                    vis.Add("Controller Tab Only");
+                    vis.Add("Layout Panel");
+                    vis.Add("Always");
+                    p = _propGrid->Append(new wxEnumProperty("Show on Layout", "LayoutVisibility", vis, 0));
+                    p->SetHelpString("Shows this controller as a movable box in the layout preview so you can place it where it physically sits. "
+                                     "Controller Tab Only shows it while this tab is selected; Layout Panel shows it anywhere in the layout editor "
+                                     "but not during playback; Always shows it everywhere.");
+                }
+                auto* co = _frame->AllObjects.GetControllerObject(controller->GetName());
+                p->SetValue((int)(co != nullptr ? co->GetVisibility() : ControllerObject::Visibility::Off));
+                RefreshControllerPlacementProperties(co);
+            }
+
             if (controller->IsFromBase() || !allowed) {
                 if (controller->IsFromBase()) {
                     _propGrid->SetToolTip("This controller comes from the base folder and its properties cannot be edited.");
@@ -1307,6 +1498,33 @@ void ControllerListPanel::OnControllerPropertyGridChange(wxPropertyGridEvent& ev
         std::string oldName = controllername;
         std::string oldIP = controller->GetIP();
 
+        if (name == "LayoutVisibility") {
+            SetControllerObjectVisibility(controller->GetName(),
+                                          (ControllerObject::Visibility)event.GetValue().GetLong());
+            UpdateControllerProperties();
+            return;
+        }
+        if (auto* co = _frame->AllObjects.GetControllerObject(controller->GetName()); co != nullptr) {
+            if (name == "LayoutShowLabel") {
+                co->SetShowLabel(event.GetValue().GetBool());
+                omm->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel::LayoutShowLabel");
+                omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::LayoutShowLabel");
+                return;
+            }
+            // Size / location fields share the model property-grid key names, so
+            // they can only be reached once the controller keys have missed.
+            if (_propGrid->GetPropertyByName("ModelX") != nullptr &&
+                (name == "Locked" || name.StartsWith("Model") ||
+                 name.StartsWith("Scale") || name.StartsWith("Rotate"))) {
+                ScreenLocationPropertyHelper::OnPropertyGridChange(
+                    co->GetObjectScreenLocation(), _propGrid, event);
+                co->SetActive(true);
+                omm->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel::Placement");
+                omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::Placement");
+                return;
+            }
+        }
+
         auto processed = _adapter ? _adapter->HandlePropertyEvent(event, omm) : false;
 
         if (name == "ControllerName") {
@@ -1319,6 +1537,12 @@ void ControllerListPanel::OnControllerPropertyGridChange(wxPropertyGridEvent& ev
                 }
                 _frame->AbortRender();
                 _frame->AllModels.RenameController(oldName, ToStdString(event.GetValue().GetString()));
+                // The layout placement box is bound by controller name and
+                // lives in a different file, so it has to follow the rename.
+                if (_frame->AllObjects.RenameController(oldName, ToStdString(event.GetValue().GetString()))) {
+                    omm->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "ControllerListPanel::RenameControllerObject");
+                    omm->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "ControllerListPanel::RenameControllerObject");
+                }
                 omm->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "ControllerListPanel::OnControllerPropertyGridChange::ControllerName", nullptr);
             }
         } else if (name == "IP") {

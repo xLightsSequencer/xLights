@@ -15,6 +15,7 @@
 #include "ViewObjectManager.h"
 #include "../render/UICallbacks.h"
 #include "UtilFunctions.h"
+#include "ControllerObject.h"
 #include "GridlinesObject.h"
 #include "RulerObject.h"
 #include "ImageObject.h"
@@ -77,6 +78,8 @@ ViewObject* ViewObjectManager::CreateAndAddObject(const std::string &type) {
         view_object = new MeshObject(*this);
     } else if (type == "Terrain") {
         view_object = new TerrainObject(*this);
+    } else if (type == "Controller") {
+        view_object = new ControllerObject(*this);
     } else {
         if (auto* ui = GetUICallbacks()) {
             ui->ShowMessage(type + " is not a valid type for View Object ");
@@ -357,6 +360,69 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
 
     if (changedOut != nullptr) *changedOut = changed;
     return true;
+}
+
+ControllerObject* ViewObjectManager::GetControllerObject(const std::string& controllerName) const {
+    // Matched on the binding, not the name: the name is derived from it, but a
+    // hand-edited file could still disagree and the binding is what counts.
+    for (const auto& [name, obj] : view_objects) {
+        auto* co = dynamic_cast<ControllerObject*>(obj);
+        if (co != nullptr && co->GetControllerName() == controllerName) {
+            return co;
+        }
+    }
+    return nullptr;
+}
+
+ControllerObject* ViewObjectManager::CreateControllerObject(const std::string& controllerName) {
+    if (controllerName.empty()) {
+        return nullptr;
+    }
+    if (auto* existing = GetControllerObject(controllerName); existing != nullptr) {
+        return existing;
+    }
+    auto* obj = new ControllerObject(*this);
+    obj->SetControllerName(controllerName);
+    obj->SetName(ControllerObject::ObjectNameFor(controllerName));
+    obj->SetLayoutGroup("Default", true);
+    obj->Setup();
+    AddViewObject(obj);
+    return obj;
+}
+
+bool ViewObjectManager::RenameController(const std::string& oldName, const std::string& newName) {
+    ControllerObject* co = GetControllerObject(oldName);
+    if (co == nullptr) {
+        return false;
+    }
+    co->SetControllerName(newName);
+    // The object's key and name are both derived from the controller, so both
+    // have to move with it or the base-show merge stops matching.
+    const std::string newObjectName = ControllerObject::ObjectNameFor(newName);
+    view_objects.erase(co->GetName());
+    co->SetName(newObjectName);
+    view_objects[newObjectName] = co;
+    return true;
+}
+
+bool ViewObjectManager::DeleteControllerObject(const std::string& controllerName) {
+    ControllerObject* co = GetControllerObject(controllerName);
+    if (co == nullptr) {
+        return false;
+    }
+    Delete(co->GetName());
+    return true;
+}
+
+std::vector<std::string> ViewObjectManager::GetOrphanedControllerObjects(const std::function<bool(const std::string&)>& controllerExists) const {
+    std::vector<std::string> orphans;
+    for (const auto& [name, obj] : view_objects) {
+        auto* co = dynamic_cast<ControllerObject*>(obj);
+        if (co != nullptr && !controllerExists(co->GetControllerName())) {
+            orphans.push_back(co->GetControllerName());
+        }
+    }
+    return orphans;
 }
 
 bool ViewObjectManager::Rename(const std::string &oldName, const std::string &newName) {

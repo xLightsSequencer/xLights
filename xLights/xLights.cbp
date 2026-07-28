@@ -1235,6 +1235,8 @@
 		<Unit filename="../src-ui-wx/modelproperties/adapters/SkullConfigDialog.h" />
 		<Unit filename="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.cpp" />
 		<Unit filename="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.h" />
+		<Unit filename="../src-core/models/ControllerObject.cpp" />
+		<Unit filename="../src-core/models/ControllerObject.h" />
 		<Unit filename="../src-core/models/GridlinesObject.cpp" />
 		<Unit filename="../src-core/models/GridlinesObject.h" />
 		<Unit filename="../src-core/models/IciclesModel.cpp" />

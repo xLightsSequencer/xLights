@@ -8,7 +8,9 @@
 #include "SPIRVShaderEffect.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 
@@ -19,6 +21,99 @@
 #include "../render/RenderBuffer.h"
 #include "../render/SequenceElements.h" // EffectLayer/Effect for EVENT parms
 #include "../media/AudioManager.h"      // FFT frame data for audio shaders
+
+namespace ShaderBuildStats {
+namespace {
+struct Counters {
+    std::atomic<uint64_t> parseNs{ 0 }, parseN{ 0 };
+    std::atomic<uint64_t> transformNs{ 0 }, transformN{ 0 };
+    std::atomic<uint64_t> buildNs{ 0 }, buildN{ 0 };
+    std::atomic<uint64_t> translateNs{ 0 }, translateN{ 0 };
+    std::atomic<uint64_t> cacheHits{ 0 };
+    std::atomic<uint64_t> encodeNs{ 0 }, encodeN{ 0 };
+    std::atomic<uint64_t> uploadNs{ 0 }, uploadN{ 0 };
+    std::atomic<uint64_t> recordNs{ 0 }, recordN{ 0 };
+    std::atomic<uint64_t> submitNs{ 0 }, submitN{ 0 };
+    std::atomic<uint64_t> fenceNs{ 0 }, fenceN{ 0 };
+    std::atomic<uint64_t> readbackNs{ 0 }, readbackN{ 0 };
+
+    ~Counters() {
+        if (!Enabled()) {
+            return;
+        }
+        auto row = [](const char* name, uint64_t n, uint64_t ns) {
+            fprintf(stderr, "%-28s %10llu %12.1f %12.4f\n", name,
+                    (unsigned long long)n, ns / 1.0e6,
+                    n ? (ns / 1.0e6) / (double)n : 0.0);
+        };
+        fprintf(stderr, "\n=== XL_SHADER_BUILD_STATS ===\n");
+        fprintf(stderr, "%-28s %10s %12s %12s\n", "stage", "count", "total ms", "ms each");
+        row("ParseShader", parseN, parseNs);
+        row("SourceTransforms::Apply", transformN, transformNs);
+        row("nativeBuild (total)", buildN, buildNs);
+        row("  glslang+pipeline (miss)", translateN, translateNs);
+        row("  program-cache hit", cacheHits, 0);
+        row("nativeEncode (per frame)", encodeN, encodeNs);
+        if (uploadN || recordN || submitN || fenceN || readbackN) {
+            // Sums to slightly less than nativeEncode: the remainder is uniform
+            // packing and descriptor writes.
+            fprintf(stderr, "  -- inside nativeEncode --\n");
+            row("  input upload (own trip)", uploadN, uploadNs);
+            row("  record cb", recordN, recordNs);
+            row("  queue submit", submitN, submitNs);
+            row("  fence wait", fenceN, fenceNs);
+            row("  readback memcpy", readbackN, readbackNs);
+        }
+        fprintf(stderr, "=== end XL_SHADER_BUILD_STATS ===\n");
+    }
+};
+Counters& counters() {
+    static Counters c;
+    return c;
+}
+} // namespace
+
+bool Enabled() {
+    static const bool e = getenv("XL_SHADER_BUILD_STATS") != nullptr;
+    return e;
+}
+void AddParse(uint64_t ns) { counters().parseNs += ns; counters().parseN++; }
+void AddTransform(uint64_t ns) { counters().transformNs += ns; counters().transformN++; }
+void AddBuild(uint64_t ns) { counters().buildNs += ns; counters().buildN++; }
+void AddTranslate(uint64_t ns) { counters().translateNs += ns; counters().translateN++; }
+void AddCacheHit() { counters().cacheHits++; }
+void AddEncode(uint64_t ns) { counters().encodeNs += ns; counters().encodeN++; }
+void AddUpload(uint64_t ns) { counters().uploadNs += ns; counters().uploadN++; }
+void AddRecord(uint64_t ns) { counters().recordNs += ns; counters().recordN++; }
+void AddSubmit(uint64_t ns) { counters().submitNs += ns; counters().submitN++; }
+void AddFenceWait(uint64_t ns) { counters().fenceNs += ns; counters().fenceN++; }
+void AddReadback(uint64_t ns) { counters().readbackNs += ns; counters().readbackN++; }
+} // namespace ShaderBuildStats
+
+namespace {
+// Fixed calendar anchor for the ISF DATE uniform's y/m/d fields; its seconds
+// field carries the sequence position. See where DATE is packed.
+constexpr int kShaderDateYear = 2000;
+constexpr int kShaderDateMonth = 1;
+constexpr int kShaderDateDay = 1;
+
+// Scoped nanosecond timer. The clock is only read when the stats flag is on, so
+// the disabled path costs a predictable-branch test - this sits in the per-frame
+// encode path, which runs six figures of times in a normal render.
+struct StatTimer {
+    std::chrono::steady_clock::time_point t0;
+    StatTimer() {
+        if (ShaderBuildStats::Enabled()) {
+            t0 = std::chrono::steady_clock::now();
+        }
+    }
+    uint64_t elapsed() const {
+        return (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                   std::chrono::steady_clock::now() - t0)
+            .count();
+    }
+};
+} // namespace
 
 SPIRVShaderEffect::CacheBase::~CacheBase() {
     delete config;
@@ -90,7 +185,11 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     // ---- build config + pipeline on first frame / file change / resize ----
     if (!cache->built || cache->width != buffer.BufferWi || cache->height != buffer.BufferHt) {
         if (cache->config == nullptr) {
+            StatTimer t;
             cache->config = ShaderEffect::ParseShader(shaderFile, GetSequenceElements(buffer));
+            if (ShaderBuildStats::Enabled()) {
+                ShaderBuildStats::AddParse(t.elapsed());
+            }
         }
         if (cache->config == nullptr || cache->config->GetCode().empty()) {
             delete cache->config;
@@ -100,10 +199,19 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
             return;
         }
         if (cache->transformedSource.empty()) {
+            StatTimer t;
             cache->transformedSource = ShaderSourceTransforms::Apply(cache->config->GetCode());
+            if (ShaderBuildStats::Enabled()) {
+                ShaderBuildStats::AddTransform(t.elapsed());
+            }
         }
         cache->built = false;
-        if (!nativeBuild(cache, buffer)) {
+        StatTimer buildTimer;
+        const bool buildOk = nativeBuild(cache, buffer);
+        if (ShaderBuildStats::Enabled()) {
+            ShaderBuildStats::AddBuild(buildTimer.elapsed());
+        }
+        if (!buildOk) {
             cache->failed = true; // translation/pipeline failure — like a GL compile failure
             buffer.Fill(xlYELLOW);
             return;
@@ -146,14 +254,16 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
     set1("TIME", cache->timeMS / 1000.0);
     set1("TIMEDELTA", buffer.frameTimeInMs / 1000.f);
     {
-        std::time_t nowt = std::time(nullptr);
-        std::tm tmbuf;
-#ifdef _MSC_VER
-        localtime_s(&tmbuf, &nowt);
-#else
-        localtime_r(&nowt, &tmbuf);
-#endif
-        set4("DATE", tmbuf.tm_year + 1900, tmbuf.tm_mon + 1, tmbuf.tm_mday, tmbuf.tm_hour * 3600 + tmbuf.tm_min * 60 + tmbuf.tm_sec);
+        // Derived from the sequence timeline, NOT the wall clock. An .fseq is a
+        // baked artifact: a render-time clock is meaningless on playback, and it
+        // makes the render irreproducible - two runs seconds apart feed a
+        // different DATE into the shader, which is enough to break the
+        // byte-identity regression gate for the whole sequence when the shader
+        // feeds back on itself. Anchoring to the sequence also makes clock-style
+        // shaders advance with the sequence instead of sitting frozen at
+        // whatever time the render happened to start.
+        const double seqSeconds = (buffer.curPeriod * (double)buffer.frameTimeInMs) / 1000.0;
+        set4("DATE", kShaderDateYear, kShaderDateMonth, kShaderDateDay, seqSeconds);
     }
     set1("NUMCOLORS", buffer.GetColorCount());
     set1("PASSINDEX", 0);
@@ -241,7 +351,12 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
         }
     }
 
-    if (!nativeEncode(cache, buffer, vals, kind, audio)) {
+    StatTimer encodeTimer;
+    const bool encodeOk = nativeEncode(cache, buffer, vals, kind, audio);
+    if (ShaderBuildStats::Enabled()) {
+        ShaderBuildStats::AddEncode(encodeTimer.elapsed());
+    }
+    if (!encodeOk) {
         // Transient (command buffer / descriptor exhaustion): fill this frame
         // rather than latching failure.
         buffer.Fill(xlYELLOW);

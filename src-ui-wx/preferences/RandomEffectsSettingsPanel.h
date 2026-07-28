@@ -16,6 +16,9 @@ class wxFlexGridSizer;
 class wxStaticText;
 //*)
 
+#include <vector>
+
+class wxCheckBox;
 class xLightsFrame;
 class RandomEffectsSettingsPanel: public wxPanel
 {
@@ -28,7 +31,7 @@ class RandomEffectsSettingsPanel: public wxPanel
 		wxFlexGridSizer* EffectsGridSizer;
 		wxFlexGridSizer* MainSizer;
 		//*)
-    
+
         virtual bool TransferDataFromWindow() override;
         virtual bool TransferDataToWindow() override;
 
@@ -39,7 +42,8 @@ class RandomEffectsSettingsPanel: public wxPanel
 
 	private:
         xLightsFrame* frame;
-    
+        std::vector<wxCheckBox*> _effectCheckBoxes;
+
 		//(*Handlers(RandomEffectsSettingsPanel)
 		void OnEffectCheckBoxClick(wxCommandEvent& event);
 		//*)

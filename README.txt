@@ -12,12 +12,46 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
     -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now checked and connected
+    -bug (dkulp)                 Shader: a shader that accumulates into gl_FragColor without first
+                                 assigning it (common in Shadertoy conversions) read an undefined value,
+                                 so it rendered differently every run and made the whole sequence
+                                 irreproducible. The fragment output is now initialised before the
+                                 shader's own code runs
+    -enh (dkulp)                 Layout: controllers can be shown as a movable, resizable box in the
+                                 2D or 3D preview so they can be placed where they physically sit. Set via
+                                 Show on Layout on the Controllers tab (Off by default); Off / Controller
+                                 Tab Only / Layout Panel / Always control where the box appears. Position,
+                                 size and rotation are editable in the controller properties alongside an
+                                 optional name label (off by default)
+    -change (dkulp)              Layout: on the Controllers tab the preview now selects controller boxes
+                                 rather than models. Models remain selectable from the controller tree
+                                 and the Models tab
+    -bug (dkulp)                 Shader: the ISF DATE uniform came from the wall clock, so any sequence
+                                 using a shader that reads it rendered differently every run. It now
+                                 follows the sequence timeline, which is both reproducible and animates
+                                 with the sequence rather than freezing at the time the render started
+    -bug (dkulp)                 Shader (Vulkan): a shader defining a function whose signature matches a
+                                 GLSL built-in failed translation and rendered solid yellow; the built-in
+                                 name is now renamed on a retry so the shader renders
+    -bug (dkulp)                 Layout: crash when selecting in the model tree while models are being
+                                 deleted or the tree is being rebuilt. Selection now skips tree items whose
+                                 model has already been freed on every platform, instead of only on Linux
+    -bug (dkulp)                 Headless render: a sequence whose predecessor's render could not be drained
+                                 is now reported as a failure rather than being loaded on top of the render
+                                 workers still reading it
+    -bug (dkulp)                 Crash expanding a controller with no populated ports in the All Controller
+                                 Columns dialog
+    -bug (dkulp)                 Crash pressing Ctrl+letter in the visualiser for a model that is not
+                                 assigned to a controller
+    -bug (dkulp)                 LOR: out-of-bounds write when changing a controller's unit ID or channel
+                                 count in the controller properties
     -bug (dkulp)                 Linux: Shader effects rendered as solid cyan on machines whose only Vulkan
                                  device is a software one (lavapipe/llvmpipe) and that have no usable
                                  OpenGL - typically a headless render box. The device is now used for
                                  shaders, which have no CPU implementation, while compute effects stay on
                                  the faster CPU path; a headless render also enables GPU rendering if that
                                  is the only way a shader can be drawn
+    -enh (mpl1337)               Node Layout grids can be zoomed from 10–300% or fitted to the window
     -enh (dkulp)                 Render: a row rendering frames in parallel now farms its whole run of
                                  frames to a round-robin worker pool instead of fixed-size windows with a
                                  barrier between them, so it is no longer resynchronised every few frames
@@ -28,6 +62,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  roughly 10x faster again because the whole flame updates at once on the
                                  GPU (Metal on macOS/iPad, Vulkan on Windows/Linux). Existing sequences are
                                  migrated to "Old Render Method" so their look is unchanged
+    -enh (cybercop23)            Added a View > Toolbars menu to independently show/hide each
+                                 dockable toolbar (Main, Play, Windows, Paste, AC, View, Effects);
+                                 visibility persists across restarts. The old standalone AC Lights
+                                 Toolbar checkbox now lives here, grouped next to Show AC Ramps
     -enh (dkulp)                 XL_GPU_SIZE_THRESHOLD diagnostic to sweep the GPU/CPU buffer-size
                                  break-even without a rebuild
     -enh (dkulp)                 Meteors "Implode"/"Explode" render faster: the trail draw runs across

@@ -174,6 +174,22 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
         }
     }
 
+    // 3b. Launch-phase timing + show size. Both are counts/durations only —
+    //     no names, paths or user content — so they ride the automatic upload
+    //     as well as the full payload. They are what make a slow-launch report
+    //     attributable: MetricKit says a launch was slow, these say which
+    //     phase and how big the show was.
+    for (NSString* sidecar in @[@"xlLaunchTiming.txt",
+                                @"xlLaunchTiming.prev.txt",
+                                @"xlShowStats.txt"]) {
+        NSString* src = [logsDir stringByAppendingPathComponent:sidecar];
+        if ([fm fileExistsAtPath:src]) {
+            [fm copyItemAtPath:src
+                        toPath:[stagingDir.path stringByAppendingPathComponent:sidecar]
+                         error:nil];
+        }
+    }
+
     // 4. Sidecar text files.
     [DeviceInfoText() writeToFile:[stagingDir.path stringByAppendingPathComponent:@"device-info.txt"]
                        atomically:YES

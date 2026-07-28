@@ -14,6 +14,8 @@
 #include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
 //*)
 
 class wxHtmlEasyPrinting;
@@ -30,8 +32,11 @@ public:
     void SetHtmlSource(wxString& html);
 
     //(*Declarations(ChannelLayoutDialog)
+    wxButton* ButtonFit;
     wxButton* ButtonOpenInBrower;
     wxHtmlWindow* HtmlWindow1;
+    wxSlider* SliderZoom;
+    wxStaticText* StaticTextZoom;
     //*)
 
 protected:
@@ -39,6 +44,9 @@ protected:
     //(*Identifiers(ChannelLayoutDialog)
     static const long ID_BUTTON1;
     static const long ID_BUTTON_OPEN_IN_BROWSER;
+    static const long ID_BUTTON_FIT;
+    static const long ID_SLIDER_ZOOM;
+    static const long ID_STATICTEXT_ZOOM;
     static const long ID_HTMLWINDOW1;
     //*)
 
@@ -47,9 +55,21 @@ private:
     //(*Handlers(ChannelLayoutDialog)
     void OnButton_PrintClick(wxCommandEvent& event);
     void OnButtonOpenInBrowerClick(wxCommandEvent& event);
+    void OnButtonFitClick(wxCommandEvent& event);
+    void OnSliderZoomCmdScroll(wxCommandEvent& event);
     //*)
+    void OnHtmlMouseWheel(wxMouseEvent& event);
+    void ApplyZoom(int zoomPercent);
+    void ApplyFontSize(int fontSize);
+    int ZoomToFontSize(int zoomPercent) const;
+    int FontSizeToZoom(int fontSize) const;
+    void FitNodeLayoutToWindow();
+    wxString GetDisplayHtml() const;
 
     wxString HtmlSource;
+    int _zoomPercent { 100 };
+    int _fontSize { 0 };
+    int _wheelRotation { 0 };
 
     DECLARE_EVENT_TABLE()
 };

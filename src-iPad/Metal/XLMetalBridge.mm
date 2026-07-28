@@ -18,6 +18,7 @@
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include "models/SubModelSymmetrize.h"
+#include "models/ControllerObject.h"
 #include "models/TerrainObject.h"
 #include "models/TerrainScreenLocation.h"
 #include "XmlSerializer/XmlSerializer.h"
@@ -73,6 +74,7 @@
     BOOL _showFirstPixel;        // J-2 — `highlightFirst` arg to DisplayModelOnWindow
     std::string _forcedGdtfMode; // GDTF mode picker: forces ChooseFromList during import
     BOOL _showViewObjects;       // House Preview view-object visibility toggle
+    BOOL _controllersTabActive;  // Controllers sidebar tab is the active one
     std::string _selectedModelName;  // J-2 — Layout Editor selection ring (primary)
     std::set<std::string> _extraSelectedModels;  // J-4 — multi-select secondary set
     std::string _selectedGroupName;        // J-6 — sidebar group sync (members tinted)
@@ -165,6 +167,7 @@
         _isModelPreview = [name isEqualToString:@"ModelPreview"];
         _isLayoutEditor = [name isEqualToString:@"LayoutEditor"];
         _showViewObjects = YES;
+        _controllersTabActive = NO;
         _bgTexture = nullptr;
         _bgImageWidth = 0;
         _bgImageHeight = 0;
@@ -303,6 +306,34 @@ static std::unique_ptr<xlImage> LoadImageFile(const std::string& path, int& outW
     } else {
         _selectedControllerName = name.UTF8String;
     }
+}
+
+- (void)setControllersTabActive:(BOOL)active {
+    _controllersTabActive = active;
+}
+
+// Mirrors ModelPreview::ShouldDrawViewObject on desktop. The visibility policy
+// itself is shared (ControllerObject::ShouldDraw in src-core) - only the
+// mapping from "which canvas am I" to a context lives here.
+- (BOOL)shouldDrawViewObject:(ViewObject*)vo context:(iPadRenderContext*)rctx {
+    ControllerObject* co = dynamic_cast<ControllerObject*>(vo);
+    if (co == nullptr) {
+        return YES;
+    }
+    ControllerObjectContext ctx = ControllerObjectContext::None;
+    if (_isLayoutEditor) {
+        ctx = _controllersTabActive ? ControllerObjectContext::LayoutEditorControllerTab
+                                    : ControllerObjectContext::LayoutEditor;
+    }
+    if (!co->ShouldDrawIn(ctx)) {
+        return NO;
+    }
+    // Orphan - the bound controller is gone. Retained on disk (a base show
+    // merge may bring the controller back) but not drawn.
+    if (rctx == nullptr) {
+        return NO;
+    }
+    return rctx->GetOutputManager().GetController(co->GetControllerName()) != nullptr;
 }
 
 - (void)setSelectedViewObject:(NSString*)name {
@@ -1896,6 +1927,20 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return NO;
 }
 
+// Which view objects a canvas tap may pick on the active tab. Mirrors
+// LayoutPanel::IsObjectEditable on desktop: each tab owns a disjoint subset of
+// ViewObjectManager, so the Controllers tab can't grab a Terrain / House mesh
+// and the Objects tab can't grab a controller box it doesn't even list.
+- (BOOL)isViewObjectPickable:(ViewObject*)vo context:(iPadRenderContext*)rctx {
+    ControllerObject* co = dynamic_cast<ControllerObject*>(vo);
+    if (_controllersTabActive) {
+        // Only controller boxes, and only ones actually drawn - an invisible or
+        // orphaned box must not be pickable.
+        return co != nullptr && [self shouldDrawViewObject:vo context:rctx];
+    }
+    return co == nullptr;
+}
+
 // J-13 — view-object hit-test. Mirrors `pickModelAtScreenPoint`
 // but searches `ViewObjectManager`. Returns the topmost hit
 // (last-drawn = visually on top).
@@ -1918,6 +1963,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         for (auto it = vm.begin(); it != vm.end(); ++it) {
             ViewObject* vo = it->second;
             if (!vo) continue;
+            if (![self isViewObjectPickable:vo context:rctx]) continue;
             float dist = 0.0f;
             if (vo->GetObjectScreenLocation().HitTest3D(
                     ray_origin, ray_direction, dist) && dist < bestDist) {
@@ -1938,6 +1984,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     for (auto it = vm.begin(); it != vm.end(); ++it) {
         ViewObject* vo = it->second;
         if (!vo) continue;
+        if (![self isViewObjectPickable:vo context:rctx]) continue;
         auto& loc = vo->GetObjectScreenLocation();
         float cx = loc.GetHcenterPos();
         float cy = loc.GetVcenterPos();
@@ -3694,6 +3741,7 @@ public:
             for (auto it = allObjects.begin(); it != allObjects.end(); ++it) {
                 ViewObject* vo = it->second;
                 if (!vo) continue;
+                if (![self shouldDrawViewObject:vo context:ctx]) continue;
                 // J-6 (sidebar canvas sync) — when the Objects tab
                 // has a pick, render that object with
                 // `allowSelected=true` so its ScreenLocation

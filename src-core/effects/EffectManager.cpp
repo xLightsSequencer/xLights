@@ -14,6 +14,7 @@
 #include <utility>
 
 #include <nlohmann/json.hpp>
+#include <chrono>
 #include <spdlog/spdlog.h>
 
 #include "utils/ExternalHooks.h"
@@ -96,6 +97,9 @@ inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
 EffectManager::EffectManager(std::string metadataDir)
     : mMetadataDir(metadataDir.empty() ? FileUtils::GetEffectMetadataDirectory() : std::move(metadataDir))
 {
+    // Construction reads and parses one metadata JSON per effect. On iPad this
+    // sits on the pre-first-frame launch path, so the cost is worth reporting.
+    const auto ctorStart = std::chrono::steady_clock::now();
     add(createEffect(eff_OFF));
     add(createEffect(eff_ON));
     add(createEffect(eff_ADJUST));
@@ -155,6 +159,11 @@ EffectManager::EffectManager(std::string metadataDir)
 
     //Map an old name
     effectsByName["CoroFaces"] = GetEffect("Faces");
+
+    const double ctorMs = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - ctorStart).count();
+    spdlog::info("EffectManager: built {} effects ({} with metadata) in {:.1f}ms",
+                 effects.size(), mMetadataLoaded, ctorMs);
 }
 
 EffectManager::~EffectManager()
@@ -273,6 +282,7 @@ void EffectManager::loadMetadataInto(RenderableEffect *eff) {
             return;
         }
         eff->SetMetadata(nlohmann::json::parse(f));
+        ++mMetadataLoaded;
     } catch (const nlohmann::json::parse_error& e) {
         spdlog::error("EffectManager: JSON parse error in {}: {}", path, e.what());
     }

@@ -30,6 +30,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <chrono>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -128,14 +129,37 @@ static std::string emitUBOBlock(const std::vector<UBOMember>& members) {
 // actually DEFINES one of these names, rename every occurrence so it no longer
 // collides with the built-in.  Renaming is gated on the presence of a real
 // definition, so a bare built-in call is never turned into an undefined one.
-static std::string renameBuiltinFunctionCollisions(std::string body) {
+// `aggressive` widens the list to every built-in a shader might plausibly
+// define.  Renaming is safe only when the shader's definition actually collides:
+// a DIFFERENT-arity definition (e.g. `float sign(vec2,vec2,vec2)`) is a legal
+// overload that glslang accepts, and renaming it would also rewrite that
+// shader's calls to the real built-in.  So the wide list is used only as a
+// retry, after glslang has already rejected the minimal form - see
+// buildVulkanProgram.
+static std::string renameBuiltinFunctionCollisions(std::string body, bool aggressive = false) {
+    // Renamed up front, without paying for a failed translate first.
     static const char* const kBuiltins[] = {
         "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"
+    };
+    // Every built-in that takes the shapes a hand-written helper tends to use.
+    static const char* const kBuiltinsWide[] = {
+        "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "distance",
+        "length", "dot", "cross", "normalize", "reflect", "refract", "faceforward",
+        "mod", "modf", "fract", "floor", "ceil", "round", "roundEven", "trunc",
+        "sign", "abs", "min", "max", "clamp", "mix", "step", "smoothstep",
+        "pow", "exp", "log", "exp2", "log2", "sqrt", "inversesqrt",
+        "radians", "degrees", "sin", "cos", "tan", "asin", "acos", "atan",
+        "noise1", "noise2", "noise3", "noise4", "isnan", "isinf",
+        "transpose", "determinant", "inverse", "outerProduct", "matrixCompMult"
     };
     static const char* const kRetType =
         "(void|float|int|uint|bool|vec2|vec3|vec4|ivec2|ivec3|ivec4|"
         "uvec2|uvec3|uvec4|bvec2|bvec3|bvec4|mat2|mat3|mat4)";
-    for (const char* name : kBuiltins) {
+    const char* const* names = aggressive ? kBuiltinsWide : kBuiltins;
+    const size_t count = aggressive ? (sizeof(kBuiltinsWide) / sizeof(kBuiltinsWide[0]))
+                                    : (sizeof(kBuiltins) / sizeof(kBuiltins[0]));
+    for (size_t i = 0; i < count; ++i) {
+        const char* name = names[i];
         // A definition/prototype looks like "<returnType> <name>(" at any scope;
         // a plain call ("y = sinh(x)") never matches because the name is not
         // immediately preceded by a return type.
@@ -153,9 +177,12 @@ static std::string renameBuiltinFunctionCollisions(std::string body) {
 // declaration order.  Returns false only if no member list could be built.
 static bool assembleVulkanGLSL(const std::string& code,
                                std::vector<UBOMember>& members,
-                               std::string& fragOut, std::string& vertOut) {
+                               std::string& fragOut, std::string& vertOut,
+                               bool aggressiveRename = false,
+                               bool* hasSampler = nullptr) {
     std::string extensions;
     std::string body;
+    std::string samplerName;
     int brace = 0;
     bool versionSeen = false;
 
@@ -195,6 +222,9 @@ static bool assembleVulkanGLSL(const std::string& code,
                     // (foundation's shaderSetLayout).  Only texSampler is
                     // expected for our shaders.
                     body += "layout(set=0, binding=1) " + trimmed + "\n";
+                    std::string sAfter = ltrim(rest.substr(sp));
+                    size_t sSemi = sAfter.find(';');
+                    samplerName = rtrim(sAfter.substr(0, (sSemi == std::string::npos) ? sAfter.size() : sSemi));
                     continue;
                 }
                 std::string after = ltrim(rest.substr(sp));
@@ -246,7 +276,20 @@ static bool assembleVulkanGLSL(const std::string& code,
     body = std::regex_replace(body, std::regex("\\b(highp|mediump|lowp)\\s+"), "");
     // Rename user functions that shadow GLSL built-ins (sinh/cosh/tanh/...) —
     // legal on the GL/Metal paths but a hard error under glslang Vulkan semantics.
-    body = renameBuiltinFunctionCollisions(body);
+    body = renameBuiltinFunctionCollisions(body, aggressiveRename);
+
+    // Does the shader actually SAMPLE, or does it merely carry the declaration?
+    // ShaderEffect's preamble declares `uniform sampler2D texSampler;` for every
+    // shader whether or not it is used, so the declaration proves nothing —
+    // count real references (the declaration itself is the first one).
+    if (hasSampler != nullptr && !samplerName.empty()) {
+        const std::regex use("\\b" + samplerName + "\\b");
+        int uses = 0;
+        for (std::sregex_iterator it(body.begin(), body.end(), use), end; it != end && uses < 2; ++it) {
+            ++uses;
+        }
+        *hasSampler = uses > 1;
+    }
 
     if (members.empty()) {
         return false;
@@ -291,6 +334,11 @@ struct CachedProgram {
     VkPipeline pipeline = VK_NULL_HANDLE;
     std::vector<UBOMember> members;
     uint32_t uboSize = 16;
+    // False when the fragment stage declares no sampler at all, which lets the
+    // render path skip uploading an input image the shader cannot read.  Three
+    // quarters of a typical ISF corpus are purely generative, and that upload
+    // costs a staging copy plus a command-buffer submit and a full fence wait.
+    bool hasSampler = false;
 };
 static std::mutex sProgramCacheMutex;
 static std::unordered_map<std::string, CachedProgram>& programCache() {
@@ -302,7 +350,7 @@ static CachedProgram buildVulkanProgram(const std::string& code, const std::stri
     CachedProgram out;
     std::vector<UBOMember> members;
     std::string fragGLSL, vertGLSL;
-    if (!assembleVulkanGLSL(code, members, fragGLSL, vertGLSL)) {
+    if (!assembleVulkanGLSL(code, members, fragGLSL, vertGLSL, false, &out.hasSampler)) {
         if (sDbg) fprintf(stderr, "VULKAN shader assemble-fail %s: no uniforms\n", label.c_str());
         return out;
     }
@@ -315,8 +363,33 @@ static CachedProgram buildVulkanProgram(const std::string& code, const std::stri
         return out;
     }
     if (!VulkanShaderTranslate::ToSpirv(fragGLSL, VulkanShaderTranslate::Stage::Fragment, fspv, err)) {
-        if (sDbg) fprintf(stderr, "VULKAN frag xlate-fail %s: %s\n", label.c_str(), err.substr(0, 400).c_str());
-        return out;
+        // A user function whose signature exactly matches a GLSL built-in is an
+        // illegal overload here ("overloaded functions must have the same
+        // parameter precision qualifiers"), though it is fine on the GL and
+        // Metal paths. Re-assemble renaming every built-in name the shader
+        // defines and try once more. Gated on an actual failure so shaders whose
+        // helpers are legal DIFFERENT-arity overloads are never rewritten.
+        std::vector<UBOMember> wideMembers;
+        std::string wideFrag, wideVert;
+        std::string wideErr;
+        fspv.clear(); // the failed attempt may have left partial output
+        out.hasSampler = false; // re-derived by the retry's assemble below
+        if (assembleVulkanGLSL(code, wideMembers, wideFrag, wideVert, true, &out.hasSampler) &&
+            VulkanShaderTranslate::ToSpirv(wideFrag, VulkanShaderTranslate::Stage::Fragment, fspv, wideErr)) {
+            if (sDbg) fprintf(stderr, "VULKAN frag xlate-retry-ok %s\n", label.c_str());
+            members = std::move(wideMembers);
+            computeStd140(members, out.uboSize);
+            fragGLSL = std::move(wideFrag);
+            vertGLSL = std::move(wideVert);
+            vspv.clear();
+            if (!VulkanShaderTranslate::ToSpirv(vertGLSL, VulkanShaderTranslate::Stage::Vertex, vspv, wideErr)) {
+                if (sDbg) fprintf(stderr, "VULKAN vtx xlate-fail (retry) %s: %s\n", label.c_str(), wideErr.substr(0, 400).c_str());
+                return out;
+            }
+        } else {
+            if (sDbg) fprintf(stderr, "VULKAN frag xlate-fail %s: %s\n", label.c_str(), err.substr(0, 400).c_str());
+            return out;
+        }
     }
 
     VkPipelineLayout layout = VulkanGraphicsUtilities::INSTANCE.shaderPipelineLayout();
@@ -349,12 +422,14 @@ public:
     VkPipeline pipeline = VK_NULL_HANDLE;
     std::vector<UBOMember> members;
     uint32_t uboSize = 16;
+    bool hasSampler = false;
     VulkanBuffer ubo{};
 
     virtual void platformReset() override {
         pipeline = VK_NULL_HANDLE; // owned by the process-wide programCache
         members.clear();
         uboSize = 16;
+        hasSampler = false;
         if (ubo) VulkanComputeUtilities::INSTANCE.destroyBuffer(ubo);
         ubo = VulkanBuffer{};
     }
@@ -366,8 +441,16 @@ public:
             auto& cache = programCache();
             auto it = cache.find(transformedSource);
             if (it == cache.end()) {
+                const auto t0 = std::chrono::steady_clock::now();
                 it = cache.emplace(transformedSource,
                                    buildVulkanProgram(transformedSource, config->GetFilename())).first;
+                if (ShaderBuildStats::Enabled()) {
+                    ShaderBuildStats::AddTranslate((uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                                       std::chrono::steady_clock::now() - t0)
+                                                       .count());
+                }
+            } else if (ShaderBuildStats::Enabled()) {
+                ShaderBuildStats::AddCacheHit();
             }
             prog = it->second;
         }
@@ -375,6 +458,7 @@ public:
         pipeline = prog.pipeline;
         members = prog.members;
         uboSize = prog.uboSize;
+        hasSampler = prog.hasSampler;
 
         if (!ubo || ubo.size < uboSize) {
             if (ubo) VulkanComputeUtilities::INSTANCE.destroyBuffer(ubo);
@@ -462,13 +546,27 @@ bool VulkanShaderEffect::nativeEncode(CacheBase* base, RenderBuffer& buffer,
     // FFT/intensity texture; everything else samples the buffer's own pixels
     // (previous frame's output / canvas), matching the GL and Metal paths.
     // On upload failure the foundation's 1x1 dummy stays bound.
+    //
+    // Skipped entirely for a fragment stage that declares no sampler, as Metal
+    // already does (it uploads only `if (usesTexture)`).  Unlike Metal's
+    // replaceRegion on shared storage, this upload costs a staging copy, a
+    // command buffer, a queue submit and a full fence wait, so doing it for a
+    // purely generative shader burns a whole GPU round trip per frame to
+    // populate an image nothing reads.
     VkImageView inputView = VK_NULL_HANDLE;
-    if (kind == InputKind::Audio && audio128 != nullptr) {
-        inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(128, 1, VK_FORMAT_R32_SFLOAT, audio128, 128 * sizeof(float));
-    } else {
-        inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(
-            (uint32_t)buffer.BufferWi, (uint32_t)buffer.BufferHt, VK_FORMAT_R8G8B8A8_UNORM,
-            buffer.GetPixels(), (size_t)buffer.BufferWi * buffer.BufferHt * 4);
+    if (cache->hasSampler) {
+        const auto t0 = std::chrono::steady_clock::now();
+        if (kind == InputKind::Audio && audio128 != nullptr) {
+            inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(128, 1, VK_FORMAT_R32_SFLOAT, audio128, 128 * sizeof(float));
+        } else {
+            inputView = VulkanGraphicsUtilities::INSTANCE.prepareInputImage(
+                (uint32_t)buffer.BufferWi, (uint32_t)buffer.BufferHt, VK_FORMAT_R8G8B8A8_UNORM,
+                buffer.GetPixels(), (size_t)buffer.BufferWi * buffer.BufferHt * 4);
+        }
+        if (ShaderBuildStats::Enabled()) {
+            ShaderBuildStats::AddUpload((uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                            std::chrono::steady_clock::now() - t0).count());
+        }
     }
 
     if (!VulkanGraphicsUtilities::INSTANCE.renderShader(buffer, cache->pipeline, cache->ubo.buffer, inputView)) {

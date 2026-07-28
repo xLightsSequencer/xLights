@@ -22,6 +22,7 @@
 #include "Color.h"
 #include "render/ViewpointMgr.h"
 #include "models/ModelManager.h"
+#include "models/ControllerObject.h"
 
 #include "layout/Mouse3DManager.h"
 
@@ -35,6 +36,7 @@
 
 class Model;
 class ModelGroup;
+class ViewObject;
 class PreviewPane;
 class LayoutGroup;
 class xLightsFrame;
@@ -108,6 +110,9 @@ public:
     void Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
+    // Also the authority for whether a controller box can be picked - see
+    // LayoutPanel::IsObjectEditable.
+    bool ShouldDrawViewObject(const ViewObject* view_object) const;
     void SetShowModelNames(bool b) { _showModelNames = b; Refresh(); }
     void SetShowModelInfo(bool b) { _showModelInfo = b; Refresh(); }
 
@@ -144,6 +149,8 @@ public:
     void SetPan(float deltax, float deltay, float deltaz);
     void Set3D(bool value) { is3d = value; }
     bool Is3D() const override { return is3d; }
+    void SetControllerObjectContext(ControllerObjectContext c) { _controllerObjectContext = c; }
+    ControllerObjectContext GetControllerObjectContext() const { return _controllerObjectContext; }
     glm::mat4& GetProjViewMatrix() override { return ProjViewMatrix; }
     glm::mat4& GetProjMatrix() override { return ProjMatrix; }
     glm::mat4& GetViewMatrix() override { return ViewMatrix; }
@@ -221,6 +228,7 @@ private:
     bool scaleImage = false;
     bool allowSelected;
     bool allowPreviewChange;
+    ControllerObjectContext _controllerObjectContext = ControllerObjectContext::None;
     PreviewPane* mPreviewPane;
 
     xLightsFrame* xlights = nullptr;

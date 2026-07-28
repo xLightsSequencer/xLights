@@ -735,6 +735,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     spdlog::debug("LayoutPanel basic setup complete");
     modelPreview = new ModelPreview( (wxPanel*) PreviewGLPanel, xlights, true, 0, false, true);
+    modelPreview->SetControllerObjectContext(ControllerObjectContext::LayoutEditor);
     LayoutGLSizer->Insert(0, modelPreview, 1, wxALL | wxEXPAND, 0);
     PreviewGLSizer->Fit(PreviewGLPanel);
     PreviewGLSizer->SetSizeHints(PreviewGLPanel);
@@ -1749,6 +1750,15 @@ void LayoutPanel::ClearSelectedModelGroup()
 
 void LayoutPanel::resetPropertyGrid() {
     spdlog::debug("        resetPropertyGrid.");
+
+    // On the Controllers page the equivalent refresh is the controller pane -
+    // this is what keeps the placement fields live while a box is dragged.
+    if (CurrentObjectsPage() == ObjectsPage::Controllers) {
+        if (controllers_panel != nullptr) {
+            controllers_panel->UpdateControllerProperties();
+        }
+        return;
+    }
 
     if (selectedBaseObject != nullptr && selectedBaseObject->GetDisplayAs() == DisplayAsType::ModelGroup)
     {
@@ -3887,6 +3897,12 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
 void LayoutPanel::ShowSettingsPropGrid()
 {
     if (SettingsPaneContainer == nullptr) return;
+    // The Controllers page owns its pane. Without this, dragging a controller
+    // box queues WORK_RELOAD_PROPERTYGRID -> resetPropertyGrid -> SetupPropGrid
+    // -> here, which swaps the controller properties out mid-drag and leaves no
+    // way back short of changing tabs. ShowPropGrid and showBackgroundProperties
+    // already guard; this one was the hole.
+    if (CurrentObjectsPage() == ObjectsPage::Controllers) return;
     wxSizer* s = SettingsPaneContainer->GetSizer();
     s->Hide(ModelGroupWindow);
     s->Hide(controllerProps);
@@ -4047,6 +4063,7 @@ void LayoutPanel::SelectAllModels()
     else {
         for (const auto& it : xlights->AllObjects) {
             ViewObject* view_object = it.second;
+            if (!IsObjectEditable(view_object)) continue;
 
             if (selectedBaseObject == nullptr)
             {
@@ -4318,11 +4335,20 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
     if (v != nullptr) {
         v->Selected(true);
 
-        if( highlight_tree ) {
-            objects_panel->HighlightObject(v);
-        }
-        if (changed) {
-            SetupPropGrid(v);
+        // A controller box belongs to the Controllers page, not the objects
+        // tree: mirror the selection onto its controller row, which also drives
+        // the model highlighting for that controller.
+        if (auto* co = dynamic_cast<ControllerObject*>(v); co != nullptr) {
+            if (controllers_panel != nullptr && highlight_tree) {
+                controllers_panel->SelectController(co->GetControllerName());
+            }
+        } else {
+            if( highlight_tree ) {
+                objects_panel->HighlightObject(v);
+            }
+            if (changed) {
+                SetupPropGrid(v);
+            }
         }
     } else {
         propertyEditor->Freeze();
@@ -4571,6 +4597,25 @@ int LayoutPanel::FindModelsClicked(int x, int y, std::vector<int>& found)
     return found.size();
 }
 
+// 2D view-object pick. The 3D path ray-tests via HitTest3D; in 2D the screen
+// location's flat HitTest is the equivalent, same as models use.
+ViewObject* LayoutPanel::SelectSingleViewObject(int x, int y)
+{
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(x, y, ray_origin, ray_direction);
+
+    ViewObject* found = nullptr;
+    for (const auto& it : xlights->AllObjects) {
+        ViewObject* vo = it.second;
+        if (!IsObjectEditable(vo)) continue;
+        if (vo->GetBaseObjectScreenLocation().HitTest(ray_origin, ray_direction)) {
+            found = vo;  // keep walking - later entries draw on top
+        }
+    }
+    return found;
+}
+
 Model* LayoutPanel::SelectSingleModel(int x, int y)
 {
     UnSelectAllModelsInTree();
@@ -4655,6 +4700,7 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
     if (!editing_models || models_and_objects) {
         for (const auto& it : xlights->AllObjects) {
             ViewObject* view_object = it.second;
+            if (!IsObjectEditable(view_object)) continue;
             {
                 if (view_object->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
                     // if we dont have a selected model make the first one we find the selected model so alignment etc works
@@ -4714,6 +4760,7 @@ void LayoutPanel::HighlightAllInBoundingRect(bool models_and_objects)
     if (!editing_models || models_and_objects) {
         for (const auto& it : xlights->AllObjects) {
             ViewObject* view_object = it.second;
+            if (!IsObjectEditable(view_object)) continue;
             if (view_object->GetBaseObjectScreenLocation().IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
                 view_object->Highlighted(true);
             } else if (!view_object->Selected() &&
@@ -4986,6 +5033,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     for (const auto& it : xlights->AllObjects) {
                         ViewObject* vo = it.second;
                         if (vo == selectedBaseObject) continue;
+                        if (!IsObjectEditable(vo)) continue;
                         float intersection_distance = 1000000000.0f;
                         if (vo->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                             if (intersection_distance < distance) {
@@ -5124,6 +5172,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
         else {
             for (const auto& it : xlights->AllObjects) {
                 ViewObject* view_object = it.second;
+                if (!IsObjectEditable(view_object)) continue;
                 if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                     if (intersection_distance < distance) {
                         distance = intersection_distance;
@@ -5271,12 +5320,17 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     {
         bool handledByNewApi = false;
         if (selectedBaseObject != nullptr) {
+            // GetHandles / BeginDrag live on BaseObject, so view objects
+            // (controller boxes) flow through the same 2D handle path as
+            // models. `model` stays null for them - it is only needed for the
+            // Model-Set defer below.
+            BaseObject* obj = selectedBaseObject;
             Model* model = dynamic_cast<Model*>(selectedBaseObject);
-            if (model != nullptr) {
+            {
                 handles::ViewParams view2d;  // 2D handles are at
                 // fixed positions (no camera-zoom scaling), so the
                 // default 60/4 ViewParams are fine.
-                auto descriptors = model->GetHandles(
+                auto descriptors = obj->GetHandles(
                     handles::ViewMode::TwoD, handles::Tool::Translate, view2d);
                 if (!descriptors.empty()) {
                     handles::ScreenProjection proj{
@@ -5303,17 +5357,18 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                             // moves (or stays frozen if a member is locked).
                             // Alt keeps the single-model session.
                             bool deferToSetDrag = false;
-                            if (hit->id.role == handles::Role::Move && !event.AltDown()) {
+                            if (model != nullptr && hit->id.role == handles::Role::Move && !event.AltDown()) {
                                 deferToSetDrag = xlights->AllModels.GetSetManager().GetSetContaining(model->GetName()) != nullptr;
                             }
                             handles::WorldRay startRay;
                             GetMouseLocation(event.GetX(), event.GetY(),
                                               startRay.origin, startRay.direction);
                             if (!deferToSetDrag) {
-                                if (auto session = model->BeginDrag(hit->id, startRay)) {
+                                if (auto session = obj->BeginDrag(hit->id, startRay)) {
                                     xlights->AbortRender();
                                     if (selectedBaseObject != _newModel) {
-                                        CreateUndoPoint("SingleModel", selectedBaseObject->name, "");
+                                        CreateUndoPoint(model != nullptr ? "SingleModel" : "SingleObject",
+                                                        selectedBaseObject->name, "");
                                     }
                                     m_dragSession = std::move(session);
                                     m_moving_handle = true;
@@ -5439,7 +5494,18 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             UnSelectAllModelsInTree();
         }
 
-        Model* singleModel = SelectSingleModel(event.GetX(), event.GetY());
+        // View objects first when this page edits them - otherwise a
+        // controller box sitting over a model could never be picked.
+        ViewObject* singleObject = editing_models ? nullptr : SelectSingleViewObject(event.GetX(), event.GetY());
+        if (singleObject != nullptr) {
+            SelectBaseObject(singleObject, true);
+            m_dragging = true;
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+            return;
+        }
+
+        Model* singleModel = editing_models ? SelectSingleModel(event.GetX(), event.GetY()) : nullptr;
         if (singleModel != nullptr)
         {
             SelectModelInTree(singleModel);
@@ -6762,6 +6828,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Not editing models");
                 for (const auto& it : xlights->AllObjects) {
                     ViewObject *view_object = it.second;
+                    if (!IsObjectEditable(view_object)) continue;
                     if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                         if (intersection_distance < distance) {
                             distance = intersection_distance;
@@ -6917,6 +6984,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                     } else {
                         for (const auto& it : xlights->AllObjects) {
                             ViewObject *view_object = it.second;
+                            if (!IsObjectEditable(view_object)) continue;
                             if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
                                 if (intersection_distance < distance) {
                                     distance = intersection_distance;
@@ -6997,11 +7065,15 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
 
-    Model* m = _newModel;
-    if (m == nullptr) {
-        m = dynamic_cast<Model*>(selectedBaseObject);
-        if (m == nullptr) return;
+    // Handle drag, body drag and hover all work off BaseObject, so a selected
+    // view object (controller box) drives them the same way a model does.
+    // `m` stays null for view objects and gates the model-only branches.
+    BaseObject* obj = _newModel;
+    if (obj == nullptr) {
+        obj = selectedBaseObject;
+        if (obj == nullptr) return;
     }
+    Model* m = dynamic_cast<Model*>(obj);
 
     if (m_moving_handle) {
         if (!xlights->AbortRender()) return;
@@ -7010,14 +7082,14 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
             GetMouseLocation(event.GetX(), event.GetY(), ray.origin, ray.direction);
             auto result = m_dragSession->Update(ray, ModsFromEvent(event));
             if (result == handles::UpdateResult::NeedsInit) {
-                m->Setup();
-                m->IncrementChangeCount();
+                obj->Setup();
+                obj->IncrementChangeCount();
             }
             if (result == handles::UpdateResult::Updated ||
                 result == handles::UpdateResult::NeedsInit) {
                 xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f",
-                    m->GetBaseObjectScreenLocation().GetCenterPosition().x,
-                    m->GetBaseObjectScreenLocation().GetCenterPosition().y));
+                    obj->GetBaseObjectScreenLocation().GetCenterPosition().x,
+                    obj->GetBaseObjectScreenLocation().GetCenterPosition().y));
 
                 // Multi-select propagation for 2D handle drags.
                 const int selectedModelCnt      = ModelsSelectedCount();
@@ -7125,6 +7197,18 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove");
                 }
             }
+            // View objects drag with the same delta. Model Set semantics are a
+            // models-only concept, so none of the Set handling above applies.
+            for (const auto& it : xlights->AllObjects) {
+                ViewObject* vo = it.second;
+                if (!IsObjectEditable(vo)) continue;
+                if (!vo->Selected() && !vo->GroupSelected()) continue;
+                if (!vo->GetBaseObjectScreenLocation().IsLocked()) {
+                    CreateUndoPoint("SingleObject", vo->name, "location");
+                }
+                vo->AddOffset(delta_x, delta_y, 0.0);
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
+            }
             setDragBlocked = !blockedSets.empty();
         }
         m_previous_mouse_x = event.GetPosition().x;
@@ -7137,10 +7221,10 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
     else {
-        if (m->Selected()) {
+        if (obj->Selected()) {
             extern CursorType GetResizeCursor(int cornerIndex, int PreviewRotation);
             handles::ViewParams view2d;
-            const auto descs = m->GetHandles(handles::ViewMode::TwoD, handles::Tool::Translate, view2d);
+            const auto descs = obj->GetHandles(handles::ViewMode::TwoD, handles::Tool::Translate, view2d);
             CursorType hoverCur = CursorType::Default;
             std::optional<handles::Id> hoverId;
             if (!descs.empty()) {
@@ -7160,7 +7244,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                             break;
                         case handles::Role::ResizeCorner: {
                             // id.index uses the L_TOP/R_TOP/etc. constants directly.
-                            const int rotZ = static_cast<int>(m->GetBaseObjectScreenLocation().GetRotateZ());
+                            const int rotZ = static_cast<int>(obj->GetBaseObjectScreenLocation().GetRotateZ());
                             hoverCur = GetResizeCursor(h->id.index, rotZ);
                             break;
                         }
@@ -8866,6 +8950,9 @@ std::vector<Model *> LayoutPanel::GetSelectedModelsFromGroup(wxTreeListItem grou
         {
             ModelTreeData *data = (ModelTreeData*)ActiveModelTree()->GetItemData(item);
             Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+            if (model == nullptr) {
+                continue;
+            }
 
             if (model->GetDisplayAs() == DisplayAsType::ModelGroup && nested == true) {
                 std::vector<Model *> nestedModels = GetSelectedModelsFromGroup(item, true);
@@ -11888,7 +11975,33 @@ void LayoutPanel::UpdateLayoutSplitter() {
     }
 }
 
+// Kept ahead of the early-return below: the notebook page can also change via
+// ChangeSelection (which fires no event), so this function - not the page-changed
+// handler - is the one reliable funnel for "the active page changed".
+void LayoutPanel::UpdateControllerObjectContext() {
+    if (modelPreview == nullptr) {
+        return;
+    }
+    const ControllerObjectContext ctx = (CurrentObjectsPage() == ObjectsPage::Controllers)
+        ? ControllerObjectContext::LayoutEditorControllerTab
+        : ControllerObjectContext::LayoutEditor;
+    if (modelPreview->GetControllerObjectContext() == ctx) {
+        return;
+    }
+    modelPreview->SetControllerObjectContext(ctx);
+    // The set of visible controller objects just changed.
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+                                                 "LayoutPanel::UpdateControllerObjectContext");
+}
+
 void LayoutPanel::UpdateSettingsPaneForPage() {
+    UpdateControllerObjectContext();
+    // The Controllers page also edits view objects, so a left-over selection
+    // from the 3D Objects page would still be the target of Delete / align /
+    // distribute while a controller box is what is selected on screen.
+    if (objects_panel != nullptr && CurrentObjectsPage() != ObjectsPage::Objects) {
+        objects_panel->ClearSelectedObject();
+    }
     if (layout_mgr == nullptr || controllers_panel == nullptr) {
         return;
     }
@@ -12239,22 +12352,15 @@ void LayoutPanel::HandleSelectionChanged() {
         for (const auto& item : selectedItems) {
             Model* model = GetModelFromTreeItem(item);
             if (model != nullptr) {
-                #ifdef __LINUX__
-                                // This seems to happen only on Linux so prevent the crash
-                                if (!xlights->AllModels.IsModelValid(model)) {
-                                    spdlog::debug("LINUX ONLY Error: LayoutPanel::OnSelectionChanged Model is Not Valid pointer. This would have crashed. Ignoring.");
-                                    return;
-                                }
-                #elif defined(__WXOSX__)
-                                // Given I am seeing these crashes on OSX but not windows I suspect like LINUX these crashes occur
-                                // If is likely due to differences in the order messages arrive on the different platforms that results in invalid pointers
-                                // This code will prove that theory
-                                if (!xlights->AllModels.IsModelValid(model)) {
-                                    spdlog::critical("LayoutPanel::OnSelectionChanged model was not valid ... this is going to crash.");
-                                }
-                #else
-                                wxASSERT(xlights->AllModels.IsModelValid(model));
-                #endif
+                // The tree hands back models that have already been freed: the selection-changed
+                // event is queued before a delete/refresh and delivered after it, so the item data
+                // still points at the old Model. Skip that item rather than writing through the
+                // stale pointer. Only Linux used to bail here; the same crash arrives on macOS and
+                // Windows, which merely logged or asserted and then crashed anyway.
+                if (!xlights->AllModels.IsModelValid(model)) {
+                    spdlog::error("LayoutPanel::HandleSelectionChanged ignoring a selected tree item holding a stale model pointer.");
+                    continue;
+                }
                 if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
                     selectedTreeGroups.push_back(item);
                     SetTreeGroupModelsSelected(model, isPrimary);
@@ -12279,14 +12385,20 @@ void LayoutPanel::HandleSelectionChanged() {
         if (selectedPrimaryTreeItem == nullptr) {
             if (selectedTreeModels.size() > 0) {
                 Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
-                SetTreeModelSelected(model, true);
-                selectedPrimaryTreeItem = selectedTreeModels[0];
+                if (model != nullptr) {
+                    SetTreeModelSelected(model, true);
+                    selectedPrimaryTreeItem = selectedTreeModels[0];
+                }
             } else if (selectedTreeSubModels.size() > 0) {
                 Model* model = GetModelFromTreeItem(selectedTreeSubModels[0]);
-                SetTreeSubModelSelected(model, true);
+                if (model != nullptr) {
+                    SetTreeSubModelSelected(model, true);
+                }
             } else if (selectedTreeGroups.size() > 0){
                 Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
-                SetTreeGroupModelsSelected(model, true);
+                if (model != nullptr) {
+                    SetTreeGroupModelsSelected(model, true);
+                }
             }
         }
 
@@ -12306,7 +12418,7 @@ void LayoutPanel::HandleSelectionChanged() {
             tooltip = wxString::Format("Selected Items:\n -Groups: %d\n -Models: %d\n -SubModels: %d\n\nTotal Nodes: %d", gSize, mSize, smSize, calculateNodeCountOfSelected());
         } else if (gSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeGroups[0]);
-            if (model->IsFromBase()) {
+            if (model != nullptr && model->IsFromBase()) {
                 tooltip = "From Base Show Folder";
             } else {
                 tooltip = wxString::Format("Total Nodes in Group: %d", calculateNodeCountOfSelected());
@@ -12316,8 +12428,12 @@ void LayoutPanel::HandleSelectionChanged() {
             model_grp_panel->Show();
         } else if (smSize == 1) {
             Model* subModel = GetModelFromTreeItem(selectedTreeSubModels[0]);
-            SetupPropGrid(subModel);
-            ShowPropGrid(true);
+            if (subModel != nullptr) {
+                SetupPropGrid(subModel);
+                ShowPropGrid(true);
+            } else {
+                showBackgroundProperties();
+            }
         } else if (mSize == 1) {
             Model* model = GetModelFromTreeItem(selectedTreeModels[0]);
             if (model != nullptr) {
@@ -12328,7 +12444,7 @@ void LayoutPanel::HandleSelectionChanged() {
             } else {
                 spdlog::critical("LayoutPanel::HandleSelectionChanged Model was selected and now is null, this should not have happened.");
             }
-            if (selectedBaseObject->GetBaseObjectScreenLocation().hasX2()) {
+            if (selectedBaseObject != nullptr && selectedBaseObject->GetBaseObjectScreenLocation().hasX2()) {
                 const TwoPointScreenLocation& screenLoc = dynamic_cast<const TwoPointScreenLocation&>(selectedBaseObject->GetBaseObjectScreenLocation());
                 glm::vec3 loc = screenLoc.GetWorldPosition();
                 float x1 = loc.x;
@@ -12365,12 +12481,18 @@ void LayoutPanel::HandleSelectionChanged() {
         // ActiveModelTree()->SetFocus();
         // #endif
 
-        auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
-        if (Is3d()) {
+        // Nothing above is guaranteed to have latched a selection: every tree item can
+        // resolve to a null or stale model, in which case UnSelectAllModels' nulling of
+        // selectedBaseObject at the top of this function still stands.
+        if (selectedBaseObject != nullptr) {
             auto pos = selectedBaseObject->GetBaseObjectScreenLocation().GetWorldPosition();
-            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
+            if (Is3d()) {
+                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f z=%.2f %s", pos.x, pos.y, pos.z, selectedBaseObject->GetDimension()));
+            } else {
+                xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
+            }
         } else {
-            xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f", pos.x, pos.y));
+            xlights->SetStatusText("");
         }
 
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::HandleSelectionChanged");
@@ -12670,6 +12792,24 @@ bool LayoutPanel::IsControllersPageActive() const {
     return CurrentObjectsPage() == ObjectsPage::Controllers;
 }
 
+// Which view objects the preview will let you grab on the active page.
+// Both pages edit view objects (editing_models is false for each), so without
+// this the Controllers page would happily drag a Terrain or Gridlines object
+// and the 3D Objects page would drag controller boxes it does not list.
+bool LayoutPanel::IsObjectEditable(const ViewObject* view_object) const {
+    if (view_object == nullptr) {
+        return false;
+    }
+    const auto* co = dynamic_cast<const ControllerObject*>(view_object);
+    if (CurrentObjectsPage() != ObjectsPage::Controllers) {
+        return co == nullptr;
+    }
+    // Only controller objects, and only ones actually being drawn - an
+    // invisible or orphaned box must not be grabbable.
+    return co != nullptr && modelPreview != nullptr &&
+           modelPreview->ShouldDrawViewObject(co);
+}
+
 wxTreeListCtrl* LayoutPanel::ActiveModelTree() const {
     if (TreeListViewGroups != nullptr && CurrentObjectsPage() == ObjectsPage::Groups) {
         return TreeListViewGroups;
@@ -12683,7 +12823,9 @@ void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
         return;
     }
     const ObjectsPage page = CurrentObjectsPage();
-    editing_models = (page != ObjectsPage::Objects);
+    // The Controllers page edits view objects too - controller placement boxes.
+    // IsObjectEditable() keeps each page to its own subset of AllObjects.
+    editing_models = (page != ObjectsPage::Objects && page != ObjectsPage::Controllers);
     if (page == ObjectsPage::Models || page == ObjectsPage::Groups) {
         HandleSelectionChanged();
     } else {

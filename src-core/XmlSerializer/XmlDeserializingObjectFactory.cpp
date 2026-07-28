@@ -11,6 +11,7 @@
 #include "XmlDeserializingObjectFactory.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlNodeKeys.h"
+#include "../models/ControllerObject.h"
 #include "../models/GridlinesObject.h"
 #include "../models/ImageObject.h"
 #include "../models/MeshObject.h"
@@ -39,6 +40,8 @@ ViewObject* XmlDeserializingObjectFactory::Deserialize(pugi::xml_node node, View
         return DeserializeTerrain(node, objects, importing);
     } else if (type == XmlNodeKeys::RulerType) {
         return DeserializeRuler(node, objects, importing);
+    } else if (type == XmlNodeKeys::ControllerObjectType) {
+        return DeserializeController(node, objects, importing);
     }
     throw std::runtime_error("Unknown object type: " + type);
 }
@@ -98,6 +101,22 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeImage(pugi::xml_node node,
     object->SetImageFile(node.attribute(XmlNodeKeys::ImageAttribute).as_string());
     object->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
     object->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_int(100));
+    object->Setup();
+    return object;
+}
+
+ViewObject* XmlDeserializingObjectFactory::DeserializeController(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
+    ControllerObject* object = new ControllerObject(objects);
+    CommonDeserializeSteps(object, node, objects, importing);
+    object->SetControllerName(node.attribute(XmlNodeKeys::ControllerAttribute).as_string());
+    object->SetVisibility(ControllerObject::VisibilityFromString(node.attribute(XmlNodeKeys::VisibilityAttribute).as_string()));
+    object->SetShowLabel(std::string_view(node.attribute(XmlNodeKeys::ShowLabelAttribute).as_string("0")) == "1");
+    // The name is always derived from the bound controller, never taken from the
+    // file. Letting the two drift would break the base-show merge, which matches
+    // objects by name and would then add base's copy as a second object on the
+    // same controller. This also undoes the uniquifying CommonDeserializeSteps
+    // applies when importing.
+    object->SetName(ControllerObject::ObjectNameFor(object->GetControllerName()));
     object->Setup();
     return object;
 }

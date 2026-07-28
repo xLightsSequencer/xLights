@@ -36,7 +36,7 @@ HeadlessRenderContext::~HeadlessRenderContext() {
     if (_renderEngine) {
         AbortRender(3000);
     }
-    CloseSequence();
+    (void)CloseSequence();
 }
 
 bool HeadlessRenderContext::LoadShowFolder(const std::string& showDir,
@@ -131,7 +131,13 @@ bool HeadlessRenderContext::LoadShowFolder(const std::string& showDir,
 }
 
 bool HeadlessRenderContext::OpenSequence(const std::string& path) {
-    CloseSequence();
+    // Rendering a glob opens each sequence over the last one; if the previous
+    // render did not drain, loading over the top corrupts the storage its
+    // workers still read.
+    if (!CloseSequence()) {
+        spdlog::warn("HeadlessRenderContext: refusing to open {} - the previous sequence is still rendering", path);
+        return false;
+    }
 
     auto openStart = std::chrono::steady_clock::now();
     _sequenceFile = std::make_unique<SequenceFile>(path);

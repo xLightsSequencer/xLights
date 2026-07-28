@@ -117,6 +117,7 @@ public:
     void Visit(const MeshObject& object) override;
     void Visit(const TerrainObject& object) override;
     void Visit(const RulerObject& object) override;
+    void Visit(const ControllerObject& object) override;
     void Visit(const ControllerConnection& cc) override;
 
     // Shared utilities

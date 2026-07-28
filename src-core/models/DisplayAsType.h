@@ -52,6 +52,7 @@ enum class DisplayAsType {
     Terrain,
     Mesh,
     Ruler,
+    Controller,
 
     // Special types
     SubModel,
