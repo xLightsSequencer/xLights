@@ -4845,10 +4845,30 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
         return;
     }
     if (!event.ControlDown()) {
+        // Only ProcessLeftMouseClick3D (the is_3d path inside
+        // OnPreviewLeftDown) updates this; reset it first so a stale true
+        // from an earlier 3D click can't leak into a 2D double-click here.
+        m_lastClickWasCentreCycle = false;
         OnPreviewLeftDown(event);
         OnPreviewLeftUp(event);
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md != nullptr && md->GetDisplayAs() != DisplayAsType::ModelGroup && md->GetDisplayAs() != DisplayAsType::SubModel) {
+            // The centre-cycle handle (the orange marker at the model's
+            // centre, used to cycle selection among overlapping models) just
+            // consumed this click via ProcessLeftMouseClick3D's selectionOnly
+            // path above. Don't pop the edit dialog for that click, and don't
+            // fall through to the "nothing selected" deselect-everything path
+            // below -- the model is still very much selected.
+            //
+            // m_lastClickWasCentreCycle (not GetActiveHandleId()) is the
+            // right signal here: CentreCycle is the *default* active handle
+            // whenever nothing more specific is active, so it stays "active"
+            // long after the click that set it -- checking it directly would
+            // suppress the dialog for every double-click on the model, not
+            // just ones that actually land on the orange marker.
+            if (m_lastClickWasCentreCycle) {
+                return;
+            }
             EditSubmodels();
             return;
         }
@@ -4883,6 +4903,7 @@ Model* LayoutPanel::FindNearestModel3D(const wxMouseEvent& event) {
 void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 {
     m_moving_handle = false;
+    m_lastClickWasCentreCycle = false;
     // don't mark mouse down if a selection is being made
     if (highlightedBaseObject != nullptr) {
         if (selectionLatched) {
@@ -4951,6 +4972,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                         sloc.AdvanceAxisTool();
                                     }
                                     sloc.SetActiveHandle(std::optional<handles::Id>(hit->id));
+                                    if (hit->id.role == handles::Role::CentreCycle) {
+                                        m_lastClickWasCentreCycle = true;
+                                    }
                                     xlights->GetOutputModelManager()->AddASAPWork(
                                         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                         "LayoutPanel::ProcessLeftMouseClick3D-NewAPI-Select");
