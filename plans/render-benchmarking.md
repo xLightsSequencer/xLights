@@ -230,6 +230,17 @@ report both.
 5. **Prefer deterministic gates over timing** where one exists: byte-identity and
    `XL_PARALLEL_BLOCKERS` coverage are exact and machine-state-independent.
    Coverage ≠ wall time, though — see §5.
+6. **Validate the comparator before treating it as a target.** A backend you are
+   measuring *against* has to be proven to do the work, not assumed to. The GL
+   shader path in headless silently rendered nothing on Windows for a while — its
+   capability check read GL function pointers that only the UI canvas ever
+   loaded, so every shader frame was cyan-filled — and it therefore looked ~2.5x
+   *faster* than the native path. A whole investigation was aimed at closing a
+   gap that did not exist, and the direction was in fact the opposite. Check that
+   the comparator's output is real (per-effect timings that are implausibly fast,
+   a suspiciously small `.fseq`, a log full of fallback warnings) before any
+   conclusion rests on it. This is rule 5 of §2 applied to the baseline itself:
+   an unvalidated baseline is a second suspect config, not ground truth.
 
 ### Harness
 
@@ -521,7 +532,7 @@ throughput. Higher is not better; re-measure before raising these.
 | `XL_VULKAN_VALIDATE` / `XL_VULKAN_GPUAV` | Vulkan | validation layers |
 | `XL_NO_NATIVE_SHADER=1` | shaders | disable the native shader path |
 | `XL_NATIVE_SHADER_DEBUG=1` | shaders | native shader debug output |
-| `XL_SHADER_BUILD_STATS=1` | shaders | dumps, at exit, where the native Shader path's CPU time went: `ParseShader`, `SourceTransforms::Apply`, `nativeBuild` split into real glslang/pipeline misses vs process-wide program-cache hits, per-frame `nativeEncode`, and (Vulkan) a breakdown *inside* `nativeEncode` — input upload / record cb / queue submit / fence wait / readback memcpy. Use it before assuming "shader compiling is slow" — on a 302-effect / 235-distinct-shader sequence the compiles are ~3%, and of the remaining per-frame cost **81.6% is the CPU parked in `vkWaitForFences`**, with record/submit/readback ~3% each. Optimising anything but the wait is capped at a few percent |
+| `XL_SHADER_BUILD_STATS=1` | shaders | dumps, at exit, where the native Shader path's CPU time went: `ParseShader`, `SourceTransforms::Apply`, `nativeBuild` split into real glslang/pipeline misses vs process-wide program-cache hits, per-frame `nativeEncode`, and (Vulkan) a breakdown *inside* `nativeEncode` — input upload / record cb / queue submit / fence wait / readback memcpy. Use it before assuming "shader compiling is slow" — on a 302-effect / 235-distinct-shader sequence the compiles are ~3%, and record/submit/readback are ~3% each. The remaining ~82% sits in `vkWaitForFences`, but **that is not idle latency**: a bare submit+fence round trip is 3.4µs (`XL_VULKAN_SUBMITBENCH`), so the wait is GPU execution plus rows queueing behind each other. Splitting those two apart matters — queueing shrinks by overlapping work, execution does not |
 | `XL_GRAPHICS_BACKEND=<name>` | UI | force a canvas backend (desktop UI only) |
 | `XLDBG_BLURSYNC=1` | GPU | force synchronous GPU blur |
 
