@@ -45,6 +45,8 @@
 #include "media/JukeboxPanel.h"
 #include "diagnostics/FindDataPanel.h"
 #include "sequencer/EffectsPanel.h"
+#include "effectpanels/EffectPanelUtils.h"
+#include "shared/controls/ValueCurveButton.h"
 #include "sequencer/BlendingPanel.h"
 #include "color/ColorPanel.h"
 #include "layout/LayoutGroup.h"
@@ -1922,17 +1924,32 @@ void xLightsFrame::RenderAll()
     });
 }
 
-static void enableAllChildControls(wxWindow* parent, bool enable)
+static void enableChildControls(wxWindow* parent, bool enable, std::vector<ValueCurveButton*>& valueCurves)
 {
     for (const auto& it : parent->GetChildren()) {
         it->Enable(enable);
-        enableAllChildControls(it, enable);
+        enableChildControls(it, enable, valueCurves);
         if (enable && it->GetName().StartsWith("ID_VALUECURVE")) {
-            wxCommandEvent e(EVT_VC_CHANGED);
-            e.SetInt(-1);
-            e.SetEventObject(it);
-            wxPostEvent(parent, e);
+            if (auto* vcb = dynamic_cast<ValueCurveButton*>(it)) {
+                valueCurves.push_back(vcb);
+            }
         }
+    }
+}
+
+static void enableAllChildControls(wxWindow* parent, bool enable)
+{
+    std::vector<ValueCurveButton*> valueCurves;
+    enableChildControls(parent, enable, valueCurves);
+
+    // Sync once the sweep is done, not inline: the walk enables every control it
+    // visits, so a slider a value curve had just disabled would be re-enabled by a
+    // later sibling. This used to be deferred with a posted EVT_VC_CHANGED naming
+    // the button, but that queued a raw pointer, and a panel that rebuilds its
+    // controls (ShaderPanel drops its per-shader rows via wxSizer::Clear(true))
+    // frees the button before the queue drains.
+    for (auto* vcb : valueCurves) {
+        EffectPanelUtils::SyncValueCurveControls(vcb);
     }
 }
 

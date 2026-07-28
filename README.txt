@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  controller whose vendor/model has no capabilities definition
     -bug (dkulp)                 Fix crash editing or deleting an LOR device in controller properties
                                  when the property grid still held a stale device position
+    -bug (dkulp)                 Fix crash when the value curve controls were re-enabled after a
+                                 shader effect rebuilt its parameter list
     -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now checked and connected
     -bug (dkulp)                 Shader: headless/batch rendering through the OpenGL path filled every
                                  Shader effect solid cyan — without a UI canvas the GL entry points were

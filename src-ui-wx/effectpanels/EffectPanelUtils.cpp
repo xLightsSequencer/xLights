@@ -155,7 +155,14 @@ bool EffectPanelUtils::IsLockable(wxControl* ctl) {
 
 void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 {
-    ValueCurveButton* vcb = (ValueCurveButton*)event.GetEventObject();
+    // Not every EVT_VC_CHANGED carries a value curve button - xlGridCanvasMorph
+    // names itself as the event object - so resolve the type rather than
+    // assuming it.
+    SyncValueCurveControls(dynamic_cast<ValueCurveButton*>(event.GetEventObject()));
+}
+
+void EffectPanelUtils::SyncValueCurveControls(ValueCurveButton* vcb)
+{
     if (vcb != nullptr && vcb->GetParent() != nullptr) {
         wxString name = vcb->GetName();
         wxString slidername = name;
@@ -200,9 +207,6 @@ void EffectPanelUtils::OnVCChanged(wxCommandEvent& event)
 
         wxCommandEvent e(EVT_VALIDATEWINDOW);
         wxPostEvent(vcb->GetParent(), e);
-    }
-    else {
-        wxASSERT(false);
     }
 }
 
