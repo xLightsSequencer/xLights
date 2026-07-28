@@ -562,6 +562,20 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
     Refresh();
 }
 
+void Waveform::SetEffectDragOverride(int startMS, int endMS)
+{
+    mEffectDragOverrideStartMS = startMS;
+    mEffectDragOverrideEndMS = endMS;
+    Refresh(false);
+}
+
+void Waveform::ClearEffectDragOverride()
+{
+    mEffectDragOverrideStartMS = -1;
+    mEffectDragOverrideEndMS = -1;
+    Refresh(false);
+}
+
 void Waveform::SetSelectedInterval(int startMS, int endMS)
 {
     mTimeline->SetSelectedPositionStart(mTimeline->GetPositionFromTimeMS(startMS), false);
@@ -1447,7 +1461,17 @@ void Waveform::DrawWaveView(xlGraphicsContext* ctx, const WaveView& wv)
         vac->AddVertex(f, mWindowHeight - 1, 0, color);
     }
 
-    if (xLightsApp::GetFrame() != nullptr) {
+    if (mEffectDragOverrideStartMS != -1) {
+        color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);
+        int start = translateOffset(mTimeline->GetPositionFromTimeMS(mEffectDragOverrideStartMS));
+        int end = translateOffset(mTimeline->GetPositionFromTimeMS(mEffectDragOverrideEndMS));
+        vac->AddVertex(start, 1, 0, color);
+        vac->AddVertex(start, (mWindowHeight - 1) / 4, 0, color);
+        vac->AddVertex(end, 1, 0, color);
+        vac->AddVertex(end, (mWindowHeight - 1) / 4, 0, color);
+        vac->AddVertex(start, (mWindowHeight - 1) / 8, 0, color);
+        vac->AddVertex(end, (mWindowHeight - 1) / 8, 0, color);
+    } else if (xLightsApp::GetFrame() != nullptr) {
         Effect* selectedEffect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
         if (selectedEffect != nullptr) {
             color = ColorManager::instance()->GetColor(ColorManager::COLOR_WAVEFORM_SELECTEDEFFECT);

@@ -4007,6 +4007,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                 mSelectedEffect = mEffectMoveAnchorEffect;
                 RaiseSelectedEffectChanged(mSelectedEffect, false);
             }
+            ((MainSequencer*)mParent)->PanelWaveForm->ClearEffectDragOverride();
             ResetEffectMoveDragState();
         } else if (mResizing) {
             if (mEffectLayer->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
@@ -7057,6 +7058,7 @@ void EffectsGrid::CancelMouseOperations() {
     mResizingMode = EFFECT_RESIZE_NO;
     mDragThresholdExceeded = false;
     mResizeEffectIndex = -1;
+    ((MainSequencer*)mParent)->PanelWaveForm->ClearEffectDragOverride();
     ResetEffectMoveDragState();
     static const wxCursor s_default(wxCURSOR_DEFAULT);
     SetCursor(s_default);
@@ -8326,9 +8328,11 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
         cursorTimeMS = SnapCursorToTimingMark(cursorTimeMS, x);
 
     int anchorOrigStart = 0;
+    int anchorOrigEnd = 0;
     for (auto& snap : mEffectMoveSnapshots) {
         if (snap.effect == mEffectMoveAnchorEffect) {
             anchorOrigStart = snap.origStartTimeMS;
+            anchorOrigEnd = snap.origEndTimeMS;
             break;
         }
     }
@@ -8426,6 +8430,8 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
 
     mEffectMoveHasCollision = anyCollision;
     SetCursor(anyCollision ? s_noEntry : s_sizing);
+
+    ((MainSequencer*)mParent)->PanelWaveForm->SetEffectDragOverride(anchorOrigStart + mEffectMoveTargetDeltaMS, anchorOrigEnd + mEffectMoveTargetDeltaMS);
 
     wxSize sz = GetSize();
     int zone = FromDIP(40);
