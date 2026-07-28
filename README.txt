@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
+                                 by the model, not just the one actually being exported; each exported
+                                 model group is now restricted to the model included in that export.
     -bug (dkulp)                 Shader: a shader that accumulates into gl_FragColor without first
                                  assigning it (common in Shadertoy conversions) read an undefined value,
                                  so it rendered differently every run and made the whole sequence

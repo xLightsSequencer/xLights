@@ -29,7 +29,7 @@ void DeserializeTwoPointScreenLocationAttributes(BaseObject* object, pugi::xml_n
 void DeserializeThreePointScreenLocationAttributes(BaseObject* object, pugi::xml_node node);
 void DeserializePolyPointScreenLocationAttributes(BaseObject* object, pugi::xml_node node);
 
-void SerializeModelGroupsForModel(const Model* object, pugi::xml_node docNode);
+void SerializeModelGroupsForModel(const Model* object, pugi::xml_node docNode, const std::vector<const Model*>& exportedModels);
 void AddDimensions(pugi::xml_node node, const Model* m);
 
 // Rewrites relative file references in a subtree to absolute paths under baseDir.

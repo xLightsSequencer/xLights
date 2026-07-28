@@ -164,7 +164,7 @@ struct XmlSerializer {
         XmlSerializingVisitor visitor{ docNode, forExport };
         model->Accept(visitor);
         if (includeGroups) {
-            XmlSerialize::SerializeModelGroupsForModel(model, docNode);
+            XmlSerialize::SerializeModelGroupsForModel(model, docNode, { model });
             XmlSerialize::AddDimensions(docNode, model);
         }
 
@@ -183,7 +183,7 @@ struct XmlSerializer {
             XmlSerializingVisitor visitor{ docNode, forExport };
             model->Accept(visitor);
             if (includeGroups) {
-                XmlSerialize::SerializeModelGroupsForModel(model, docNode);
+                XmlSerialize::SerializeModelGroupsForModel(model, docNode, models);
                 XmlSerialize::AddDimensions(docNode, model);
             }
         }
