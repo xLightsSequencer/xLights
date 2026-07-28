@@ -58,6 +58,13 @@ class Waveform : public GRAPHICS_BASE_CLASS
         int GetStartPixelOffset() const;
         void SetSelectedInterval(int startMS, int endMS);
 
+        // While a ghost drag-to-move is in progress the selected effect's real
+        // start/end times don't change until the drag is applied, so the
+        // selected-effect bracket needs this override to track the ghost
+        // position instead of the (stale) real effect times.
+        void SetEffectDragOverride(int startMS, int endMS);
+        void ClearEffectDragOverride();
+
         void SetTimeFrequency(int frequency);
         int GetTimeFrequency() const;
 
@@ -148,6 +155,8 @@ class Waveform : public GRAPHICS_BASE_CLASS
         //bool mPointSize;
         bool m_dragging;
         DRAG_MODE m_drag_mode;
+        int mEffectDragOverrideStartMS = -1;
+        int mEffectDragOverrideEndMS = -1;
 		AudioManager* _media;
         AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
         int _lowNote = -1;
