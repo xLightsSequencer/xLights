@@ -504,6 +504,7 @@ class LayoutPanel: public wxPanel
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
         void AddResizeOptionsToMenu(wxMenu* mnuResize);
         Model* SelectSingleModel(int x,int y);
+        Model* FindNearestModel3D(const wxMouseEvent& event);
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect(bool models_and_objects);
         void HighlightAllInBoundingRect(bool models_and_objects);
@@ -575,6 +576,7 @@ class LayoutPanel: public wxPanel
         bool m_moving_handle = false;
         bool m_wheel_down = false;
         bool m_polyline_active = false;
+        bool m_pending_deselect_click = false;
         int m_previous_mouse_x = 0;
         int m_previous_mouse_y = 0;
 		int mPointSize = 2;
