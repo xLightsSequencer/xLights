@@ -204,6 +204,14 @@
   `src-core` render-setting edits shared by both apps.
 - No FFmpeg / raw-serial / sandbox blockers apply here; every gap above is
   bridge + SwiftUI work, not a platform limit.
+- **Value-curve / slider enable-state sync** — *no iPad counterpart*: the
+  desktop keeps a value curve's slider and text box disabled while the curve
+  is active by walking the wx control tree
+  (`enableAllChildControls` → `EffectPanelUtils::SyncValueCurveControls`).
+  That is wxWidgets control plumbing; SwiftUI derives the same enablement
+  declaratively from the bound state, so there is nothing to mirror. The
+  2026.15 crash fix there (the sweep no longer queues a raw button pointer
+  that a panel rebuild can free first) is desktop-only for the same reason.
 
 ## Recommended sequencing
 

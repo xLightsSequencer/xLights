@@ -93,7 +93,7 @@ public:
     virtual bool doHasPendingGPUWork(RenderBuffer *c) override {
         if (c && c->gpuRenderData) {
             VulkanRenderBufferComputeData *d = static_cast<VulkanRenderBufferComputeData*>(c->gpuRenderData);
-            return d ? d->hasOpenCommandBuffer() : false;
+            return d ? (d->hasOpenCommandBuffer() || d->hasPendingShaderFrame()) : false;
         }
         return false;
     }

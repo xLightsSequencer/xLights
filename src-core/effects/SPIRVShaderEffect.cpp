@@ -13,6 +13,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <map>
+#include <mutex>
+#include <vector>
 
 #include "EffectManager.h"
 #include "ShaderSourceTransforms.h"
@@ -36,9 +39,24 @@ struct Counters {
     std::atomic<uint64_t> submitNs{ 0 }, submitN{ 0 };
     std::atomic<uint64_t> fenceNs{ 0 }, fenceN{ 0 };
     std::atomic<uint64_t> readbackNs{ 0 }, readbackN{ 0 };
+    std::atomic<uint64_t> bindNs{ 0 }, bindN{ 0 };
+    std::atomic<uint64_t> gpuExecNs{ 0 }, gpuExecN{ 0 };
+
+    struct PerShader {
+        uint64_t ns = 0;
+        uint64_t frames = 0;
+        uint32_t w = 0, h = 0;
+    };
+    std::mutex perShaderMtx;
+    std::map<std::string, PerShader> perShader;
+    std::atomic<bool> dumped{ false };
 
     ~Counters() {
-        if (!Enabled()) {
+        dump();
+    }
+
+    void dump() {
+        if (!Enabled() || dumped.exchange(true)) {
             return;
         }
         auto row = [](const char* name, uint64_t n, uint64_t ns) {
@@ -54,7 +72,7 @@ struct Counters {
         row("  glslang+pipeline (miss)", translateN, translateNs);
         row("  program-cache hit", cacheHits, 0);
         row("nativeEncode (per frame)", encodeN, encodeNs);
-        if (uploadN || recordN || submitN || fenceN || readbackN) {
+        if (uploadN || recordN || submitN || fenceN || readbackN || bindN) {
             // Sums to slightly less than nativeEncode: the remainder is uniform
             // packing and descriptor writes.
             fprintf(stderr, "  -- inside nativeEncode --\n");
@@ -63,6 +81,34 @@ struct Counters {
             row("  queue submit", submitN, submitNs);
             row("  fence wait", fenceN, fenceNs);
             row("  readback memcpy", readbackN, readbackNs);
+            row("  bind uniforms", bindN, bindNs);
+            if (gpuExecN) {
+                // Device timestamps: this frame's work alone.  When waits are
+                // synchronous, (fence wait - gpu exec) is time queued behind
+                // other rows; with deferred completion the wait can drop far
+                // below exec because the GPU work overlapped other CPU work.
+                row("  gpu exec (device ts)", gpuExecN, gpuExecNs);
+                row("  wait minus exec", gpuExecN,
+                    fenceNs > gpuExecNs ? (uint64_t)(fenceNs - gpuExecNs) : 0);
+            }
+        }
+        if (!perShader.empty()) {
+            std::vector<std::pair<std::string, PerShader>> sorted(perShader.begin(), perShader.end());
+            std::sort(sorted.begin(), sorted.end(),
+                      [](const auto& a, const auto& b) { return a.second.ns > b.second.ns; });
+            fprintf(stderr, "  -- per shader (top 20 by total; Vulkan: device-ts exec, GL: CPU wall) --\n");
+            fprintf(stderr, "  %-44s %9s %11s %10s %10s\n", "shader", "frames", "total ms", "ms each", "size");
+            size_t n = 0;
+            for (const auto& [file, s] : sorted) {
+                if (++n > 20) break;
+                std::string base = file;
+                size_t slash = base.find_last_of("/\\");
+                if (slash != std::string::npos) base = base.substr(slash + 1);
+                if (base.size() > 44) base = base.substr(0, 44);
+                fprintf(stderr, "  %-44s %9llu %11.1f %10.4f %6ux%u\n", base.c_str(),
+                        (unsigned long long)s.frames, s.ns / 1.0e6,
+                        s.frames ? (s.ns / 1.0e6) / (double)s.frames : 0.0, s.w, s.h);
+            }
         }
         fprintf(stderr, "=== end XL_SHADER_BUILD_STATS ===\n");
     }
@@ -88,6 +134,22 @@ void AddRecord(uint64_t ns) { counters().recordNs += ns; counters().recordN++; }
 void AddSubmit(uint64_t ns) { counters().submitNs += ns; counters().submitN++; }
 void AddFenceWait(uint64_t ns) { counters().fenceNs += ns; counters().fenceN++; }
 void AddReadback(uint64_t ns) { counters().readbackNs += ns; counters().readbackN++; }
+void AddBind(uint64_t ns) { counters().bindNs += ns; counters().bindN++; }
+void AddGpuExec(uint64_t ns) { counters().gpuExecNs += ns; counters().gpuExecN++; }
+void AddPerShader(const std::string& file, uint64_t ns, uint32_t w, uint32_t h) {
+    Counters& c = counters();
+    std::lock_guard<std::mutex> lk(c.perShaderMtx);
+    auto& s = c.perShader[file];
+    s.ns += ns;
+    s.frames++;
+    s.w = w;
+    s.h = h;
+}
+void Dump() {
+    if (Enabled()) {
+        counters().dump();
+    }
+}
 } // namespace ShaderBuildStats
 
 namespace {
@@ -125,6 +187,7 @@ void SPIRVShaderEffect::CacheBase::reset() {
     transformedSource.clear();
     built = false;
     failed = false;
+    vals.clear(); // the next shader may declare a different set of uniforms
     platformReset();
 }
 
@@ -242,7 +305,9 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
 
     // Compute all uniform values as floats; each backend marshals float bits vs
     // int bits from its reflected/declared member types.
-    UniformValues vals;
+    // Reused across frames (see CacheBase::vals): the key set is identical every
+    // frame, so this allocates on the first frame of an effect and never again.
+    UniformValues& vals = cache->vals;
     auto set1 = [&](const std::string& n, float a) { vals[n] = { a, 0, 0, 0 }; };
     auto set2 = [&](const std::string& n, float a, float b) { vals[n] = { a, b, 0, 0 }; };
     auto set4 = [&](const std::string& n, float a, float b, float c, float d) { vals[n] = { a, b, c, d }; };

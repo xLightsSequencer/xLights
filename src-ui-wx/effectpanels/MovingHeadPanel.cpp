@@ -1468,9 +1468,9 @@ void MovingHeadPanel::OnVCChanged(wxCommandEvent& event)
     if (recall) return;
     EffectPanelUtils::OnVCChanged(event);
 
-    BulkEditValueCurveButton* vc_btn = reinterpret_cast<BulkEditValueCurveButton*>(event.GetEventObject());
+    BulkEditValueCurveButton* vc_btn = dynamic_cast<BulkEditValueCurveButton*>(event.GetEventObject());
 
-    if( vc_btn != nullptr ) {
+    if( vc_btn != nullptr && vc_btn->GetValue() != nullptr ) {
         std::string vc_id = vc_btn->GetValue()->GetId();
         bool pos_found = (std::find(vcurves_pos.begin(), vcurves_pos.end(), vc_id) != vcurves_pos.end());
         if( pos_found ) {

@@ -14,6 +14,21 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
+    -bug (dkulp)                 Fix crash opening Tools - Test when a model uses a PWM protocol on a
+                                 controller whose vendor/model has no capabilities definition
+    -bug (dkulp)                 Fix crash editing or deleting an LOR device in controller properties
+                                 when the property grid still held a stale device position
+    -bug (dkulp)                 Fix crash when the value curve controls were re-enabled after a
+                                 shader effect rebuilt its parameter list
+    -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now checked and connected
+    -bug (dkulp)                 Shader: headless/batch rendering through the OpenGL path filled every
+                                 Shader effect solid cyan — without a UI canvas the GL entry points were
+                                 never loaded, so the capability check always failed. They now load the
+                                 first time a render context is made current
+    -enh (dkulp)                 Shader: on Vulkan (Windows/Linux) the input upload now rides the frame's
+                                 own command buffer and the GPU wait is deferred until the pixels are
+                                 actually needed, so rows overlap on the GPU instead of serializing.
+                                 Renders a shader-heavy test sequence ~30% faster with identical output
     -bug (dkulp)                 Shader: a shader that accumulates into gl_FragColor without first
                                  assigning it (common in Shadertoy conversions) read an undefined value,
                                  so it rendered differently every run and made the whole sequence
