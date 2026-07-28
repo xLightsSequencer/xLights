@@ -1366,8 +1366,10 @@ void UDController::Rescan(bool eliminateOverlaps) {
                         std::vector<PWMOutput> outputs = it.second->GetPWMOutputs();
                         int port = it.second->GetControllerPort(1);
                         int string = 0;
+                        ControllerCaps* caps = _controller->GetControllerCaps();
+                        int maxPWMPort = caps == nullptr ? 0 : caps->GetMaxPWMPort();
                         for (auto &o : outputs) {
-                            if (port <= _controller->GetControllerCaps()->GetMaxPWMPort()) {
+                            if (port <= maxPWMPort) {
                                 auto m = GetControllerPWMPort(port)->AddModel(it.second, _controller, _outputManager, string, eliminateOverlaps);
                                 if (o.type == PWMOutput::Type::LED) {
                                     m->SetPWMLedPortProperties(o.label, o.brightness, o.gamma, o.startChannel, o.startChannel + o.channels - 1);
