@@ -39,6 +39,7 @@ struct Counters {
     std::atomic<uint64_t> submitNs{ 0 }, submitN{ 0 };
     std::atomic<uint64_t> fenceNs{ 0 }, fenceN{ 0 };
     std::atomic<uint64_t> readbackNs{ 0 }, readbackN{ 0 };
+    std::atomic<uint64_t> bindNs{ 0 }, bindN{ 0 };
     std::atomic<uint64_t> gpuExecNs{ 0 }, gpuExecN{ 0 };
 
     struct PerShader {
@@ -71,7 +72,7 @@ struct Counters {
         row("  glslang+pipeline (miss)", translateN, translateNs);
         row("  program-cache hit", cacheHits, 0);
         row("nativeEncode (per frame)", encodeN, encodeNs);
-        if (uploadN || recordN || submitN || fenceN || readbackN) {
+        if (uploadN || recordN || submitN || fenceN || readbackN || bindN) {
             // Sums to slightly less than nativeEncode: the remainder is uniform
             // packing and descriptor writes.
             fprintf(stderr, "  -- inside nativeEncode --\n");
@@ -80,6 +81,7 @@ struct Counters {
             row("  queue submit", submitN, submitNs);
             row("  fence wait", fenceN, fenceNs);
             row("  readback memcpy", readbackN, readbackNs);
+            row("  bind uniforms", bindN, bindNs);
             if (gpuExecN) {
                 // Device timestamps: this frame's work alone.  When waits are
                 // synchronous, (fence wait - gpu exec) is time queued behind
@@ -132,6 +134,7 @@ void AddRecord(uint64_t ns) { counters().recordNs += ns; counters().recordN++; }
 void AddSubmit(uint64_t ns) { counters().submitNs += ns; counters().submitN++; }
 void AddFenceWait(uint64_t ns) { counters().fenceNs += ns; counters().fenceN++; }
 void AddReadback(uint64_t ns) { counters().readbackNs += ns; counters().readbackN++; }
+void AddBind(uint64_t ns) { counters().bindNs += ns; counters().bindN++; }
 void AddGpuExec(uint64_t ns) { counters().gpuExecNs += ns; counters().gpuExecN++; }
 void AddPerShader(const std::string& file, uint64_t ns, uint32_t w, uint32_t h) {
     Counters& c = counters();

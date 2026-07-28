@@ -269,8 +269,13 @@ public:
         [enc setLabel:@"NativeShaderEffect"];
         [enc setRenderPipelineState:pso];
         [enc setVertexBuffer:quadBuffer offset:0 atIndex:kVertexSlot];
+        const auto bindStart = std::chrono::steady_clock::now();
         bindStage(enc, vsInfo, vals, true);
         bindStage(enc, fsInfo, vals, false);
+        if (ShaderBuildStats::Enabled()) {
+            ShaderBuildStats::AddBind((uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                          std::chrono::steady_clock::now() - bindStart).count());
+        }
         if (usesTexture) {
             [enc setFragmentTexture:(audioMode ? audioTex : inputTex) atIndex:fsInfo.samplerTexture];
             [enc setFragmentSamplerState:sampler atIndex:fsInfo.samplerTexture];

@@ -39,6 +39,7 @@ void AddFenceWait(uint64_t ns);// vkWaitForFences at completion.  Deferred frame
                                // wait when the pixels are consumed, so this can
                                // be far below gpu exec when work overlapped.
 void AddReadback(uint64_t ns); // host memcpy out of the mapped readback buffer
+void AddBind(uint64_t ns);     // resolving + binding uniforms/textures per frame
 // Device-timestamp span of the submitted command buffer (Vulkan): true GPU
 // execution of this frame's work alone, regardless of where the wait happened.
 void AddGpuExec(uint64_t ns);
