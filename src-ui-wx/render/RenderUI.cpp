@@ -105,6 +105,7 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
         }
         if (loops % 200 == 0) {
             spdlog::info("    Waiting for renderers to abort. {} left.", (int)_renderEngine->GetRenderProgressInfo().size());
+            _renderEngine->LogUnfinishedRenderJobs("Abort");
         }
     }
     spdlog::info("    Aborting renderers ... Done");

@@ -796,6 +796,64 @@ public:
         return GetStatusString();
     }
 
+    bool IsFinished() override {
+        return schedPhase == SchedPhase::Done;
+    }
+
+    // Deliberately avoids statusMsg / statusMap: those are a std::string and a
+    // borrowed pointer written by the render thread without synchronisation, so
+    // formatting them from the polling thread can fault - which would lose the
+    // very log we are trying to produce.  Everything below is an atomic, a
+    // volatile int, or read under a try_lock.
+    std::string GetHangStatus() override {
+        const char* phase = "?";
+        switch (schedPhase) {
+        case SchedPhase::Setup:  phase = "setup"; break;
+        case SchedPhase::Frames: phase = "frames"; break;
+        case SchedPhase::Finish: phase = "finish"; break;
+        case SchedPhase::Done:   phase = "done"; break;
+        }
+
+        std::string sched;
+        {
+            // A try_lock, not a lock: if the hang IS this mutex, blocking here
+            // would hang the caller instead of reporting the deadlock.
+            std::unique_lock<std::mutex> lock(nextLock, std::try_to_lock);
+            if (!lock.owns_lock()) {
+                sched = "scheduler lock held by another thread";
+            } else if (suspended) {
+                sched = fmt::format("suspended waiting for upstream frame {} (upstream is at {})", wantFrame, (int)GetPreviousFrameDone());
+            } else if (parked) {
+                sched = "parked behind another job rendering this row";
+            } else if (inPool.load()) {
+                sched = "queued in the render pool";
+            } else {
+                sched = "holding a render thread";
+            }
+        }
+
+        const char* what = "unknown";
+        switch (statusType) {
+        case 0:        what = "status message"; break;
+        case 1:        what = "initializing effect"; break;
+        case 2:        what = "rendering effect"; break;
+        case 3:        what = "calculating output"; break;
+        case 4: case 5:
+        case 8: case 9: what = "between effects"; break;
+        case 13:       what = "waiting to start frame"; break;
+        }
+
+        int cur = currentFrame;
+        std::string progress = (cur == END_OF_RENDER_FRAME)
+            ? fmt::format("all {} frames rendered", (int)endFrame - (int)startFrame + 1)
+            : fmt::format("frame {} of {}-{}", cur, (int)startFrame, (int)endFrame);
+
+        return fmt::format("{}: {}, {}, phase {}{}, last {} at frame {} layer {} submodel {} strand {} node {}",
+                           name, progress, sched, phase, abort.load() ? " (abort signalled)" : "",
+                           what, (int)statusFrame, (int)statusLayer,
+                           (int)statusSubmodel, (int)statusStrand, (int)statusNode);
+    }
+
     std::string GetStatusForUser() override
     {
         int lastIdx = 0;
@@ -4139,6 +4197,51 @@ void RenderEngine::CheckForStalledRender() {
                 }
             }
             rpi->lastProgressTime = now;
+        }
+    }
+}
+
+void RenderEngine::LogUnfinishedRenderJobs(const std::string& context) {
+    // A wedged render usually has one or two rows outstanding; the cap only
+    // exists so the first poll of a stuck full-sequence render doesn't dump
+    // hundreds of lines every couple of seconds.
+    constexpr int MAX_JOBS_LOGGED = 25;
+
+    const auto now = std::chrono::steady_clock::now();
+    const int numBatches = (int)_renderProgressInfo.size();
+    int batch = 0;
+    for (auto rpi : _renderProgressInfo) {
+        ++batch;
+        if (rpi->completed.load()) {
+            spdlog::info("    {}: batch {}/{} has finished and is waiting to be drained.", context, batch, numBatches);
+            continue;
+        }
+        spdlog::info("    {}: batch {}/{}, {} of {} jobs outstanding, frames {}-{}, running for {}s, no progress for {}s.",
+                     context, batch, numBatches, rpi->jobsRemaining.load(), rpi->totalJobs,
+                     rpi->startFrame, rpi->endFrame,
+                     (long long)std::chrono::duration_cast<std::chrono::seconds>(now - rpi->startTime).count(),
+                     (long long)std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastProgressTime).count());
+
+        int unfinished = 0;
+        int logged = 0;
+        for (int i = 0; i < rpi->numRows; ++i) {
+            IRenderJobStatus* job = rpi->jobs[i];
+            if (job == nullptr || job->IsFinished()) {
+                continue;
+            }
+            ++unfinished;
+            if (logged < MAX_JOBS_LOGGED) {
+                ++logged;
+                spdlog::info("        {}", job->GetHangStatus());
+            }
+        }
+        if (unfinished > logged) {
+            spdlog::info("        ... and {} more unfinished job(s).", unfinished - logged);
+        }
+        if (unfinished == 0) {
+            // Every job took its terminal transition, so the batch is wedged
+            // handing completion back to the caller, not inside an effect.
+            spdlog::info("        No job is still running; the batch never signalled completion.");
         }
     }
 }

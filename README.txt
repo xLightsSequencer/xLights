@@ -14,6 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
+    -enh (dkulp)                 Render: when a render or an abort will not finish, the log now names
+                                 the models still outstanding along with the frame each one reached
+                                 and what it is waiting on, instead of only counting them
     -enh (dkulp)                 FPP: support several LED panel matrices on one controller driven
                                  different ways at once. New "LED Panel Matrix - Hat/Cap/Cape" and
                                  "LED Panel Matrix - ColorLight" protocols name which kind a model

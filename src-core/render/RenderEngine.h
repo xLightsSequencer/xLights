@@ -98,6 +98,11 @@ public:
     // Called from the platforms' render-status polling.
     void CheckForStalledRender();
 
+    // Logs a per-job breakdown of every render job that has not finished, so a
+    // render or abort that never completes names the rows it is waiting on
+    // rather than just counting them.  `context` prefixes each line.
+    void LogUnfinishedRenderJobs(const std::string& context);
+
     // ---- state access (for UI layer) ----
     std::list<RenderProgressInfo*>& GetRenderProgressInfo() { return _renderProgressInfo; }
     int GetAbortedRenderJobs() const { return _abortedRenderJobs; }
