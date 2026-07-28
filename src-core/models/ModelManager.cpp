@@ -1578,6 +1578,61 @@ std::vector<std::string> ModelManager::GetGroupsContainingModel(const Model* mod
     return res;
 }
 
+void ModelManager::ReconcileReplacedModelGroups(const std::string& sourceName, const std::vector<std::string>& replacedNames, ReplaceGroupMode mode)
+{
+    if (mode == ReplaceGroupMode::NoChange || sourceName.empty() || replacedNames.empty()) {
+        return;
+    }
+
+    const std::string sourcePrefix = sourceName + "/";
+
+    for (const auto& it : *this) {
+        if (it.second == nullptr || it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+            continue;
+        }
+        ModelGroup* g = dynamic_cast<ModelGroup*>(it.second);
+        if (g == nullptr || g->IsFromBase()) {
+            continue; // never edit base-folder groups
+        }
+
+        // Snapshot once: which of this group's direct entries belong to the
+        // source model, as either "Source" or a submodel "Source/Strand1".
+        // (AddModel/ModelRemoved mutate the live list, so iterate a copy.)
+        const std::vector<std::string> names = g->ModelNames();
+        std::vector<std::string> sourceOwned;
+        for (const auto& n : names) {
+            if (n == sourceName || n.starts_with(sourcePrefix)) {
+                sourceOwned.push_back(n);
+            }
+        }
+
+        for (const auto& targetName : replacedNames) {
+            if (targetName == sourceName) {
+                continue;
+            }
+            const std::string targetPrefix = targetName + "/";
+
+            if (mode == ReplaceGroupMode::ReplaceWithSource) {
+                // The replaced model's direct membership in this group becomes
+                // exactly the source's: drop its existing entries first (this
+                // also clears stale "Target/OldSub" entries whose submodels no
+                // longer exist when submodels weren't kept).
+                for (const auto& n : names) {
+                    if (n == targetName || n.starts_with(targetPrefix)) {
+                        g->ModelRemoved(n);
+                    }
+                }
+            }
+
+            // Add the target-equivalent of each source entry, remapping the
+            // prefix so "Source/Strand1" -> "Target/Strand1". AddModel dedupes.
+            for (const auto& n : sourceOwned) {
+                g->AddModel(targetName + n.substr(sourceName.size()));
+            }
+        }
+    }
+}
+
 std::vector<std::string> ModelManager::GetGroupsContainingModelOrSubmodel(const Model* model) const
 {
     std::vector<std::string> res;

@@ -1572,6 +1572,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
           keepStartChannel:(BOOL)keepStartChannel
              keepSubmodels:(BOOL)keepSubmodels
           keepSizePosition:(BOOL)keepSizePosition
+                 groupMode:(NSInteger)groupMode
                forDocument:(XLSequenceDocument*)doc {
     if (!doc || targets.count == 0 || source.length == 0) return 0;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -1592,6 +1593,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 
     NSInteger replaced = 0;
     int counter = 0;
+    std::vector<std::string> replacedNames; // for group reconciliation below
     for (NSString* t in targets) {
         if (t.length == 0) continue;
         const std::string targetName = t.UTF8String;
@@ -1662,9 +1664,15 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         }
 
         rctx->MarkLayoutModelDirty(targetName);
+        replacedNames.push_back(targetName);
         ++replaced;
         ++counter;
     }
+
+    // Reconcile group memberships against the source, per the sheet's Model
+    // Groups choice. Same shared core helper the desktop Replace dialog uses.
+    mgr.ReconcileReplacedModelGroups(sourceName, replacedNames, static_cast<ReplaceGroupMode>(groupMode));
+
     return replaced;
 }
 

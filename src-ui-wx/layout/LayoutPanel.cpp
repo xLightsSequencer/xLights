@@ -10101,6 +10101,7 @@ void LayoutPanel::ReplaceModel()
     const bool copyStartCh = dlg.CopyStartChannel();
     const bool mergeSubs   = dlg.MergeSubmodels();
     const bool copySizePos = dlg.CopySizePos();
+    const ReplaceGroupMode groupMode = dlg.GroupHandling();
 
     xlights->UnselectEffect(); // in case an effect lives on one of the targets
     xlights->AbortRender();
@@ -10137,6 +10138,7 @@ void LayoutPanel::ReplaceModel()
 
     int successCount = 0;
     std::vector<std::string> failures;
+    std::vector<std::string> replacedNames; // targets successfully swapped, for group reconciliation
 
     for (const auto& targetName : targetNames) {
         // Re-resolve the target from the model manager each iteration - names
@@ -10241,8 +10243,18 @@ void LayoutPanel::ReplaceModel()
             continue;
         }
 
+        replacedNames.push_back(targetName);
         ++successCount;
     }
+
+    // Reconcile group memberships per the dialog's Model Groups choice. The
+    // replacement clone kept the target's name, so it already inherited the
+    // target's own groups - NoChange needs nothing. The shared core helper
+    // handles the ReplaceWithSource / MergeSourceIntoTarget modes (direct
+    // membership incl. submodel entries, base-folder groups skipped), and the
+    // iPad ReplaceModelSheet calls the same helper. sourceModel is untouched
+    // by the batch, so its name is still valid here.
+    xlights->AllModels.ReconcileReplacedModelGroups(sourceModel->GetName(), replacedNames, groupMode);
 
     // Pass the source model name + replaced count as context so logs and any
     // downstream observers can scope the change instead of seeing a bare
