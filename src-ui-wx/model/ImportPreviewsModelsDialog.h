@@ -29,17 +29,21 @@
 
 class LayoutGroup;
 
+enum class ImpItemKind { Model, ModelGroup, Viewpoint };
+
 class impTreeItemData : public wxClientData
 {
     pugi::xml_node _modelNode;
-    bool _modelGroup;
+    ImpItemKind _kind;
     const wxString _name;
 public:
-    impTreeItemData(wxString name, pugi::xml_node n, bool mg) : _modelNode(n), _modelGroup(mg), _name(name)
+    impTreeItemData(wxString name, pugi::xml_node n, ImpItemKind kind) : _modelNode(n), _kind(kind), _name(name)
     {}
     wxString GetName() const { return _name; };
     pugi::xml_node GetModelNode() const { return _modelNode; }
-    bool IsModelGroup() const { return _modelGroup; }
+    bool IsModelGroup() const { return _kind == ImpItemKind::ModelGroup; }
+    bool IsViewpoint() const { return _kind == ImpItemKind::Viewpoint; }
+    ImpItemKind GetKind() const { return _kind; }
 };
 
 class ImportPreviewsModelsDialog: public wxDialog
@@ -53,6 +57,7 @@ class ImportPreviewsModelsDialog: public wxDialog
     void ValidateWindow();
     void PopulateTree();
     void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter);
+    void AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxString& filter);
     static bool MatchesFilter(const wxString& name, const wxString& filterLower);
     // Filtering rebuilds the tree, so checked state is kept in these sets
     // (which survive filtered-out rows) and synced to/from the visible tree.
@@ -67,6 +72,7 @@ class ImportPreviewsModelsDialog: public wxDialog
     void DeselectExistingModels();
     void SelectAllModel(bool checked);
     void SelectAllModelGroups(bool checked);
+    void SelectAllViewpoints(bool checked);
     bool ModelExists(const std::string& modelName) const;
     bool LayoutExists(const std::string& layoutName) const;
 
@@ -77,6 +83,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         bool GetIncludeEmptyGroups() const;
         wxArrayString GetPreviews() const;
         std::list<impTreeItemData*> GetModelsInPreview(wxString preview) const;
+        std::list<impTreeItemData*> GetViewpoints() const;
         float GetSourceRulerPerUnit() const;
 		//(*Declarations(ImportPreviewsModelsDialog)
 		wxButton* Button_Cancel;
@@ -104,6 +111,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         static const long ID_MNU_IPM_DESELECTEXISTING;
         static const long ID_MNU_IPM_SELECTALLMODELS;
         static const long ID_MNU_IPM_SELECTALLMODELSGROUPS;
+        static const long ID_MNU_IPM_SELECTALLVIEWPOINTS;
 
 	private:
 
@@ -118,9 +126,9 @@ class ImportPreviewsModelsDialog: public wxDialog
 
         struct CheckedModel {
             std::string name;
-            bool group;
+            ImpItemKind kind;
             bool operator<(const CheckedModel& o) const {
-                return group != o.group ? group < o.group : name < o.name;
+                return kind != o.kind ? kind < o.kind : name < o.name;
             }
         };
 

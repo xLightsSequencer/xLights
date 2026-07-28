@@ -191,6 +191,17 @@ void ViewpointMgr::AddCamera( std::string name, PreviewCamera* current_camera, b
     }
 }
 
+void ViewpointMgr::ImportCameraFromNode(pugi::xml_node node)
+{
+    auto new_camera = CreateCameraFromNode(node);
+    if (new_camera->is_3d) {
+        previewCameras3d.push_back(std::move(new_camera));
+    }
+    else {
+        previewCameras2d.push_back(std::move(new_camera));
+    }
+}
+
 void ViewpointMgr::SaveCameraToVisitor(BaseSerializingVisitor& visitor, const PreviewCamera* camera,
                                         const std::string& nodename, const std::string& nameOverride) const
 {

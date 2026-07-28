@@ -44,6 +44,7 @@ const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTSIBLINGS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_DESELECTEXISTING = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTALLMODELS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTALLMODELSGROUPS = wxNewId();
+const long ImportPreviewsModelsDialog::ID_MNU_IPM_SELECTALLVIEWPOINTS = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_EXPANDALL = wxNewId();
 const long ImportPreviewsModelsDialog::ID_MNU_IPM_COLLAPSEALL = wxNewId();
 
@@ -59,7 +60,7 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
 	wxFlexGridSizer* FlexGridSizer1;
 	wxFlexGridSizer* FlexGridSizer3;
 
-	Create(parent, id, _("Import Previews and Models"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
+	Create(parent, id, _("Import Previews, Models and Viewpoints"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX, _T("id"));
 	SetClientSize(wxDefaultSize);
 	Move(wxDefaultPosition);
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -133,6 +134,7 @@ wxArrayString ImportPreviewsModelsDialog::GetPreviews() const
 
     for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
     {
+        if (TreeListCtrl1->GetItemText(it) == "Viewpoints") continue;
         if (TreeListCtrl1->GetCheckedState(it) == wxCHK_CHECKED)
         {
             res.push_back(TreeListCtrl1->GetItemText(it));
@@ -150,6 +152,7 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
     {
         for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
         {
+            if (TreeListCtrl1->GetItemText(it) == "Viewpoints") continue;
             if (TreeListCtrl1->GetCheckedState(it) == wxCHK_UNCHECKED)
             {
                 for (wxTreeListItem it2 = TreeListCtrl1->GetFirstChild(it); it2.IsOk(); it2 = TreeListCtrl1->GetNextSibling(it2))
@@ -164,6 +167,7 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
     }
     else
     {
+        if (preview == "Viewpoints") return res;
         for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
         {
             if (TreeListCtrl1->GetItemText(it) == preview)
@@ -174,6 +178,27 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
                     {
                         res.push_back((impTreeItemData*)TreeListCtrl1->GetItemData(it2));
                     }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetViewpoints() const
+{
+    std::list<impTreeItemData*> res;
+
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
+    {
+        if (TreeListCtrl1->GetItemText(it) == "Viewpoints")
+        {
+            for (wxTreeListItem it2 = TreeListCtrl1->GetFirstChild(it); it2.IsOk(); it2 = TreeListCtrl1->GetNextSibling(it2))
+            {
+                if (TreeListCtrl1->GetCheckedState(it2) == wxCHK_CHECKED)
+                {
+                    res.push_back((impTreeItemData*)TreeListCtrl1->GetItemData(it2));
                 }
             }
         }
@@ -211,10 +236,31 @@ void ImportPreviewsModelsDialog::AddModels(wxTreeListCtrl* tree, wxTreeListItem 
 
     // Model groups sort ahead of models, then each block is name-ordered.
     for (const auto& [name, node] : groups) {
-        tree->AppendItem(item, wxString(name) + " - Group", -1, -1, new impTreeItemData(wxString(name), node, true));
+        tree->AppendItem(item, wxString(name) + " - Group", -1, -1, new impTreeItemData(wxString(name), node, ImpItemKind::ModelGroup));
     }
     for (const auto& [name, node] : mods) {
-        tree->AppendItem(item, wxString(name), -1, -1, new impTreeItemData(wxString(name), node, false));
+        tree->AppendItem(item, wxString(name), -1, -1, new impTreeItemData(wxString(name), node, ImpItemKind::Model));
+    }
+    tree->Expand(item);
+}
+
+void ImportPreviewsModelsDialog::AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxString& filter)
+{
+    std::vector<std::pair<std::string, pugi::xml_node>> cams;
+
+    for (pugi::xml_node c = viewpoints.first_child(); c; c = c.next_sibling()) {
+        if (std::string_view(c.name()) != "Camera") continue; // skip DefaultCamera2D/DefaultCamera3D
+        wxString cn = c.attribute("name").as_string();
+        if (MatchesFilter(cn, filter)) cams.emplace_back(cn.ToStdString(), c);
+    }
+
+    if (cams.empty()) return;
+
+    std::sort(cams.begin(), cams.end(), [](const auto& a, const auto& b) { return stdlistNumberAwareStringCompare(a.first, b.first); });
+
+    for (const auto& [name, node] : cams) {
+        wxString label = wxString(name) + (node.attribute("is_3d").as_int(0) != 0 ? " - 3D" : " - 2D");
+        tree->AppendItem(item, label, -1, -1, new impTreeItemData(wxString(name), node, ImpItemKind::Viewpoint));
     }
     tree->Expand(item);
 }
@@ -241,7 +287,7 @@ void ImportPreviewsModelsDialog::SyncCheckedFromTree()
         for (wxTreeListItem c = TreeListCtrl1->GetFirstChild(p); c.IsOk(); c = TreeListCtrl1->GetNextSibling(c)) {
             auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(c);
             if (d == nullptr) continue;
-            const CheckedModel ck { d->GetName().ToStdString(), d->IsModelGroup() };
+            const CheckedModel ck { d->GetName().ToStdString(), d->GetKind() };
             if (TreeListCtrl1->GetCheckedState(c) == wxCHK_CHECKED) _checkedModels.insert(ck);
             else _checkedModels.erase(ck);
         }
@@ -256,7 +302,7 @@ void ImportPreviewsModelsDialog::RestoreChecksToTree()
         for (wxTreeListItem c = TreeListCtrl1->GetFirstChild(p); c.IsOk(); c = TreeListCtrl1->GetNextSibling(c)) {
             auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(c);
             if (d == nullptr) continue;
-            if (_checkedModels.count({ d->GetName().ToStdString(), d->IsModelGroup() }) != 0)
+            if (_checkedModels.count({ d->GetName().ToStdString(), d->GetKind() }) != 0)
                 TreeListCtrl1->CheckItem(c, wxCHK_CHECKED);
         }
     }
@@ -280,9 +326,11 @@ void ImportPreviewsModelsDialog::PopulateTree()
     pugi::xml_node root = _doc.document_element();
     pugi::xml_node models = root.child("models");
     pugi::xml_node modelgroups = root.child("modelGroups");
+    pugi::xml_node viewpoints = root.child("Viewpoints");
+
+    std::vector<wxTreeListItem> previews;
 
     if (models || modelgroups) {
-        std::vector<wxTreeListItem> previews;
         wxTreeListItem defaultItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Default");
         wxTreeListItem unassignedItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Unassigned");
         AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default", _filter);
@@ -303,12 +351,24 @@ void ImportPreviewsModelsDialog::PopulateTree()
                 }
             }
         }
+    }
 
-        // While filtering, drop preview rows with no matching children.
-        if (!_filter.empty()) {
-            for (wxTreeListItem p : previews) {
-                if (!TreeListCtrl1->GetFirstChild(p).IsOk()) TreeListCtrl1->DeleteItem(p);
-            }
+    if (viewpoints) {
+        bool hasCamera = false;
+        for (pugi::xml_node c = viewpoints.first_child(); c; c = c.next_sibling()) {
+            if (std::string_view(c.name()) == "Camera") { hasCamera = true; break; }
+        }
+        if (hasCamera) {
+            wxTreeListItem viewpointsItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Viewpoints");
+            AddViewpoints(TreeListCtrl1, viewpointsItem, viewpoints, _filter);
+            previews.push_back(viewpointsItem);
+        }
+    }
+
+    // While filtering, drop preview/Viewpoints rows with no matching children.
+    if (!_filter.empty()) {
+        for (wxTreeListItem p : previews) {
+            if (!TreeListCtrl1->GetFirstChild(p).IsOk()) TreeListCtrl1->DeleteItem(p);
         }
     }
 
@@ -355,6 +415,7 @@ void ImportPreviewsModelsDialog::OnContextMenu(wxTreeListEvent& event)
     mnuContext.AppendSeparator();
     mnuContext.Append(ID_MNU_IPM_SELECTALLMODELS, "Select All Models");
     mnuContext.Append(ID_MNU_IPM_SELECTALLMODELSGROUPS, "Select All Model Groups");
+    mnuContext.Append(ID_MNU_IPM_SELECTALLVIEWPOINTS, "Select All Viewpoints");
 
     mnuContext.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)& ImportPreviewsModelsDialog::OnListPopup, nullptr, this);
     PopupMenu(&mnuContext);
@@ -397,6 +458,10 @@ void ImportPreviewsModelsDialog::OnListPopup(wxCommandEvent& event)
     else if (event.GetId() == ID_MNU_IPM_SELECTALLMODELSGROUPS)
     {
         SelectAllModelGroups(true);
+    }
+    else if (event.GetId() == ID_MNU_IPM_SELECTALLVIEWPOINTS)
+    {
+        SelectAllViewpoints(true);
     }
     else if (event.GetId() == ID_MNU_IPM_EXPANDALL)
     {
@@ -442,7 +507,7 @@ void ImportPreviewsModelsDialog::DeselectExistingModels()
     // alone, matching the tree walk (a group's row text is "<name> - Group", which
     // never matches an existing model).
     for (auto it = _checkedModels.begin(); it != _checkedModels.end();) {
-        if (!it->group && ModelExists(it->name)) it = _checkedModels.erase(it);
+        if (it->kind == ImpItemKind::Model && ModelExists(it->name)) it = _checkedModels.erase(it);
         else ++it;
     }
 }
@@ -509,7 +574,8 @@ void ImportPreviewsModelsDialog::SelectAllModel(bool checked)
 {
     for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
     {
-        if(TreeListCtrl1->GetItemData(it) != nullptr && !((impTreeItemData*)TreeListCtrl1->GetItemData(it))->IsModelGroup())
+        auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(it);
+        if (d != nullptr && d->GetKind() == ImpItemKind::Model)
             TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
     }
 }
@@ -519,6 +585,15 @@ void ImportPreviewsModelsDialog::SelectAllModelGroups(bool checked)
     for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
     {
         if (TreeListCtrl1->GetItemData(it) != nullptr && ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->IsModelGroup())
+            TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
+    }
+}
+
+void ImportPreviewsModelsDialog::SelectAllViewpoints(bool checked)
+{
+    for (wxTreeListItem it = TreeListCtrl1->GetFirstItem(); it.IsOk(); it = TreeListCtrl1->GetNextItem(it))
+    {
+        if (TreeListCtrl1->GetItemData(it) != nullptr && ((impTreeItemData*)TreeListCtrl1->GetItemData(it))->IsViewpoint())
             TreeListCtrl1->CheckItem(it, checked ? wxCHK_CHECKED : wxCHK_UNCHECKED);
     }
 }

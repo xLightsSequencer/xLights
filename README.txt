@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
+                                 named Viewpoints (2D/3D camera presets).
     -bug (dkulp)                 Shader: a shader that accumulates into gl_FragColor without first
                                  assigning it (common in Shadertoy conversions) read an undefined value,
                                  so it rendered differently every run and made the whole sequence

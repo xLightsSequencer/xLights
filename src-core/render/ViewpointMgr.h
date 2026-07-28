@@ -100,6 +100,7 @@ public:
         _defaultCamera3D = std::make_unique<PreviewCamera>(*current_camera);
     }
     void AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d );
+    void ImportCameraFromNode(pugi::xml_node node);
     int GetNum2DCameras() const { return static_cast<int>(previewCameras2d.size()); }
     int GetNum3DCameras() const { return static_cast<int>(previewCameras3d.size()); }
     PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i].get(); }

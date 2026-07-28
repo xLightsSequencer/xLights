@@ -7523,7 +7523,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
-    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups"));
+    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups/Viewpoints"));
     mnu.Append(ID_PREVIEW_IMPORT_MODELS_FROM_LORS5, _("Import LOR S5 Models/Groups"));
     mnu.Append(ID_PREVIEW_LAYOUT_DXF_EXPORT, _("Export Layout As DXF"));
 
@@ -11490,6 +11490,12 @@ void LayoutPanel::ImportModelsFromRGBEffects()
             std::string name = ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups(), srcPerUnit);
             if (firstImported.empty()) firstImported = name;
         }
+
+        for (auto* vp : dlg.GetViewpoints())
+        {
+            xlights->viewpoint_mgr.ImportCameraFromNode(vp->GetModelNode());
+        }
+
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                       OutputModelManager::WORK_RELOAD_MODELLIST |
