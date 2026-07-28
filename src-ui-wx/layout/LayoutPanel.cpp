@@ -11385,7 +11385,7 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
     //add models first
     for (auto const& it2 : models)
     {
-        if (!it2->IsModelGroup())
+        if (it2->GetKind() == ImpItemKind::Model)
         {
             std::string newName = it2->GetName();
             if (xlights->AllModels.GetModel(newName) != nullptr) {
@@ -11405,7 +11405,7 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
     //add model groups second, skip adding duplicates, just add models to existing group
     for (auto const& it2 : models)
     {
-        if (it2->IsModelGroup())//if a group, try to add models if exist
+        if (it2->GetKind() == ImpItemKind::ModelGroup)//if a group, try to add models if exist
         {
             wxString const smodels = it2->GetModelNode().attribute("models").as_string();
             auto models = wxSplit(smodels, ',');

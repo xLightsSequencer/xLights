@@ -92,7 +92,7 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
 
     int idd = wxNewId();
     TreeListCtrl1 = new wxTreeListCtrl(this, idd, wxDefaultPosition, wxSize(300, 400), wxTL_MULTIPLE | wxTR_FULL_ROW_HIGHLIGHT | wxTL_CHECKBOX | wxTL_NO_HEADER, _("IPM_TREE"));
-    TreeListCtrl1->AppendColumn(L"Previews & Models", 300);
+    TreeListCtrl1->AppendColumn(L"Previews, Models & Viewpoints", 300);
     FlexGridSizer2->Add(TreeListCtrl1, 1, wxALL | wxEXPAND, 2);
     FlexGridSizer2->Layout();
 
@@ -103,7 +103,7 @@ ImportPreviewsModelsDialog::ImportPreviewsModelsDialog(wxWindow* parent, const w
     // Debounced so typing in a large model list does not rebuild every keystroke.
     _filterCtrl = new wxSearchCtrl(this, wxID_ANY);
     _filterCtrl->ShowCancelButton(true);
-    _filterCtrl->SetDescriptiveText(_("Filter models"));
+    _filterCtrl->SetDescriptiveText(_("Filter models and viewpoints"));
     FlexGridSizer2->Insert(0, _filterCtrl, 0, wxALL | wxEXPAND, 2);
     FlexGridSizer2->RemoveGrowableRow(0);
     FlexGridSizer2->AddGrowableRow(1);
@@ -134,7 +134,7 @@ wxArrayString ImportPreviewsModelsDialog::GetPreviews() const
 
     for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
     {
-        if (TreeListCtrl1->GetItemText(it) == "Viewpoints") continue;
+        if (IsViewpointsRow(it)) continue;
         if (TreeListCtrl1->GetCheckedState(it) == wxCHK_CHECKED)
         {
             res.push_back(TreeListCtrl1->GetItemText(it));
@@ -152,7 +152,7 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
     {
         for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
         {
-            if (TreeListCtrl1->GetItemText(it) == "Viewpoints") continue;
+            if (IsViewpointsRow(it)) continue;
             if (TreeListCtrl1->GetCheckedState(it) == wxCHK_UNCHECKED)
             {
                 for (wxTreeListItem it2 = TreeListCtrl1->GetFirstChild(it); it2.IsOk(); it2 = TreeListCtrl1->GetNextSibling(it2))
@@ -167,9 +167,9 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetModelsInPreview(wxStr
     }
     else
     {
-        if (preview == "Viewpoints") return res;
         for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
         {
+            if (IsViewpointsRow(it)) continue;
             if (TreeListCtrl1->GetItemText(it) == preview)
             {
                 for (wxTreeListItem it2 = TreeListCtrl1->GetFirstChild(it); it2.IsOk(); it2 = TreeListCtrl1->GetNextSibling(it2))
@@ -192,7 +192,7 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetViewpoints() const
 
     for (wxTreeListItem it = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); it.IsOk(); it = TreeListCtrl1->GetNextSibling(it))
     {
-        if (TreeListCtrl1->GetItemText(it) == "Viewpoints")
+        if (IsViewpointsRow(it))
         {
             for (wxTreeListItem it2 = TreeListCtrl1->GetFirstChild(it); it2.IsOk(); it2 = TreeListCtrl1->GetNextSibling(it2))
             {
@@ -201,10 +201,17 @@ std::list<impTreeItemData*> ImportPreviewsModelsDialog::GetViewpoints() const
                     res.push_back((impTreeItemData*)TreeListCtrl1->GetItemData(it2));
                 }
             }
+            break; // exactly one synthetic Viewpoints row per tree build
         }
     }
 
     return res;
+}
+
+bool ImportPreviewsModelsDialog::IsViewpointsRow(wxTreeListItem it) const
+{
+    auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(it);
+    return d != nullptr && d->GetKind() == ImpItemKind::Viewpoint;
 }
 
 
@@ -250,7 +257,7 @@ void ImportPreviewsModelsDialog::AddViewpoints(wxTreeListCtrl* tree, wxTreeListI
 
     for (pugi::xml_node c = viewpoints.first_child(); c; c = c.next_sibling()) {
         if (std::string_view(c.name()) != "Camera") continue; // skip DefaultCamera2D/DefaultCamera3D
-        wxString cn = c.attribute("name").as_string();
+        wxString cn = UnXmlSafe(c.attribute("name").as_string(""));
         if (MatchesFilter(cn, filter)) cams.emplace_back(cn.ToStdString(), c);
     }
 
@@ -281,9 +288,13 @@ void ImportPreviewsModelsDialog::SyncCheckedFromTree()
     // Merge the visible tree's check state into the persistent sets. Filtered-out
     // rows aren't visited, so their checked state is retained.
     for (wxTreeListItem p = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); p.IsOk(); p = TreeListCtrl1->GetNextSibling(p)) {
-        const std::string pk = TreeListCtrl1->GetItemText(p).ToStdString();
-        if (TreeListCtrl1->GetCheckedState(p) == wxCHK_CHECKED) _checkedPreviews.insert(pk);
-        else _checkedPreviews.erase(pk);
+        if (IsViewpointsRow(p)) {
+            _viewpointsRootChecked = (TreeListCtrl1->GetCheckedState(p) == wxCHK_CHECKED);
+        } else {
+            const std::string pk = TreeListCtrl1->GetItemText(p).ToStdString();
+            if (TreeListCtrl1->GetCheckedState(p) == wxCHK_CHECKED) _checkedPreviews.insert(pk);
+            else _checkedPreviews.erase(pk);
+        }
         for (wxTreeListItem c = TreeListCtrl1->GetFirstChild(p); c.IsOk(); c = TreeListCtrl1->GetNextSibling(c)) {
             auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(c);
             if (d == nullptr) continue;
@@ -297,8 +308,11 @@ void ImportPreviewsModelsDialog::SyncCheckedFromTree()
 void ImportPreviewsModelsDialog::RestoreChecksToTree()
 {
     for (wxTreeListItem p = TreeListCtrl1->GetFirstChild(TreeListCtrl1->GetRootItem()); p.IsOk(); p = TreeListCtrl1->GetNextSibling(p)) {
-        if (_checkedPreviews.count(TreeListCtrl1->GetItemText(p).ToStdString()) != 0)
+        if (IsViewpointsRow(p)) {
+            if (_viewpointsRootChecked) TreeListCtrl1->CheckItem(p, wxCHK_CHECKED);
+        } else if (_checkedPreviews.count(TreeListCtrl1->GetItemText(p).ToStdString()) != 0) {
             TreeListCtrl1->CheckItem(p, wxCHK_CHECKED);
+        }
         for (wxTreeListItem c = TreeListCtrl1->GetFirstChild(p); c.IsOk(); c = TreeListCtrl1->GetNextSibling(c)) {
             auto* d = (impTreeItemData*)TreeListCtrl1->GetItemData(c);
             if (d == nullptr) continue;
@@ -328,15 +342,15 @@ void ImportPreviewsModelsDialog::PopulateTree()
     pugi::xml_node modelgroups = root.child("modelGroups");
     pugi::xml_node viewpoints = root.child("Viewpoints");
 
-    std::vector<wxTreeListItem> previews;
+    std::vector<wxTreeListItem> topLevelRows;
 
     if (models || modelgroups) {
         wxTreeListItem defaultItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Default");
         wxTreeListItem unassignedItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Unassigned");
         AddModels(TreeListCtrl1, defaultItem, models, modelgroups, "Default", _filter);
         AddModels(TreeListCtrl1, unassignedItem, models, modelgroups, "Unassigned", _filter);
-        previews.push_back(defaultItem);
-        previews.push_back(unassignedItem);
+        topLevelRows.push_back(defaultItem);
+        topLevelRows.push_back(unassignedItem);
 
         pugi::xml_node layoutGroupsNode = root.child("layoutGroups");
         if (layoutGroupsNode) {
@@ -346,7 +360,7 @@ void ImportPreviewsModelsDialog::PopulateTree()
                     if (lg != "") {
                         wxTreeListItem t = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), lg);
                         AddModels(TreeListCtrl1, t, models, modelgroups, lg, _filter);
-                        previews.push_back(t);
+                        topLevelRows.push_back(t);
                     }
                 }
             }
@@ -354,20 +368,24 @@ void ImportPreviewsModelsDialog::PopulateTree()
     }
 
     if (viewpoints) {
-        bool hasCamera = false;
-        for (pugi::xml_node c = viewpoints.first_child(); c; c = c.next_sibling()) {
-            if (std::string_view(c.name()) == "Camera") { hasCamera = true; break; }
-        }
-        if (hasCamera) {
-            wxTreeListItem viewpointsItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Viewpoints");
-            AddViewpoints(TreeListCtrl1, viewpointsItem, viewpoints, _filter);
-            previews.push_back(viewpointsItem);
+        // Tagged with an impTreeItemData of kind Viewpoint so this row is identified by
+        // identity (IsViewpointsRow), not by its "Viewpoints" label text - a source file's
+        // own layoutGroup could legitimately be named "Viewpoints" too.
+        wxTreeListItem viewpointsItem = TreeListCtrl1->AppendItem(TreeListCtrl1->GetRootItem(), "Viewpoints", -1, -1,
+            new impTreeItemData(wxString("Viewpoints"), pugi::xml_node(), ImpItemKind::Viewpoint));
+        AddViewpoints(TreeListCtrl1, viewpointsItem, viewpoints, _filter);
+        if (TreeListCtrl1->GetFirstChild(viewpointsItem).IsOk()) {
+            topLevelRows.push_back(viewpointsItem);
+        } else {
+            // No real Camera children (only DefaultCamera2D/3D, or filtered down to nothing).
+            TreeListCtrl1->DeleteItem(viewpointsItem);
         }
     }
 
-    // While filtering, drop preview/Viewpoints rows with no matching children.
+    // While filtering, drop preview rows with no matching children (the Viewpoints row is
+    // already guaranteed non-empty above, so this only ever prunes preview rows).
     if (!_filter.empty()) {
-        for (wxTreeListItem p : previews) {
+        for (wxTreeListItem p : topLevelRows) {
             if (!TreeListCtrl1->GetFirstChild(p).IsOk()) TreeListCtrl1->DeleteItem(p);
         }
     }
@@ -624,7 +642,7 @@ void ImportPreviewsModelsDialog::ValidateWindow()
     // Drive the OK button off the persistent check sets so it stays correct even
     // when checked rows are hidden by the current filter.
     SyncCheckedFromTree();
-    Button_Ok->Enable(!_checkedModels.empty() || !_checkedPreviews.empty());
+    Button_Ok->Enable(!_checkedModels.empty() || !_checkedPreviews.empty() || _viewpointsRootChecked);
 }
 
 float ImportPreviewsModelsDialog::GetSourceRulerPerUnit() const

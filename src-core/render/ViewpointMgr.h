@@ -114,6 +114,7 @@ public:
     bool IsNameUnique(const std::string& name, bool is_3d);
 
 private:
+    std::string GenerateUniqueCameraName(const std::string& candidateName, bool is_3d);
     std::unique_ptr<PreviewCamera> CreateCameraFromNode(pugi::xml_node node);
     void SaveCameraToVisitor(BaseSerializingVisitor& visitor, const PreviewCamera* camera,
                              const std::string& nodename, const std::string& nameOverride = "") const;

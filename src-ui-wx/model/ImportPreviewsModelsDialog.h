@@ -59,6 +59,7 @@ class ImportPreviewsModelsDialog: public wxDialog
     void AddModels(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node models, pugi::xml_node modelgroups, wxString preview, const wxString& filter);
     void AddViewpoints(wxTreeListCtrl* tree, wxTreeListItem item, pugi::xml_node viewpoints, const wxString& filter);
     static bool MatchesFilter(const wxString& name, const wxString& filterLower);
+    bool IsViewpointsRow(wxTreeListItem it) const;
     // Filtering rebuilds the tree, so checked state is kept in these sets
     // (which survive filtered-out rows) and synced to/from the visible tree.
     void SyncCheckedFromTree();
@@ -138,6 +139,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         wxTimer _filterTimer;    // debounce tree rebuilds while typing
         std::set<CheckedModel> _checkedModels;
         std::set<std::string> _checkedPreviews; // checked preview/layout-group rows
+        bool _viewpointsRootChecked = false; // the Viewpoints row's own checkbox
 
 		DECLARE_EVENT_TABLE()
 };
