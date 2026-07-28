@@ -3286,7 +3286,10 @@ void ControllerModelDialog::DropModelFromModelsPaneOnModel(ModelCMObject* droppe
         m->SetControllerProtocol("Virtual Matrix");
         m->SetSmartRemote(0);
     } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
-        m->SetControllerProtocol("LED Panel Matrix");
+        // keep whichever panel driver family the model already named
+        if (!::IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+            m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+        }
         m->SetSmartRemote(0);
     } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
         m->SetControllerProtocol("PWM");
@@ -3427,7 +3430,10 @@ void ControllerModelDialog::DropFromModels(const wxPoint& location, const std::s
                 m->SetControllerProtocol("Virtual Matrix");
                 m->SetSmartRemote(0);
             } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
-                m->SetControllerProtocol("LED Panel Matrix");
+                // keep whichever panel driver family the model already named
+                if (!::IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+                    m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+                }
                 m->SetSmartRemote(0);
             } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
                 m->SetControllerProtocol("PWM");
@@ -3727,7 +3733,10 @@ void ControllerModelDialog::DropFromController(const wxPoint& location, const st
                     m->SetControllerProtocol("Virtual Matrix");
                     m->SetSmartRemote(0);
                 } else if (port->GetPortType() == PortCMObject::PORTTYPE::PANEL_MATRIX) {
-                    m->SetControllerProtocol("LED Panel Matrix");
+                    // keep whichever panel driver family the model already named
+                    if (!::IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+                        m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+                    }
                     m->SetSmartRemote(0);
                 } else if (port->GetPortType() == PortCMObject::PORTTYPE::PWM) {
                     m->SetControllerProtocol("PWM");

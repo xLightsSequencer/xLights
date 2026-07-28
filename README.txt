@@ -14,6 +14,20 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
+    -enh (dkulp)                 FPP: support several LED panel matrices on one controller driven
+                                 different ways at once. New "LED Panel Matrix - Hat/Cap/Cape" and
+                                 "LED Panel Matrix - ColorLight" protocols name which kind a model
+                                 targets, and the port number is the matrix number the controller's
+                                 LED Panels page shows. The original "LED Panel Matrix" still works
+                                 and matches whatever is on that port
+    -bug (dkulp)                 FPP: LED panel matrix upload picked matrices by their position in
+                                 the config rather than by their configured number, so it could
+                                 write a start channel to the wrong matrix when they were not
+                                 numbered sequentially
+    -bug (dkulp)                 FPP: re-uploading an unchanged LED panel matrix left the panel's
+                                 channels out of the controller's channel ranges
+    -bug (dkulp)                 FPP: under full xLights control, a panel matrix xLights no longer
+                                 drives stayed enabled on its old start channel
     -bug (dkulp)                 Fix crash opening Tools - Test when a model uses a PWM protocol on a
                                  controller whose vendor/model has no capabilities definition
     -bug (dkulp)                 Fix crash editing or deleting an LOR device in controller properties

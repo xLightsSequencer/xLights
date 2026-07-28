@@ -2476,59 +2476,127 @@ bool FPP::IsCompatible(const ControllerCaps *rules,
 }
 
 #ifndef DISCOVERYONLY
+// FPP picks a panel matrix's driver from the entry's subType, and a controller can run
+// several matrices at once with different drivers - a cape shifting out its own panels
+// while ColorLight receivers hang off the network.  The model's protocol says which
+// family the user meant, so a mismatch means the port numbers no longer line up with the
+// controller and writing anyway would land a start channel on somebody else's matrix.
+static bool PanelSubTypeMatchesProtocol(const std::string& protocol, const std::string& subType) {
+    if (protocol == PROTOCOL_LED_PANEL_MATRIX_CAPE) {
+        // a box is either a Pi or a Beagle, so the hat and cape drivers never coexist
+        return subType == "BBShiftPanel" || subType == "BBBMatrix" ||
+               subType == "LEDscapeMatrix" || subType == "RGBMatrix";
+    }
+    if (protocol == PROTOCOL_LED_PANEL_MATRIX_COLORLIGHT) {
+        return subType == "ColorLight5a75";
+    }
+    // the generic protocol predates the split and binds to whatever is on that port
+    return true;
+}
+
 bool FPP::UploadPanelOutputs(ModelManager* allmodels,
                              OutputManager* outputManager,
                              Controller* controller) {
     auto rules = ControllerCaps::GetControllerConfig(controller);
-    if (rules == nullptr) {
+    if (rules == nullptr || !rules->SupportsLEDPanelMatrix()) {
         return false;
     }
-    std::string check;
     UDController cud(controller, outputManager, allmodels, false);
     bool fullcontrol = rules->SupportsFullxLightsControl() && controller->IsFullxLightsControl();
 
-    nlohmann::json origJson;
-    bool changed = false;
+    // walk every matrix the controller could have, not just the ones xLights drives, so
+    // one it no longer drives can be turned off rather than left running on stale channels
+    const int maxPanel = std::max(cud.GetMaxLEDPanelMatrixPort(), rules->GetMaxLEDPanelMatrixPort());
+
     bool hasPanel = false;
-    
-    if (rules->SupportsLEDPanelMatrix()) {
-        for (int x = 0; x < cud.GetMaxLEDPanelMatrixPort(); ++x) {
-            if (cud.GetControllerLEDPanelMatrixPort(1 + x)->GetStartChannel() > 0) {
-                hasPanel = true;
-            }
+    for (int port = 1; port <= maxPanel && !hasPanel; ++port) {
+        if (cud.HasLEDPanelMatrixPort(port) && cud.GetControllerLEDPanelMatrixPort(port)->GetStartChannel() > 0) {
+            hasPanel = true;
+        }
+    }
+    if (!hasPanel && !fullcontrol) {
+        return false;
+    }
+
+    nlohmann::json origJson;
+    GetURLAsJSON("/api/channel/output/channelOutputsJSON", origJson, false);
+    if (!origJson.contains("channelOutputs") || !origJson["channelOutputs"].is_array()) {
+        return false;
+    }
+
+    // Port N means the matrix FPP's UI labels "Panel Matrix N".  Matching on position
+    // instead would silently shift as soon as the ids are not 1..n - FPP hands a new
+    // matrix the lowest free id, so deleting one leaves a gap that never closes up.
+    std::map<int, int> matrixIdToIndex;
+    for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
+        const auto& co = origJson["channelOutputs"][x];
+        if (GetJSONStringValue(co, "type") != "LEDPanelMatrix") {
+            continue;
+        }
+        // FPP's UI writes this as a string; configs older than it have none at all
+        int id = GetJSONIntValueFromString(co, "panelMatrixID", 0);
+        if (id <= 0) {
+            id = x + 1;
+        }
+        if (!matrixIdToIndex.emplace(id, x).second) {
+            spdlog::warn("FPP Panel Outputs Upload: {} has more than one panel matrix claiming id {}; using the first.", ipAddress, id);
         }
     }
 
-    if (hasPanel || fullcontrol) {
-        GetURLAsJSON("/api/channel/output/channelOutputsJSON", origJson, false);
-    }
-    if (hasPanel) {
-        std::map<int, int> rngs;
-        FillRanges(rngs);
-        for (int panel = 0; panel < cud.GetMaxLEDPanelMatrixPort(); ++panel) {
-            if (panel < (int)origJson["channelOutputs"].size()) {
-                int startChannel = cud.GetControllerLEDPanelMatrixPort(1 + panel)->GetStartChannel();
-                if (startChannel > 0) {
-                    if (UpdateJSONValue(origJson["channelOutputs"][panel], "startChannel", startChannel)) {
-                        changed = true;
-                        rngs[startChannel - 1] = origJson["channelOutputs"][panel]["channelCount"].get<int>();
-                    }
-                    changed |= UpdateJSONValue(origJson["channelOutputs"][panel], "enabled", 1);
-                } else {
-                    // need to disable the panel
-                    changed |= UpdateJSONValue(origJson["channelOutputs"][panel], "enabled", 0);
+    bool changed = false;
+    std::map<int, int> rngs;
+    FillRanges(rngs);
+    for (int port = 1; port <= maxPanel; ++port) {
+        UDControllerPort* pp = cud.HasLEDPanelMatrixPort(port) ? cud.GetControllerLEDPanelMatrixPort(port) : nullptr;
+        int32_t startChannel = pp == nullptr ? -1 : pp->GetStartChannel();
+
+        auto it = matrixIdToIndex.find(port);
+        if (it == matrixIdToIndex.end()) {
+            if (startChannel > 0) {
+                std::string msg = "Models are assigned to LED Panel Matrix port " + std::to_string(port) +
+                                  " but " + ipAddress + " has no panel matrix " + std::to_string(port) +
+                                  " configured. Add it on the controller's LED Panels page first.";
+                spdlog::error("FPP Panel Outputs Upload: {}", msg);
+                if (_ui) {
+                    _ui->ShowMessage(msg, "LED Panel Matrix");
                 }
             }
+            continue;
         }
-        SetNewRanges(rngs);
-    } else if (fullcontrol) {
-        //disable
-        for (int x = 0; x < (int)origJson["channelOutputs"].size(); x++) {
-            if (origJson["channelOutputs"][x]["type"].get<std::string>() == "LEDPanelMatrix") {
-                changed |= UpdateJSONValue(origJson["channelOutputs"][x], "enabled", 0);
+        auto& co = origJson["channelOutputs"][it->second];
+
+        if (startChannel > 0) {
+            std::string protocol;
+            if (pp->GetFirstModel() != nullptr) {
+                protocol = pp->GetFirstModel()->GetModel()->GetControllerProtocol();
             }
+            std::string subType = GetJSONStringValue(co, "subType");
+            if (!PanelSubTypeMatchesProtocol(protocol, subType)) {
+                std::string msg = "LED Panel Matrix port " + std::to_string(port) + " is set to '" + protocol +
+                                  "' but panel matrix " + std::to_string(port) + " on " + ipAddress +
+                                  " is a '" + subType + "' matrix. Nothing was uploaded to it.";
+                spdlog::error("FPP Panel Outputs Upload: {}", msg);
+                if (_ui) {
+                    _ui->ShowMessage(msg, "LED Panel Matrix");
+                }
+                continue;
+            }
+            changed |= UpdateJSONValue(co, "startChannel", startChannel);
+            changed |= UpdateJSONValue(co, "enabled", 1);
+            // record the range on every upload, not only when the start channel moved,
+            // or a second upload of an unchanged config drops the panel's channels
+            int channelCount = GetJSONIntValue(co, "channelCount");
+            if (channelCount > 0) {
+                rngs[startChannel - 1] = channelCount;
+            }
+        } else if (fullcontrol || pp != nullptr) {
+            changed |= UpdateJSONValue(co, "enabled", 0);
         }
     }
+    if (hasPanel) {
+        SetNewRanges(rngs);
+    }
+
     if (changed) {
         PostJSONToURL("/api/channel/output/channelOutputsJSON", origJson);
         SetRestartFlag();

@@ -1708,13 +1708,12 @@ bool UDController::SetAllModelsToValidProtocols(const std::vector<std::string>& 
             force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
         }
     }
-    force = "";
+    // Deliberately not subject to allsame: that asks whether the pixel ports can mix chip
+    // protocols, which says nothing about panel matrices.  A controller can drive a cape
+    // matrix and a ColorLight matrix at once, so each panel port keeps its own family.
     for (const auto& it : _ledPanelMatrixPorts) {
-        std::vector<std::string> vmProtocol = { "LED Panel Matrix" };
-        changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, force);
-        if (allsame && force == "" && it.second->GetFirstModel() != nullptr) {
-            force = it.second->GetFirstModel()->GetModel()->GetControllerProtocol();
-        }
+        std::vector<std::string> vmProtocol = GetAllLEDPanelMatrixProtocols();
+        changed |= it.second->SetAllModelsToValidProtocols(vmProtocol, "");
     }
 
     return changed;

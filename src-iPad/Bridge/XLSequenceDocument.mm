@@ -17412,8 +17412,7 @@ static NSDictionary* BuildEmptyPortEntry(NSString* kind,
             [ports addObject:BuildEmptyPortEntry(@"serial", p, "Serial")];
         }
     }
-    // PWM / Virtual Matrix / LED Panel Matrix don't have caps-
-    // side max counts the same way; only show ports that exist.
+    // PWM and Virtual Matrix still list only the ports that hold a model.
     for (int p = 1; p <= cud.GetMaxPWMPort(); ++p) {
         if (cud.HasPWMPort(p)) {
             [ports addObject:BuildWiringPortEntry(cud.GetControllerPWMPort(p), c, caps, false)];
@@ -17424,9 +17423,17 @@ static NSDictionary* BuildEmptyPortEntry(NSString* kind,
             [ports addObject:BuildWiringPortEntry(cud.GetControllerVirtualMatrixPort(p), c, caps, false)];
         }
     }
-    for (int p = 1; p <= cud.GetMaxLEDPanelMatrixPort(); ++p) {
+    // A controller can run several panel matrices at once, so show every one it
+    // could have as a drop target - otherwise a second matrix is unreachable,
+    // there being no occupied port to drag onto. Port number is the matrix
+    // number the controller's own LED Panels page shows.
+    const int capsPanel = caps ? caps->GetMaxLEDPanelMatrixPort() : 0;
+    const int hiPanel = std::max(capsPanel, cud.GetMaxLEDPanelMatrixPort());
+    for (int p = 1; p <= hiPanel; ++p) {
         if (cud.HasLEDPanelMatrixPort(p)) {
             [ports addObject:BuildWiringPortEntry(cud.GetControllerLEDPanelMatrixPort(p), c, caps, false)];
+        } else {
+            [ports addObject:BuildEmptyPortEntry(@"ledPanelMatrix", p, "LED Panel")];
         }
     }
 
@@ -17745,7 +17752,10 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
         m->SetControllerProtocol("Virtual Matrix");
         m->SetSmartRemote(0);
     } else if ([portKind isEqualToString:@"ledPanelMatrix"]) {
-        m->SetControllerProtocol("LED Panel Matrix");
+        // keep whichever panel driver family the model already named
+        if (!IsLEDPanelMatrixProtocol(m->GetControllerProtocol())) {
+            m->SetControllerProtocol(PROTOCOL_LED_PANEL_MATRIX);
+        }
         m->SetSmartRemote(0);
     }
 
@@ -17911,14 +17921,16 @@ static std::string CSVQuote(const std::string& s) {
 }
 
 - (NSDictionary*)portCountsForController:(NSString*)name {
-    if (!_context || !name) return @{@"maxPixelPort": @0, @"maxSerialPort": @0};
+    NSDictionary* none = @{@"maxPixelPort": @0, @"maxSerialPort": @0, @"maxLEDPanelMatrixPort": @0};
+    if (!_context || !name) return none;
     Controller* c = _context->GetOutputManager().GetController(name.UTF8String);
-    if (!c) return @{@"maxPixelPort": @0, @"maxSerialPort": @0};
+    if (!c) return none;
     ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
-    if (!caps) return @{@"maxPixelPort": @0, @"maxSerialPort": @0};
+    if (!caps) return none;
     return @{
-        @"maxPixelPort":  @(caps->GetMaxPixelPort()),
-        @"maxSerialPort": @(caps->GetMaxSerialPort()),
+        @"maxPixelPort":          @(caps->GetMaxPixelPort()),
+        @"maxSerialPort":         @(caps->GetMaxSerialPort()),
+        @"maxLEDPanelMatrixPort": @(caps->GetMaxLEDPanelMatrixPort()),
     };
 }
 
