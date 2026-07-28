@@ -93,6 +93,15 @@ public:
         bool built = false;
         bool failed = false;
 
+        // Per-frame uniform values, kept across frames rather than rebuilt.
+        // Every frame writes the same key set, so once it is populated
+        // operator[] finds each node and allocates nothing; a fresh map instead
+        // allocated a node per uniform plus a bucket array on every frame, which
+        // at six figures of frames is the dominant cost of assembling them.
+        // Cleared by reset(), i.e. whenever the shader changes and the key set
+        // could differ.
+        UniformValues vals;
+
         void reset();
         virtual void platformReset() = 0;
     };

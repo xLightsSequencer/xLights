@@ -184,6 +184,7 @@ void SPIRVShaderEffect::CacheBase::reset() {
     transformedSource.clear();
     built = false;
     failed = false;
+    vals.clear(); // the next shader may declare a different set of uniforms
     platformReset();
 }
 
@@ -301,7 +302,9 @@ void SPIRVShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, Rend
 
     // Compute all uniform values as floats; each backend marshals float bits vs
     // int bits from its reflected/declared member types.
-    UniformValues vals;
+    // Reused across frames (see CacheBase::vals): the key set is identical every
+    // frame, so this allocates on the first frame of an effect and never again.
+    UniformValues& vals = cache->vals;
     auto set1 = [&](const std::string& n, float a) { vals[n] = { a, 0, 0, 0 }; };
     auto set2 = [&](const std::string& n, float a, float b) { vals[n] = { a, b, 0, 0 }; };
     auto set4 = [&](const std::string& n, float a, float b, float c, float d) { vals[n] = { a, b, c, d }; };
