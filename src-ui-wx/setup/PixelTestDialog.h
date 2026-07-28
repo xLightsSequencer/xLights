@@ -14,6 +14,7 @@
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
 #include <wx/filename.h>
+#include <wx/srchctrl.h>
 
 //(*Headers(PixelTestDialog)
 #include <wx/button.h>
@@ -246,6 +247,19 @@ class PixelTestDialog: public wxDialog
 		wxTreeListCtrl* TreeListCtrl_ModelGroups = nullptr;
 		wxTreeListCtrl* TreeListCtrl_Models = nullptr;
         wxTreeListCtrl* TreeListCtrl_Controllers = nullptr;
+        // Live name-filter search boxes, one per tree tab (created manually,
+        // outside wxSmith). Typing rebuilds the matching tree filtered to the
+        // items whose name (or a descendant's) matches.
+        wxSearchCtrl* SearchCtrl_Outputs = nullptr;
+        wxSearchCtrl* SearchCtrl_ModelGroups = nullptr;
+        wxSearchCtrl* SearchCtrl_Models = nullptr;
+        wxSearchCtrl* SearchCtrl_Controllers = nullptr;
+        // The "Model" tab uses a dropdown, not a tree; this box filters the
+        // dropdown's entries against the full model list below.
+        wxSearchCtrl* SearchCtrl_VisualModel = nullptr;
+        std::vector<std::string> _visualModelNames;
+        wxTimer _filterDebounceTimer;
+        wxTreeListCtrl* _pendingFilterTree = nullptr;
         wxFileName _networkFile;
 		ModelManager* _modelManager = nullptr;
 		bool _cascading = false;
@@ -364,6 +378,7 @@ class PixelTestDialog: public wxDialog
         static const long ID_MNU_TEST_SELECTN;
         static const long ID_MNU_TEST_DESELECTN;
         static const long ID_MNU_TEST_NUMBER;
+        static const long ID_FILTER_DEBOUNCE;
 
 		//(*Identifiers(PixelTestDialog)
 		static const long ID_BUTTON_Load;
@@ -465,6 +480,16 @@ class PixelTestDialog: public wxDialog
 		void PopulateOutputTree(OutputManager* outputManager);
 		void PopulateModelGroupTree(ModelManager* modelManager);
 		void PopulateModelTree(ModelManager* modelManager);
+
+        // Name-filter support. RebuildTree tears down and repopulates a tree
+        // (selections live in _channelTracker so they survive), then prunes to
+        // the current filter and reveals nested matches.
+        void AddTreeFilter(wxPanel* panel, wxFlexGridSizer* sizer, wxSearchCtrl*& ctrl, wxTreeListCtrl* tree);
+        wxSearchCtrl* FilterCtrlForTree(wxTreeListCtrl* tree) const;
+        void RebuildTree(wxTreeListCtrl* tree);
+        bool PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item, const wxString& filterLower);
+        void ExpandFiltered(wxTreeListCtrl* tree, const wxTreeListItem& item);
+        void ApplyVisualModelFilter();
         void PopulateVisualModelTree(ModelManager* modelManager);
         void PopulateControllerTree(OutputManager* outputManager, ModelManager* modelManager);
         void SelectVisualModel(const std::string& model);
@@ -487,12 +512,17 @@ class PixelTestDialog: public wxDialog
 
         bool AreChannelsAvailable(Model* model);
         bool AreChannelsAvailable(ModelGroup* model);
-        void EnsureControllersUploaded(const std::vector<Controller*>& controllers);
+        void EnsureControllerUploaded(long absoluteChannel);
 
 		void CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem& item, wxCheckBoxState state);
         void DumpSelected();
 
-		void DestroyTreeControllerData(wxTreeListCtrl* tree, wxTreeListItem& item);
+		// Detach the two parent-owns-child relationships (ModelTestItem's
+		// submodels on the Models tab, ModelGroupTestItem's members on the
+		// Model Groups tab) in this subtree so the tree becomes the sole owner
+		// and DeleteItem/DeleteAllItems frees every TestItemBase exactly once.
+		void ReleaseDualOwnership(wxTreeListCtrl* tree, const wxTreeListItem& item);
+		void TeardownTree(wxTreeListCtrl* tree);
 		std::list<std::string> GetModelsOnChannels(int start, int end);
 		void Clear(wxTreeListCtrl* tree, wxTreeListItem& item);
 		void GetCheckedItems(wxArrayInt& chArray);
