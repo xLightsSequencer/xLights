@@ -655,6 +655,10 @@ public:
             _subModels.pop_front();
         }
     }
+    // Give up ownership of the submodel items without deleting them. Used when
+    // the tree they live in is torn down: on the Models tab each submodel is a
+    // tree node that the tree will free, so we must not also free it here.
+    void ReleaseSubModels() { _subModels.clear(); }
     ModelTestItem(const std::string& name, const std::string& modelSuffix, ModelManager& modelManager, bool channelsAvailable, int nodes = -1, long startChannel = -1, long endChannel = -1, long nodeOffset = 0) :
         TestItemBase()
     {
@@ -832,6 +836,10 @@ public:
         //     _modelGroups.pop_front();
         // }
     }
+    // Give up ownership of the member model items without deleting them. Used
+    // when the Model Groups tree is torn down: each member model is a tree node
+    // the tree will free, so we must not also free it here.
+    void ReleaseModels() { _models.clear(); }
     ModelGroupTestItem(const std::string name, ModelManager& modelManager, bool channelsAvailable) :
         TestItemBase()
     {
@@ -1018,7 +1026,9 @@ public:
         }
         _name += _portName;
         if (_channelsAvailable) {
-            _name += wxString::Format(" (%ld-%ld)", pud->GetStartChannel(), pud->GetEndChannel());
+            // GetStartChannel/GetEndChannel return int; %ld needs long, and the
+            // wx debug format validator traps on the mismatch. Cast to match.
+            _name += wxString::Format(" (%ld-%ld)", (long)pud->GetStartChannel(), (long)pud->GetEndChannel());
         }
 
         _absoluteStartChannel = pud->GetStartChannel();
@@ -1066,14 +1076,20 @@ class CPR_ControllerTestItem : public TestItemBase
     std::list<CPR_PortTestItem*> _ports;
     int _pixelPorts{ 0 };
     int _serialPorts{ 0 };
+    UDController* _cud = nullptr; // owned - built for us in PopulateControllerTree
 
 public:
     virtual ~CPR_ControllerTestItem()
     {
+        // The port items (and their UDControllerPort* views into _cud) live in
+        // child tree nodes, which wxTreeListModelNode::~ destroys before this
+        // (parent) node's client data, so it is safe to free _cud here.
+        delete _cud;
     }
     CPR_ControllerTestItem(const std::string name, ControllerCaps* caps, UDController* cud, OutputManager& outputManager, ModelManager& modelManager) :
         TestItemBase()
     {
+        _cud = cud;
         _controllerName = name;
         Controller* controller = outputManager.GetController(name);
 
@@ -1147,6 +1163,7 @@ const long PixelTestDialog::ID_MNU_DESELECTHIGH = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_SELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_DESELECTN = wxNewId();
 const long PixelTestDialog::ID_MNU_TEST_NUMBER = wxNewId();
+const long PixelTestDialog::ID_FILTER_DEBOUNCE = wxNewId();
 
 //(*IdInit(PixelTestDialog)
 const long PixelTestDialog::ID_BUTTON_Load = wxNewId();
@@ -1554,6 +1571,37 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
     TreeListCtrl_Controllers->AppendColumn(L"Select channels ...", 500);
     FlexGridSizer_Controllers->Layout();
 
+    // Live name-filter box above each tree. Debounced so a burst of keystrokes
+    // triggers a single rebuild of the affected tree.
+    _filterDebounceTimer.SetOwner(this, ID_FILTER_DEBOUNCE);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) {
+        wxTreeListCtrl* t = _pendingFilterTree;
+        _pendingFilterTree = nullptr;
+        if (t != nullptr) RebuildTree(t);
+    }, ID_FILTER_DEBOUNCE);
+    AddTreeFilter(Panel_Outputs, FlexGridSizer_Outputs, SearchCtrl_Outputs, TreeListCtrl_Outputs);
+    AddTreeFilter(Panel_ModelGroups, FlexGridSizer_ModelGroups, SearchCtrl_ModelGroups, TreeListCtrl_ModelGroups);
+    AddTreeFilter(Panel_Models, FlexGridSizer_Models, SearchCtrl_Models, TreeListCtrl_Models);
+    AddTreeFilter(Panel_Controllers, FlexGridSizer_Controllers, SearchCtrl_Controllers, TreeListCtrl_Controllers);
+
+    // The "Model" tab picks a single model from a dropdown, which can't be
+    // typed into. Add a filter box on the row above it that narrows the
+    // dropdown's entries (reaching the wxSmith-owned sizer via the control so
+    // we don't have to touch the generated code / .wxs).
+    if (wxSizer* modelSizer = Choice_VisualModel->GetContainingSizer()) {
+        SearchCtrl_VisualModel = new wxSearchCtrl(Panel_Model, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        SearchCtrl_VisualModel->ShowSearchButton(true);
+        SearchCtrl_VisualModel->ShowCancelButton(true);
+        SearchCtrl_VisualModel->SetDescriptiveText(_("Filter by name..."));
+        modelSizer->Insert(0, new wxStaticText(Panel_Model, wxID_ANY, _("Filter:")), 1, wxALL | wxEXPAND, 5);
+        modelSizer->Insert(1, SearchCtrl_VisualModel, 1, wxALL | wxEXPAND, 5);
+        modelSizer->Layout();
+        SearchCtrl_VisualModel->Bind(wxEVT_TEXT, [this](wxCommandEvent& event) {
+            ApplyVisualModelFilter();
+            event.Skip();
+        });
+    }
+
     // add checkbox events
     Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
     Connect(ID_TREELISTCTRL_Outputs, wxEVT_COMMAND_TREELIST_ITEM_CHECKED, (wxObjectEventFunction)&PixelTestDialog::OnTreeListCtrlCheckboxtoggled);
@@ -1627,17 +1675,17 @@ PixelTestDialog::PixelTestDialog(xLightsFrame* parent, OutputManager* outputMana
 
 PixelTestDialog::~PixelTestDialog()
 {
+    _filterDebounceTimer.Stop(); // no rebuild after the trees are torn down
+
     SetSuspend(false);
 
-    // need to delete all the TreeController Objects
-    wxTreeListItem root = TreeListCtrl_Outputs->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_Outputs, root);
-    root = TreeListCtrl_ModelGroups->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_ModelGroups, root);
-    root = TreeListCtrl_Models->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_Models, root);
-    root = TreeListCtrl_Controllers->GetRootItem();
-    DestroyTreeControllerData(TreeListCtrl_Controllers, root);
+    // Free all the TestItemBase objects by clearing each tree once (the tree's
+    // node destructors delete the client data; ReleaseDualOwnership first hands
+    // the two double-owned relationships to the tree so nothing is freed twice).
+    TeardownTree(TreeListCtrl_Outputs);
+    TeardownTree(TreeListCtrl_ModelGroups);
+    TeardownTree(TreeListCtrl_Models);
+    TeardownTree(TreeListCtrl_Controllers);
 
     // need to delete the TreeController.
     Panel_Outputs->RemoveChild(TreeListCtrl_Outputs);
@@ -1854,7 +1902,9 @@ void PixelTestDialog::PopulateControllerTree(OutputManager* outputManager, Model
         Controller* c = outputManager->GetController(it);
         auto caps = c->GetControllerCaps();
         auto cud = new UDController(c, outputManager, modelManager, false);
-        if (cud->IsValid()) {
+        if (!cud->IsValid()) {
+            delete cud; // nothing takes ownership on the invalid path
+        } else {
             // we found a controller
             CPR_ControllerTestItem* cti = new CPR_ControllerTestItem(it, caps, cud, *outputManager, *modelManager);
             wxTreeListItem item = TreeListCtrl_Controllers->AppendItem(TreeListCtrl_Controllers->GetRootItem(), cti->GetName(), -1, -1, (wxClientData*)cti);
@@ -1921,13 +1971,50 @@ void PixelTestDialog::PopulateVisualModelTree(ModelManager* modelManager)
     }
     modelNames.sort(stdlistNumberAwareStringCompare);
 
+    // Keep the full, sorted name list so the filter box can rebuild the
+    // dropdown's contents without re-querying the model manager.
+    _visualModelNames.assign(modelNames.begin(), modelNames.end());
+
     Choice_VisualModel->Clear();
-    for (const auto& it : modelNames) {
+    for (const auto& it : _visualModelNames) {
         Choice_VisualModel->AppendString(it);
     }
     if (Choice_VisualModel->GetCount() > 0) {
         Choice_VisualModel->SetSelection(0);
-        SelectVisualModel(modelNames.front());
+        SelectVisualModel(_visualModelNames.front());
+    }
+}
+
+void PixelTestDialog::ApplyVisualModelFilter()
+{
+    if (Choice_VisualModel == nullptr || SearchCtrl_VisualModel == nullptr) return;
+
+    const wxString filterLower = SearchCtrl_VisualModel->GetValue().Lower();
+    const wxString prevSel = Choice_VisualModel->GetStringSelection();
+
+    Choice_VisualModel->Clear();
+    int keepIdx = -1;
+    for (const auto& name : _visualModelNames) {
+        if (filterLower.IsEmpty() || wxString::FromUTF8(name).Lower().Contains(filterLower)) {
+            if (wxString::FromUTF8(name) == prevSel) {
+                keepIdx = (int)Choice_VisualModel->GetCount(); // still visible - preserve it
+            }
+            Choice_VisualModel->AppendString(name);
+        }
+    }
+
+    if (Choice_VisualModel->GetCount() == 0) {
+        return; // nothing matches - leave the preview showing the last model
+    }
+
+    const int selIdx = (keepIdx >= 0) ? keepIdx : 0;
+    Choice_VisualModel->SetSelection(selIdx);
+
+    // Only re-render the preview when the resolved selection actually changed,
+    // so typing doesn't thrash the (relatively expensive) model preview.
+    const wxString newSel = Choice_VisualModel->GetStringSelection();
+    if (newSel != prevSel) {
+        SelectVisualModel(newSel.ToStdString());
     }
 }
 
@@ -2157,6 +2244,149 @@ void PixelTestDialog::PopulateModelTree(ModelManager* modelManager)
         }
     }
 }
+
+wxSearchCtrl* PixelTestDialog::FilterCtrlForTree(wxTreeListCtrl* tree) const
+{
+    if (tree == TreeListCtrl_Outputs) return SearchCtrl_Outputs;
+    if (tree == TreeListCtrl_ModelGroups) return SearchCtrl_ModelGroups;
+    if (tree == TreeListCtrl_Models) return SearchCtrl_Models;
+    if (tree == TreeListCtrl_Controllers) return SearchCtrl_Controllers;
+    return nullptr;
+}
+
+void PixelTestDialog::AddTreeFilter(wxPanel* panel, wxFlexGridSizer* sizer, wxSearchCtrl*& ctrl, wxTreeListCtrl* tree)
+{
+    ctrl = new wxSearchCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    ctrl->ShowSearchButton(true);
+    ctrl->ShowCancelButton(true);
+    ctrl->SetDescriptiveText(_("Filter by name..."));
+
+    // Insert the box immediately above its tree and move the growable row down
+    // one so the tree keeps all the extra height (the search box stays fixed).
+    int treeIdx = -1;
+    for (size_t i = 0; i < sizer->GetItemCount(); ++i) {
+        wxSizerItem* si = sizer->GetItem(i);
+        if (si != nullptr && si->GetWindow() == tree) {
+            treeIdx = (int)i;
+            break;
+        }
+    }
+    if (treeIdx < 0) treeIdx = 0;
+
+    sizer->Insert(treeIdx, ctrl, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 5);
+    sizer->RemoveGrowableRow(treeIdx); // the tree's old row (guaranteed growable)
+    sizer->AddGrowableRow(treeIdx + 1);
+    sizer->Layout();
+
+    // wxEVT_TEXT covers typing and the cancel button's clear. Debounce so a
+    // fast typist triggers one rebuild, not one per character.
+    ctrl->Bind(wxEVT_TEXT, [this, tree](wxCommandEvent& event) {
+        _pendingFilterTree = tree;
+        _filterDebounceTimer.StartOnce(250);
+        event.Skip();
+    });
+}
+
+void PixelTestDialog::RebuildTree(wxTreeListCtrl* tree)
+{
+    if (tree == nullptr) return;
+
+    wxSearchCtrl* ctrl = FilterCtrlForTree(tree);
+    const wxString filterLower = (ctrl != nullptr) ? ctrl->GetValue().Lower() : wxString();
+
+    tree->Freeze();
+
+    // Tear down exactly like the destructor does (selections survive because
+    // they live in _channelTracker, not in the tree items), then repopulate
+    // from scratch through the same routines the constructor uses.
+    TeardownTree(tree);
+
+    if (tree == TreeListCtrl_Models) {
+        _models.clear();      // the ModelTestItem* were just freed above
+        _lastModel = nullptr; // dangled into the freed list
+    }
+
+    if (tree == TreeListCtrl_Outputs) {
+        PopulateOutputTree(_outputManager);
+    } else if (tree == TreeListCtrl_ModelGroups) {
+        PopulateModelGroupTree(_modelManager);
+    } else if (tree == TreeListCtrl_Models) {
+        PopulateModelTree(_modelManager);
+    } else if (tree == TreeListCtrl_Controllers) {
+        PopulateControllerTree(_outputManager, _modelManager);
+    }
+    DeactivateNotClickableModels(tree);
+
+    if (!filterLower.IsEmpty()) {
+        PruneTree(tree, tree->GetRootItem(), filterLower);
+        ExpandFiltered(tree, tree->GetRootItem());
+    }
+
+    // Re-derive check state from the tracker so previously selected channels
+    // still show checked on the rebuilt items.
+    SetCheckBoxItemFromTracker(tree, tree->GetRootItem(), wxCheckBoxState::wxCHK_UNCHECKED);
+
+    tree->Thaw();
+    tree->Refresh();
+}
+
+bool PixelTestDialog::PruneTree(wxTreeListCtrl* tree, const wxTreeListItem& item, const wxString& filterLower)
+{
+    // Returns true if item (or any descendant) matches and should be kept.
+    TestItemBase* tc = (TestItemBase*)tree->GetItemData(item);
+    const bool isRoot = !item.IsOk() || (item == tree->GetRootItem());
+
+    if (!isRoot && tc != nullptr) {
+        // A matching item keeps its entire subtree intact (e.g. a matching
+        // controller keeps all of its ports/models).
+        if (tree->GetItemText(item).Lower().Contains(filterLower)) {
+            return true;
+        }
+    }
+
+    bool anyKept = false;
+    wxTreeListItem child = tree->GetFirstChild(item);
+    while (child.IsOk()) {
+        wxTreeListItem next = tree->GetNextSibling(child);
+        // Lazy "Dummy" placeholders carry no name; they can't match on their
+        // own, but must not be deleted here or the branch loses its expander.
+        if (tree->GetItemText(child) == "Dummy") {
+            // leave it; if the parent ends up pruned it goes with it
+        } else if (PruneTree(tree, child, filterLower)) {
+            anyKept = true;
+        } else {
+            // Free this pruned subtree once: release the dual-owned children to
+            // the tree, then DeleteItem lets the node destructors free them.
+            ReleaseDualOwnership(tree, child);
+            tree->DeleteItem(child);
+        }
+        child = next;
+    }
+
+    return isRoot ? true : anyKept;
+}
+
+void PixelTestDialog::ExpandFiltered(wxTreeListCtrl* tree, const wxTreeListItem& item)
+{
+    // Reveal structural matches (controller -> port -> model, group -> model)
+    // without forcing the lazy node/channel fill that model/nodes items do.
+    wxTreeListItem child = tree->GetFirstChild(item);
+    while (child.IsOk()) {
+        if (tree->GetItemText(child) != "Dummy") {
+            wxTreeListItem gc = tree->GetFirstChild(child);
+            TestItemBase* tc = (TestItemBase*)tree->GetItemData(child);
+            const std::string type = (tc != nullptr) ? tc->GetType() : "";
+            const bool lazy = gc.IsOk() && tree->GetItemText(gc) == "Dummy";
+            const bool heavy = (type == "Model" || type == "Nodes" || type == "Node" ||
+                                type == "SubModel" || type == "Channel");
+            if (gc.IsOk() && !lazy && !heavy) {
+                tree->Expand(child);
+                ExpandFiltered(tree, child);
+            }
+        }
+        child = tree->GetNextSibling(child);
+    }
+}
 #pragma endregion
 
 #pragma region GenericTreeEvents
@@ -2165,23 +2395,32 @@ void PixelTestDialog::CascadeSelected(wxTreeListCtrl* tree, const wxTreeListItem
     tree->CheckItemRecursively(item, state);
 }
 
-void PixelTestDialog::DestroyTreeControllerData(wxTreeListCtrl* tree, wxTreeListItem& item)
+void PixelTestDialog::ReleaseDualOwnership(wxTreeListCtrl* tree, const wxTreeListItem& item)
 {
-    wxTreeListItem i = tree->GetFirstChild(item);
-    while (i != nullptr) {
-        DestroyTreeControllerData(tree, i);
-        i = tree->GetNextSibling(i);
+    for (wxTreeListItem i = tree->GetFirstChild(item); i.IsOk(); i = tree->GetNextSibling(i)) {
+        ReleaseDualOwnership(tree, i);
     }
 
     TestItemBase* tc = (TestItemBase*)tree->GetItemData(item);
-    if (tc != nullptr) {
-        if ((tree == TreeListCtrl_ModelGroups && tc->GetType() == "Model") ||
-            (tree == TreeListCtrl_Models && tc->GetType() == "SubModel")) {
-            // dont delete these
-        } else {
-            delete tc;
-        }
+    if (tc == nullptr) return;
+
+    // wxTreeListModelNode::~ deletes its client data, so the tree frees every
+    // node's TestItemBase. The only objects with a second owner are:
+    //   - Models tab: each model's submodels (ModelTestItem::_subModels)
+    //   - Model Groups tab: each group's member models (ModelGroupTestItem::_models)
+    // Release those here so the parent's destructor won't double-free what the
+    // tree is about to free. (These match the old delete-time exceptions.)
+    if (tree == TreeListCtrl_Models && tc->GetType() == "Model") {
+        static_cast<ModelTestItem*>(tc)->ReleaseSubModels();
+    } else if (tree == TreeListCtrl_ModelGroups && tc->GetType() == "ModelGroup") {
+        static_cast<ModelGroupTestItem*>(tc)->ReleaseModels();
     }
+}
+
+void PixelTestDialog::TeardownTree(wxTreeListCtrl* tree)
+{
+    ReleaseDualOwnership(tree, tree->GetRootItem());
+    tree->DeleteAllItems(); // the node destructors free every TestItemBase once
 }
 
 void PixelTestDialog::DeactivateNotClickableModels(wxTreeListCtrl* tree)
@@ -3449,7 +3688,7 @@ void PixelTestDialog::OnTimer(long curtime)
                                         for (long j = p->GetFirstChannel(); j < p->GetLastChannel(); j += 3) {
                                             _outputManager->SetOneChannel((j - 1) + offSet, 255);
                                         }
-                                        StatusBar1->SetLabelText(wxString::Format(_("Testing %ld channels Port %ld"), static_cast<long>(chArray.Count()), p->GetPort()));
+                                        StatusBar1->SetLabelText(wxString::Format(_("Testing %ld channels Port %ld"), static_cast<long>(chArray.Count()), static_cast<long>(p->GetPort())));
                                     }
                                 }
                             }

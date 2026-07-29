@@ -20,8 +20,12 @@
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
 #include <wx/font.h>
+#include <wx/intl.h>
 #include <wx/panel.h>
+#include <wx/radiobox.h>
 #include <wx/scrolwin.h>
+
+#include "models/ModelManager.h" // ReplaceGroupMode (shared desktop/iPad)
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 #include <wx/statbox.h>
@@ -42,7 +46,7 @@ public:
                        const std::set<std::string>& baseLinkedNames = {})
         : wxDialog(parent, wxID_ANY,
                    wxString::Format("Replace Model(s) With: %s", sourceName),
-                   wxDefaultPosition, wxSize(460, 560),
+                   wxDefaultPosition, wxDefaultSize,
                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
           _allCandidates(candidateNames),
           _baseLinked(baseLinkedNames)
@@ -105,6 +109,10 @@ public:
         _rowsWindow = new wxScrolledWindow(listBox, wxID_ANY,
                                            wxDefaultPosition, wxDefaultSize,
                                            wxVSCROLL | wxBORDER_NONE);
+        // DIP-scaled minimum so SetSizerAndFit gives a usable initial size
+        // (a tall list area + enough width for the group-mode labels) without
+        // the fixed pixel size that clipped at high DPI.
+        _rowsWindow->SetMinSize(FromDIP(wxSize(440, 320)));
         _rowsWindow->SetScrollRate(0, 16);
         _rowsSizer = new wxBoxSizer(wxVERTICAL);
         _rowsWindow->SetSizer(_rowsSizer);
@@ -128,11 +136,30 @@ public:
         top->Add(_mergeSubmodelsCB,   0, cbFlags, cbPad);
         top->Add(_copySizePosCB,      0, cbFlags, cbPad);
 
+        // Model-group handling. The replacement clone takes the target's name,
+        // so it already inherits the target's own groups (group membership is
+        // by name) - that's the default "Do not change". The other two options
+        // reconcile the replaced model's groups against the current (source)
+        // model's groups: "Replace" makes the target's group set exactly the
+        // source's; "Merge" adds the source's groups on top of the target's.
+        const wxString groupChoices[] = {
+            _("Do not change destination models' groups"),
+            _("Replace destination's direct groups with source's groups"),
+            _("Merge source's groups into destination's groups")
+        };
+        _groupModeRB = new wxRadioBox(this, wxID_ANY, _("Model Groups"),
+                                      wxDefaultPosition, wxDefaultSize,
+                                      3, groupChoices, 1, wxRA_SPECIFY_COLS);
+        _groupModeRB->SetSelection(0);
+        _groupModeRB->SetToolTip(_("Applies to direct group membership only. Groups inherited through a subgroup, and groups from the base show folder, are left unchanged."));
+        top->Add(_groupModeRB, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
+
         auto* btnRow = CreateButtonSizer(wxOK | wxCANCEL);
         if (btnRow != nullptr) {
             top->Add(btnRow, 0, wxEXPAND | wxALL, 8);
         }
-        SetSizer(top);
+        // Size from content so the radiobox labels don't clip at high DPI.
+        SetSizerAndFit(top);
 
         // Disable OK until the user has actually picked at least one target —
         // OK with an empty selection is a confusing no-op for a destructive
@@ -173,6 +200,17 @@ public:
     bool CopyStartChannel() const { return _copyStartChannelCB->IsChecked(); }
     bool MergeSubmodels()   const { return _mergeSubmodelsCB->IsChecked(); }
     bool CopySizePos()      const { return _copySizePosCB->IsChecked(); }
+
+    // How to reconcile each replaced model's group memberships against the
+    // current (source) model's. Returns the shared core enum so desktop and
+    // iPad drive the same ModelManager::ReconcileReplacedModelGroups helper.
+    ReplaceGroupMode GroupHandling() const {
+        switch (_groupModeRB->GetSelection()) {
+        case 1:  return ReplaceGroupMode::ReplaceWithSource;
+        case 2:  return ReplaceGroupMode::MergeSourceIntoTarget;
+        default: return ReplaceGroupMode::NoChange;
+        }
+    }
 
 private:
     // Filter is case-insensitive substring match. wxString::Lower() handles
@@ -274,6 +312,7 @@ private:
     wxCheckBox* _copyStartChannelCB = nullptr;
     wxCheckBox* _mergeSubmodelsCB = nullptr;
     wxCheckBox* _copySizePosCB = nullptr;
+    wxRadioBox* _groupModeRB = nullptr;
     wxButton*   _okBtn = nullptr;
 
     std::vector<std::string> _allCandidates;

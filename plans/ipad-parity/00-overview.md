@@ -79,7 +79,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 90 | 83 | 92% | 0 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 147 | 113 | 77% | 12 | 15 | 7 | 4 |
-| 07 | [Setup](07-setup-controllers-upload.md) | 97 | 74 | 76% | 14 | 5 | 3 | 11 |
+| 07 | [Setup](07-setup-controllers-upload.md) | 98 | 75 | 77% | 14 | 5 | 3 | 11 |
 | 08 | [Import & Export](08-import-export.md) | 75 | 59 | 79% | 10 | 6 | 0 | 1 |
 | 09 | [Render & Playback](09-render-playback.md) | 61 | 51 | 84% | 4 | 2 | 1 | 3 |
 | 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 89 | 69 | 78% | 12 | 7 | 0 | 8 |
@@ -87,7 +87,7 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 51 | 34 | 67% | 13 | 3 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,250** | **903** | **~72%** | **180** | **70** | **≈92** | **91** |
+| — | **Total** | **1,251** | **904** | **~72%** | **180** | **70** | **≈92** | **91** |
 
 ## The roadmap — P1 iPad gaps (build first)
 

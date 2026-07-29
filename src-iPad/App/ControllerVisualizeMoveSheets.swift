@@ -15,7 +15,35 @@ struct MoveToPortSheet: View {
 
     @State private var maxPixelPort: Int = 0
     @State private var maxSerialPort: Int = 0
+    @State private var maxPanelPort: Int = 0
     @State private var errorMessage: String? = nil
+
+    private static func portLabel(_ kind: String) -> String {
+        switch kind {
+        case "pixel":  return "Pixel Port"
+        case "serial": return "Serial Port"
+        default:       return "LED Panel"
+        }
+    }
+
+    @ViewBuilder
+    private func portRow(kind: String, port p: Int) -> some View {
+        Button {
+            assign(kind: kind, port: p)
+        } label: {
+            HStack {
+                Image(systemName: "circle.fill")
+                    .foregroundStyle(.tint)
+                    .font(.system(size: 8))
+                Text("\(Self.portLabel(kind)) \(p)")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.tertiary)
+                    .font(.caption)
+            }
+        }
+        .buttonStyle(.plain)
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,46 +51,29 @@ struct MoveToPortSheet: View {
                 if maxPixelPort > 0 {
                     Section("Pixel Ports") {
                         ForEach(1...maxPixelPort, id: \.self) { p in
-                            Button {
-                                assign(kind: "pixel", port: p)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "circle.fill")
-                                        .foregroundStyle(.tint)
-                                        .font(.system(size: 8))
-                                    Text("Pixel Port \(p)")
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(.tertiary)
-                                        .font(.caption)
-                                }
-                            }
-                            .buttonStyle(.plain)
+                            portRow(kind: "pixel", port: p)
                         }
                     }
                 }
                 if maxSerialPort > 0 {
                     Section("Serial Ports") {
                         ForEach(1...maxSerialPort, id: \.self) { p in
-                            Button {
-                                assign(kind: "serial", port: p)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "circle.fill")
-                                        .foregroundStyle(.tint)
-                                        .font(.system(size: 8))
-                                    Text("Serial Port \(p)")
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(.tertiary)
-                                        .font(.caption)
-                                }
-                            }
-                            .buttonStyle(.plain)
+                            portRow(kind: "serial", port: p)
                         }
                     }
                 }
-                if maxPixelPort == 0 && maxSerialPort == 0 {
+                if maxPanelPort > 0 {
+                    Section {
+                        ForEach(1...maxPanelPort, id: \.self) { p in
+                            portRow(kind: "ledPanelMatrix", port: p)
+                        }
+                    } header: {
+                        Text("LED Panel Matrices")
+                    } footer: {
+                        Text("The number is the panel matrix the controller's own LED Panels page shows, so it must already be configured there.")
+                    }
+                }
+                if maxPixelPort == 0 && maxSerialPort == 0 && maxPanelPort == 0 {
                     Section {
                         Text("Controller capabilities aren't available — choose a vendor + model on the controller to enable port assignment.")
                             .font(.callout)
@@ -86,6 +97,7 @@ struct MoveToPortSheet: View {
                           as? [String: Any]) ?? [:]
             maxPixelPort  = counts["maxPixelPort"]  as? Int ?? 0
             maxSerialPort = counts["maxSerialPort"] as? Int ?? 0
+            maxPanelPort  = counts["maxLEDPanelMatrixPort"] as? Int ?? 0
         }
         .alert("Move failed",
                isPresented: Binding(get: { errorMessage != nil },
@@ -106,7 +118,7 @@ struct MoveToPortSheet: View {
             onCommit()
             onDismiss()
         } else {
-            errorMessage = "Couldn't assign \(modelName) to \(kind == "pixel" ? "Pixel" : "Serial") Port \(port)."
+            errorMessage = "Couldn't assign \(modelName) to \(Self.portLabel(kind)) \(port)."
         }
     }
 }

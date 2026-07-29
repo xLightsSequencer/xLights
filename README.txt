@@ -13,6 +13,58 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.15  August ??, 2026
     -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
                                  named Viewpoints (2D/3D camera presets).
+    -bug (dkulp)                 Layout: fixed a crash while downloading or importing a model - the property
+                                 grid refresh dispatched from the download progress dialog ran against the
+                                 model the import had already replaced
+    -bug (dkulp)                 Fixed model groups keeping pointers to freed models: renaming a model through
+                                 a replace left every group naming it pointing at the freed model, and
+                                 rebuilding a model's submodels (SubModels dialog save, export submodels to
+                                 other models, custom model reverse) never repointed the groups that name them
+    -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
+                                 by the model, not just the one actually being exported; each exported
+                                 model group is now restricted to the model included in that export.
+    -enh (dkulp)                 Render: when a render or an abort will not finish, the log now names
+                                 the models still outstanding along with the frame each one reached
+    -enh (dkulp)                 The startup log now records the CPU model, physical/logical core counts,
+                                 and (on macOS, which has no OpenGL renderer string) the GPU, so crash
+                                 reports carry the hardware needed to reproduce threading and GPU issues
+    -enh (dkulp)                 Crash reports now include the startup machine configuration as its own
+                                 machine_config.txt, so it survives the log rotating away - previously
+                                 about 6% of reports arrived with no record of the machine at all
+                                 and what it is waiting on, instead of only counting them. A model
+                                 stuck inside a frame-parallel window also reports the window, how
+                                 much of it finished, and which frames are still being rendered.
+                                 A render that stops making progress now says so on its own after
+                                 60 seconds rather than only when cancelled, headless included
+    -enh (dkulp)                 FPP: support several LED panel matrices on one controller driven
+                                 different ways at once. New "LED Panel Matrix - Hat/Cap/Cape" and
+                                 "LED Panel Matrix - ColorLight" protocols name which kind a model
+                                 targets, and the port number is the matrix number the controller's
+                                 LED Panels page shows. The original "LED Panel Matrix" still works
+                                 and matches whatever is on that port
+    -bug (dkulp)                 FPP: LED panel matrix upload picked matrices by their position in
+                                 the config rather than by their configured number, so it could
+                                 write a start channel to the wrong matrix when they were not
+                                 numbered sequentially
+    -bug (dkulp)                 FPP: re-uploading an unchanged LED panel matrix left the panel's
+                                 channels out of the controller's channel ranges
+    -bug (dkulp)                 FPP: under full xLights control, a panel matrix xLights no longer
+                                 drives stayed enabled on its old start channel
+    -bug (dkulp)                 Fix crash opening Tools - Test when a model uses a PWM protocol on a
+                                 controller whose vendor/model has no capabilities definition
+    -bug (dkulp)                 Fix crash editing or deleting an LOR device in controller properties
+                                 when the property grid still held a stale device position
+    -bug (dkulp)                 Fix crash when the value curve controls were re-enabled after a
+                                 shader effect rebuilt its parameter list
+    -bug (cybercop23)            Tools - Test: checking every controller spanned by the selection is now checked and connected
+    -bug (dkulp)                 Shader: headless/batch rendering through the OpenGL path filled every
+                                 Shader effect solid cyan — without a UI canvas the GL entry points were
+                                 never loaded, so the capability check always failed. They now load the
+                                 first time a render context is made current
+    -enh (dkulp)                 Shader: on Vulkan (Windows/Linux) the input upload now rides the frame's
+                                 own command buffer and the GPU wait is deferred until the pixels are
+                                 actually needed, so rows overlap on the GPU instead of serializing.
+                                 Renders a shader-heavy test sequence ~30% faster with identical output
     -bug (dkulp)                 Shader: a shader that accumulates into gl_FragColor without first
                                  assigning it (common in Shadertoy conversions) read an undefined value,
                                  so it rendered differently every run and made the whole sequence
@@ -405,6 +457,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (#6663)
     -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" for submodels with trailing empty
                                  layers (#6647)
+    -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" losing effects when a submodel has a
+                                 leading or middle empty layer (#6748). No longer need to expand receiving model(s).
     -bug (dkulp)                 Fix crash cancelling or failing a model download/import with a malformed
                                  .xmodel (double-free)
     -bug (dkulp)                 Fix crash in 3D layout preview after deleting a model (stale cached

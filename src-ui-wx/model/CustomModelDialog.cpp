@@ -1784,7 +1784,11 @@ void CustomModelDialog::Reverse()
 void CustomModelDialog::ReverseSubmodels() {
     long max = _model->GetNodeCount() + 1;
 
-    for (auto m : _model->GetSubModels()) {
+    // Snapshot: the loop body removes and re-adds submodels, which resizes the
+    // vector being iterated.
+    const std::vector<Model*> subModels = _model->GetSubModels();
+    bool replaced = false;
+    for (auto m : subModels) {
         // Cast to SubModel pointer
         SubModel* sm = dynamic_cast<SubModel*>(m);
         if (sm == nullptr) continue;
@@ -1821,7 +1825,14 @@ void CustomModelDialog::ReverseSubmodels() {
             // Replace the old submodel with the new one
             _model->RemoveSubModel(sm->GetName());
             _model->AddSubmodel(newSm);
+            replaced = true;
         }
+    }
+
+    if (replaced) {
+        // Model groups cache raw pointers to the submodels they name, so they
+        // have to be repointed before anything walks them into the freed ones.
+        _model->GetModelManager().ResetModelGroups();
     }
 }
 

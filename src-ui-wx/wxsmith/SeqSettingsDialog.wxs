@@ -192,7 +192,7 @@
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL2" variable="TextCtrl_Premilliseconds" member="yes">
 												<value>0</value>
-												<maxlength>5</maxlength>
+												<maxlength>6</maxlength>
 												<size>50,-1d</size>
 												<tooltip>Milliseconds to add to the beginning of the sequence</tooltip>
 											</object>
@@ -203,7 +203,7 @@
 										<object class="sizeritem">
 											<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Postmilliseconds" member="yes">
 												<value>0</value>
-												<maxlength>5</maxlength>
+												<maxlength>6</maxlength>
 												<size>50,-1d</size>
 												<tooltip>Milliseconds to add to the ending of the sequence</tooltip>
 											</object>

@@ -18,6 +18,7 @@
 #include "../render/UICallbacks.h"
 
 #include <algorithm>
+#include <set>
 #include <string_view>
 #include <spdlog/fmt/fmt.h>
 
@@ -436,7 +437,7 @@ std::string GetModelAttributesAsJSON(pugi::xml_node modelNode) {
     return json;
 }
 
-void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
+void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode, const std::vector<const Model*>& exportedModels) {
     if (model == nullptr) return;
 
     // Find this model's node within docNode by matching the name attribute,
@@ -479,6 +480,13 @@ void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
         return;
     }
 
+    std::set<std::string> exportedNames;
+    for (const Model* m : exportedModels) {
+        if (m != nullptr) {
+            exportedNames.insert(m->Name());
+        }
+    }
+
     // Serialize selected model groups to the modelNode (not docNode)
     for (const auto& it : mgr.GetModels()) {
         if (std::find(selected.begin(), selected.end(), it.first) != selected.end()) {
@@ -487,13 +495,18 @@ void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
                 // Get the model names from the ModelGroup
                 const std::vector<std::string>& model_names = mg->ModelNames();
 
-                // Create comma-delimited string of model names
+                // Create comma-delimited string of model names, keeping only the
+                // ones belonging to a model that is part of this export.
                 std::string modelsStr;
-                for (size_t i = 0; i < model_names.size(); ++i) {
-                    if (i > 0) {
+                for (const auto& mn : model_names) {
+                    std::string baseName = mn.substr(0, mn.find('/'));
+                    if (exportedNames.find(baseName) == exportedNames.end()) {
+                        continue;
+                    }
+                    if (!modelsStr.empty()) {
                         modelsStr += ",";
                     }
-                    modelsStr += model_names[i];
+                    modelsStr += mn;
                 }
 
                 pugi::xml_node groupNode = modelNode.append_child("modelGroup");

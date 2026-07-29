@@ -127,6 +127,7 @@ public:
         outputTex = nil;
         inputTex = nil;
         audioTex = nil;
+        sampler = nil;
         stagingBuffer = nil;
     }
 
@@ -165,27 +166,37 @@ public:
                                        1.f,  1.f, 1.f, 0.f,  -1.f,  1.f, 0.f, 0.f };
         quadBuffer = [device newBufferWithBytes:quad length:sizeof(quad) options:MTLResourceStorageModeShared];
 
-        MTLSamplerDescriptor* sd = [[MTLSamplerDescriptor alloc] init];
-        sd.minFilter = MTLSamplerMinMagFilterLinear;
-        sd.magFilter = MTLSamplerMinMagFilterLinear;
-        sd.sAddressMode = MTLSamplerAddressModeClampToEdge;
-        sd.tAddressMode = MTLSamplerAddressModeClampToEdge;
-        sampler = [device newSamplerStateWithDescriptor:sd];
+        // Only for a fragment stage that actually samples.  ShaderEffect's
+        // preamble declares texSampler for every shader whether or not it is
+        // used, so most never read it — MSL reflection reports samplerTexture
+        // < 0 for those, which is also what gates the per-frame upload and bind
+        // below.  Allocating a full BufferWi x BufferHt input texture for them
+        // is pure waste: it is per (RenderBuffer, shader), so a sequence that
+        // walks a large shader library allocates one per effect instance and
+        // reads roughly a quarter of them.
+        if (fsInfo.samplerTexture >= 0) {
+            MTLSamplerDescriptor* sd = [[MTLSamplerDescriptor alloc] init];
+            sd.minFilter = MTLSamplerMinMagFilterLinear;
+            sd.magFilter = MTLSamplerMinMagFilterLinear;
+            sd.sAddressMode = MTLSamplerAddressModeClampToEdge;
+            sd.tAddressMode = MTLSamplerAddressModeClampToEdge;
+            sampler = [device newSamplerStateWithDescriptor:sd];
 
-        MTLTextureDescriptor* itd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                                      width:buffer.BufferWi height:buffer.BufferHt mipmapped:NO];
-        itd.usage = MTLTextureUsageShaderRead;
-        itd.storageMode = MTLStorageModeShared;
-        inputTex = [device newTextureWithDescriptor:itd];
+            MTLTextureDescriptor* itd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                          width:buffer.BufferWi height:buffer.BufferHt mipmapped:NO];
+            itd.usage = MTLTextureUsageShaderRead;
+            itd.storageMode = MTLStorageModeShared;
+            inputTex = [device newTextureWithDescriptor:itd];
 
-        if (config->IsAudioFFTShader() || config->IsAudioIntensityShader()) {
-            // Matches the GL FFTAudioTexture: 128x1 single-channel float,
-            // bound in place of the pixel input texture.
-            MTLTextureDescriptor* atd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR32Float
-                                                                                          width:128 height:1 mipmapped:NO];
-            atd.usage = MTLTextureUsageShaderRead;
-            atd.storageMode = MTLStorageModeShared;
-            audioTex = [device newTextureWithDescriptor:atd];
+            if (config->IsAudioFFTShader() || config->IsAudioIntensityShader()) {
+                // Matches the GL FFTAudioTexture: 128x1 single-channel float,
+                // bound in place of the pixel input texture.
+                MTLTextureDescriptor* atd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatR32Float
+                                                                                              width:128 height:1 mipmapped:NO];
+                atd.usage = MTLTextureUsageShaderRead;
+                atd.storageMode = MTLStorageModeShared;
+                audioTex = [device newTextureWithDescriptor:atd];
+            }
         }
 
         // Render target: a normal tiled texture (buffer-backed linear textures
@@ -258,8 +269,13 @@ public:
         [enc setLabel:@"NativeShaderEffect"];
         [enc setRenderPipelineState:pso];
         [enc setVertexBuffer:quadBuffer offset:0 atIndex:kVertexSlot];
+        const auto bindStart = std::chrono::steady_clock::now();
         bindStage(enc, vsInfo, vals, true);
         bindStage(enc, fsInfo, vals, false);
+        if (ShaderBuildStats::Enabled()) {
+            ShaderBuildStats::AddBind((uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                          std::chrono::steady_clock::now() - bindStart).count());
+        }
         if (usesTexture) {
             [enc setFragmentTexture:(audioMode ? audioTex : inputTex) atIndex:fsInfo.samplerTexture];
             [enc setFragmentSamplerState:sampler atIndex:fsInfo.samplerTexture];

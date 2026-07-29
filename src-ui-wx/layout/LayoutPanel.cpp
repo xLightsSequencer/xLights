@@ -4845,10 +4845,30 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
         return;
     }
     if (!event.ControlDown()) {
+        // Only ProcessLeftMouseClick3D (the is_3d path inside
+        // OnPreviewLeftDown) updates this; reset it first so a stale true
+        // from an earlier 3D click can't leak into a 2D double-click here.
+        m_lastClickWasCentreCycle = false;
         OnPreviewLeftDown(event);
         OnPreviewLeftUp(event);
         Model* md = dynamic_cast<Model*>(selectedBaseObject);
         if (md != nullptr && md->GetDisplayAs() != DisplayAsType::ModelGroup && md->GetDisplayAs() != DisplayAsType::SubModel) {
+            // The centre-cycle handle (the orange marker at the model's
+            // centre, used to cycle selection among overlapping models) just
+            // consumed this click via ProcessLeftMouseClick3D's selectionOnly
+            // path above. Don't pop the edit dialog for that click, and don't
+            // fall through to the "nothing selected" deselect-everything path
+            // below -- the model is still very much selected.
+            //
+            // m_lastClickWasCentreCycle (not GetActiveHandleId()) is the
+            // right signal here: CentreCycle is the *default* active handle
+            // whenever nothing more specific is active, so it stays "active"
+            // long after the click that set it -- checking it directly would
+            // suppress the dialog for every double-click on the model, not
+            // just ones that actually land on the orange marker.
+            if (m_lastClickWasCentreCycle) {
+                return;
+            }
             EditSubmodels();
             return;
         }
@@ -4862,9 +4882,28 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
     }
 }
 
+Model* LayoutPanel::FindNearestModel3D(const wxMouseEvent& event) {
+    glm::vec3 ray_origin;
+    glm::vec3 ray_direction;
+    GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+    Model* nearest_model = nullptr;
+    float nearest_distance = 1000000000.0f;
+    for (const auto& it : modelPreview->GetModels()) {
+        float hit_distance = 1000000000.0f;
+        if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, hit_distance)) {
+            if (hit_distance < nearest_distance) {
+                nearest_distance = hit_distance;
+                nearest_model = it;
+            }
+        }
+    }
+    return nearest_model;
+}
+
 void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 {
     m_moving_handle = false;
+    m_lastClickWasCentreCycle = false;
     // don't mark mouse down if a selection is being made
     if (highlightedBaseObject != nullptr) {
         if (selectionLatched) {
@@ -4933,6 +4972,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                         sloc.AdvanceAxisTool();
                                     }
                                     sloc.SetActiveHandle(std::optional<handles::Id>(hit->id));
+                                    if (hit->id.role == handles::Role::CentreCycle) {
+                                        m_lastClickWasCentreCycle = true;
+                                    }
                                     xlights->GetOutputModelManager()->AddASAPWork(
                                         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                         "LayoutPanel::ProcessLeftMouseClick3D-NewAPI-Select");
@@ -5043,6 +5085,11 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         }
                     }
                 }
+                bool hitSelectedObjectBody = false;
+                if (selectedBaseObject != nullptr) {
+                    float selDistance = 1000000000.0f;
+                    hitSelectedObjectBody = selectedBaseObject->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, selDistance);
+                }
                 if (which_object != nullptr) {
                     // Clear the tree selection first; otherwise
                     // SelectBaseObjectInTree's Select() call adds
@@ -5057,7 +5104,15 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                     }
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D-SwitchModel");
+                } else if (hitSelectedObjectBody) {
+                    m_mouse_down = true;
+                } else if (IsControllersPageActive()) {
+                    if (Model* clicked = FindNearestModel3D(event)) {
+                        SelectModelInTree(clicked);
+                    }
+                    m_mouse_down = true;
                 } else {
+                    m_pending_deselect_click = true;
                     m_mouse_down = true;
                 }
             }
@@ -5078,6 +5133,13 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
         }
     }
     else {
+        if (editing_models && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
+            m_pending_deselect_click = true;
+        } else if (IsControllersPageActive() && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
+            if (Model* clicked = FindNearestModel3D(event)) {
+                SelectModelInTree(clicked);
+            }
+        }
         m_mouse_down = true;
     }
 
@@ -5565,6 +5627,24 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         modelPreview->SetCameraView(0, 0, true);
     }
 
+    if (m_pending_deselect_click) {
+        m_pending_deselect_click = false;
+        const int tx = wxSystemSettings::GetMetric(wxSYS_DRAG_X, modelPreview);
+        const int ty = wxSystemSettings::GetMetric(wxSYS_DRAG_Y, modelPreview);
+        constexpr int kDefaultDragThreshold = 4;
+        const int dragThresholdX = tx > 0 ? tx : kDefaultDragThreshold;
+        const int dragThresholdY = ty > 0 ? ty : kDefaultDragThreshold;
+        const int dx = std::abs(event.GetX() - m_last_mouse_x);
+        const int dy = std::abs(event.GetY() - m_last_mouse_y);
+        if (dx <= dragThresholdX && dy <= dragThresholdY) {
+            if (editing_models) {
+                UnSelectAllModelsInTree();
+            } else {
+                UnSelectAllModels();
+            }
+        }
+    }
+
     m_mouse_down = false;
     SetMouseStateForModels(m_mouse_down);
     m_moving_handle = false;
@@ -6012,22 +6092,39 @@ void LayoutPanel::FinalizeModel()
             auto oldam = modelPreview->GetAdditionalModel();
             modelPreview->SetAdditionalModel(nullptr); // just in case we delete the model
 
+            // GetXlightsModel frees the model it is handed and pumps the event loop
+            // before it returns the replacement (progress dialog, import prompts), so
+            // ASAP work dispatched from that pump runs while oldNewModel is already
+            // gone. resetPropertyGrid reads selectedBaseObject unconditionally and
+            // faulted in __dynamic_cast on the freed model. Drop the references for
+            // the duration and repoint them at whatever comes back - the same reason
+            // the additional-model pointer above is cleared.
+            const bool highlightWasNewModel = (highlightedBaseObject == oldNewModel);
+            const bool selectionWasNewModel = (selectedBaseObject == oldNewModel);
+            if (highlightWasNewModel) {
+                highlightedBaseObject = nullptr;
+            }
+            if (selectionWasNewModel) {
+                selectedBaseObject = nullptr;
+                _propertyAdapter.reset();
+            }
+
             int widthmm = -1;
             int heightmm = -1;
             int depthmm = -1;
 
             _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels, &additionalModelObjects);
 
+            if (highlightWasNewModel) {
+                highlightedBaseObject = _newModel;
+            }
+            if (selectionWasNewModel) {
+                selectedBaseObject = _newModel;
+            }
+
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
                 // model was changed
-
-                if (highlightedBaseObject == oldNewModel) {
-                    highlightedBaseObject = _newModel;
-                }
-                if (selectedBaseObject == oldNewModel) {
-                    selectedBaseObject = _newModel;
-                }
 
                 if (oldam == oldNewModel) {
                     modelPreview->SetAdditionalModel(_newModel);
@@ -6850,7 +6947,9 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             {
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Not selection latched - Not editing models - BBB");
                 if (which_object != last_selection) {
-                    UnSelectAllModels();
+                    if (highlightedBaseObject != nullptr) {
+                        highlightedBaseObject->Highlighted(false);
+                    }
                     highlightedBaseObject = which_object;
                     highlightedBaseObject->Highlighted(true);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove3D");
@@ -8224,6 +8323,9 @@ void LayoutPanel::ExportFacesStatesSubModels() {
             }
             targetModel->IncrementChangeCount();
         }
+        // The target models' SubModel objects were freed and rebuilt above and
+        // model groups cache raw pointers to the submodels they name.
+        xlights->AllModels.ResetModelGroups();
         xlights->MarkEffectsFileDirty();
     }
 }
@@ -10043,6 +10145,7 @@ void LayoutPanel::ReplaceModel()
     const bool copyStartCh = dlg.CopyStartChannel();
     const bool mergeSubs   = dlg.MergeSubmodels();
     const bool copySizePos = dlg.CopySizePos();
+    const ReplaceGroupMode groupMode = dlg.GroupHandling();
 
     xlights->UnselectEffect(); // in case an effect lives on one of the targets
     xlights->AbortRender();
@@ -10079,6 +10182,7 @@ void LayoutPanel::ReplaceModel()
 
     int successCount = 0;
     std::vector<std::string> failures;
+    std::vector<std::string> replacedNames; // targets successfully swapped, for group reconciliation
 
     for (const auto& targetName : targetNames) {
         // Re-resolve the target from the model manager each iteration - names
@@ -10183,8 +10287,18 @@ void LayoutPanel::ReplaceModel()
             continue;
         }
 
+        replacedNames.push_back(targetName);
         ++successCount;
     }
+
+    // Reconcile group memberships per the dialog's Model Groups choice. The
+    // replacement clone kept the target's name, so it already inherited the
+    // target's own groups - NoChange needs nothing. The shared core helper
+    // handles the ReplaceWithSource / MergeSourceIntoTarget modes (direct
+    // membership incl. submodel entries, base-folder groups skipped), and the
+    // iPad ReplaceModelSheet calls the same helper. sourceModel is untouched
+    // by the batch, so its name is still valid here.
+    xlights->AllModels.ReconcileReplacedModelGroups(sourceModel->GetName(), replacedNames, groupMode);
 
     // Pass the source model name + replaced count as context so logs and any
     // downstream observers can scope the change instead of seeing a bare

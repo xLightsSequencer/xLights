@@ -32,11 +32,28 @@ void AddEncode(uint64_t ns);
 // Breakdown *inside* one encode, so the per-frame cost can be attributed rather
 // than inferred. The backend that submits its own work (Vulkan today) reports
 // these; a backend that rides the engine's command buffer leaves them at zero.
-void AddUpload(uint64_t ns);   // input image staged + uploaded (own round trip)
+void AddUpload(uint64_t ns);   // input staged (host memcpy; upload rides the render cb)
 void AddRecord(uint64_t ns);   // pool reset + begin + record + end
 void AddSubmit(uint64_t ns);   // vkQueueSubmit, including the queue mutex
-void AddFenceWait(uint64_t ns);// vkWaitForFences - the GPU round trip proper
+void AddFenceWait(uint64_t ns);// vkWaitForFences at completion.  Deferred frames
+                               // wait when the pixels are consumed, so this can
+                               // be far below gpu exec when work overlapped.
 void AddReadback(uint64_t ns); // host memcpy out of the mapped readback buffer
+void AddBind(uint64_t ns);     // resolving + binding uniforms/textures per frame
+// Device-timestamp span of the submitted command buffer (Vulkan): true GPU
+// execution of this frame's work alone, regardless of where the wait happened.
+void AddGpuExec(uint64_t ns);
+// Per-shader-file cost attribution, dumped as a top-N table at exit.  The two
+// backends report different quantities on purpose: Vulkan reports the
+// device-timestamp execution span, GL reports CPU wall for the synchronous
+// draw+glReadPixels block — comparing the tables across two runs localises
+// whether an execution-cost gap is shader-specific (codegen) or uniform
+// (structural).
+void AddPerShader(const std::string& file, uint64_t ns, uint32_t w, uint32_t h);
+// Print the table immediately (idempotent — the static destructor also calls
+// this).  The headless path calls it before std::exit because on the GL-only
+// path some earlier static teardown prevents the destructor from ever running.
+void Dump();
 } // namespace ShaderBuildStats
 
 // Shared native (SPIR-V based) Shader effect render lifecycle: everything that
@@ -76,6 +93,15 @@ public:
         int height = 0;
         bool built = false;
         bool failed = false;
+
+        // Per-frame uniform values, kept across frames rather than rebuilt.
+        // Every frame writes the same key set, so once it is populated
+        // operator[] finds each node and allocates nothing; a fresh map instead
+        // allocated a node per uniform plus a bucket array on every frame, which
+        // at six figures of frames is the dominant cost of assembling them.
+        // Cleared by reset(), i.e. whenever the shader changes and the key set
+        // could differ.
+        UniformValues vals;
 
         void reset();
         virtual void platformReset() = 0;

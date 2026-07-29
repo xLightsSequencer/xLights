@@ -44,6 +44,20 @@ public:
     virtual int GetEndFrame() const = 0;
     virtual int GetStartFrame() const = 0;
 
+    // False until the job has reached its terminal state and decremented the
+    // batch's outstanding count.  Deliberately not "rendered its last frame":
+    // a job can be past its final frame and still outstanding while it hands
+    // the row over and completes the downstream END handshake, and a batch
+    // that hangs there looks nothing like one hung inside an effect.
+    virtual bool IsFinished() { return false; }
+
+    // One-line description of the job's scheduler state, for diagnosing a
+    // render or abort that never finishes.  Unlike GetStatus()/GetStatusForUser()
+    // this reads only atomics and small POD state and never blocks on the
+    // job's lock, so it is safe to call from the polling thread while the job
+    // is still running - and safe on a job that is already wedged.
+    virtual std::string GetHangStatus() { return GetName(); }
+
     // Identity / status strings
     virtual const std::string GetName() const = 0;
     virtual std::string GetStatus() const = 0;

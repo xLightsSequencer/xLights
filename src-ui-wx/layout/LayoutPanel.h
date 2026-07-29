@@ -504,6 +504,7 @@ class LayoutPanel: public wxPanel
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
         void AddResizeOptionsToMenu(wxMenu* mnuResize);
         Model* SelectSingleModel(int x,int y);
+        Model* FindNearestModel3D(const wxMouseEvent& event);
         bool SelectMultipleModels(int x,int y);
         void SelectAllInBoundingRect(bool models_and_objects);
         void HighlightAllInBoundingRect(bool models_and_objects);
@@ -573,8 +574,17 @@ class LayoutPanel: public wxPanel
         // need different representations. Init -1 (NO_HANDLE).
         int m_polyline_create_handle = -1;
         bool m_moving_handle = false;
+        // Set by ProcessLeftMouseClick3D on every call to reflect whether
+        // *this* click's ray actually hit the CentreCycle handle (the orange
+        // marker at a model's centre) -- as opposed to
+        // GetActiveHandleId()==CentreCycle, which stays true afterward since
+        // CentreCycle is the default active handle whenever nothing more
+        // specific is active. OnPreviewLeftDClick reads this right after
+        // simulating the click to decide whether to suppress the edit dialog.
+        bool m_lastClickWasCentreCycle = false;
         bool m_wheel_down = false;
         bool m_polyline_active = false;
+        bool m_pending_deselect_click = false;
         int m_previous_mouse_x = 0;
         int m_previous_mouse_y = 0;
 		int mPointSize = 2;

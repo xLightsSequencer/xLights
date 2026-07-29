@@ -155,11 +155,17 @@ bool xLightsShowContext::IsRenderDone() {
 bool xLightsShowContext::AbortRender(int maxTimeMs) {
     if (!_renderEngine) return true;
     if (IsRenderDone()) return true;
+    spdlog::info("Aborting rendering ...");
     _renderEngine->SignalAbort();
     if (maxTimeMs <= 0) maxTimeMs = 60000;
     const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(maxTimeMs);
+    int loops = 0;
     while (!IsRenderDone() && std::chrono::steady_clock::now() < deadline) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        if (++loops % 200 == 0) {
+            spdlog::info("    Waiting for renderers to abort. {} left.", (int)_renderEngine->GetRenderProgressInfo().size());
+            _renderEngine->LogUnfinishedRenderJobs("Abort");
+        }
     }
     return IsRenderDone();
 }

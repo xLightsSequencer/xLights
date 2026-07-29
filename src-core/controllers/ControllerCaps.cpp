@@ -14,6 +14,7 @@
 
 #include "utils/FileUtils.h"
 #include "utils/ExternalHooks.h"
+#include "../models/Pixels.h"
 #include "../outputs/Controller.h"
 
 #include <log.h>
@@ -727,7 +728,9 @@ std::vector<std::string> ControllerCaps::GetAllProtocols() const
         res.push_back("Virtual Matrix");
     }
     if (SupportsLEDPanelMatrix()) {
-        res.push_back("LED Panel Matrix");
+        for (const auto& it : GetAllLEDPanelMatrixProtocols()) {
+            res.push_back(it);
+        }
     }
     if (SupportsPWM()) {
         res.push_back("PWM");

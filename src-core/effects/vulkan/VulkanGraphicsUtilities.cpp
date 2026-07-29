@@ -12,9 +12,11 @@
 #include <chrono>
 #include <mutex>
 #include <cstring>
+#include <vector>
 #include <spdlog/spdlog.h>
 
 #include "../../render/RenderBuffer.h"
+#include "../../render/RenderProfile.h"
 #include "../../utils/Color.h"
 
 #include "../SPIRVShaderEffect.h" // ShaderBuildStats
@@ -116,6 +118,17 @@ void VulkanGraphicsUtilities::doInit() {
                                       emptyLayout_);
     ok_ = (emptyLayout_ != VK_NULL_HANDLE && gradientPipeline_ != VK_NULL_HANDLE);
     if (ok_) {
+        uint32_t qc = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(u.physicalDevice, &qc, nullptr);
+        std::vector<VkQueueFamilyProperties> qf(qc);
+        vkGetPhysicalDeviceQueueFamilyProperties(u.physicalDevice, &qc, qf.data());
+        VkPhysicalDeviceProperties props = {};
+        vkGetPhysicalDeviceProperties(u.physicalDevice, &props);
+        if (u.graphicsQueueFamilyIndex < qc &&
+            qf[u.graphicsQueueFamilyIndex].timestampValidBits > 0 &&
+            props.limits.timestampPeriod > 0.0f) {
+            tsPeriod_ = props.limits.timestampPeriod;
+        }
         spdlog::info("Vulkan graphics pipeline ready (graphics queue family {})", u.graphicsQueueFamilyIndex);
         if (getenv("XL_VULKAN_GFXTEST") != nullptr) {
             selfTest();
@@ -359,13 +372,129 @@ bool VulkanGraphicsUtilities::ensureTarget(VulkanGraphicsTarget& t, uint32_t w, 
     return true;
 }
 
-bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t w, uint32_t h,
-                                         VkPipeline pipeline, VkPipelineLayout layout,
-                                         const void* pushData, uint32_t pushBytes, VkDescriptorSet descSet) {
+VulkanGraphicsTarget* VulkanGraphicsUtilities::acquireTarget(uint32_t w, uint32_t h) {
+    VulkanGraphicsTarget* t = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(targetMutex_);
+        for (size_t i = 0; i < freeTargets_.size(); i++) {
+            if (freeTargets_[i]->width == w && freeTargets_[i]->height == h) {
+                t = freeTargets_[i];
+                freeTargets_.erase(freeTargets_.begin() + i);
+                break;
+            }
+        }
+        if (t == nullptr && !freeTargets_.empty()) {
+            t = freeTargets_.back();
+            freeTargets_.pop_back();
+        }
+    }
+    if (t == nullptr) {
+        t = new VulkanGraphicsTarget();
+    }
+    if (!ensureTarget(*t, w, h)) {
+        releaseTarget(t);
+        return nullptr;
+    }
+    return t;
+}
+
+void VulkanGraphicsUtilities::releaseTarget(VulkanGraphicsTarget* t) {
+    if (t == nullptr) {
+        return;
+    }
+    t->inFlight = false;
+    t->timestamped = false;
+    t->dstPixels = nullptr;
+    t->flipRows = false;
+    t->tag.reset();
+    t->statLabel.clear();
+    std::lock_guard<std::mutex> lock(targetMutex_);
+    freeTargets_.push_back(t);
+}
+
+VkImageView VulkanGraphicsUtilities::prepareInput(VulkanGraphicsTarget& t, const VulkanShaderInput* input) {
+    if (input == nullptr) {
+        // The dummy is dropped when its layout transition could not be
+        // completed, so a shader with no input of its own has nothing valid to
+        // sample; the caller treats VK_NULL_HANDLE as failure.
+        return dummyView_;
+    }
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    if (t.inImage == VK_NULL_HANDLE || t.inW != input->w || t.inH != input->h || t.inFmt != input->format) {
+        if (t.inView) vkDestroyImageView(u.device, t.inView, nullptr);
+        if (t.inImage) vmaDestroyImage(u.allocator, t.inImage, t.inAlloc);
+        t.inView = VK_NULL_HANDLE;
+        t.inImage = VK_NULL_HANDLE;
+        t.inAlloc = VK_NULL_HANDLE;
+        VkImageCreateInfo ici = {};
+        ici.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        ici.imageType = VK_IMAGE_TYPE_2D;
+        ici.format = input->format;
+        ici.extent = { input->w, input->h, 1 };
+        ici.mipLevels = 1;
+        ici.arrayLayers = 1;
+        ici.samples = VK_SAMPLE_COUNT_1_BIT;
+        ici.tiling = VK_IMAGE_TILING_OPTIMAL;
+        ici.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        ici.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        VmaAllocationCreateInfo aci = {};
+        aci.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+        if (vmaCreateImage(u.allocator, &ici, &aci, &t.inImage, &t.inAlloc, nullptr) != VK_SUCCESS) {
+            t.inImage = VK_NULL_HANDLE;
+            t.inAlloc = VK_NULL_HANDLE;
+            return VK_NULL_HANDLE;
+        }
+        VkImageViewCreateInfo vci = {};
+        vci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        vci.image = t.inImage;
+        vci.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        vci.format = input->format;
+        vci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        vci.subresourceRange.levelCount = 1;
+        vci.subresourceRange.layerCount = 1;
+        if (vkCreateImageView(u.device, &vci, nullptr, &t.inView) != VK_SUCCESS) {
+            vmaDestroyImage(u.allocator, t.inImage, t.inAlloc);
+            t.inView = VK_NULL_HANDLE;
+            t.inImage = VK_NULL_HANDLE;
+            t.inAlloc = VK_NULL_HANDLE;
+            return VK_NULL_HANDLE;
+        }
+        t.inW = input->w;
+        t.inH = input->h;
+        t.inFmt = input->format;
+    }
+    if (!t.staging || t.staging.size < input->byteSize) {
+        if (t.staging) u.destroyBuffer(t.staging);
+        if (!u.createSharedBuffer(t.staging, input->byteSize, "ShaderInputStaging")) {
+            return VK_NULL_HANDLE;
+        }
+    }
+    std::memcpy(t.staging.mapped, input->data, input->byteSize);
+    return t.inView;
+}
+
+bool VulkanGraphicsUtilities::recordAndSubmit(VulkanGraphicsTarget& target, uint32_t w, uint32_t h,
+                                              VkPipeline pipeline, VkPipelineLayout layout,
+                                              const void* pushData, uint32_t pushBytes, VkDescriptorSet descSet,
+                                              bool recordInputUpload) {
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     if (target.cb == VK_NULL_HANDLE || target.framebuffer == VK_NULL_HANDLE) {
         return false;
     }
+    const bool stats = ShaderBuildStats::Enabled();
+    const bool wantGpuTs = tsPeriod_ > 0.0f &&
+                           (stats || tlsGpuEffect.profile != nullptr || tlsRenderProfile != nullptr);
+    if (wantGpuTs && target.tsPool == VK_NULL_HANDLE) {
+        VkQueryPoolCreateInfo qci = {};
+        qci.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+        qci.queryType = VK_QUERY_TYPE_TIMESTAMP;
+        qci.queryCount = 2;
+        if (vkCreateQueryPool(u.device, &qci, nullptr, &target.tsPool) != VK_SUCCESS) {
+            target.tsPool = VK_NULL_HANDLE;
+        }
+    }
+    const bool useTs = wantGpuTs && target.tsPool != VK_NULL_HANDLE;
+
     const auto recordStart = std::chrono::steady_clock::now();
     vkResetCommandPool(u.device, target.pool, 0);
     VkCommandBufferBeginInfo bi = {};
@@ -373,6 +502,43 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
     bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     if (vkBeginCommandBuffer(target.cb, &bi) != VK_SUCCESS) {
         return false;
+    }
+    if (useTs) {
+        vkCmdResetQueryPool(target.cb, target.tsPool, 0, 2);
+        vkCmdWriteTimestamp(target.cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, target.tsPool, 0);
+    }
+
+    if (recordInputUpload && target.inImage != VK_NULL_HANDLE) {
+        // Input upload rides this command buffer — one submit per frame, not a
+        // separate staging round trip.
+        VkImageSubresourceRange range = {};
+        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        range.levelCount = 1;
+        range.layerCount = 1;
+        auto barrier = [&](VkImageLayout oldL, VkImageLayout newL, VkAccessFlags src, VkAccessFlags dst,
+                           VkPipelineStageFlags srcS, VkPipelineStageFlags dstS) {
+            VkImageMemoryBarrier imb = {};
+            imb.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            imb.oldLayout = oldL;
+            imb.newLayout = newL;
+            imb.srcQueueFamilyIndex = imb.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            imb.image = target.inImage;
+            imb.subresourceRange = range;
+            imb.srcAccessMask = src;
+            imb.dstAccessMask = dst;
+            vkCmdPipelineBarrier(target.cb, srcS, dstS, 0, 0, nullptr, 0, nullptr, 1, &imb);
+        };
+        barrier(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+        VkBufferImageCopy inRegion = {};
+        inRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        inRegion.imageSubresource.layerCount = 1;
+        inRegion.imageExtent = { target.inW, target.inH, 1 };
+        vkCmdCopyBufferToImage(target.cb, target.staging.buffer, target.inImage,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &inRegion);
+        barrier(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
     }
 
     VkClearValue clear = {};
@@ -418,13 +584,18 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
     vkCmdPipelineBarrier(target.cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT,
                          0, 0, nullptr, 1, &bmb, 0, nullptr);
 
+    if (useTs) {
+        vkCmdWriteTimestamp(target.cb, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, target.tsPool, 1);
+    }
     if (vkEndCommandBuffer(target.cb) != VK_SUCCESS) {
         return false;
     }
-    const bool stats = ShaderBuildStats::Enabled();
     if (stats) {
         ShaderBuildStats::AddRecord(nsSince(recordStart));
     }
+    // Attribution is captured now (on the effect's render thread) and consumed
+    // at completion, which can run on whichever thread drains the frame.
+    target.tag.note("");
 
     VkSubmitInfo si = {};
     si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -434,21 +605,84 @@ bool VulkanGraphicsUtilities::renderCore(VulkanGraphicsTarget& target, uint32_t 
         const auto submitStart = std::chrono::steady_clock::now();
         std::mutex& m = u.graphicsSubmitMutex();
         std::lock_guard<std::mutex> lock(m);
-        if (vkQueueSubmit(u.graphicsQueue, 1, &si, target.fence) != VK_SUCCESS) return false;
+        if (vkQueueSubmit(u.graphicsQueue, 1, &si, target.fence) != VK_SUCCESS) {
+            target.tag.reset();
+            return false;
+        }
         if (stats) {
             ShaderBuildStats::AddSubmit(nsSince(submitStart));
         }
     }
-    // Callers read target.readback straight after this returns true, so a failed
-    // wait (device lost) must not be reported as a completed render.
-    const auto waitStart = std::chrono::steady_clock::now();
-    if (vkWaitForFences(u.device, 1, &target.fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) {
+    target.inFlight = true;
+    target.timestamped = useTs;
+    return true;
+}
+
+bool VulkanGraphicsUtilities::completeShaderFrame(VulkanGraphicsTarget* frame) {
+    if (frame == nullptr) {
         return false;
     }
+    if (!frame->inFlight) {
+        releaseTarget(frame);
+        return false;
+    }
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    const bool stats = ShaderBuildStats::Enabled();
+    const auto waitStart = std::chrono::steady_clock::now();
+    const VkResult res = vkWaitForFences(u.device, 1, &frame->fence, VK_TRUE, UINT64_MAX);
     if (stats) {
         ShaderBuildStats::AddFenceWait(nsSince(waitStart));
     }
-    vkResetFences(u.device, 1, &target.fence);
+    if (res != VK_SUCCESS) {
+        // Device lost: the pixels never arrive; leave the destination alone and
+        // don't reset a fence that will never signal.
+        releaseTarget(frame);
+        return false;
+    }
+    vkResetFences(u.device, 1, &frame->fence);
+    if (frame->timestamped) {
+        uint64_t ts[2] = {};
+        if (vkGetQueryPoolResults(u.device, frame->tsPool, 0, 2, sizeof(ts), ts, sizeof(uint64_t),
+                                  VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT) == VK_SUCCESS &&
+            ts[1] > ts[0]) {
+            const uint64_t gpuNs = (uint64_t)((double)(ts[1] - ts[0]) * (double)tsPeriod_);
+            if (stats) {
+                ShaderBuildStats::AddGpuExec(gpuNs);
+                if (!frame->statLabel.empty()) {
+                    ShaderBuildStats::AddPerShader(frame->statLabel, gpuNs, frame->width, frame->height);
+                }
+            }
+            frame->tag.complete(gpuNs);
+        } else {
+            frame->tag.reset();
+        }
+    } else {
+        frame->tag.reset();
+    }
+    if (frame->dstPixels != nullptr) {
+        const auto readbackStart = std::chrono::steady_clock::now();
+        const uint8_t* src = (const uint8_t*)frame->readback.mapped;
+        const uint32_t w = frame->width;
+        const uint32_t h = frame->height;
+        if (frame->flipRows) {
+            // Vulkan framebuffer origin is top-left; RenderBuffer is
+            // bottom-row-first (GL convention), so flip rows on the way out.
+            for (uint32_t y = 0; y < h; y++) {
+                std::memcpy(frame->dstPixels + (size_t)(h - 1 - y) * w * 4, src + (size_t)y * w * 4, (size_t)w * 4);
+            }
+        } else {
+            // Match the Metal shader path: straight copy (framebuffer row N ->
+            // buffer row N).  The vertex stage maps the framebuffer's top row to
+            // tpos.y=0 exactly as Metal's quad does, and the input texture is
+            // uploaded straight, so a row flip here double-compensates and
+            // renders every input-sampling (Canvas/warp) shader upside down.
+            std::memcpy(frame->dstPixels, src, (size_t)h * w * 4);
+        }
+        if (stats) {
+            ShaderBuildStats::AddReadback(nsSince(readbackStart));
+        }
+    }
+    releaseTarget(frame);
     return true;
 }
 
@@ -461,21 +695,19 @@ bool VulkanGraphicsUtilities::renderToBuffer(RenderBuffer& buffer, VkPipeline pi
     uint8_t* dst = (uint8_t*)buffer.GetPixels();  // xlColor is r,g,b,a (4 bytes)
     if (w == 0 || h == 0 || dst == nullptr) return false;
 
-    static thread_local VulkanGraphicsTarget target;
-    if (!ensureTarget(target, w, h)) return false;
-    if (!renderCore(target, w, h, pipeline, layout, pushData, pushBytes, descSet)) return false;
-
-    // Vulkan framebuffer origin is top-left; RenderBuffer is bottom-row-first
-    // (GL convention), so flip rows on the way out.
-    const uint8_t* src = (const uint8_t*)target.readback.mapped;
-    for (uint32_t y = 0; y < h; y++) {
-        std::memcpy(dst + (size_t)(h - 1 - y) * w * 4, src + (size_t)y * w * 4, (size_t)w * 4);
+    VulkanGraphicsTarget* t = acquireTarget(w, h);
+    if (t == nullptr) return false;
+    t->dstPixels = dst;
+    t->flipRows = true;
+    if (!recordAndSubmit(*t, w, h, pipeline, layout, pushData, pushBytes, descSet, false)) {
+        releaseTarget(t);
+        return false;
     }
-    return true;
+    return completeShaderFrame(t);
 }
 
 void VulkanGraphicsUtilities::ensureShaderInfra() {
-    // Called from renderShader()/prepareInputImage() on every RenderPool worker
+    // Called from submitShaderFrame() on every RenderPool worker
     // thread rendering a Shader effect; a bare "already inited" check here raced
     // multiple threads into concurrently creating/overwriting the shared
     // descriptor layout/sampler/dummy image, leaving another thread's in-flight
@@ -651,197 +883,78 @@ bool VulkanGraphicsUtilities::ensureDescriptor(VulkanGraphicsTarget& t) {
 VkDescriptorSetLayout VulkanGraphicsUtilities::shaderSetLayout() { ensureShaderInfra(); return shaderSetLayout_; }
 VkPipelineLayout VulkanGraphicsUtilities::shaderPipelineLayout() { ensureShaderInfra(); return shaderPipelineLayout_; }
 
-bool VulkanGraphicsUtilities::renderShader(RenderBuffer& buffer, VkPipeline pipeline, VkBuffer ubo, VkImageView inputView) {
+VulkanGraphicsTarget* VulkanGraphicsUtilities::submitShaderFrame(RenderBuffer& buffer, VkPipeline pipeline,
+                                                                 const void* uboData, uint32_t uboSize,
+                                                                 const VulkanShaderInput* input,
+                                                                 const std::string& statLabel) {
     ensureInit();
-    if (!ok_ || pipeline == VK_NULL_HANDLE || ubo == VK_NULL_HANDLE) return false;
+    if (!ok_ || pipeline == VK_NULL_HANDLE || uboData == nullptr || uboSize == 0) return nullptr;
     ensureShaderInfra();
     if (shaderSetLayout_ == VK_NULL_HANDLE || shaderPipelineLayout_ == VK_NULL_HANDLE ||
         sampler_ == VK_NULL_HANDLE) {
-        return false;
+        return nullptr;
     }
-    // The dummy is dropped when its layout transition could not be completed, so
-    // a shader with no input of its own has nothing valid to sample.
-    const VkImageView view = (inputView != VK_NULL_HANDLE) ? inputView : dummyView_;
-    if (view == VK_NULL_HANDLE) return false;
     const uint32_t w = (uint32_t)buffer.BufferWi;
     const uint32_t h = (uint32_t)buffer.BufferHt;
     uint8_t* dst = (uint8_t*)buffer.GetPixels();
-    if (w == 0 || h == 0 || dst == nullptr) return false;
+    if (w == 0 || h == 0 || dst == nullptr) return nullptr;
 
-    static thread_local VulkanGraphicsTarget target;
-    if (!ensureTarget(target, w, h) || !ensureDescriptor(target)) return false;
+    VulkanGraphicsTarget* t = acquireTarget(w, h);
+    if (t == nullptr) return nullptr;
+    if (!ensureDescriptor(*t)) {
+        releaseTarget(t);
+        return nullptr;
+    }
 
-    VkDescriptorBufferInfo dbi = { ubo, 0, VK_WHOLE_SIZE };
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    // Uniforms live in the target, not the effect cache: a cache rebuild or
+    // teardown while this frame is still in flight must not free memory the
+    // GPU is reading.
+    if (!t->ubo || t->ubo.size < uboSize) {
+        if (t->ubo) u.destroyBuffer(t->ubo);
+        t->ubo = VulkanBuffer{};
+        if (!u.createSharedBuffer(t->ubo, uboSize, "ShaderUBO")) {
+            releaseTarget(t);
+            return nullptr;
+        }
+    }
+    std::memcpy(t->ubo.mapped, uboData, uboSize);
+
+    const auto uploadStart = std::chrono::steady_clock::now();
+    VkImageView view = prepareInput(*t, input);
+    if (input != nullptr && ShaderBuildStats::Enabled()) {
+        ShaderBuildStats::AddUpload(nsSince(uploadStart));
+    }
+    if (view == VK_NULL_HANDLE) {
+        releaseTarget(t);
+        return nullptr;
+    }
+
+    VkDescriptorBufferInfo dbi = { t->ubo.buffer, 0, VK_WHOLE_SIZE };
     VkDescriptorImageInfo dii = {};
     dii.sampler = sampler_;
     dii.imageView = view;
     dii.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     VkWriteDescriptorSet w2[2] = {};
     w2[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    w2[0].dstSet = target.descSet; w2[0].dstBinding = 0; w2[0].descriptorCount = 1;
+    w2[0].dstSet = t->descSet; w2[0].dstBinding = 0; w2[0].descriptorCount = 1;
     w2[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; w2[0].pBufferInfo = &dbi;
     w2[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    w2[1].dstSet = target.descSet; w2[1].dstBinding = 1; w2[1].descriptorCount = 1;
+    w2[1].dstSet = t->descSet; w2[1].dstBinding = 1; w2[1].descriptorCount = 1;
     w2[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; w2[1].pImageInfo = &dii;
-    vkUpdateDescriptorSets(VulkanComputeUtilities::INSTANCE.device, 2, w2, 0, nullptr);
+    vkUpdateDescriptorSets(u.device, 2, w2, 0, nullptr);
 
-    if (!renderCore(target, w, h, pipeline, shaderPipelineLayout_, nullptr, 0, target.descSet)) return false;
-
-    // Match the Metal shader path: straight copy (framebuffer row N -> buffer row
-    // N).  The vertex stage maps the framebuffer's top row to tpos.y=0 exactly as
-    // Metal's quad does, and the input texture is uploaded straight, so a row flip
-    // here double-compensates and renders every input-sampling (Canvas/warp)
-    // shader upside down.
-    const auto readbackStart = std::chrono::steady_clock::now();
-    std::memcpy(dst, target.readback.mapped, (size_t)h * w * 4);
+    // Straight copy at completion (no row flip) — see completeShaderFrame.
+    t->dstPixels = dst;
+    t->flipRows = false;
     if (ShaderBuildStats::Enabled()) {
-        ShaderBuildStats::AddReadback(nsSince(readbackStart));
+        t->statLabel = statLabel;
     }
-    return true;
-}
-
-VkImageView VulkanGraphicsUtilities::prepareInputImage(uint32_t w, uint32_t h, VkFormat format, const void* data, size_t byteSize) {
-    ensureInit();
-    if (!ok_ || w == 0 || h == 0 || data == nullptr || byteSize == 0) return VK_NULL_HANDLE;
-    ensureShaderInfra();
-    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
-
-    struct InputImg {
-        uint32_t w = 0, h = 0;
-        VkFormat fmt = VK_FORMAT_UNDEFINED;
-        VkImage image = VK_NULL_HANDLE;
-        VmaAllocation alloc = VK_NULL_HANDLE;
-        VkImageView view = VK_NULL_HANDLE;
-        VulkanBuffer staging;
-        VkCommandPool pool = VK_NULL_HANDLE;
-        VkCommandBuffer cb = VK_NULL_HANDLE;
-        VkFence fence = VK_NULL_HANDLE;
-    };
-    static thread_local InputImg t;
-
-    if (t.pool == VK_NULL_HANDLE) {
-        // All-or-nothing, as in ensureTarget: a pool left set alongside a null cb
-        // makes every later call skip this block and record into that null cb.
-        VkCommandPoolCreateInfo pci = {};
-        pci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        pci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        pci.queueFamilyIndex = u.graphicsQueueFamilyIndex;
-        if (vkCreateCommandPool(u.device, &pci, nullptr, &t.pool) != VK_SUCCESS) {
-            t.pool = VK_NULL_HANDLE;
-            return VK_NULL_HANDLE;
-        }
-        VkCommandBufferAllocateInfo ai = {};
-        ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        ai.commandPool = t.pool; ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; ai.commandBufferCount = 1;
-        VkFenceCreateInfo fci = {};
-        fci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        if (vkAllocateCommandBuffers(u.device, &ai, &t.cb) != VK_SUCCESS || t.cb == VK_NULL_HANDLE ||
-            vkCreateFence(u.device, &fci, nullptr, &t.fence) != VK_SUCCESS) {
-            vkDestroyCommandPool(u.device, t.pool, nullptr);
-            t.pool = VK_NULL_HANDLE;
-            t.cb = VK_NULL_HANDLE;
-            t.fence = VK_NULL_HANDLE;
-            spdlog::error("Vulkan graphics: shader input command buffer allocation failed; this frame falls back");
-            return VK_NULL_HANDLE;
-        }
+    if (!recordAndSubmit(*t, w, h, pipeline, shaderPipelineLayout_, nullptr, 0, t->descSet, input != nullptr)) {
+        releaseTarget(t);
+        return nullptr;
     }
-    if (t.image == VK_NULL_HANDLE || t.w != w || t.h != h || t.fmt != format) {
-        if (t.view) vkDestroyImageView(u.device, t.view, nullptr);
-        if (t.image) vmaDestroyImage(u.allocator, t.image, t.alloc);
-        t.view = VK_NULL_HANDLE; t.image = VK_NULL_HANDLE;
-        VkImageCreateInfo ici = {};
-        ici.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        ici.imageType = VK_IMAGE_TYPE_2D;
-        ici.format = format;
-        ici.extent = { w, h, 1 };
-        ici.mipLevels = 1; ici.arrayLayers = 1;
-        ici.samples = VK_SAMPLE_COUNT_1_BIT;
-        ici.tiling = VK_IMAGE_TILING_OPTIMAL;
-        ici.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-        ici.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        VmaAllocationCreateInfo aci = {};
-        aci.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-        if (vmaCreateImage(u.allocator, &ici, &aci, &t.image, &t.alloc, nullptr) != VK_SUCCESS) {
-            t.image = VK_NULL_HANDLE;
-            t.alloc = VK_NULL_HANDLE;
-            return VK_NULL_HANDLE;
-        }
-        VkImageViewCreateInfo vci = {};
-        vci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        vci.image = t.image;
-        vci.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        vci.format = format;
-        vci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        vci.subresourceRange.levelCount = 1;
-        vci.subresourceRange.layerCount = 1;
-        if (vkCreateImageView(u.device, &vci, nullptr, &t.view) != VK_SUCCESS) {
-            // Leaving t.image set with a null view would strand every later call
-            // on this thread: the size check below would pass and we would return
-            // VK_NULL_HANDLE forever.  Drop it so the next frame rebuilds.
-            vmaDestroyImage(u.allocator, t.image, t.alloc);
-            t.view = VK_NULL_HANDLE;
-            t.image = VK_NULL_HANDLE;
-            t.alloc = VK_NULL_HANDLE;
-            return VK_NULL_HANDLE;
-        }
-        t.w = w; t.h = h; t.fmt = format;
-    }
-    if (!t.staging || t.staging.size < byteSize) {
-        if (t.staging) u.destroyBuffer(t.staging);
-        if (!u.createSharedBuffer(t.staging, byteSize, "ShaderInputStaging")) return VK_NULL_HANDLE;
-    }
-    std::memcpy(t.staging.mapped, data, byteSize);
-
-    vkResetCommandPool(u.device, t.pool, 0);
-    VkCommandBufferBeginInfo bi = {};
-    bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    if (vkBeginCommandBuffer(t.cb, &bi) != VK_SUCCESS) {
-        return VK_NULL_HANDLE;
-    }
-
-    VkImageSubresourceRange range = {};
-    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    range.levelCount = 1; range.layerCount = 1;
-    auto barrier = [&](VkImageLayout oldL, VkImageLayout newL, VkAccessFlags src, VkAccessFlags dst,
-                       VkPipelineStageFlags srcS, VkPipelineStageFlags dstS) {
-        VkImageMemoryBarrier imb = {};
-        imb.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        imb.oldLayout = oldL; imb.newLayout = newL;
-        imb.srcQueueFamilyIndex = imb.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        imb.image = t.image; imb.subresourceRange = range;
-        imb.srcAccessMask = src; imb.dstAccessMask = dst;
-        vkCmdPipelineBarrier(t.cb, srcS, dstS, 0, 0, nullptr, 0, nullptr, 1, &imb);
-    };
-    barrier(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    VkBufferImageCopy region = {};
-    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    region.imageSubresource.layerCount = 1;
-    region.imageExtent = { w, h, 1 };
-    vkCmdCopyBufferToImage(t.cb, t.staging.buffer, t.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-    barrier(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
-            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-    if (vkEndCommandBuffer(t.cb) != VK_SUCCESS) {
-        return VK_NULL_HANDLE;
-    }
-
-    VkSubmitInfo si = {};
-    si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    si.commandBufferCount = 1; si.pCommandBuffers = &t.cb;
-    {
-        std::mutex& m = u.graphicsSubmitMutex();
-        std::lock_guard<std::mutex> lock(m);
-        if (vkQueueSubmit(u.graphicsQueue, 1, &si, t.fence) != VK_SUCCESS) return VK_NULL_HANDLE;
-    }
-    // The upload must have landed before the view is handed to a sampler; a lost
-    // device makes the wait fail rather than block, so don't return the view.
-    if (vkWaitForFences(u.device, 1, &t.fence, VK_TRUE, UINT64_MAX) != VK_SUCCESS) {
-        return VK_NULL_HANDLE;
-    }
-    vkResetFences(u.device, 1, &t.fence);
-    return t.view;
+    return t;
 }
 
 void VulkanGraphicsUtilities::submitLatencyBench() {
@@ -939,12 +1052,17 @@ bool VulkanGraphicsUtilities::runtimeShaderTest() {
         return false;
     }
     const uint32_t w = 16, h = 16;
-    static thread_local VulkanGraphicsTarget t;
+    std::vector<uint8_t> out((size_t)w * h * 4, 0);
     auto blueAtCenter = [&](float tval) -> int {
-        if (!ensureTarget(t, w, h) || !renderCore(t, w, h, pipe, layout, &tval, sizeof(tval), VK_NULL_HANDLE))
+        VulkanGraphicsTarget* t = acquireTarget(w, h);
+        if (t == nullptr) return -1;
+        t->dstPixels = out.data();
+        if (!recordAndSubmit(*t, w, h, pipe, layout, &tval, sizeof(tval), VK_NULL_HANDLE, false)) {
+            releaseTarget(t);
             return -1;
-        const uint8_t* p = (const uint8_t*)t.readback.mapped + ((size_t)(h / 2) * w + (w / 2)) * 4;
-        return p[2];  // blue = pc.t * 255
+        }
+        if (!completeShaderFrame(t)) return -1;
+        return out[(((size_t)(h / 2) * w + (w / 2)) * 4) + 2];  // blue = pc.t * 255
     };
     int lo = blueAtCenter(0.25f);
     int hi = blueAtCenter(0.75f);
@@ -964,14 +1082,24 @@ bool VulkanGraphicsUtilities::selfTest() {
         return false;
     }
     const uint32_t w = 16, h = 16;
-    static thread_local VulkanGraphicsTarget t;
-    if (!ensureTarget(t, w, h) || !renderCore(t, w, h, gradientPipeline_, emptyLayout_, nullptr, 0, VK_NULL_HANDLE)) {
+    std::vector<uint8_t> out((size_t)w * h * 4, 0);
+    VulkanGraphicsTarget* t = acquireTarget(w, h);
+    bool rendered = false;
+    if (t != nullptr) {
+        t->dstPixels = out.data();
+        if (recordAndSubmit(*t, w, h, gradientPipeline_, emptyLayout_, nullptr, 0, VK_NULL_HANDLE, false)) {
+            rendered = completeShaderFrame(t);
+        } else {
+            releaseTarget(t);
+        }
+    }
+    if (!rendered) {
         spdlog::error("Vulkan graphics self-test: render failed");
         return false;
     }
     // gradient_test.frag emits (R=u, G=v).  Image is top-row-first: top-left is
     // ~(0,0), bottom-right ~(near 255).  Just check the gradient direction.
-    const uint8_t* p = (const uint8_t*)t.readback.mapped;
+    const uint8_t* p = out.data();
     auto px = [&](uint32_t x, uint32_t y) { return p + ((size_t)y * w + x) * 4; };
     const uint8_t* tl = px(0, 0);
     const uint8_t* br = px(w - 1, h - 1);

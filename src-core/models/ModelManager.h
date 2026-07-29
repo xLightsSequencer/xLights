@@ -25,6 +25,15 @@ class OutputManager;
 class RenderContext;
 class UICallbacks;
 
+// How a replaced model's group memberships are reconciled against the source
+// (donor) model's. Shared by the desktop Replace-Model dialog and the iPad
+// ReplaceModelSheet so both behave identically.
+enum class ReplaceGroupMode {
+    NoChange = 0,          // leave each replaced model's own groups untouched
+    ReplaceWithSource,     // replaced model ends up in exactly the source's direct groups
+    MergeSourceIntoTarget  // replaced model keeps its groups and gains the source's
+};
+
 #ifdef GetObject
 #undef GetObject  // Windows wingdi.h defines GetObject as GetObjectW
 #endif
@@ -92,6 +101,12 @@ class ModelManager : public ObjectManager
         Model *createAndAddModel(pugi::xml_node node, int previewW, int previewH);
         std::string GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const;
         std::vector<std::string> GetGroupsContainingModel(const Model* model) const;
+        // Reconcile the group memberships of one or more just-replaced models
+        // against a source (donor) model, per `mode`. Operates on DIRECT
+        // membership including submodel entries ("Source/Strand1"), skips
+        // base-folder groups, and scans the group list once for the whole
+        // batch. Callers persist via their normal reload/dirty path.
+        void ReconcileReplacedModelGroups(const std::string& sourceName, const std::vector<std::string>& replacedNames, ReplaceGroupMode mode);
         std::vector<std::string> GetGroupsContainingModelOrSubmodel(const Model* model) const;
         std::vector<Model*> GetModelGroups(const Model* model) const;
         std::string GenerateNewStartChannel(const std::string& lastModel = "") const;

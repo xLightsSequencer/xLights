@@ -91,6 +91,7 @@
 #endif
 
 #include "ShaderEffect.h"
+#include "SPIRVShaderEffect.h" // ShaderBuildStats
 #include "media/AudioManager.h"
 #include "../graphics/GLContextManager.h"
 #include "../render/Effect.h"
@@ -667,13 +668,6 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     // the lambda runs directly on this thread.  ExecuteOnGLThread
     // blocks until the lambda returns, so captures by reference are safe.
     GLContextManager::Instance().ExecuteOnGLThread([&]() {
-    // Bail out right away if we don't have the necessary OpenGL support
-    if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport()) {
-        setRenderBufferAll(buffer, xlCYAN);
-        spdlog::error("ShaderEffect::Render() - missing OpenGL support!!");
-        return;
-    }
-
     // No shader file configured - render red just like video/pictures effect
     if (SettingsMap.Get("0FILEPICKERCTRL_IFS", "").empty()) {
         setRenderBufferAll(buffer, xlRED);
@@ -708,6 +702,21 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             cache->DropStaleGLState();
             cache->glGeneration = gen;
         }
+        // Load the gl* entry points now that a context is current — with no UI
+        // canvas (headless) nothing else ever loads them, and the capability
+        // check below would cyan-fill every shader frame.
+        GLContextManager::Instance().EnsureGLFunctions();
+    }
+    // Bail out if we don't have the necessary OpenGL support.  This must run
+    // AFTER the context is current + entry points are loaded: both checks read
+    // function pointers that are null until then.
+    if (!OpenGLShaders::HasFramebufferObjects() || !OpenGLShaders::HasShaderSupport()) {
+        setRenderBufferAll(buffer, xlCYAN);
+        spdlog::error("ShaderEffect::Render() - missing OpenGL support!!");
+        if (contextSet) {
+            UnsetGLContext(cache);
+        }
+        return;
     }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
@@ -784,6 +793,13 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     // ***********************************************************************************************************
     // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
     // ***********************************************************************************************************
+
+    // Per-shader table entry for XL_SHADER_BUILD_STATS: CPU wall of the whole
+    // synchronous GL block (setup + draw + glReadPixels).  The Vulkan side
+    // reports device-timestamp execution for the same table, so the two runs
+    // can be compared shader-by-shader.
+    const bool statsOn = ShaderBuildStats::Enabled();
+    const auto statsStart = statsOn ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point();
 
     sizeForRenderBuffer(buffer, s_shadersInit, s_vertexBufferId, s_rbId, s_rbTex, s_rbWidth, s_rbHeight);
 
@@ -989,6 +1005,14 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     copyPixelDataFromTexture(buffer);
+
+    if (statsOn) {
+        ShaderBuildStats::AddPerShader(
+            _shaderConfig->GetFilename(),
+            (uint64_t)std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now() - statsStart).count(),
+            (uint32_t)buffer.BufferWi, (uint32_t)buffer.BufferHt);
+    }
 
     LOG_GL_ERRORV(glUseProgram(0));
     LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));

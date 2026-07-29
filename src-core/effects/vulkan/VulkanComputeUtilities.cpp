@@ -1426,6 +1426,10 @@ VulkanRenderBufferComputeData::VulkanRenderBufferComputeData(RenderBuffer* rb, V
 
 VulkanRenderBufferComputeData::~VulkanRenderBufferComputeData() {
     pixelBufferData = nullptr;
+    // Discard the pixels: at teardown the RenderBuffer's pixel storage may
+    // already be repointed, so the completion memcpy must not run — but the
+    // fence must still be waited so the pooled target can be recycled.
+    drainPendingShaderFrame(true);
     // Unlike Metal (ARC keeps resources alive until the command buffer
     // drains), Vulkan destruction is immediate — drain first.
     if (recording || committed) {
@@ -1676,6 +1680,9 @@ bool VulkanRenderBufferComputeData::ensureTimestampPool() {
 }
 
 VkCommandBuffer VulkanRenderBufferComputeData::getCommandBuffer(const std::string& postfix) {
+    // Compute work encoded from here on may read this buffer's pixels (blur,
+    // rotozoom, blend preload) — a deferred shader frame must land first.
+    drainPendingShaderFrame();
     VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
     if (!u.enabled) {
         return VK_NULL_HANDLE;
@@ -1783,7 +1790,29 @@ void VulkanRenderBufferComputeData::commit() {
     }
 }
 
+void VulkanRenderBufferComputeData::setPendingShaderFrame(VulkanGraphicsTarget* frame) {
+    // The encode path drains before submitting the next frame, so this should
+    // never clobber; drain defensively rather than leak an in-flight frame.
+    drainPendingShaderFrame();
+    pendingShaderFrame.store(frame);
+}
+
+void VulkanRenderBufferComputeData::drainPendingShaderFrame(bool discardPixels) {
+    VulkanGraphicsTarget* frame = pendingShaderFrame.exchange(nullptr);
+    if (frame != nullptr) {
+#ifdef HAVE_VULKAN_SHADER
+        if (discardPixels) {
+            frame->dstPixels = nullptr;
+        }
+        VulkanGraphicsUtilities::INSTANCE.completeShaderFrame(frame);
+#endif
+    }
+}
+
 void VulkanRenderBufferComputeData::waitForCompletion() {
+    // The shader frame's pixels must land before anything that waits on this
+    // buffer reads or re-uploads them.
+    drainPendingShaderFrame();
     if (recording || committed) {
         VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
         commit();
@@ -1978,6 +2007,11 @@ void VulkanRenderBufferComputeData::bufferResized() {
 }
 
 VulkanBuffer& VulkanRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
+    // A deferred shader frame memcpys into renderBuffer->pixels at completion;
+    // it must land before those pixels are read into (or repointed at) the GPU
+    // pixel buffer — especially before the growth path below replaces the
+    // mapping its dstPixels points into.
+    drainPendingShaderFrame();
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
         // Never replace a buffer the GPU may still be reading/writing.
         if (recording || committed) {
