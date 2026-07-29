@@ -355,18 +355,37 @@ std::string DecodeOS(wxOperatingSystemId o)
     return "Unknown Operating System.";
 }
 
+// The banner is also kept verbatim so the crash handler can attach it directly.
+// The log alone is not a reliable carrier: it rotates at 20MB, and a rotation
+// (or a crash before this point on a fresh log) leaves the report with no record
+// of the machine at all -- measured at ~6% of reports, with the rolled log
+// almost never present to make up for it.
+static std::string _machineConfigSummary;
+
+const std::string& GetMachineConfigSummary()
+{
+    return _machineConfigSummary;
+}
+
 void DumpConfig()
 {
+    std::string out;
+    auto emit = [&out](const std::string& line) {
+        spdlog::info(line);
+        out += line;
+        out += "\n";
+    };
+
     std::string versionStr = "Version: " + xlights_version_string;
     if (IsFromAppStore()) {
         versionStr += " - App Store";
     }
-    spdlog::info(versionStr);
-    spdlog::info("Build Date: " + xlights_build_date);
-    spdlog::info("WX Version: " + std::string(wxString( wxVERSION_STRING).c_str()));
+    emit(versionStr);
+    emit("Build Date: " + xlights_build_date);
+    emit("WX Version: " + std::string(wxString( wxVERSION_STRING).c_str()));
 
-    spdlog::info("Machine configuration:");
-    spdlog::info("  Total memory: " + std::to_string(GetPhysicalMemorySizeMB()) + " MB");
+    emit("Machine configuration:");
+    emit("  Total memory: " + std::to_string(GetPhysicalMemorySizeMB()) + " MB");
     wxMemorySize s = wxGetFreeMemory();
     if (s != -1)
     {
@@ -375,52 +394,54 @@ void DumpConfig()
 #else
         wxString msg = wxString::Format(_T("  Free Memory: %ld."), s);
 #endif
-        spdlog::info(msg.ToStdString());
+        emit(msg.ToStdString());
     }
-    spdlog::info("  Current directory: " + std::string(wxGetCwd().c_str()));
-    spdlog::info("  Machine name: " + std::string(wxGetHostName().c_str()));
-    spdlog::info("  OS: " + std::string(wxGetOsDescription().c_str()));
+    emit("  Current directory: " + std::string(wxGetCwd().c_str()));
+    emit("  Machine name: " + std::string(wxGetHostName().c_str()));
+    emit("  OS: " + std::string(wxGetOsDescription().c_str()));
     int verMaj = -1;
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
-    spdlog::info("  OS: {} {}.{}", (const char*)DecodeOS(o).c_str(), verMaj, verMin);
+    emit(fmt::format("  OS: {} {}.{}", (const char*)DecodeOS(o).c_str(), verMaj, verMin));
 #ifdef USE_GLES
-    spdlog::info("  Graphics backend: ANGLE (OpenGL ES / Direct3D)");
+    emit("  Graphics backend: ANGLE (OpenGL ES / Direct3D)");
 #endif
     if (wxIsPlatform64Bit())
     {
-        spdlog::info("      64 bit");
+        emit("      64 bit");
     }
     else
     {
-        spdlog::info("      NOT 64 bit");
+        emit("      NOT 64 bit");
     }
     if (wxIsPlatformLittleEndian())
     {
-        spdlog::info("      Little Endian");
+        emit("      Little Endian");
     }
     else
     {
-        spdlog::info("      Big Endian");
+        emit("      Big Endian");
     }
-    spdlog::info("  CPU Arch: {}", wxGetCpuArchitectureName().ToStdString());
+    emit(fmt::format("  CPU Arch: {}", wxGetCpuArchitectureName().ToStdString()));
     std::string cpuBrand = GetCPUBrand();
     if (!cpuBrand.empty()) {
-        spdlog::info("  CPU: {}", cpuBrand);
+        emit(fmt::format("  CPU: {}", cpuBrand));
     }
-    spdlog::info("  CPU cores: {} physical, {} logical", GetPhysicalCoreCount(), GetLogicalCoreCount());
+    emit(fmt::format("  CPU cores: {} physical, {} logical", GetPhysicalCoreCount(), GetLogicalCoreCount()));
     std::string gpu = GetGPUDescription();
     if (!gpu.empty()) {
-        spdlog::info("  GPU: {}", gpu);
+        emit(fmt::format("  GPU: {}", gpu));
     }
 
 #ifdef LINUX
     wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
-    spdlog::info("  " + std::string(l.Id.c_str()) \
+    emit("  " + std::string(l.Id.c_str()) \
         + " " + std::string(l.Release.c_str()) \
         + " " + std::string(l.CodeName.c_str()) \
         + " " + std::string(l.Description.c_str()));
 #endif
+
+    _machineConfigSummary = out;
 }
 
 #ifdef LINUX

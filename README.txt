@@ -26,6 +26,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 The startup log now records the CPU model, physical/logical core counts,
                                  and (on macOS, which has no OpenGL renderer string) the GPU, so crash
                                  reports carry the hardware needed to reproduce threading and GPU issues
+    -enh (dkulp)                 Crash reports now include the startup machine configuration as its own
+                                 machine_config.txt, so it survives the log rotating away - previously
+                                 about 6% of reports arrived with no record of the machine at all
                                  and what it is waiting on, instead of only counting them. A model
                                  stuck inside a frame-parallel window also reports the window, how
                                  much of it finished, and which frames are still being rendered.
