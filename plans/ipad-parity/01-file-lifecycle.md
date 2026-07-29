@@ -243,6 +243,14 @@ These are iPad touch/cloud idioms with no desktop equivalent — most are *feasi
   2026-06-12. It's an FFmpeg audio editor (`SeqSettingsDialog.cpp:2088`): decode the media, prepend /
   append silence (or trim) by the entered ms, re-encode a new media file. iPad has no audio
   encode-with-silence path; same family as the other FFmpeg-only audio filters. Desktop-only.
+- **Finder/OS "open these files" hand-off serialization** — desktop `xLightsApp::MacOpenFiles`
+  (`src-ui-wx/xLightsApp.cpp`) can be invoked several times in a row when more than one sequence is
+  double-clicked, and each invocation queues a `CallAfter` open. Fixed 2026-07-29 to run those opens
+  strictly one at a time, because every open path pumps the event queue (the `CloseSequence`
+  save-changes prompt, the show-folder picker, package progress) and the pump dispatched the next
+  queued open *inside* the unfinished one. iPad has no equivalent entry point — documents arrive one
+  at a time through the document browser / `.onOpenURL`, and `SequencerViewModel` owns a single open
+  document. *Desktop-only by platform.*
 - *No controller-firmware items in this theme* — controller upload/config is covered by the outputs
   theme; nothing here is firmware-gated.
 

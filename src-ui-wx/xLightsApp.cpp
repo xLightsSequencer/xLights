@@ -568,6 +568,100 @@ void xLightsFrame::ClearTraceMessages() {
 
 
 #ifdef __WXOSX__
+static void DoMacOpenFile(xLightsFrame* frame, const wxString& showDir, const wxString& fileName) {
+    if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
+
+        // If a sequence is already loaded in this instance, spawn a separate
+        // xLights process for the package instead of replacing the current
+        // show. Matches the Windows behavior where double-clicking an xsqz
+        // launches a fresh instance with the package as its show folder.
+        // Falls back to in-place handling if we can't resolve the bundle
+        // (e.g. running unbundled).
+        if (frame->IsSequenceLoaded() && SpawnNewXLightsInstance(fileName)) {
+            return;
+        }
+
+        SequencePackage xsqPkg(std::filesystem::path(fileName.ToStdString()),
+                               frame->GetShowDirectory(), frame->GetSeqXmlFileName().ToStdString(), &frame->AllModels);
+
+        if (xsqPkg.IsPkg()) {
+            xsqPkg.Extract();
+            xsqPkg.SetLeaveFiles(true);
+
+            // find the sequence file
+            const auto& xsqFile = xsqPkg.GetXsqFile();
+
+            // temporarily set the show folder
+            frame->SetReadOnlyMode(false);
+            xLightsApp::showDir = xsqPkg.GetTempShowFolder();
+            frame->SetDir(xLightsApp::showDir, false);
+
+            // save the folder and we will remove it when we shutdown
+            if (!xLightsApp::cleanupDir.empty()) {
+                wxDir::Remove(xLightsApp::cleanupDir, wxPATH_RMDIR_RECURSIVE);
+            }
+            xLightsApp::cleanupDir = xsqPkg.GetTempDir();
+
+            // tell xlights not to allow saving ... at least as much as possible
+            frame->SetReadOnlyMode(true);
+
+            // open the sequence
+            const wxString file = wxString(xsqFile.string());
+            frame->OpenSequence(file, nullptr);
+        } else {
+            spdlog::debug("Zip file did not contain sequence.");
+        }
+    } else {
+        if (showDir != "" && showDir != frame->showDirectory) {
+            wxString nsd = showDir;
+            if (!ObtainAccessToURL(nsd)) {
+                wxDirDialog dlg(frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+                if (dlg.ShowModal() == wxID_OK) {
+                    nsd = dlg.GetPath();
+                }
+                if (!ObtainAccessToURL(nsd)) {
+                    return;
+                }
+            }
+            frame->SetDir(nsd, false);
+        }
+        frame->OpenSequence(fileName, nullptr);
+    }
+}
+
+// Finder can hand us several files back to back (two sequences double-clicked
+// together, or a second one while the first is still opening), so more than one
+// of these handlers can be queued at once. Every path below pumps the event
+// queue - SetDir runs CloseSequence's "save changes?" prompt, the show-folder
+// picker and the package progress are modal - and that pump dispatches the next
+// queued handler *inside* the unfinished one, so OpenSequence/LoadSequencer ran
+// against a show and AUI pane set the outer open was still tearing down. Run
+// them strictly one at a time instead: a request that arrives mid-open is parked
+// and drained once the outer one returns, never nested inside it.
+static bool sMacOpenInProgress = false;
+static std::vector<std::pair<wxString, wxString>> sDeferredMacOpens;
+
+static void DispatchMacOpenFile(xLightsFrame* frame, const wxString& showDir, const wxString& fileName) {
+    if (sMacOpenInProgress) {
+        sDeferredMacOpens.emplace_back(showDir, fileName);
+        spdlog::info("       MacOpenFiles deferred, an open is already in progress: {}", fileName.ToStdString());
+        return;
+    }
+    // Scoped, so an escaping exception can't leave the flag set - that would
+    // silently stop every later Finder open for the rest of the session.
+    struct InProgress {
+        InProgress() { sMacOpenInProgress = true; }
+        ~InProgress() { sMacOpenInProgress = false; sDeferredMacOpens.clear(); }
+    } guard;
+
+    DoMacOpenFile(frame, showDir, fileName);
+    while (!sDeferredMacOpens.empty()) {
+        auto next = sDeferredMacOpens.front();
+        sDeferredMacOpens.erase(sDeferredMacOpens.begin());
+        DoMacOpenFile(frame, next.first, next.second);
+    }
+}
+
 void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     if (fileNames.empty()) {
         return;
@@ -586,65 +680,7 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     if (__frame) {
         xLightsFrame* frame = __frame;
         frame->CallAfter([showDir, fileName, frame] {
-
-            if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
-
-                // If a sequence is already loaded in this instance, spawn a separate
-                // xLights process for the package instead of replacing the current
-                // show. Matches the Windows behavior where double-clicking an xsqz
-                // launches a fresh instance with the package as its show folder.
-                // Falls back to in-place handling if we can't resolve the bundle
-                // (e.g. running unbundled).
-                if (frame->IsSequenceLoaded() && SpawnNewXLightsInstance(fileName)) {
-                    return;
-                }
-
-                SequencePackage xsqPkg(std::filesystem::path(fileName.ToStdString()),
-                                       __frame->GetShowDirectory(), __frame->GetSeqXmlFileName().ToStdString(), &__frame->AllModels);
-
-                if (xsqPkg.IsPkg()) {
-                    xsqPkg.Extract();
-                    xsqPkg.SetLeaveFiles(true);
-
-                    // find the sequence file
-                    const auto& xsqFile = xsqPkg.GetXsqFile();
-
-                    // temporarily set the show folder
-                    frame->SetReadOnlyMode(false);
-                    xLightsApp::showDir = xsqPkg.GetTempShowFolder();
-                    frame->SetDir(xLightsApp::showDir, false);
-
-                    // save the folder and we will remove it when we shutdown
-                    if (!cleanupDir.empty()) {
-                        wxDir::Remove(cleanupDir, wxPATH_RMDIR_RECURSIVE);
-                    }
-                    cleanupDir = xsqPkg.GetTempDir();
-
-                    // tell xlights not to allow saving ... at least as much as possible
-                    frame->SetReadOnlyMode(true);
-
-                    // open the sequence
-                    const wxString file = wxString(xsqFile.string());
-                    frame->OpenSequence(file, nullptr);
-                } else {
-                    spdlog::debug("Zip file did not contain sequence.");
-                }
-            } else {
-                if (showDir != "" && showDir != frame->showDirectory) {
-                    wxString nsd = showDir;
-                    if (!ObtainAccessToURL(nsd)) {
-                        wxDirDialog dlg(frame, "Select Show Directory", nsd,  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-                        if (dlg.ShowModal() == wxID_OK) {
-                            nsd = dlg.GetPath();
-                        }
-                        if (!ObtainAccessToURL(nsd)) {
-                            return;
-                        }
-                    }
-                    frame->SetDir(nsd, false);
-                }
-                frame->OpenSequence(fileName, nullptr);
-            }
+            DispatchMacOpenFile(frame, showDir, fileName);
         });
     } else {
         spdlog::info("       No xLightsFrame");
