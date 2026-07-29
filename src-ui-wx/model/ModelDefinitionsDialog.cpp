@@ -242,7 +242,8 @@ void ModelDefinitionsDialog::OnOK(wxCommandEvent&)
 
 void ModelDefinitionsDialog::ConfirmClose()
 {
-    if (wxMessageBox("Are you sure you want to close?",
+    if (_isDirty &&
+        wxMessageBox("Are you sure you want to close?",
                      "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
