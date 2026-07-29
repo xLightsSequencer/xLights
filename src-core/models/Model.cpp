@@ -3615,45 +3615,83 @@ std::vector<int> Model::GetNodesNearPath(IModelPreview* preview, const std::vect
         mb += renderHt / 2.0f;
     }
 
-    int i = 1;
-    for (const auto& it : Nodes) {
-        for (const auto& it2 : it->Coords) {
-            float sx = it2.screenX;
-            float sy = it2.screenY;
-            if (!centerBased) {
-                sx -= renderWi / 2.0f;
-                sy *= vScaleFactor;
-                if (vScaleFactor < 0.0f) {
-                    sy += renderHt / 2.0f;
-                } else {
-                    sy -= renderHt / 2.0f;
-                }
-                sy = (sy * scale) + (h / 2.0f);
-                sx = (sx * scale) + (w / 2.0f);
+    auto toScreen = [&](float sx, float sy, float& outX, float& outY) {
+        if (!centerBased) {
+            sx -= renderWi / 2.0f;
+            sy *= vScaleFactor;
+            if (vScaleFactor < 0.0f) {
+                sy += renderHt / 2.0f;
             } else {
-                sx = ((sx - ml) * scale) + (w / 2.0f);
-                sy = ((sy - mb) * scale) + (h / 2.0f);
+                sy -= renderHt / 2.0f;
             }
+            sy = (sy * scale) + (h / 2.0f);
+            sx = (sx * scale) + (w / 2.0f);
+        } else {
+            sx = ((sx - ml) * scale) + (w / 2.0f);
+            sy = ((sy - mb) * scale) + (h / 2.0f);
+        }
+        outX = sx;
+        outY = sy;
+    };
 
-            bool hit = false;
-            if (path.size() == 1) {
-                float dx = sx - (float)path[0].x;
-                float dy = sy - (float)path[0].y;
-                hit = (dx * dx + dy * dy) <= radiusSq;
-            } else {
-                for (size_t p = 0; p + 1 < path.size(); ++p) {
-                    float distSq = DistanceSqPointToSegment(sx, sy, (float)path[p].x, (float)path[p].y, (float)path[p + 1].x, (float)path[p + 1].y);
-                    if (distSq <= radiusSq) {
-                        hit = true;
-                        break;
-                    }
+    struct NodeScreenCoords {
+        int nodeIndex;
+        std::vector<std::pair<float, float>> coords;
+    };
+    std::vector<NodeScreenCoords> nodeCoords;
+    nodeCoords.reserve(Nodes.size());
+
+    int idx = 1;
+    for (const auto& it : Nodes) {
+        NodeScreenCoords nsc;
+        nsc.nodeIndex = idx++;
+        nsc.coords.reserve(it->Coords.size());
+        for (const auto& it2 : it->Coords) {
+            float sx, sy;
+            toScreen(it2.screenX, it2.screenY, sx, sy);
+            nsc.coords.emplace_back(sx, sy);
+        }
+        nodeCoords.push_back(std::move(nsc));
+    }
+
+    std::vector<bool> visited(Nodes.size() + 1, false);
+
+    // Walk the path segments in order so nodes get added as they are first hit
+    if (path.size() == 1) {
+        float px = (float)path[0].x;
+        float py = (float)path[0].y;
+        for (const auto& nc : nodeCoords) {
+            for (const auto& pt : nc.coords) {
+                float dx = pt.first - px;
+                float dy = pt.second - py;
+                if ((dx * dx + dy * dy) <= radiusSq) {
+                    nodes.push_back(nc.nodeIndex);
+                    break;
                 }
-            }
-            if (hit) {
-                nodes.push_back(i);
             }
         }
-        i++;
+        return nodes;
+    }
+
+    for (size_t p = 0; p + 1 < path.size(); ++p) {
+        float p1x = (float)path[p].x;
+        float p1y = (float)path[p].y;
+        float p2x = (float)path[p + 1].x;
+        float p2y = (float)path[p + 1].y;
+
+        for (const auto& nc : nodeCoords) {
+            if (visited[nc.nodeIndex]) {
+                continue;
+            }
+            for (const auto& pt : nc.coords) {
+                float distSq = DistanceSqPointToSegment(pt.first, pt.second, p1x, p1y, p2x, p2y);
+                if (distSq <= radiusSq) {
+                    visited[nc.nodeIndex] = true;
+                    nodes.push_back(nc.nodeIndex);
+                    break;
+                }
+            }
+        }
     }
     return nodes;
 }

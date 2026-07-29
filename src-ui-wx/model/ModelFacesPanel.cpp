@@ -2064,11 +2064,13 @@ void ModelFacesPanel::SelectAllInBoundingRect(bool shiftDwn, bool freeform)
         }
     }
 
-    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
-        [](const wxString& a, const wxString& b)
-        {
-            return wxAtoi(a) < wxAtoi(b);
-        });
+    if (!freeform) {
+        std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+            {
+                return wxAtoi(a) < wxAtoi(b);
+            });
+    }
 
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
@@ -2107,11 +2109,13 @@ void ModelFacesPanel::RemoveNodes(bool freeform)
         }
     }
 
-    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
-        [](const wxString& a, const wxString& b)
-        {
-            return wxAtoi(a) < wxAtoi(b);
-        });
+    if (!freeform) {
+        std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+            {
+                return wxAtoi(a) < wxAtoi(b);
+            });
+    }
 
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
