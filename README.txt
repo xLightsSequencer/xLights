@@ -23,7 +23,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  model group is now restricted to the model included in that export.
     -enh (dkulp)                 Render: when a render or an abort will not finish, the log now names
                                  the models still outstanding along with the frame each one reached
-                                 and what it is waiting on, instead of only counting them
+                                 and what it is waiting on, instead of only counting them. A model
+                                 stuck inside a frame-parallel window also reports the window, how
+                                 much of it finished, and which frames are still being rendered.
+                                 A render that stops making progress now says so on its own after
+                                 60 seconds rather than only when cancelled, headless included
     -enh (dkulp)                 FPP: support several LED panel matrices on one controller driven
                                  different ways at once. New "LED Panel Matrix - Hat/Cap/Cape" and
                                  "LED Panel Matrix - ColorLight" protocols name which kind a model
