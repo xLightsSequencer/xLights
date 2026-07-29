@@ -120,6 +120,7 @@
 | State: state vs timing-track selector | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad StateStateSourceRowView. |
 | Text: font picker (XL font) | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad TextFontXLRowView. |
 | Text: load text from file | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad Text_File_Row. |
+| Text: XL-font vertical (up/down) glyph centering | render | ✅ | ✅ | parity | P2 | done | feasible | Core-only fix (2026-07-29) — `TextEffect::RenderXLText` (`src-core/effects/TextEffect.cpp`) drew each stacked character left-justified at a constant `line_offset_left` instead of centering it on its own `GetCharWidth`, so narrow glyphs (e.g. "1") sat left of wider ones (e.g. "2") in Vert Up/Vert Down. Fixed by centering each glyph within the fixed char cell (`char_offset_left = line_offset_left + (char_width - actual_width) / 2`) before the `SetPixel` call. Shared `src-core` render path — auto-applied to iPad, no bridge/SwiftUI change needed. |
 | Video: filename + transparent-black | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad Video_FilenameBlock + TransparentBlackRowView. |
 | Video: duration / metadata readout | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad VideoDurationRowView. |
 | VUMeter: mode choice | panel | ✅ | ✅ | parity | P2 | easy | feasible | VUMeter.json standard choice. |

@@ -13,12 +13,31 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.15  August ??, 2026
     -enh (cybercop23)            Select Directories dialog now closes automatically after a successful change
                                  to the temporary or permanent show folder, or after opening the base show folder.
+    -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
+                                 named Viewpoints (2D/3D camera presets).
+    -bug (dkulp)                 Layout: fixed a crash while downloading or importing a model - the property
+                                 grid refresh dispatched from the download progress dialog ran against the
+                                 model the import had already replaced
+    -bug (dkulp)                 Fixed model groups keeping pointers to freed models: renaming a model through
+                                 a replace left every group naming it pointing at the freed model, and
+                                 rebuilding a model's submodels (SubModels dialog save, export submodels to
+                                 other models, custom model reverse) never repointed the groups that name them
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
     -enh (dkulp)                 Render: when a render or an abort will not finish, the log now names
                                  the models still outstanding along with the frame each one reached
-                                 and what it is waiting on, instead of only counting them
+    -enh (dkulp)                 The startup log now records the CPU model, physical/logical core counts,
+                                 and (on macOS, which has no OpenGL renderer string) the GPU, so crash
+                                 reports carry the hardware needed to reproduce threading and GPU issues
+    -enh (dkulp)                 Crash reports now include the startup machine configuration as its own
+                                 machine_config.txt, so it survives the log rotating away - previously
+                                 about 6% of reports arrived with no record of the machine at all
+                                 and what it is waiting on, instead of only counting them. A model
+                                 stuck inside a frame-parallel window also reports the window, how
+                                 much of it finished, and which frames are still being rendered.
+                                 A render that stops making progress now says so on its own after
+                                 60 seconds rather than only when cancelled, headless included
     -enh (dkulp)                 FPP: support several LED panel matrices on one controller driven
                                  different ways at once. New "LED Panel Matrix - Hat/Cap/Cape" and
                                  "LED Panel Matrix - ColorLight" protocols name which kind a model
@@ -440,6 +459,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (#6663)
     -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" for submodels with trailing empty
                                  layers (#6647)
+    -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" losing effects when a submodel has a
+                                 leading or middle empty layer (#6748). No longer need to expand receiving model(s).
     -bug (dkulp)                 Fix crash cancelling or failing a model download/import with a malformed
                                  .xmodel (double-free)
     -bug (dkulp)                 Fix crash in 3D layout preview after deleting a model (stale cached

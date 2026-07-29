@@ -6147,6 +6147,10 @@ static void repointSequenceFaceReferences(iPadRenderContext* ctx,
         }
         sm->Setup();
     }
+    // Every SubModel of parent was just freed and rebuilt. Model groups cache
+    // raw pointers to the submodels they name and the render path walks that
+    // cache, so they have to be repointed here.
+    _context->GetModelManager().ResetModelGroups();
     parent->IncrementChangeCount();
     _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
     return YES;
@@ -6526,6 +6530,8 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (!parent->GetSubModel(sub)) return NO;
     _context->AbortRender(5000);
     parent->RemoveSubModel(sub);
+    // Groups naming this submodel cache the pointer just freed.
+    _context->GetModelManager().ResetModelGroups();
     _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
     return YES;
 }

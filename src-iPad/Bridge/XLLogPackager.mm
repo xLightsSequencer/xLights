@@ -9,6 +9,7 @@
 #include <string>
 
 #include "utils/Parallel.h"
+#include "utils/UtilFunctions.h"
 
 namespace {
 
@@ -75,6 +76,21 @@ NSString* DeviceInfoText() {
     [s appendFormat:@"Free disk: %@\n", FreeDiskSpaceString()];
     [s appendFormat:@"Active processors: %lu\n",
         (unsigned long)[NSProcessInfo processInfo].activeProcessorCount];
+    std::string cpuBrand = GetCPUBrand();
+    if (!cpuBrand.empty()) {
+        [s appendFormat:@"CPU: %s\n", cpuBrand.c_str()];
+    }
+    [s appendFormat:@"CPU cores: %d physical, %d logical\n",
+        GetPhysicalCoreCount(), GetLogicalCoreCount()];
+    std::string gpu = GetGPUDescription();
+    if (!gpu.empty()) {
+        [s appendFormat:@"GPU: %s\n", gpu.c_str()];
+    }
+    UIScreen* screen = [UIScreen mainScreen];
+    CGRect b = screen.bounds;
+    [s appendFormat:@"Display: %.0fx%.0f points, scale %.1f (%.0fx%.0f pixels)\n",
+        b.size.width, b.size.height, screen.scale,
+        b.size.width * screen.scale, b.size.height * screen.scale];
     [s appendFormat:@"Thermal state: %ld\n",
         (long)[NSProcessInfo processInfo].thermalState];
     [s appendFormat:@"Captured: %@\n", [NSDate date]];

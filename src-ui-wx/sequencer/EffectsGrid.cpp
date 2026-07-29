@@ -6166,6 +6166,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                 deleteUnused(me->GetSubModel(si));
                             undo_mgr.CreateUndoStep(); // needed for redo
                             if (!singleElementPaste) {
+                                me->ShowSubModels(true);
                                 me->ShowStrands(true);
                                 mSequenceElements->PopulateRowInformation();
                             }
@@ -6270,8 +6271,10 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                         if (!singleElementPaste) {
                             for (auto& [elem, maxLayer] : elemMaxLayer) {
                                 ModelElement* me2 = dynamic_cast<ModelElement*>(elem);
-                                if (me2 != nullptr)
+                                if (me2 != nullptr) {
+                                    me2->ShowSubModels(true);
                                     me2->ShowStrands(true);
+                                }
                             }
                         }
                         mSequenceElements->PopulateRowInformation();
@@ -7638,9 +7641,9 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                 if (e->IsLinkedToSymbol() && x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT) {
                     float indicatorSize = 6.0f;
                     xlColor symbolColor(0, 200, 255);
-                    backgrounds->AddVertex(x2 - indicatorSize, y1, symbolColor);
-                    backgrounds->AddVertex(x2, y1, symbolColor);
-                    backgrounds->AddVertex(x2, y1 + indicatorSize, symbolColor);
+                    backgrounds->AddVertex(x2 - indicatorSize, y2, symbolColor);
+                    backgrounds->AddVertex(x2, y2, symbolColor);
+                    backgrounds->AddVertex(x2, y2 - indicatorSize, symbolColor);
                 }
 
                 DrawFadeHints(e, x3, y1, x4, y2, backgrounds);
@@ -8651,39 +8654,47 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                 int numEffects = 0;
                 std::string effect_data;
                 effect_data.reserve(64 * 1024);
-
-                auto effectiveLayerCount = [](Element* elem) -> size_t {
-                    for (int j = (int)elem->GetEffectLayerCount() - 1; j >= 0; --j) {
+                auto nonEmptyLayerIndices = [](Element* elem) -> std::vector<int> {
+                    std::vector<int> layers;
+                    for (int j = 0; j < (int)elem->GetEffectLayerCount(); ++j) {
                         if (elem->GetEffectLayer(j)->GetEffectCount() > 0)
-                            return (size_t)(j + 1);
+                            layers.push_back(j);
                     }
-                    return 1;
+                    return layers;
                 };
 
-                // Main model layers
-                size_t mainLayers = effectiveLayerCount(me);
-                for (size_t j = 0; j < mainLayers; j++) {
-                    EffectLayer* el = me->GetEffectLayer(j);
-                    for (int x = 0; x < el->GetEffectCount(); x++) {
-                        Effect* ef = el->GetEffect(x);
-                        if (ef == nullptr) continue;
-                        effect_data += ef->GetEffectName();
-                        effect_data += '\t';
-                        effect_data += ef->GetSettingsAsString();
-                        effect_data += '\t';
-                        effect_data += ef->GetPaletteAsString();
-                        effect_data += '\t';
-                        effect_data += std::to_string(ef->GetStartTimeMS());
-                        effect_data += '\t';
-                        effect_data += std::to_string(ef->GetEndTimeMS());
-                        effect_data += '\t';
-                        effect_data += std::to_string(row);
-                        effect_data += "\t-1000\tNO_PASTE_BY_CELL\tLAYER:";
-                        effect_data += std::to_string((int)j);
-                        effect_data += '\n';
-                        numEffects++;
-                    }
+                // Main model layers. An element with no effects anywhere still
+                // reserves a single row so later elements keep the row number
+                // that matches their actual structural position - the paste-side
+                // rank math (targetRank = er - startRow0 - sumExtraRows) uses that
+                // row number directly to detect the gap.
+                std::vector<int> mainLayers = nonEmptyLayerIndices(me);
+                if (mainLayers.empty()) {
                     row++;
+                } else {
+                    for (size_t layerRank = 0; layerRank < mainLayers.size(); layerRank++) {
+                        EffectLayer* el = me->GetEffectLayer(mainLayers[layerRank]);
+                        for (int x = 0; x < el->GetEffectCount(); x++) {
+                            Effect* ef = el->GetEffect(x);
+                            if (ef == nullptr) continue;
+                            effect_data += ef->GetEffectName();
+                            effect_data += '\t';
+                            effect_data += ef->GetSettingsAsString();
+                            effect_data += '\t';
+                            effect_data += ef->GetPaletteAsString();
+                            effect_data += '\t';
+                            effect_data += std::to_string(ef->GetStartTimeMS());
+                            effect_data += '\t';
+                            effect_data += std::to_string(ef->GetEndTimeMS());
+                            effect_data += '\t';
+                            effect_data += std::to_string(row);
+                            effect_data += "\t-1000\tNO_PASTE_BY_CELL\tLAYER:";
+                            effect_data += std::to_string((int)layerRank);
+                            effect_data += '\n';
+                            numEffects++;
+                        }
+                        row++;
+                    }
                 }
 
                 // Submodel layers
@@ -8691,9 +8702,13 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                     SubModelElement* se = me->GetSubModel(s);
                     if (se == nullptr) continue;
                     std::string smTag = "\tSUBMODEL:" + se->GetName();
-                    size_t smLayers = effectiveLayerCount(se);
-                    for (size_t j = 0; j < smLayers; j++) {
-                        EffectLayer* el = se->GetEffectLayer(j);
+                    std::vector<int> smLayers = nonEmptyLayerIndices(se);
+                    if (smLayers.empty()) {
+                        row++;
+                        continue;
+                    }
+                    for (size_t layerRank = 0; layerRank < smLayers.size(); layerRank++) {
+                        EffectLayer* el = se->GetEffectLayer(smLayers[layerRank]);
                         for (int x = 0; x < el->GetEffectCount(); x++) {
                             Effect* ef = el->GetEffect(x);
                             if (ef == nullptr) continue;
@@ -8711,7 +8726,7 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                             effect_data += "\t-1000\tNO_PASTE_BY_CELL";
                             effect_data += smTag;
                             effect_data += "\tLAYER:";
-                            effect_data += std::to_string((int)j);
+                            effect_data += std::to_string((int)layerRank);
                             effect_data += '\n';
                             numEffects++;
                         }
@@ -8814,8 +8829,10 @@ void EffectsGrid::CopyModelEffectsToModels(int row_number) {
     // Collapse submodels on all target models now that all pastes are done.
     for (const auto& sel : selections) {
         ModelElement* target_me = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(sel.ToStdString()));
-        if (target_me != nullptr)
+        if (target_me != nullptr) {
+            target_me->ShowSubModels(false);
             target_me->ShowStrands(false);
+        }
     }
     mSequenceElements->PopulateRowInformation();
     wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
@@ -8978,6 +8995,7 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
         return;
 
     me->SetCollapsed(false);
+    me->ShowSubModels(true);
     me->ShowStrands(true);
 
     xLightsApp::GetFrame()->AbortRender();

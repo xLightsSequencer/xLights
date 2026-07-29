@@ -848,10 +848,39 @@ public:
             ? fmt::format("all {} frames rendered", (int)endFrame - (int)startFrame + 1)
             : fmt::format("frame {} of {}-{}", cur, (int)startFrame, (int)endFrame);
 
-        return fmt::format("{}: {}, {}, phase {}{}, last {} at frame {} layer {} submodel {} strand {} node {}",
+        // A running frame-parallel window holds the row's thread for its whole
+        // run, so "holding a render thread" alone cannot tell a frame that is
+        // still rendering from one that will never finish.  Naming the frames
+        // in flight (and for how long) separates the two, and an empty list
+        // with the window short of its end means no thread is on the remaining
+        // frames at all - a scheduling loss, not a slow effect.
+        std::string window;
+        if (parWinActive.load()) {
+            std::string inflight;
+            std::unique_lock<std::mutex> lock(parWinLock, std::try_to_lock);
+            if (!lock.owns_lock()) {
+                inflight = "in-flight list locked by another thread";
+            } else if (parWinInFlight.empty()) {
+                inflight = "NO frames in flight";
+            } else {
+                const auto now = std::chrono::steady_clock::now();
+                for (const auto& [f, started] : parWinInFlight) {
+                    if (!inflight.empty()) {
+                        inflight += ", ";
+                    }
+                    inflight += fmt::format("frame {} for {}s", f,
+                                            (long long)std::chrono::duration_cast<std::chrono::seconds>(now - started).count());
+                }
+            }
+            window = fmt::format(", frame-parallel window [{},{}] finished {} of {} ({})",
+                                 parWinA.load(), parWinE.load(), parWinDone.load(),
+                                 parWinE.load() - parWinA.load() + 1, inflight);
+        }
+
+        return fmt::format("{}: {}, {}, phase {}{}, last {} at frame {} layer {} submodel {} strand {} node {}{}",
                            name, progress, sched, phase, abort.load() ? " (abort signalled)" : "",
                            what, (int)statusFrame, (int)statusLayer,
-                           (int)statusSubmodel, (int)statusStrand, (int)statusNode);
+                           (int)statusSubmodel, (int)statusStrand, (int)statusNode, window);
     }
 
     std::string GetStatusForUser() override
@@ -2005,6 +2034,24 @@ public:
         ParSlotHold& operator=(const ParSlotHold&) = delete;
     };
 
+    // Publishes "this thread is inside frame f of the running window" for the
+    // hang diagnostic.  Scoped so an exception out of the frame still retires
+    // the entry (the pool swallows those).
+    struct ParFrameMark {
+        RenderJob* job;
+        int frame;
+        ParFrameMark(RenderJob* j, int f) : job(j), frame(f) {
+            std::unique_lock<std::mutex> lock(job->parWinLock);
+            job->parWinInFlight[frame] = std::chrono::steady_clock::now();
+        }
+        ~ParFrameMark() {
+            std::unique_lock<std::mutex> lock(job->parWinLock);
+            job->parWinInFlight.erase(frame);
+        }
+        ParFrameMark(const ParFrameMark&) = delete;
+        ParFrameMark& operator=(const ParFrameMark&) = delete;
+    };
+
     // Render frames [a,e] FULLY (produce + blur/transitions + blend/CalcOutput +
     // the seqData write) concurrently, each into its own clone buffer.  Every
     // frame writes only seqData[frame] - a distinct row - so the whole per-frame
@@ -2066,6 +2113,15 @@ public:
             }
             return e;
         }
+        parWinA = a;
+        parWinE = e;
+        parWinDone = 0;
+        parWinActive = true;
+        struct ParWinScope {
+            RenderJob* job;
+            ~ParWinScope() { job->parWinActive = false; }
+        } parWinScope{ this };
+
         const int nUnits = 1 + (int)subModelInfos.size();
         if (xldbgParallelWindows && nUnits > 1) {
             fprintf(stderr, "XL_PARALLEL_WINDOWS SUB-WINDOW m='%s' a=%d e=%d units=%d snap=%d\n",
@@ -2135,6 +2191,7 @@ public:
                 return;
             }
             int f = a + i;
+            ParFrameMark mark(this, f);
             slot->info->resetRenderState();
             for (auto& si : slot->subs) {
                 si->resetRenderState();
@@ -2188,6 +2245,7 @@ public:
                     FrameDone(df);
                 }
                 ++doneCursor;
+                parWinDone = doneCursor;
             }
             if (capWaiting) {
                 doneCv.notify_all(); // the capture owner is parked on ring space
@@ -2206,6 +2264,7 @@ public:
                 finished.resize(e2 - a + 1, false);
             }
             e = e2;
+            parWinE = e2;
             return true;
         };
 
@@ -3192,6 +3251,20 @@ private:
     int parWindowStart = 0;
     int parWindowEnd = -1;
 
+    // Telemetry for a RUNNING window, so a wedge inside one names the frames it
+    // is stuck on.  A window holds the row's thread for its whole run, so the
+    // job reports "holding a render thread" whether a frame is genuinely
+    // rendering or the window will never finish - which is the one thing
+    // GetHangStatus could not distinguish.  The scalars are atomics so the
+    // per-frame updates never nest parWinLock inside the window's doneLock;
+    // only the map needs a lock, and the diagnostic try_locks it.
+    std::mutex parWinLock;
+    std::atomic_bool parWinActive{ false };
+    std::atomic_int parWinA{ 0 };
+    std::atomic_int parWinE{ 0 };
+    std::atomic_int parWinDone{ 0 };
+    std::map<int, std::chrono::steady_clock::time_point> parWinInFlight; // frame -> claimed at
+
     // Scheduling state.  suspended/wantFrame/parked are guarded by nextLock;
     // inPool is its own atomic (see Requeue); the rest is only touched by the
     // single thread running the current slice.
@@ -4143,6 +4216,12 @@ size_t RenderEngine::RecommendedPoolSize() {
     return std::max<size_t>(8, hw + gpu + 4);
 }
 
+// How long a batch may go without ANY row advancing a frame before the log
+// says so and names the outstanding rows.  Generous on purpose: one frame of a
+// whole-house group on a slow box is seconds, not a minute, so a whole minute
+// of nothing moving anywhere is pathological rather than merely slow.
+static constexpr int STALL_REPORT_SECONDS = 60;
+
 void RenderEngine::CheckForStalledRender() {
     if (_renderProgressInfo.empty()) {
         return;
@@ -4186,6 +4265,22 @@ void RenderEngine::CheckForStalledRender() {
                 }
             }
         }
+        // Frame progress on its own.  A batch whose frames have stopped moving
+        // is worth reporting even when a job still holds a thread - that is
+        // exactly the case the rescue below cannot see, and the case a user
+        // experiences as a render that never finishes.  Report only; a job
+        // inside an effect cannot be rescued, and guessing would be worse.
+        if (sum != rpi->lastFrameSum || !anyUnfinished) {
+            rpi->lastFrameSum = sum;
+            rpi->lastFrameTime = now;
+        } else if (std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastFrameTime).count() >= STALL_REPORT_SECONDS
+                   && std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastStallReport).count() >= STALL_REPORT_SECONDS) {
+            rpi->lastStallReport = now;
+            spdlog::error("Render has made no frame progress for {}s.",
+                          (long long)std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastFrameTime).count());
+            LogUnfinishedRenderJobs("Stalled");
+        }
+
         if (sum != rpi->lastProgressSum || !anyUnfinished || !allUnfinishedIdle) {
             rpi->lastProgressSum = sum;
             rpi->lastProgressTime = now;
@@ -4216,11 +4311,15 @@ void RenderEngine::LogUnfinishedRenderJobs(const std::string& context) {
             spdlog::info("    {}: batch {}/{} has finished and is waiting to be drained.", context, batch, numBatches);
             continue;
         }
-        spdlog::info("    {}: batch {}/{}, {} of {} jobs outstanding, frames {}-{}, running for {}s, no progress for {}s.",
+        // lastFrameTime, not lastProgressTime: the latter is the rescue timer and
+        // resets while any job still holds a thread, so a permanently wedged
+        // batch reported "no progress for 0s" - the opposite of the truth, and
+        // the one number a reader trusts to tell slow from stuck.
+        spdlog::info("    {}: batch {}/{}, {} of {} jobs outstanding, frames {}-{}, running for {}s, no frame progress for {}s.",
                      context, batch, numBatches, rpi->jobsRemaining.load(), rpi->totalJobs,
                      rpi->startFrame, rpi->endFrame,
                      (long long)std::chrono::duration_cast<std::chrono::seconds>(now - rpi->startTime).count(),
-                     (long long)std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastProgressTime).count());
+                     (long long)std::chrono::duration_cast<std::chrono::seconds>(now - rpi->lastFrameTime).count());
 
         int unfinished = 0;
         int logged = 0;

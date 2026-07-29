@@ -211,6 +211,10 @@ bool HeadlessRenderContext::RenderAndWait(int timeoutMs) {
     const auto start = std::chrono::steady_clock::now();
     while (!IsRenderDone()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        // Headless had no drain-loop watchdog at all, so a render that wedged
+        // just hung silently with no way to ask what it was waiting on.  This
+        // is the same poll the UI does (self-throttled to once a second).
+        _renderEngine->CheckForStalledRender();
         if (timeoutMs > 0
             && std::chrono::steady_clock::now() - start > std::chrono::milliseconds(timeoutMs)) {
             spdlog::warn("HeadlessRenderContext: render timed out after {} ms", timeoutMs);

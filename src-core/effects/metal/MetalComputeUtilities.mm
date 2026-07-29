@@ -3,6 +3,7 @@
 #include "../../render/PixelBuffer.h"
 #include "../../render/RenderBuffer.h"
 #include "../../utils/Parallel.h"
+#include "../../utils/UtilFunctions.h"
 
 #include <thread>
 
@@ -1246,6 +1247,23 @@ int MetalComputeUtilities::gpuCoreCount() {
     // No public API on iOS (and no IORegistry key for non-Apple-Silicon GPUs);
     // the CPU core count is a close-enough proxy on Apple hardware.
     return (int)std::thread::hardware_concurrency();
+}
+
+// Apple ships no GL renderer string (Metal), so the crash log has nothing
+// identifying the GPU unless we ask Metal directly.
+std::string GetGPUDescription() {
+    @autoreleasepool {
+        id<MTLDevice> d = MetalComputeUtilities::INSTANCE.device;
+        if (d == nil) {
+            d = MTLCreateSystemDefaultDevice();
+        }
+        if (d == nil) {
+            return "";
+        }
+        std::string desc = [[d name] UTF8String];
+        desc += d.hasUnifiedMemory ? " (unified memory)" : " (discrete)";
+        return desc;
+    }
 }
 
 MetalComputeUtilities::MetalComputeUtilities() {
