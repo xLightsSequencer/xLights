@@ -493,6 +493,7 @@ public:
     bool GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<float, float>>& coords);
     std::string GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip);
     std::vector<int> GetNodesInBoundingBox(IModelPreview* preview, xlPoint start, xlPoint end);
+    std::vector<int> GetNodesNearPath(IModelPreview* preview, const std::vector<xlPoint>& path);
     bool IsMultiCoordsPerNode() const;
 
     virtual bool CleanupFileLocations(RenderContext* ctx) override;

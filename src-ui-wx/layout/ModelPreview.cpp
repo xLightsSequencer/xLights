@@ -60,6 +60,140 @@ const long ModelPreview::ID_PREVIEW_VIEWPOINT_DEFAULT_RESTORE = wxNewId();
 
 static constexpr long CAMERA_LOAD_BASE = 18000;
 
+enum {
+    ID_PENCIL_SIZE_OFF = 0x4000,
+    ID_PENCIL_SIZE_5 = 0x4005,
+    ID_PENCIL_SIZE_4 = 0x4004,
+    ID_PENCIL_SIZE_3 = 0x4003,
+    ID_PENCIL_SIZE_2 = 0x4002,
+    ID_PENCIL_SIZE_1 = 0x4001,
+};
+
+int ModelPreview::s_pencilSizeIndex = 0; // Default to Off (0)
+
+int ModelPreview::GetPencilSizeIndex() {
+    return s_pencilSizeIndex;
+}
+
+void ModelPreview::SetPencilSizeIndex(int index) {
+    if (index >= 0 && index <= 5) {
+        s_pencilSizeIndex = index;
+    }
+}
+
+void ModelPreview::ResetPencilSize() {
+    s_pencilSizeIndex = 0;
+}
+
+bool ModelPreview::IsPencilActive() const {
+    return s_pencilSizeIndex > 0;
+}
+
+float ModelPreview::GetPencilCatchRadiusMultiplier() const {
+    switch (s_pencilSizeIndex) {
+        case 1: return 2.0f;
+        case 2: return 4.0f;
+        case 3: return 6.0f;
+        case 4: return 8.0f;
+        case 5: return 12.0f;
+        case 0: default: return 8.0f;
+    }
+}
+
+std::vector<float> ModelPreview::GetPencilStrokeOffsets() const {
+    switch (s_pencilSizeIndex) {
+        case 1: // 2px
+            return { -0.5f, 0.5f };
+        case 2: // 4px
+            return { -1.5f, -0.5f, 0.5f, 1.5f };
+        case 3: // 6px
+            return { -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f };
+        case 4: // 8px
+            return { -3.5f, -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f, 3.5f };
+        case 5: // 12px
+            return { -5.5f, -4.5f, -3.5f, -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f, 3.5f, 4.5f, 5.5f };
+        case 0: default:
+            return { -3.5f, -2.5f, -1.5f, -0.5f, 0.5f, 1.5f, 2.5f, 3.5f };
+    }
+}
+
+bool ModelPreview::HitTestPencilIcon(int x, int y) const {
+    int w = mWindowWidth;
+    if (w < 60) return false;
+    return (x >= w - 44 && x <= w - 4 && y >= 4 && y <= 44);
+}
+
+void ModelPreview::ShowPencilSizeMenu() {
+    wxMenu pencilMenu;
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_OFF, "Off");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_5, "Pencil Size 5 (Extra Large - 12px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_4, "Pencil Size 4 (Large - 8px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_3, "Pencil Size 3 (Medium - 6px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_2, "Pencil Size 2 (Fine - 4px)");
+    pencilMenu.AppendRadioItem(ID_PENCIL_SIZE_1, "Pencil Size 1 (Extra Fine - 2px)");
+
+    int checkId = (s_pencilSizeIndex == 0) ? ID_PENCIL_SIZE_OFF : (ID_PENCIL_SIZE_1 + s_pencilSizeIndex - 1);
+    if (checkId >= ID_PENCIL_SIZE_OFF && checkId <= ID_PENCIL_SIZE_5) {
+        pencilMenu.Check(checkId, true);
+    }
+
+    pencilMenu.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&ModelPreview::OnPencilMenuSelected, nullptr, this);
+    PopupMenu(&pencilMenu, mWindowWidth - 44, 44);
+}
+
+void ModelPreview::OnPencilMenuSelected(wxCommandEvent& event) {
+    int id = event.GetId();
+    if (id == ID_PENCIL_SIZE_OFF) {
+        s_pencilSizeIndex = 0;
+        Refresh();
+    } else if (id >= ID_PENCIL_SIZE_1 && id <= ID_PENCIL_SIZE_5) {
+        s_pencilSizeIndex = id - ID_PENCIL_SIZE_1 + 1;
+        Refresh();
+    }
+}
+
+void ModelPreview::AddPencilIconToAccumulator() {
+    if (solidProgram == nullptr) return;
+    auto acc = solidProgram->getAccumulator();
+    int start = acc->getCount();
+    const xlColor pencilColor = IsPencilActive() ? xlColor(255, 140, 0) : xlColor(170, 170, 170);
+
+    int w = mWindowWidth;
+    int h = mWindowHeight;
+    if (w < 60 || h < 60) return;
+
+    // Top-right position for borderless pencil icon
+    float px1 = (float)(w - 24), py1 = 24.0f; // Body lower-left near tip
+    float px2 = (float)(w - 10), py2 = 10.0f; // Body upper-right near eraser
+
+    float nx = 0.7071f * 3.0f;
+    float ny = 0.7071f * 3.0f;
+
+    // Pencil barrel lines (3 parallel lines for pencil body)
+    acc->AddVertex(px1 - nx, py1 - ny, pencilColor); acc->AddVertex(px2 - nx, py2 - ny, pencilColor);
+    acc->AddVertex(px1, py1, pencilColor);           acc->AddVertex(px2, py2, pencilColor);
+    acc->AddVertex(px1 + nx, py1 + ny, pencilColor); acc->AddVertex(px2 + nx, py2 + ny, pencilColor);
+
+    // Eraser cap back line at top-right
+    acc->AddVertex(px2 - nx, py2 - ny, pencilColor); acc->AddVertex(px2 + nx, py2 + ny, pencilColor);
+
+    // Pencil tip pointing bottom-left
+    float tipX = (float)(w - 29), tipY = 29.0f;
+    acc->AddVertex(px1 - nx, py1 - ny, pencilColor); acc->AddVertex(tipX, tipY, pencilColor);
+    acc->AddVertex(px1 + nx, py1 + ny, pencilColor); acc->AddVertex(tipX, tipY, pencilColor);
+
+    int count = acc->getCount() - start;
+    glm::mat4 pvm = ProjViewMatrix;
+
+    solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        glm::mat4 screenOrtho = glm::ortho(0.0f, (float)w, (float)h, 0.0f);
+        ctx->ApplyMatrix(glm::inverse(pvm) * screenOrtho);
+        ctx->drawLines(acc, start, count);
+        ctx->PopMatrix();
+    });
+}
+
 
 
 void ModelPreview::setupCameras()
@@ -319,6 +453,10 @@ void ModelPreview::mouseMoved(wxMouseEvent& event) {
 
 void ModelPreview::mouseLeftDown(wxMouseEvent& event) {
     SetFocus();
+    if (HitTestPencilIcon(event.GetX(), event.GetY())) {
+        ShowPencilSizeMenu();
+        return;
+    }
 	m_mouse_down = true;
 	m_last_mouse_x = event.GetX();
 	m_last_mouse_y = event.GetY();
@@ -1668,6 +1806,7 @@ void ModelPreview::EndDrawing(bool swapBuffers/*=true*/)
         // 3D above. In 3D the view objects are the ground/terrain and belong
         // underneath the models; in 2D the first step of solidProgram is the
         // background image, so anything drawn before it is simply painted over.
+        AddPencilIconToAccumulator();
         if (solidProgram) {
             solidProgram->runSteps(currentContext);
         }
@@ -1704,6 +1843,43 @@ void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
     int start = acc->getCount();
     acc->AddRectAsDashedLines(x1, y1, x2, y2, mapLogicalToAbsolute(8),
                               ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+    int count = acc->getCount() - start;
+    solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->drawLines(acc, start, count);
+    });
+}
+
+void ModelPreview::AddPathToAccumulator(const std::vector<xlPoint>& path) {
+    if (path.empty()) return;
+    auto acc = solidProgram->getAccumulator();
+    int start = acc->getCount();
+    const xlColor& color = ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES);
+    std::vector<float> offsets = GetPencilStrokeOffsets();
+    float halfSpan = offsets.empty() ? 3.5f : std::abs(offsets.front());
+
+    if (path.size() == 1) {
+        for (float offset : offsets) {
+            acc->AddVertex((float)path[0].x - halfSpan, (float)path[0].y + offset, color);
+            acc->AddVertex((float)path[0].x + halfSpan, (float)path[0].y + offset, color);
+        }
+    } else {
+        for (size_t i = 0; i + 1 < path.size(); ++i) {
+            float dx = (float)(path[i + 1].x - path[i].x);
+            float dy = (float)(path[i + 1].y - path[i].y);
+            float len = std::hypot(dx, dy);
+            if (len > 0.001f) {
+                float nx = -dy / len;
+                float ny = dx / len;
+                for (float offset : offsets) {
+                    acc->AddVertex((float)path[i].x + nx * offset, (float)path[i].y + ny * offset, color);
+                    acc->AddVertex((float)path[i + 1].x + nx * offset, (float)path[i + 1].y + ny * offset, color);
+                }
+            } else {
+                acc->AddVertex((float)path[i].x, (float)path[i].y, color);
+                acc->AddVertex((float)path[i + 1].x, (float)path[i + 1].y, color);
+            }
+        }
+    }
     int count = acc->getCount() - start;
     solidProgram->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawLines(acc, start, count);

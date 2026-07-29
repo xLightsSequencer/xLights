@@ -424,6 +424,7 @@ SubModelsPanel::SubModelsPanel(wxWindow* parent, OutputManager* om) :
 void SubModelsPanel::OnActivate()
 {
     _isActive = true;
+    ModelPreview::ResetPencilSize();
     if (_modelPreview) {
         _modelPreview->Bind(wxEVT_LEFT_DOWN,    &SubModelsPanel::OnPreviewLeftDown,   this);
         _modelPreview->Bind(wxEVT_LEFT_UP,      &SubModelsPanel::OnPreviewLeftUp,     this);
@@ -2649,15 +2650,16 @@ wxString SubModelsPanel::ReverseRow(wxString row)
 #pragma region Priveiw Selection
 void SubModelsPanel::OnPreviewLeftUp(wxMouseEvent& event)
 {
-    if (!_isActive) return;
     if (m_creating_bound_rect) {
         glm::vec3 ray_origin;
         glm::vec3 ray_direction;
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
+        m_paint_path.emplace_back(m_bound_end_x, m_bound_end_y);
 
-        SelectAllInBoundingRect(event.ShiftDown(), event.ControlDown());
+        bool freeform = m_freeform_mode || (_modelPreview && _modelPreview->IsPencilActive());
+        SelectAllInBoundingRect(event.ShiftDown(), event.ControlDown(), freeform);
         m_creating_bound_rect = false;
 
         _modelPreview->ReleaseMouse();
@@ -2675,7 +2677,12 @@ void SubModelsPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void SubModelsPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (_modelPreview && _modelPreview->HitTestPencilIcon(event.GetX(), event.GetY())) {
+        _modelPreview->ShowPencilSizeMenu();
+        return;
+    }
     m_creating_bound_rect = true;
+    m_freeform_mode = _modelPreview && _modelPreview->IsPencilActive();
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
@@ -2683,6 +2690,8 @@ void SubModelsPanel::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_start_y = ray_origin.y;
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
+    m_paint_path.clear();
+    m_paint_path.emplace_back(m_bound_start_x, m_bound_start_y);
 
     // Capture the mouse; this will keep it selecting even if the
     //  user temporarily leaves the preview area...
@@ -2746,11 +2755,13 @@ void SubModelsPanel::OnPreviewMouseMove(wxMouseEvent& event)
     event.ResumePropagation(1);
     event.Skip();
     if (m_creating_bound_rect) {
+        m_freeform_mode = _modelPreview && _modelPreview->IsPencilActive();
         glm::vec3 ray_origin;
         glm::vec3 ray_direction;
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
+        m_paint_path.emplace_back(m_bound_end_x, m_bound_end_y);
         RenderModel();
     }
     wxString tt = _modelPreview->GetToolTipText();
@@ -2765,10 +2776,23 @@ void SubModelsPanel::RenderModel()
     if (_modelPreview == nullptr || !_modelPreview->StartDrawing(mPointSize)) return;
 
     if (m_creating_bound_rect) {
-        _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        if (m_freeform_mode) {
+            _modelPreview->AddPathToAccumulator(m_paint_path);
+        } else {
+            _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        }
     }
     model->DisplayEffectOnWindow(_modelPreview, mPointSize);
     _modelPreview->EndDrawing();
+}
+
+std::vector<int> SubModelsPanel::GetDragSelectedNodes(bool freeform)
+{
+    if (freeform) {
+        return model->GetNodesNearPath(_modelPreview, m_paint_path);
+    } else {
+        return model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    }
 }
 
 void SubModelsPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
@@ -2790,10 +2814,10 @@ void SubModelsPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::
     );
 }
 
-void SubModelsPanel::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
+void SubModelsPanel::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown, bool freeform)
 {
     if (shiftDwn) {
-        RemoveNodes(ctrlDown);
+        RemoveNodes(ctrlDown && !freeform, freeform);
         return;
     }
     wxString name = GetSelectedName();
@@ -2810,7 +2834,7 @@ void SubModelsPanel::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = GetDragSelectedNodes(freeform);
     if (nodes.size() == 0)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
@@ -2846,7 +2870,7 @@ void SubModelsPanel::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
     NotifyChange();
 }
 
-void SubModelsPanel::RemoveNodes(bool suppress)
+void SubModelsPanel::RemoveNodes(bool suppress, bool freeform)
 {
     wxString name = GetSelectedName();
     if (name == "") {
@@ -2862,7 +2886,7 @@ void SubModelsPanel::RemoveNodes(bool suppress)
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = GetDragSelectedNodes(freeform);
     if (nodes.size() == 0)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);

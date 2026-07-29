@@ -342,6 +342,7 @@ void ModelStatesPanel::SetSubModelCallbacks(std::function<std::vector<std::strin
 void ModelStatesPanel::OnActivate()
 {
     _isActive = true;
+    ModelPreview::ResetPencilSize();
     if (_modelPreview) {
         _modelPreview->Bind(wxEVT_LEFT_DOWN,    &ModelStatesPanel::OnPreviewLeftDown,   this);
         _modelPreview->Bind(wxEVT_LEFT_UP,      &ModelStatesPanel::OnPreviewLeftUp,     this);
@@ -1673,8 +1674,10 @@ void ModelStatesPanel::OnPreviewLeftUp(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
+        m_paint_path.emplace_back(m_bound_end_x, m_bound_end_y);
 
-        SelectAllInBoundingRect(event.ShiftDown());
+        bool freeform = m_freeform_mode || (_modelPreview && _modelPreview->IsPencilActive());
+        SelectAllInBoundingRect(event.ShiftDown(), freeform);
         m_creating_bound_rect = false;
 
         if (_modelPreview) _modelPreview->ReleaseMouse();
@@ -1691,7 +1694,12 @@ void ModelStatesPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void ModelStatesPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (_modelPreview && _modelPreview->HitTestPencilIcon(event.GetX(), event.GetY())) {
+        _modelPreview->ShowPencilSizeMenu();
+        return;
+    }
     m_creating_bound_rect = true;
+    m_freeform_mode = _modelPreview && _modelPreview->IsPencilActive();
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
@@ -1699,6 +1707,8 @@ void ModelStatesPanel::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_start_y = ray_origin.y;
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
+    m_paint_path.clear();
+    m_paint_path.emplace_back(m_bound_start_x, m_bound_start_y);
 
     if (_modelPreview) _modelPreview->CaptureMouse();
 }
@@ -1765,11 +1775,13 @@ void ModelStatesPanel::OnPreviewMouseMove(wxMouseEvent& event)
     event.ResumePropagation(1);
     event.Skip();
     if (m_creating_bound_rect) {
+        m_freeform_mode = _modelPreview && _modelPreview->IsPencilActive();
         glm::vec3 ray_origin;
         glm::vec3 ray_direction;
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
+        m_paint_path.emplace_back(m_bound_end_x, m_bound_end_y);
         RenderModel();
     }
 }
@@ -1779,10 +1791,23 @@ void ModelStatesPanel::RenderModel()
     if (_modelPreview == nullptr || !_modelPreview->StartDrawing(mPointSize)) return;
 
     if (m_creating_bound_rect) {
-        _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        if (m_freeform_mode) {
+            _modelPreview->AddPathToAccumulator(m_paint_path);
+        } else {
+            _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        }
     }
     model->DisplayEffectOnWindow(_modelPreview, mPointSize);
     _modelPreview->EndDrawing();
+}
+
+std::vector<int> ModelStatesPanel::GetDragSelectedNodes(bool freeform)
+{
+    if (freeform) {
+        return model->GetNodesNearPath(_modelPreview, m_paint_path);
+    } else {
+        return model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    }
 }
 
 void ModelStatesPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
@@ -1803,10 +1828,10 @@ void ModelStatesPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm
     );
 }
 
-void ModelStatesPanel::SelectAllInBoundingRect(bool shiftDwn)
+void ModelStatesPanel::SelectAllInBoundingRect(bool shiftDwn, bool freeform)
 {
     if (shiftDwn) {
-        RemoveNodes();
+        RemoveNodes(freeform);
         return;
     }
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -1822,7 +1847,7 @@ void ModelStatesPanel::SelectAllInBoundingRect(bool shiftDwn)
     if (row < 0)
         return;
 
-    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = GetDragSelectedNodes(freeform);
     if (nodes.size() == 0)
         return;
 
@@ -1853,7 +1878,7 @@ void ModelStatesPanel::SelectAllInBoundingRect(bool shiftDwn)
     GetValue(NodeRangeGrid, row, CHANNEL_COL, stateData[name]);
 }
 
-void ModelStatesPanel::RemoveNodes()
+void ModelStatesPanel::RemoveNodes(bool freeform)
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name == "") {
@@ -1867,7 +1892,7 @@ void ModelStatesPanel::RemoveNodes()
     if (row < 0)
         return;
 
-    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = GetDragSelectedNodes(freeform);
     if (nodes.size() == 0)
         return;
     wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));

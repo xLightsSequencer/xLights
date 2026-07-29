@@ -18,6 +18,7 @@
 #include "graphics/xlGraphicsBase.h"
 #include "graphics/xlGraphicsAccumulators.h"
 #include "graphics/IModelPreview.h"
+#include "utils/xlPoint.h"
 
 #include "Color.h"
 #include "render/ViewpointMgr.h"
@@ -171,7 +172,19 @@ public:
     bool GetShowZoneIndicator() const override;
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
+    void AddPathToAccumulator(const std::vector<xlPoint>& path);
     void AddScreenSpaceBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
+    void AddPencilIconToAccumulator();
+
+    static int GetPencilSizeIndex();
+    static void SetPencilSizeIndex(int index);
+    static void ResetPencilSize();
+    bool IsPencilActive() const;
+    float GetPencilCatchRadiusMultiplier() const override;
+    std::vector<float> GetPencilStrokeOffsets() const;
+    bool HitTestPencilIcon(int x, int y) const;
+    void ShowPencilSizeMenu();
+    void OnPencilMenuSelected(wxCommandEvent& event);
 
 
     void render() override;
@@ -237,6 +250,7 @@ private:
     std::vector<std::string> _popupGroupNames; // layout group names in popup menu order
     std::vector<Model*> tmpModelList;
     Model *additionalModel = nullptr;
+    static int s_pencilSizeIndex;
     uint32_t currentFrameTime = 0;
 
     xlGraphicsProgram *solidProgram = nullptr;

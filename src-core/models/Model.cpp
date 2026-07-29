@@ -3563,6 +3563,101 @@ std::vector<int> Model::GetNodesInBoundingBox(IModelPreview* preview, xlPoint st
     return nodes;
 }
 
+namespace {
+    float DistanceSqPointToSegment(float px, float py, float ax, float ay, float bx, float by)
+    {
+        float abx = bx - ax;
+        float aby = by - ay;
+        float lenSq = abx * abx + aby * aby;
+        float t = 0.0f;
+        if (lenSq > 0.0f) {
+            t = ((px - ax) * abx + (py - ay) * aby) / lenSq;
+            t = std::clamp(t, 0.0f, 1.0f);
+        }
+        float cx = ax + t * abx;
+        float cy = ay + t * aby;
+        float dx = px - cx;
+        float dy = py - cy;
+        return dx * dx + dy * dy;
+    }
+}
+
+std::vector<int> Model::GetNodesNearPath(IModelPreview* preview, const std::vector<xlPoint>& path)
+{
+    std::vector<int> nodes;
+    if (path.empty()) return nodes;
+
+    int w, h;
+    float scale = GetPreviewDimScale(preview, w, h);
+
+    float pointScale = scale;
+    if (pointScale > 2.5) {
+        pointScale = 2.5;
+    }
+    if (pointScale > GetModelScreenLocation().RenderHt) {
+        pointScale = GetModelScreenLocation().RenderHt;
+    }
+    if (pointScale > GetModelScreenLocation().RenderWi) {
+        pointScale = GetModelScreenLocation().RenderWi;
+    }
+    float catchMult = preview ? preview->GetPencilCatchRadiusMultiplier() : 8.0f;
+    const float catchRadius = catchMult * pointScale;
+    const float radiusSq = catchRadius * catchRadius;
+
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
+    int i = 1;
+    for (const auto& it : Nodes) {
+        for (const auto& it2 : it->Coords) {
+            float sx = it2.screenX;
+            float sy = it2.screenY;
+            if (!centerBased) {
+                sx -= renderWi / 2.0f;
+                sy *= vScaleFactor;
+                if (vScaleFactor < 0.0f) {
+                    sy += renderHt / 2.0f;
+                } else {
+                    sy -= renderHt / 2.0f;
+                }
+                sy = (sy * scale) + (h / 2.0f);
+                sx = (sx * scale) + (w / 2.0f);
+            } else {
+                sx = ((sx - ml) * scale) + (w / 2.0f);
+                sy = ((sy - mb) * scale) + (h / 2.0f);
+            }
+
+            bool hit = false;
+            if (path.size() == 1) {
+                float dx = sx - (float)path[0].x;
+                float dy = sy - (float)path[0].y;
+                hit = (dx * dx + dy * dy) <= radiusSq;
+            } else {
+                for (size_t p = 0; p + 1 < path.size(); ++p) {
+                    float distSq = DistanceSqPointToSegment(sx, sy, (float)path[p].x, (float)path[p].y, (float)path[p + 1].x, (float)path[p + 1].y);
+                    if (distSq <= radiusSq) {
+                        hit = true;
+                        break;
+                    }
+                }
+            }
+            if (hit) {
+                nodes.push_back(i);
+            }
+        }
+        i++;
+    }
+    return nodes;
+}
+
 bool Model::IsMultiCoordsPerNode() const
 {
     for (const auto& it : Nodes) {

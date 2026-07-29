@@ -13,6 +13,8 @@
 #include <vector>
 #include <functional>
 #include <pugixml.hpp>
+
+#include "utils/xlPoint.h"
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/button.h>
@@ -112,10 +114,12 @@ class SubModelsPanel : public wxPanel {
 
     bool _isActive = false;
     bool m_creating_bound_rect = false;
+    bool m_freeform_mode = false;
     int m_bound_start_x = 0;
     int m_bound_start_y = 0;
     int m_bound_end_x = 0;
     int m_bound_end_y = 0;
+    std::vector<xlPoint> m_paint_path;
     int mPointSize;
 
     ModelPreview* _modelPreview = nullptr;
@@ -420,8 +424,9 @@ private:
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
-    void SelectAllInBoundingRect(bool shiftdwn, bool cdwn);
-    void RemoveNodes(bool suppress);
+    void SelectAllInBoundingRect(bool shiftdwn, bool cdwn, bool freeform = false);
+    std::vector<int> GetDragSelectedNodes(bool freeform = false);
+    void RemoveNodes(bool suppress, bool freeform = false);
 
     void OnTextCtrl_NameText_KillFocus(wxFocusEvent& event);
     void OnSubbufferSize(wxSizeEvent& event);
