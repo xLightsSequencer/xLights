@@ -1877,6 +1877,9 @@ class SequencerViewModel {
         let base = src.deletingPathExtension as NSString
         let ext = src.pathExtension
         let fmt = DateFormatter()
+        // Without en_US_POSIX, a 12-hour region rewrites HH to hh plus a
+        // localised AM/PM marker, putting non-ASCII bytes in the backup name.
+        fmt.locale = Locale(identifier: "en_US_POSIX")
         fmt.dateFormat = "yyyyMMdd-HHmmss"
         let stamp = fmt.string(from: Date())
         let name = base.lastPathComponent + "-" + stamp + (ext.isEmpty ? "" : "." + ext)

@@ -203,6 +203,9 @@ final class XLDiagnosticUploader {
         let build = (info["CFBundleVersion"] as? String) ?? "0"
 
         let stampFmt = DateFormatter()
+        // Without en_US_POSIX, a 12-hour region rewrites HH to hh plus a
+        // localised AM/PM marker, putting non-ASCII bytes in the upload name.
+        stampFmt.locale = Locale(identifier: "en_US_POSIX")
         stampFmt.dateFormat = "yyyy-MM-dd_HH-mm-ss-SSS"
         stampFmt.timeZone = TimeZone(abbreviation: "UTC")
         let stamp = stampFmt.string(from: Date())

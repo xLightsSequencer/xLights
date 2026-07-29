@@ -118,6 +118,9 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
     NSFileManager* fm = [NSFileManager defaultManager];
 
     NSDateFormatter* fmt = [[NSDateFormatter alloc] init];
+    // Without en_US_POSIX, a 12-hour region rewrites HH to hh plus a localised
+    // AM/PM marker, putting non-ASCII bytes in the zip name.
+    fmt.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
     fmt.dateFormat = @"yyyyMMdd-HHmmss";
     fmt.timeZone = [NSTimeZone timeZoneWithAbbreviation:@"UTC"];
     NSString* stamp = [fmt stringFromDate:[NSDate date]];
