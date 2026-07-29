@@ -694,6 +694,7 @@ public:
     static const wxWindowID ID_AUITOOLBAR_LAST_FRAME;
     static const wxWindowID ID_AUITOOLBAR_REPLAY_SECTION;
     static const wxWindowID ID_CHECKBOX_LIGHT_OUTPUT;
+    static const wxWindowID ID_AUITOOLBAR_FPP_CONNECT;
     static const wxWindowID ID_AUITOOLBAR_PLAY;
     static const wxWindowID ID_AUITOOLBARITEM2;
     static const wxWindowID ID_AUITOOLBARITEM5;

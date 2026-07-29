@@ -192,6 +192,7 @@ const wxWindowID xLightsFrame::ID_AUITOOLBAR_FIRST_FRAME = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_LAST_FRAME = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_REPLAY_SECTION = wxNewId();
 const wxWindowID xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_FPP_CONNECT = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
@@ -806,6 +807,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     PlayToolBar->AddTool(ID_AUITOOLBAR_LAST_FRAME, _("Item label"), GetToolbarBitmapBundle("xlART_FORWARD"), wxNullBitmap, wxITEM_NORMAL, _("Last Frame"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_AUITOOLBAR_REPLAY_SECTION, _("Item label"), GetToolbarBitmapBundle("xlART_REPLAY"), wxNullBitmap, wxITEM_NORMAL, _("Replay Section"), wxEmptyString, NULL);
     PlayToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS"), wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
+    PlayToolBar->AddTool(ID_AUITOOLBAR_FPP_CONNECT, _("FPP Connect"), GetToolbarBitmapBundle("xlART_FPP_CONNECT"), wxNullBitmap, wxITEM_NORMAL, _("FPP Connect"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
     WindowMgmtToolbar = new xlAuiToolBar(this, ID_AUIWINDOWTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
@@ -1227,6 +1229,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_AUITOOLBAR_LAST_FRAME, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarLastFrameClick);
     Connect(ID_AUITOOLBAR_REPLAY_SECTION, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemReplaySectionClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
+    Connect(ID_AUITOOLBAR_FPP_CONNECT, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_FPP_ConnectSelected);
     Connect(ID_AUITOOLBARITEM2, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_AUITOOLBARITEM5, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_AUITOOLBARITEM7, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);

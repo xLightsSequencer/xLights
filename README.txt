@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (cybercop23)            Play Toolbar: added an FPP Connect button to directly launch FPP Connect.
     -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
                                  that submits many crash reports is counted once rather than once per report.
                                  It identifies the show only - no machine, user or location - and is written

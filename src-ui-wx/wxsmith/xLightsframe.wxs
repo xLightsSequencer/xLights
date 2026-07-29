@@ -134,6 +134,14 @@
 						</object>
 						<label>Output To Lights</label>
 					</object>
+					<object class="AuiToolBarItem">
+						<object class="wxAuiToolBarItem" name="ID_AUITOOLBAR_FPP_CONNECT" variable="AuiToolBarItemFPPConnect" member="yes">
+							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_FPP_CONNECT&quot;)' />
+							<shorthelp>FPP Connect</shorthelp>
+							<handler function="OnMenuItem_FPP_ConnectSelected" entry="EVT_TOOL" />
+						</object>
+						<label>FPP Connect</label>
+					</object>
 				</object>
 				<name>Play Tool Bar</name>
 				<standardpanetype>Toolbar</standardpanetype>

@@ -357,7 +357,9 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return wxOSXCreateSystemBitmapBundle("dice", AdjustSizeForClient(client, size));
     }
 #endif
-    if ("xlART_STOP_NOW" == id) {
+    if ("xlART_FPP_CONNECT" == id) {
+        return wxBitmapBundle::FromSVG(fpp_app_icon_svg, sizeof(fpp_app_icon_svg), wxSize(sz, sz));
+    } else if ("xlART_STOP_NOW" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {stop_sign_16, stop_sign_24, stop_sign_32, stop_sign_48, stop_sign_64});
     } else if ("xlART_LIGHTS_OFF" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {output_lights_off_16, output_lights_off_24, output_lights_off_32, output_lights_off_48, output_lights_off_64});
