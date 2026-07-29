@@ -404,6 +404,15 @@ void DumpConfig()
         spdlog::info("      Big Endian");
     }
     spdlog::info("  CPU Arch: {}", wxGetCpuArchitectureName().ToStdString());
+    std::string cpuBrand = GetCPUBrand();
+    if (!cpuBrand.empty()) {
+        spdlog::info("  CPU: {}", cpuBrand);
+    }
+    spdlog::info("  CPU cores: {} physical, {} logical", GetPhysicalCoreCount(), GetLogicalCoreCount());
+    std::string gpu = GetGPUDescription();
+    if (!gpu.empty()) {
+        spdlog::info("  GPU: {}", gpu);
+    }
 
 #ifdef LINUX
     wxLinuxDistributionInfo l = wxGetLinuxDistributionInfo();
