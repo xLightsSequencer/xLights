@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (cybercop23)            Select Directories dialog now closes automatically after a successful change
+                                 to the temporary or permanent show folder, or after opening the base show folder.
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
