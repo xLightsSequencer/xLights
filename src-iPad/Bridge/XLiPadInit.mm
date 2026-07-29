@@ -26,6 +26,7 @@
 #include "render/SequenceMedia.h"
 #include "utils/CachedFileDownloader.h"
 #include "utils/FileUtils.h"
+#include "utils/UtilFunctions.h"
 #include "utils/xlImage.h"
 #include "xLightsVersion.h"
 
@@ -161,6 +162,22 @@ static void LogMachineConfig() {
     spdlog::info("  Device model: {}", u.machine);
     spdlog::info("  Device name: {}", [dev.name UTF8String]);
     spdlog::info("  CPU Arch: {}", u.machine);
+
+    std::string cpuBrand = GetCPUBrand();
+    if (!cpuBrand.empty()) {
+        spdlog::info("  CPU: {}", cpuBrand);
+    }
+    spdlog::info("  CPU cores: {} physical, {} logical", GetPhysicalCoreCount(), GetLogicalCoreCount());
+    std::string gpu = GetGPUDescription();
+    if (!gpu.empty()) {
+        spdlog::info("  GPU: {}", gpu);
+    }
+
+    UIScreen* screen = [UIScreen mainScreen];
+    CGRect b = screen.bounds;
+    spdlog::info("  Display: {:.0f}x{:.0f} points, scale {:.1f} ({:.0f}x{:.0f} pixels)",
+                 b.size.width, b.size.height, screen.scale,
+                 b.size.width * screen.scale, b.size.height * screen.scale);
 
     NSProcessInfo* proc = [NSProcessInfo processInfo];
     long long memBytes = (long long)proc.physicalMemory;

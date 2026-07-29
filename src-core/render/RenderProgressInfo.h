@@ -61,6 +61,14 @@ public:
     long long lastProgressSum = -1;
     std::chrono::steady_clock::time_point lastProgressTime = std::chrono::steady_clock::now();
 
+    // Frame progress alone, independent of whether the jobs look idle.  The
+    // rescue above only fires when every unfinished job is idle, so a batch
+    // wedged with a job still holding a thread resets that timer forever and is
+    // invisible.  This pair is what notices it and reports the breakdown.
+    long long lastFrameSum = -1;
+    std::chrono::steady_clock::time_point lastFrameTime = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point lastStallReport = std::chrono::steady_clock::now();
+
     // Scheduler telemetry, logged to the render log when the batch completes.
     int totalJobs = 0;
     std::atomic<int> suspendCount{0};

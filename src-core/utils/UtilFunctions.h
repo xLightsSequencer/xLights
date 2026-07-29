@@ -169,6 +169,18 @@ bool IsExcessiveMemoryUsage(double physicalMultiplier = 0.95);
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly = false);
 uint64_t GetPhysicalMemorySizeMB();
 
+// CPU brand string ("Apple M2 Pro", "AMD Ryzen 7 7640HS", ...), empty if the
+// platform won't tell us.
+std::string GetCPUBrand();
+// Logical (SMT) and physical core counts; 0 when undeterminable. The render
+// pool is sized off these, so crash reports need them to reproduce.
+int GetLogicalCoreCount();
+int GetPhysicalCoreCount();
+
+// Human-readable GPU description. Apple returns the Metal device; elsewhere
+// this is empty and the GL banner carries the renderer string.
+std::string GetGPUDescription();
+
 bool IsxLights();
 void SetIsxLights(bool val);
 std::string ReverseCSV(const std::string& csv);

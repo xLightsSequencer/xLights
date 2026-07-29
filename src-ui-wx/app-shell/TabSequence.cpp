@@ -40,6 +40,7 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
+#include "utils/string_utils.h"
 #include "sequencer/BufferPanel.h"
 #include "sequencer/EffectIconPanel.h"
 #include "media/JukeboxPanel.h"
@@ -309,7 +310,16 @@ void xLightsFrame::LoadEffectsFile()
         SetXmlSetting("LayoutMode3D", "0");
         UnsavedRgbEffectsChanges = true;
     }
-    
+
+    // Identifies the show -- not the machine or the user -- so submitted crash
+    // reports can be counted once per show rather than once per crash. It has to
+    // live with the show rather than in app settings: one user commonly has
+    // several shows, and the same show gets opened from more than one machine and
+    // from the iPad. Random, and never rewritten once present.
+    if (GetXmlSetting("ShowGUID", "").empty() && !IsReadOnlyMode() && !_renderMode && !_checkSequenceMode) {
+        SetXmlSetting("ShowGUID", GenerateGuid());
+    }
+
     // Load presets: try separate JSON file first, fall back to XML for migration
     {
         wxFileName presetsFile;
