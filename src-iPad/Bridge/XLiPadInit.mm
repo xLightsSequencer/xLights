@@ -173,6 +173,12 @@ static void LogMachineConfig() {
         spdlog::info("  GPU: {}", gpu);
     }
 
+    UIScreen* screen = [UIScreen mainScreen];
+    CGRect b = screen.bounds;
+    spdlog::info("  Display: {:.0f}x{:.0f} points, scale {:.1f} ({:.0f}x{:.0f} pixels)",
+                 b.size.width, b.size.height, screen.scale,
+                 b.size.width * screen.scale, b.size.height * screen.scale);
+
     NSProcessInfo* proc = [NSProcessInfo processInfo];
     long long memBytes = (long long)proc.physicalMemory;
     spdlog::info("  Total memory: {} MB", memBytes / (1024 * 1024));

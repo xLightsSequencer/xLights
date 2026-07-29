@@ -37,6 +37,7 @@ void SetHeadlessNoDock(); // ExternalHooksMacOSUI.mm — demote to background (n
 #include <wx/debugrpt.h>
 #include <wx/version.h>
 #include <wx/dirdlg.h>
+#include <wx/display.h>
 #include <wx/filename.h>
 #include <wx/config.h>
 
@@ -431,6 +432,20 @@ void DumpConfig()
     std::string gpu = GetGPUDescription();
     if (!gpu.empty()) {
         emit(fmt::format("  GPU: {}", gpu));
+    }
+
+    // Display geometry and scale: HiDPI scaling, a GL context landing on the
+    // wrong GPU in a hybrid multi-monitor setup, and dialogs that do not fit a
+    // small screen are all recurring crash/layout classes that cannot be
+    // reproduced without knowing the screen the user was on.
+    unsigned displayCount = wxDisplay::GetCount();
+    emit(fmt::format("  Displays: {}", displayCount));
+    for (unsigned i = 0; i < displayCount; ++i) {
+        wxDisplay d(i);
+        wxRect g = d.GetGeometry();
+        emit(fmt::format("    Display {}: {}x{} at {},{} scale {:.2f}{}",
+                         i, g.GetWidth(), g.GetHeight(), g.GetX(), g.GetY(),
+                         d.GetScaleFactor(), d.IsPrimary() ? " primary" : ""));
     }
 
 #ifdef LINUX

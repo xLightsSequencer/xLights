@@ -86,6 +86,11 @@ NSString* DeviceInfoText() {
     if (!gpu.empty()) {
         [s appendFormat:@"GPU: %s\n", gpu.c_str()];
     }
+    UIScreen* screen = [UIScreen mainScreen];
+    CGRect b = screen.bounds;
+    [s appendFormat:@"Display: %.0fx%.0f points, scale %.1f (%.0fx%.0f pixels)\n",
+        b.size.width, b.size.height, screen.scale,
+        b.size.width * screen.scale, b.size.height * screen.scale];
     [s appendFormat:@"Thermal state: %ld\n",
         (long)[NSProcessInfo processInfo].thermalState];
     [s appendFormat:@"Captured: %@\n", [NSDate date]];
