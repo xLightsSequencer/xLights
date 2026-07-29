@@ -171,6 +171,7 @@
 #include <fstream>
 #include <limits>
 #include <memory>
+#include <map>
 #include <set>
 #include <sstream>
 #include <string>
@@ -355,7 +356,8 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     };
 
     NSMutableString* out = [NSMutableString string];
-    [out appendString:@"# xLights iPad show size — counts and byte sizes only, no names or paths.\n"];
+    [out appendString:@"# xLights iPad show size — counts, product names and byte sizes only.\n"];
+    [out appendString:@"# No user names, model names, addresses or file paths.\n"];
     [out appendFormat:@"models %zu\n", models];
     [out appendFormat:@"groups %zu\n", groups];
     [out appendFormat:@"submodels %zu\n", submodels];
@@ -365,6 +367,51 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     [out appendFormat:@"mediafolders %zu\n", _context->GetMediaFolders().size()];
     [out appendFormat:@"rgbeffects_bytes %llu\n", fileSize(@"xlights_rgbeffects.xml")];
     [out appendFormat:@"networks_bytes %llu\n", fileSize(@"xlights_networks.xml")];
+
+    // Categorical breakdown. The desktop gets this by shipping the show XML,
+    // which the automatic iPad upload deliberately does not carry — so the
+    // counts are rolled up here instead. Model types and controller
+    // vendor/model/protocol are product identifiers, not user content.
+    std::map<std::string, int> typeCounts;
+    for (const auto& [name, m] : _context->GetModelManager().GetModels()) {
+        if (m == nullptr || m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        ++typeCounts[DisplayAsTypeToString(m->GetDisplayAs())];
+    }
+    for (const auto& [type, count] : typeCounts) {
+        [out appendFormat:@"modeltype %s %d\n", type.c_str(), count];
+    }
+
+    std::map<std::string, int> ctrlCounts;
+    std::map<std::string, int> protoCounts;
+    std::set<std::string> proxies;
+    int nProxied = 0;
+    int32_t totalChannels = 0;
+    for (const auto* c : _context->GetOutputManager().GetControllers()) {
+        if (c == nullptr) continue;
+        std::string vendor = c->GetVendor().empty() ? "unknown" : c->GetVendor();
+        std::string model = c->GetModel().empty() ? "unknown" : c->GetModel();
+        ++ctrlCounts[vendor + "|" + model + "|" + Controller::DecodeActiveState(c->GetActive())];
+        if (!c->GetProtocol().empty()) {
+            ++protoCounts[c->GetProtocol()];
+        }
+        totalChannels += c->GetChannels();
+        std::string proxy = c->GetFPPProxy();
+        if (!proxy.empty()) {
+            ++nProxied;
+            proxies.insert(proxy);
+        }
+    }
+    [out appendFormat:@"channels %d\n", (int)totalChannels];
+    for (const auto& [key, count] : ctrlCounts) {
+        [out appendFormat:@"controller %s %d\n", key.c_str(), count];
+    }
+    for (const auto& [proto, count] : protoCounts) {
+        [out appendFormat:@"protocol %s %d\n", proto.c_str(), count];
+    }
+    // Proxy addresses are never written — only how many distinct ones are in
+    // use, which is what distinguishes one shared proxy from one per controller.
+    [out appendFormat:@"proxied %d\n", nProxied];
+    [out appendFormat:@"distinctproxies %zu\n", proxies.size()];
 
     NSString* libraryPath = NSSearchPathForDirectoriesInDomains(
         NSLibraryDirectory, NSUserDomainMask, YES).firstObject;
