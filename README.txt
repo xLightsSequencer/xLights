@@ -445,6 +445,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (#6663)
     -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" for submodels with trailing empty
                                  layers (#6647)
+    -bug (cybercop23)            Fix "Copy Layers/SubModels to Models" losing effects when a submodel has a
+                                 leading or middle empty layer (#6748). No longer need to expand receiving model(s).
     -bug (dkulp)                 Fix crash cancelling or failing a model download/import with a malformed
                                  .xmodel (double-free)
     -bug (dkulp)                 Fix crash in 3D layout preview after deleting a model (stale cached
