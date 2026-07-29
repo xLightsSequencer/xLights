@@ -358,6 +358,13 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     NSMutableString* out = [NSMutableString string];
     [out appendString:@"# xLights iPad show size — counts, product names and byte sizes only.\n"];
     [out appendString:@"# No user names, model names, addresses or file paths.\n"];
+    // The show's own random id, not the device's or the user's. Present so a
+    // show that crashes repeatedly is counted once, and so the same show opened
+    // from Mac, Windows and iPad is recognised as one show. Absent for a show
+    // folder that was not writable when first opened.
+    if (!_context->GetShowGuid().empty()) {
+        [out appendFormat:@"showguid %s\n", _context->GetShowGuid().c_str()];
+    }
     [out appendFormat:@"models %zu\n", models];
     [out appendFormat:@"groups %zu\n", groups];
     [out appendFormat:@"submodels %zu\n", submodels];

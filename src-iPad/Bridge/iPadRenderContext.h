@@ -305,6 +305,14 @@ public:
     long GetDisplay2DGridSpacing() const { return _display2DGridSpacing; }
     bool GetDisplay2DBoundingBox() const { return _display2DBoundingBox; }
 
+    // <settings><ShowGUID value="..."/>. Random id identifying the show
+    // itself -- not the device or the user -- minted by whichever client
+    // opens the show first and never rewritten after that. Lets submitted
+    // crash reports be counted once per show instead of once per crash, and
+    // is what ties the same show together across Mac, Windows and iPad.
+    // Empty when the show folder was not writable at load.
+    const std::string& GetShowGuid() const { return _showGuid; }
+
     // <settings><LayoutMode3D value="1"/>. Desktop's last-used 3D vs 2D
     // preference for the House Preview, read at show-folder load.
     // iPad uses this as the initial value for House Preview's is3D
@@ -694,6 +702,7 @@ private:
     long _display2DGridSpacing = 100;
     bool _display2DBoundingBox = false;
     bool _layoutMode3D = true;
+    std::string _showGuid;
     std::atomic<bool> _exportInProgress{false};
 
     // Live house-preview camera snapshot (see SetHousePreviewCamera). Published

@@ -42,6 +42,7 @@
 #include "render/UICallbacks.h"
 #include "utils/Color.h"
 #include "utils/ExternalHooks.h"
+#include "utils/string_utils.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
 #include "XmlSerializer/XmlSerializer.h"
 
@@ -217,6 +218,7 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         if (!xlightsNode) {
             spdlog::error("iPadRenderContext: No <xrgb> or <xlights> root element in {}", rgbPath);
         } else {
+            _showGuid.clear();
             // Preview canvas size lives in the <settings> node as
             // <previewWidth value="..."/> / <previewHeight value="..."/>.
             // Desktop falls back to 1280x720 when absent; match that.
@@ -225,7 +227,9 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                 for (auto s = settingsNode.first_child(); s; s = s.next_sibling()) {
                     std::string name = s.name();
                     const char* v = s.attribute("value").as_string();
-                    if (name == "previewWidth") {
+                    if (name == "ShowGUID") {
+                        _showGuid = v;
+                    } else if (name == "previewWidth") {
                         int w = (int)std::strtol(v, nullptr, 10);
                         if (w > 0) _previewWidth = w;
                     } else if (name == "previewHeight") {
@@ -255,6 +259,24 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                     }
                 }
             }
+            // Mint the show's id if this is the first client ever to open it.
+            // Written straight back rather than deferred to SaveLayoutChanges:
+            // an id that only lives in memory would differ every launch, which
+            // is worse than having none at all for the counting it exists to
+            // support. Left empty if the folder is not writable.
+            if (_showGuid.empty() && ObtainAccessToURL(rgbPath, true)) {
+                std::string guid = GenerateGuid();
+                if (!settingsNode) {
+                    settingsNode = xlightsNode.append_child("settings");
+                }
+                settingsNode.append_child("ShowGUID").append_attribute("value") = guid.c_str();
+                if (doc.save_file(rgbPath.c_str())) {
+                    _showGuid = guid;
+                } else {
+                    spdlog::warn("iPadRenderContext: unable to write ShowGUID to {}", rgbPath);
+                }
+            }
+
             // Resolve the background image against the show folder / media
             // directories. FixFile handles both absolute paths (from a
             // different machine's filesystem) and plain filenames.

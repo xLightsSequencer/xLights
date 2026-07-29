@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
+                                 that submits many crash reports is counted once rather than once per report.
+                                 It identifies the show only - no machine, user or location - and is written
+                                 once when the show is first opened.
     -enh (cybercop23)            Select Directories dialog now closes automatically after a successful change
                                  to the temporary or permanent show folder, or after opening the base show folder.
     -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import

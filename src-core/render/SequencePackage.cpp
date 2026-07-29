@@ -1975,6 +1975,15 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
     }
     rewritePathsInXml(rgbEffectsDoc.document_element(), sortedRewrites);
 
+    // ShowGUID identifies the packer's show, not this package. Leaving it in
+    // would give every recipient of a widely-shared package the same show id,
+    // collapsing them into one show wherever that id is counted.
+    if (auto settings = rgbEffectsDoc.document_element().child("settings")) {
+        if (auto guid = settings.child("ShowGUID")) {
+            settings.remove_child(guid);
+        }
+    }
+
     pugi::xml_document xsqDoc;
     if (!xsqDoc.load_file(sequenceXsqPath.c_str())) {
         spdlog::error("Pack: could not parse '{}'", sequenceXsqPath);

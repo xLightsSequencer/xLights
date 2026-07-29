@@ -17,6 +17,10 @@
 
 extern const std::string xlEMPTY_STRING;
 
+// RFC 4122 v4 UUID, lower-case, dash-separated. Random only -- carries no
+// machine, user or time component.
+std::string GenerateGuid();
+
 //namespace string_utils
 //{
     inline bool isHexChar(char c)
