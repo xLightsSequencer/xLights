@@ -15,6 +15,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  to the temporary or permanent show folder, or after opening the base show folder.
     -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
                                  named Viewpoints (2D/3D camera presets).
+    -bug (dkulp)                 macOS: fixed a crash when the Finder hands over more than one sequence at
+                                 once - the save-changes prompt of the first open pumped the event queue and
+                                 started the second open inside it, so the sequencer loaded against panes the
+                                 first one was still closing; queued opens now run strictly one at a time
+    -bug (dkulp)                 Fixed a crash uploading outputs to a PixLite/PixCon whose vendor/model/variant
+                                 has no capabilities definition - the port-count checks dereferenced the missing
+                                 definition instead of reporting the upload error
+    -bug (dkulp)                 macOS: the OS diagnostic payloads carried in crash reports were named with a
+                                 localised clock, so in a 12-hour region the filename held bytes that made the
+                                 payload impossible to extract from the report zip
     -bug (dkulp)                 Layout: fixed a crash while downloading or importing a model - the property
                                  grid refresh dispatched from the download progress dialog ran against the
                                  model the import had already replaced

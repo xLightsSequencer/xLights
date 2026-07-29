@@ -1698,6 +1698,14 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
 
     spdlog::debug(check);
 
+    // No capabilities definition for this vendor/model/variant. Check() already
+    // reported that and returned false, but the port-count clamps below run
+    // regardless of success and dereference rules, so stop here instead.
+    if (rules == nullptr) {
+        ui->ShowMessage("Not uploaded due to errors.\n" + check, "Error");
+        return false;
+    }
+
     if (controller->IsFullxLightsControl()) {
 
         for (auto& it : _config._outputPixels) {
@@ -1817,10 +1825,7 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
         }
     }
 
-    auto caps = ControllerCaps::GetControllerConfig(controller);
-    if (caps != nullptr) {
-        _config._forceExpanded = Lower(caps->GetCustomPropertyByPath("ForceExpanded", "false")) == "true";
-    }
+    _config._forceExpanded = Lower(rules->GetCustomPropertyByPath("ForceExpanded", "false")) == "true";
 
     if (success) {
         if (check != "") {
