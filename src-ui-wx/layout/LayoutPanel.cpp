@@ -7622,7 +7622,7 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
 
     mnu.Append(ID_PREVIEW_SAVE_LAYOUT_IMAGE, _("Save Layout Image"));
     mnu.Append(ID_PREVIEW_PRINT_LAYOUT_IMAGE, _("Print Layout Image"));
-    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups"));
+    mnu.Append(ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS, _("Import Previews/Models/Groups/Viewpoints"));
     mnu.Append(ID_PREVIEW_IMPORT_MODELS_FROM_LORS5, _("Import LOR S5 Models/Groups"));
     mnu.Append(ID_PREVIEW_LAYOUT_DXF_EXPORT, _("Export Layout As DXF"));
 
@@ -11499,7 +11499,7 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
     //add models first
     for (auto const& it2 : models)
     {
-        if (!it2->IsModelGroup())
+        if (it2->GetKind() == ImpItemKind::Model)
         {
             std::string newName = it2->GetName();
             if (xlights->AllModels.GetModel(newName) != nullptr) {
@@ -11519,7 +11519,7 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
     //add model groups second, skip adding duplicates, just add models to existing group
     for (auto const& it2 : models)
     {
-        if (it2->IsModelGroup())//if a group, try to add models if exist
+        if (it2->GetKind() == ImpItemKind::ModelGroup)//if a group, try to add models if exist
         {
             wxString const smodels = it2->GetModelNode().attribute("models").as_string();
             auto models = wxSplit(smodels, ',');
@@ -11604,6 +11604,12 @@ void LayoutPanel::ImportModelsFromRGBEffects()
             std::string name = ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups(), srcPerUnit);
             if (firstImported.empty()) firstImported = name;
         }
+
+        for (auto* vp : dlg.GetViewpoints())
+        {
+            xlights->viewpoint_mgr.ImportCameraFromNode(vp->GetModelNode());
+        }
+
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                       OutputModelManager::WORK_RELOAD_MODELLIST |

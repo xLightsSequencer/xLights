@@ -100,6 +100,7 @@ public:
         _defaultCamera3D = std::make_unique<PreviewCamera>(*current_camera);
     }
     void AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d );
+    void ImportCameraFromNode(pugi::xml_node node);
     int GetNum2DCameras() const { return static_cast<int>(previewCameras2d.size()); }
     int GetNum3DCameras() const { return static_cast<int>(previewCameras3d.size()); }
     PreviewCamera* GetCamera2D(int i) { return previewCameras2d[i].get(); }
@@ -113,6 +114,7 @@ public:
     bool IsNameUnique(const std::string& name, bool is_3d);
 
 private:
+    std::string GenerateUniqueCameraName(const std::string& candidateName, bool is_3d);
     std::unique_ptr<PreviewCamera> CreateCameraFromNode(pugi::xml_node node);
     void SaveCameraToVisitor(BaseSerializingVisitor& visitor, const PreviewCamera* camera,
                              const std::string& nodename, const std::string& nameOverride = "") const;

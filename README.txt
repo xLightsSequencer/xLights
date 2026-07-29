@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
+                                 named Viewpoints (2D/3D camera presets).
     -bug (dkulp)                 Layout: fixed a crash while downloading or importing a model - the property
                                  grid refresh dispatched from the download progress dialog ran against the
                                  model the import had already replaced
