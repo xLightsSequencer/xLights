@@ -7641,9 +7641,9 @@ void EffectsGrid::DrawEffects(xlGraphicsContext* ctx) {
                 if (e->IsLinkedToSymbol() && x > MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT) {
                     float indicatorSize = 6.0f;
                     xlColor symbolColor(0, 200, 255);
-                    backgrounds->AddVertex(x2 - indicatorSize, y1, symbolColor);
-                    backgrounds->AddVertex(x2, y1, symbolColor);
-                    backgrounds->AddVertex(x2, y1 + indicatorSize, symbolColor);
+                    backgrounds->AddVertex(x2 - indicatorSize, y2, symbolColor);
+                    backgrounds->AddVertex(x2, y2, symbolColor);
+                    backgrounds->AddVertex(x2, y2 - indicatorSize, symbolColor);
                 }
 
                 DrawFadeHints(e, x3, y1, x4, y2, backgrounds);
