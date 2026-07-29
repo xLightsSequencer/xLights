@@ -15,6 +15,8 @@
 #include <regex>
 #include <cstring>
 #include <fstream>
+#include <set>
+#include <vector>
 
 #include <pugixml.hpp>
 
@@ -651,6 +653,112 @@ uint64_t GetPhysicalMemorySizeMB() {
     ret /= 1024; // -> MB
     return ret;
 }
+
+std::string GetCPUBrand() {
+#if defined(__APPLE__)
+    char buf[256] = { 0 };
+    size_t len = sizeof(buf) - 1;
+    if (sysctlbyname("machdep.cpu.brand_string", buf, &len, nullptr, 0) == 0) {
+        return buf;
+    }
+#elif defined(_WIN32)
+    HKEY key;
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                      "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+                      0, KEY_READ, &key) == ERROR_SUCCESS) {
+        char buf[256] = { 0 };
+        DWORD sz = sizeof(buf) - 1;
+        DWORD type = 0;
+        LSTATUS st = RegQueryValueExA(key, "ProcessorNameString", nullptr, &type,
+                                      reinterpret_cast<LPBYTE>(buf), &sz);
+        RegCloseKey(key);
+        if (st == ERROR_SUCCESS && type == REG_SZ) {
+            return Trim(buf);
+        }
+    }
+#else
+    std::ifstream f("/proc/cpuinfo");
+    std::string line;
+    while (std::getline(f, line)) {
+        // x86 uses "model name", arm64 kernels only expose "Hardware".
+        if (line.rfind("model name", 0) == 0 || line.rfind("Hardware", 0) == 0) {
+            auto colon = line.find(':');
+            if (colon != std::string::npos) {
+                return Trim(line.substr(colon + 1));
+            }
+        }
+    }
+#endif
+    return "";
+}
+
+int GetLogicalCoreCount() {
+    return (int)std::thread::hardware_concurrency();
+}
+
+int GetPhysicalCoreCount() {
+#if defined(__APPLE__)
+    int cores = 0;
+    size_t len = sizeof(cores);
+    if (sysctlbyname("hw.physicalcpu", &cores, &len, nullptr, 0) == 0) {
+        return cores;
+    }
+#elif defined(_WIN32)
+    DWORD bytes = 0;
+    GetLogicalProcessorInformation(nullptr, &bytes);
+    if (bytes && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        std::vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION> info(
+            bytes / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION));
+        if (GetLogicalProcessorInformation(info.data(), &bytes)) {
+            int cores = 0;
+            for (auto const& i : info) {
+                if (i.Relationship == RelationProcessorCore) {
+                    ++cores;
+                }
+            }
+            return cores;
+        }
+    }
+#else
+    // Distinct (physical id, core id) pairs; single-socket boxes report only
+    // "core id", so fall back to counting those.
+    std::ifstream f("/proc/cpuinfo");
+    std::string line;
+    std::set<std::pair<std::string, std::string>> cores;
+    std::string phys;
+    std::string core;
+    while (std::getline(f, line)) {
+        auto colon = line.find(':');
+        if (colon == std::string::npos) {
+            if (!core.empty()) {
+                cores.emplace(phys, core);
+            }
+            phys.clear();
+            core.clear();
+            continue;
+        }
+        std::string val = Trim(line.substr(colon + 1));
+        if (line.rfind("physical id", 0) == 0) {
+            phys = val;
+        } else if (line.rfind("core id", 0) == 0) {
+            core = val;
+        }
+    }
+    if (!core.empty()) {
+        cores.emplace(phys, core);
+    }
+    if (!cores.empty()) {
+        return (int)cores.size();
+    }
+#endif
+    return 0;
+}
+
+#if !defined(__APPLE__)
+std::string GetGPUDescription() {
+    return "";
+}
+#endif
 
 void CheckMemoryUsage(const std::string& reason, bool onchangeOnly) {
 #if defined(TURN_THIS_OFF) && defined(_WIN32)

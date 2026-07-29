@@ -6092,22 +6092,39 @@ void LayoutPanel::FinalizeModel()
             auto oldam = modelPreview->GetAdditionalModel();
             modelPreview->SetAdditionalModel(nullptr); // just in case we delete the model
 
+            // GetXlightsModel frees the model it is handed and pumps the event loop
+            // before it returns the replacement (progress dialog, import prompts), so
+            // ASAP work dispatched from that pump runs while oldNewModel is already
+            // gone. resetPropertyGrid reads selectedBaseObject unconditionally and
+            // faulted in __dynamic_cast on the freed model. Drop the references for
+            // the duration and repoint them at whatever comes back - the same reason
+            // the additional-model pointer above is cleared.
+            const bool highlightWasNewModel = (highlightedBaseObject == oldNewModel);
+            const bool selectionWasNewModel = (selectedBaseObject == oldNewModel);
+            if (highlightWasNewModel) {
+                highlightedBaseObject = nullptr;
+            }
+            if (selectionWasNewModel) {
+                selectedBaseObject = nullptr;
+                _propertyAdapter.reset();
+            }
+
             int widthmm = -1;
             int heightmm = -1;
             int depthmm = -1;
 
             _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels, &additionalModelObjects);
 
+            if (highlightWasNewModel) {
+                highlightedBaseObject = _newModel;
+            }
+            if (selectionWasNewModel) {
+                selectedBaseObject = _newModel;
+            }
+
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
                 // model was changed
-
-                if (highlightedBaseObject == oldNewModel) {
-                    highlightedBaseObject = _newModel;
-                }
-                if (selectedBaseObject == oldNewModel) {
-                    selectedBaseObject = _newModel;
-                }
 
                 if (oldam == oldNewModel) {
                     modelPreview->SetAdditionalModel(_newModel);
@@ -8306,6 +8323,9 @@ void LayoutPanel::ExportFacesStatesSubModels() {
             }
             targetModel->IncrementChangeCount();
         }
+        // The target models' SubModel objects were freed and rebuilt above and
+        // model groups cache raw pointers to the submodels they name.
+        xlights->AllModels.ResetModelGroups();
         xlights->MarkEffectsFileDirty();
     }
 }

@@ -1486,13 +1486,21 @@ void ModelManager::AddModel(Model* model)
 
     if (model != nullptr) {
         std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+        Model* oldm = nullptr;
         auto it = models.find(model->name);
         if (it != models.end()) {
-            delete it->second;
-            it->second = nullptr;
-            ResetModelGroups();
+            oldm = it->second;
         }
+        // Publish the replacement before resetting the groups, then free the old
+        // model. Resetting while the map still held the old (or a null) entry
+        // left every group that names this model pointing at the model we are
+        // about to free, or silently dropped it from the group until something
+        // else happened to reset them.
         models[model->name] = model;
+        if (oldm != nullptr) {
+            ResetModelGroups();
+            delete oldm;
+        }
         _modelGeneration++;
     }
 }
@@ -1500,7 +1508,17 @@ void ModelManager::AddModel(Model* model)
 void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
     if (nm != nullptr && name != "") {
         std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
-        Model *oldm = models[name];
+        Model* oldm = nullptr;
+        auto it = models.find(name);
+        if (it != models.end()) {
+            oldm = it->second;
+            if (nm->name != name) {
+                // Renamed. The old key has to go or it keeps handing out the
+                // model freed below - to the groups reset here and to every
+                // later lookup of the old name.
+                models.erase(it);
+            }
+        }
         models[nm->name] = nm;
         ResetModelGroups();
         delete oldm;

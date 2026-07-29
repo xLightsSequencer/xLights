@@ -721,6 +721,12 @@ void SubModelsPanel::SaveSubModelInfoIntoThisModel(Model *m)
         submodelOrder.push_back((*it)->name);
     }
 
+    // Every SubModel object of m was just freed and rebuilt above. Model groups
+    // cache raw pointers to the submodels they name, so without this they keep
+    // the freed ones - the render path walks that cache straight into a
+    // RenderBuffer per member.
+    xlights->AllModels.ResetModelGroups();
+
     xlights->EnsureSequenceElementsAreOrderedCorrectly(m->GetName(), submodelOrder);
 }
 
