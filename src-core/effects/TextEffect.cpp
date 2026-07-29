@@ -1634,6 +1634,31 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 
                 int actual_width = font->GetCharWidth(ascii);
                 assert(actual_width > 0);
+                int char_offset_left = line_offset_left;
+                if (vertical) {
+                    // Center each glyph on its own ink bounding box rather than the
+                    // horizontal advance width (actual_width includes inter-character
+                    // kerning space that doesn't correlate with the glyph's visual
+                    // width), so narrower characters (e.g. "1") line up with wider
+                    // ones (e.g. "2") stacked above/below them.
+                    int minInk = -1, maxInk = -1;
+                    for (int cx = 0; cx < char_width; cx++) {
+                        int px = x_start_corner + cx;
+                        if (px < 0 || px >= image->GetWidth()) continue;
+                        for (int cy = 0; cy < char_height; cy++) {
+                            int py = y_start_corner + cy;
+                            if (py < 0 || py >= image->GetHeight()) continue;
+                            if (image->GetRed(px, py) == 255 && image->GetGreen(px, py) == 255 && image->GetBlue(px, py) == 255) {
+                                if (minInk < 0) minInk = cx;
+                                maxInk = cx;
+                            }
+                        }
+                    }
+                    if (minInk >= 0) {
+                        int inkWidth = maxInk - minInk + 1;
+                        char_offset_left = line_offset_left + (char_width - inkWidth) / 2 - minInk;
+                    }
+                }
                 if (rotate_90 && up) {
                     OffsetTop -= actual_width;
                 }
@@ -1652,7 +1677,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                                         buffer.SetPixel(char_height - 1 - y_pos + y_start_corner + line_offset_left, (buffer.BufferHt - 1) - (x_pos - x_start_corner + OffsetTop), c, false);
                                     }
                                 } else {
-                                    buffer.SetPixel(x_pos - x_start_corner + line_offset_left, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
+                                    buffer.SetPixel(x_pos - x_start_corner + char_offset_left, buffer.BufferHt - (y_pos - y_start_corner + OffsetTop) - 1, c, false);
                                 }
                             }
                         }
