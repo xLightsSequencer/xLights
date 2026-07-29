@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (dkulp)                 Layout: fixed a crash while downloading or importing a model - the property
+                                 grid refresh dispatched from the download progress dialog ran against the
+                                 model the import had already replaced
+    -bug (dkulp)                 Fixed model groups keeping pointers to freed models: renaming a model through
+                                 a replace left every group naming it pointing at the freed model, and
+                                 rebuilding a model's submodels (SubModels dialog save, export submodels to
+                                 other models, custom model reverse) never repointed the groups that name them
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
