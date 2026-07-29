@@ -202,7 +202,10 @@ void ShowDirectoriesDialog::UpdateControlsState()
 
 void ShowDirectoriesDialog::OnButtonChangeShowDirPermanently(wxCommandEvent& event)
 {
-    _xLights->PromptForShowDirectory(true);
+    if (_xLights->PromptForShowDirectory(true)) {
+        EndModal(wxID_OK);
+        return;
+    }
     UpdateControlsState();
 }
 
@@ -210,20 +213,28 @@ void ShowDirectoriesDialog::OnButtonCheckShowFolderTemporarily(wxCommandEvent& e
 {
     wxString currentDir = _xLights->CurrentDir;
     bool permanent = (_xLights->_permanentShowFolder.empty() || _xLights->_permanentShowFolder == currentDir.ToStdString());
+    bool changed;
     if (permanent) {
-        _xLights->PromptForShowDirectory(false);
+        changed = _xLights->PromptForShowDirectory(false);
     } else {
         _xLights->GetDisplayElementsPanel()->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
         _xLights->GetLayoutPanel()->ClearUndo();
         wxASSERT(!_xLights->_permanentShowFolder.empty());
-        _xLights->SetDir(_xLights->_permanentShowFolder, true);
+        changed = _xLights->SetDir(_xLights->_permanentShowFolder, true);
+    }
+    if (changed) {
+        EndModal(wxID_OK);
+        return;
     }
     UpdateControlsState();
 }
 
 void ShowDirectoriesDialog::OnButtonChangeTemporarilyAgain(wxCommandEvent& event)
 {
-    _xLights->PromptForShowDirectory(false);
+    if (_xLights->PromptForShowDirectory(false)) {
+        EndModal(wxID_OK);
+        return;
+    }
     UpdateControlsState();
 }
 
@@ -240,7 +251,10 @@ void ShowDirectoriesDialog::OnButtonOpenBaseShowDir(wxCommandEvent& event)
 {
     _xLights->GetDisplayElementsPanel()->SetSequenceElementsModelsViews(nullptr, nullptr, nullptr);
     _xLights->GetLayoutPanel()->ClearUndo();
-    _xLights->SetDir(_xLights->_outputManager.GetBaseShowDir(), false);
+    if (_xLights->SetDir(_xLights->_outputManager.GetBaseShowDir(), false)) {
+        EndModal(wxID_OK);
+        return;
+    }
     UpdateControlsState();
 }
 

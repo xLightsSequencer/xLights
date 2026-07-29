@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (cybercop23)            Select Directories dialog now closes automatically after a successful change
+                                 to the temporary or permanent show folder, or after opening the base show folder.
     -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
                                  named Viewpoints (2D/3D camera presets).
     -bug (dkulp)                 Layout: fixed a crash while downloading or importing a model - the property
