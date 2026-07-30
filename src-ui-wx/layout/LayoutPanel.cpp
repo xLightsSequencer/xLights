@@ -12011,6 +12011,12 @@ void LayoutPanel::HideFloatingPanes() {
         }
     }
     if (!hasFloating) return;
+    for (size_t i = 0; i < panes.GetCount(); i++) {
+        if (panes[i].IsOk() && panes[i].IsFloating() && panes[i].frame != nullptr && panes[i].frame->IsShown()) {
+            panes[i].floating_pos = panes[i].frame->GetPosition();
+            panes[i].floating_size = panes[i].frame->GetSize();
+        }
+    }
     _savedFloatingPerspective = layout_mgr->SavePerspective();
     for (size_t i = 0; i < panes.GetCount(); i++) {
         if (panes[i].IsFloating() && panes[i].IsShown()) {
