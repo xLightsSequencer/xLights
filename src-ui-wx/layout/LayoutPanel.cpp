@@ -8901,6 +8901,14 @@ int LayoutPanel::GetSelectedModelIndex() const
 Model* LayoutPanel::GetModelFromTreeItem(wxTreeListItem treeItem) {
     ModelTreeData *data = (ModelTreeData*)ActiveModelTree()->GetItemData(treeItem);
     Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+    // A queued tree selection-changed event can be delivered after the model it
+    // referenced was deleted or the tree was refreshed, leaving the item holding
+    // a freed Model*. Validate before returning so callers that dereference the
+    // result (e.g. HandleSelectionChanged's force-select and panel-display paths)
+    // can't crash on a stale pointer.
+    if (model != nullptr && !xlights->AllModels.IsModelValid(model)) {
+        return nullptr;
+    }
     return model;
 }
 
