@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (MrPierreB)             Effect drag: waveform time markers now show the full selection span rather than just the grabbed effect
+    -bug (MrPierreB)             Effect drag: restore start/end/duration status bar text during move drag
     -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
                                  that submits many crash reports is counted once rather than once per report.
                                  It identifies the show only - no machine, user or location - and is written
