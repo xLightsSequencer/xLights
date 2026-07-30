@@ -609,6 +609,8 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
     const xlColor* selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
     const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
+    const xlColor* notOnControllerColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_NOT_ON_CONTROLLER);
+    bool controllersTabActive = _controllerObjectContext == ControllerObjectContext::LayoutEditorControllerTab;
 
     // In 3D, walk models back-to-front by camera-space Z of the model centre so that
     // alpha-blended pixels from one model composite correctly over models behind them.
@@ -646,7 +648,10 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
             }
 
             const xlColor* color = defColor;
-            if (m->Selected() || m->GroupSelected()) {
+            if (m->NotOnController && controllersTabActive) {
+                color = notOnControllerColor;
+            }
+            else if (m->Selected() || m->GroupSelected()) {
                 color = selColor;
             }
             else if (m->Overlapping && isModelSelected) {

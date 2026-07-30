@@ -446,6 +446,7 @@ public:
     std::string ModelStartChannel{ "" };
     bool CouldComputeStartChannel = false;
     bool Overlapping = false;
+    bool NotOnController = false;
     std::string _pixelCount{ "" };
     std::string _pixelType{ "" };
     std::string _pixelSpacing{ "" };

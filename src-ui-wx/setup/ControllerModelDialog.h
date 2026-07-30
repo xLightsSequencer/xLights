@@ -283,6 +283,7 @@ class ControllerModelDialog: public wxDialog
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
         bool MaybeSetSmartRemote(wxKeyEvent& event);
+		void ClearNotOnControllerHighlight();
 
 	private:
 		static int s_activeCount;

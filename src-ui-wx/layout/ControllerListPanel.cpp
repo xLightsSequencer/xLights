@@ -666,6 +666,12 @@ void ControllerListPanel::UpdatePreviewHighlights() {
     auto* preview = _layoutPanel->GetMainPreview();
     if (preview == nullptr) return;
     preview->ClearPortStringHighlights();
+    // A controller/port tree selection change supersedes the "Show Models Not
+    // On Controller" highlight - otherwise the orange highlight lingers on
+    // screen alongside whatever the newly-selected row highlights yellow.
+    for (auto m : preview->GetModels()) {
+        m->NotOnController = false;
+    }
 
     auto highlightWholeModel = [&](Model* m) {
         if (m == nullptr) return;
