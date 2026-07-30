@@ -4003,7 +4003,9 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                     RaiseSelectedEffectChanged(mSelectedEffect, false);
                 }
             } else if (!mEffectMoveDragThresholdExceeded && mEffectMoveDragGroup && mEffectMoveAnchorEffect != nullptr) {
-                // Keep the group selected; just update the settings panel to the clicked effect
+                // Click-without-drag on a group member: narrow selection to just the clicked effect
+                mSequenceElements->UnSelectAllEffects();
+                mEffectMoveAnchorEffect->SetSelected(EFFECT_SELECTED);
                 mSelectedEffect = mEffectMoveAnchorEffect;
                 RaiseSelectedEffectChanged(mSelectedEffect, false);
             }
