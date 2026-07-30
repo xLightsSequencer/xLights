@@ -1425,6 +1425,7 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         m->SetNumMatrixStrings(16);
         m->SetNodesPerString(50);
         m->SetStrandsPerString(1);
+        m->SetVertical(true);
         model = m;
     } else if (type == "Matrix") {
         auto* m = new MatrixModel(*this);
