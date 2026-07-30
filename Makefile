@@ -41,6 +41,7 @@ endif
 
 
 .NOTPARALLEL:
+.SECONDEXPANSION:
 
 all: wxwidgets33 cbp2make linkliquid libxlsxwriter ispc klightmapper glslang makefile vulkanshaders subdirs
 
@@ -55,7 +56,12 @@ subdirs: makefile $(SUBDIRS) share/xLights
 vulkanshaders: FORCE
 	@./build_scripts/compile_vulkan_shaders.sh
 
-$(SUBDIRS): FORCE
+# The generated .cbp.mak is a prerequisite, not just an ordering hint: building a
+# subdir directly (`make xLights`) otherwise reuses a .cbp.mak older than the .cbp
+# it came from, and since cbp2make emits no header dependencies that failure is
+# silent - sources added to the .cbp are simply absent from the build and surface
+# much later as undefined symbols at link.
+$(SUBDIRS): $$@/$$@.cbp.mak FORCE
 	@${MAKE} -C $@ -f `basename $@`.cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_release
 
 share/xLights:
@@ -141,7 +147,7 @@ ispc: FORCE
 
 debug: makefile $(addsuffix _debug,$(SUBDIRS))
 
-$(addsuffix _debug,$(SUBDIRS)):
+$(addsuffix _debug,$(SUBDIRS)): $$(subst _debug,,$$@)/$$(subst _debug,,$$@).cbp.mak
 	@${MAKE} -C $(subst _debug,,$@) -f $(subst _debug,,`basename $@`).cbp.mak OBJDIR_LINUX_DEBUG=".objs_debug" linux_debug
 
 #############################################################################
