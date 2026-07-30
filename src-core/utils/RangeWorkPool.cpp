@@ -13,6 +13,7 @@
 #include "AutoReleasePool.h"
 
 #include <algorithm>
+#include <sstream>
 #include <thread>
 
 #ifndef _WIN32
@@ -48,22 +49,62 @@ RangeWorkPool::~RangeWorkPool() {
 
 std::unique_ptr<RangeWorkPool::Item> RangeWorkPool::Register(std::function<void(int)>&& fn, int first, int max, int concurrency) {
     std::unique_ptr<Item> item(new Item(this, std::move(fn), first, max, concurrency));
+    int wake;
+    bool all;
     {
         std::lock_guard<std::mutex> lg(mtx);
         items.push_back(item.get());
+        liveItems.store((int)items.size(), std::memory_order_relaxed);
+        wake = WakeCountLocked(std::min(max - first, concurrency));
+        all = wake >= idleWorkers;
     }
-    NotifyWork(std::min(max - first, concurrency));
+    // Notified with the lock dropped: a woken worker's first act is to take mtx,
+    // so signalling under it just makes it block again on wakeup.
+    WakeWorkers(wake, all);
     return item;
 }
 
-// Wake no more workers than there is new work to claim.  A notify_all per
-// registration wakes every worker for a two-index range, and the ones that find
-// nothing pay a context switch to go straight back to sleep - the registration
-// rate here is one per window, so that adds up.
-void RangeWorkPool::NotifyWork(int newIndices) {
-    for (int x = 0; x < newIndices && x < numWorkers; ++x) {
-        workSignal.notify_one();
+// One notify_all is a single syscall that the kernel expands to every waiter;
+// N notify_one calls are N syscalls.  Waking each worker individually is only
+// worth it when the new work would not fill the pool anyway - which is the frame
+// case (a window registers a couple of indices) but not the parallel_for case (a
+// loop registers hundreds of blocks, thousands of times a render, and genuinely
+// wants every idle worker).  Doing it one-at-a-time there put ~15 syscalls on
+// every loop.
+void RangeWorkPool::WakeWorkers(int wake, bool all) {
+    if (wake <= 0) {
+        return;
     }
+    if (all) {
+        workSignal.notify_all();
+    } else {
+        for (int x = 0; x < wake; ++x) {
+            workSignal.notify_one();
+        }
+    }
+}
+
+// Wake no more workers than there is new work to claim, and no more than are
+// actually asleep.  A notify_all per registration wakes every worker for a
+// two-index range and the ones that find nothing pay a context switch to go
+// straight back to sleep.  Reading idleWorkers under mtx is what makes the
+// wakeup impossible to lose: a worker that has not yet been counted idle has not
+// yet released mtx, so its own ClaimLocked still runs after this registration is
+// visible and it finds the work instead of parking.
+int RangeWorkPool::WakeCountLocked(int newIndices) const {
+    return std::min({ newIndices, numWorkers, idleWorkers });
+}
+
+std::string RangeWorkPool::GetStatus() {
+    std::stringstream ret;
+    std::lock_guard<std::mutex> lg(mtx);
+    ret << poolName << ": " << numWorkers << " workers, " << idleWorkers << " idle, "
+        << items.size() << " live ranges\n";
+    for (const Item* it : items) {
+        ret << "  [" << it->next << "," << it->maxIdx << ") inFlight=" << it->inFlight
+            << "/" << it->maxConcurrent << (it->open ? "" : " closed") << "\n";
+    }
+    return ret.str();
 }
 
 // Caller holds mtx.  Scans from the rotor so consecutive claims spread across
@@ -107,9 +148,15 @@ void RangeWorkPool::RunOne(Item* it, int idx, std::unique_lock<std::mutex>& lk) 
     --it->inFlight;
     // Capacity just freed under this item's concurrency cap, so exactly one more
     // index of it became claimable - and an owner may be blocked on that cap or
-    // on the drain in ~Item.
-    workSignal.notify_one();
-    doneSignal.notify_all();
+    // on the drain in ~Item.  Both notifies are skipped when nobody is parked:
+    // this runs once per index, and for parallel_for an index is one block of a
+    // loop, so two unconditional syscalls here would dominate the claim.
+    if (idleWorkers > 0) {
+        workSignal.notify_one();
+    }
+    if (it->capWaiters > 0 || (it->drainWaiters > 0 && it->inFlight == 0)) {
+        it->doneCv.notify_all();
+    }
 }
 
 void RangeWorkPool::WorkerLoop() {
@@ -121,7 +168,9 @@ void RangeWorkPool::WorkerLoop() {
         if (ClaimLocked(it, idx)) {
             RunOne(it, idx, lk);
         } else {
+            ++idleWorkers;
             workSignal.wait(lk);
+            --idleWorkers;
         }
     }
 }
@@ -130,26 +179,31 @@ RangeWorkPool::Item::~Item() {
     std::unique_lock<std::mutex> lk(pool->mtx);
     open = false;
     while (inFlight > 0) {
-        pool->doneSignal.wait(lk);
+        ++drainWaiters;
+        doneCv.wait(lk);
+        --drainWaiters;
     }
     auto& v = pool->items;
     v.erase(std::remove(v.begin(), v.end(), this), v.end());
+    pool->liveItems.store((int)v.size(), std::memory_order_relaxed);
     if (pool->rotor > v.size()) {
         pool->rotor = 0;
     }
 }
 
 void RangeWorkPool::Item::Extend(int newMax) {
-    int added = 0;
+    int wake = 0;
+    bool all = false;
     {
         std::lock_guard<std::mutex> lg(pool->mtx);
         if (newMax <= maxIdx) {
             return;
         }
-        added = newMax - maxIdx;
+        wake = pool->WakeCountLocked(newMax - maxIdx);
+        all = wake >= pool->idleWorkers;
         maxIdx = newMax;
     }
-    pool->NotifyWork(added);
+    pool->WakeWorkers(wake, all);
 }
 
 void RangeWorkPool::Item::Close() {
@@ -175,7 +229,9 @@ void RangeWorkPool::Item::RunOwnerShare() {
             // Workers are running the cap's worth already.  Wait rather than
             // return: the caller treats a return as "range exhausted" and would
             // close the item with indices still unclaimed.
-            pool->doneSignal.wait(lk);
+            ++capWaiters;
+            doneCv.wait(lk);
+            --capWaiters;
             continue;
         }
         int idx = next++;

@@ -20,6 +20,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (MrPierreB)             Effect drag: waveform time markers now show the full selection span rather than just the grabbed effect
     -bug (MrPierreB)             Effect drag: restore start/end/duration status bar text during move drag
     -bug (MrPierreB)             Clicking an effect in a multi-selection now narrows the selection to just that effect instead of keeping all effects selected.
+    -enh (dkulp)                 Frame rendering, per-model buffers and every parallel_for now share one
+                                 round-robin worker pool instead of running three pools of their own. The
+                                 render nests all three, so the separate pools put about three times as many
+                                 threads on the machine as there are cores, and the extra threads cost
+                                 context switches rather than adding throughput. How much that was costing
+                                 depends on the platform: macOS gains the most (render CPU down 20-30%,
+                                 system time roughly halved), Windows a few percent. Output is
+                                 byte-identical.
     -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
                                  that submits many crash reports is counted once rather than once per report.
                                  It identifies the show only - no machine, user or location - and is written

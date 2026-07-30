@@ -92,6 +92,7 @@
 #include "import_export/ModelRemap.h"
 #include "setup/MultiControllerUploadDialog.h"
 #include "Parallel.h"
+#include "utils/RangeWorkPool.h"
 #include "model/PathGenerationDialog.h"
 #include "setup/PixelTestDialog.h"
 #include "sequencer/RenderCommandEvent.h"
@@ -4403,7 +4404,7 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 
     threadStatus += "\n";
     threadStatus += "Parallel Job Pool:\n";
-    threadStatus += ParallelJobPool::POOL.GetThreadStatus();
+    threadStatus += ParallelForPool().GetStatus();
 
     threadStatus += "\n";
     threadStatus += "Thread traces:\n";
