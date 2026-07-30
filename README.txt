@@ -19,6 +19,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  to the temporary or permanent show folder, or after opening the base show folder.
     -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
                                  named Viewpoints (2D/3D camera presets).
+    -enh (dkulp)                 Sped up the number-aware name sort used by the model, group, view and import
+                                 lists - it no longer copies and re-splits both names on every comparison
+                                 (~2.3x on its own), and the Import Effects mapping tree no longer converts
+                                 each name through wxString twice per comparison. Both showed up as
+                                 multi-minute freezes while sorting a large mapping tree.
     -bug (dkulp)                 macOS: fixed a crash when the Finder hands over more than one sequence at
                                  once - the save-changes prompt of the first open pumped the event queue and
                                  started the second open inside it, so the sequencer loaded against panes the
