@@ -28,6 +28,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  depends on the platform: macOS gains the most (render CPU down 20-30%,
                                  system time roughly halved), Windows a few percent. Output is
                                  byte-identical.
+    -enh (dkulp)                 Model load, parallel output transmission and FPP Connect frame upload spread their
+                                 work across the pool by index rather than by walking a linked list behind a lock,
+                                 so they no longer serialise every worker on that lock. Output is byte-identical.
     -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
                                  that submits many crash reports is counted once rather than once per report.
                                  It identifies the show only - no machine, user or location - and is written

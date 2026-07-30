@@ -822,10 +822,11 @@ int OutputManager::GetOutputCount() const {
     return std::accumulate(begin(_controllers), end(_controllers), 0, [](int accumulator, Controller* const c) { return accumulator + c->GetOutputCount(); });
 }
 
-std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname) const {
+std::vector<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std::string& hostname) const {
 
-    std::list<Output*> res;
+    std::vector<Output*> res;
     auto outputs = GetAllOutputs();
+    res.reserve(outputs.size());
     for (const auto& it : outputs) {
         if (ip == "" || (it->IsIpOutput() && (it->GetIP() == ip || it->GetResolvedIP() == ip || it->GetIP() == hostname))) {
             res.push_back(it);
@@ -835,9 +836,9 @@ std::list<Output*> OutputManager::GetAllOutputs(const std::string& ip, const std
     return res;
 }
 
-std::list<Output*> OutputManager::GetAllOutputs() const {
+std::vector<Output*> OutputManager::GetAllOutputs() const {
 
-    std::list<Output*> res;
+    std::vector<Output*> res;
     for (const auto& it : _controllers) {
         for (const auto& it2 : it->GetOutputs()) {
             res.push_back(it2);
@@ -1383,10 +1384,9 @@ void OutputManager::EndFrame() {
 
     auto outputs = GetAllOutputs();
     if (_parallelTransmission) {
-        std::function<void(Output*&, int)> f = [this](Output*&o, int n) {
-            o->EndFrame(_suppressFrames);
-        };
-        parallel_for(outputs, f);
+        parallel_for(0, (int)outputs.size(), [this, &outputs](int n) {
+            outputs[n]->EndFrame(_suppressFrames);
+        });
     }
     else {
         for (const auto& it : outputs) {

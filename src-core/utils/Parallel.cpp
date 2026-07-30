@@ -11,8 +11,9 @@
 //  Copyright © 2018 Daniel Kulp. All rights reserved.
 
 #include "Parallel.h"
-#include <thread>
 #include <algorithm>
+#include <cstdlib>
+#include <thread>
 
 #include "RangeWorkPool.h"
 

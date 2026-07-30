@@ -18771,7 +18771,7 @@ NSString* fppTypeString(FPP_TYPE t) {
             // transcoder is its own object, so AddFrameToUpload is
             // safe to run concurrently across targets. `dispatch_apply`
             // blocks until every closure returns — matches desktop's
-            // `parallel_for(instances, func)` semantics.
+            // `parallel_for(0, targets.size(), ...)` semantics.
             //
             // Block captures default to const, which would make the
             // captured std::vector unmodifiable inside. Reach mutable

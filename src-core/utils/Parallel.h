@@ -10,11 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <atomic>
 #include <functional>
-#include <list>
-#include <mutex>
-#include <thread>
 
 class RangeWorkPool;
 
@@ -37,36 +33,4 @@ RangeWorkPool& ParallelForPool();
  */
 void parallel_for(int start, int max, std::function<void(int)>&& f, int minStep = 1,
                   RangeWorkPool *pool = nullptr);
-
-
-/**
- * Traditional for loop:
- * std::list<T> list;
- * int idx = 0;
- * for(T &t : list) { ++idx; ... use t ...}
- *
- * would convert to:
- * std::list<T> list;
- * std::function<void(T&, int)> f = [&](T &t, int idx) { ... use t and idx...}
- * parallel_for(list, f);
- */
-template <typename T>
-void parallel_for(std::list<T> &list, std::function<void(T&, int)>& f, int minStep = 1) {
-    const int size = (int)list.size();
-    // A list has no random access, so the pool index only meters how many pulls
-    // happen; the element-to-index pairing comes off a shared cursor exactly as
-    // the serial loop would make it.  The pool hands out each index once, so the
-    // cursor is stepped exactly `size` times.
-    std::mutex lock;
-    int cursor = 0;
-    typename std::list<T>::iterator it = list.begin();
-    parallel_for(0, size, [&](int) {
-        lock.lock();
-        T &t = *it;
-        ++it;
-        const int idx = cursor++;
-        lock.unlock();
-        f(t, idx);
-    }, minStep);
-}
 

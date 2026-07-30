@@ -288,7 +288,7 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     previewWidth = previewW;
     previewHeight = previewH;
     auto timerStart = std::chrono::steady_clock::now();
-    std::list<pugi::xml_node> modelsToLoad;
+    std::vector<pugi::xml_node> modelsToLoad;
     for (pugi::xml_node e = modelNode.first_child(); e; e = e.next_sibling()) {
         if (std::string_view(e.name()) == "model") {
             std::string name = Trim(e.attribute("name").as_string());
@@ -297,12 +297,11 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
             }
         }
     }
-    std::function<void(pugi::xml_node&, int)> f = [this, previewW, previewH](pugi::xml_node e, int idx) {
-        createAndAddModel(e, previewW, previewH);
-    };
     {
         AutoReleasePool pool;
-        parallel_for(modelsToLoad, f);
+        parallel_for(0, (int)modelsToLoad.size(), [this, &modelsToLoad, previewW, previewH](int idx) {
+            createAndAddModel(modelsToLoad[idx], previewW, previewH);
+        });
     }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
