@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.15  August ??, 2026
     -bug (MrPierreB)             Effect drag: waveform time markers now show the full selection span rather than just the grabbed effect
     -bug (MrPierreB)             Effect drag: restore start/end/duration status bar text during move drag
+    -bug (MrPierreB)             Clicking an effect in a multi-selection now narrows the selection to just that effect instead of keeping all effects selected.
     -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
                                  that submits many crash reports is counted once rather than once per report.
                                  It identifies the show only - no machine, user or location - and is written
