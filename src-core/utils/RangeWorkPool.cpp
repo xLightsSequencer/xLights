@@ -10,6 +10,8 @@
 
 #include "RangeWorkPool.h"
 
+#include "AutoReleasePool.h"
+
 #include <algorithm>
 #include <thread>
 
@@ -88,6 +90,14 @@ bool RangeWorkPool::ClaimLocked(Item*& outItem, int& outIdx) {
 void RangeWorkPool::RunOne(Item* it, int idx, std::unique_lock<std::mutex>& lk) {
     lk.unlock();
     try {
+        // One pool per index, matching JobPool's one-per-job contract. These
+        // workers are permanent and detached, so anything autoreleased by fn
+        // with no pool in place is held for the life of the PROCESS, not the
+        // life of the work: a render frame that touches Metal or the video
+        // decoder autoreleases megabytes, and the frame-parallel path runs
+        // whole frames through here. Push/pop are both on this thread inside
+        // this scope, so the runtime's LIFO + affinity rules hold.
+        AutoReleasePool pool;
         it->fn(idx);
     } catch (...) {
         // Matches parallel_for: one bad index must not take a worker down.

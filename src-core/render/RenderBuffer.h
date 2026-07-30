@@ -395,6 +395,10 @@ public:
 
     int GetNodeCount() const { return Nodes.size();}
     const std::vector<NodeBaseClassPtr>& GetNodes() const { return Nodes; }
+    // Approximate heap bytes this buffer holds - the pixel/index/node arrays,
+    // which is where all the size is. Used by the render memory governor to
+    // price a row (and a clone of it) before allocating more.
+    uint64_t GetApproxMemoryBytes() const;
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
 
     void CopyPixel(int srcx, int srcy, int destx, int desty);

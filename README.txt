@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  decoder target a frame far larger than the source, so every cached frame was tens
                                  of MB. Renders using such a video could reach 40GB+ and be many times slower.
                                  Such files decode at native size again, as they did before decode-time scaling.
+    -enh (dkulp)                 Render: throttle frame concurrency when memory use approaches the limit the OS will
+                                 kill the process at, and XL_RENDER_MEM=1 reports what a render is spending memory on
     -bug (MrPierreB)             Effect drag: waveform time markers now show the full selection span rather than just the grabbed effect
     -bug (MrPierreB)             Effect drag: restore start/end/duration status bar text during move drag
     -bug (MrPierreB)             Clicking an effect in a multi-selection now narrows the selection to just that effect instead of keeping all effects selected.
