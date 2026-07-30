@@ -1223,7 +1223,9 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
                 _model.SetShadowModelFor(newVal);
             }
         }
-        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::ShadowModelFor");
+        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                    OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ShadowModelFor");
         return 0;
     } else if (event.GetPropertyName() == "Controller") {
         if (_model.GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()]) {

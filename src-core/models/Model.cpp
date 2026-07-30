@@ -4386,9 +4386,22 @@ void Model::SetShadowModelFor(const std::string& shadowModelFor)
 {
     // models should not be a shadow model for themselves
     if (shadowModelFor != name && shadowModelFor != _shadowModelFor) {
+        if (!_shadowModelFor.empty()) {
+            Model* oldTarget = GetModelManager().GetModel(_shadowModelFor);
+            if (oldTarget && oldTarget->GetModelStartChannel() == "@" + name + ":1") {
+                oldTarget->SetStartChannel("1");
+            }
+        }
         _shadowModelFor = shadowModelFor;
+        if (!_shadowModelFor.empty()) {
+            Model* targetModel = GetModelManager().GetModel(_shadowModelFor);
+            if (targetModel) {
+                targetModel->SetStartChannel("@" + name + ":1");
+                targetModel->SetControllerName("");
+            }
+        }
         IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetShadowModelFor");
+        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE | OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetShadowModelFor");
     }
 }
 
