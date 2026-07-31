@@ -944,6 +944,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\outputs\RenardOutput.cpp" />
     <ClCompile Include="..\src-core\outputs\serial.cpp" />
     <ClCompile Include="..\src-core\outputs\SerialOutput.cpp" />
+    <ClCompile Include="..\src-core\outputs\ChannelTracker.cpp" />
+    <ClCompile Include="..\src-core\outputs\TestPatternEngine.cpp" />
     <ClCompile Include="..\src-core\outputs\TestPreset.cpp" />
     <ClCompile Include="..\src-core\outputs\TwinklyOutput.cpp" />
     <ClCompile Include="..\src-core\outputs\xxxEthernetOutput.cpp" />
@@ -1605,6 +1607,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\outputs\RenardOutput.h" />
     <ClInclude Include="..\src-core\outputs\serial.h" />
     <ClInclude Include="..\src-core\outputs\SerialOutput.h" />
+    <ClInclude Include="..\src-core\outputs\ChannelTracker.h" />
+    <ClInclude Include="..\src-core\outputs\TestPatternEngine.h" />
     <ClInclude Include="..\src-core\outputs\TestPreset.h" />
     <ClInclude Include="..\src-core\outputs\TwinklyOutput.h" />
     <ClInclude Include="..\src-core\outputs\xxxEthernetOutput.h" />

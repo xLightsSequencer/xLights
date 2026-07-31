@@ -4,6 +4,7 @@
 #import "Metal/XLGridMetalBridge.h"
 #import "Bridge/XLCheckSequenceIssue.h"
 #import "Bridge/XLFindEffectResult.h"
+#import "Bridge/XLLightTest.h"
 #import "Bridge/XLSequenceDocument.h"
 #import "Bridge/XLValueCurve.h"
 #import "Bridge/XLColorCurve.h"

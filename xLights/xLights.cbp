@@ -1360,6 +1360,10 @@
 		<Unit filename="../src-core/outputs/SocketAbstraction.h" />
 		<Unit filename="../src-core/outputs/SerialOutput.cpp" />
 		<Unit filename="../src-core/outputs/SerialOutput.h" />
+		<Unit filename="../src-core/outputs/ChannelTracker.cpp" />
+		<Unit filename="../src-core/outputs/ChannelTracker.h" />
+		<Unit filename="../src-core/outputs/TestPatternEngine.cpp" />
+		<Unit filename="../src-core/outputs/TestPatternEngine.h" />
 		<Unit filename="../src-core/outputs/TestPreset.cpp" />
 		<Unit filename="../src-core/outputs/TestPreset.h" />
 		<Unit filename="../src-core/outputs/TwinklyOutput.cpp" />

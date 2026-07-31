@@ -340,7 +340,7 @@ are declined.)
 | States editor *(weaker)* | 06 | hard | feasible | Same as Faces: iPad attr-map editor vs desktop ModelStateDialog node-grid UI. |
 | Export video: bitrate field *(weaker)* | 08 | medium | feasible | Per-model submenu + house-preview sheet pick codec/resolution; no explicit bitrate field (VideoWriter chooses). Codec/quality selection itself ✅ landed 2026-06-03. |
 | Keyboard-shortcut rebinding editor | 11 | hard | feasible | Desktop editor is wired (File ▸ Key Bindings, 137 bindings, 4 scopes). iPad shortcuts are static in XLightsCommands.swift. |
-| Tools > Test (Pixel/Light Test) | 13 | hard | hard | Launches PixelTestDialog driving controller outputs directly (OnActionTestMenuItemSelected:4172 stops timers/output, ope |
+| Tools > Test (Pixel/Light Test) *(weaker)* | 13 | hard | feasible | **Landed (Models + Controllers tabs).** Prior "iOS blocks raw output" verdict was stale — multicast entitlement is granted and live output already ships. Engine extracted to core `TestPatternEngine`; desktop + iPad share it. Remaining: Outputs / Model Groups tabs + visual node-tap Model tab. |
 | Tools > Prepare Audio | 13 | hard | hard | Resample/normalize via FFmpeg. FFmpeg core excluded from iPad build. AVFoundation reimpl possible but heavy. |
 | Song Structure Regions (entire feature) | 02 | hard | feasible | New desktop #6268: named/colored timeline regions, named views, boundary drag, ruler+grid overlay, region bulk actions, per-region .xsq export. Core SongStructureManager is wx-free and already round-trips on iPad (data preserved); only SwiftUI editing UI + Metal overlay missing. Bulk-action ops mostly wrap existing core/SequenceElements mutators. |
 
@@ -518,7 +518,7 @@ reverse parity as "touch idiom").
 | Prepare Audio (Reaper/xAudio import) | 03 | Reaper .rpp automation + FFmpeg transcoding; not viable in iOS sandbox. |
 | COLOR_DROPPER_TOGGLE keyboard shortcut (F11) | 05 | Toggles the dockable Color Dropper pane (not a per-effect dropper tool). iPad has no such pane, so the binding has no target. |
 | SpaceMouse 6-DOF input | 06 | Desktop Mouse3DManager/SpaceMouseSession. No iOS HID SpaceMouse. |
-| Pixel test / test output | 07 | Desktop PixelTestDialog drives raw sACN/ArtNet/DDP/serial output frames. iOS sandbox blocks raw multicast UDP + USB/serial -> infeasible. |
+| Pixel test: serial/USB controllers only | 07 | Network output (sACN/ArtNet/DDP) IS testable on iPad and has landed — see 13-tools. Serial/USB DMX has no iPadOS transport, so those controllers are listed as untestable in the test sheet. |
 | Perspectives: save current | 10 | Saves AUI dock layout; iPad fixed SwiftUI layout, no dockable panes. |
 | Perspectives: save as new | 10 | No AUI on iPad. |
 | Perspectives: edit / load | 10 | No AUI on iPad. |

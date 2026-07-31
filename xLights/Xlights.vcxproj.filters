@@ -79,6 +79,8 @@
     <ClCompile Include="..\src-ui-wx\shared\utils\NodesGridCellEditor.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\NoteImportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\dialogs\OptionChooser.cpp" />
+    <ClCompile Include="..\src-core\outputs\ChannelTracker.cpp" />
+    <ClCompile Include="..\src-core\outputs\TestPatternEngine.cpp" />
     <ClCompile Include="..\src-core\outputs\TestPreset.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\PerspectivesPanel.cpp" />
     <ClCompile Include="..\src-core\lyrics\LRCParser.cpp" />
@@ -1624,6 +1626,8 @@
     <ClInclude Include="..\src-ui-wx\sequencer\NoteImportDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\dialogs\OptionChooser.h" />
     <ClInclude Include="..\src-core\utils\ExternalHooks.h" />
+    <ClInclude Include="..\src-core\outputs\ChannelTracker.h" />
+    <ClInclude Include="..\src-core\outputs\TestPatternEngine.h" />
     <ClInclude Include="..\src-core\outputs\TestPreset.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\PerspectivesPanel.h" />
     <ClInclude Include="..\src-core\lyrics\LRCParser.h" />

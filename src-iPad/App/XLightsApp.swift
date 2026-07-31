@@ -315,6 +315,13 @@ struct ContentView: View {
                 .environment(viewModel)
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingLightTest },
+            set: { viewModel.showingLightTest = $0 }
+        )) {
+            LightTestSheet()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingRestoreBackup },
             set: { viewModel.showingRestoreBackup = $0 }
         )) {

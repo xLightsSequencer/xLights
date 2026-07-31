@@ -12,6 +12,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
     -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
+    -bug (dkulp)                 Test: an RGB twinkle over a single selected channel spun until it ran out of memory
+    -bug (dkulp)                 Test: marking every 50th pixel read past the end of the selection when the
+                                 selection was not a whole multiple of 50 pixels
+    -change (dkulp)              Test: the pattern engine moved to shared core code so it is no longer carried in
+                                 function-local statics that persisted across dialog open/close
     -enh (dkulp)                 Crash reports: an exception that is not a C++ std::exception is now named rather
                                  than logged as "an unknown exception", including the class and reason of a
                                  macOS/iOS system exception

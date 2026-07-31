@@ -8,6 +8,7 @@
 
 @class XLCheckSequenceIssue;
 @class XLFindEffectResult;
+@class XLLightTest;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -2230,6 +2231,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)isOutputting;
 - (void)outputFrame:(int)frameMS;
 - (NSInteger)outputCount;
+
+// Light test (desktop's Tools > Test). Lazily created and owned by the
+// document so the channel selection survives sheet dismissal. Runs the
+// shared core engine against the show's controllers.
+@property (nonatomic, readonly) XLLightTest* lightTest;
 
 // Rendering
 - (void)renderAll;

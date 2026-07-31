@@ -10,6 +10,7 @@
 
 #import "XLSequenceDocument.h"
 #import "XLGridMetalBridge.h"
+#import "XLLightTest+Internal.h"
 #import <CoreGraphics/CoreGraphics.h>
 #include "iPadRenderContext.h"
 
@@ -228,6 +229,9 @@ static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
 
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
+    // Lazily built by -lightTest; holds the test channel selection so it
+    // survives the sheet being dismissed and reopened.
+    XLLightTest* _lightTest;
     // Snapshot of `SequenceElements::GetChangeCount()` at the last
     // successful load / save. Current count == snapshot ⇒ clean.
     unsigned int _lastSavedChangeCount;
@@ -12152,6 +12156,14 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (void)stopOutput {
     _context->GetOutputManager().StopOutput();
+}
+
+- (XLLightTest*)lightTest {
+    if (_lightTest == nil && _context != nullptr) {
+        _lightTest = [[XLLightTest alloc] initWithOutputManager:&_context->GetOutputManager()
+                                                   modelManager:&_context->GetModelManager()];
+    }
+    return _lightTest;
 }
 
 - (NSArray<NSDictionary*>*)globalOutputSettings {

@@ -105,7 +105,7 @@
 | Upload input (universes) | toolbar/menu | ✅ | ✅ | parity | P1 | hard | restricted | iPad `uploadInputForController`, osf-gated. |
 | Linked input+output upload | toolbar | ✅ | ✅ | parity | P1 | medium | restricted | Desktop link checkbox; iPad runs input then output automatically. osf-gated. |
 | Bulk multi-controller upload | menu/dialog | ✅ | ✅ | parity | P1 | hard | feasible | Desktop `MultiControllerUploadDialog`; iPad `bulkUploadControllersWithProgress` bridge loops `runUpload` over active open-source-firmware controllers + `BulkUploadSheet` progress/results sheet launched from the Controllers-tab "Upload All…" menu item. Closed firmware skipped. |
-| Pixel test / test output | menu/dialog | ✅ | ❌ | ipad-missing | P1 | hard | infeasible | Desktop `PixelTestDialog` drives raw DMX/sACN/ArtNet/serial output. iOS sandbox blocks raw output → infeasible. |
+| Pixel test / test output | menu/dialog | ✅ | 🟡 | ipad-weaker | P1 | hard | feasible | **Landed (Models + Controllers tabs)** — see [13-tools](13-tools-diagnostics-help.md). Network output (sACN/ArtNet/DDP) works on iPad under the multicast entitlement; only serial/USB is out of reach. |
 | Remap DMX channels | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop DMX-effect panel → `RemapDMXChannelsDialog` (effect-level, edge of theme). No iPad DMX-remap UI. |
 | Controller list docked in the Layout tab | tab/panel | ✅ | ✅ | parity | P2 | hard | feasible | **Desktop caught up to the iPad (2026-07, PR #6690).** The standalone Setup tab is gone; `ControllerListPanel` (`src-ui-wx/layout/ControllerListPanel.cpp`) is now a page of the Layout tab's notebook alongside Models/Groups/3D Objects, with the property grid in the AUI settings pane — the same shape the iPad has shipped since J-5 (`LayoutEditorView.swift`). Reverse-parity item in theme 14 (desktop-only surface) is now a *layout* difference only, not a capability one. |
 | Controller → port → model tree expansion | tab/panel | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `PopulateControllerPorts` (`src-ui-wx/layout/ControllerTreeUtils.cpp`) expands each controller into pixel/serial/PWM/virtual-matrix/LED-panel ports and the models on them, built from `UDController`. iPad shows the same decomposition in its Visualize/wiring sheet (`ControllerVisualizeView`). Different surface, same data. `UDController::Rescan`'s PWM branch dereferenced `Controller::GetControllerCaps()` unchecked, crashing whenever a PWM-protocol model sat on a controller with no capabilities definition; now null-guarded in shared core (`src-core/controllers/ControllerUploadData.cpp`), so **auto-applied to both platforms** — no iPad UI work. |
@@ -261,12 +261,6 @@ backport.
 
 ## Infeasible / restricted on iPad
 
-- **Pixel test / test output (infeasible).** `PixelTestDialog` drives
-  raw sACN/ArtNet/DDP/serial-DMX output frames directly to wire. The
-  iOS App Sandbox blocks raw multicast/broadcast UDP and all USB/serial
-  access, so a faithful pixel-test cannot run from the iPad app. (FPP
-  Connect uploads run over ordinary HTTP and are fine; live output is
-  the blocked part.)
 - **Raw serial / USB controllers (hardware-infeasible).** iPad has no
   USB-serial; serial controllers can be *configured/edited* (for shows
   that round-trip to desktop) but never *output to* from the iPad.
