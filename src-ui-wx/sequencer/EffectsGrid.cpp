@@ -8555,6 +8555,9 @@ void EffectsGrid::ApplyEffectMoveDrag() {
     if (rowDelta == 0 && !mEffectMoveCopyMode) {
         MoveAllSelectedEffects(deltaMS, false);
         sendRenderDirtyEvent();
+        if (mEffectMoveAnchorEffect != nullptr) {
+            RaisePlayModelEffect(mEffectMoveAnchorEffect->GetParentEffectLayer()->GetParentElement(), mEffectMoveAnchorEffect, false);
+        }
         return;
     }
 
