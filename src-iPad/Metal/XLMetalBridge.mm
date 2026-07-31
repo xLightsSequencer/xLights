@@ -18,6 +18,7 @@
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include "models/SubModelSymmetrize.h"
+#include "models/SubModelOps.h"
 #include "models/ControllerObject.h"
 #include "models/TerrainObject.h"
 #include "models/TerrainScreenLocation.h"
@@ -4137,6 +4138,50 @@ public:
     NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:res.strands.size()];
     for (const auto& s : res.strands) {
         [out addObject:[NSString stringWithUTF8String:s.c_str()]];
+    }
+    return out;
+}
+
+- (nullable NSArray<NSString*>*)orderPointsInRanges:(NSArray<NSString*>*)ranges
+                                            onModel:(NSString*)modelName
+                                             choice:(NSString*)choice
+                                           firstRow:(NSInteger)firstRow
+                                            lastRow:(NSInteger)lastRow
+                                        forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !modelName || !choice || !ranges) return nil;
+
+    submodel_ops::OrderPointsOptions opts;
+    if (!submodel_ops::ParseOrderPointsChoice(std::string(choice.UTF8String), opts)) return nil;
+
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return nil;
+
+    std::map<int, std::pair<float, float>> coords;
+    if (!m->GetScreenLocations(_preview.get(), coords) || coords.empty()) return nil;
+
+    std::vector<std::string> strands;
+    strands.reserve(ranges.count);
+    for (NSString* r in ranges) {
+        if ([r isKindOfClass:[NSString class]]) {
+            strands.emplace_back(r.UTF8String);
+        }
+    }
+
+    submodel_ops::OrderPoints(strands, coords, opts, (int)firstRow, (int)lastRow);
+
+    NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:strands.size()];
+    for (const auto& s : strands) {
+        [out addObject:[NSString stringWithUTF8String:s.c_str()]];
+    }
+    return out;
+}
+
+- (NSArray<NSString*>*)submodelOrderPointsChoices {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    for (const auto& c : submodel_ops::OrderPointsChoices()) {
+        [out addObject:[NSString stringWithUTF8String:c.c_str()]];
     }
     return out;
 }

@@ -1588,6 +1588,47 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSInteger)nodeCountForModel:(NSString*)modelName
     NS_SWIFT_NAME(nodeCount(forModel:));
 
+// Submodel geometry toolbox — the desktop SubModelsPanel's node-grid
+// operations, running the shared core `submodel_ops`.
+//
+// Pure by design: takes a strand list and returns the transformed one
+// without touching the model, so the editor can preview, stack and undo
+// operations locally and commit once via `replaceSubModelsOnModel:`.
+//
+// `strands[0]` is the BOTTOM row as the editor shows it, matching the core
+// and the desktop panel. `displayRow` is a top-down row index and is only
+// read by the per-row operations. `amount` is only read by "shift".
+//
+// Recognised `op` values:
+//   "reverse"                 renumber n -> nodeCount+1-n
+//   "shift"                   add `amount` to every node, wrapping
+//   "flip-horizontal"         mirror each row left-to-right
+//   "flip-vertical"           mirror the row order
+//   "pivot"                   transpose rows and columns
+//   "combine"                 concatenate every row into one
+//   "uniform-distribute"      pad rows to equal length, nodes spread out
+//   "uniform-front"           pad rows to equal length at the start
+//   "uniform-rear"            pad rows to equal length at the end
+//   "remove-duplicates-row"   de-dupe `displayRow`, shortening it
+//   "suppress-duplicates-row" de-dupe `displayRow`, blanking in place
+//   "remove-duplicates-lr"    de-dupe the grid column-major, shortening
+//   "remove-duplicates-tb"    de-dupe the grid row-major, shortening
+//   "suppress-duplicates-lr"  de-dupe the grid column-major, blanking
+//   "suppress-duplicates-tb"  de-dupe the grid row-major, blanking
+//   "expand" / "compress"     expand or compress every row's ranges
+//   "blanks-to-zeros"         write empty cells as 0
+//   "zeros-to-blanks"         write 0 cells as empty
+//   "remove-blanks-zeros"     drop empty and 0 cells
+//
+// Returns nil for an unknown op so the caller can surface it rather than
+// silently no-op.
+- (nullable NSArray<NSString*>*)applySubmodelOperation:(NSString*)op
+                                             toStrands:(NSArray<NSString*>*)strands
+                                             nodeCount:(NSInteger)nodeCount
+                                            displayRow:(NSInteger)displayRow
+                                                amount:(NSInteger)amount
+    NS_SWIFT_NAME(applySubmodelOperation(_:toStrands:nodeCount:displayRow:amount:));
+
 // J-30 — Submodel editor support. Replace this model's alias
 // list with `aliases` (mirrors `setModelAliases:` semantics but
 // scoped to a SubModel). Strings are trimmed + lowercased +
