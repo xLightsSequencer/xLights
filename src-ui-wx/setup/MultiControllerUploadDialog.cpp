@@ -119,7 +119,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
 
     Connect(ID_LISTCTRL_CONTROLLERS, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&MultiControllerUploadDialog::OnListRClick);
 
-    static const int RESULT_COLUMN_WIDTH = 26;
+    const int RESULT_COLUMN_WIDTH = FromDIP(26);
     ListCtrl_Controllers->EnableCheckBoxes(true);
     ListCtrl_Controllers->AppendColumn("");
     ListCtrl_Controllers->AppendColumn("");
