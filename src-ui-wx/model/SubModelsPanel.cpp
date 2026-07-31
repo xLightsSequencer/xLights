@@ -2149,41 +2149,6 @@ bool SubModelsPanel::SetNodeColor(int row, xlColor const& c, bool highlight) {
 // When one then they should never overlap but you may also get some gaps
 #define GENERATE_GAP 0.25
 
-void SubModelsPanel::GenerateSegment(SubModelsPanel::SubModelInfo* sm, int segments, int segment, bool horizontal, int count)
-{
-    if (horizontal) {
-        float perx = 100.0 / segments;
-        int offset = segment % segments;
-        float startx = offset * perx;
-        float endx = startx + perx - GENERATE_GAP;
-        if ((segment + 1) % segments == 0) endx = 100;
-
-        float per = 100.0 / (count / segments);
-        float start = segment / segments * per;
-        float end = start + per - GENERATE_GAP;
-
-        if ((segment + 1) / segments == count / segments) end = 100;
-
-        sm->isRanges = false;
-        sm->subBuffer = wxString::Format("%.2fx%.2fx%.2fx%.2f", startx, start, endx, end);
-    } else {
-        float pery = 100.0 / segments;
-        int offset = segment % segments;
-        float starty = offset * pery;
-        float endy = starty + pery - GENERATE_GAP;
-        if ((segment + 1) % segments == 0) endy = 100;
-
-        float per = 100.0 / (count / segments);
-        float start = segment / segments * per;
-        float end = start + per - GENERATE_GAP;
-
-        if ((segment + 1) / segments == count /segments) end = 100;
-
-        sm->isRanges = false;
-        sm->subBuffer = wxString::Format("%.2fx%.2fx%.2fx%.2f", start, starty, end, endy);
-    }
-}
-
 void SubModelsPanel::MoveSelectedModelsTo(int indexTo)
 {
     if (indexTo < 0) { return; }
@@ -2246,77 +2211,34 @@ void SubModelsPanel::Generate()
 {
     SubModelGenerateDialog dialog(this, model->GetDefaultBufferWi(), model->GetDefaultBufferHt(), model->GetNodeCount());
 
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        int last = 0;
-        for (int i = 0; i < dialog.GetCount(); i++)
-        {
-            wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString()));
-            wxString name = GenerateSubModelName(basename);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
 
-            if (GetSubModelInfoIndex(name) != -1)
-            {
-                // this name clashes ... so I cant create it
-            }
-            else
-            {
-                SubModelInfo* sm = new SubModelInfo(name);
-                sm->vertical = false;
-                sm->strands.clear();
-                sm->strands.push_back("");
+    submodel_ops::SliceType type;
+    if (!submodel_ops::ParseSliceType(dialog.GetType().ToStdString(), type))
+        return;
 
-                if (dialog.GetType() == "Vertical Slices")
-                {
-                    GenerateSegment(sm, 1, i, false, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Horizontal Slices")
-                {
-                    GenerateSegment(sm, 1, i, true, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 2 Wide")
-                {
-                    GenerateSegment(sm, 2, i, true, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 2 High")
-                {
-                    GenerateSegment(sm, 2, i, false, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 3 Wide")
-                {
-                    GenerateSegment(sm, 3, i, true, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Segments 3 High")
-                {
-                    GenerateSegment(sm, 3, i, false, dialog.GetCount());
-                }
-                else if (dialog.GetType() == "Nodes")
-                {
-                    sm->isRanges = true;
-                    float per = (float)model->GetNodeCount() / (float)dialog.GetCount();
-                    int start = last + 1;
-                    int end = (i + 1) * per;
+    for (int i = 0; i < dialog.GetCount(); i++) {
+        wxString basename = wxString(Model::SafeModelName(dialog.GetBaseName().ToStdString()));
+        wxString name = GenerateSubModelName(basename);
 
-                    if (i == dialog.GetCount() - 1)
-                    {
-                        end = model->GetNodeCount();
-                    }
-
-                    last = end;
-                    if (start == end)
-                    {
-                        sm->strands[0] = std::to_string(start);
-                    }
-                    else
-                    {
-                        sm->strands[0] = std::to_string(start) + "-" + std::to_string(end);
-                    }
-                }
-                _subModels.push_back(sm);
-                PopulateList();
-                ValidateWindow();
-                //Select(name);
-            }
+        if (GetSubModelInfoIndex(name) != -1) {
+            // this name clashes ... so I cant create it
+            continue;
         }
+
+        auto slice = submodel_ops::GenerateSlice(type, i, dialog.GetCount(), model->GetNodeCount());
+
+        SubModelInfo* sm = new SubModelInfo(name);
+        sm->vertical = false;
+        sm->strands.clear();
+        sm->strands.push_back(slice.isRanges ? slice.range : "");
+        sm->isRanges = slice.isRanges;
+        sm->subBuffer = wxString(slice.subBuffer);
+
+        _subModels.push_back(sm);
+        PopulateList();
+        ValidateWindow();
     }
 }
 

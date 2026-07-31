@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <set>
 
@@ -352,6 +353,127 @@ void RemoveAllDuplicates(std::vector<std::string>& strands, bool leftToRight, bo
         row.erase(std::remove(row.begin(), row.end(), kDropped), row.end());
         strands[StorageIndex(strands.size(), i)] = CollapseCells(row);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Slice generation
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// Slices stop just short of each other so adjacent sub-buffers don't claim
+// the same pixel column/row.
+constexpr float kGenerateGap = 0.25f;
+
+struct SliceTypeName {
+    SliceType type;
+    const char* name;
+};
+
+const SliceTypeName kSliceTypes[] = {
+    { SliceType::VerticalSlices, "Vertical Slices" },
+    { SliceType::HorizontalSlices, "Horizontal Slices" },
+    { SliceType::Segments2Wide, "Segments 2 Wide" },
+    { SliceType::Segments2High, "Segments 2 High" },
+    { SliceType::Segments3Wide, "Segments 3 Wide" },
+    { SliceType::Segments3High, "Segments 3 High" },
+    { SliceType::Nodes, "Nodes" },
+};
+
+std::string Fmt2(float v)
+{
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "%.2f", v);
+    return buf;
+}
+
+// Build the sub-buffer rectangle for segment `index` of a `segments`-across
+// (or -high) run. The integer divisions here are load-bearing: `index /
+// segments` is the band number and `index % segments` the position within
+// the band.
+GeneratedSlice Segment(int segments, int index, bool horizontal, int count)
+{
+    const float across = 100.0f / segments;
+    const int offset = index % segments;
+    float acrossStart = offset * across;
+    float acrossEnd = acrossStart + across - kGenerateGap;
+    if ((index + 1) % segments == 0) {
+        acrossEnd = 100.0f;
+    }
+
+    const int bands = count / segments;
+    const float per = bands != 0 ? 100.0f / bands : 100.0f;
+    const float start = (index / segments) * per;
+    float end = start + per - kGenerateGap;
+    if (bands != 0 && (index + 1) / segments == bands) {
+        end = 100.0f;
+    }
+
+    GeneratedSlice out;
+    out.isRanges = false;
+    out.subBuffer = horizontal
+        ? Fmt2(acrossStart) + "x" + Fmt2(start) + "x" + Fmt2(acrossEnd) + "x" + Fmt2(end)
+        : Fmt2(start) + "x" + Fmt2(acrossStart) + "x" + Fmt2(end) + "x" + Fmt2(acrossEnd);
+    return out;
+}
+
+} // namespace
+
+std::vector<std::string> SliceTypeNames()
+{
+    std::vector<std::string> out;
+    for (const auto& t : kSliceTypes) {
+        out.emplace_back(t.name);
+    }
+    return out;
+}
+
+bool ParseSliceType(const std::string& name, SliceType& out)
+{
+    for (const auto& t : kSliceTypes) {
+        if (name == t.name) {
+            out = t.type;
+            return true;
+        }
+    }
+    return false;
+}
+
+GeneratedSlice GenerateSlice(SliceType type, int index, int count, int nodeCount)
+{
+    if (count <= 0 || index < 0 || index >= count) {
+        return {};
+    }
+
+    switch (type) {
+    case SliceType::VerticalSlices:
+        return Segment(1, index, false, count);
+    case SliceType::HorizontalSlices:
+        return Segment(1, index, true, count);
+    case SliceType::Segments2Wide:
+        return Segment(2, index, true, count);
+    case SliceType::Segments2High:
+        return Segment(2, index, false, count);
+    case SliceType::Segments3Wide:
+        return Segment(3, index, true, count);
+    case SliceType::Segments3High:
+        return Segment(3, index, false, count);
+    case SliceType::Nodes:
+        break;
+    }
+
+    // Nodes: split the node count into `count` consecutive runs. The desktop
+    // carried the previous slice's end in a local; start is just the previous
+    // end plus one, which is the same truncation without the carry.
+    const float per = static_cast<float>(nodeCount) / static_cast<float>(count);
+    const int start = static_cast<int>(index * per) + 1;
+    const int end = (index == count - 1) ? nodeCount : static_cast<int>((index + 1) * per);
+
+    GeneratedSlice out;
+    out.isRanges = true;
+    out.range = (start == end) ? std::to_string(start)
+                               : std::to_string(start) + "-" + std::to_string(end);
+    return out;
 }
 
 // ---------------------------------------------------------------------------

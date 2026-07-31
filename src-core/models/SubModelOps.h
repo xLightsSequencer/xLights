@@ -89,6 +89,36 @@ void RemoveDuplicatesInRow(std::vector<std::string>& strands, int displayRow, bo
 void RemoveAllDuplicates(std::vector<std::string>& strands, bool leftToRight, bool suppress);
 
 // ---------------------------------------------------------------------------
+// Slice generation
+// ---------------------------------------------------------------------------
+
+// Ways of carving a model into a run of submodels.
+enum class SliceType {
+    VerticalSlices,
+    HorizontalSlices,
+    Segments2Wide,
+    Segments2High,
+    Segments3Wide,
+    Segments3High,
+    Nodes
+};
+
+// One generated submodel: either a sub-buffer rectangle or a node range,
+// never both.
+struct GeneratedSlice {
+    bool isRanges{false};
+    std::string subBuffer; // "x1xy1xx2xy2" percentages, when !isRanges
+    std::string range;     // "start-end" node range, when isRanges
+};
+
+// Display names for the slice types, in the order the desktop lists them.
+std::vector<std::string> SliceTypeNames();
+bool ParseSliceType(const std::string& name, SliceType& out);
+
+// Build slice `index` of `count`. `nodeCount` is only read by SliceType::Nodes.
+GeneratedSlice GenerateSlice(SliceType type, int index, int count, int nodeCount);
+
+// ---------------------------------------------------------------------------
 // Geometric point ordering
 // ---------------------------------------------------------------------------
 

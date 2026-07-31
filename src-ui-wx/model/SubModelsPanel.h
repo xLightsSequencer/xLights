@@ -341,7 +341,6 @@ private:
     void CombineStrands();
     void OrderPoints(bool wholemodel);
 
-    void GenerateSegment(SubModelInfo* sm, int segments, int segment, bool horizontal, int count);
     void DisplayRange(const wxString& range);
     void SelectRow(int r);
     bool SetNodeColor(int row, xlColor const& c, bool highlight);
