@@ -89,6 +89,33 @@ bool ModelPreview::IsPencilActive() const {
     return s_pencilSizeIndex > 0;
 }
 
+void ModelPreview::StartPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform) {
+    path.clear();
+    if (freeform) {
+        path.emplace_back(x, y);
+    }
+}
+
+void ModelPreview::AddPaintPathPoint(std::vector<xlPoint>& path, int x, int y, bool freeform, int minDistanceSq) {
+    if (!freeform) return;
+    if (path.empty()) {
+        path.emplace_back(x, y);
+    } else {
+        int dx = x - path.back().x;
+        int dy = y - path.back().y;
+        if (dx * dx + dy * dy >= minDistanceSq) {
+            path.emplace_back(x, y);
+        }
+    }
+}
+
+void ModelPreview::EndPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform) {
+    if (!freeform) return;
+    if (path.empty() || path.back().x != x || path.back().y != y) {
+        path.emplace_back(x, y);
+    }
+}
+
 float ModelPreview::GetPencilCatchRadiusMultiplier() const {
     switch (s_pencilSizeIndex) {
         case 1: return 2.0f;

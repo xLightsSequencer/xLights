@@ -1878,9 +1878,9 @@ void ModelFacesPanel::OnPreviewLeftUp(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
-        m_paint_path.emplace_back(m_bound_end_x, m_bound_end_y);
 
         bool freeform = m_freeform_mode || (_modelPreview && _modelPreview->IsPencilActive());
+        ModelPreview::EndPaintPath(m_paint_path, m_bound_end_x, m_bound_end_y, freeform);
         SelectAllInBoundingRect(event.ShiftDown(), freeform);
         m_creating_bound_rect = false;
     }
@@ -1909,8 +1909,7 @@ void ModelFacesPanel::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_start_y = ray_origin.y;
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
-    m_paint_path.clear();
-    m_paint_path.emplace_back(m_bound_start_x, m_bound_start_y);
+    ModelPreview::StartPaintPath(m_paint_path, m_bound_start_x, m_bound_start_y, m_freeform_mode);
 }
 
 void ModelFacesPanel::OnPreviewLeftDClick(wxMouseEvent& event)
@@ -1982,7 +1981,7 @@ void ModelFacesPanel::OnPreviewMouseMove(wxMouseEvent& event)
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
-        m_paint_path.emplace_back(m_bound_end_x, m_bound_end_y);
+        ModelPreview::AddPaintPathPoint(m_paint_path, m_bound_end_x, m_bound_end_y, m_freeform_mode);
         RenderModel();
     }
 }

@@ -176,6 +176,10 @@ public:
     void AddScreenSpaceBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
     void AddPencilIconToAccumulator();
 
+    static void StartPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform);
+    static void AddPaintPathPoint(std::vector<xlPoint>& path, int x, int y, bool freeform, int minDistanceSq = 4);
+    static void EndPaintPath(std::vector<xlPoint>& path, int x, int y, bool freeform);
+
     static int GetPencilSizeIndex();
     static void SetPencilSizeIndex(int index);
     static void ResetPencilSize();
