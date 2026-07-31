@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Crash reports: an exception that is not a C++ std::exception is now named rather
+                                 than logged as "an unknown exception", including the class and reason of a
+                                 macOS/iOS system exception
+    -bug (dkulp)                 Layout: "Set Center Offset Here" crashed when the group it was invoked on had gone
+                                 away between the menu opening and the item being picked
+    -bug (dkulp)                 Layout: a polyline with no drop points placed its nodes at infinite coordinates
     -bug (dkulp)                 Video: a file whose display matrix encodes its pixel aspect as a scale made the
                                  decoder target a frame far larger than the source, so every cached frame was tens
                                  of MB. Renders using such a video could reach 40GB+ and be many times slower.

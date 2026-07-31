@@ -7882,6 +7882,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         glm::vec3 ray_direction;
         GetMouseLocation(m_previous_mouse_x, m_previous_mouse_y, ray_origin, ray_direction);
         auto mg = GetSelectedModelGroup();
+        // The menu was built against a group that can be gone by the time the item
+        // is clicked - or the group panel hidden, which makes this return null.
+        // Same check the menu-build side already does.
+        if (!xlights->AllModels.IsModelValid(mg) || mg == nullptr) {
+            return;
+        }
         modelPreview->SetCenterOffset(mg, ray_origin.x, ray_origin.y);
         mg->RebuildBuffers();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |

@@ -12,6 +12,9 @@
 #include <inttypes.h>
 #include <filesystem>
 #include <system_error>
+#if defined(__GNUC__) || defined(__clang__)
+#include <cxxabi.h>
+#endif
 
 #include <wx/buffer.h>
 #include <wx/datetime.h>
@@ -429,6 +432,21 @@ std::string xlCrashHandler::DescribeCurrentException()
     }
     catch (...)
     {
+#ifdef __APPLE__
+        // Cocoa/AVFoundation/Metal raise NSExceptions, which no C++ handler above
+        // can match - they were reaching the reports as a bare "unknown exception".
+        std::string objc = DescribeCurrentAppleException();
+        if (!objc.empty())
+        {
+            return objc;
+        }
+#endif
+#if defined(__GNUC__) || defined(__clang__)
+        if (std::type_info const* t = abi::__cxa_current_exception_type())
+        {
+            return fmt::format("An exception of non-standard type \"{}\" occurred.", *t);
+        }
+#endif
         return "An unknown exception occurred.";
     }
 }

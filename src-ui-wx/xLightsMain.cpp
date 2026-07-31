@@ -2781,7 +2781,8 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows");
 
     if (m_mgr == nullptr) {
-        spdlog::critical("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
+        spdlog::critical("ShowHideAllSequencerWindows m_mgr is null ... nothing to show or hide");
+        return;
     }
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
     bool update = false;
