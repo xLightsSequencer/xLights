@@ -2774,6 +2774,18 @@ void xLightsFrame::ResetAllSequencerWindows()
     }
 }
 
+void xLightsFrame::SyncFloatingPanePositions()
+{
+    if (m_mgr == nullptr) return;
+    wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
+    for (size_t x = 0; x < info.size(); x++) {
+        if (info[x].IsOk() && info[x].IsFloating() && info[x].frame != nullptr && info[x].frame->IsShown()) {
+            info[x].floating_pos = info[x].frame->GetPosition();
+            info[x].floating_size = info[x].frame->GetSize();
+        }
+    }
+}
+
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
 
@@ -2784,6 +2796,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
         spdlog::critical("ShowHideAllSequencerWindows m_mgr is null ... nothing to show or hide");
         return;
     }
+    SyncFloatingPanePositions();
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
     bool update = false;
     if (show && savedPaneShown.size() > 0) {
@@ -2833,6 +2846,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     if (update) {
         spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - update");
+        SyncFloatingPanePositions();
         m_mgr->Update();
     }
 

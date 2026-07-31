@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
     -enh (dkulp)                 Crash reports: an exception that is not a C++ std::exception is now named rather
                                  than logged as "an unknown exception", including the class and reason of a
                                  macOS/iOS system exception

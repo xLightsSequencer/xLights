@@ -3326,6 +3326,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         mCurrentPerpective = perspective;
     }
     if (settings.size() == 0) {
+        SyncFloatingPanePositions();
         settings = m_mgr->SavePerspective();
         perspective->settings = settings.ToStdString();
         perspective->version = "2.0";
@@ -3359,6 +3360,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         m_mgr->Update();
 
         perspective->version = "2.0";
+        SyncFloatingPanePositions();
         wxString p = m_mgr->SavePerspective();
         perspective->settings = p.ToStdString();
         spdlog::debug("Saved perspective.");
@@ -3440,7 +3442,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
-    
+    SyncFloatingPanePositions();
 
     if (mCurrentPerpective != nullptr)
     {
