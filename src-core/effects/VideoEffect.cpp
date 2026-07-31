@@ -375,6 +375,8 @@ void AccumulateVideoEffectDecodeSize(Effect* eff, Model* model, SequenceElements
 
     const int w = bw * 100 / minSpanX;
     const int h = bh * 100 / minSpanY;
+    spdlog::debug("VideoEffect decode size: '{}' buffer {}x{} crop span {}%x{}% -> decode {}x{}",
+                  resolved, bw, bh, minSpanX, minSpanY, w, h);
     VideoDecodeSizeRegistry::SetMaxDecodeSize(resolved, w, h);
 }
 } // namespace

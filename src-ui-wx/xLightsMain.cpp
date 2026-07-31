@@ -92,6 +92,7 @@
 #include "import_export/ModelRemap.h"
 #include "setup/MultiControllerUploadDialog.h"
 #include "Parallel.h"
+#include "utils/RangeWorkPool.h"
 #include "model/PathGenerationDialog.h"
 #include "setup/PixelTestDialog.h"
 #include "sequencer/RenderCommandEvent.h"
@@ -2792,7 +2793,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows");
 
     if (m_mgr == nullptr) {
-        spdlog::critical("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
+        spdlog::critical("ShowHideAllSequencerWindows m_mgr is null ... nothing to show or hide");
         return;
     }
     SyncFloatingPanePositions();
@@ -4418,7 +4419,7 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 
     threadStatus += "\n";
     threadStatus += "Parallel Job Pool:\n";
-    threadStatus += ParallelJobPool::POOL.GetThreadStatus();
+    threadStatus += ParallelForPool().GetStatus();
 
     threadStatus += "\n";
     threadStatus += "Thread traces:\n";

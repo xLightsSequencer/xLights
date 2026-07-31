@@ -17,9 +17,10 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxCheckListBox" name="ID_CHECKLISTBOX1" variable="CheckListBox_Controllers" member="yes">
-					<style>wxLB_ALWAYS_SB|wxVSCROLL</style>
-					<handler function="OnCheckListBox_ControllersToggled" entry="EVT_CHECKLISTBOX" />
+				<object class="wxListCtrl" name="ID_LISTCTRL_CONTROLLERS" variable="ListCtrl_Controllers" member="yes">
+					<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SINGLE_SEL|wxVSCROLL</style>
+					<handler function="OnListCtrl_ControllersItemChecked" entry="EVT_LIST_ITEM_CHECKED" />
+					<handler function="OnListCtrl_ControllersItemChecked" entry="EVT_LIST_ITEM_UNCHECKED" />
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

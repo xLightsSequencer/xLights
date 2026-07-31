@@ -1426,6 +1426,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         for (size_t x = 0; x < frames.size(); x++) {
                             frames[x].resize(seq->getMaxChannel() + 1);
                         }
+                        // Indexable view of instances so the per-frame fan-out below
+                        // needs no cursor; position still lines up with doUpload's row.
+                        std::vector<FPP*> targets(instances.begin(), instances.end());
 
                         for (size_t frame = 0; frame < seq->getNumFrames() && !cancelled; frame++) {
                             int donePct = frame * 1000 / seq->getNumFrames();
@@ -1452,14 +1455,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                 frame++;
                             }
                             frame--;
-                            std::function<void(FPP * &, int)> func = [startFrame, lastBuffered, &frames, &doUpload](FPP* &inst, int row) {
+                            parallel_for(0, (int)targets.size(), [startFrame, lastBuffered, &frames, &doUpload, &targets](int row) {
                                 if (doUpload[row]) {
                                     for (int x = 0; x < lastBuffered; x++) {
-                                        inst->AddFrameToUpload(startFrame + x, &frames[x][0]);
+                                        targets[row]->AddFrameToUpload(startFrame + x, &frames[x][0]);
                                     }
                                 }
-                            };
-                            parallel_for(instances, func);
+                            });
                         }
                     }
                     row = 0;

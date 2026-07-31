@@ -34,6 +34,8 @@
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
+#include <mach/mach.h>
+#include <mach/task_info.h>
 #endif
 
 #ifdef __linux__
@@ -664,6 +666,56 @@ uint64_t GetPhysicalMemorySizeMB() {
 #endif
     ret /= 1024; // -> MB
     return ret;
+}
+
+uint64_t GetProcessMemoryUsageMB() {
+#if defined(_WIN32)
+    PROCESS_MEMORY_COUNTERS_EX mc;
+    mc.cb = sizeof(mc);
+    if (::GetProcessMemoryInfo(::GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&mc, sizeof(mc)) != 0) {
+        return (uint64_t)mc.PrivateUsage / (1024 * 1024);
+    }
+    return 0;
+#elif defined(__APPLE__)
+    task_vm_info_data_t info;
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS) {
+        return (uint64_t)info.phys_footprint / (1024 * 1024);
+    }
+    return 0;
+#elif defined(__linux__)
+    // statm's second field is resident pages.
+    std::ifstream f("/proc/self/statm");
+    uint64_t total = 0, resident = 0;
+    if (f >> total >> resident) {
+        return resident * (uint64_t)getpagesize() / (1024 * 1024);
+    }
+    return 0;
+#else
+    return 0;
+#endif
+}
+
+uint64_t GetProcessMemoryLimitMB() {
+#if defined(__APPLE__)
+    // limit_bytes_remaining is what os_proc_available_memory() reports (that
+    // API is iOS-only; this struct is not), and it lands in task_vm_info from
+    // REV4 on — `count` says how much the kernel actually filled.
+    task_vm_info_data_t info;
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS
+        && count >= TASK_VM_INFO_REV4_COUNT
+        && info.limit_bytes_remaining != 0) {
+        const uint64_t limitMB = (uint64_t)(info.phys_footprint + info.limit_bytes_remaining) / (1024 * 1024);
+        // A ceiling at or above installed RAM is the kernel saying there is no
+        // meaningful per-process cap — which is the normal desktop answer.
+        const uint64_t physMB = GetPhysicalMemorySizeMB();
+        if (physMB != 0 && limitMB < physMB) {
+            return limitMB;
+        }
+    }
+#endif
+    return 0;
 }
 
 std::string GetCPUBrand() {

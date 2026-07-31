@@ -172,6 +172,29 @@ TextDrawingContext* RenderBuffer::GetTextDrawingContext()
     return _textDrawingContext;
 }
 
+uint64_t RenderBuffer::GetApproxMemoryBytes() const
+{
+    // Capacity, not size: the vectors are grown and never shrunk, and it is the
+    // capacity the allocator is actually holding.
+    uint64_t b = (uint64_t)pixelVector.capacity() * sizeof(xlColor)
+               + (uint64_t)tempbufVector.capacity() * sizeof(xlColor)
+               + (uint64_t)transformScratch.capacity() * sizeof(xlColor)
+               + (uint64_t)blendBuffer.capacity() * sizeof(uint32_t)
+               + (uint64_t)indexVector.capacity() * sizeof(uint32_t);
+    // Each node is an individually-allocated clone; on a whole-house group
+    // buffer there are tens of thousands of them, so they are not noise.
+    b += (uint64_t)Nodes.capacity() * sizeof(NodeBaseClassPtr);
+    for (const auto& n : Nodes) {
+        if (n != nullptr) {
+            b += sizeof(NodeBaseClass) + 16; // + typical allocator header
+            if (n->Coords.size() > 1) {
+                b += (uint64_t)n->Coords.size() * sizeof(NodeBaseClass::CoordStruct);
+            }
+        }
+    }
+    return b;
+}
+
 void RenderBuffer::InitBuffer(int newBufferHt, int newBufferWi, const std::string& bufferTransform, bool nodeBuffer)
 {
     if (_textDrawingContext != nullptr && (BufferHt != newBufferHt || BufferWi != newBufferWi)) {

@@ -12,6 +12,34 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
     -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
+    -enh (dkulp)                 Crash reports: an exception that is not a C++ std::exception is now named rather
+                                 than logged as "an unknown exception", including the class and reason of a
+                                 macOS/iOS system exception
+    -bug (dkulp)                 Layout: "Set Center Offset Here" crashed when the group it was invoked on had gone
+                                 away between the menu opening and the item being picked
+    -bug (dkulp)                 Layout: a polyline with no drop points placed its nodes at infinite coordinates
+    -bug (dkulp)                 Shader: a shader Metal refused to build aborted the render instead of just not
+                                 rendering that effect
+    -bug (dkulp)                 Video: a file whose display matrix encodes its pixel aspect as a scale made the
+                                 decoder target a frame far larger than the source, so every cached frame was tens
+                                 of MB. Renders using such a video could reach 40GB+ and be many times slower.
+                                 Such files decode at native size again, as they did before decode-time scaling.
+    -enh (dkulp)                 Render: throttle frame concurrency when memory use approaches the limit the OS will
+                                 kill the process at, and XL_RENDER_MEM=1 reports what a render is spending memory on
+    -bug (MrPierreB)             Effect drag: waveform time markers now show the full selection span rather than just the grabbed effect
+    -bug (MrPierreB)             Effect drag: restore start/end/duration status bar text during move drag
+    -bug (MrPierreB)             Clicking an effect in a multi-selection now narrows the selection to just that effect instead of keeping all effects selected.
+    -enh (dkulp)                 Frame rendering, per-model buffers and every parallel_for now share one
+                                 round-robin worker pool instead of running three pools of their own. The
+                                 render nests all three, so the separate pools put about three times as many
+                                 threads on the machine as there are cores, and the extra threads cost
+                                 context switches rather than adding throughput. How much that was costing
+                                 depends on the platform: macOS gains the most (render CPU down 20-30%,
+                                 system time roughly halved), Windows a few percent. Output is
+                                 byte-identical.
+    -enh (dkulp)                 Model load, parallel output transmission and FPP Connect frame upload spread their
+                                 work across the pool by index rather than by walking a linked list behind a lock,
+                                 so they no longer serialise every worker on that lock. Output is byte-identical.
     -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
                                  that submits many crash reports is counted once rather than once per report.
                                  It identifies the show only - no machine, user or location - and is written
@@ -45,6 +73,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
+    -enh (cybercop23)            Bulk Controller Upload: added controller upload status
     -enh (dkulp)                 Render: when a render or an abort will not finish, the log now names
                                  the models still outstanding along with the frame each one reached
     -enh (dkulp)                 The startup log now records the CPU model, physical/logical core counts,

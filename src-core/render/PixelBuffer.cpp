@@ -4093,3 +4093,20 @@ bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
 int PixelBufferClass::GetLayerCount() const {
     return layers.size();
 }
+
+uint64_t PixelBufferClass::GetApproxMemoryBytes() const {
+    uint64_t b = 0;
+    for (const auto& l : layers) {
+        if (l == nullptr) {
+            continue;
+        }
+        b += l->buffer.GetApproxMemoryBytes();
+        for (const auto& m : l->shallowModelBuffers) {
+            b += m->GetApproxMemoryBytes();
+        }
+        for (const auto& m : l->deepModelBuffers) {
+            b += m->GetApproxMemoryBytes();
+        }
+    }
+    return b;
+}

@@ -68,6 +68,181 @@ static const bool xldbgEffSum = (getenv("XL_EFFSUM") != nullptr);
 // any clock call so it costs nothing when unset (see RenderProfile.h).
 static const bool profRender = (getenv("XL_RENDER_PROFILE") != nullptr);
 
+// XL_RENDER_MEM=1 diagnostic: report what the render is spending memory on -
+// per-row buffer bytes at setup, clone-slot growth, and the process footprint
+// against the governor's budget.  Zero cost when unset.
+static const bool xldbgRenderMem = (getenv("XL_RENDER_MEM") != nullptr);
+
+// -------------------------------------------------------------------------
+// Render memory governor
+//
+// The engine's buffer memory is a product: every row's buffers are built up
+// front and held until the whole batch finishes, and each frame-parallel row
+// then CLONES its entire buffer set once per concurrent frame
+// (CreateParSlot).  Rows x layers x frame-concurrency is bounded only by the
+// show, so a big enough one can ask for more than the machine has.
+//
+// This is a backstop, not a budget: on a real 63-row show the row buffers
+// totalled 80MB and every clone slot together 394MB, so the governor stays
+// dormant and costs nothing.  It exists for the show whose buffers ARE the
+// memory - use XL_RENDER_MEM=1 first to find out whether that is what you are
+// looking at, because a render that balloons past a few GB is usually
+// something outside these buffers (a decoder cache, say) and throttling would
+// only make it slow as well as doomed.
+//
+// Above a threshold it shrinks the discretionary term: fewer concurrent frames
+// per row, and idle clone slots trimmed back to that allowance.  Purely
+// advisory - it changes concurrency, never output - and it never throttles a
+// row below one slot, so a row can always make progress.
+//
+// Thresholds are fractions of physical RAM.  Soft = stop growing the
+// discretionary pools; Hard = shrink them.  XL_RENDER_MEM_LIMIT_MB overrides
+// the soft limit outright (0 disables the governor) for A/B testing.
+class RenderMemoryGovernor {
+public:
+    enum class Pressure { None, Soft, Hard };
+
+    static RenderMemoryGovernor& Get() {
+        static RenderMemoryGovernor g;
+        return g;
+    }
+
+    bool Enabled() {
+        Sample();
+        std::unique_lock<std::mutex> lock(_lock);
+        return _softLimitMB > 0;
+    }
+    uint64_t SoftLimitMB() {
+        Sample();
+        std::unique_lock<std::mutex> lock(_lock);
+        return _softLimitMB;
+    }
+    uint64_t HardLimitMB() {
+        Sample();
+        std::unique_lock<std::mutex> lock(_lock);
+        return _hardLimitMB;
+    }
+
+    // Cached because the allocation paths consult it often and it is a syscall.
+    // 250ms is far finer than the rate a render can move the footprint by a
+    // meaningful fraction of RAM.
+    uint64_t FootprintMB() {
+        Sample();
+        std::unique_lock<std::mutex> lock(_lock);
+        return _footprintMB;
+    }
+    uint64_t PeakMB() {
+        Sample();
+        std::unique_lock<std::mutex> lock(_lock);
+        return _peakMB;
+    }
+
+    Pressure Level() {
+        Sample();
+        std::unique_lock<std::mutex> lock(_lock);
+        if (_softLimitMB == 0) {
+            return Pressure::None;
+        }
+        if (_footprintMB >= _hardLimitMB) {
+            return Pressure::Hard;
+        }
+        if (_footprintMB >= _softLimitMB) {
+            return Pressure::Soft;
+        }
+        return Pressure::None;
+    }
+
+    // How many frames of one row may render concurrently, given what one clone
+    // of that row costs.  `want` is the tuned default for the row kind.  Never
+    // returns less than 1: a row must always be able to render.
+    int FrameConcurrency(int want, uint64_t perSlotBytes) {
+        Sample();
+        std::unique_lock<std::mutex> lock(_lock);
+        if (_softLimitMB == 0 || want <= 1) {
+            return want;
+        }
+        uint64_t mb = _footprintMB;
+        uint64_t headroomMB = mb < _softLimitMB ? _softLimitMB - mb : 0;
+        // Give any one row at most a slice of the remaining headroom, so the
+        // first big row to start a window can't spend all of it before the
+        // other rows get their first slot.
+        uint64_t shareMB = headroomMB / 4;
+        uint64_t perSlotMB = perSlotBytes / (1024 * 1024);
+        if (perSlotMB == 0) {
+            // Sub-MB clones are not what puts a machine in trouble.
+            return want;
+        }
+        int allowed = (int)(shareMB / perSlotMB);
+        return std::max(1, std::min(want, allowed));
+    }
+
+private:
+    // Refresh footprint AND limits together.  The limits are re-derived rather
+    // than fixed at construction because iOS/iPadOS can change a process's
+    // memory cap during its life cycle (foreground/background, extended-memory
+    // entitlement), and the governor is a process-lifetime singleton.
+    void Sample() {
+        auto now = std::chrono::steady_clock::now();
+        std::unique_lock<std::mutex> lock(_lock);
+        if (_sampled && now - _lastSample < std::chrono::milliseconds(250)) {
+            return;
+        }
+        _sampled = true;
+        _lastSample = now;
+        _footprintMB = GetProcessMemoryUsageMB();
+        if (_footprintMB > _peakMB) {
+            _peakMB = _footprintMB;
+        }
+
+        if (_envLimitMB >= 0) {
+            _softLimitMB = (uint64_t)_envLimitMB;
+            _hardLimitMB = _softLimitMB + _softLimitMB / 8;
+            return;
+        }
+        // Budget against whichever ceiling actually applies. On iPad that is
+        // the per-process dirty-memory cap, which is well under installed RAM -
+        // sizing off physical memory there would mean never throttling before
+        // the OS kills us.
+        uint64_t ceilingMB = GetPhysicalMemorySizeMB();
+        const uint64_t procLimitMB = GetProcessMemoryLimitMB();
+        if (procLimitMB != 0 && (ceilingMB == 0 || procLimitMB < ceilingMB)) {
+            ceilingMB = procLimitMB;
+        }
+        if (ceilingMB == 0) {
+            // Can't size a budget we can't measure; stay out of the way.
+            _softLimitMB = 0;
+            _hardLimitMB = 0;
+            return;
+        }
+        // Fractions of that ceiling, with a floor so a small machine doesn't
+        // throttle a render that was never the problem - but the floor is
+        // itself capped, because on a device with a tight per-process cap a
+        // floor above the ceiling means never throttling at all.
+        _softLimitMB = std::min(std::max<uint64_t>(1024, ceilingMB * 60 / 100), ceilingMB * 70 / 100);
+        _hardLimitMB = std::min(std::max<uint64_t>(1536, ceilingMB * 75 / 100), ceilingMB * 85 / 100);
+    }
+
+    // -1 = unset. Read once; getenv is not thread-safe to interleave with the
+    // render's own environment reads.
+    const long _envLimitMB = []() -> long {
+        const char* e = getenv("XL_RENDER_MEM_LIMIT_MB");
+        return e != nullptr ? strtol(e, nullptr, 10) : -1;
+    }();
+
+    std::mutex _lock;
+    std::chrono::steady_clock::time_point _lastSample{};
+    bool _sampled = false;
+    uint64_t _footprintMB = 0;
+    uint64_t _peakMB = 0;
+    uint64_t _softLimitMB = 0;
+    uint64_t _hardLimitMB = 0;
+};
+
+// XL_RENDER_MEM tallies. Only touched when xldbgRenderMem is set.
+static std::atomic<uint64_t> xldbgCloneBytes{ 0 };
+static std::atomic<uint64_t> xldbgCloneCount{ 0 };
+static std::atomic<uint64_t> xldbgCloneDropped{ 0 };
+
 // XL_VERIFY_STATELESS=1 diagnostic: for every effect that declares itself Pure
 // (GetEffectiveFrameParallelism == Pure), re-render each frame a second time
 // from a cleared infoCache / needToInit=true and warn if the pixels differ.  A
@@ -104,7 +279,36 @@ static const int PAR_FRAME_MAX_CHUNK = 24;
 // frame, so it never wants more threads than there are cores.  Deliberately leaked:
 // the workers are detached and must not become a static-destruction ordering
 // dependency (same reasoning as JobPool.cpp's thread-name map).
+// Frames, per-model buffers and every parallel_for share ONE pool.  Three pools
+// of ~ncores workers each put ~3x ncores threads on the machine whenever the
+// render nests (a frame row -> its per-model buffers -> an effect's own loop),
+// and the round-robin only shares fairly WITHIN a pool - across them nothing
+// coordinates, so the oversubscription just became context switches.  Measured
+// on a 16-core box: sharing one pool cut total render CPU 22-28% and system time
+// roughly in half, byte-identical.  A single pool is what the round-robin design
+// was for; the fair claiming is what makes it safe, since a long frame index can
+// now occupy a worker an inner loop wanted (that loop still progresses - its
+// owner drains its own registration - just with less help).
+// XL_SEPARATE_POOLS=1 restores the three-pool layout for A/B.
+static bool UnifiedPool() {
+    static const bool v = (getenv("XL_SEPARATE_POOLS") == nullptr);
+    return v;
+}
+
+// The dedicated pools are constructed inside the !unified branch so the unified
+// mode does not pay for their worker threads just by naming them.
+static RangeWorkPool& PerModelPool() {
+    if (UnifiedPool()) {
+        return ParallelForPool();
+    }
+    static RangeWorkPool* pool = new RangeWorkPool("per_model_pool", std::max((int)std::thread::hardware_concurrency() - 1, 4));
+    return *pool;
+}
+
 static RangeWorkPool& ParFramePool() {
+    if (UnifiedPool()) {
+        return ParallelForPool();
+    }
     static RangeWorkPool* pool = []() {
         int c = (int)std::thread::hardware_concurrency() - 1; // 1 thread is the owner
         const char* e = getenv("XL_PARALLEL_FRAME_WORKERS");
@@ -1925,6 +2129,16 @@ public:
             return nullptr;
         }
         ParSlot* s = slot.get();
+        if (xldbgRenderMem) {
+            uint64_t b = s->buffer->GetApproxMemoryBytes();
+            for (const auto& si : s->subs) {
+                if (si->buffer) {
+                    b += si->buffer->GetApproxMemoryBytes();
+                }
+            }
+            xldbgCloneBytes.fetch_add(b);
+            xldbgCloneCount.fetch_add(1);
+        }
         parSlots.push_back(std::move(slot));
         return s;
     }
@@ -1932,6 +2146,63 @@ public:
     void ReleaseParSlot(ParSlot* s) {
         std::unique_lock<std::mutex> lock(parSlotLock);
         parFreeSlots.push_back(s);
+    }
+
+    // What one clone of this row costs, measured off the row's own buffers -
+    // CreateParSlot replicates exactly that shape.  Cached after the first
+    // call: the layer buffers settle once the row's effects have been applied,
+    // and walking every node of a whole-house group is not free.
+    uint64_t ParSlotCostBytes() {
+        if (parSlotCostBytes == 0) {
+            parSlotCostBytes = GetRowBufferMemoryBytes();
+        }
+        return parSlotCostBytes;
+    }
+
+    // The row's frame concurrency after the memory governor has had its say.
+    // Under hard pressure the row also hands back clones it is no longer
+    // allowed to use.
+    int ThrottledFrameConcurrency() {
+        RenderMemoryGovernor& gov = RenderMemoryGovernor::Get();
+        if (!gov.Enabled()) {
+            return parChunkFramesWanted;
+        }
+        int allowed = gov.FrameConcurrency(parChunkFramesWanted, ParSlotCostBytes());
+        if (gov.Level() == RenderMemoryGovernor::Pressure::Hard) {
+            TrimParSlotsTo(allowed);
+        }
+        if (xldbgRenderMem && allowed != parChunkFramesWanted) {
+            fprintf(stderr, "XL_RENDER_MEM THROTTLE m='%s' chunk %d -> %d (clone %.1f MB, footprint %llu/%llu MB)\n",
+                    name.c_str(), parChunkFramesWanted, allowed,
+                    ParSlotCostBytes() / (1024.0 * 1024.0),
+                    (unsigned long long)gov.FootprintMB(), (unsigned long long)gov.SoftLimitMB());
+        }
+        return allowed;
+    }
+
+    // Give back idle clone slots until the row holds no more than `keep`.
+    // Trimming to the allowance rather than emptying the free list is what
+    // makes this stable: once a row is down to its allowance the next window
+    // finds nothing to drop, instead of dropping every slot and rebuilding it
+    // on the next Acquire for as long as the pressure lasts.  Slots currently
+    // held by a frame are not in parFreeSlots and are left alone.
+    void TrimParSlotsTo(int keep) {
+        std::unique_lock<std::mutex> lock(parSlotLock);
+        size_t dropped = 0;
+        while (parSlots.size() > (size_t)std::max(keep, 1) && !parFreeSlots.empty()) {
+            const ParSlot* victim = parFreeSlots.back();
+            parFreeSlots.pop_back();
+            auto it = std::find_if(parSlots.begin(), parSlots.end(),
+                                   [victim](const std::unique_ptr<ParSlot>& p) { return p.get() == victim; });
+            if (it == parSlots.end()) {
+                break;
+            }
+            parSlots.erase(it);
+            ++dropped;
+        }
+        if (xldbgRenderMem && dropped != 0) {
+            xldbgCloneDropped.fetch_add(dropped);
+        }
     }
 
     // One frame's captured draw snapshots, by [unit][layer] - unit 0 is the main
@@ -2113,6 +2384,12 @@ public:
             }
             return e;
         }
+        // Re-price this row's frame concurrency against the memory governor now
+        // that a clone exists to measure.  Done per window rather than once per
+        // row because pressure is a property of the whole batch: a row that
+        // opened its first window while memory was free must throttle when the
+        // rest of the show has since filled it, and recover when it drains.
+        parChunkFrames = ThrottledFrameConcurrency();
         parWinA = a;
         parWinE = e;
         parWinDone = 0;
@@ -2530,9 +2807,10 @@ public:
             && nodeBuffers.empty()
             && !ctorHasPerModelBuffers;
         parEligible = xldbgParallelFrames && structurallyEligible;
-        parChunkFrames = isGroup                 ? PAR_FRAME_GROUP_CHUNK
-                         : !subModelInfos.empty() ? PAR_FRAME_SUBMODEL_CHUNK
-                                                  : PAR_FRAME_MODEL_CHUNK;
+        parChunkFramesWanted = isGroup                 ? PAR_FRAME_GROUP_CHUNK
+                               : !subModelInfos.empty() ? PAR_FRAME_SUBMODEL_CHUNK
+                                                        : PAR_FRAME_MODEL_CHUNK;
+        parChunkFrames = parChunkFramesWanted;
 
         if (xldbgParBlockers) {
             // Rows held back ONLY by their submodel/strand effects - the
@@ -3196,6 +3474,30 @@ private:
         effect->CopySettingsMap(settingsMap, true);
     }
 
+public:
+    // Approximate heap bytes this row's buffers hold, NOT counting clone slots.
+    // This is also the price of one clone slot, since CreateParSlot replicates
+    // exactly this shape (main buffer + one buffer per submodel/strand unit).
+    uint64_t GetRowBufferMemoryBytes() const {
+        uint64_t b = mainBuffer != nullptr ? mainBuffer->GetApproxMemoryBytes() : 0;
+        for (const auto& smi : subModelInfos) {
+            if (smi->buffer) {
+                b += smi->buffer->GetApproxMemoryBytes();
+            }
+        }
+        return b;
+    }
+    uint64_t GetNodeBufferMemoryBytes() const {
+        uint64_t b = 0;
+        for (const auto& nb : nodeBuffers) {
+            if (nb.second) {
+                b += nb.second->GetApproxMemoryBytes();
+            }
+        }
+        return b;
+    }
+private:
+
     ModelElement *rowToRender;
     std::string name;
     PixelBufferClass *mainBuffer;
@@ -3242,7 +3544,11 @@ private:
     // length) and reused for the row's whole life.  parWindow* preserve a gated
     // window across an upstream suspend.
     bool parEligible = false;
+    // ...Wanted is the tuned value for the row kind; parChunkFrames is what the
+    // memory governor allows right now and is re-derived per window.
+    int parChunkFramesWanted = PAR_FRAME_MAX_CHUNK;
     int parChunkFrames = PAR_FRAME_MAX_CHUNK;
+    uint64_t parSlotCostBytes = 0;
     std::mutex parSlotLock;
     std::vector<std::unique_ptr<ParSlot>> parSlots;
     std::vector<ParSlot*> parFreeSlots;
@@ -3623,6 +3929,29 @@ void RenderEngine::Render(SequenceElements& seqElements,
     }
 
     logger_render->debug("Aggregators created.");
+
+    if (xldbgRenderMem) {
+        std::vector<std::pair<uint64_t, std::string>> rowCost;
+        uint64_t total = 0;
+        for (size_t r = 0; r < (size_t)numRows; ++r) {
+            if (jobs[r] == nullptr) {
+                continue;
+            }
+            uint64_t b = jobs[r]->GetRowBufferMemoryBytes() + jobs[r]->GetNodeBufferMemoryBytes();
+            total += b;
+            rowCost.emplace_back(b, jobs[r]->GetName());
+        }
+        std::sort(rowCost.begin(), rowCost.end(), std::greater<>());
+        RenderMemoryGovernor& gov = RenderMemoryGovernor::Get();
+        fprintf(stderr, "XL_RENDER_MEM SETUP rows=%zu rowBuffers=%.1f MB seqData=%.1f MB footprint=%llu MB soft=%llu hard=%llu\n",
+                rowCost.size(), total / (1024.0 * 1024.0),
+                (double)seqData.NumFrames() * seqData.NumChannels() / (1024.0 * 1024.0),
+                (unsigned long long)gov.FootprintMB(), (unsigned long long)gov.SoftLimitMB(),
+                (unsigned long long)gov.HardLimitMB());
+        for (size_t i = 0; i < rowCost.size() && i < 15; ++i) {
+            fprintf(stderr, "XL_RENDER_MEM   row %6.1f MB  %s\n", rowCost[i].first / (1024.0 * 1024.0), rowCost[i].second.c_str());
+        }
+    }
 
     channelMaps.clear();
     if (clear) {
@@ -4171,8 +4500,7 @@ bool RenderEngine::RenderEffectFromMap(bool suppress, Effect* effectObj, int lay
                     // parallel_for uses.
                     static const bool serialPerModel = (getenv("XL_SERIAL_PERMODEL") != nullptr);
                     if (bufCnt > 1 && !serialPerModel) {
-                        static ParallelJobPool PER_MODEL_POOL("per_model_pool");
-                        parallel_for(0, bufCnt, [&f](int x) {f(x); }, 1, &PER_MODEL_POOL);
+                        parallel_for(0, bufCnt, [&f](int x) {f(x); }, 1, &PerModelPool());
                     }
                     else {
                         for (int x = 0; x < bufCnt; x++) {
@@ -4505,6 +4833,13 @@ void RenderEngine::NotifyJobFinished(RenderProgressInfo* rpi) {
 
     if (profRender) {
         DumpRenderProfile(rpi, (long long)elapsedMS);
+    }
+    if (xldbgRenderMem) {
+        RenderMemoryGovernor& gov = RenderMemoryGovernor::Get();
+        fprintf(stderr, "XL_RENDER_MEM BATCH clones=%llu (%.1f MB) dropped=%llu peakFootprint=%llu MB soft=%llu MB\n",
+                (unsigned long long)xldbgCloneCount.load(), xldbgCloneBytes.load() / (1024.0 * 1024.0),
+                (unsigned long long)xldbgCloneDropped.load(),
+                (unsigned long long)gov.PeakMB(), (unsigned long long)gov.SoftLimitMB());
     }
 
     bool expected = false;

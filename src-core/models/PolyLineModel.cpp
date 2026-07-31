@@ -582,12 +582,12 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
     int coords_per_node = Nodes[0].get()->Coords.size();
     float coord_offset = using_icicles ? 1.0f / (float)coords_per_node : 0.0f;
     int lights_to_distribute = SingleNode ? numLights : numLights * coords_per_node;
-    float offset;
-    if (!SingleNode) {
-        offset = _totalLength / ((float)_numDropPoints * (using_icicles ? 1.0f : (float)coords_per_node));
-    } else {
-        offset = _totalLength / (float)_numDropPoints;
-    }
+    // _numDropPoints is 0 on a degenerate/not-yet-sized polyline; dividing by it
+    // seeds every node coordinate with inf, which then propagates into buffer
+    // indices and the preview's depth sort. DistributeLightsAcrossSegment guards
+    // its own division the same way.
+    float divisor = (float)_numDropPoints * ((!SingleNode && !using_icicles) ? (float)coords_per_node : 1.0f);
+    float offset = (divisor > 0.0f) ? _totalLength / divisor : 0.0f;
     float current_pos = offset / 2.0f;
     size_t c = 0;
     int segment = 0;

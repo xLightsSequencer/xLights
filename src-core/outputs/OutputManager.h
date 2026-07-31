@@ -157,9 +157,9 @@ public:
 
     #pragma region Output Management
     int GetOutputCount() const;
-    std::list<Output*> GetAllOutputs(const std::string& ip, const std::string& hostName = std::string()) const;
-    std::list<Output*> GetAllOutputs() const;
-    std::list<Output*> GetOutputs() const { return GetAllOutputs(); }
+    std::vector<Output*> GetAllOutputs(const std::string& ip, const std::string& hostName = std::string()) const;
+    std::vector<Output*> GetAllOutputs() const;
+    std::vector<Output*> GetOutputs() const { return GetAllOutputs(); }
     Output* GetOutput_CONVERT(int outputNumber) const;
     Output* GetOutput(int32_t absoluteChannel, int32_t& startChannel) const; // returns the output ... even if it is in a collection
     Output* GetOutput(int universe, const std::string& ip) const;

@@ -4003,7 +4003,9 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                     RaiseSelectedEffectChanged(mSelectedEffect, false);
                 }
             } else if (!mEffectMoveDragThresholdExceeded && mEffectMoveDragGroup && mEffectMoveAnchorEffect != nullptr) {
-                // Keep the group selected; just update the settings panel to the clicked effect
+                // Click-without-drag on a group member: narrow selection to just the clicked effect
+                mSequenceElements->UnSelectAllEffects();
+                mEffectMoveAnchorEffect->SetSelected(EFFECT_SELECTED);
                 mSelectedEffect = mEffectMoveAnchorEffect;
                 RaiseSelectedEffectChanged(mSelectedEffect, false);
             }
@@ -8434,7 +8436,21 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
     mEffectMoveHasCollision = anyCollision;
     SetCursor(anyCollision ? s_noEntry : s_sizing);
 
-    ((MainSequencer*)mParent)->PanelWaveForm->SetEffectDragOverride(anchorOrigStart + mEffectMoveTargetDeltaMS, anchorOrigEnd + mEffectMoveTargetDeltaMS);
+    // Update waveform markers and status bar with the projected range across all dragged effects
+    {
+        int minStart = INT_MAX, maxEnd = 0;
+        for (auto& snap : mEffectMoveSnapshots) {
+            minStart = std::min(minStart, snap.origStartTimeMS + mEffectMoveTargetDeltaMS);
+            maxEnd   = std::max(maxEnd,   snap.origEndTimeMS   + mEffectMoveTargetDeltaMS);
+        }
+        if (minStart != INT_MAX) {
+            ((MainSequencer*)mParent)->PanelWaveForm->SetEffectDragOverride(minStart, maxEnd);
+            xlights->SetStatusText(
+                wxString::Format("start: %s  end: %s  duration: %s",
+                                 FORMATTIME(minStart), FORMATTIME(maxEnd),
+                                 FORMATTIME(maxEnd - minStart)), true);
+        }
+    }
 
     wxSize sz = GetSize();
     int zone = FromDIP(40);
