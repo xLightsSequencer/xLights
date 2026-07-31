@@ -8556,7 +8556,7 @@ void EffectsGrid::ApplyEffectMoveDrag() {
         MoveAllSelectedEffects(deltaMS, false);
         sendRenderDirtyEvent();
         if (mEffectMoveAnchorEffect != nullptr) {
-            RaisePlayModelEffect(mEffectMoveAnchorEffect->GetParentEffectLayer()->GetParentElement(), mEffectMoveAnchorEffect, false);
+            RaiseSelectedEffectChanged(mEffectMoveAnchorEffect, false);
         }
         return;
     }
@@ -8618,6 +8618,9 @@ void EffectsGrid::ApplyEffectMoveDrag() {
         mSelectedRow = -1;
     }
     sendRenderDirtyEvent();
+    if (newAnchorEff != nullptr) {
+        RaiseSelectedEffectChanged(newAnchorEff, false);
+    }
 }
 
 void EffectsGrid::DrawEffectMoveDragOverlay(xlGraphicsContext* ctx) {
