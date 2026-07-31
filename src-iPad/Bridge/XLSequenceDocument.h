@@ -1694,6 +1694,12 @@ NS_ASSUME_NONNULL_BEGIN
                                                   modelName:(NSString*)modelName
     NS_SWIFT_NAME(submodelDetails(fromRGBEffectsFile:modelName:));
 
+// Serialise a model's submodels to the CSV the desktop's "Export SubModels
+// As CSV" writes, via shared core so the two platforms emit the same file.
+// Returns nil for an unknown model.
+- (nullable NSString*)exportSubmodelsCSVForModel:(NSString*)parentName
+    NS_SWIFT_NAME(exportSubmodelsCSV(forModel:));
+
 // Model export. Write the named model (with its submodels,
 // faces, states, aliases, dimming curve) to a .xmodel file at
 // `path`. Mirrors desktop ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL

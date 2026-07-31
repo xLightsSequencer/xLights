@@ -356,6 +356,42 @@ void RemoveAllDuplicates(std::vector<std::string>& strands, bool leftToRight, bo
 }
 
 // ---------------------------------------------------------------------------
+// Whole-submodel description, for import / export
+// ---------------------------------------------------------------------------
+
+std::string ExportSubModelsCSV(const std::vector<SubModelSpec>& subModels)
+{
+    std::string out = "Name,Type,Vertical Buffer,Buffer Style,Rows Name,Node Ranges\n";
+
+    for (const auto& sm : subModels) {
+        out += sm.name + ",";
+        out += sm.isRanges ? "Node Ranges," : "SubBuffer,";
+        out += sm.vertical ? "true," : "false,";
+        out += sm.bufferStyle + ",";
+        out += ",\n";
+
+        if (!sm.isRanges) {
+            out += ",,,SubBuffer,\"" + sm.subBuffer + "\"\n";
+            continue;
+        }
+
+        // Emitted top row first; strands[0] is the bottom row.
+        for (int x = static_cast<int>(sm.strands.size()) - 1; x >= 0; --x) {
+            out += ",,,";
+            if (x == 0) {
+                out += "Bottom,";
+            } else if (x == static_cast<int>(sm.strands.size()) - 1) {
+                out += "Top,";
+            } else {
+                out += "Line " + std::to_string(x + 1) + ",";
+            }
+            out += "\"" + sm.strands[x] + "\"\n";
+        }
+    }
+    return out;
+}
+
+// ---------------------------------------------------------------------------
 // Slice generation
 // ---------------------------------------------------------------------------
 

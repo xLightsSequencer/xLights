@@ -3450,33 +3450,20 @@ void SubModelsPanel::ExportSubModels(wxString const& filename)
         return;
     }
 
-    wxString const header = "Name,Type,Vertical Buffer,Buffer Style,Rows Name,Node Ranges\n";
-    f.Write(header);
-
+    std::vector<submodel_ops::SubModelSpec> specs;
+    specs.reserve(_subModels.size());
     for (auto sm : _subModels) {
-        f.Write(sm->name + ",");
-        f.Write((sm->isRanges ? "Node Ranges," : "SubBuffer," ));
-        f.Write((sm->vertical ? "true," : "false,"));
-        f.Write((sm->bufferStyle + ","));
-        f.Write(",\n" );
-        if (sm->isRanges) {
-            for (int x = sm->strands.size() - 1; x >= 0; x--) {
-                f.Write(",,,");
-                if (x == 0) {
-                    f.Write("Bottom,");
-                } else if (x == (int)sm->strands.size() - 1) {
-                    f.Write("Top,");
-                } else {
-                    f.Write(wxString::Format("Line %d,", (x + 1)));
-                }
-                f.Write("\"" + sm->strands[x] + "\"\n");
-            }
-        } else {
-            f.Write(",,,");
-            f.Write("SubBuffer,");
-            f.Write("\"" + sm->subBuffer + "\"\n");
-        }
+        submodel_ops::SubModelSpec spec;
+        spec.name = sm->name.ToStdString();
+        spec.isRanges = sm->isRanges;
+        spec.vertical = sm->vertical;
+        spec.bufferStyle = sm->bufferStyle.ToStdString();
+        spec.subBuffer = sm->subBuffer.ToStdString();
+        spec.strands = sm->strands;
+        specs.push_back(std::move(spec));
     }
+
+    f.Write(wxString(submodel_ops::ExportSubModelsCSV(specs)));
     f.Close();
 }
 

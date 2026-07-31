@@ -89,6 +89,26 @@ void RemoveDuplicatesInRow(std::vector<std::string>& strands, int displayRow, bo
 void RemoveAllDuplicates(std::vector<std::string>& strands, bool leftToRight, bool suppress);
 
 // ---------------------------------------------------------------------------
+// Whole-submodel description, for import / export
+// ---------------------------------------------------------------------------
+
+// One submodel's editable state. Mirrors the desktop panel's SubModelInfo and
+// the iPad's `submodelDetailsForModel:` dictionary, minus the UI bookkeeping.
+struct SubModelSpec {
+    std::string name;
+    bool isRanges{true};
+    bool vertical{false};
+    std::string bufferStyle{"Default"};
+    std::string subBuffer;          // when !isRanges
+    std::vector<std::string> strands; // when isRanges; [0] is the bottom row
+};
+
+// Serialise submodels to the CSV the desktop's "Export SubModels As CSV"
+// writes. Rows are emitted top-first and labelled Top / Line N / Bottom, so
+// the file reads in the same order the editor shows.
+std::string ExportSubModelsCSV(const std::vector<SubModelSpec>& subModels);
+
+// ---------------------------------------------------------------------------
 // Slice generation
 // ---------------------------------------------------------------------------
 

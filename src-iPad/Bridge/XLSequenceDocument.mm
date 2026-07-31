@@ -6468,6 +6468,36 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     return (NSInteger)m->GetNodeCount();
 }
 
+- (nullable NSString*)exportSubmodelsCSVForModel:(NSString*)parentName {
+    if (!_context || !_context->HasModelManager() || !parentName) return nil;
+    Model* m = _context->GetModelManager()[std::string(parentName.UTF8String)];
+    if (!m) return nil;
+
+    std::vector<submodel_ops::SubModelSpec> specs;
+    for (Model* sub : m->GetSubModels()) {
+        if (sub == nullptr) continue;
+        SubModel* sm = dynamic_cast<SubModel*>(sub);
+        if (sm == nullptr) continue;
+
+        submodel_ops::SubModelSpec spec;
+        spec.name = sm->GetName();
+        spec.isRanges = sm->IsRanges();
+        spec.vertical = sm->IsVertical();
+        spec.bufferStyle = sm->GetSubModelBufferStyle();
+        if (spec.isRanges) {
+            const int n = sm->GetNumRanges();
+            for (int i = 0; i < n; ++i) {
+                spec.strands.push_back(sm->GetRange(i));
+            }
+        } else {
+            spec.subBuffer = sm->GetSubModelLines();
+        }
+        specs.push_back(std::move(spec));
+    }
+
+    return [NSString stringWithUTF8String:submodel_ops::ExportSubModelsCSV(specs).c_str()];
+}
+
 - (nullable NSArray<NSString*>*)applySubmodelOperation:(NSString*)op
                                              toStrands:(NSArray<NSString*>*)strands
                                              nodeCount:(NSInteger)nodeCount
