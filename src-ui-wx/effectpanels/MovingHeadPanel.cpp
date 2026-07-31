@@ -856,19 +856,35 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
             }
         }
     }
-    if (!m_minSizeSet) {
-        wxWindow* p = GetParent();
-        while (p && !p->GetName().IsSameAs("Effect"))
-            p = p->GetParent();
-        if (p) {
-            wxAuiManager* mgr = wxAuiManager::GetManager(p);
-            if (mgr) {
-                wxAuiPaneInfo& pane = mgr->GetPane(p);
-                if (pane.IsOk()) {
-                    pane.MinSize(wxSize(350, -1));
-                    mgr->Update();
-                    m_minSizeSet = true;
-                }
+    if (!m_minSizeSet && IsShownOnScreen()) {
+        // This must stay gated on IsShownOnScreen(): it used to run once during
+        // initial choicebook construction, long before the panel was ever really
+        // laid out, using GetBestSize() values that were meaningless that early.
+        // Because m_minSizeSet then latched true permanently, that garbage
+        // snapshot stuck for the rest of the run. FlexGridSizer_Main->CalcMin()
+        // forces a fresh recompute from the sizer's current children instead of
+        // relying on GetBestSize(), which is cached and can go stale.
+        //
+        // wxAuiManager::GetManager(this) doesn't reliably find the manager from
+        // this deep in the choicebook/scrolledwindow nesting. SketchPanel.cpp's
+        // getSketchAssistPanel() hits the same problem reaching the
+        // "EffectAssist" pane and works around it by walking parents for the
+        // actual xLightsFrame and using its m_mgr directly -- do the same here,
+        // then look the pane up by its *AUI pane name* ("Effect", set in
+        // CreateSequencer's m_mgr->AddPane(effectsPnl, ...Name("Effect")...)).
+        xLightsFrame* frame = nullptr;
+        for (wxWindow* w = GetParent(); w != nullptr; w = w->GetParent()) {
+            frame = dynamic_cast<xLightsFrame*>(w);
+            if (frame != nullptr) break;
+        }
+        wxAuiManager* mgr = frame ? frame->m_mgr : nullptr;
+        if (mgr) {
+            wxAuiPaneInfo& pane = mgr->GetPane(wxT("Effect"));
+            if (pane.IsOk()) {
+                wxSize best = FlexGridSizer_Main->CalcMin();
+                pane.MinSize(wxSize(std::max(best.GetWidth(), FromDIP(350)), best.GetHeight()));
+                mgr->Update();
+                m_minSizeSet = true;
             }
         }
     }
