@@ -88,4 +88,48 @@ void RemoveDuplicatesInRow(std::vector<std::string>& strands, int displayRow, bo
 // place; otherwise they are removed and rows shorten.
 void RemoveAllDuplicates(std::vector<std::string>& strands, bool leftToRight, bool suppress);
 
+// ---------------------------------------------------------------------------
+// Geometric point ordering
+// ---------------------------------------------------------------------------
+
+// Which point the ordering rotates around / measures from.
+enum class OrderCenter {
+    Model,    // centroid of every node in the model
+    Submodel, // centroid of the nodes this submodel selects
+    Strand    // centroid of the row being ordered, recomputed per row
+};
+
+struct OrderPointsOptions {
+    // Radial sorts by distance from the centre; otherwise the sort is
+    // circumferential, by angle around it.
+    bool radial{false};
+    // Radial: far-to-near when set. Circumferential: counter-clockwise.
+    bool reverse{false};
+    OrderCenter center{OrderCenter::Model};
+    // Circumferential start angle, radians.
+    float startAngle{0.0f};
+    // Offset `startAngle` by the direction from the row back to the model
+    // centre, so "inside"/"outside" mean the same thing on every row.
+    bool startModelRelative{false};
+};
+
+// The ordering modes offered to the user, as "Mode|Start|Center" strings.
+// Shared so the desktop menu and the iPad picker cannot drift apart.
+std::vector<std::string> OrderPointsChoices();
+
+// Decode one entry of OrderPointsChoices(). Returns false when the string
+// isn't a recognised combination.
+bool ParseOrderPointsChoice(const std::string& choice, OrderPointsOptions& out);
+
+// Reorder the nodes within display rows [firstRow, lastRow] by position.
+// `coords` maps 1-based node index -> (x, y), e.g. from
+// Model::GetScreenLocations. Blank/zero cells are preserved as gaps: each
+// node keeps the run of blanks that preceded it, and any trailing blanks
+// migrate to the front, matching the desktop.
+void OrderPoints(std::vector<std::string>& strands,
+                 const std::map<int, std::pair<float, float>>& coords,
+                 const OrderPointsOptions& opts,
+                 int firstDisplayRow,
+                 int lastDisplayRow);
+
 } // namespace submodel_ops

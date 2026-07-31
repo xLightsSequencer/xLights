@@ -1720,82 +1720,15 @@ void SubModelsPanel::processAllStrands(std::string (*func)(const std::string&))
     ValidateWindow();
 }
 
-static wxString OrderPointsI(std::map<int, std::pair<float, float>>& coords, const wxString& instr, std::pair<float, float> centroid, bool radial, float startangle, bool ccw_outside)
-{
-    auto inp = Split(NodeUtils::ExpandNodes(instr.ToStdString()), ',');
-
-    std::vector<std::pair<int, int>> nodeAndBlanksBefore;
-    int blanks = 0;
-    for (const auto& x : inp) {
-        if (x == "" || x == "0") {
-            ++blanks;
-        } else {
-            nodeAndBlanksBefore.push_back(std::make_pair(wxAtoi(x), blanks));
-            blanks = 0;
-        }
-    }
-
-    if (radial) {
-        std::sort(nodeAndBlanksBefore.begin(), nodeAndBlanksBefore.end(),
-                  [&coords, &centroid, startangle, ccw_outside](const std::pair<int, int>& l, const std::pair<int, int>& r) {
-                      auto cl = coords[l.first];
-                      auto cr = coords[r.first];
-
-                      float dxl = cl.first - centroid.first;
-                      float dyl = cl.second - centroid.second;
-                      float dxr = cr.first - centroid.first;
-                      float dyr = cr.second - centroid.second;
-
-                      float dl = dxl * dxl + dyl * dyl;
-                      float dr = dxr * dxr + dyr * dyr;
-
-                      // Hum, we could use dot product along angle, instead of distance...
-
-                      return ccw_outside ? (dl > dr) : (dl < dr);
-                  });
-    } else {
-        std::sort(nodeAndBlanksBefore.begin(), nodeAndBlanksBefore.end(),
-                  [&coords, &centroid, startangle, ccw_outside](const auto& l, const auto& r) {
-                      auto cl = coords[l.first];
-                      auto cr = coords[r.first];
-
-                      float angl = atan2(cl.second - centroid.second, cl.first - centroid.first);
-                      float angr = atan2(cr.second - centroid.second, cr.first - centroid.first);
-                      angl -= startangle;
-                      angr -= startangle;
-                      while (angl < 0)
-                          angl += float(2 * PI);
-                      while (angr < 0)
-                          angr += float(2 * PI);
-
-                      return ccw_outside ? (angl < angr) : (angl > angr);
-                  });
-    }
-
-    if (nodeAndBlanksBefore.empty())
-        return instr; // All Empty
-    nodeAndBlanksBefore[0].second += blanks;
-
-    wxString res;
-    for (const auto& x : nodeAndBlanksBefore) {
-        for (int i = 0; i < x.second; ++i)
-            res += ",";
-        res += wxString::Format("%d,", x.first);
-    }
-
-    return NodeUtils::CompressNodes(res.substr(0, res.size() - 1));
-}
-
 void SubModelsPanel::OrderPoints(bool wholesub)
 {
-    // Collect up selection
     wxString name = GetSelectedName();
     if (name == "") {
         return;
     }
 
     SubModelInfo* sm = GetSubModelInfo(name);
-    if (!sm->isRanges)
+    if (sm == nullptr || !sm->isRanges)
         return;
     if (sm->strands.empty())
         return;
@@ -1804,235 +1737,31 @@ void SubModelsPanel::OrderPoints(bool wholesub)
     if (row < 0 && !wholesub)
         return;
 
-    // Gather the coordinates
     std::map<int, std::pair<float, float>> coords;
     if (!model->GetScreenLocations(_modelPreview, coords)) {
         DisplayError("Model doesn't have precisely one location per node");
         return;
     }
 
-    // Gather centroids
-    float wcx = 0, wcy = 0, smcx = 0, smcy = 0;
-    std::set<int> smpts;
-    for (int crow = 0; crow < int(sm->strands.size()); ++crow) {
-        auto arr = wxSplit(NodeUtils::ExpandNodes(sm->strands[crow]), ',');
-        for (auto& x : arr) {
-            if (x.empty() || x == "0")
-                continue;
-            smpts.insert(wxAtoi(x));
-        }
-    }
-    if (smpts.empty())
-        return;
-    for (const auto& pt : coords) {
-        wcx += pt.second.first;
-        wcy += pt.second.second;
-        if (smpts.count(pt.first)) {
-            smcx += pt.second.first;
-            smcy += pt.second.second;
-        }
-    }
-    wcx /= coords.size();
-    wcy /= coords.size();
-    smcx /= smpts.size();
-    smcy /= smpts.size();
-
-    // Gather the user's requested action
-    std::pair<float, float> mctr = std::make_pair(wcx, wcy);
-    auto ctr = mctr;
-    bool radial = false;
-    float angle = 0;
-    bool ccw_outside = false;
-    bool strandCentroid = false;
-    bool startModelRelative = false;
-
     wxArrayString chs;
-    chs.push_back("Circumferential|Start From Model Inside|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Model Inside|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model Inside|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Model Inside|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Model Inside|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model Inside|CCW Around Strand Center");
-    chs.push_back("Circumferential|Start From Model Outside|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Model Outside|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model Outside|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Model Outside|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Model Outside|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model Outside|CCW Around Strand Center");
-    chs.push_back("Circumferential|Start From Model CCW|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Model CCW|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model CCW|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Model CCW|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Model CCW|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model CCW|CCW Around Strand Center");
-    chs.push_back("Circumferential|Start From Model CW|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Model CW|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model CW|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Model CW|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Model CW|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Model CW|CCW Around Strand Center");
-    chs.push_back("Circumferential|Start From Up|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Up|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Up|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Up|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Up|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Up|CCW Around Strand Center");
-    chs.push_back("Circumferential|Start From Down|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Down|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Down|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Down|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Down|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Down|CCW Around Strand Center");
-    chs.push_back("Circumferential|Start From Left|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Left|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Left|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Left|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Left|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Left|CCW Around Strand Center");
-    chs.push_back("Circumferential|Start From Right|CW Around Model Center");
-    chs.push_back("Circumferential|Start From Right|CW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Right|CW Around Strand Center");
-    chs.push_back("Circumferential|Start From Right|CCW Around Model Center");
-    chs.push_back("Circumferential|Start From Right|CCW Around Submodel Center");
-    chs.push_back("Circumferential|Start From Right|CCW Around Strand Center");
-
-    chs.push_back("Radial|From Near To Far|Model Center");
-    chs.push_back("Radial|From Near To Far|Submodel Center");
-    chs.push_back("Radial|From Near To Far|Strand Center");
-    chs.push_back("Radial|From Far To Near|Model Center");
-    chs.push_back("Radial|From Far To Near|Submodel Center");
-    chs.push_back("Radial|From Far To Near|Strand Center");
+    for (const auto& c : submodel_ops::OrderPointsChoices()) {
+        chs.push_back(wxString(c));
+    }
 
     wxSingleChoiceDialog dlg(this, "Please choose direction, start/end, and centroid", "Order Type", chs);
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
-    if (dlg.GetStringSelection() == "Yes") {
-        // handleCenterNode = true;
-    }
 
-    auto choices = wxSplit(dlg.GetStringSelection(), '|');
-    if (choices.size() != 3)
-        return;
-
-    if (choices[0] == "Radial") {
-        radial = true;
-
-        if (choices[2] == "Submodel Center") {
-            ctr = std::make_pair(smcx, smcy);
-        } else if (choices[2] == "Strand Center") {
-            strandCentroid = true;
-        } else if (choices[2] == "Model Center") {
-            // Leave ctr how it is
-        } else {
-            DisplayError(wxString::Format("Unexpected radial center %s", choices[2]), this);
-            return;
-        }
-
-        if (choices[1] == "From Far To Near") {
-            ccw_outside = true;
-        } else if (choices[1] == "From Near To Far") {
-            ccw_outside = false;
-        } else {
-            DisplayError(wxString::Format("Unexpected radial direction %s", choices[1]), this);
-            return;
-        }
-    } else if (choices[0] == "Circumferential") {
-        // Circumferential
-
-        if (choices[2] == "CW Around Model Center") {
-            ccw_outside = false;
-        } else if (choices[2] == "CCW Around Model Center") {
-            ccw_outside = true;
-        } else if (choices[2] == "CW Around Submodel Center") {
-            ctr = std::make_pair(smcx, smcy);
-            ccw_outside = false;
-        } else if (choices[2] == "CCW Around Submodel Center") {
-            ctr = std::make_pair(smcx, smcy);
-            ccw_outside = true;
-        } else if (choices[2] == "CW Around Strand Center") {
-            ccw_outside = false;
-            strandCentroid = true;
-        } else if (choices[2] == "CCW Around Strand Center") {
-            ccw_outside = true;
-            strandCentroid = true;
-        } else {
-            DisplayError(wxString::Format("Unexpected circumferential mode %s", choices[2]), this);
-            return;
-        }
-
-        float fdlt = 0.02f;
-        if (choices[1] == "Start From Up") {
-            angle = float(PI / 2);
-        } else if (choices[1] == "Start From Down") {
-            angle = float(3 * PI / 2);
-        } else if (choices[1] == "Start From Right") {
-            angle = 0;
-        } else if (choices[1] == "Start From Left") {
-            angle = float(PI);
-        } else if (choices[1] == "Start From Up") {
-            angle = float(PI / 2);
-        } else if (choices[1] == "Start From Model Inside") {
-            angle = 0;
-            startModelRelative = true;
-        } else if (choices[1] == "Start From Model Outside") {
-            angle = float(PI);
-            startModelRelative = true;
-        } else if (choices[1] == "Start From Model CW") {
-            angle = float(PI / 2);
-            startModelRelative = true;
-        } else if (choices[1] == "Start From Model CCW") {
-            angle = float(3*PI/2);
-            startModelRelative = true;
-        } else {
-            DisplayError(wxString::Format("Unexpected circumferential start %s", choices[1]), this);
-            return;
-        }
-        angle += ccw_outside ? -fdlt : fdlt;
-    } else {
-        DisplayError(wxString::Format("Unexpected mode %s", choices[0]), this);
+    submodel_ops::OrderPointsOptions opts;
+    if (!submodel_ops::ParseOrderPointsChoice(dlg.GetStringSelection().ToStdString(), opts)) {
+        DisplayError(wxString::Format("Unexpected order mode %s", dlg.GetStringSelection()), this);
         return;
     }
 
-    // Perform the work
-    int minr = 0;
-    int maxr = sm->strands.size() - 1;
-    if (!wholesub) {
-        minr = maxr = row;
-    }
-    for (int crow = minr; crow <= maxr; ++crow) {
-        auto strand = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - crow]);
-
-        // Calculate strand points
-        float scx = 0, scy = 0;
-        int scnt = 0;
-        auto srr = wxSplit(strand, ',');
-        for (auto s : srr) {
-            if (s.empty() || s == "0")
-                continue;
-            ++scnt;
-            int pt = wxAtoi(s);
-            scx += coords[pt].first;
-            scy += coords[pt].second;
-        }
-        if (scnt == 0)
-            continue;
-        auto sctr = std::make_pair(scx / scnt, scy / scnt);
-
-        if (strandCentroid)
-            ctr = sctr;
-
-        float uangle = angle;
-        if (startModelRelative) {
-            float mangle = atan2f(wcy - sctr.second, wcx - sctr.first);
-            if (mangle < 0)
-                mangle += float(2 * PI);
-            uangle += mangle;
-        }
-
-        strand = OrderPointsI(coords, strand, ctr, radial, uangle, ccw_outside).ToStdString();
-        sm->strands[sm->strands.size() - 1 - crow] = strand;
-    }
+    int const minr = wholesub ? 0 : row;
+    int const maxr = wholesub ? int(sm->strands.size()) - 1 : row;
+    submodel_ops::OrderPoints(sm->strands, coords, opts, minr, maxr);
 
     // Update UI
     Select(GetSelectedName());
