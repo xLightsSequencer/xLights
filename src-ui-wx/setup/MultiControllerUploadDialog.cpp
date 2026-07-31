@@ -124,7 +124,7 @@ MultiControllerUploadDialog::MultiControllerUploadDialog(wxWindow* parent, wxWin
     ListCtrl_Controllers->AppendColumn("");
     ListCtrl_Controllers->AppendColumn("");
     ListCtrl_Controllers->SetColumnWidth(1, RESULT_COLUMN_WIDTH);
-    auto stretchNameColumn = [this]() {
+    auto stretchNameColumn = [this, RESULT_COLUMN_WIDTH]() {
         if (ListCtrl_Controllers == nullptr) return;
         int w = ListCtrl_Controllers->GetClientSize().GetWidth() - RESULT_COLUMN_WIDTH;
         if (w > 100) {
