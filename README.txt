@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+xLights™ is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE, SS and S5),
@@ -20,10 +20,24 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Layout: a polyline with no drop points placed its nodes at infinite coordinates
     -bug (dkulp)                 Shader: a shader Metal refused to build aborted the render instead of just not
                                  rendering that effect
-    -bug (dkulp)                 Video: a file whose display matrix encodes its pixel aspect as a scale made the
+    -bug (dkulp)                 MacOS Video: a file whose display matrix encodes its pixel aspect as a scale made the
                                  decoder target a frame far larger than the source, so every cached frame was tens
                                  of MB. Renders using such a video could reach 40GB+ and be many times slower.
                                  Such files decode at native size again, as they did before decode-time scaling.
+    -bug (dkulp)                 MacOS Video: only H.264/HEVC keyframes were treated as safe decode entry points, so an
+                                 all-intra file (MJPEG, ProRes) got exactly one, and every seek re-decoded the whole
+                                 file from its first frame. Chains were held long enough that other effects using
+                                 the same file timed out waiting, and a timeout was reported as end-of-video, which
+                                 restarted looping effects early - so the same sequence rendered differently every
+                                 time. Such files now render identically run to run, and a video-heavy sequence
+                                 measured 94s -> 34s
+    -enh (dkulp)                 MacOS Video: a single large effect on a file made the decode-scale anti-alias headroom
+                                 overshoot the source, so the file decoded at full native size and the scaling
+                                 bought nothing, however small every other effect using it was. Such files now
+                                 decode at the size actually rendered, and both decoder frame caches are bounded
+                                 in bytes as well as frame count so a 4K file cannot cost 8x a 1080p one per
+                                 cached frame. A sequence with 164 video effects over nine files, one of them 4K:
+                                 peak memory 22GB -> 8GB, render CPU -35%
     -enh (dkulp)                 Render: throttle frame concurrency when memory use approaches the limit the OS will
                                  kill the process at, and XL_RENDER_MEM=1 reports what a render is spending memory on
     -bug (MrPierreB)             Effect drag: waveform time markers now show the full selection span rather than just the grabbed effect

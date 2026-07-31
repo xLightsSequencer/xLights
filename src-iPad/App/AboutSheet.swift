@@ -35,7 +35,7 @@ struct AboutSheet: View {
                 VStack(spacing: 20) {
                     appIcon
                     VStack(spacing: 6) {
-                        Text("xLights")
+                        Text("xLights™")
                             .font(.largeTitle.weight(.semibold))
                         Text("Version \(bundleVersion) (\(buildNumber))")
                             .font(.subheadline)
@@ -60,7 +60,7 @@ struct AboutSheet: View {
                 .padding(.vertical, 24)
                 .frame(maxWidth: .infinity)
             }
-            .navigationTitle("About xLights")
+            .navigationTitle("About xLights™")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

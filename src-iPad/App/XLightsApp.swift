@@ -996,7 +996,7 @@ struct ShowFolderSetupView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("xLights")
+            Text("xLights™")
                 .font(.largeTitle)
             if isRestoring {
                 ProgressView()

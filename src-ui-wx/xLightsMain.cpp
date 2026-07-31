@@ -2671,7 +2671,7 @@ void xLightsFrame::LogPerspective(const wxString& perspective) const
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
+    wxString hdg = wxString::Format(_(L"About xLights\u2122 %s"), GetDisplayVersionString());
     wxString ver = wxString::Format(_("Version: %s\n%s"), GetDisplayVersionString(), wxVERSION_STRING);
 #if defined(_MSC_VER)
     ver += wxString::Format("\nVisual C++ %d" ,_MSC_VER);

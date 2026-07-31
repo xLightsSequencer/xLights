@@ -68,6 +68,10 @@ AboutDialog::AboutDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const
 	MainSizer->Fit(this);
 	MainSizer->SetSizeHints(this);
 	//*)
+
+	// Outside the wxSmith guard so the mark survives a regeneration from the
+	// .wxs, and so the escape isn't replaced by a literal wxSmith would write.
+	StaticText1->SetLabel(L"xLights\u2122");
 }
 
 AboutDialog::~AboutDialog()
