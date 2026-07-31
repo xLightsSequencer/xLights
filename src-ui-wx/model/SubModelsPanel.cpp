@@ -37,6 +37,8 @@
 #include <algorithm>
 
 #include "SubModelsPanel.h"
+
+#include "models/SubModelOps.h"
 #include <wx/progdlg.h>
 #include "models/Model.h"
 #include "models/CustomModel.h"
@@ -1351,44 +1353,15 @@ void SubModelsPanel::OnNodesGridPopup(wxCommandEvent& event)
     } else if (event.GetId() == SUBMODEL_DIALOG_COMBINE_STRANDS) {
         CombineStrands();
     } else if (event.GetId() == SUBMODEL_DIALOG_EXPAND_STRANDS_ALL) {
-        processAllStrands([](const std::string& str) { return NodeUtils::ExpandNodes(str); });
+        processAllStrands(submodel_ops::ExpandStrand);
     } else if (event.GetId() == SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL) {
-        processAllStrands([](const std::string& str) { return NodeUtils::CompressNodes(str); });
+        processAllStrands(submodel_ops::CompressStrand);
     } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_ZERO) {
-        processAllStrands([](const std::string& str) {
-            std::vector<std::string> ns;
-            Split(str, ',', ns);
-            std::string result;
-            for (auto& s : ns) {
-                if (!result.empty()) result += ",";
-                result += s.empty() ? "0" : s;
-            }
-            return result;
-        });
+        processAllStrands(submodel_ops::BlanksToZeros);
     } else if (event.GetId() == SUBMODEL_DIALOG_BLANKS_AS_EMPTY) {
-        processAllStrands([](const std::string& str) {
-            std::vector<std::string> ns;
-            Split(str, ',', ns);
-            std::string result;
-            for (auto& s : ns) {
-                if (!result.empty()) result += ",";
-                result += (s == "0") ? "" : s;
-            }
-            return result;
-        });
+        processAllStrands(submodel_ops::ZerosToBlanks);
     } else if (event.GetId() == SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS) {
-        processAllStrands([](const std::string& str) {
-            std::vector<std::string> ns;
-            Split(str, ',', ns);
-            std::string result;
-            for (auto& s : ns) {
-                if (s != "0" && !s.empty()) {
-                    if (!result.empty()) result += ",";
-                    result += s;
-                }
-            }
-            return result;
-        });
+        processAllStrands(submodel_ops::RemoveBlanksAndZeros);
     }
     NotifyChange();
 }
@@ -1733,10 +1706,7 @@ void SubModelsPanel::processAllStrands(std::string (*func)(const std::string&))
     if (!sm)
         return;
 
-    // Process all rows
-    for (unsigned i = 0; i < sm->strands.size(); ++i) {
-        sm->strands[sm->strands.size() - 1 - i] = func(sm->strands[sm->strands.size() - 1 - i]);
-    }
+    submodel_ops::TransformAllStrands(sm->strands, func);
 
     // Update UI
     Select(name);
@@ -3021,31 +2991,7 @@ void SubModelsPanel::OnNodesGridCellLeftDClick(wxGridEvent& event)
 
 wxString SubModelsPanel::ReverseRow(wxString row)
 {
-    wxString newStrand = "";
-    auto nodes = wxSplit(row, ',');
-    for (auto nit = nodes.rbegin(); nit != nodes.rend(); ++nit)
-    {
-        if (nit != nodes.rbegin()) newStrand += ",";
-        if (nit->Contains('-'))
-        {
-            auto range = wxSplit(*nit, '-');
-            if (range.size() == 2)
-            {
-                newStrand += range[1] + "-" + range[0];
-            }
-            else
-            {
-                // not valid so just copy
-                newStrand += *nit;
-            }
-        }
-        else
-        {
-            newStrand += *nit;
-        }
-    }
-
-    return newStrand;
+    return wxString(submodel_ops::ReverseRow(row.ToStdString()));
 }
 #pragma endregion
 
@@ -3985,92 +3931,50 @@ void SubModelsPanel::ExportSubModelAsxModel(wxString const& filename, const std:
 //Shift nodes  numbering 1->21, 100->120
 void SubModelsPanel::Shift()
 {
-    wxString name = GetSelectedName();
-    long min = 1;
-    long max = model->GetNodeCount();
-
-    wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
-    if (dlg.ShowModal() == wxID_OK) {
-        auto scaleFactor = dlg.GetValue();
-        if (scaleFactor != 0) {
-            for (auto sm : _subModels) {
-                if (sm->isRanges) {
-                    for (size_t x = 0; x < sm->strands.size(); x++) {
-                        auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[x]);
-                        auto oldNodeArray = wxSplit(oldnodes, ',');
-                        std::vector<std::string> newNodeArray;
-                        for (auto const& node: oldNodeArray) {
-                            long val;
-                            if (node.ToCLong(&val) == true) {
-                                long newVal = val + scaleFactor;
-                                if (newVal > max) {
-                                    newVal -= max;
-                                }
-                                else if (newVal < min) {
-                                    newVal += max;
-                                }
-                                newNodeArray.push_back( fmt::format("{}", newVal) );
-                            }
-                        }
-                        sm->strands[x] = NodeUtils::CompressNodes(Join(newNodeArray, ","));
-                    }
-                }
-            }
-            ValidateWindow();
-            Select(name);
-
-            Panel3->SetFocus();
-            TextCtrl_Name->SetFocus();
-            TextCtrl_Name->SelectAll();
-        }
-    }
+    ShiftNodes(false);
 }
 
 void SubModelsPanel::ShiftSingleSubmodel()
 {
-    wxString name = GetSelectedName();
-    if (name == "")
-        return;
-    SubModelInfo* sm = GetSubModelInfo(name);
+    ShiftNodes(true);
+}
 
-    long min = 1;
+void SubModelsPanel::ShiftNodes(bool selectedOnly)
+{
+    wxString name = GetSelectedName();
+    if (selectedOnly && name.empty())
+        return;
+
     long max = model->GetNodeCount();
 
     wxNumberEntryDialog dlg(this, "Enter Increase/Decrease Value", "", "Increment/Decrement Value", 0, -(max - 1), max - 1);
-    if (dlg.ShowModal() == wxID_OK) {
-        auto scaleFactor = dlg.GetValue();
-        if (scaleFactor != 0) {
-            if (sm->isRanges) {
-                for (size_t x = 0; x < sm->strands.size(); x++) {
-                    wxString oldnodes = NodeUtils::ExpandNodes(sm->strands[x]);
-                    auto oldNodeArray = wxSplit(oldnodes, ',');
-                    std::vector<std::string> newNodeArray;
-                    for (auto const& node: oldNodeArray) {
-                        long val;
-                        if (node.ToCLong(&val) == true) {
-                            long newVal = val + scaleFactor;
-                            if (newVal > max) {
-                                newVal -= max;
-                            }
-                            else if (newVal < min) {
-                                newVal += max;
-                            }
-                            newNodeArray.push_back(fmt::format("{}", newVal));
-                        }
-                    }
-                    sm->strands[x] = NodeUtils::CompressNodes(Join(newNodeArray, ","));
-                }
-            }
-            ValidateWindow();
-            Select(name);
+    if (dlg.ShowModal() != wxID_OK)
+        return;
 
-            Panel3->SetFocus();
-            TextCtrl_Name->SetFocus();
-            TextCtrl_Name->SelectAll();
+    auto scaleFactor = dlg.GetValue();
+    if (scaleFactor == 0)
+        return;
+
+    if (selectedOnly) {
+        SubModelInfo* sm = GetSubModelInfo(name);
+        if (sm != nullptr && sm->isRanges) {
+            submodel_ops::ShiftNodes(sm->strands, max, scaleFactor);
+        }
+    } else {
+        for (auto sm : _subModels) {
+            if (sm->isRanges) {
+                submodel_ops::ShiftNodes(sm->strands, max, scaleFactor);
+            }
         }
     }
-}
 
+    ValidateWindow();
+    Select(name);
+
+    Panel3->SetFocus();
+    TextCtrl_Name->SetFocus();
+    TextCtrl_Name->SelectAll();
+}
 
 void SubModelsPanel::FlipHorizontal()
 {
@@ -4078,9 +3982,7 @@ void SubModelsPanel::FlipHorizontal()
 
     for (auto a : _subModels) {
         if (a->isRanges) {
-            for (auto & strand : a->strands) {
-                strand = ReverseRow(wxString(strand)).ToStdString();
-            }
+            submodel_ops::FlipHorizontal(a->strands);
         }
     }
 
@@ -4098,20 +4000,7 @@ void SubModelsPanel::FlipVertical()
 
     for (auto a : _subModels) {
         if (a->isRanges) {
-            if (a->strands.size() == 1) {
-                continue;
-            }
-
-            std::list<std::string> reordered;
-            for (auto it = a->strands.begin(); it != a->strands.end(); ++it) {
-                reordered.push_front(*it);
-            }
-
-            int i = 0;
-            for (auto it = reordered.begin(); it != reordered.end(); ++it) {
-                a->strands[i] = *it;
-                i++;
-            }
+            submodel_ops::FlipVertical(a->strands);
         }
     }
 
@@ -4127,23 +4016,10 @@ void SubModelsPanel::FlipVertical()
 void SubModelsPanel::Reverse()
 {
     wxString name = GetSelectedName();
-    long max = model->GetNodeCount() + 1;
 
     for (auto sm : _subModels) {
         if (sm->isRanges) {
-            for (size_t x = 0; x < sm->strands.size(); x++) {
-                auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[x]);
-                auto oldNodeArray = wxSplit(oldnodes, ',');
-                std::vector<std::string> newNodeArray;
-                for (auto const& node: oldNodeArray) {
-                    long val;
-                    if (node.ToCLong(&val) == true) {
-                        long newVal = max - val;
-                        newNodeArray.push_back(fmt::format("{}", newVal));
-                    }
-                }
-                sm->strands[x] = NodeUtils::CompressNodes(Join(newNodeArray, ","));
-            }
+            submodel_ops::ReverseNodes(sm->strands, model->GetNodeCount());
         }
     }
     ValidateWindow();
@@ -4162,33 +4038,12 @@ void SubModelsPanel::RemoveDuplicates(bool suppress)
     }
 
     SubModelInfo* sm = GetSubModelInfo(name);
+    if (!sm)
+        return;
 
     int row = NodesGrid->GetGridCursorRow();
-    auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+    submodel_ops::RemoveDuplicatesInRow(sm->strands, row, suppress);
 
-    auto oldNodeArray = Split(oldnodes, ',');
-
-    if (suppress) {
-        std::set<wxString> seen;
-        for (auto it = oldNodeArray.begin(); it != oldNodeArray.end(); ++it) {
-            if (it->empty() || *it == "0")
-                continue;
-            if (seen.count(*it)) {
-                *it = "";
-                continue;
-            }
-            seen.insert(*it);
-        }
-    } else {
-        // remove duplicated
-        auto end = oldNodeArray.end();
-        for (auto it = oldNodeArray.begin(); it != end; ++it) {
-            end = std::remove(it + 1, end, *it);
-        }
-        oldNodeArray.erase(end, oldNodeArray.end());
-    }
-
-    sm->strands[sm->strands.size() - 1 - row] = NodeUtils::CompressNodes(Join(oldNodeArray, ","));
     Select(GetSelectedName());
 
     NodesGrid->SetGridCursor(row, 0);
@@ -4211,66 +4066,7 @@ void SubModelsPanel::RemoveAllDuplicates(bool leftright, bool suppress)
     if (!sm)
         return;
 
-    // Copy and expand data
-    std::vector<std::vector<std::string>> data;
-    size_t mlen = 0;
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        data.push_back(Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
-        mlen = std::max(mlen, data.back().size());
-    }
-
-    std::set<std::string> seen;
-    if (leftright) {
-        for (size_t c = 0; c < mlen; ++c) {
-            for (size_t r = 0; r < data.size(); ++r) {
-                if (data[r].size() <= c) {
-                    continue; // Not applicable to row
-                }
-                if (data[r][c] == "" || data[r][c] == "0") {
-                    continue;
-                }
-                if (seen.count(data[r][c])) {
-                    if (suppress) {
-                        data[r][c] = "";
-                    } else {
-                        data[r][c] = "x"; // Deal with this later
-                    }
-                } else {
-                    seen.insert(data[r][c]);
-                }
-            }
-        }
-    } else {
-        for (size_t r = 0; r < data.size(); ++r) {
-            for (size_t c = 0; c < data[r].size(); ++c) {
-                if (data[r][c] == "" || data[r][c] == "0") {
-                    continue;
-                }
-                if (seen.count(data[r][c])) {
-                    if (suppress) {
-                        data[r][c] = "";
-                    } else {
-                        data[r][c] = "x"; // Deal with this later
-                    }
-                } else {
-                    seen.insert(data[r][c]);
-                }
-            }
-        }
-
-    }
-
-    // Write back
-    for (unsigned i = 0; i < sm->strands.size(); ++i) {
-        for (auto it = data[i].begin(); it != data[i].end();) {
-            if (*it == "x") {
-                it = data[i].erase(it);
-            } else {
-                ++it;
-            }
-        }
-        sm->strands[sm->strands.size() - 1 - i] = NodeUtils::CompressNodes(Join(data[i], ","));
-    }
+    submodel_ops::RemoveAllDuplicates(sm->strands, leftright, suppress);
 
     // Update UI
     Select(GetSelectedName());
@@ -4286,6 +4082,21 @@ void SubModelsPanel::RemoveAllDuplicates(bool leftright, bool suppress)
 
 void SubModelsPanel::MakeRowsUniform()
 {
+    MakeRowsUniform(submodel_ops::PadMode::Distribute);
+}
+
+void SubModelsPanel::MakeRowsUniformFront()
+{
+    MakeRowsUniform(submodel_ops::PadMode::Front);
+}
+
+void SubModelsPanel::MakeRowsUniformRear()
+{
+    MakeRowsUniform(submodel_ops::PadMode::Rear);
+}
+
+void SubModelsPanel::MakeRowsUniform(submodel_ops::PadMode mode)
+{
     wxString name = GetSelectedName();
     if (name.empty()) {
         return;
@@ -4297,114 +4108,7 @@ void SubModelsPanel::MakeRowsUniform()
     if (!sm)
         return;
 
-    // Copy and expand data
-    std::vector<std::vector<std::string>> data;
-    size_t mlen = 0; // longest length of any row
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        data.push_back(Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
-        mlen = std::max(mlen, data.back().size());
-    }
-
-    // Write back
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        std::vector<std::string> ndata;
-
-        int dlt = 2 * (data[i].size());
-        int D = dlt - int(mlen);
-        int c = 0;
-        for (unsigned s = 0; s < mlen; ++s) {
-            if (D > 0) {
-                ndata.push_back(data[i][c]);
-                ++c;
-                D -= int(2 * mlen);
-            } else {
-                ndata.push_back("");
-            }
-            D += dlt;
-        }
-
-        sm->strands[sm->strands.size() - 1 - i] = NodeUtils::CompressNodes(Join(ndata, ","));
-    }
-
-    // Update UI
-    Select(GetSelectedName());
-
-    if (row >= 0) {
-        NodesGrid->SetGridCursor(row, 0);
-    }
-    Panel3->SetFocus();
-    NodesGrid->SetFocus();
-
-    ValidateWindow();
-}
-
-void SubModelsPanel::MakeRowsUniformFront() {
-    auto const name = GetSelectedName();
-    if (name.empty()) {
-        return;
-    }
-
-    auto const row = NodesGrid->GetGridCursorRow();
-    SubModelInfo* sm = GetSubModelInfo(name);
-    if (!sm) {
-        return;
-    }
-
-    size_t mlen = 0; // longest length of any row
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        auto row_data = Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
-        mlen = std::max(mlen, row_data.size());
-    }
-
-    // Write back
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        auto row_data = Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
-        int const dlt = (int)(mlen - row_data.size());
-        for (int s = 0; s < dlt; ++s) {
-            row_data.insert(row_data.begin(), "");
-        }
-        sm->strands[sm->strands.size() - 1 - i] = NodeUtils::CompressNodes(Join(row_data, ","));
-    }
-
-    // Update UI
-    Select(GetSelectedName());
-
-    if (row >= 0) {
-        NodesGrid->SetGridCursor(row, 0);
-    }
-    Panel3->SetFocus();
-    NodesGrid->SetFocus();
-
-    ValidateWindow();
-}
-
-void SubModelsPanel::MakeRowsUniformRear() {
-    auto const name = GetSelectedName();
-    if (name.empty()) {
-        return;
-    }
-
-    auto const row = NodesGrid->GetGridCursorRow();
-    SubModelInfo* sm = GetSubModelInfo(name);
-    if (!sm){
-        return;
-    }
-
-    size_t mlen = 0; // longest length of any row
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        auto row_data = Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
-        mlen = std::max(mlen, row_data.size());
-    }
-
-    // Write back
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        auto row_data = Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
-        auto const dlt = mlen - row_data.size();
-        for (unsigned s = 0; s < dlt; ++s) {
-            row_data.push_back("");
-        }
-        sm->strands[sm->strands.size() - 1 - i] = NodeUtils::CompressNodes(Join(row_data, ","));
-    }
+    submodel_ops::MakeRowsUniform(sm->strands, mode);
 
     // Update UI
     Select(GetSelectedName());
@@ -4429,31 +4133,7 @@ void SubModelsPanel::PivotRowsColumns()
     if (!sm)
         return;
 
-    // Copy and expand data
-    std::vector<std::vector<std::string>> data;
-    size_t mlen = 0; // max len
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        data.push_back(Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ','));
-        mlen = std::max(mlen, data.back().size());
-    }
-
-    // Build pivot model
-    std::vector<std::vector<std::string>> ndata;
-    for (size_t i = 0; i < mlen; ++i) {
-        ndata.push_back(std::vector<std::string>());
-        for (size_t j = 0; j < data.size(); ++j) {
-            std::string s;
-            if (data[j].size() > i)
-                s = data[j][i];
-            ndata[i].push_back(s);
-        }
-    }
-
-    // Write back
-    sm->strands.clear();
-    for (int i = int(mlen-1); i >= 0; --i) {
-        sm->strands.push_back(NodeUtils::CompressNodes(Join(ndata[i], ",")));
-    }
+    submodel_ops::PivotRowsColumns(sm->strands);
 
     // Update UI
     Select(GetSelectedName());
@@ -4475,18 +4155,7 @@ void SubModelsPanel::CombineStrands()
     if (!sm)
         return;
 
-    // Copy, expand, and concatenate data
-    std::string res;
-    for (size_t i = 0; i < sm->strands.size(); ++i) {
-        if (i != 0) {
-            res += ",";
-        }
-        res += NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]);
-    }
-
-    // Write back
-    sm->strands.clear();
-    sm->strands.push_back(NodeUtils::CompressNodes(res));
+    submodel_ops::CombineStrands(sm->strands);
 
     // Update UI
     Select(GetSelectedName());

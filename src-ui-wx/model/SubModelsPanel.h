@@ -30,6 +30,8 @@
 #include <wx/regex.h>
 #include <glm/glm.hpp>
 
+#include "models/SubModelOps.h"
+
 // Forward declaration for XmlSerialize namespace
 namespace XmlSerialize {
     struct CustomModelImportData;
@@ -362,6 +364,8 @@ private:
     void Symmetrize();
 
     void processAllStrands(std::string (*func)(const std::string&));
+    void MakeRowsUniform(submodel_ops::PadMode mode);
+    void ShiftNodes(bool selectedOnly);
     int CountNodesInRange(const wxString& range);
     int CountLinesInRange(const wxString& range);
 

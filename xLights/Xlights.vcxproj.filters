@@ -241,6 +241,7 @@
     <ClCompile Include="..\src-core\models\ModelSetManager.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\models\SubModelOps.cpp" />
     <ClCompile Include="..\src-core\models\Model.cpp">
       <Filter>Models</Filter>
     </ClCompile>

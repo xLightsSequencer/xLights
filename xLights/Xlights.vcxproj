@@ -913,6 +913,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\models\SphereModel.cpp" />
     <ClCompile Include="..\src-core\models\SpinnerModel.cpp" />
     <ClCompile Include="..\src-core\models\StarModel.cpp" />
+    <ClCompile Include="..\src-core\models\SubModelOps.cpp" />
     <ClCompile Include="..\src-core\models\SubModel.cpp" />
     <ClCompile Include="..\src-core\models\SubModelSymmetrize.cpp" />
     <ClCompile Include="..\src-core\models\TreeModel.cpp" />
@@ -1560,6 +1561,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\models\DisplayAsType.h" />
     <ClInclude Include="..\src-core\models\IciclesModel.h" />
     <ClInclude Include="..\src-core\models\MatrixModel.h" />
+    <ClInclude Include="..\src-core\models\SubModelOps.h" />
     <ClInclude Include="..\src-core\models\Model.h" />
     <ClInclude Include="..\src-core\models\ModelGroup.h" />
     <ClInclude Include="..\src-core\models\ModelManager.h" />

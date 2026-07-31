@@ -1290,6 +1290,8 @@
 		<Unit filename="../src-core/models/StarModel.h" />
 		<Unit filename="../src-core/models/SubModel.cpp" />
 		<Unit filename="../src-core/models/SubModel.h" />
+		<Unit filename="../src-core/models/SubModelOps.cpp" />
+		<Unit filename="../src-core/models/SubModelOps.h" />
 		<Unit filename="../src-core/models/SubModelSymmetrize.cpp" />
 		<Unit filename="../src-core/models/SubModelSymmetrize.h" />
 		<Unit filename="../src-core/models/TerrainObject.cpp" />
