@@ -4391,7 +4391,7 @@ void Model::SetShadowModelFor(const std::string& shadowModelFor)
             Model* targetModel = GetModelManager().GetModel(_shadowModelFor);
             if (targetModel != nullptr) {
                 const std::string curSc = targetModel->GetModelStartChannel();
-                if (!StartsWith(curSc, "@")) {
+                if (!StartsWith(curSc, "@") && !StartsWith(curSc, "!")) {
                     targetModel->SetStartChannel("@" + name + ":1");
                     targetModel->SetControllerName("");
                 }
