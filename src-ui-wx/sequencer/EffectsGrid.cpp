@@ -56,7 +56,9 @@
 #include "effects/PicturesEffect.h"
 #include "effects/ShaderEffect.h"
 #include "effects/VideoEffect.h"
+#include "models/DMX/DmxMovingHeadComm.h"
 #include "models/Model.h"
+#include "models/ModelGroup.h"
 #include "utils/string_utils.h"
 #include "xLightsVersion.h"
 
@@ -5883,8 +5885,84 @@ int EffectsGrid::GetMSFromColumn(int col) const {
     return 0;
 }
 
+namespace {
+    // A Moving Head effect copied off a single-fixture model only ever has one
+    // of its 8 per-head E_TEXTCTRL_MHn_Settings slots populated (whichever head
+    // number that source model owns). Pasted verbatim onto a model group made
+    // entirely of moving heads, every other fixture in the group would render
+    // with no position/color data at all. EffectDroppedOnGrid (tabSequencer.cpp)
+    // already forces the buffer style to "Per Model Default" for a freshly
+    // dragged-and-dropped effect in this situation; paste needs the same
+    // treatment plus cloning that one populated slot's settings into every
+    // fixture's own slot (swapping in each fixture's actual head number so
+    // MovingHeadEffect can still tell them apart).
+    void FixupMovingHeadEffectForGroup(Effect* ef, Element* element) {
+        if (ef == nullptr || element == nullptr || ef->GetEffectName() != "Moving Head")
+            return;
+
+        xLightsFrame* xlights = xLightsApp::GetFrame();
+        Model* m = xlights->AllModels[element->GetModelName()];
+        if (m == nullptr || m->GetDisplayAs() != DisplayAsType::ModelGroup)
+            return;
+
+        auto mg = dynamic_cast<ModelGroup*>(m);
+        if (mg == nullptr)
+            return;
+
+        std::vector<int> fixtureNums;
+        for (const auto& it : mg->GetFlatModels(true, false)) {
+            if (it->GetDisplayAs() != DisplayAsType::DmxMovingHeadAdv && it->GetDisplayAs() != DisplayAsType::DmxMovingHead) {
+                return; // mixed group -- leave the pasted effect alone
+            }
+            auto mh = dynamic_cast<const DmxMovingHeadComm*>(it);
+            if (mh != nullptr) {
+                fixtureNums.push_back(mh->GetFixtureVal());
+            }
+        }
+        if (fixtureNums.empty())
+            return;
+
+        SettingsMap& settings = ef->GetSettings();
+        settings["B_CHOICE_BufferStyle"] = "Per Model Default";
+
+        std::string sourceHeadSettings;
+        for (int i = 1; i <= 8; ++i) {
+            std::string val = settings.Get("E_TEXTCTRL_MH" + std::to_string(i) + "_Settings", "");
+            if (!val.empty()) {
+                sourceHeadSettings = val;
+                break;
+            }
+        }
+        if (sourceHeadSettings.empty())
+            return;
+
+        for (int i = 1; i <= 8; ++i) {
+            settings["E_TEXTCTRL_MH" + std::to_string(i) + "_Settings"] = "";
+        }
+
+        for (int fixture : fixtureNums) {
+            if (fixture < 1 || fixture > 8)
+                continue;
+            wxArrayString cmds = wxSplit(sourceHeadSettings, ';');
+            wxArrayString newCmds;
+            for (auto& cmd : cmds) {
+                if (cmd.IsEmpty())
+                    continue;
+                int pos = cmd.Find(':');
+                wxString cmdType = (pos == wxNOT_FOUND) ? cmd : cmd.Left(pos);
+                if (cmdType == "Heads") {
+                    newCmds.Add(wxString::Format("Heads: %d", fixture));
+                } else {
+                    newCmds.Add(cmd);
+                }
+            }
+            settings["E_TEXTCTRL_MH" + std::to_string(fixture) + "_Settings"] = wxJoin(newCmds, ';').ToStdString();
+        }
+    }
+}
+
 Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersion, bool row_paste, bool layerMode) {
-    
+
 
     Effect* res = nullptr;
 
@@ -6376,6 +6454,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                     xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
                                 ef->HandlePastedSymbolLink();
+                                FixupMovingHeadEffectForGroup(ef, el->GetParentElement());
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             }
                         }
@@ -6457,6 +6536,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                 xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                             }
                             ef->HandlePastedSymbolLink();
+                            FixupMovingHeadEffectForGroup(ef, el->GetParentElement());
                             mSequenceElements->get_undo_mgr().CreateUndoStep();
                             mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                             if (!is_timing_effect) {
@@ -6546,6 +6626,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                                     xlights->GetEffectManager().GetEffect(efdata[0].ToStdString())->adjustSettings(pasteDataVersion.ToStdString(), ef, false);
                                 }
                                 ef->HandlePastedSymbolLink();
+                                FixupMovingHeadEffectForGroup(ef, el->GetParentElement());
                                 mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), ef->GetID());
                                 RaiseSelectedEffectChanged(ef, true);
                                 mSelectedEffect = ef;
