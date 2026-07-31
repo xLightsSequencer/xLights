@@ -21,6 +21,8 @@
 #include "../ShaderEffect.h"
 
 #import <Metal/Metal.h>
+#include <log.h>
+
 #include <TargetConditionals.h>
 #include <chrono>
 #include <cstdlib>
@@ -79,35 +81,50 @@ static CachedShaderProgram buildShaderProgram(const std::string& fragmentSource,
                 label.c_str(), prog.vertex.attrVpos, prog.vertex.attrTpos,
                 prog.fragment.samplerTexture, prog.vertex.uniforms.size(), prog.fragment.uniforms.size());
     }
-    NSError* e = nil;
-    id<MTLLibrary> vlib = [device newLibraryWithSource:[NSString stringWithUTF8String:prog.vertexMSL.c_str()] options:nil error:&e];
-    id<MTLLibrary> flib = [device newLibraryWithSource:[NSString stringWithUTF8String:prog.fragmentMSL.c_str()] options:nil error:&e];
-    id<MTLFunction> vfn = [vlib newFunctionWithName:@"main0"];
-    id<MTLFunction> ffn = [flib newFunctionWithName:@"main0"];
-    if (vfn == nil || ffn == nil) {
-        if (dbg) fprintf(stderr, "NATIVE msllibfail %s: %s\n", label.c_str(), e ? e.localizedDescription.UTF8String : "?");
+    // Metal reports shader-build failures two different ways: an NSError for a
+    // bad source string, but a raised NSException for a bad descriptor - most
+    // easily hit when the translated vertex stage has an input the vertex
+    // descriptor never describes (attrVpos/attrTpos stay -1 when spirv-cross
+    // renames "vpos"/"tpos"). Nothing above catches that, so a shader we could
+    // not build aborted the process from a render worker rather than simply
+    // not rendering. A user-supplied shader must never be able to do that.
+    @try {
+        NSError* e = nil;
+        id<MTLLibrary> vlib = [device newLibraryWithSource:[NSString stringWithUTF8String:prog.vertexMSL.c_str()] options:nil error:&e];
+        id<MTLLibrary> flib = [device newLibraryWithSource:[NSString stringWithUTF8String:prog.fragmentMSL.c_str()] options:nil error:&e];
+        id<MTLFunction> vfn = [vlib newFunctionWithName:@"main0"];
+        id<MTLFunction> ffn = [flib newFunctionWithName:@"main0"];
+        if (vfn == nil || ffn == nil) {
+            if (dbg) fprintf(stderr, "NATIVE msllibfail %s: %s\n", label.c_str(), e ? e.localizedDescription.UTF8String : "?");
+            return out;
+        }
+        MTLRenderPipelineDescriptor* rpd = [[MTLRenderPipelineDescriptor alloc] init];
+        rpd.vertexFunction = vfn;
+        rpd.fragmentFunction = ffn;
+        rpd.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA8Unorm;
+        MTLVertexDescriptor* vd = [MTLVertexDescriptor vertexDescriptor];
+        if (prog.vertex.attrVpos >= 0) {
+            vd.attributes[prog.vertex.attrVpos].format = MTLVertexFormatFloat2;
+            vd.attributes[prog.vertex.attrVpos].offset = 0;
+            vd.attributes[prog.vertex.attrVpos].bufferIndex = kVertexSlot;
+        }
+        if (prog.vertex.attrTpos >= 0) {
+            vd.attributes[prog.vertex.attrTpos].format = MTLVertexFormatFloat2;
+            vd.attributes[prog.vertex.attrTpos].offset = 8;
+            vd.attributes[prog.vertex.attrTpos].bufferIndex = kVertexSlot;
+        }
+        vd.layouts[kVertexSlot].stride = 16;
+        vd.layouts[kVertexSlot].stepFunction = MTLVertexStepFunctionPerVertex;
+        rpd.vertexDescriptor = vd;
+        out.pso = [device newRenderPipelineStateWithDescriptor:rpd error:&e];
+        if (out.pso == nil) return out;
+    } @catch (NSException* ex) {
+        spdlog::error("Shader '{}' could not be built for Metal: {} - {}", label,
+                      ex.name != nil ? ex.name.UTF8String : "?",
+                      ex.reason != nil ? ex.reason.UTF8String : "?");
+        out.pso = nil;
         return out;
     }
-    MTLRenderPipelineDescriptor* rpd = [[MTLRenderPipelineDescriptor alloc] init];
-    rpd.vertexFunction = vfn;
-    rpd.fragmentFunction = ffn;
-    rpd.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA8Unorm;
-    MTLVertexDescriptor* vd = [MTLVertexDescriptor vertexDescriptor];
-    if (prog.vertex.attrVpos >= 0) {
-        vd.attributes[prog.vertex.attrVpos].format = MTLVertexFormatFloat2;
-        vd.attributes[prog.vertex.attrVpos].offset = 0;
-        vd.attributes[prog.vertex.attrVpos].bufferIndex = kVertexSlot;
-    }
-    if (prog.vertex.attrTpos >= 0) {
-        vd.attributes[prog.vertex.attrTpos].format = MTLVertexFormatFloat2;
-        vd.attributes[prog.vertex.attrTpos].offset = 8;
-        vd.attributes[prog.vertex.attrTpos].bufferIndex = kVertexSlot;
-    }
-    vd.layouts[kVertexSlot].stride = 16;
-    vd.layouts[kVertexSlot].stepFunction = MTLVertexStepFunctionPerVertex;
-    rpd.vertexDescriptor = vd;
-    out.pso = [device newRenderPipelineStateWithDescriptor:rpd error:&e];
-    if (out.pso == nil) return out;
     out.vsInfo = prog.vertex;
     out.fsInfo = prog.fragment;
     out.ok = true;

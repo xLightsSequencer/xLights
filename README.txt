@@ -17,6 +17,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Layout: "Set Center Offset Here" crashed when the group it was invoked on had gone
                                  away between the menu opening and the item being picked
     -bug (dkulp)                 Layout: a polyline with no drop points placed its nodes at infinite coordinates
+    -bug (dkulp)                 Shader: a shader Metal refused to build aborted the render instead of just not
+                                 rendering that effect
     -bug (dkulp)                 Video: a file whose display matrix encodes its pixel aspect as a scale made the
                                  decoder target a frame far larger than the source, so every cached frame was tens
                                  of MB. Renders using such a video could reach 40GB+ and be many times slower.
