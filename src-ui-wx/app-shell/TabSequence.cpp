@@ -739,7 +739,7 @@ void xLightsFrame::LoadPerspectivesMenu()
     for (auto& p : _perspectives) {
         if (!p.name.empty()) {
             int id = wxNewId();
-            MenuItemPerspectives->AppendRadioItem(id, p.name);
+            MenuItemPerspectives->AppendCheckItem(id, p.name);
             if (mCurrentPerpective != nullptr && p.name == mCurrentPerpective->name)
                 MenuItemPerspectives->Check(id, true);
             PerspectiveId pmenu;
