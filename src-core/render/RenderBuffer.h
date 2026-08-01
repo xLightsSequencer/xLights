@@ -373,7 +373,27 @@ public:
 
     const xlColor &GetPixel(int x, int y) const;
     void GetPixel(int x, int y, xlColor &color) const;
-    void SetPixel(int x, int y, const xlColor &color, bool wrap = false, bool useAlpha = false, bool dmx_ignore = false);
+    // The common case - no wrapping, no alpha blending - is its own inline
+    // overload rather than defaulted arguments on the general one.  The general
+    // SetPixel carries the wrap loop and the alpha-blend block, which puts it
+    // past the inliner's cost model even under LTO, so a per-pixel drawing loop
+    // was paying a real call plus three loop-invariant branches on every pixel.
+    // `wrap` deliberately has NO default: that is what makes a 3-argument call
+    // resolve here instead of there, so every existing 3-argument caller picks
+    // up the fast path with no edit and no change in behaviour.  Semantics are
+    // identical, DMX routing included.
+    void SetPixel(int x, int y, const xlColor &color) {
+        if (dmx_buffer) {
+            SetPixelDMXModel(x, y, color);
+            return;
+        }
+        // No pixelVector.size() term: for a non-DMX buffer pixelVector is sized
+        // exactly BufferWi*BufferHt, so the range compares already imply it.
+        if (x >= 0 && x < BufferWi && y >= 0 && y < BufferHt) {
+            pixels[y * BufferWi + x] = color;
+        }
+    }
+    void SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
 
     // Snapshot the current pixels into a persistent scratch buffer for callers

@@ -13,6 +13,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.15  August ??, 2026
     -enh (dkulp)                 Meteors: the Implode and Explode styles render several times faster on large
                                  buffers, and use far less memory while rendering. Output is unchanged.
+    -enh (dkulp)                 Ripple renders about 1.4x faster, and drawing to the render buffer got cheaper
+                                 for every effect - VU Meter, SingleStrand, Marquee, Shape and Kaleidoscope all
+                                 gained 10-38%. Output is unchanged.
     -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
     -bug (dkulp)                 Test: an RGB twinkle over a single selected channel spun until it ran out of memory
     -bug (dkulp)                 Test: marking every 50th pixel read past the end of the selection when the

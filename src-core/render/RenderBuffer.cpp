@@ -543,8 +543,11 @@ void RenderBuffer::DrawHLine(int y, int xstart, int xend, const xlColor &color, 
         xstart = xend;
         xend = i;
     }
+    // dmx_buffer / wrap / alpha are constant for the whole primitive, so decide
+    // once here rather than re-testing them inside SetPixel on every pixel.
+    const bool general = wrap;
     for (int x = xstart; x <= xend; x++) {
-        SetPixel(x, y, color, wrap);
+        if (general) { SetPixel(x, y, color, wrap); } else { SetPixel(x, y, color); }
     }
 }
 void RenderBuffer::DrawVLine(int x, int ystart, int yend, const xlColor &color, bool wrap) {
@@ -553,8 +556,11 @@ void RenderBuffer::DrawVLine(int x, int ystart, int yend, const xlColor &color, 
         ystart = yend;
         yend = i;
     }
+    // dmx_buffer / wrap / alpha are constant for the whole primitive, so decide
+    // once here rather than re-testing them inside SetPixel on every pixel.
+    const bool general = wrap;
     for (int y = ystart; y <= yend; y++) {
-        SetPixel(x, y, color, wrap);
+        if (general) { SetPixel(x, y, color, wrap); } else { SetPixel(x, y, color); }
     }
 }
 void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color, bool wrap, bool useAlpha) {
@@ -568,9 +574,12 @@ void RenderBuffer::DrawBox(int x1, int y1, int x2, int y2, const xlColor& color,
         x1 = x2;
         x2 = i;
     }
+    // dmx_buffer / wrap / alpha are constant for the whole primitive, so decide
+    // once here rather than re-testing them inside SetPixel on every pixel.
+    const bool general = wrap || (useAlpha && color.Alpha() != 255);
     for (int x = x1; x <= x2; x++) {
         for (int y = y1; y <= y2; y++) {
-            SetPixel(x, y, color, wrap, useAlpha);
+            if (general) { SetPixel(x, y, color, wrap, useAlpha); } else { SetPixel(x, y, color); }
         }
     }
 }
@@ -695,12 +704,24 @@ void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const 
     int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
     int err = (dx>dy ? dx : -dy)/2;
 
-  for(;;){
-    SetPixel(x0,y0, color, false, useAlpha);
-    if (x0==x1 && y0==y1) break;
-    int e2 = err;
-    if (e2 >-dx) { err -= dy; x0 += sx; }
-    if (e2 < dy) { err += dx; y0 += sy; }
+  // DMX routing and alpha blending are constant for the whole line, so decide
+  // once here instead of re-testing them inside SetPixel on every pixel.  A
+  // fully opaque colour takes the plain-store path either way, so it counts as
+  // "no blending" too.
+  auto walk = [&](auto&& put) {
+    int cx = x0, cy = y0, e = err;
+    for(;;){
+      put(cx, cy);
+      if (cx==x1 && cy==y1) break;
+      int e2 = e;
+      if (e2 >-dx) { e -= dy; cx += sx; }
+      if (e2 < dy) { e += dx; cy += sy; }
+    }
+  };
+  if (dmx_buffer || (useAlpha && color.Alpha() != 255)) {
+    walk([&](int x, int y) { SetPixel(x, y, color, false, useAlpha); });
+  } else {
+    walk([&](int x, int y) { SetPixel(x, y, color); });
   }
 }
 
@@ -739,7 +760,7 @@ void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, c
     int err = (dx>dy ? dx : -dy)/2, e2;
 
   for(;;){
-    SetPixel(x0,y0, color);
+    SetPixel(x0, y0, color);
     if( (x0 != lastx) && (y0 != lasty) && (x0_ != x1_) && (y0_ != y1_) )
     {
         int fix = 0;
@@ -750,19 +771,19 @@ void RenderBuffer::DrawThickLine( const int x0_, const int y0_, const int x1_, c
         {
         case 2:
         case 4:
-            if( x0 < BufferWi -2 ) SetPixel(x0+1,y0, color);
+            if( x0 < BufferWi -2 ) { SetPixel(x0+1,y0, color); }
             break;
         case 3:
         case 5:
-            if( x0 > 0 ) SetPixel(x0-1,y0, color);
+            if( x0 > 0 ) { SetPixel(x0-1,y0, color); }
             break;
         case 0:
         case 1:
-            if( y0 < BufferHt -2 )SetPixel(x0,y0+1, color);
+            if( y0 < BufferHt -2 ) { SetPixel(x0,y0+1, color); }
             break;
         case 6:
         case 7:
-            if( y0 > 0 )SetPixel(x0,y0-1, color);
+            if( y0 > 0 ) { SetPixel(x0,y0-1, color); }
             break;
         default: break;
         }
@@ -918,8 +939,11 @@ void RenderBuffer::FillConvexPoly(const std::vector<std::pair<int, int>>& opoly,
             continue;
        int sx = std::max(0, hlines[en].first);
        int ex = std::min(hlines[en].second, BufferWi - 1);
+       // sx/ex are already clamped and y was range-checked above, so the only
+       // thing SetPixel would still decide per pixel is the DMX routing - and
+       // that is constant for the whole fill.
        for (int x = sx; x <= ex; ++x)
-            SetPixel(x, y, color, false);
+           SetPixel(x, y, color);
     }
 }
 
@@ -930,6 +954,9 @@ void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& r
 
     double full_brightness = hsv.value;
 
+    // dmx_buffer / wrap / alpha are constant for the whole primitive, so decide
+    // once here rather than re-testing them inside SetPixel on every pixel.
+    const bool general = wrap;
     for (int x = -radius; x < radius; ++x) {
         for (int y = -radius; y < radius; ++y) {
             double d = std::sqrt(x * x + y * y);
@@ -938,7 +965,7 @@ void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& r
                     double alpha = (double)rgb.alpha - ((double)rgb.alpha * d) / double(radius);
                     if (alpha > 0.0) {
                         color.alpha = alpha;
-                        SetPixel(x + x0, y + y0, color, wrap, false);
+                        if (general) { SetPixel(x + x0, y + y0, color, wrap, false); } else { SetPixel(x + x0, y + y0, color); }
                     }
                 }
                 else {
@@ -946,7 +973,7 @@ void RenderBuffer::DrawFadingCircle(int x0, int y0, int radius, const xlColor& r
                     if (alpha > 0.0) {
                         hsv.value = alpha;
                         color = hsv;
-                        SetPixel(x + x0, y + y0, color, wrap);
+                        if (general) { SetPixel(x + x0, y + y0, color, wrap); } else { SetPixel(x + x0, y + y0, color); }
                     }
                 }
             }
@@ -960,16 +987,22 @@ void RenderBuffer::DrawCircle(int x0, int y0, int radius, const xlColor& rgb, bo
     int y = 0;
     int radiusError = 1 - x;
 
+    // dmx_buffer / wrap / alpha are constant for the whole primitive, so decide
+    // once here rather than re-testing them inside SetPixel on every pixel.
+    const bool general = wrap;
+    auto put = [&](int px, int py) {
+        if (general) { SetPixel(px, py, rgb, wrap); } else { SetPixel(px, py, rgb); }
+    };
     while(x >= y) {
         if (!filled) {
-            SetPixel(x + x0, y + y0, rgb, wrap);
-            SetPixel(y + x0, x + y0, rgb, wrap);
-            SetPixel(-x + x0, y + y0, rgb, wrap);
-            SetPixel(-y + x0, x + y0, rgb, wrap);
-            SetPixel(-x + x0, -y + y0, rgb, wrap);
-            SetPixel(-y + x0, -x + y0, rgb, wrap);
-            SetPixel(x + x0, -y + y0, rgb, wrap);
-            SetPixel(y + x0, -x + y0, rgb, wrap);
+            put(x + x0, y + y0);
+            put(y + x0, x + y0);
+            put(-x + x0, y + y0);
+            put(-y + x0, x + y0);
+            put(-x + x0, -y + y0);
+            put(-y + x0, -x + y0);
+            put(x + x0, -y + y0);
+            put(y + x0, -x + y0);
         } else {
             DrawVLine(x0 - x, y0 - y, y0 + y, rgb, wrap);
             DrawVLine(x0 + x, y0 - y, y0 + y, rgb, wrap);
