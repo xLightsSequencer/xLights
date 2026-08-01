@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (derwin12)              Fix MovingHead Advanced: reset Path and Pattern on new effect
     -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
     -bug (dkulp)                 Test: an RGB twinkle over a single selected channel spun until it ran out of memory
     -bug (dkulp)                 Test: marking every 50th pixel read past the end of the selection when the

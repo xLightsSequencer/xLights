@@ -2180,6 +2180,11 @@ void MovingHeadPanel::UpdateStatusPanel()
     Button_Odds->SetForegroundColour(wxColour(btntext));
 
     std::string all_settings = xlEMPTY_STRING;
+    // Link is a single effect-wide checkbox, not per-fixture data parsed out of an
+    // MHx_Settings string, so it's reported once here rather than inside the per-head loop below.
+    if (CheckBox_MHLinkToNext != nullptr && CheckBox_MHLinkToNext->IsChecked()) {
+        all_settings += "Link: Active\n\n";
+    }
     for( int i = 1; i <= 8; ++i ) {
         wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
         wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
@@ -3163,6 +3168,15 @@ void MovingHeadPanel::SetDefaultParameters()
     UpdateLinkTabState();
 
     ResetPatternControls();
+
+    // The freeform sketched path isn't tied to a single control's value like the
+    // sliders/checkboxes above -- it's canvas handle state (m_sketch/m_sketchDef)
+    // that only OnButton_MHPathClearClick knows how to fully reset. Without this,
+    // a newly dropped effect could inherit whatever path was last drawn.
+    if (m_sketchCanvasPanel != nullptr) {
+        wxCommandEvent clearPathEvent(wxEVT_BUTTON, ID_BUTTON_MHPathClear);
+        OnButton_MHPathClearClick(clearPathEvent);
+    }
 
     // Newly dropped effects have no settings of their own, so the color/dimmer
     // sub-panels must be reset here too -- otherwise they keep showing whatever
