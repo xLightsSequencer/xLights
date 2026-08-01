@@ -700,6 +700,19 @@ void RenderBuffer::DrawLine( const int x0_, const int y0_, const int x1_, const 
     int y0 = y0_;
     int y1 = y1_;
 
+    // Trivial reject: if the line's bounding box misses the buffer entirely then
+    // every step would be clipped away, so walking it writes nothing.  Ripple
+    // reaches radii in the thousands on a buffer a few hundred wide (its
+    // thickness loop accumulates radius quadratically), so this is not a corner
+    // case there - it is most of the work.  Output is unchanged by construction:
+    // the steps skipped here are exactly the ones SetPixel already discarded.
+    if ((x0 < 0 && x1 < 0) || (y0 < 0 && y1 < 0) ||
+        (x0 >= BufferWi && x1 >= BufferWi) || (y0 >= BufferHt && y1 >= BufferHt)) {
+        if (!dmx_buffer) {
+            return;
+        }
+    }
+
     int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
     int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1;
     int err = (dx>dy ? dx : -dy)/2;

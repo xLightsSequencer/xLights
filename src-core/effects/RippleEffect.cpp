@@ -1273,24 +1273,66 @@ void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            for (int y = y1 + i; y <= y2 - i; y++) {
-                buffer.SetPixel(x1 + i, y, color); // Turn pixel
-                buffer.SetPixel(x2 - i, y, color); // Turn pixel
+        // The four sides are axis-aligned runs, so clip each run once against the
+        // buffer rather than testing every pixel - a fixed column over a clamped
+        // y range, or a fixed row over a clamped x range.  A side whose fixed
+        // coordinate is off the buffer costs nothing at all, which matters
+        // because the square grows past the buffer as the ripple expands.
+        // Ordering is not observable: every side writes the same colour, so
+        // where two of them meet the result is the same either way.
+        auto vrun = [&](int x, int ya, int yb) { // inclusive; empty when ya > yb
+            if (x < 0 || x >= buffer.BufferWi) {
+                return;
             }
-            for (int x = x1 + i; x <= x2 - i; x++) {
-                buffer.SetPixel(x, y1 + i, color); // Turn pixel
-                buffer.SetPixel(x, y2 - i, color); // Turn pixel
+            const int lo = std::max(ya, 0);
+            const int hi = std::min(yb, buffer.BufferHt - 1);
+            for (int y = lo; y <= hi; ++y) {
+                buffer.SetPixelDirect(x, y, color);
+            }
+        };
+        auto hrun = [&](int y, int xa, int xb) { // inclusive; empty when xa > xb
+            if (y < 0 || y >= buffer.BufferHt) {
+                return;
+            }
+            const int lo = std::max(xa, 0);
+            const int hi = std::min(xb, buffer.BufferWi - 1);
+            for (int x = lo; x <= hi; ++x) {
+                buffer.SetPixelDirect(x, y, color);
+            }
+        };
+
+        if (Movement == MOVEMENT_EXPLODE) {
+            if (buffer.dmx_buffer) {
+                for (int y = y1 + i; y <= y2 - i; y++) {
+                    buffer.SetPixel(x1 + i, y, color);
+                    buffer.SetPixel(x2 - i, y, color);
+                }
+                for (int x = x1 + i; x <= x2 - i; x++) {
+                    buffer.SetPixel(x, y1 + i, color);
+                    buffer.SetPixel(x, y2 - i, color);
+                }
+            } else {
+                vrun(x1 + i, y1 + i, y2 - i);
+                vrun(x2 - i, y1 + i, y2 - i);
+                hrun(y1 + i, x1 + i, x2 - i);
+                hrun(y2 - i, x1 + i, x2 - i);
             }
         }
         if (Movement == MOVEMENT_IMPLODE) {
-            for (int y = y2 + i; y >= y1 - i; y--) {
-                buffer.SetPixel(x1 - i, y, color); // Turn pixel
-                buffer.SetPixel(x2 + i, y, color); // Turn pixel
-            }
-            for (int x = x2 + i; x >= x1 - i; x--) {
-                buffer.SetPixel(x, y1 - i, color); // Turn pixel
-                buffer.SetPixel(x, y2 + i, color); // Turn pixel
+            if (buffer.dmx_buffer) {
+                for (int y = y2 + i; y >= y1 - i; y--) {
+                    buffer.SetPixel(x1 - i, y, color);
+                    buffer.SetPixel(x2 + i, y, color);
+                }
+                for (int x = x2 + i; x >= x1 - i; x--) {
+                    buffer.SetPixel(x, y1 - i, color);
+                    buffer.SetPixel(x, y2 + i, color);
+                }
+            } else {
+                vrun(x1 - i, y1 - i, y2 + i);
+                vrun(x2 + i, y1 - i, y2 + i);
+                hrun(y1 - i, x1 - i, x2 + i);
+                hrun(y2 + i, x1 - i, x2 + i);
             }
         }
     }
@@ -1328,6 +1370,18 @@ void RippleEffect::Drawcircle(RenderBuffer& buffer, int Movement, int xc, int yc
         }
 
         if (radius >= 0.0) {
+            // The ring only meets the buffer if some buffer pixel sits at about
+            // `radius` from the centre.  Once the whole buffer is inside the
+            // ring - which happens quickly, because the thickness loop above
+            // accumulates radius rather than stepping it - all 360 samples land
+            // outside and are clipped away, so skip them.  The slack covers the
+            // int() truncation, which moves a sample by under a pixel per axis.
+            const double fx = std::max((double)xc, (double)buffer.BufferWi - 1 - xc);
+            const double fy = std::max((double)yc, (double)buffer.BufferHt - 1 - yc);
+            const double farthest = std::sqrt(fx * fx + fy * fy);
+            if (radius > farthest + 2.0) {
+                continue;
+            }
             // Consecutive degrees usually round to the same pixel on small
             // buffers; the store is idempotent, so skipping exact repeats of
             // the previous pixel is output-identical.
