@@ -1001,6 +1001,10 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
     for (const auto& it : model.ActiveModels()) {
         Model* m = it;
         assert(m != nullptr);
+        if (m == nullptr) {
+            spdlog::warn("InitPerModelBuffers: skipping null model in group '{}' (stale ActiveModels() entry).", model.GetFullName());
+            continue;
+        }
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
         buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
@@ -1016,6 +1020,10 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
     for (const auto& it : model.GetFlatModels(false, true)) {
         Model* m = it;
         assert(m != nullptr);
+        if (m == nullptr) {
+            spdlog::warn("InitPerModelBuffersDeep: skipping null model in group '{}' (stale GetFlatModels() entry).", model.GetFullName());
+            continue;
+        }
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
         buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
