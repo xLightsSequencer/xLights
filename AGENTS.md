@@ -24,7 +24,7 @@ Ubuntu 24.04), Windows 8.
 | `src-iPad/` | SwiftUI iPad app + ObjC++ bridge layers |
 | `macOS/` | Xcode project at `macOS/xLights.xcodeproj` |
 | `xLights/` | Build system files (.cbp, .vcxproj, etc.) |
-| `plans/ipad-parity/` | Per-theme parity scorecards (see §3) |
+| `plans/platform-parity/` | Per-theme parity scorecards (see §3) |
 | `ci_scripts/` | Include-boundary checks, CI tooling |
 | `xlDo/` | Remaining sub-app in this repo |
 | `common/` | Shared code (ARC-enabled `.mm` files) |
@@ -37,7 +37,7 @@ render engine, effect manager, sequence file/elements, and audio manager as the
 desktop. The iPad app has **shipped to the App Store** and is now in
 desktop-parity / ongoing-update mode (beyond MVP). Status and per-theme parity
 plans live in [`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) and
-[`plans/ipad-parity/`](plans/ipad-parity/) (see §3).
+[`plans/platform-parity/`](plans/platform-parity/) (see §3).
 
 ### Companion apps
 
@@ -143,17 +143,17 @@ When the iPad has (or easily can have) an equivalent surface:
 
 1. Apply the matching change to `src-iPad/` in the **same PR**.
 2. Build `xLights-iPadLib` to verify (see §4).
-3. Update the relevant `plans/ipad-parity/` scorecard row to ✅ / 🟡.
+3. Update the relevant `plans/platform-parity/` scorecard row to ✅ / 🟡.
 
 ### State B — Captured in parity plans
 
 When immediate porting isn't straightforward (large SwiftUI/Metal work, bridge
 extraction needed, genuinely infeasible/restricted):
 
-1. Add/update a scorecard row in the matching `plans/ipad-parity/` theme doc
+1. Add/update a scorecard row in the matching `plans/platform-parity/` theme doc
    with `file:line` evidence for **both** platforms.
-2. Pick the gap label: `ipad-missing` / `ipad-weaker` / `parity` /
-   `desktop-missing`.
+2. Pick the row status: ✅ parity / 🟡 partial / ❌ missing on iPad /
+   🚫 infeasible-restricted (reason required) / 🔵 iPad-only.
 3. If adding a sizable new gap, bump `00-overview.md` headline counts + roadmap.
 4. Infeasible/restricted items go in that doc's *Infeasible / restricted*
    section with the reason.
@@ -179,32 +179,35 @@ ship a behavior gap users discover when switching clients.
 
 ### Parity plan docs
 
-Start at [`plans/ipad-parity/README.md`](plans/ipad-parity/README.md). The
-overview ([`00-overview.md`](plans/ipad-parity/00-overview.md)) holds the live
-headline numbers, the P1/P2 roadmap, and reverse-parity candidates — **read it
-there rather than trusting any count copied here, which will rot.** As of the
-2026-07-25 desktop-churn audit the iPad sat at **~72% parity**, with the biggest
-backlogs in Preferences (11), Layout (06), and Tools (13).
+Start at [`plans/platform-parity/README.md`](plans/platform-parity/README.md). The
+overview ([`00-overview.md`](plans/platform-parity/00-overview.md)) holds the live
+headline numbers, the severity-grouped gap inventory, the P1–P3 roadmap, recorded
+product decisions, and the desktop cross-OS summary — **read it there rather than
+trusting any count copied here, which will rot.** As of the 2026-08-01 full-code
+audit (adversarially cross-checked row-by-row), the iPad sat at **≈67% parity**
+(58% of rows at full parity), with the biggest backlogs in Layout (06),
+Import/Export (08), and Preferences (11).
 
-The 14 theme docs:
+The 15 theme docs:
 
 | # | Theme |
 |---|---|
-| `00-overview` | Headline numbers, P1/P2 roadmap, reverse-parity candidates |
-| `01-file-lifecycle` | File lifecycle & sequence management |
-| `02-sequencer-grid-editing` | Sequencer grid & effect editing |
-| `03-timing-audio` | Timing tracks & audio |
-| `04-effects-and-panels` | Effects & effect setting panels |
-| `05-color-and-value-curves` | Color panel, palettes & value/color curves |
-| `06-layout-models-preview` | Layout: models, groups, preview, 3D, submodels/DMX |
-| `07-setup-controllers-upload` | Setup, controllers, outputs & upload |
+| `00-overview` | Headline numbers, gap inventory, P1–P3 roadmap, decisions |
+| `01-file-lifecycle` | File & show lifecycle, backups, packaging, media manager |
+| `02-sequencer-grid` | Sequencer grid & effect editing |
+| `03-timing-audio` | Timing tracks, lyrics & audio |
+| `04-effects-catalog` | Effects catalog & effect setting panels |
+| `05-color-value-curves` | Color panel, palettes & value/color curves |
+| `06-layout-models` | Layout: models, groups, previews, 3D, submodels/DMX |
+| `07-controllers-setup-upload` | Setup, controllers, outputs & upload |
 | `08-import-export` | Import & export |
 | `09-render-playback` | Render & playback |
-| `10-presets-jukebox-views-perspectives` | Presets, jukebox, display elements, views & perspectives |
+| `10-presets-views-perspectives` | Presets, jukebox, display elements, views & perspectives |
 | `11-preferences-settings` | Preferences, settings & keyboard shortcuts |
 | `12-ai-automation-scripting` | AI, automation & scripting |
 | `13-tools-diagnostics-help` | Tools, diagnostics & help |
 | `14-reverse-parity-ipad-only` | Reverse-parity — iPad-only features |
+| `15-desktop-platform-matrix` | Desktop cross-OS matrix (macOS vs Windows vs Linux) |
 
 ---
 

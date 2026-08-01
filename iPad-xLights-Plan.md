@@ -7,31 +7,36 @@ import/export). Day-to-day work is now **desktop parity + ongoing app
 updates**, not MVP build-out. The MVP-era phase plans have been retired (git
 history holds the landed prose).
 
-## Parity plans live in [`plans/ipad-parity/`](plans/ipad-parity/)
+## Parity plans live in [`plans/platform-parity/`](plans/platform-parity/)
 
 A code-level parity audit of the desktop (`src-ui-wx/`) and iPad (`src-iPad/`)
-apps over the shared `src-core/`. Every status is grounded in source, with
-`file:line` evidence in the theme docs. Start at
-[`README.md`](plans/ipad-parity/README.md).
+apps over the shared `src-core/`, regenerated from scratch 2026-07-31 and
+adversarially cross-checked row-by-row 2026-08-01 (it replaces the earlier
+`plans/ipad-parity/` set). Every status is grounded in source, with `file:line`
+evidence in the theme docs. Start at
+[`README.md`](plans/platform-parity/README.md).
 
-- **[`00-overview.md`](plans/ipad-parity/00-overview.md)** — the cross-theme
-  map: headline numbers + **% parity** per theme, the full **P1/P2 roadmap**,
-  **reverse-parity** (iPad→desktop) candidates, the **restricted**
-  (closed-firmware/IAP) and **infeasible** lists, and recommended sequencing.
-- **`01`–`14`** — one plan per functional theme, each a full parity scorecard
-  (Feature · Desktop · iPad · Gap · Priority · Ease · Feasibility · Notes):
-  `01` file lifecycle · `02` sequencer grid & editing · `03` timing & audio ·
-  `04` effects & panels · `05` color & value/color curves · `06` layout /
-  models / preview / 3D / submodels / DMX · `07` setup / controllers / upload ·
-  `08` import / export · `09` render & playback · `10` presets / jukebox /
-  display elements / views · `11` preferences & keyboard shortcuts · `12` AI /
-  automation / scripting · `13` tools / diagnostics / help · `14` reverse
-  parity (iPad features not in desktop).
+- **[`00-overview.md`](plans/platform-parity/00-overview.md)** — the cross-theme
+  map: headline numbers + **parity index** per theme, the severity-grouped gap
+  inventory (data-loss/correctness first), the **P1–P3 roadmap**, **recorded
+  product decisions**, **reverse-parity** (iPad→desktop) candidates, and the
+  **desktop cross-OS** (macOS/Windows/Linux) summary.
+- **`01`–`14`** — one scorecard per functional theme (✅/🟡/❌/🚫/🔵 statuses
+  with evidence on both sides): `01` file lifecycle · `02` sequencer grid &
+  editing · `03` timing & audio · `04` effects catalog & panels · `05` color &
+  value/color curves · `06` layout / models / preview / 3D / submodels / DMX ·
+  `07` setup / controllers / upload · `08` import / export · `09` render &
+  playback · `10` presets / jukebox / display elements / views · `11`
+  preferences & keyboard shortcuts · `12` AI / automation / scripting · `13`
+  tools / diagnostics / help · `14` reverse parity (iPad features not in
+  desktop).
+- **`15-desktop-platform-matrix.md`** — user-visible differences between the
+  macOS, Windows, and Linux desktop builds.
 
-Each theme doc carries its own **Infeasible / restricted** section for features
-deliberately not on iPad (VAMP host, Python/Lua scripting, FFmpeg, SpaceMouse,
-custom KeyBindings, AUI perspectives, closed-firmware uploads, …); these roll up
-into the Infeasible / Restricted lists in `00-overview.md`.
+🚫 rows record features deliberately or structurally not on iPad, each with its
+reason (VAMP host, Python/Lua/REST scripting, serial output, AUI perspectives,
+closed-firmware uploads, …); these roll up into the overview's
+platform-restricted list.
 
 **Workflow:** as work lands, flip the matching feature's status in the relevant
 theme doc's scorecard (→ ✅ / 🟡). Git history is the changelog — there's no
