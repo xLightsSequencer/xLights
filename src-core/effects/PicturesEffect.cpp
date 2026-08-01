@@ -311,6 +311,7 @@ public:
     int frame = 0;
     int maxmovieframes = 0;
     std::string PictureName;
+    bool missingImage = false;
     std::shared_ptr<ImageCacheEntry> imageCache;
 };
 
@@ -481,19 +482,21 @@ void PicturesEffect::Render(RenderBuffer& buffer,
                     spdlog::warn("No image for: {}", resolvedName);
                 }
             }
+            cache->PictureName = NewPictureName;
+            cache->missingImage = missing;
             if (missing) {
-                noImageFile = true;
+                cache->imageCache = nullptr;
             } else {
-                cache->PictureName = NewPictureName;
                 cache->imageCache = buffer.GetSequenceMedia()->GetImage(NewPictureName);
                 if (!cache->imageCache) {
-                    noImageFile = true;
+                    cache->missingImage = true;
                 } else {
                     cache->imageCache->MarkIsUsed();
                     cache->imageCount = cache->imageCache->GetImageCount();
                 }
             }
         }
+        noImageFile = cache->missingImage;
         if (!noImageFile && !cache->imageCache->IsOk()) {
             noImageFile = true;
         }
