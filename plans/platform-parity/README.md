@@ -48,6 +48,26 @@ Status legend:
 - Line numbers are accurate as of the generation date and will drift with the code —
   treat them as anchors for `grep`, not gospel.
 
+## Tallies are machine-derived — use `tally.sh`
+
+The per-theme counts in `00-overview.md` are **derived, not hand-maintained**. After editing
+any scorecard rows:
+
+```bash
+plans/platform-parity/tally.sh        # recompute + diff against the overview (CI-able; exits 1 on drift)
+plans/platform-parity/tally.sh fix    # rewrite the overview's numeric cells + parity-index numbers in place
+plans/platform-parity/tally.sh lint   # flag status emoji outside status cells
+```
+
+The counting rule (also documented in the script): **a table row contributes 1 to each
+distinct status emoji it contains.** Single-status tables contribute one mark per row; the
+multi-status matrices (04 per-effect: render+settings, 06 model-type: create/edit/renders,
+07 output-type: configure/live) contribute one mark per distinct status in the row. Two
+conventions make this work: status emoji are **reserved for status cells** — in prose or
+evidence cells write the status in words ("marked missing", "iPad-only"), never the emoji —
+and new multi-status tables must be added to the linter's allowance list in `tally.sh`.
+Never adjust the overview numbers by hand or by delta; run `fix`.
+
 ## Maintenance
 
 These docs are snapshots, not living state — but keep the *rows* honest: when a PR closes
