@@ -190,3 +190,44 @@ export void MeteorsEffectLineISPC(const uniform MeteorsISPCData * uniform d,
         }
     }
 }
+
+// Trail geometry for the radial styles (Implode/Explode).  The CPU keeps the
+// scatter - each emitted step does an atomic max into a per-pixel key buffer,
+// which does not vectorise - but the geometry ahead of it is pure float->int
+// and does, so this fills a small batch of steps for the scalar scatter to walk.
+//
+// Implode's stop-at-centre is NOT tested here.  The caller passes the phase it
+// resolved (radialCutFor / ComputeRadialCuts) as phEnd, so the CPU, Metal and
+// Vulkan paths all cut at exactly the same step.
+//
+// This is NOT bit-identical to the scalar walk: about 1e-6 of steps land one
+// pixel away, at a float truncation boundary.  That is deliberate and matches
+// the tolerance the GPU backends already carry.  It IS deterministic for a
+// given binary on a given CPU, which is the property that matters.  Note x86
+// builds dispatch across four ISPC targets, so the exact pixels can differ
+// between CPUs - same as GPU-on vs GPU-off already does.
+export void MeteorsRadialWalkISPC(uniform float mx, uniform float my,
+                                  uniform float ddx, uniform float ddy,
+                                  uniform int implode,
+                                  uniform int phStart, uniform int phEnd,
+                                  uniform int W, uniform int H,
+                                  uniform int outX[], uniform int outY[]) {
+    foreach (ph = phStart ... phEnd) {
+        int x, y;
+        if (implode != 0) {
+            x = (int)(mx - ddx * (float)ph);
+            y = (int)(my - ddy * (float)ph);
+        } else {
+            x = (int)(mx + ddx * (float)ph);
+            y = (int)(my + ddy * (float)ph);
+        }
+        // Out-of-buffer steps are flagged, not compacted away: compacting here
+        // needs a cross-lane scan, and in a partial gang the inactive lanes
+        // perturb it (measured - it produced the right COUNT with shuffled
+        // contents).  The caller already walks these scalar-ly to feed the
+        // scatter, so it filters there for free and this stays a plain
+        // contiguous store.
+        outX[ph - phStart] = (x >= 0 && x < W && y >= 0 && y < H) ? x : -1;
+        outY[ph - phStart] = y;
+    }
+}

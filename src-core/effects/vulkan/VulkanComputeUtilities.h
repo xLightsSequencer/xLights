@@ -313,6 +313,11 @@ public:
     VkPipeline garlandsEffectFunction = VK_NULL_HANDLE;
     VkPipeline fillEffectFunction = VK_NULL_HANDLE;
     VkPipeline meteorsEffectFunction = VK_NULL_HANDLE;
+    // The radial Meteors styles dispatch two kernels per frame: a scatter that
+    // atomic-maxes the winning (meteor, phase) key per pixel, then a resolve
+    // that shades one colour per covered pixel, separated by a compute barrier.
+    VkPipeline meteorsRadialScatterFunction = VK_NULL_HANDLE;
+    VkPipeline meteorsRadialResolveFunction = VK_NULL_HANDLE;
     VkPipeline twinkleEffectFunction = VK_NULL_HANDLE;
     VkPipeline lifeEffectFunction = VK_NULL_HANDLE;
     // Fire dispatches two kernels per frame: the temporal grid advance and

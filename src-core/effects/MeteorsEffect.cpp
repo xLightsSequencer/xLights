@@ -29,6 +29,11 @@
 #include "Parallel.h"
 #include "ispc/MeteorsFunctions.ispc.h"
 
+#include <algorithm>
+#include <atomic>
+#include <cmath>
+#include <memory>
+
 std::string MeteorsEffect::sTypeDefault = "Rainbow";
 std::string MeteorsEffect::sEffectDefault = "Down";
 int MeteorsEffect::sCountDefault = 10;
@@ -152,114 +157,17 @@ public:
     int h = 0; //variable length; only used for icicle drip -DJ
 };
 
-// for radial meteor effect
-class MeteorRadialClass {
-public:
-
-    double x,y,dx,dy;
-    int cnt;
-    HSVValue hsv;
-};
-
 // Contiguous, and append-only + order-preserving erase, so the draw order is
 // exactly the creation order.  Overlapping meteors overwrite each other, so any
 // reordering here changes pixels.
 typedef std::vector<MeteorClass> MeteorList;
-typedef std::vector<MeteorRadialClass> MeteorRadialList;
 
-// One deferred SetPixel from a radial trail.
-struct RadialPlot {
-    int x;
-    int y;
-    HSVValue hsv;
-    uint8_t alpha;
-};
-
-// Implode/Explode draw overlapping trails, so serial order decides which meteor
-// owns a shared pixel.  Neither SetPixel overload used here reads the old pixel,
-// so "later write wins" is the ONLY ordering that matters: have each meteor
-// compute its trail into its own slice (pure geometry + a stateless hash, no
-// buffer access), bucket the writes by buffer row, then replay each row on one
-// thread in emit order.  Every write to a pixel lands in that pixel's row bucket
-// and keeps its relative order, so the result is identical to drawing serially.
-// The axis-aligned styles get their parallelism from the ISPC line kernel; the
-// radial ones have no such kernel and were left fully serial.
-//
-// `trail(meteor, n, RadialPlot* out)` fills up to tailLength+1 plots and returns
-// how many it wrote.
-template <typename Trail>
-static void drawRadialMeteors(RenderBuffer& buffer, MeteorRadialList& meteors, int tailLength,
-                              bool allowAlpha, Trail&& trail) {
-    const size_t meteorCount = meteors.size();
-    if (meteorCount == 0) {
-        return;
-    }
-    const int stride = tailLength + 1;
-
-    auto plot = [&buffer, allowAlpha](const RadialPlot& p) {
-        if (allowAlpha) {
-            xlColor c(p.hsv);
-            c.alpha = p.alpha;
-            buffer.SetPixel(p.x, p.y, c);
-        } else {
-            buffer.SetPixel(p.x, p.y, p.hsv);
-        }
-    };
-
-    // DMX buffers route SetPixel through SetPixelDMXModel, which is not a plain
-    // store into the pixel grid, so row ownership does not make it independent.
-    // Small draws are not worth the bucketing passes either.
-    if (buffer.dmx_buffer || (int64_t)meteorCount * stride < 20000) {
-        std::vector<RadialPlot> scratch(stride);
-        for (size_t n = 0; n < meteorCount; ++n) {
-            const int wrote = trail(meteors[n], (int)n, scratch.data());
-            for (int i = 0; i < wrote; ++i) {
-                plot(scratch[i]);
-            }
-        }
-        return;
-    }
-
-    std::vector<RadialPlot> plots(meteorCount * (size_t)stride);
-    std::vector<int> wrote(meteorCount, 0);
-    parallel_for(0, (int)meteorCount, [&](int n) {
-        wrote[n] = trail(meteors[n], n, &plots[(size_t)n * stride]);
-    });
-
-    // Counting sort of the in-range writes into per-row runs, walked in emit
-    // order so each run stays in emit order.  Out-of-row writes are dropped:
-    // SetPixel would have rejected them anyway.
-    const int rows = buffer.BufferHt;
-    std::vector<int> rowStart(rows + 1, 0);
-    for (size_t n = 0; n < meteorCount; ++n) {
-        const RadialPlot* pp = &plots[(size_t)n * stride];
-        for (int i = 0; i < wrote[n]; ++i) {
-            if (pp[i].y >= 0 && pp[i].y < rows) {
-                ++rowStart[pp[i].y + 1];
-            }
-        }
-    }
-    for (int r = 0; r < rows; ++r) {
-        rowStart[r + 1] += rowStart[r];
-    }
-    std::vector<int> rowItems(rowStart[rows], 0);
-    std::vector<int> fill(rowStart.begin(), rowStart.end() - 1);
-    for (size_t n = 0; n < meteorCount; ++n) {
-        const size_t base = (size_t)n * stride;
-        for (int i = 0; i < wrote[n]; ++i) {
-            const RadialPlot& p = plots[base + i];
-            if (p.y >= 0 && p.y < rows) {
-                rowItems[fill[p.y]++] = (int)(base + i);
-            }
-        }
-    }
-
-    parallel_for(0, rows, [&](int r) {
-        for (int k = rowStart[r]; k < rowStart[r + 1]; ++k) {
-            plot(plots[rowItems[k]]);
-        }
-    });
-}
+// NOTE: with hue and saturation fixed, fromHSV() is algebraically just
+// `value * k` per component, so a fading trail looks like it could resolve the
+// hue/saturation half once and spend three multiplies per step.  Don't: release
+// builds are -ffast-math, and reassociating that multiply chain shifts channels
+// by +-1 against fromHSV().  A sweep of ~1.8e9 (hue, sat, value, fade) points
+// found ~14k mismatches with -ffast-math and zero without it.
 
 class MeteorsRenderCache : public EffectRenderCache {
 public:
@@ -269,7 +177,97 @@ public:
     float effectState = 0;
     MeteorList meteors;
     MeteorRadialList meteorsRadial;
+
+    // One emit key per buffer pixel for drawRadialMeteors, kept across frames.
+    // Sized by the buffer, not by the meteor count, so it does not grow with a
+    // dense frame the way the old per-write plot array did.
+    std::unique_ptr<std::atomic<uint64_t>[]> keys;
+    size_t keyCount = 0;
 };
+
+// Implode/Explode draw overlapping trails, so serial order decides which meteor
+// owns a shared pixel.  Neither SetPixel overload used here reads the old pixel,
+// so "later write wins" is the ONLY thing that matters - and since the writes are
+// emitted in (meteor, phase) order, the write that survives on a pixel is simply
+// the one with the largest (n, ph).  So don't materialise the writes and sort
+// them: record that key per pixel with an atomic max, then resolve the colour
+// once per covered pixel.  Identical to drawing serially, and it drops the
+// per-write plot array, both bucketing passes, and the colour conversions for
+// every write that was going to be painted over (a whole-house Implode overdraws
+// its buffer several times).
+//
+// `walk(meteor, n, emit)` calls emit(x, y, ph) for each in-bounds trail step, in
+// emit order.  `shade(meteor, n, ph, x, y)` returns that step's colour and runs
+// only for the steps that survived.  Splitting them this way also isolates the
+// geometry, which is pure double->int and vectorises bit-exactly, from the
+// colour, which does not (see the -ffast-math note above).
+template <typename Walk, typename Shade>
+static void drawRadialMeteors(RenderBuffer& buffer, MeteorsRenderCache* cache, const MeteorRadialList& meteors,
+                              int tailLength, Walk&& walk, Shade&& shade) {
+    const size_t meteorCount = meteors.size();
+    if (meteorCount == 0) {
+        return;
+    }
+    const int W = buffer.BufferWi;
+    const int H = buffer.BufferHt;
+    if (W <= 0 || H <= 0) {
+        return;
+    }
+
+    // DMX buffers route SetPixel through SetPixelDMXModel, which is not a plain
+    // store into the pixel grid, so a pixel's key would not decide its value.
+    // Small draws are not worth the key buffer either.
+    if (buffer.dmx_buffer || (int64_t)meteorCount * (tailLength + 1) < 20000) {
+        for (size_t n = 0; n < meteorCount; ++n) {
+            const MeteorRadialClass& m = meteors[n];
+            walk(m, (int)n, [&](int x, int y, int ph) {
+                buffer.SetPixel(x, y, shade(m, (int)n, ph, x, y));
+            });
+        }
+        return;
+    }
+
+    const size_t pixels = (size_t)W * (size_t)H;
+    if (cache->keyCount < pixels) {
+        cache->keys.reset(new std::atomic<uint64_t>[pixels]);
+        cache->keyCount = pixels;
+    }
+    std::atomic<uint64_t>* keys = cache->keys.get();
+    parallel_for(0, H, [&](int y) {
+        std::atomic<uint64_t>* row = keys + (size_t)y * W;
+        for (int x = 0; x < W; ++x) {
+            row[x].store(0, std::memory_order_relaxed);
+        }
+    });
+
+    // n + 1 in the high half so that 0 can mean "no trail reached this pixel".
+    parallel_for(0, (int)meteorCount, [&](int n) {
+        const MeteorRadialClass& m = meteors[n];
+        const uint64_t base = (uint64_t)(uint32_t)(n + 1) << 32;
+        walk(m, n, [&](int x, int y, int ph) {
+            std::atomic<uint64_t>& slot = keys[(size_t)y * W + x];
+            const uint64_t k = base | (uint32_t)ph;
+            uint64_t cur = slot.load(std::memory_order_relaxed);
+            while (cur < k && !slot.compare_exchange_weak(cur, k, std::memory_order_relaxed)) {
+            }
+        });
+    });
+
+    // SetPixelDirect: not a DMX buffer (handled above) and walk() only emitted
+    // in-bounds steps, so SetPixel's own range test is pure overhead here.
+    parallel_for(0, H, [&](int y) {
+        const std::atomic<uint64_t>* row = keys + (size_t)y * W;
+        for (int x = 0; x < W; ++x) {
+            const uint64_t k = row[x].load(std::memory_order_relaxed);
+            if (k == 0) {
+                continue;
+            }
+            const int n = (int)(uint32_t)(k >> 32) - 1;
+            const int ph = (int)(uint32_t)k;
+            buffer.SetPixelDirect(x, y, shade(meteors[n], n, ph, x, y));
+        }
+    });
+}
 
 
 static MeteorsRenderCache* GetCache(RenderBuffer &buffer, int id) {
@@ -297,12 +295,148 @@ static std::unique_ptr<MeteorsFrameState> BuildMeteorsFrame(const MeteorsGatherP
     return fs;
 }
 
-RenderableEffect::FrameParallelism MeteorsEffect::GetFrameParallelism(const SettingsMap& settings) const {
+// Which of the two draw paths a style uses: the radial (Implode/Explode) trail
+// walk, or the axis-aligned per-pixel gather.  Render, AdvanceState and the
+// snapshot type all key off this, so they can never disagree about which
+// EffectFrameState subclass is in flight.
+bool MeteorsEffect::IsRadialStyle(const SettingsMap& settings) {
     int eff = GetMeteorEffect(settings.Get("CHOICE_Meteors_Effect", sEffectDefault));
-    // Implode/Explode draw through a different (non-snapshot) path; keep serial.
-    if (eff == METEORS_IMPLODE || eff == METEORS_EXPLODE) {
-        return FrameParallelism::Stateful;
+    return eff == METEORS_IMPLODE || eff == METEORS_EXPLODE;
+}
+
+// The Implode trail stops at the first phase that lands on the centre.  The CPU
+// walk just breaks out, but a GPU dispatches every phase as an independent
+// thread and has to be told the cut up front.  Only a meteor whose trail passes
+// within a few pixels of the centre can stop at all - the closest the trail ever
+// gets is |R - ph| for ph in [0, TL], and int() truncation can shift a coord by
+// at most 1 in each axis, so a closest approach beyond 3*sqrt(2) cannot satisfy
+// the 2x2 test.  8.0 is that bound with margin, and it lets most meteors skip
+// the scan entirely.
+static int radialCutFor(const MeteorRadialClass& m, int centerX, int centerY, int TL) {
+    const float ox = m.x - (float)centerX;
+    const float oy = m.y - (float)centerY;
+    if (sqrtf(ox * ox + oy * oy) - (float)TL > 8.0f) {
+        return TL + 1;
     }
+    for (int ph = 0; ph <= TL; ph++) {
+        const int x = int(m.x - m.dx * float(ph));
+        const int y = int(m.y - m.dy * float(ph));
+        if ((abs(y - centerY) < 2) && (abs(x - centerX) < 2)) {
+            return ph;
+        }
+    }
+    return TL + 1;
+}
+
+void MeteorsEffect::ComputeRadialCuts(const MeteorsRadialFrameState& fs, std::vector<int>& cuts) {
+    const int TL = fs.tailLength;
+    cuts.assign(fs.meteors.size(), TL + 1);
+    if (!fs.implode) {
+        return;
+    }
+    int* out = cuts.data();
+    parallel_for(0, (int)fs.meteors.size(), [&fs, TL, out](int n) {
+        out[n] = radialCutFor(fs.meteors[n], fs.centerX, fs.centerY, TL);
+    });
+}
+
+// Draw pass for the radial styles: a pure function of the snapshot and the
+// buffer it writes into, so the engine can rasterise many frames of it at once.
+// The two styles differ only in which way the trail walks away from the head,
+// and in Implode stopping a trail once it reaches the centre.
+void MeteorsEffect::DrawRadialSnapshot(RenderBuffer& buffer, const MeteorsRadialFrameState& fs) {
+    MeteorsRenderCache* cache = GetCache(buffer, id);
+
+    const int W = buffer.BufferWi;
+    const int H = buffer.BufferHt;
+    const bool allowAlpha = buffer.allowAlpha;
+    const bool implode = fs.implode;
+    const int centerX = fs.centerX;
+    const int centerY = fs.centerY;
+    const int maxdiag = fs.maxdiag;
+    const int TailLength = fs.tailLength;
+    const int ColorScheme = fs.colorScheme;
+    const bool fadeWithDistance = fs.fadeWithDistance;
+    // Rainbow re-rolls the hue every step and fade-with-distance rescales the
+    // value per pixel.  Everything else walks the trail with one fixed HSV, and
+    // when the alpha channel is carrying the fade the colour never changes at
+    // all - so resolve it once per meteor instead of once per step.
+    const bool solidTrail = (ColorScheme != 0) && !fadeWithDistance && allowAlpha;
+
+    // Geometry only, through ISPC.  The scatter that consumes these cannot
+    // vectorise (an atomic max per step), so the steps come back in small
+    // batches that stay in L1 rather than through a per-meteor array.  Implode's
+    // stop-at-centre is resolved up front by radialCutFor so the kernel needs no
+    // early exit - and so the CPU, Metal and Vulkan paths all cut at the same
+    // phase.  About 1e-6 of steps land a pixel off the scalar form; see the
+    // kernel for why that is accepted.
+    auto walk = [implode, centerX, centerY, TailLength, W, H](const MeteorRadialClass& meteor, int n, auto&& emit) {
+        // if we were to swirl, it would need to alter the angle here
+        const int cut = implode ? radialCutFor(meteor, centerX, centerY, TailLength) : TailLength + 1;
+        constexpr int BATCH = 512;
+        int xs[BATCH], ys[BATCH];
+        for (int s = 0; s < cut; s += BATCH) {
+            const int e = std::min(cut, s + BATCH);
+            ispc::MeteorsRadialWalkISPC(meteor.x, meteor.y, meteor.dx, meteor.dy,
+                                        implode ? 1 : 0, s, e, W, H, xs, ys);
+            for (int i = 0; i < e - s; i++) {
+                if (xs[i] >= 0) { // -1 marks a step that fell outside the buffer
+                    emit(xs[i], ys[i], s + i);
+                }
+            }
+        }
+    };
+
+    auto shade = [&buffer, fadeWithDistance, centerX, centerY, maxdiag, TailLength, ColorScheme, allowAlpha, solidTrail](const MeteorRadialClass& meteor, int n, int ph, int x, int y) -> xlColor {
+        const float fade = float(ph) / float(TailLength);
+        // Integer, not 255.0f*fade: the exact value is floor(255*ph/TailLength),
+        // and computing it in float made the alpha channel the single largest
+        // source of CPU-vs-GPU drift (all of it +-1).  Integer division is exact
+        // and identical on every backend, so this channel simply cannot drift.
+        const uint8_t alpha = (uint8_t)((255 * ph) / TailLength);
+        if (solidTrail) {
+            xlColor c(meteor.hsv);
+            c.alpha = alpha;
+            return c;
+        }
+
+        HSVValue hsv;
+        switch (ColorScheme) {
+        case 0:
+            hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
+            hsv.saturation = 1.0;
+            hsv.value = 1.0;
+            break;
+        default:
+            hsv = meteor.hsv;
+            break;
+        }
+
+        if (fadeWithDistance) {
+            // distance
+            int distance = (int)sqrtf((float)((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)));
+            if (distance < 10) {
+                distance = 10;
+            }
+            hsv.value *= float(distance) / float(maxdiag);
+        }
+
+        if (allowAlpha) {
+            xlColor c(hsv);
+            c.alpha = alpha;
+            return c;
+        }
+        hsv.value *= fade;
+        return xlColor(hsv);
+    };
+
+    drawRadialMeteors(buffer, cache, fs.meteors, TailLength, walk, shade);
+}
+
+RenderableEffect::FrameParallelism MeteorsEffect::GetFrameParallelism(const SettingsMap& settings) const {
+    // Every style splits into a serial particle advance and a pure draw, so
+    // AdvanceState always returns a snapshot - see the contract in
+    // RenderableEffect.h.
     return FrameParallelism::Snapshottable;
 }
 
@@ -413,83 +547,42 @@ void MeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParam
 // ColorScheme: 0=rainbow, 1=range, 2=palette
 // MeteorsEffect: 0=down, 1=up, 2=left, 3=right, 4=implode, 5=explode
 void MeteorsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
+    const bool radial = IsRadialStyle(SettingsMap);
+
     if (buffer.pendingSnapshot != nullptr) {
         // Draw pass: rasterise the snapshot AdvanceState produced; no sim advance.
-        // For the migrated (axis-aligned) modes this is the ONLY path the tier-2
-        // engine reaches, in both serial and frame-parallel rendering.
-        const MeteorsFrameState& fs = static_cast<const MeteorsFrameState&>(*buffer.pendingSnapshot);
-        GatherMeteors(buffer, fs.params, fs.parts);
-        return;
-    }
-
-    int MeteorsEffect = GetMeteorEffect(SettingsMap.Get("CHOICE_Meteors_Effect", sEffectDefault));
-
-    // Migrated Snapshottable modes (Down/Up/Left/Right/Icicles): advance then
-    // draw the snapshot.  Defensive fall-through for a caller that invokes Render
-    // without first going through AdvanceState (the engine enters via the
-    // pendingSnapshot branch above); the draw is a pure function of the snapshot.
-    if (MeteorsEffect != METEORS_IMPLODE && MeteorsEffect != METEORS_EXPLODE) {
-        auto fs = AdvanceState(effect, SettingsMap, buffer);
-        if (fs != nullptr) {
-            const MeteorsFrameState& mfs = static_cast<const MeteorsFrameState&>(*fs);
-            GatherMeteors(buffer, mfs.params, mfs.parts);
+        // This is the ONLY path the tier-2 engine reaches, in both serial and
+        // frame-parallel rendering.
+        if (radial) {
+            DrawRadialSnapshot(buffer, static_cast<const MeteorsRadialFrameState&>(*buffer.pendingSnapshot));
+        } else {
+            const MeteorsFrameState& fs = static_cast<const MeteorsFrameState&>(*buffer.pendingSnapshot);
+            GatherMeteors(buffer, fs.params, fs.parts);
         }
         return;
     }
 
-    // Stateful Implode/Explode: a different (non-snapshot) draw path - fused
-    // advance + serial draw, untouched by the tier-2 split.
-    float oset = buffer.GetEffectTimeIntervalPosition();
-    int Count = GetValueCurveInt("Meteors_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Length = GetValueCurveInt("Meteors_Length", sLengthDefault, SettingsMap, oset, sLengthMin, sLengthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int SwirlIntensity = GetValueCurveInt("Meteors_Swirl_Intensity", sSwirlDefault, SettingsMap, oset, sSwirlMin, sSwirlMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int mSpeed = GetValueCurveInt("Meteors_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int ColorScheme = GetMeteorColorScheme(SettingsMap.Get("CHOICE_Meteors_Type", sTypeDefault));
-    int xoffset = GetValueCurveInt("Meteors_XOffset", sXOffsetDefault, SettingsMap, oset, sXOffsetMin, sXOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yoffset = GetValueCurveInt("Meteors_YOffset", sYOffsetDefault, SettingsMap, oset, sYOffsetMin, sYOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool fadeWithDistance = SettingsMap.GetBool("CHECKBOX_FadeWithDistance", sFadeWithDistanceDefault);
-    int warmupFrames = SettingsMap.GetInt("SLIDER_Meteors_WamupFrames", sWarmupFramesDefault);
-
-    if (SettingsMap.GetBool("CHECKBOX_Meteors_UseMusic", sUseMusicDefault)) {
-        float f = 0.0;
-        if (buffer.GetMedia() != nullptr) {
-            auto pf = buffer.GetMedia()->GetFrameData(buffer.curPeriod, "");
-            if (pf != nullptr) {
-                f = pf->max;
-            }
-        }
-        Count = (float)Count * f;
+    // Defensive fall-through for a caller that invokes Render without first
+    // going through AdvanceState (the engine enters via the pendingSnapshot
+    // branch above); the draw is a pure function of the snapshot.
+    auto fs = AdvanceState(effect, SettingsMap, buffer);
+    if (fs == nullptr) {
+        return;
     }
-
-    MeteorsRenderCache *cache = GetCache(buffer, id);
-
-    if (buffer.needToInit) {
-        buffer.needToInit = false;
-        cache->meteors.clear();
-        cache->meteorsRadial.clear();
-        cache->effectState = calcEffectStateOffset(mSpeed, buffer);
-    }
-
-    switch (MeteorsEffect) {
-        case METEORS_IMPLODE: //4:
-            RenderMeteorsImplode(buffer, ColorScheme, Count, Length, SwirlIntensity, mSpeed, xoffset, yoffset, fadeWithDistance, warmupFrames);
-            break;
-        case METEORS_EXPLODE: //5:
-            RenderMeteorsExplode(buffer, ColorScheme, Count, Length, SwirlIntensity, mSpeed, xoffset, yoffset, fadeWithDistance, warmupFrames);
-            break;
+    if (radial) {
+        DrawRadialSnapshot(buffer, static_cast<const MeteorsRadialFrameState&>(*fs));
+    } else {
+        const MeteorsFrameState& mfs = static_cast<const MeteorsFrameState&>(*fs);
+        GatherMeteors(buffer, mfs.params, mfs.parts);
     }
 }
 
-// Tier-2 advance: run this frame's particle simulation for the axis-aligned
-// (Snapshottable) modes and return the immutable draw snapshot.  Implode/Explode
-// stay Stateful and return nullptr - this partition mirrors GetFrameParallelism
-// exactly.  All stream RNG (add/randInt) is consumed here in serial; the draw
-// (GatherMeteors) is a pure function of the returned snapshot.
+// Tier-2 advance: run this frame's particle simulation and return the immutable
+// draw snapshot.  Every style is Snapshottable, so this always returns non-null
+// (the contract GetFrameParallelism promises).  All stream RNG (add/randInt) is
+// consumed here in serial; the draw is a pure function of the returned snapshot.
 std::unique_ptr<EffectFrameState> MeteorsEffect::AdvanceState(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     int MeteorsEffect = GetMeteorEffect(SettingsMap.Get("CHOICE_Meteors_Effect", sEffectDefault));
-    if (MeteorsEffect == METEORS_IMPLODE || MeteorsEffect == METEORS_EXPLODE) {
-        return nullptr;
-    }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
     int Count = GetValueCurveInt("Meteors_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
@@ -530,6 +623,16 @@ std::unique_ptr<EffectFrameState> MeteorsEffect::AdvanceState(Effect *effect, co
             return RenderIcicleDrip(buffer, ColorScheme, Count, Length, MeteorsEffect, SwirlIntensity, mSpeed, warmupFrames);
         case METEORS_ICICLES_BKG: //7
             return RenderIcicleDrip(buffer, ColorScheme, Count, -Length, MeteorsEffect, SwirlIntensity, mSpeed, warmupFrames);
+        case METEORS_IMPLODE: //4:
+        case METEORS_EXPLODE: { //5:
+            int xoffset = GetValueCurveInt("Meteors_XOffset", sXOffsetDefault, SettingsMap, oset, sXOffsetMin, sXOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+            int yoffset = GetValueCurveInt("Meteors_YOffset", sYOffsetDefault, SettingsMap, oset, sYOffsetMin, sYOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+            bool fadeWithDistance = SettingsMap.GetBool("CHECKBOX_FadeWithDistance", sFadeWithDistanceDefault);
+            if (MeteorsEffect == METEORS_IMPLODE) {
+                return AdvanceMeteorsImplode(buffer, ColorScheme, Count, Length, mSpeed, xoffset, yoffset, fadeWithDistance, warmupFrames);
+            }
+            return AdvanceMeteorsExplode(buffer, ColorScheme, Count, Length, mSpeed, xoffset, yoffset, fadeWithDistance, warmupFrames);
+        }
     }
     return nullptr;
 }
@@ -961,8 +1064,8 @@ void MeteorsEffect::ImplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int
             m.dy = buffer.sin(angle);
             // m.x = centerX + double(halfdiag + TailLength)*m.dx;
             // m.y = centerY + double(halfdiag + TailLength)*m.dy;
-            m.x = centerX + double(maxdiag + TailLength) * m.dx;
-            m.y = centerY + double(maxdiag + TailLength) * m.dy;
+            m.x = centerX + float(maxdiag + TailLength) * m.dx;
+            m.y = centerY + float(maxdiag + TailLength) * m.dy;
 
             switch (ColorScheme) {
             case 1:
@@ -1015,7 +1118,7 @@ void MeteorsEffect::ImplodeRemoveMeteors(RenderBuffer& buffer, int xoffset, int 
     std::erase_if(cache->meteorsRadial, MeteorHasExpiredImplode(buffer.BufferWi / 2 + truexoffset, buffer.BufferHt / 2 + trueyoffset));
 }
 
-void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mSpeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames)
+std::unique_ptr<EffectFrameState> MeteorsEffect::AdvanceMeteorsImplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int mSpeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames)
 {
     MeteorsRenderCache* cache = GetCache(buffer, id);
 
@@ -1053,55 +1156,24 @@ void MeteorsEffect::RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, 
     // create new meteors
     ImplodeAddMeteors(buffer, ColorScheme, Count, Length, xoffset, yoffset);
 
-    // render meteors
-    auto trail = [&buffer, fadeWithDistance, centerX, centerY, maxdiag, TailLength, ColorScheme](const MeteorRadialClass& meteor, int n, RadialPlot* out) {
-        HSVValue hsv;
-        int wrote = 0;
+    // Hand the live particle list to the draw pass.  Everything the trail needs
+    // that is not a property of the buffer travels with it, so the draw is a pure
+    // function of the snapshot and many frames of it can rasterise at once.
+    auto fs = std::make_unique<MeteorsRadialFrameState>();
+    fs->meteors = cache->meteorsRadial;
+    fs->implode = true;
+    fs->centerX = centerX;
+    fs->centerY = centerY;
+    fs->maxdiag = maxdiag;
+    fs->tailLength = TailLength;
+    fs->colorScheme = ColorScheme;
+    fs->fadeWithDistance = fadeWithDistance;
 
-        for (int ph = 0; ph <= TailLength; ph++) {
-            switch (ColorScheme) {
-            case 0:
-                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
-                hsv.saturation = 1.0;
-                hsv.value = 1.0;
-                break;
-            default:
-                hsv = meteor.hsv;
-                break;
-            }
-            // if we were to swirl, it would need to alter the angle here
-
-            int x = int(meteor.x - meteor.dx * double(ph));
-            int y = int(meteor.y - meteor.dy * double(ph));
-
-            // the next line cannot test for exact center! Some lines miss by 1 because of rounding.
-            if ((abs(y - centerY) < 2) && (abs(x - centerX) < 2))
-                break;
-
-            if (fadeWithDistance) {
-                // distance
-                int distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
-                if (distance < 10) {
-                    distance = 10;
-                }
-                hsv.value *= double(distance) / maxdiag;
-            }
-
-            uint8_t alpha = 0;
-            if (buffer.allowAlpha) {
-                alpha = 255.0 * (double(ph) / TailLength);
-            } else {
-                hsv.value *= double(ph) / TailLength;
-            }
-            out[wrote++] = { x, y, hsv, alpha };
-        }
-        return wrote;
-    };
-    drawRadialMeteors(buffer, cache->meteorsRadial, TailLength, buffer.allowAlpha, trail);
 
     ImplodeMoveMeteors(buffer, speed, xoffset, yoffset, fadeWithDistance);
 
     ImplodeRemoveMeteors(buffer, xoffset, yoffset);
+    return fs;
 }
 #pragma endregion
 
@@ -1210,7 +1282,7 @@ void MeteorsEffect::ExplodeRemoveMeteors(RenderBuffer& buffer)
     std::erase_if(cache->meteorsRadial, MeteorHasExpiredExplode(buffer.BufferHt, buffer.BufferWi));
 }
 
-void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mSpeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames)
+std::unique_ptr<EffectFrameState> MeteorsEffect::AdvanceMeteorsExplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int mSpeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames)
 {
     MeteorsRenderCache* cache = GetCache(buffer, id);
 
@@ -1251,53 +1323,24 @@ void MeteorsEffect::RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, 
     // create new meteors
     ExplodeAddMeteors(buffer, ColorScheme, Count, xoffset, yoffset);
 
-    // render meteors
+    // Hand the live particle list to the draw pass.  Everything the trail needs
+    // that is not a property of the buffer travels with it, so the draw is a pure
+    // function of the snapshot and many frames of it can rasterise at once.
+    auto fs = std::make_unique<MeteorsRadialFrameState>();
+    fs->meteors = cache->meteorsRadial;
+    fs->implode = false;
+    fs->centerX = centerX;
+    fs->centerY = centerY;
+    fs->maxdiag = maxdiag;
+    fs->tailLength = TailLength;
+    fs->colorScheme = ColorScheme;
+    fs->fadeWithDistance = fadeWithDistance;
 
-    auto trail = [&buffer, fadeWithDistance, centerX, centerY, maxdiag, TailLength, ColorScheme](const MeteorRadialClass& meteor, int n, RadialPlot* out) {
-        HSVValue hsv;
-        int wrote = 0;
-        for (int ph = 0; ph <= TailLength; ph++) {
-            // if (ph >= it->cnt) continue;
-            switch (ColorScheme) {
-            case 0:
-                hsv.hue = buffer.hashRand01(uint32_t(n) * 131101u + uint32_t(ph));
-                hsv.saturation = 1.0;
-                hsv.value = 1.0;
-                break;
-            default:
-                hsv = meteor.hsv;
-                break;
-            }
-
-            // if we were to swirl, it would need to alter the angle here
-
-            int x = int(meteor.x + meteor.dx * double(ph));
-            int y = int(meteor.y + meteor.dy * double(ph));
-
-            if (fadeWithDistance) {
-                // distance
-                int distance = sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
-                if (distance < 10) {
-                    distance = 10;
-                }
-                hsv.value *= double(distance) / maxdiag;
-            }
-
-            uint8_t alpha = 0;
-            if (buffer.allowAlpha) {
-                alpha = 255.0 * (double(ph) / TailLength);
-            } else {
-                hsv.value *= double(ph) / TailLength;
-            }
-            out[wrote++] = { x, y, hsv, alpha };
-        }
-        return wrote;
-    };
-    drawRadialMeteors(buffer, cache->meteorsRadial, TailLength, buffer.allowAlpha, trail);
 
     ExplodeMoveMeteors(buffer, speed, xoffset, yoffset, fadeWithDistance);
 
     ExplodeRemoveMeteors(buffer);
+    return fs;
 }
 
 #pragma endregion

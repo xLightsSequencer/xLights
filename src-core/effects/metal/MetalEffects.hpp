@@ -213,9 +213,10 @@ public:
     virtual ~MetalMeteorsEffect();
 
 protected:
-    // Overrides only the per-pixel gather; the base handles all the CPU bookkeeping
-    // and the radial styles. Falls back to the base (ISPC) when Metal isn't viable.
+    // Overrides the two draw passes; the base handles all the CPU bookkeeping.
+    // Both fall back to the base (ISPC / CPU) when Metal isn't viable.
     virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts) override;
+    virtual void DrawRadialSnapshot(RenderBuffer& buffer, const MeteorsRadialFrameState& fs) override;
 
 private:
     MetalMeteorsEffectData *data;

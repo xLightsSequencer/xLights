@@ -582,6 +582,40 @@ static_assert(sizeof(VulkanFillData) == 12, "VulkanFillData size drifted from th
 // Mirrors MetalMeteorsData.  Axis-aligned gather only; the CPU meteor
 // simulation stays shared (VulkanMeteorsEffect hooks GatherMeteors).  frameSeed
 // (rainbow scheme RNG) split into two 32-bit halves (no native uint64).
+// Mirrors MetalMeteorRadial (32B).  Bound as a flat uint[] in the radial kernels
+// (an array-of-struct stride would round to 32 under std430 rule 9 anyway, but
+// the flat form keeps it explicit and matches MeteorsEffect.comp's convention).
+struct VulkanMeteorRadial {
+    float x;
+    float y;
+    float dx;
+    float dy;
+    float hue;
+    float sat;
+    float val;
+    int32_t cut;   // phase at which this trail stops (Implode); tailLength+1 = never
+};
+static_assert(sizeof(VulkanMeteorRadial) == 32, "VulkanMeteorRadial size drifted from the 8-word GLSL layout");
+
+struct VulkanMeteorsRadialData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  implode;          // 1 = walk toward centre and stop there, 0 = outward
+    int32_t  tailLength;
+    int32_t  stride;           // tailLength + 1; also the key radix
+    int32_t  colorScheme;      // 0 = rainbow, 1 = range, 2 = palette
+    int32_t  allowAlpha;
+    int32_t  fadeWithDistance;
+    int32_t  centerX;
+    int32_t  centerY;
+    int32_t  maxdiag;
+    int32_t  numMeteors;
+    uint32_t frameSeedLo;
+    uint32_t frameSeedHi;
+};
+static_assert(offsetof(VulkanMeteorsRadialData, frameSeedLo) == 48, "VulkanMeteorsRadialData frameSeedLo offset drifted from std430");
+static_assert(sizeof(VulkanMeteorsRadialData) == 56, "VulkanMeteorsRadialData size drifted from the GLSL std430 block");
+
 struct VulkanMeteorsData {
     uint32_t width;
     uint32_t height;

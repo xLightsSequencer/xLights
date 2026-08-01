@@ -158,3 +158,102 @@ kernel void MeteorsEffect(constant MetalMeteorsData &d          [[buffer(0)]],
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Radial styles (Implode/Explode).
+//
+// These scatter rather than gather: a meteor's trail is a line segment at an
+// arbitrary angle, so a pixel cannot cheaply enumerate the meteors covering it.
+// But the writes are emitted in (meteor, phase) order and later ones win, so the
+// write that survives a pixel is just the one with the largest (n, ph) - and
+// n*stride + ph is exactly that order as a single integer.  So pass 1 throws an
+// atomic max of that key at every trail step, and pass 2 resolves one colour per
+// covered pixel.  No ordering pass, no sort.
+//
+// Metal has no double, so the CPU's int(x - dx*ph) truncation is reproduced in
+// float here; a small number of trail steps therefore land one pixel off the CPU
+// result, on top of the usual +/-1 colour drift from float fromHSV.
+// ---------------------------------------------------------------------------
+
+kernel void MeteorsRadialScatter(constant MetalMeteorsRadialData &d      [[buffer(0)]],
+                                 device const MetalMeteorRadial *parts   [[buffer(1)]],
+                                 device atomic_uint *keys                [[buffer(2)]],
+                                 uint index                              [[thread_position_in_grid]]) {
+    uint stride = (uint)d.stride;
+    uint n = index / stride;
+    if (n >= (uint)d.numMeteors) {
+        return;
+    }
+    int ph = (int)(index - n * stride);
+    device const MetalMeteorRadial &m = parts[n];
+    if (ph >= m.cut) {
+        return;              // Implode trail already stopped at the centre
+    }
+
+    int x, y;
+    if (d.implode != 0) {
+        x = (int)(m.x - m.dx * (float)ph);
+        y = (int)(m.y - m.dy * (float)ph);
+    } else {
+        x = (int)(m.x + m.dx * (float)ph);
+        y = (int)(m.y + m.dy * (float)ph);
+    }
+    if (x < 0 || x >= (int)d.width || y < 0 || y >= (int)d.height) {
+        return;
+    }
+    // +1 so that 0 can mean "no trail reached this pixel"
+    uint key = index + 1u;
+    atomic_fetch_max_explicit(&keys[(uint)y * d.width + (uint)x], key, memory_order_relaxed);
+}
+
+kernel void MeteorsRadialResolve(constant MetalMeteorsRadialData &d      [[buffer(0)]],
+                                 device uchar4 *result                   [[buffer(1)]],
+                                 device const MetalMeteorRadial *parts   [[buffer(2)]],
+                                 device atomic_uint *keys                [[buffer(3)]],
+                                 uint index                              [[thread_position_in_grid]]) {
+    uint key = atomic_load_explicit(&keys[index], memory_order_relaxed);
+    if (key == 0u) {
+        return;
+    }
+    uint e = key - 1u;
+    uint stride = (uint)d.stride;
+    uint n = e / stride;
+    int ph = (int)(e - n * stride);
+    device const MetalMeteorRadial &m = parts[n];
+
+    int x = (int)(index % d.width);
+    int y = (int)(index / d.width);
+    float fade = (float)ph / (float)d.tailLength;
+
+    // A palette/range trail whose fade rides in the alpha channel never changes
+    // colour along its length; everything else re-derives hue or value per step.
+    float hue, sat, val;
+    if (d.colorScheme == 0) {
+        hue = meteorHashRand01(d.frameSeed, (uint)n * 131101u + (uint)ph);
+        sat = 1.0f;
+        val = 1.0f;
+    } else {
+        hue = m.hue;
+        sat = m.sat;
+        val = m.val;
+    }
+    if (d.fadeWithDistance != 0) {
+        int dxc = x - d.centerX;
+        int dyc = y - d.centerY;
+        int distance = (int)sqrt((float)(dxc * dxc + dyc * dyc));
+        if (distance < 10) {
+            distance = 10;
+        }
+        val *= (float)distance / (float)d.maxdiag;
+    }
+
+    uchar4 c;
+    if (d.allowAlpha != 0) {
+        c = meteorFromHSV(hue, sat, val);
+        // Integer, matching the CPU exactly - see the note in shade().
+        c.a = (uchar)((255 * ph) / d.tailLength);
+    } else {
+        c = meteorFromHSV(hue, sat, val * fade);
+    }
+    result[index] = c;
+}
