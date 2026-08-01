@@ -2799,26 +2799,28 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     SyncFloatingPanePositions();
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
     bool update = false;
-    if (show && savedPaneShown.size() > 0) {
-        spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - show {} {}", (int)info.size(), (int)savedPaneShown.size());
-        for (size_t x = 0; x < info.size(); x++) {
-            spdlog::debug("     {}", (const char*)info[x].name.c_str());
-            if (info[x].IsOk() &&
-                savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
-                savedPaneShown[info[x].name]) {
-                if (info[x].frame != nullptr) {
-                    // Mirror of the Hide() above - restore the pane state too, or
-                    // Update() below would immediately re-hide the frame.
-                    info[x].Show();
-                    info[x].frame->Show();
-                    // On macOS, Cocoa repositions native floating frames during
-                    // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
-                    // reapplies floating_pos/floating_size from the pane info.
-                    update = true;
+    if (show) {
+        if (savedPaneShown.size() > 0) {
+            spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - show {} {}", (int)info.size(), (int)savedPaneShown.size());
+            for (size_t x = 0; x < info.size(); x++) {
+                spdlog::debug("     {}", (const char*)info[x].name.c_str());
+                if (info[x].IsOk() &&
+                    savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
+                    savedPaneShown[info[x].name]) {
+                    if (info[x].frame != nullptr) {
+                        // Mirror of the Hide() above - restore the pane state too, or
+                        // Update() below would immediately re-hide the frame.
+                        info[x].Show();
+                        info[x].frame->Show();
+                        // On macOS, Cocoa repositions native floating frames during
+                        // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
+                        // reapplies floating_pos/floating_size from the pane info.
+                        update = true;
+                    }
                 }
             }
+            savedPaneShown.clear();
         }
-        savedPaneShown.clear();
     } else {
         savedPaneShown.clear();
         spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - hide {}", (int)info.size());

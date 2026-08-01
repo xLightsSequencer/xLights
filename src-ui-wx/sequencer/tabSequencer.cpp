@@ -3425,8 +3425,8 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
     }
 
     for (int i = 0; i < 10; i++) {
-        if (perspectives[i].p == perspective) {
-            MenuItemPerspectives->Check(perspectives[i].id, true);
+        if (perspectives[i].p != nullptr) {
+            MenuItemPerspectives->Check(perspectives[i].id, perspectives[i].p == perspective);
         }
     }
     UpdateLayoutSave();
