@@ -23,7 +23,7 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 03 Timing, lyrics & audio | 112 | 20 | 22 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
 | 04 Effects catalog & panels | 83 | 11 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
 | 05 Color, palettes & curves | 68 | 18 | 27 | 3 | 11 | Curve editors have no session-scoped Cancel/revert; different default palette than desktop on a fresh effect |
-| 06 Layout, models, 3D | 163 | 47 | 73 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
+| 06 Layout, models, 3D | 163 | 50 | 70 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
 | 07 Controllers, outputs, upload | 59 | 39 | 35 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
 | 08 Import & export | 49 | 11 | 44 | 1 | 4 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
 | 09 Render & playback | 58 | 12 | 22 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; outputs not blanked on Stop |
@@ -31,7 +31,7 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 37 | 6 | 3 | 102 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 49 | 15 | 16 | 5 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **941** | **296** | **388** | **157** | **91** | |
+| **Total (01–13)** | **941** | **299** | **385** | **157** | **91** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
