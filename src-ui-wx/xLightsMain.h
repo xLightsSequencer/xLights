@@ -1084,6 +1084,8 @@ public:
     bool _modelBlendDefaultOff = true;
     bool _lowDefinitionRender = false;
     bool _saveLowDefinitionRender = false; // saves the value of the low definition render during batch render when it may be temporarily overridden
+    bool _batchRenderStarted = false;
+    wxStopWatch _batchRenderStopWatch;
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;
