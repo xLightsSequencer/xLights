@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (derwin12)              Fix MovingHead Advanced: reset Path and Pattern on new effect
     -enh (dkulp)                 Meteors: the Implode and Explode styles render several times faster on large
                                  buffers, and use far less memory while rendering. Output is unchanged.
     -bug (dkulp)                 Ripple: the Thickness setting now draws the thickness asked for. Every shape
