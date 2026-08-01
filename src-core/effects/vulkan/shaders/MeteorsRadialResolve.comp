@@ -1,0 +1,167 @@
+#version 450
+// Pass 2 of the radial Meteors draw (Implode/Explode). Port of
+// MeteorsRadialResolve in MeteorsFunctions.metal; the CPU equivalent is the
+// per-pixel resolve loop in drawRadialMeteors (MeteorsEffect.cpp).
+//
+// MeteorsRadialScatter left the winning (meteor, phase) key in keys[]; this
+// pass shades exactly one colour per covered pixel, rather than once per trail
+// write. A whole-house Implode overdraws its buffer several times over, so that
+// is most of the colour work gone.
+//
+// Partial-write kernel: pixels no trail reached keep whatever the render engine
+// pre-cleared them to, so `result` must stay a plain `buffer`, not `writeonly`.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Result { uint result[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Parts {
+    // VulkanMeteorRadial, flattened: 8 words/particle -- see MeteorsRadialScatter.
+    uint partsRaw[];
+};
+layout(std430, set = 0, binding = 2) readonly buffer Keys { uint keys[]; };
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int  implode;
+    int  tailLength;
+    int  stride;
+    int  colorScheme;      // 0 = rainbow, 1 = range, 2 = palette
+    int  allowAlpha;
+    int  fadeWithDistance;
+    int  centerX;
+    int  centerY;
+    int  maxdiag;
+    int  numMeteors;
+    uint frameSeedLo;
+    uint frameSeedHi;
+} data;
+
+float partHue(int n) { return uintBitsToFloat(partsRaw[n * 8 + 4]); }
+float partSat(int n) { return uintBitsToFloat(partsRaw[n * 8 + 5]); }
+float partVal(int n) { return uintBitsToFloat(partsRaw[n * 8 + 6]); }
+
+// A 64-bit value as a (lo, hi) uint32 pair. Local copy, per this codebase's
+// per-effect-kernel convention -- identical helpers live in MeteorsEffect.comp /
+// ShimmerEffect.comp / CandleEffect.comp.
+struct u64 { uint lo; uint hi; };
+
+u64 u64Xor(u64 a, u64 b) { return u64(a.lo ^ b.lo, a.hi ^ b.hi); }
+
+// a >> n, restricted to 0 < n < 32 -- the only shifts meteorMix64 needs.
+u64 u64Shr(u64 a, uint n) {
+    return u64((a.lo >> n) | (a.hi << (32u - n)), a.hi >> n);
+}
+
+// (a * b) mod 2^64.
+u64 u64Mul(u64 a, u64 b) {
+    uint msb, lsb;
+    umulExtended(a.lo, b.lo, msb, lsb);
+    uint cross = a.hi * b.lo + a.lo * b.hi;
+    return u64(lsb, msb + cross);
+}
+
+// Bit-identical to meteorMix64 (MeteorsFunctions.metal) / RenderBuffer::rngMix64.
+u64 meteorMix64(u64 z) {
+    z = u64Xor(z, u64Shr(z, 30u));
+    z = u64Mul(z, u64(0x1CE4E5B9u, 0xBF58476Du)); // 0xBF58476D1CE4E5B9
+    z = u64Xor(z, u64Shr(z, 27u));
+    z = u64Mul(z, u64(0x133111EBu, 0x94D049BBu)); // 0x94D049BB133111EB
+    z = u64Xor(z, u64Shr(z, 31u));
+    return z;
+}
+
+float meteorHashRand01(u64 frameSeed, uint index) {
+    u64 idxTerm = u64Mul(u64(index, 0u), u64(0xD192ED03u, 0xD1B54A32u)); // 0xD1B54A32D192ED03
+    u64 z = u64Xor(frameSeed, idxTerm);
+    u64 m = meteorMix64(z);
+    u64 shifted = u64Shr(m, 11u);
+    float value = float(shifted.hi) * 4294967296.0 + float(shifted.lo);
+    return value * (1.0 / 9007199254740992.0);
+}
+
+// xlColor::fromHSV (Color.cpp) in float -- clamped hue/sat/value, lround via
+// floor(x+0.5). Bit-identical structure to meteorFromHSV (MeteorsFunctions.metal).
+uvec4 meteorFromHSV(float hue, float saturation, float value) {
+    float v = clamp(value, 0.0, 1.0);
+    float s = clamp(saturation, 0.0, 1.0);
+    float red, green, blue;
+    if (s == 0.0) {
+        red = v; green = v; blue = v;
+    } else {
+        float h = clamp(hue, 0.0, 1.0) * 6.0;
+        int i = int(floor(h));
+        float f = h - float(i);
+        float p = v * (1.0 - s);
+        if (i == 1) {
+            red = v * (1.0 - s * f);         green = v;                          blue = p;
+        } else if (i == 2) {
+            red = p;                          green = v;                          blue = v * (1.0 - s * (1.0 - f));
+        } else if (i == 3) {
+            red = p;                          green = v * (1.0 - s * f);         blue = v;
+        } else if (i == 4) {
+            red = v * (1.0 - s * (1.0 - f)); green = p;                         blue = v;
+        } else if (i == 5) {
+            red = v;                          green = p;                          blue = v * (1.0 - s * f);
+        } else { // i == 0 or i == 6
+            red = v;                          green = v * (1.0 - s * (1.0 - f)); blue = p;
+        }
+    }
+    uvec4 outColor;
+    outColor.x = uint(floor(red * 255.0 + 0.5));
+    outColor.y = uint(floor(green * 255.0 + 0.5));
+    outColor.z = uint(floor(blue * 255.0 + 0.5));
+    outColor.w = 255u;
+    return outColor;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= data.width * data.height) return;
+
+    uint key = keys[index];
+    if (key == 0u) return;
+
+    uint e = key - 1u;
+    uint stride = uint(data.stride);
+    int n = int(e / stride);
+    int ph = int(e - uint(n) * stride);
+
+    int x = int(index % data.width);
+    int y = int(index / data.width);
+    int TL = data.tailLength < 1 ? 1 : data.tailLength;
+    float fade = float(ph) / float(TL);
+
+    float hue, sat, val;
+    if (data.colorScheme == 0) {
+        u64 frameSeed = u64(data.frameSeedLo, data.frameSeedHi);
+        hue = meteorHashRand01(frameSeed, uint(n) * 131101u + uint(ph));
+        sat = 1.0;
+        val = 1.0;
+    } else {
+        hue = partHue(n);
+        sat = partSat(n);
+        val = partVal(n);
+    }
+    if (data.fadeWithDistance != 0) {
+        int dxc = x - data.centerX;
+        int dyc = y - data.centerY;
+        int distance = int(sqrt(float(dxc * dxc + dyc * dyc)));
+        if (distance < 10) {
+            distance = 10;
+        }
+        val *= float(distance) / float(data.maxdiag);
+    }
+
+    uvec4 col;
+    if (data.allowAlpha != 0) {
+        col = meteorFromHSV(hue, sat, val);
+        // Integer, matching the CPU exactly - computing 255*(ph/TL) in float
+        // made the alpha channel the single largest source of CPU-vs-GPU drift.
+        col.w = uint((255 * ph) / TL);
+    } else {
+        col = meteorFromHSV(hue, sat, val * fade);
+    }
+    result[index] = packPx(col);
+}

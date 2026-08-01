@@ -12,6 +12,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
     -bug (derwin12)              Fix MovingHead Advanced: reset Path and Pattern on new effect
+    -enh (dkulp)                 Meteors: the Implode and Explode styles render several times faster on large
+                                 buffers, and use far less memory while rendering. Output is unchanged.
+    -bug (dkulp)                 Ripple: the Thickness setting now draws the thickness asked for. Every shape
+                                 except Square grew its radius cumulatively across the thickness passes, so a
+                                 thick ripple ballooned far past the intended size and mostly off the buffer.
+                                 This changes how existing Ripple effects look.
+    -enh (dkulp)                 Ripple renders about 9x faster, and drawing to the render buffer got cheaper
+                                 for every effect - VU Meter, SingleStrand, Marquee, Shape and Kaleidoscope all
+                                 gained 10-38%. Output is unchanged.
     -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
     -bug (dkulp)                 Test: an RGB twinkle over a single selected channel spun until it ran out of memory
     -bug (dkulp)                 Test: marking every 50th pixel read past the end of the selection when the

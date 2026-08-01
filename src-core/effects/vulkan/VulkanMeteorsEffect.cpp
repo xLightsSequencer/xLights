@@ -120,6 +120,79 @@ static bool renderMeteorsGPU(VulkanMeteorsData& mdata, const std::vector<MeteorS
     return ok;
 }
 
+// GPU port of the radial (Implode/Explode) draw, mirroring MeteorsRadialScatter
+// / MeteorsRadialResolve in MeteorsFunctions.metal.  Three steps in one command
+// buffer: fill the key buffer with 0 ("no trail reached this pixel"), scatter
+// one thread per (meteor, phase) atomic-maxing the winning key, then resolve one
+// thread per pixel.  Vulkan does not hazard-track between dispatches the way
+// Metal does, so each step is separated by a computeBarrier.
+static bool renderMeteorsRadialGPU(VulkanMeteorsRadialData& mdata,
+                                   const std::vector<VulkanMeteorRadial>& parts, RenderBuffer& buffer) {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
+    if (!rbcd) {
+        return false;
+    }
+    // Buffers before command buffer (a grow can reset the command pool).
+    VulkanBuffer& px = rbcd->getPixelBuffer();
+    if (!px) {
+        return false;
+    }
+
+    VulkanBuffer partsBuf;
+    if (!u.createSharedBuffer(partsBuf, std::max((size_t)1, parts.size()) * sizeof(VulkanMeteorRadial), "MeteorsRadialParts")) {
+        return false;
+    }
+    VulkanMeteorRadial* gpuParts = (VulkanMeteorRadial*)partsBuf.mapped;
+    if (parts.empty()) {
+        gpuParts[0] = VulkanMeteorRadial{};
+    } else {
+        for (size_t i = 0; i < parts.size(); i++) {
+            gpuParts[i] = parts[i];
+        }
+    }
+
+    // Keys are scratch the GPU alone ever touches, so they never need to be
+    // host-visible or read back.
+    const uint32_t pixelCount = mdata.width * mdata.height;
+    VulkanBuffer keysBuf;
+    if (!u.createDeviceBuffer(keysBuf, (size_t)pixelCount * sizeof(uint32_t), "MeteorsRadialKeys")) {
+        u.destroyBuffer(partsBuf);
+        return false;
+    }
+
+    VkCommandBuffer cb = rbcd->getCommandBuffer("-MeteorsRadial");
+    if (cb == VK_NULL_HANDLE) {
+        u.destroyBuffer(keysBuf);
+        u.destroyBuffer(partsBuf);
+        return false;
+    }
+
+    VulkanComputeUtilities::computeBarrier(cb);
+    vkCmdFillBuffer(cb, keysBuf.buffer, 0, (VkDeviceSize)pixelCount * sizeof(uint32_t), 0);
+
+    VulkanComputeUtilities::computeBarrier(cb);
+    bool ok = rbcd->encodeEffectDispatch(cb, u.meteorsRadialScatterFunction, "MeteorsRadialScatter",
+                                         &mdata, sizeof(mdata), { keysBuf.buffer, partsBuf.buffer },
+                                         (uint32_t)(parts.size() * (size_t)mdata.stride), 0);
+    if (ok) {
+        VulkanComputeUtilities::computeBarrier(cb);
+        ok = rbcd->encodeEffectDispatch(cb, u.meteorsRadialResolveFunction, "MeteorsRadialResolve",
+                                        &mdata, sizeof(mdata), { px.buffer, partsBuf.buffer, keysBuf.buffer },
+                                        pixelCount, 0);
+    }
+    if (ok) {
+        // partsBuf/keysBuf are referenced by the command buffer, which submits
+        // later; destroyBuffer is immediate, so commit and wait before freeing
+        // them (same aux-buffer lifetime rule as the gather path above).
+        rbcd->commit();
+        rbcd->waitForCompletion();
+    }
+    u.destroyBuffer(keysBuf);
+    u.destroyBuffer(partsBuf);
+    return ok;
+}
+
 VulkanMeteorsEffect::VulkanMeteorsEffect(int i) : MeteorsEffect(i) {
 }
 VulkanMeteorsEffect::~VulkanMeteorsEffect() {
@@ -155,6 +228,60 @@ void VulkanMeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGathe
         return;
     }
     MeteorsEffect::GatherMeteors(buffer, params, parts);
+}
+
+void VulkanMeteorsEffect::DrawRadialSnapshot(RenderBuffer& buffer, const MeteorsRadialFrameState& fs) {
+    VulkanComputeUtilities& u = VulkanComputeUtilities::INSTANCE;
+    VulkanRenderBufferComputeData* rbcd = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&buffer);
+    if (rbcd == nullptr || fs.meteors.empty() || buffer.dmx_buffer
+        || (buffer.BufferWi * buffer.BufferHt) < (int)u.bufferSizeThreshold) {
+        MeteorsEffect::DrawRadialSnapshot(buffer, fs);
+        return;
+    }
+
+    VulkanMeteorsRadialData mdata = {};
+    mdata.width = buffer.BufferWi;
+    mdata.height = buffer.BufferHt;
+    mdata.implode = fs.implode ? 1 : 0;
+    mdata.tailLength = fs.tailLength;
+    mdata.stride = fs.tailLength + 1;
+    mdata.colorScheme = fs.colorScheme;
+    mdata.allowAlpha = buffer.allowAlpha ? 1 : 0;
+    mdata.fadeWithDistance = fs.fadeWithDistance ? 1 : 0;
+    mdata.centerX = fs.centerX;
+    mdata.centerY = fs.centerY;
+    mdata.maxdiag = fs.maxdiag;
+    mdata.numMeteors = (int)fs.meteors.size();
+    const uint64_t seed = buffer.hashRandomFrameSeed();
+    mdata.frameSeedLo = (uint32_t)(seed & 0xFFFFFFFFu);
+    mdata.frameSeedHi = (uint32_t)(seed >> 32);
+
+    // The key is n*stride + ph + 1 in a uint32; overflowing it would take
+    // billions of trail steps, but fall back rather than wrap.
+    if ((int64_t)fs.meteors.size() * mdata.stride >= (int64_t)UINT32_MAX) {
+        MeteorsEffect::DrawRadialSnapshot(buffer, fs);
+        return;
+    }
+
+    std::vector<int> cuts;
+    ComputeRadialCuts(fs, cuts);
+
+    std::vector<VulkanMeteorRadial> mp(fs.meteors.size());
+    for (size_t i = 0; i < fs.meteors.size(); i++) {
+        mp[i].x = fs.meteors[i].x;
+        mp[i].y = fs.meteors[i].y;
+        mp[i].dx = fs.meteors[i].dx;
+        mp[i].dy = fs.meteors[i].dy;
+        mp[i].hue = fs.meteors[i].hsv.hue;
+        mp[i].sat = fs.meteors[i].hsv.saturation;
+        mp[i].val = fs.meteors[i].hsv.value;
+        mp[i].cut = cuts[i];
+    }
+
+    if (renderMeteorsRadialGPU(mdata, mp, buffer)) {
+        return;
+    }
+    MeteorsEffect::DrawRadialSnapshot(buffer, fs);
 }
 
 #endif

@@ -1,0 +1,80 @@
+#version 450
+// Pass 1 of the radial Meteors draw (Implode/Explode). Port of
+// MeteorsRadialScatter in MeteorsFunctions.metal; the CPU equivalent is the
+// walk/atomic-max loop in drawRadialMeteors (MeteorsEffect.cpp).
+//
+// The radial styles scatter rather than gather: a meteor's trail is a line
+// segment at an arbitrary angle, so a pixel cannot cheaply enumerate the
+// meteors covering it. But the trail writes are emitted in (meteor, phase)
+// order and later ones win, so the write that survives a pixel is just the one
+// with the largest (n, ph) -- and n*stride + ph is exactly that order as a
+// single integer. So this pass runs one thread per (meteor, phase) and
+// atomicMaxes that key into the covered pixel; MeteorsRadialResolve then shades
+// one winner per pixel. No sort and no ordering pass, and the result does not
+// depend on which thread lands first because max is commutative.
+//
+// The +1 on the key leaves 0 meaning "no trail reached this pixel", which is
+// what the fill before this dispatch writes.
+
+layout(local_size_x = 64) in;
+
+#include "vulkan_common.glsl"
+
+layout(std430, set = 0, binding = 0) buffer Keys { uint keys[]; };
+layout(std430, set = 0, binding = 1) readonly buffer Parts {
+    // VulkanMeteorRadial, flattened: 8 words/particle (x, y, dx, dy, hue, sat,
+    // val, cut). Declared as a flat uint array rather than an array of a named
+    // struct to avoid the std430 rule that rounds struct-array-element
+    // alignment up to 16 bytes, which would desync the stride from the 32-byte
+    // C++ layout (same reason as MeteorsEffect.comp's partsRaw).
+    uint partsRaw[];
+};
+layout(std430, set = 0, binding = 5) readonly buffer Params {
+    uint width;
+    uint height;
+    int  implode;          // 1 = walk toward centre and stop there, 0 = outward
+    int  tailLength;
+    int  stride;           // tailLength + 1; also the key radix
+    int  colorScheme;
+    int  allowAlpha;
+    int  fadeWithDistance;
+    int  centerX;
+    int  centerY;
+    int  maxdiag;
+    int  numMeteors;
+    uint frameSeedLo;
+    uint frameSeedHi;
+} data;
+
+float partX(int n)  { return uintBitsToFloat(partsRaw[n * 8 + 0]); }
+float partY(int n)  { return uintBitsToFloat(partsRaw[n * 8 + 1]); }
+float partDX(int n) { return uintBitsToFloat(partsRaw[n * 8 + 2]); }
+float partDY(int n) { return uintBitsToFloat(partsRaw[n * 8 + 3]); }
+int   partCut(int n) { return int(partsRaw[n * 8 + 7]); }
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    uint stride = uint(data.stride);
+    uint n = index / stride;
+    if (n >= uint(data.numMeteors)) return;
+
+    int ph = int(index - n * stride);
+    if (ph >= partCut(int(n))) return;   // Implode trail already stopped at the centre
+
+    float mx = partX(int(n));
+    float my = partY(int(n));
+    float dx = partDX(int(n));
+    float dy = partDY(int(n));
+
+    int x, y;
+    if (data.implode != 0) {
+        x = int(mx - dx * float(ph));
+        y = int(my - dy * float(ph));
+    } else {
+        x = int(mx + dx * float(ph));
+        y = int(my + dy * float(ph));
+    }
+    if (x < 0 || x >= int(data.width) || y < 0 || y >= int(data.height)) return;
+
+    atomicMax(keys[uint(y) * data.width + uint(x)], index + 1u);
+}

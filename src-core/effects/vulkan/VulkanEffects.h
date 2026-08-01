@@ -189,9 +189,10 @@ public:
     VulkanMeteorsEffect(int i);
     virtual ~VulkanMeteorsEffect();
 
-    // Meteors hooks GatherMeteors (the CPU add/move/remove simulation and
+    // Meteors hooks the two draw passes (the CPU add/move/remove simulation and
     // swirl/palette precompute stay shared), not Render.
     virtual void GatherMeteors(RenderBuffer& buffer, const MeteorsGatherParams& params, const std::vector<MeteorSnapshot>& parts) override;
+    virtual void DrawRadialSnapshot(RenderBuffer& buffer, const MeteorsRadialFrameState& fs) override;
 };
 
 class VulkanTwinkleEffect : public TwinkleEffect {

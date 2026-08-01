@@ -576,6 +576,7 @@ Under `-O3` + LTO this silently breaks two source-correct patterns:
 |---|---|---|
 | `float best = std::numeric_limits<float>::infinity()` as a max-so-far sentinel | `infinity()` folded to 0; first `if (v < best)` fails, value silently dropped | Use `std::numeric_limits<float>::max()` (or `::lowest()` for `-inf`). The legacy `1000000000.0f` idiom is also fine. Same for `HUGE_VALF`, `INFINITY`, `1.0f/0.0f`. |
 | `std::isnan(x)` / `std::isinf(x)` / `std::isfinite(x)` as defensive guards | Folded to `false`/`false`/`true` — guard becomes a no-op | Use `xl::isnan` / `xl::isinf` / `xl::isfinite` from `src-core/utils/FloatChecks.h` (maps to `__builtin_*` on clang/gcc, preserved under `-ffinite-math-only`; `std::*` on MSVC). Do **not** call `__builtin_isnan` directly — MSVC lacks it and Windows fails to build. |
+| Hoisting a loop-invariant factor out of a float expression to save work (`v*k` per step instead of recomputing `k`) | Algebraically exact, but fast-math reassociates/fuses the shortened chain differently, so results drift by an ulp — enough to shift a `lround(x*255.0f)` channel by ±1 | Fine for integers. For floats, don't assume byte-identity from an algebraically-equal rewrite: prove it with a sweep compiled **with** `-ffast-math` (compiling without it hides the whole failure mode), or verify end-to-end with `--fseqcmp`. See the note in `MeteorsEffect.cpp` for a worked example. |
 
 Don't write code depending on NaN propagation, `-0.0` sign preservation, or inf
 arithmetic surviving — fast-math may reorder, fuse, or eliminate those. ISPC

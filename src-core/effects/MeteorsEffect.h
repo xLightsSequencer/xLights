@@ -37,16 +37,48 @@ struct MeteorsGatherParams {
     uint64_t frameSeed;
 };
 
+// One live meteor of a radial (Implode/Explode) trail.  float, not double: a
+// meteor lives ~60 frames over a buffer at most a couple of thousand pixels
+// wide, and replaying a full lifetime both ways puts the accumulated float
+// position error at 0.0025 px - so double bought no accuracy, only half the SIMD
+// lanes and twice the memory traffic.  Matching the GPU's precision is the other
+// half of the reason: Metal and Vulkan have no double, so this is what lets the
+// CPU and GPU trails agree instead of drifting a pixel apart.
+class MeteorRadialClass
+{
+public:
+    float x, y, dx, dy;
+    int cnt;
+    HSVValue hsv;
+};
+
+typedef std::vector<MeteorRadialClass> MeteorRadialList;
+
+// Tier-2 immutable per-frame draw state for the radial styles.  These keep the
+// live particles rather than a flattened snapshot: the trail is generated from
+// each meteor's position and direction, not from a per-pixel axis coordinate.
+struct MeteorsRadialFrameState : public EffectFrameState {
+    MeteorRadialList meteors;
+    bool implode = true;
+    int centerX = 0;
+    int centerY = 0;
+    int maxdiag = 0;
+    int tailLength = 1;
+    int colorScheme = 0;
+    bool fadeWithDistance = false;
+};
+
 class MeteorsEffect : public RenderableEffect
 {
 public:
     MeteorsEffect(int id);
     virtual ~MeteorsEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-    // Tier-2: the axis-aligned styles (vertical/horizontal/icicle) split into a
-    // cheap serial particle advance (AdvanceState) and a pure GatherMeteors draw;
-    // Implode / Explode use a different draw path and stay Stateful (AdvanceState
-    // returns nullptr for them, mirroring GetFrameParallelism).
+    // Tier-2: every style splits into a cheap serial particle advance
+    // (AdvanceState) and a pure draw.  The axis-aligned styles
+    // (vertical/horizontal/icicle) draw through GatherMeteors, the radial ones
+    // (Implode/Explode) through DrawRadialSnapshot; IsRadialStyle picks between
+    // them and is the single predicate all three entry points share.
     virtual std::unique_ptr<EffectFrameState> AdvanceState(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
@@ -80,6 +112,8 @@ public:
     static bool sUseMusicDefault;
     static bool sFadeWithDistanceDefault;
 
+    static bool IsRadialStyle(const SettingsMap& settings);
+
 protected:
     virtual void OnMetadataLoaded() override;
 
@@ -99,6 +133,16 @@ protected:
     static void BucketMeteorsByLine(const std::vector<MeteorSnapshot>& parts, int lineCount,
                                     std::vector<int>& lineStart, std::vector<int>& lineItems);
 
+    // Draw pass for the radial styles (Implode/Explode) - a pure function of the
+    // snapshot.  Base implementation is the CPU key-max scatter; MetalMeteors
+    // Effect overrides to dispatch the GPU kernels and falls back here when Metal
+    // isn't viable.
+    virtual void DrawRadialSnapshot(RenderBuffer& buffer, const MeteorsRadialFrameState& fs);
+
+    // Per-meteor phase at which an Implode trail stops (Explode never stops).
+    // Shared by the CPU and Metal paths so both cut identically.
+    static void ComputeRadialCuts(const MeteorsRadialFrameState& fs, std::vector<int>& cuts);
+
 private:
     std::unique_ptr<EffectFrameState> RenderMeteorsVertical(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int MeteorsEffect, int SwirlIntensity, int mspeed, int warmupFrames);
         void VerticalAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
@@ -108,7 +152,7 @@ private:
         void HorizontalAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
         void HorizontalMoveMeteors(RenderBuffer& buffer, int speed);
         void HorizontalRemoveMeteors(RenderBuffer& buffer, int Length);
-    void RenderMeteorsImplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mspeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames);
+    std::unique_ptr<EffectFrameState> AdvanceMeteorsImplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int mspeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames);
         void ImplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int xoffset, int yoffset);
         void ImplodeMoveMeteors(RenderBuffer& buffer, int speed, int xoffset, int yoffset, bool fadeWithDistance);
         void ImplodeRemoveMeteors(RenderBuffer& buffer, int xoffset, int yoffset);
@@ -116,7 +160,7 @@ private:
         void IcicleAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count);
         void IcicleMoveMeteors(RenderBuffer& buffer, int mSpeed);
         void IcicleRemoveMeteors(RenderBuffer& buffer);
-    void RenderMeteorsExplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int SwirlIntensity, int mSpeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames);
+    std::unique_ptr<EffectFrameState> AdvanceMeteorsExplode(RenderBuffer& buffer, int ColorScheme, int Count, int Length, int mSpeed, int xoffset, int yoffset, bool fadeWithDistance, int warmupFrames);
         void ExplodeAddMeteors(RenderBuffer& buffer, int ColorScheme, int Count, int xoffset, int yoffset);
         void ExplodeMoveMeteors(RenderBuffer& buffer, int speed, int xoffset, int yoffset, bool fadeWithDistance);
         void ExplodeRemoveMeteors(RenderBuffer& buffer);
