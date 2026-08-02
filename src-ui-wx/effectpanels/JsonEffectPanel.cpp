@@ -2133,6 +2133,10 @@ const JsonEffectPanel::PropertyInfo* JsonEffectPanel::GetPropertyInfo(const std:
 }
 
 void JsonEffectPanel::SetDefaultParameters() {
+    if (metadata_.is_null() || !metadata_.is_object()) {
+        return;
+    }
+
     // Deactivate all value curves
     for (auto& [id, info] : properties_) {
         if (info.valueCurveBtn) {

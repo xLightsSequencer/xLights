@@ -35,6 +35,7 @@ std::vector<CameraInfo> DiscoverContinuityCameras() {
     // On Windows "continuity cameras" == the local Media Foundation webcams the
     // picker offers for a local-camera scan. isContinuityCamera stays false.
     std::vector<CameraInfo> out;
+#if XLIGHTS_HAVE_KLIGHTMAPPER
     klm_camera_list* list = klm_scan_camera_list();
     const int n = klm_camera_list_count(list);
     out.reserve((size_t)n);
@@ -46,11 +47,13 @@ std::vector<CameraInfo> DiscoverContinuityCameras() {
         out.push_back(std::move(ci));
     }
     klm_camera_list_free(list);
+#endif
     return out;
 }
 
 std::vector<NetworkCamera> DiscoverNetworkCameras(int timeoutMs) {
     std::vector<NetworkCamera> out;
+#if XLIGHTS_HAVE_KLIGHTMAPPER
     constexpr int kCap = 32;
     std::vector<klm_net_camera> tmp((size_t)kCap);
     const int n = klm_discover_network_cameras(tmp.data(), kCap, timeoutMs);
@@ -61,6 +64,7 @@ std::vector<NetworkCamera> DiscoverNetworkCameras(int timeoutMs) {
         nc.deviceService = tmp[i].device_service;
         out.push_back(std::move(nc));
     }
+#endif
     return out;
 }
 
@@ -68,6 +72,7 @@ std::vector<CameraProfile> EnumerateCameraProfiles(const std::string& deviceServ
                                                    const std::string& user,
                                                    const std::string& pass) {
     std::vector<CameraProfile> out;
+#if XLIGHTS_HAVE_KLIGHTMAPPER
     constexpr int kCap = 16;
     std::vector<klm_net_profile> tmp((size_t)kCap);
     char err[256] = {0};
@@ -85,6 +90,7 @@ std::vector<CameraProfile> EnumerateCameraProfiles(const std::string& deviceServ
         cp.fps = tmp[i].fps;
         out.push_back(std::move(cp));
     }
+#endif
     return out;
 }
 
@@ -99,6 +105,7 @@ struct CompletionBox {
 };
 
 void KLM_CALL completionTrampoline(const char* xmodelPath, void* user) {
+#if XLIGHTS_HAVE_KLIGHTMAPPER
     CompletionBox* box = static_cast<CompletionBox*>(user);
     std::optional<std::string> result;
     if (xmodelPath && *xmodelPath) result = std::string(xmodelPath);
@@ -109,6 +116,7 @@ void KLM_CALL completionTrampoline(const char* xmodelPath, void* user) {
     } else {
         fn(result);
     }
+#endif
 }
 
 } // namespace
@@ -116,9 +124,11 @@ void KLM_CALL completionTrampoline(const char* xmodelPath, void* user) {
 void PresentScanWindow(const std::string& cameraID,
                        const std::string& scanDumpParent,
                        std::function<void(std::optional<std::string>)> completion) {
+#if XLIGHTS_HAVE_KLIGHTMAPPER
     auto* box = new CompletionBox{std::move(completion)};
     klm_present_scan_window(cameraID.c_str(), scanDumpParent.c_str(),
                             completionTrampoline, box);
+#endif
 }
 
 void PresentRTSPScanWindow(const std::string& rtspURL,
@@ -126,12 +136,14 @@ void PresentRTSPScanWindow(const std::string& rtspURL,
                            const std::string& password,
                            const std::string& scanDumpParent,
                            std::function<void(std::optional<std::string>)> completion) {
+#if XLIGHTS_HAVE_KLIGHTMAPPER
     auto* box = new CompletionBox{std::move(completion)};
     klm_present_scan_window_rtsp(
         rtspURL.c_str(),
         username.empty() ? nullptr : username.c_str(),
         password.empty() ? nullptr : password.c_str(),
         scanDumpParent.c_str(), completionTrampoline, box);
+#endif
 }
 
 } // namespace klbridge
