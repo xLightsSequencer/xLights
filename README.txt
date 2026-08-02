@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Video: the decoder's scaled-frame cache is now sized by a memory budget instead
+                                 of a fixed 48 entries, so a clip reused by several effects at the same output
+                                 size is decoded once rather than once per effect. Rendered output is unchanged.
     -enh (cybercop23)            Layout: setting a model's shadow target automatically links the target model's
                                  start channel to the shadow model (@ShadowModel:1) and clears its controller.
     -bug (cybercop23)            Layout: Fix single model undo leaving stale tree pointers causing model to disappear from preview (#6817)
