@@ -14,6 +14,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix a crash drawing a model preview when a graphics accumulator is null:
                                  the OpenGL and Metal draw paths now guard null like Vulkan already did
     -bug (derwin12)              Fix typing negative numbers into effect slider/textbox pairs
+    -enh (dkulp)                 Sequences open several times faster when they contain many file-based effects
+                                 (Pictures, Video, Text, Shader, ...): the per-effect file existence checks are
+                                 now cached per load. On macOS each check was a round trip to the iCloud file
+                                 provider, so picture-heavy sequences paid seconds re-checking the same files.
     -bug (dkulp)                 Fix a crash on app close resetting the effect panels to defaults, and track
                                  effect-panel window lifetime so a destroyed panel can never be reused
     -bug (derwin12)              Fix MovingHead Advanced: reset Path and Pattern on new effect

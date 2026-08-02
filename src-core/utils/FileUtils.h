@@ -26,6 +26,17 @@ namespace FileUtils
 	// the show or a media directory. This is the form file paths are stored in.
 	std::string MakeRelativeFileOrOriginal(const std::string& file);
 
+	// Memoized FileExists(file, false) for load-time path fixing. adjustSettings
+	// runs per effect INSTANCE, and on macOS every FileExists on an iCloud-synced
+	// path is a synchronous file-provider round trip — a sequence with thousands
+	// of Pictures instances referencing a few hundred distinct files paid seconds
+	// re-answering the same question. Only valid where nothing creates files
+	// while it is in use: the memo is dropped by ClearNonExistentFiles() (each
+	// sequence load and each adjust pass) and whenever the show/media directories
+	// change. Never waits for an iCloud download — callers here only decide how
+	// to rewrite a path, they do not read the file.
+	bool CachedFileExists(const std::string& file);
+
 	// Filename component of a path, splitting on both '/' and '\'
 	std::string GetFilenameFromPath(const std::string& path);
 

@@ -1904,6 +1904,13 @@ std::string SequenceFile::GetMediaForXSQ(const std::string& xsq, const std::stri
 
 void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, RenderContext* ctx)
 {
+    // Import flows extract or copy media onto disk between adjust passes
+    // (SequencePackage::Extract before this, CopyMediaToTarget after), so a
+    // cached "missing" answer from an earlier pass may be wrong by now. Each
+    // pass starts from fresh filesystem state; within a pass nothing creates
+    // files, so the memo is safe for the pass's own lifetime.
+    FileUtils::ClearNonExistentFiles();
+
     std::string ver = GetVersion();
     std::vector<RenderableEffect*> effects(ctx->GetEffectManager().size());
     int count = 0;

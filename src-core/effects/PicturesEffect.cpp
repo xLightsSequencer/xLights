@@ -181,7 +181,7 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
                     media.RecordRelocation(file, newPath);
                 }
             }
-        } else if (!FileExists(file, false)) {
+        } else if (!FileUtils::CachedFileExists(file)) {
             std::string fixed = FileUtils::FixFile("", file);
             // If the resolved path is inside a show/media directory, store as
             // relative so the sequence is portable across machines.

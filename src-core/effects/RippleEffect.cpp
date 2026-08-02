@@ -1909,7 +1909,7 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
     std::string file = settings["E_FILEPICKERCTRL_Ripple_SVG"];
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
+            if (!FileUtils::CachedFileExists(file)) {
                 std::string fixed = FileUtils::FixFile("", file);
                 std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel.empty() ? fixed : rel;

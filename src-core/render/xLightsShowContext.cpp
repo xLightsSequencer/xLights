@@ -18,6 +18,7 @@
 #include "render/SequenceFile.h"
 #include "models/Model.h"
 #include "models/DisplayAsType.h"
+#include "utils/FileUtils.h"
 
 #include <spdlog/spdlog.h>
 
@@ -76,6 +77,11 @@ void xLightsShowContext::CheckForValidModels() {
 }
 
 bool xLightsShowContext::LoadSequenceElements(SequenceFile& file, pugi::xml_document& doc) {
+    // A fresh open must see fresh filesystem state: a file that was missing on
+    // the previous load may have been put in place since, so forget cached
+    // existence answers (FixFile's non-existent list and the FileExists memo).
+    FileUtils::ClearNonExistentFiles();
+
     // Frequency must be set BEFORE LoadSequencerFile: that loader rounds every
     // effect start/end to the frame period (RoundToMultipleOfPeriod), and the
     // default 20Hz/50ms grid shifts effects a frame on 40fps sequences.

@@ -389,7 +389,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
 
     // Resolve broken paths first, then convert to relative for portability
     std::string file = settings["E_0FILEPICKERCTRL_IFS"];
-    if (!file.empty() && !FileExists(file)) {
+    if (!file.empty() && !FileUtils::CachedFileExists(file)) {
         std::string fixed = FileUtils::FixFile("", file);
         if (!fixed.empty() && fixed != file) {
             settings["E_0FILEPICKERCTRL_IFS"] = fixed;
@@ -398,7 +398,7 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
     }
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
+            if (!FileUtils::CachedFileExists(file)) {
                 std::string fixed = FileUtils::FixFile("", file);
                 std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_0FILEPICKERCTRL_IFS"] = rel.empty() ? fixed : rel;

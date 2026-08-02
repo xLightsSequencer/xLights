@@ -169,7 +169,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
 
     // Resolve broken paths first, then convert to relative for portability
     std::string file = settings["E_FILEPICKERCTRL_Text_File"];
-    if (!file.empty() && !FileExists(file)) {
+    if (!file.empty() && !FileUtils::CachedFileExists(file)) {
         std::string fixed = FileUtils::FixFile("", file);
         if (!fixed.empty() && fixed != file) {
             settings["E_FILEPICKERCTRL_Text_File"] = fixed;
@@ -178,7 +178,7 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
     }
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
+            if (!FileUtils::CachedFileExists(file)) {
                 std::string fixed = FileUtils::FixFile("", file);
                 std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Text_File"] = rel.empty() ? fixed : rel;

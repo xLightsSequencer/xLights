@@ -70,6 +70,7 @@ static std::string _fixFileShowDir;
 static std::recursive_mutex _fixFileMutex;
 static std::vector<std::string> _fixFileNonExistent;
 static std::map<std::string, std::string> _fixFileMap;
+static std::map<std::string, bool> _fileExistsMap;
 
 // The resolved-path cache is keyed on the path as stored, and stored paths are
 // relative wherever possible, so entries are only meaningful for the directories
@@ -77,6 +78,7 @@ static std::map<std::string, std::string> _fixFileMap;
 static void ClearFixFileCaches() {
     _fixFileMap.clear();
     _fixFileNonExistent.clear();
+    _fileExistsMap.clear();
 }
 
 void SetFixFileShowDir(const std::string& showDir) {
@@ -98,6 +100,7 @@ void SetFixFileDirectories(const std::list<std::string>& dirs) {
 void ClearNonExistentFiles() {
     std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
     _fixFileNonExistent.clear();
+    _fileExistsMap.clear();
 }
 
 std::string GetFilenameFromPath(const std::string& path) {
@@ -313,6 +316,24 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     lock.lock();
     _fixFileNonExistent.push_back(file);
     return file;
+}
+
+bool CachedFileExists(const std::string& file) {
+    if (file.empty()) {
+        return false;
+    }
+    {
+        std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
+        auto it = _fileExistsMap.find(file);
+        if (it != _fileExistsMap.end()) {
+            return it->second;
+        }
+    }
+    // Probe outside the lock — on macOS this can be a slow FileProvider XPC.
+    bool exists = ::FileExists(file, false);
+    std::unique_lock<std::recursive_mutex> lock(_fixFileMutex);
+    _fileExistsMap.emplace(file, exists);
+    return exists;
 }
 
 std::string MakeRelativeFile(const std::string& file) {
