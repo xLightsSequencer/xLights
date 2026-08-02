@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (cybercop23)            Layout: Fix single model undo leaving stale tree pointers causing model to disappear from preview (#6817)
     -bug (dkulp)                 Fix a crash drawing a model preview when a graphics accumulator is null:
                                  the OpenGL and Metal draw paths now guard null like Vulkan already did
     -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
