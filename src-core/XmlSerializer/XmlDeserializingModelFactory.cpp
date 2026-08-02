@@ -262,7 +262,7 @@ void XmlDeserializingModelFactory::DeserializeCommonModelAttributes(Model* model
     model->SetRGBWHandling(node.attribute(XmlNodeKeys::RGBWHandleAttribute).as_string());
     model->SetStringType(node.attribute(XmlNodeKeys::StringTypeAttribute).as_string("RGB Nodes"));
     model->SetLowDefFactor(node.attribute(XmlNodeKeys::LowDefinitionAttribute).as_int(100));
-    model->SetShadowModelFor(node.attribute(XmlNodeKeys::ShadowModelAttribute).as_string(""));
+    model->SetShadowModelFor(node.attribute(XmlNodeKeys::ShadowModelAttribute).as_string(""), false);
     model->SetTransparency(node.attribute(XmlNodeKeys::TransparencyAttribute).as_int(0));
     model->SetBlackTransparency(node.attribute(XmlNodeKeys::BTransparencyAttribute).as_int(0));
     model->SetDescription(node.attribute(XmlNodeKeys::DescriptionAttribute).as_string());
