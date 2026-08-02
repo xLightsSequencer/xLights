@@ -1252,6 +1252,23 @@
 									<border>2</border>
 									<option>1</option>
 								</object>
+								<object class="sizeritem">
+									<object class="wxButton" name="ID_BUTTON_SavePatternPreset" variable="ButtonSavePatternPreset" member="yes">
+										<label>Save Preset</label>
+										<handler function="OnButtonSavePatternPresetClick" entry="EVT_BUTTON" />
+									</object>
+									<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer" variable="FlexGridSizerPatternPresets" member="yes">
+										<cols>4</cols>
+									</object>
+									<flag>wxALL|wxEXPAND</flag>
+									<border>5</border>
+									<option>1</option>
+								</object>
 							</object>
 						</object>
 						<label>Pattern</label>

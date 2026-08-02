@@ -881,6 +881,8 @@
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHColorWheelPanel.h" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPatternPresetBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPatternPresetBitmapButton.h" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.h" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPresetBitmapButton.cpp" />

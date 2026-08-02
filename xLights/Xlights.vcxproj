@@ -565,6 +565,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHColorWheelPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPatternPresetBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPathPresetBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPresetBitmapButton.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHRgbPickerPanel.cpp" />
@@ -1853,6 +1854,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\XmlSerializer\FileSerializingVisitor.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.h" />
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPatternPresetBitmapButton.h" />
     <ClInclude Include="..\src-ui-wx\shared\dialogs\CheckboxSelectDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\xlPropertyGrid.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\ExternalHooksUI.h" />
