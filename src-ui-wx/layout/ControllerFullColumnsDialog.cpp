@@ -88,6 +88,7 @@ void ControllerFullColumnsDialog::CreateTree() {
     }
 
     _tree->Bind(wxEVT_TREELIST_ITEM_EXPANDING, &ControllerFullColumnsDialog::OnItemExpanding, this);
+    _tree->Bind(wxEVT_TREELIST_SELECTION_CHANGED, &ControllerFullColumnsDialog::OnSelectionChanged, this);
 }
 
 void ControllerFullColumnsDialog::PopulateAllControllers() {
@@ -108,8 +109,24 @@ void ControllerFullColumnsDialog::PopulateAllControllers() {
     _tree->Thaw();
 }
 
+wxTreeListItem ControllerFullColumnsDialog::TopLevelItem(wxTreeListItem item) const {
+    while (item.IsOk() && _tree->GetItemParent(item).IsOk() &&
+           _tree->GetItemParent(item) != _tree->GetRootItem()) {
+        item = _tree->GetItemParent(item);
+    }
+    return item;
+}
+
+void ControllerFullColumnsDialog::OnSelectionChanged(wxTreeListEvent& event) {
+    wxTreeListItem top = TopLevelItem(event.GetItem());
+    if (top.IsOk()) {
+        _lastTouchedController = _tree->GetItemText(top, 0);
+    }
+}
+
 void ControllerFullColumnsDialog::OnItemExpanding(wxTreeListEvent& event) {
     wxTreeListItem item = event.GetItem();
+    bool isTopLevel = _tree->GetItemParent(item) == _tree->GetRootItem();
     PopulateControllerPorts(_tree, item, _frame);
     if (!_tree->GetFirstChild(item).IsOk()) {
         // No ports were added (controller has no configured/populated ports) -
@@ -117,5 +134,8 @@ void ControllerFullColumnsDialog::OnItemExpanding(wxTreeListEvent& event) {
         // item look expandable is gone, so cancel the expand rather than
         // letting the tree try to expand a now-childless item.
         event.Veto();
+    }
+    if (isTopLevel) {
+        _lastTouchedController = _tree->GetItemText(item, 0);
     }
 }

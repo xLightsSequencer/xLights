@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <wx/dialog.h>
+#include <wx/string.h>
 
 #include "layout/ControllerTreeUtils.h"
 
@@ -31,12 +32,17 @@ public:
     ControllerFullColumnsDialog(wxWindow* parent, xLightsFrame* frame);
     ~ControllerFullColumnsDialog() override;
 
+    wxString GetLastSelectedController() const { return _lastTouchedController; }
+
 private:
     void CreateTree();
     void PopulateAllControllers();
     void OnItemExpanding(wxTreeListEvent& event);
+    void OnSelectionChanged(wxTreeListEvent& event);
+    wxTreeListItem TopLevelItem(wxTreeListItem item) const;
 
     xLightsFrame* _frame = nullptr;
     wxTreeListCtrl* _tree = nullptr;
     ControllerTree::ControllerLedIcons _ledIcons;
+    wxString _lastTouchedController;
 };

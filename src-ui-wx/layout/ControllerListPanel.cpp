@@ -523,6 +523,11 @@ void ControllerListPanel::OnControllerFilterTextChanged(wxCommandEvent& event) {
 void ControllerListPanel::OnFullColumnsClick(wxCommandEvent& event) {
     ControllerFullColumnsDialog dlg(this, _frame);
     dlg.ShowModal();
+
+    wxString lastSelected = dlg.GetLastSelectedController();
+    if (!lastSelected.IsEmpty()) {
+        SelectController(lastSelected.ToStdString());
+    }
 }
 
 bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) const {
