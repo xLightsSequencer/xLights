@@ -47,7 +47,7 @@ class ControllerModelPrintout : public wxPrintout
 	int _page_count;
 	int _page_count_w;
 	int _page_count_h;
-	int _orient;
+	wxPrintOrientation _orient;
 	wxPaperSize _paper_type;
 	int _max_x, _max_y;
 	wxSize _box_size;
@@ -60,7 +60,7 @@ public:
 	virtual void OnBeginPrinting() override;
 
 	void preparePrint();
-	void SetDefaultPageSetup(wxPaperSize paperId, int orient);
+	void SetDefaultPageSetup(wxPaperSize paperId, wxPrintOrientation orient);
 
 	wxPrintData getPrintData() {
 		return _page_setup.GetPrintData();
@@ -116,7 +116,7 @@ class ControllerModelDialog: public wxDialog
 	double _scale = 1;
 	double _printScale = 1; // box size scale used only for print/print-preview, independent of _scale
 	wxPaperSize _printPaperId = wxPAPER_LETTER;
-	int _printOrientation = wxPORTRAIT;
+	wxPrintOrientation _printOrientation = wxPORTRAIT;
 	Model* _lastDropped = nullptr;
 	#pragma endregion
 
@@ -277,8 +277,8 @@ class ControllerModelDialog: public wxDialog
 		void SetPrintScale(double scale) { _printScale = std::clamp(scale, 0.0, 1.0); }
 		wxPaperSize GetPrintPaperId() const { return _printPaperId; }
 		void SetPrintPaperId(wxPaperSize paperId) { _printPaperId = paperId; }
-		int GetPrintOrientation() const { return _printOrientation; }
-		void SetPrintOrientation(int orient) { _printOrientation = orient; }
+		wxPrintOrientation GetPrintOrientation() const { return _printOrientation; }
+		void SetPrintOrientation(wxPrintOrientation orient) { _printOrientation = orient; }
 		void SaveCSV();
 		double getFontSize();
 		void EnsureSelectedModelIsVisible(ModelCMObject* cm);
