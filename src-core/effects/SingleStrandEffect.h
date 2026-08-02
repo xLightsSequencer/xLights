@@ -12,6 +12,8 @@
 
 #include "RenderableEffect.h"
 
+class SingleStrandRenderCache;
+
 class SingleStrandEffect : public RenderableEffect
 {
 public:
@@ -70,14 +72,11 @@ protected:
 
 private:
     void RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
-                                 const std::string& ColorScheme, int Number_Chases, int chaseSize,
-                                 const std::string& Chase_Type1,
-                                 const std::string& Fade_Type, bool Chase_Group_All,
-                                 float chaseSpeed, float offset, const std::string& TimingTrack);
+                                 const SingleStrandRenderCache& cache, int Number_Chases, int chaseSize,
+                                 float chaseSpeed, float offset);
     Effect* GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms);
-    void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, int Skips_BandSize,
-                                 int Skips_SkipSize, int Skips_StartPos, const std::string& Skips_Direction, int advances);
-    void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);
+    void RenderSingleStrandSkips(RenderBuffer& buffer, Effect* eff, const SingleStrandRenderCache& cache);
+    void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, SingleStrandRenderCache& cache, int intensity, int speed);
     void draw_chase(RenderBuffer& buffer,
                     int x, bool group, int ColorScheme, int Number_Chases, bool autoReverse, int width,
                     int Color_Mix1, int fadeType, int ChaseDirection, bool mirror);

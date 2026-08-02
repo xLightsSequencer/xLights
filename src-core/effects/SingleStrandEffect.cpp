@@ -209,6 +209,107 @@ int mapDirection(const std::string& d) {
     return 0;
 }
 
+static const int FADE_NONE = 0;
+static const int FADE_FROM_HEAD = 1;
+static const int FADE_FROM_TAIL = 2;
+static const int FADE_HEAD_AND_TAIL = 3;
+static const int FADE_MIDDLE = 4;
+
+static int mapFadeType(const std::string& ft) {
+    if (ft == "From Head") return FADE_FROM_HEAD;
+    if (ft == "From Tail") return FADE_FROM_TAIL;
+    if (ft == "Head and Tail") return FADE_HEAD_AND_TAIL;
+    if (ft == "Middle") return FADE_MIDDLE;
+    return FADE_NONE;
+}
+
+int mapChaseType(const std::string &Chase_Type) {
+    if ("Left-Right" == Chase_Type) return 0;
+    if ("Right-Left" == Chase_Type) return 1;
+    if ("Bounce from Left" == Chase_Type) return 2;
+    if ("Bounce from Right" == Chase_Type) return 3;
+    if ("Dual Chase" == Chase_Type) return 4;
+    if ("From Middle" == Chase_Type) return 5;
+    if ("To Middle" == Chase_Type) return 6;
+    if ("Bounce to Middle" == Chase_Type) return 7;
+    if ("Bounce from Middle" == Chase_Type) return 8;
+    if ("Static Left-Right" == Chase_Type) return 9;
+    if ("Static Right-Left" == Chase_Type) return 10;
+    if ("Static Dual" == Chase_Type) return 11;
+    if ("Static From Middle" == Chase_Type) return 12;
+    if ("Static To Middle" == Chase_Type) return 13;
+    if ("Static Double-Ended" == Chase_Type) return 14;
+
+    return 0;
+}
+
+// Everything this effect reads that is not a value curve is fixed for the whole
+// effect, but decoding it costs a std::map probe per setting plus a walk of up
+// to fifteen string compares to turn the choice into an index - per frame, per
+// model buffer.  SingleStrand is the most-rendered effect in a typical show, so
+// that decode is cached here and redone only when needToInit marks a new effect
+// (or when a cloned buffer arrives with no cache of its own).
+class SingleStrandRenderCache : public EffectRenderCache
+{
+public:
+    virtual ~SingleStrandRenderCache() {
+        delete _fx;
+    }
+
+    void Decode(const SettingsMap& settings) {
+        const std::string& type = settings["NOTEBOOK_SSEFFECT_TYPE"];
+        mode = "Skips" == type ? MODE_SKIPS : ("FX" == type ? MODE_FX : MODE_CHASE);
+
+        switch (mode) {
+        case MODE_SKIPS:
+            skipsBandSize = settings.GetInt("SLIDER_Skips_BandSize", SingleStrandEffect::sSkipsBandSizeDefault);
+            skipsSkipSize = settings.GetInt("SLIDER_Skips_SkipSize", SingleStrandEffect::sSkipsSkipSizeDefault);
+            skipsStartPos = settings.GetInt("SLIDER_Skips_StartPos", SingleStrandEffect::sSkipsStartPosDefault);
+            skipsAdvance = settings.GetInt("SLIDER_Skips_Advance", SingleStrandEffect::sSkipsAdvanceDefault);
+            skipsDirection = mapDirection(settings["CHOICE_Skips_Direction"]);
+            break;
+        case MODE_FX:
+            // SingleStrand_FX / SingleStrand_FX_Palette defaults mismatch
+            // (JSON="" vs C++="Blink"/"Default") - kept as legacy literals.
+            fx = settings.Get("CHOICE_SingleStrand_FX", "Blink");
+            fxPalette = settings.Get("CHOICE_SingleStrand_FX_Palette", "Default");
+            break;
+        default:
+            colorScheme = "Palette" == settings.Get("CHOICE_SingleStrand_Colors", SingleStrandEffect::sColorsDefault);
+            chaseType = mapChaseType(settings.Get("CHOICE_Chase_Type1", SingleStrandEffect::sChaseTypeDefault));
+            fadeType = mapFadeType(settings.Get("CHOICE_Fade_Type", SingleStrandEffect::sFadeTypeDefault));
+            groupAll = settings.GetBool("CHECKBOX_Chase_Group_All", SingleStrandEffect::sGroupAllDefault);
+            timingTrack = settings.Get("CHOICE_SingleStrand_TimingTrack", SingleStrandEffect::sTimingTrackDefault);
+            break;
+        }
+        decoded = true;
+    }
+
+    enum { MODE_CHASE, MODE_SKIPS, MODE_FX };
+
+    bool decoded = false;
+    int mode = MODE_CHASE;
+
+    // Chase
+    int colorScheme = 1;
+    int chaseType = 0;
+    int fadeType = FADE_NONE;
+    bool groupAll = false;
+    std::string timingTrack;
+
+    // Skips
+    int skipsBandSize = 1;
+    int skipsSkipSize = 1;
+    int skipsStartPos = 1;
+    int skipsAdvance = 0;
+    int skipsDirection = 0;
+
+    // FX
+    std::string fx;
+    std::string fxPalette;
+    WS2812FX* _fx = nullptr;
+};
+
 bool SingleStrandEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
     return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2024.15", version);
@@ -279,43 +380,42 @@ RenderableEffect::FrameParallelism SingleStrandEffect::GetFrameParallelism(const
 
 void SingleStrandEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    SingleStrandRenderCache* cache = (SingleStrandRenderCache*)buffer.infoCache[id];
+    if (cache == nullptr) {
+        cache = new SingleStrandRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    if (buffer.needToInit || !cache->decoded) {
+        cache->Decode(SettingsMap);
+    }
+
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    if ("Skips" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
-        RenderSingleStrandSkips(buffer, effect,
-                                SettingsMap.GetInt("SLIDER_Skips_BandSize", sSkipsBandSizeDefault),
-                                SettingsMap.GetInt("SLIDER_Skips_SkipSize", sSkipsSkipSizeDefault),
-                                SettingsMap.GetInt("SLIDER_Skips_StartPos", sSkipsStartPosDefault),
-                                SettingsMap["CHOICE_Skips_Direction"],
-                                SettingsMap.GetInt("SLIDER_Skips_Advance", sSkipsAdvanceDefault));
-    } else if ("FX" == SettingsMap["NOTEBOOK_SSEFFECT_TYPE"]) {
-        RenderSingleStrandFX(buffer, effect,
+    if (cache->mode == SingleStrandRenderCache::MODE_SKIPS) {
+        RenderSingleStrandSkips(buffer, effect, *cache);
+    } else if (cache->mode == SingleStrandRenderCache::MODE_FX) {
+        RenderSingleStrandFX(buffer, effect, *cache,
                              GetValueCurveInt("FX_Intensity", sFXIntensityDefault, SettingsMap, eff_pos, sFXIntensityMin, sFXIntensityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                             GetValueCurveInt("FX_Speed", sFXSpeedDefault, SettingsMap, eff_pos, sFXSpeedMin, sFXSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                             // SingleStrand_FX / SingleStrand_FX_Palette defaults mismatch
-                             // (JSON="" vs C++="Blink"/"Default") — kept as legacy literals.
-                             SettingsMap.Get("CHOICE_SingleStrand_FX", "Blink"), SettingsMap.Get("CHOICE_SingleStrand_FX_Palette", "Default"));
+                             GetValueCurveInt("FX_Speed", sFXSpeedDefault, SettingsMap, eff_pos, sFXSpeedMin, sFXSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()));
     } else {
-        RenderSingleStrandChase(buffer, effect,
-                                SettingsMap.Get("CHOICE_SingleStrand_Colors", sColorsDefault),
+        RenderSingleStrandChase(buffer, effect, *cache,
                                 GetValueCurveInt("Number_Chases", sChasesDefault, SettingsMap, eff_pos, sChasesMin, sChasesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
                                 GetValueCurveInt("Color_Mix1", sColourMixDefault, SettingsMap, eff_pos, sColourMixMin, sColourMixMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                                SettingsMap.Get("CHOICE_Chase_Type1", sChaseTypeDefault),
-                                SettingsMap.Get("CHOICE_Fade_Type", sFadeTypeDefault),
-                                SettingsMap.GetBool("CHECKBOX_Chase_Group_All", sGroupAllDefault),
                                 GetValueCurveDouble("Chase_Rotations", sRotationsDefault, SettingsMap, eff_pos, sRotationsMin, sRotationsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRotationsDivisor),
-                                GetValueCurveDouble("Chase_Offset", sOffsetDefault, SettingsMap, eff_pos, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sOffsetDivisor),
-                                SettingsMap.Get("CHOICE_SingleStrand_TimingTrack", sTimingTrackDefault));
+                                GetValueCurveDouble("Chase_Offset", sOffsetDefault, SettingsMap, eff_pos, sOffsetMin, sOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sOffsetDivisor));
     }
 }
 
-void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *eff, int Skips_BandSize, int Skips_SkipSize, int Skips_StartPos,
-    const std::string & Skips_Direction, int advances)
+void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *eff, const SingleStrandRenderCache& cache)
 {
-    int x = Skips_StartPos - 1;
+    const int Skips_BandSize = cache.skipsBandSize;
+    const int Skips_SkipSize = cache.skipsSkipSize;
+    const int advances = cache.skipsAdvance;
+
+    int x = cache.skipsStartPos - 1;
     xlColor color;
     int second = 0;
     int max = buffer.BufferWi;
-    int direction = mapDirection(Skips_Direction);
+    int direction = cache.skipsDirection;
     if (direction > 1) {
         max++;
         max /= 2;
@@ -353,14 +453,10 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
         for (int cnt = 0; cnt < Skips_BandSize && x < max; cnt++) {
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < buffer.BufferWi) {
-                for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(mappedX, y, color);
-                }
+                buffer.SetPixelColumn(mappedX, color);
             }
             if (second >= 0 && second < buffer.BufferWi) {
-                for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(second, y, color);
-                }
+                buffer.SetPixelColumn(second, color);
             }
             x++;
         }
@@ -383,15 +479,11 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
         for (int cnt = 0; cnt < Skips_BandSize && x >= 0; cnt++) {
             int mappedX = mapX(x, max, direction, second);
             if (mappedX >= 0 && mappedX < buffer.BufferWi) {
-                for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(mappedX, y, color);
-                }
+                buffer.SetPixelColumn(mappedX, color);
             }
 
             if (second >= 0 && second < buffer.BufferWi) {
-                for (int y = 0; y < buffer.BufferHt; y++) {
-                    buffer.SetPixel(second, y, color);
-                }
+                buffer.SetPixelColumn(second, color);
             }
             x--;
         }
@@ -405,35 +497,13 @@ void SingleStrandEffect::RenderSingleStrandSkips(RenderBuffer &buffer, Effect *e
     }
 }
 
-class SingleStrandFXRenderCache : public EffectRenderCache
+void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, SingleStrandRenderCache& cache, int intensity, int speed)
 {
-public:
-    SingleStrandFXRenderCache(RenderBuffer& buffer) {
-        _fx = new WS2812FX();
-    };
-    virtual ~SingleStrandFXRenderCache(){
-        if (_fx != nullptr)
-            delete _fx;
-    };
-
-    WS2812FX* _fx = nullptr;
-};
-
-void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette)
-{
-    SingleStrandFXRenderCache* cache = dynamic_cast <SingleStrandFXRenderCache*>(buffer.infoCache[id]);
-    if (cache == nullptr) {
-
-        // this could happen if the cache type changes
-        if (buffer.infoCache[id] != nullptr) {
-            delete buffer.infoCache[id];
-        }
-
-        cache = new SingleStrandFXRenderCache(buffer);
-        buffer.infoCache[id] = cache;
+    if (cache._fx == nullptr) {
+        cache._fx = new WS2812FX();
     }
 
-    auto pfx = cache->_fx;
+    auto pfx = cache._fx;
     assert(pfx != nullptr);
 
     pfx->SetBuffer(&buffer);
@@ -442,8 +512,8 @@ void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff,
         buffer.ClearTempBuf();
         pfx->SetBuffer(&buffer);
         pfx->setSegment(0, 0, buffer.BufferWi);
-        pfx->setMode(0, DecodeMode(fx));
-        pfx->getSegment(0).palette = DecodePalette(palette);
+        pfx->setMode(0, DecodeMode(cache.fx));
+        pfx->getSegment(0).palette = DecodePalette(cache.fxPalette);
         pfx->finalizeInit();
     }
 
@@ -466,63 +536,26 @@ void SingleStrandEffect::RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff,
     buffer.needToInit = false;
 }
 
-static const int FADE_NONE = 0;
-static const int FADE_FROM_HEAD = 1;
-static const int FADE_FROM_TAIL = 2;
-static const int FADE_HEAD_AND_TAIL = 3;
-static const int FADE_MIDDLE = 4;
-
-static int mapFadeType(const std::string& ft) {
-    if (ft == "From Head") return FADE_FROM_HEAD;
-    if (ft == "From Tail") return FADE_FROM_TAIL;
-    if (ft == "Head and Tail") return FADE_HEAD_AND_TAIL;
-    if (ft == "Middle") return FADE_MIDDLE;
-    return FADE_NONE;
-}
-
-int mapChaseType(const std::string &Chase_Type) {
-    if ("Left-Right" == Chase_Type) return 0;
-    if ("Right-Left" == Chase_Type) return 1;
-    if ("Bounce from Left" == Chase_Type) return 2;
-    if ("Bounce from Right" == Chase_Type) return 3;
-    if ("Dual Chase" == Chase_Type) return 4;
-    if ("From Middle" == Chase_Type) return 5;
-    if ("To Middle" == Chase_Type) return 6;
-    if ("Bounce to Middle" == Chase_Type) return 7;
-    if ("Bounce from Middle" == Chase_Type) return 8;
-    if ("Static Left-Right" == Chase_Type) return 9;
-    if ("Static Right-Left" == Chase_Type) return 10;
-    if ("Static Dual" == Chase_Type) return 11;
-    if ("Static From Middle" == Chase_Type) return 12;
-    if ("Static To Middle" == Chase_Type) return 13;
-    if ("Static Double-Ended" == Chase_Type) return 14;
-
-    return 0;
-}
-
 void SingleStrandEffect::RenderSingleStrandChase(RenderBuffer& buffer, Effect* eff,
-    const std::string & ColorSchemeName, int Number_Chases, int chaseSize,
-    const std::string &Chase_Type1,
-    const std::string &Fade_Type,
-    bool Chase_Group_All,
-    float chaseSpeed, float offset, const std::string& TimingTrack)
+    const SingleStrandRenderCache& cache, int Number_Chases, int chaseSize,
+    float chaseSpeed, float offset)
 {
     // When a timing track is selected, the chase performs chaseSpeed (Cycles) traversals
     // between each pair of timing marks instead of over the whole effect duration. Outside
     // the marked region (before the first mark / after the last mark) nothing is drawn, the
     // same convention VUMeterEffect::GetTimingEvent-based renders use.
     Effect* timingEvent = nullptr;
-    if (!TimingTrack.empty()) {
-        timingEvent = GetTimingEvent(buffer, TimingTrack, (uint32_t)(buffer.curPeriod * buffer.frameTimeInMs));
+    if (!cache.timingTrack.empty()) {
+        timingEvent = GetTimingEvent(buffer, cache.timingTrack, (uint32_t)(buffer.curPeriod * buffer.frameTimeInMs));
         if (timingEvent == nullptr) {
             return;
         }
     }
 
-    int ColorScheme = "Palette" == ColorSchemeName;
-
-    int chaseType = mapChaseType(Chase_Type1);
-    int fadeType = mapFadeType(Fade_Type);
+    int ColorScheme = cache.colorScheme;
+    const bool Chase_Group_All = cache.groupAll;
+    const int chaseType = cache.chaseType;
+    const int fadeType = cache.fadeType;
 
     int curEffStartPer, curEffEndPer;
     buffer.GetEffectPeriods(curEffStartPer, curEffEndPer);
@@ -787,7 +820,13 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                 middle_chase_index = (max_chase_width / 2.0);
             }
         }
-        for (int i = 0; i < max_chase_width; i++) {
+        // Nothing outside the `i < pixels_per_chase` body is observable and i only
+        // grows, so the tail of the loop that used to run past it was pure loss.
+        const int chase_pixels = std::min(max_chase_width, pixels_per_chase);
+        int bandColorIdx = -1;
+        bool bandSpatial = false;
+        xlColor bandColor;
+        for (int i = 0; i < chase_pixels; i++) {
             xlColor color;
             if (ColorScheme == 0) {
                 if (max_chase_width) hsv.hue = 1.0 - (i*1.0 / max_chase_width); // rainbow hue
@@ -820,7 +859,7 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                 new_x = x + i;
             }
 
-            if (i < pixels_per_chase) { // as long as the chase fits, keep drawing it
+            { // the chase always fits now - chase_pixels is the old i < pixels_per_chase test
                 if (ChaseDirection == 0) {// are we going R-L?
                     new_x = width - new_x - 1;
                 }
@@ -830,13 +869,24 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                     if (colorcnt == 1) {
                         colorIdx = 0;
                     } else {
-                        colorIdx = std::ceil(((double)((max_chase_width - i)*colorcnt)) / (double)max_chase_width) - 1;
+                        // Integer form of ceil((max_chase_width - i) * colorcnt / max_chase_width) - 1.
+                        // Both operands are small positive ints, so the old double
+                        // divide could never land on the wrong side of a boundary.
+                        const int num = (max_chase_width - i) * colorcnt;
+                        colorIdx = (num + max_chase_width - 1) / max_chase_width - 1;
                     }
                     if (colorIdx >= colorcnt) colorIdx = colorcnt - 1;
 
-                    buffer.palette.GetColor(colorIdx, color);
+                    // colorIdx only steps once per colour band, so the palette
+                    // probe and the spatial test go with it rather than per pixel.
+                    if (colorIdx != bandColorIdx) {
+                        bandColorIdx = colorIdx;
+                        buffer.palette.GetColor(colorIdx, bandColor);
+                        bandSpatial = buffer.palette.IsSpatial(colorIdx);
+                    }
+                    color = bandColor;
 
-                    if (buffer.palette.IsSpatial(colorIdx)) {
+                    if (bandSpatial) {
                         float x2 = 0;
                         if (colorcnt < max_chase_width) {
                             x2 = ((float)(i % (int)((float)max_chase_width / (float)colorcnt)));
@@ -970,11 +1020,9 @@ void SingleStrandEffect::draw_chase(RenderBuffer& buffer,
                                 }
                             }
                         }
-                        for (int y = 0; y < buffer.BufferHt; y++) {
-                            buffer.SetPixel(new_x, y, color); // Turn pixel on
-                            if (mirror) {
-                                buffer.SetPixel(buffer.BufferWi - new_x - 1, y, color); // Turn pixel on
-                            }
+                        buffer.SetPixelColumn(new_x, color); // Turn pixel on
+                        if (mirror) {
+                            buffer.SetPixelColumn(buffer.BufferWi - new_x - 1, color); // Turn pixel on
                         }
                     }
                 }

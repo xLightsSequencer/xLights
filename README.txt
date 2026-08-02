@@ -42,6 +42,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Ripple renders about 9x faster, and drawing to the render buffer got cheaper
                                  for every effect - VU Meter, SingleStrand, Marquee, Shape and Kaleidoscope all
                                  gained 10-38%. Output is unchanged.
+    -enh (dkulp)                 SingleStrand renders 15-25% faster. The settings it reads that cannot change
+                                 during an effect are now decoded once instead of on every frame of every
+                                 model, and the chase draw writes whole buffer columns directly. Output is
+                                 unchanged.
     -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
     -bug (dkulp)                 Test: an RGB twinkle over a single selected channel spun until it ran out of memory
     -bug (dkulp)                 Test: marking every 50th pixel read past the end of the selection when the

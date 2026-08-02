@@ -396,6 +396,27 @@ public:
     void SetPixel(int x, int y, const xlColor &color, bool wrap, bool useAlpha = false, bool dmx_ignore = false);
     void SetPixel(int x, int y, const HSVValue& hsv, bool wrap = false);
 
+    // Fill one whole buffer column with a single colour.  Both the DMX routing
+    // decision and the horizontal clip are loop-invariant, so they are made once
+    // here rather than re-tested by SetPixel on every row; the vertical range is
+    // in bounds by construction.  Same semantics as the per-row SetPixel loop it
+    // replaces, DMX routing included.
+    void SetPixelColumn(int x, const xlColor &color) {
+        if (dmx_buffer) {
+            for (int y = 0; y < BufferHt; y++) {
+                SetPixelDMXModel(x, y, color);
+            }
+            return;
+        }
+        if (x < 0 || x >= BufferWi) {
+            return;
+        }
+        xlColor* p = pixels + x;
+        for (int y = 0; y < BufferHt; y++, p += BufferWi) {
+            *p = color;
+        }
+    }
+
     // Snapshot the current pixels into a persistent scratch buffer for callers
     // (rotate/small-blur) that need to read the pre-transform frame while
     // writing the live buffer in place - avoids a full RenderBuffer copy-ctor
