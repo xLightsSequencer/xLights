@@ -52,6 +52,7 @@ private:
     int m_currentPage;
     wxPoint m_center;
 
+    int m_outerRadius;
     int m_innerRadius;
     int m_exitRadius;
     bool m_centerHovered;
