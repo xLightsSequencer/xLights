@@ -95,6 +95,7 @@ struct MeteorParticle {
 extern "C" {
 #endif // __cplusplus
     extern void MeteorsEffectLineISPC(const struct MeteorsISPCData * d, const struct MeteorParticle * parts, const int32_t * items, int32_t itemStart, int32_t itemEnd, int32_t line, uint8_t4   * result);
+    extern void MeteorsRadialWalkISPC(float mx, float my, float ddx, float ddy, int32_t implode, int32_t phStart, int32_t phEnd, int32_t W, int32_t H, int32_t * outX, int32_t * outY);
 #if defined(__cplusplus) && (! defined(__ISPC_NO_EXTERN_C) || !__ISPC_NO_EXTERN_C )
 } /* end extern C */
 #endif // __cplusplus

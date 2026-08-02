@@ -168,7 +168,7 @@ void SketchEffect::adjustSettings(const std::string& version, Effect* effect, bo
     std::string file = settings["E_FILEPICKER_SketchBackground"];
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
+            if (!FileUtils::CachedFileExists(file)) {
                 std::string fixed = FileUtils::FixFile("", file);
                 std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKER_SketchBackground"] = rel.empty() ? fixed : rel;

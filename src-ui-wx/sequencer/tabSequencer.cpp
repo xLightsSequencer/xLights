@@ -3209,6 +3209,12 @@ void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
 
 void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased)
 {
+    // Same hazard as ResetAllPanelDefaultSettings below: reachable (e.g. via
+    // key-bound effect actions) before the sequencer tab is built, when these
+    // panel pointers are still null.
+    if (EffectsPanel1 == nullptr || blendingPanel == nullptr || bufferPanel == nullptr || colorPanel == nullptr) {
+        return;
+    }
     SetChoicebook(EffectsPanel1->EffectChoicebook, effect);
     blendingPanel->SetDefaultControls(model, optionbased);
     bufferPanel->SetDefaultControls(model, optionbased);
@@ -3219,6 +3225,13 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
     EffectsPanel1->SetDefaultEffectValues(effect);
 }
 void xLightsFrame::ResetAllPanelDefaultSettings() {
+    // At app exit the reset is pointless (every panel is about to be
+    // destroyed) and it has crashed inside SetDefaultEffectValues on
+    // partially torn-down panels — the panels only need defaults when
+    // another sequence can still be opened.
+    if (IsExiting()) {
+        return;
+    }
     // CloseSequence() runs on paths (e.g. show-folder setup) that fire before
     // the sequencer tab is built, leaving these panel pointers null. Calling
     // through a null EffectsPanel1 faults inside SetDefaultEffectValues (its
@@ -3326,6 +3339,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         mCurrentPerpective = perspective;
     }
     if (settings.size() == 0) {
+        SyncFloatingPanePositions();
         settings = m_mgr->SavePerspective();
         perspective->settings = settings.ToStdString();
         perspective->version = "2.0";
@@ -3359,6 +3373,7 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         m_mgr->Update();
 
         perspective->version = "2.0";
+        SyncFloatingPanePositions();
         wxString p = m_mgr->SavePerspective();
         perspective->settings = p.ToStdString();
         spdlog::debug("Saved perspective.");
@@ -3423,8 +3438,8 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
     }
 
     for (int i = 0; i < 10; i++) {
-        if (perspectives[i].p == perspective) {
-            MenuItemPerspectives->Check(perspectives[i].id, true);
+        if (perspectives[i].p != nullptr) {
+            MenuItemPerspectives->Check(perspectives[i].id, perspectives[i].p == perspective);
         }
     }
     UpdateLayoutSave();
@@ -3440,7 +3455,7 @@ void xLightsFrame::LoadPerspective(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemViewSavePerspectiveSelected(wxCommandEvent& event)
 {
-    
+    SyncFloatingPanePositions();
 
     if (mCurrentPerpective != nullptr)
     {

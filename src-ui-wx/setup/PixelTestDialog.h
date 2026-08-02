@@ -40,183 +40,12 @@
 
 #include "shared/utils/xLightsTimer.h"
 #include "models/ModelManager.h"
+#include "outputs/ChannelTracker.h"
 #include "outputs/OutputManager.h"
-#include "render/SequenceData.h"
+#include "outputs/TestPatternEngine.h"
 
 class ModelGroup;
-typedef SequenceData SeqDataType;
 class xLightsFrame;
-
-class ChannelTracker
-{
-    long _changeCount;
-    std::list<wxLongLong> _ranges;
-    long _lastReturnedChannel;
-    #define NORANGE (wxLongLong)0xFFFFFFFFFFFFFFF
-    wxLongLong _lastReturnedRange;
-
-    wxLongLong SetStart(wxLongLong value, long start) const { return (value & 0xFFFFFFFF) + (((wxLongLong)start) << 32); }
-    wxLongLong SetEnd(wxLongLong value, long end) const { return (value & 0xFFFFFFFF00000000) + end; }
-    wxLongLong SetBoth(long start, long end) const { return (((wxLongLong)start) << 32) + end; }
-
-    void ClearLast()
-    {
-        _lastReturnedChannel = -1;
-        _lastReturnedRange = NORANGE;
-    }
-
-
-public:
-
-    ChannelTracker()
-    {
-        _changeCount = 0;
-        ClearLast();
-    }
-
-    virtual ~ChannelTracker() {}
-
-    static long GetStart(wxLongLong value) { return (value >> 32).ToLong(); }
-    static long GetEnd(wxLongLong value) { return (value & 0xFFFFFFFF).ToLong(); }
-    void FixOverlaps();
-    void Dump();
-    void AddRange(long start, long end);
-    void RemoveRange(long start, long end);
-    long GetChangeCount() const { return _changeCount; }
-    void Clear()
-    {
-        _changeCount++;
-        _ranges.clear();
-    }
-    bool IsChannelOn(long ch) const
-    {
-        for (const auto& it : _ranges)
-        {
-            if (ch >= GetStart(it) && ch <= GetEnd(it)) return true;
-        }
-
-        return false;
-    }
-
-    bool AreAnyIncluded(long start, long end)
-    {
-        auto it = _ranges.begin();
-
-        while (it != _ranges.end())
-        {
-            long s = GetStart(*it);
-            long e = GetEnd(*it);
-
-            if ((s >= start && s <= end) || (e >= start && e <= end)) return true;
-
-            ++it;
-        }
-
-        return false;
-    }
-
-    long GetFirst()
-    {
-        if (_ranges.size() == 0) return -1;
-
-        _lastReturnedChannel = GetStart(_ranges.front());
-
-        return _lastReturnedChannel;
-    }
-
-    long GetNext()
-    {
-        // Assumes ranges are sorted
-        if (_lastReturnedChannel == -1) return -1;
-
-        for (const auto& it : _ranges)
-        {
-            long s = GetStart(it);
-            long e = GetEnd(it);
-
-            _lastReturnedChannel++;
-
-            if (s <= _lastReturnedChannel && e >= _lastReturnedChannel) return _lastReturnedChannel;
-
-            if (s > _lastReturnedChannel)
-            {
-                _lastReturnedChannel = s;
-                return _lastReturnedChannel;
-            }
-            _lastReturnedChannel--;
-        }
-
-        return -1;
-    }
-
-    long GetChannelAfter(long ch)
-    {
-        for (const auto& it : _ranges)
-        {
-            long s = GetStart(it);
-            long e = GetEnd(it);
-
-            ch++;
-            if (s <= ch && e >= ch) return ch;
-            if (s > ch)
-            {
-                return s;
-            }
-        }
-
-        return -1;
-    }
-
-    void GetFirstRange(long& start, long& end)
-    {
-        if (_ranges.size() == 0)
-        {
-            start = -1;
-            end = -1;
-            return;
-        }
-
-        _lastReturnedRange = _ranges.front();
-        start = GetStart(_lastReturnedRange);
-        end = GetEnd(_lastReturnedRange);
-    }
-
-    void GetNextRange(long& start, long& end)
-    {
-        if (_lastReturnedRange == NORANGE) 
-        {
-            start = -1;
-            end = -1;
-            return;
-        }
-
-        for (auto it = _ranges.begin(); it != _ranges.end(); ++it)
-        {
-            if (*it == _lastReturnedRange)
-            {
-                ++it;
-                if (it == _ranges.end())
-                {
-                    _lastReturnedRange = NORANGE;
-                    start = -1;
-                    end = -1;
-                    return;
-                }
-                else
-                {
-                    _lastReturnedRange = *it;
-                    start = GetStart(*it);
-                    end = GetEnd(*it);
-                    return;
-                }
-            }
-        }
-
-        _lastReturnedRange = NORANGE;
-        start = -1;
-        end = -1;
-    }
-};
 
 class ModelTestItem;
 class ModelGroupTestItem;
@@ -224,21 +53,6 @@ class ModelPreview;
 
 class PixelTestDialog: public wxDialog
 {
-	enum class TestFunctions
-	{
-		OFF,
-		CHASE,
-		CHASE2,
-		CHASE3,
-		CHASE4,
-		DIM,
-		TWINKLE,
-		SHIMMER,
-		RGBW,
-        PortCycle,
-        ColorBlocks
-	};
-
 	public:
 
 		PixelTestDialog(xLightsFrame* parent, OutputManager* outputManager, wxFileName networkFile, ModelManager* modelManager, wxWindowID id=wxID_ANY);
@@ -269,11 +83,15 @@ class PixelTestDialog: public wxDialog
         std::set<std::string> _uploadedControllers;
         ModelPreview* _modelPreview = nullptr;
 
+        // Pattern maths lives in core so the iPad test surface shares it.
+        xltest::TestPatternEngine _testEngine;
         int _twinkleRatio = 0;
 		int _chaseGrouping = 0;
+		bool _chaseWholeSelection = false;
 		bool _checkChannelList = false;
+		int _lastNotebookSelection = -1;
+		xltest::TestFunction _lastTestFunction = xltest::TestFunction::OFF;
 		wxDateTime _starttime;
-		SeqDataType _seqData;
         wxTreeListItem _rcItem;
         wxTreeListCtrl* _rcTree = nullptr;
         bool m_creating_bound_rect = false;
@@ -525,9 +343,10 @@ class PixelTestDialog: public wxDialog
 		void TeardownTree(wxTreeListCtrl* tree);
 		std::list<std::string> GetModelsOnChannels(int start, int end);
 		void Clear(wxTreeListCtrl* tree, wxTreeListItem& item);
-		void GetCheckedItems(wxArrayInt& chArray);
-		void GetCheckedItems(wxArrayInt& chArray, char col);
+		std::vector<uint32_t> GetCheckedItems();
+		std::vector<uint32_t> GetCheckedItems(char col);
 		void OnTimer(long curtime);
+		xltest::TestParameters BuildTestParameters(int notebookSelection);
 		void TestButtonsOff();
 		void RollUpAll(wxTreeListCtrl* tree, wxTreeListItem start);
 		void DeactivateNotClickableModels(wxTreeListCtrl* tree);
@@ -536,7 +355,7 @@ class PixelTestDialog: public wxDialog
 		void AddOutput(wxTreeListItem root, Output* output);
 		std::string SerialiseSettings();
         void DeserialiseSettings(const std::string& settings);
-        TestFunctions GetTestFunction(int notebookSelection);
+        xltest::TestFunction GetTestFunction(int notebookSelection);
         void SetCheckBoxItemFromTracker(wxTreeListCtrl* tree, wxTreeListItem item, wxCheckBoxState parentState);
         void SetSuspend(bool suspend);
 

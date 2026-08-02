@@ -1,0 +1,438 @@
+# 06. Layout — Models, Groups, Previews, 3D, Submodels, DMX
+
+_Generated from code on 2026-07-31. Status: ✅ parity | 🟡 partial | ❌ missing on iPad | 🚫 infeasible/restricted on iPad (reason required) | 🔵 iPad-only._
+
+Scope note: the desktop surface is the Layout tab (`src-ui-wx/layout/LayoutPanel.cpp`, 13,127 lines), its
+property adapters (`src-ui-wx/modelproperties/`), and the per-model dialogs (`src-ui-wx/model/`). The iPad
+surface is a separate window (`src-iPad/App/LayoutEditorView.swift`, 14,618 lines) opened from
+`src-iPad/App/XLightsCommands.swift:1045` (`openWindow(id: "layout-editor")`), plus its bridges
+(`src-iPad/Bridge/XLSequenceDocument.mm`, `src-iPad/Metal/XLMetalBridge.mm`). Both link the same
+`src-core/models/` classes, so *rendering* and the underlying data model are shared by construction; what
+differs is which editing affordances each UI reaches.
+
+---
+
+## Model type matrix
+
+"iPad create" = the type appears in `availableModelTypesForCreation`
+(`src-iPad/Bridge/XLSequenceDocument.mm:5452`, array literal `:5462-5490`), which feeds the Add-Model sheet
+(`src-iPad/App/LayoutEditorView.swift:3490` → `:13273`). Desktop creation is the toolbar button row
+(`src-ui-wx/layout/LayoutPanel.cpp:881-902`) plus the DMX popup (`:9493`) and object popup (`:9414`), all
+landing in `ModelManager::CreateDefaultModel` (`src-core/models/ModelManager.cpp:1276`).
+
+"iPad edit properties" = a dedicated per-type descriptor builder exists in
+`perTypePropertiesForModel` (`src-iPad/Bridge/XLSequenceDocument.mm:8973`, switch `:8979-9061`), rendered by
+`typeDescriptorRow` / `typeDescriptorControl` (`src-iPad/App/LayoutEditorView.swift:6100`, `:6169`), and
+compared against the desktop adapter for that type in `src-ui-wx/modelproperties/adapters/`.
+
+"iPad renders" = the type is drawn by the shared core through `iPadModelPreview`
+(`src-iPad/Metal/iPadModelPreview.h:34`, an `IModelPreview` implementation) — no per-type iPad draw code
+exists, so every `src-core/models/` type renders identically on both clients.
+
+| # | Model type | iPad create | iPad edit properties | iPad renders | Evidence |
+|---|---|---|---|---|---|
+| M1 | Arches | ✅ | ✅ full (incl. `LayerSizes`) | ✅ | Desktop `LayoutPanel.cpp:881`, `ModelManager.cpp:1289`, adapter `adapters/ArchesPropertyAdapter.cpp:37-96`; iPad `XLSequenceDocument.mm:5463`, `BuildArchesProps` `:7791`, layers `:7822` |
+| M2 | Candy Canes | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:882`, `ModelManager.cpp:1295`, `adapters/CandyCanePropertyAdapter.cpp:29-79`; iPad `XLSequenceDocument.mm:5464`, `BuildCandyCaneProps` `:7932` |
+| M3 | Channel Block | ✅ | 🟡 count + per-channel colours; no `DisableUnusedProperties` equivalent for the appearance block | ✅ | Desktop `LayoutPanel.cpp:883`, `adapters/ChannelBlockPropertyAdapter.cpp:25-39`, `:69`; iPad `XLSequenceDocument.mm:5465`, `BuildChannelBlockProps` `:8053`; iPad greys keys via `LayoutEditorView.swift:6135-6144` |
+| M4 | Circle | ✅ | ✅ full (incl. `LayerSizes`) | ✅ | Desktop `LayoutPanel.cpp:884`, `adapters/CirclePropertyAdapter.cpp:33-68`; iPad `XLSequenceDocument.mm:5466`, `BuildCircleProps` `:7878`, layers `:7893` |
+| M5 | Cube | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:885`, `adapters/CubePropertyAdapter.cpp:63-104`; iPad `XLSequenceDocument.mm:5467`, `BuildCubeProps` `:8000` |
+| M6 | Custom | ✅ | ✅ (model data via visual grid editor — see F-Custom rows) | ✅ | Desktop `LayoutPanel.cpp:886`, `adapters/CustomPropertyAdapter.cpp:91-153`; iPad `XLSequenceDocument.mm:5468`, `BuildCustomProps` `:8909` |
+| M7 | Icicles | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:887`, `adapters/IciclesPropertyAdapter.cpp:28-54`; iPad `XLSequenceDocument.mm:5478`, `BuildIciclesProps` `:7863` |
+| M8 | Image | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:889`, `adapters/ImagePropertyAdapter.cpp:23-40`; iPad `XLSequenceDocument.mm:5479`, `BuildImageProps` `:8063` |
+| M9 | Label | ❌ create | ✅ edit (text / font size / colour) | ✅ | Desktop `LayoutPanel.cpp:890`, `ModelManager.cpp:1373`, `adapters/LabelPropertyAdapter.cpp:22-33`; iPad has `BuildLabelProps` `XLSequenceDocument.mm:8081` but "Label" is absent from the creation array `:5462-5490` (grepped `@"Label"` in that literal → not present) |
+| M10 | Matrix | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:891`, `adapters/MatrixPropertyAdapter.cpp:36-83`; iPad `XLSequenceDocument.mm:5480`, `BuildMatrixProps` `:7649` |
+| M11 | MultiPoint | ✅ | ✅ full | ✅ | Desktop `ModelManager.cpp:1408`; iPad `XLSequenceDocument.mm:5481`, `BuildMultiPointProps` `:8098` |
+| M12 | Poly Line | ✅ | 🟡 counts/strings/start-nodes/height/drop-pattern present; per-**segment** length rows and per-**corner** settings not enumerated | ✅ | Desktop `LayoutPanel.cpp:892`, `adapters/PolyLinePropertyAdapter.cpp:34-122` (segments `:109-112`, corners `:116-119`); iPad `XLSequenceDocument.mm:5482`, `BuildPolyLineProps` `:8140` |
+| M13 | Single Line | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:893`, `adapters/SingleLinePropertyAdapter.cpp:24-50`; iPad `XLSequenceDocument.mm:5483`, `BuildSingleLineProps` `:7917` |
+| M14 | Sphere | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:894`, `adapters/SpherePropertyAdapter.cpp:21-44`; iPad `XLSequenceDocument.mm:5484`, `BuildSphereProps` `:7728` |
+| M15 | Spinner | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:895`, `adapters/SpinnerPropertyAdapter.cpp:31-68`; iPad `XLSequenceDocument.mm:5485`, `BuildSpinnerProps` `:7957` |
+| M16 | Star | ✅ | ✅ full (incl. `LayerSizes`) | ✅ | Desktop `LayoutPanel.cpp:896`, `adapters/StarPropertyAdapter.cpp:38-86`; iPad `XLSequenceDocument.mm:5486`, `BuildStarProps` `:7756`, layers `:7780` |
+| M17 | Tree | ✅ | ✅ full — 1:1 with the desktop adapter incl. the `roundTree` enable gating | ✅ | Desktop `LayoutPanel.cpp:897`, `adapters/TreePropertyAdapter.cpp:34-83`; iPad `XLSequenceDocument.mm:5487`, `BuildTreeProps` `:7668` |
+| M18 | Window Frame | ✅ | ✅ full | ✅ | Desktop `LayoutPanel.cpp:898`, `adapters/WindowFramePropertyAdapter.cpp:35-55`; iPad `XLSequenceDocument.mm:5488`, `BuildWindowFrameProps` `:7989` |
+| M19 | Wreath | ❌ create (deliberate) | ✅ edit | ✅ | Desktop `ModelManager.cpp:1387`, `adapters/WreathPropertyAdapter.cpp:24-46`; iPad deliberately omits it from the creation array with a comment citing desktop deprecation, `XLSequenceDocument.mm:5457-5461`; editing still works via `BuildWreathProps` `:7907` |
+| M20 | DmxGeneral | ✅ | ✅ (channel count, preset channels, colour ability) | ✅ | Desktop `LayoutPanel.cpp:9495`, `ModelManager.cpp:1321`, `adapters/DmxGeneralPropertyAdapter.cpp:23-37`; iPad `XLSequenceDocument.mm:5471`, `BuildDmxGeneralProps` `:8858` |
+| M21 | DmxFloodlight | ✅ | ✅ | ✅ | Desktop `LayoutPanel.cpp:9496`, `adapters/DmxFloodlightPropertyAdapter.cpp:23-47`; iPad `XLSequenceDocument.mm:5470`, `BuildDmxFloodlightProps` `:8342` |
+| M22 | DmxFloodArea | ✅ | ✅ (shares the Floodlight surface, same as desktop) | ✅ | Desktop `LayoutPanel.cpp:9497`, manager mapping `ModelPropertyManager.cpp:85-87`; iPad `XLSequenceDocument.mm:5469`, shared case `:9040-9044` |
+| M23 | DmxMovingHead | ✅ | ✅ (style, fixture, channels, hide-body, pan/tilt motors, colour/dimmer/shutter/beam) | ✅ | Desktop `LayoutPanel.cpp:9499`, `adapters/DmxMovingHeadPropertyAdapter.cpp:48-104`; iPad `XLSequenceDocument.mm:5473`, `BuildDmxMovingHeadProps` `:8872` |
+| M24 | DmxMovingHeadAdv | ✅ | ✅ incl. Position Zones editor | ✅ | Desktop `LayoutPanel.cpp:9498`, `adapters/DmxMovingHeadAdvPropertyAdapter.cpp:80-132`; iPad `XLSequenceDocument.mm:5474`, `BuildDmxMovingHeadAdvProps` `:8463`, zone control kind `LayoutEditorView.swift:6169` (`positionZoneList`), canvas toggle `:14489` |
+| M25 | DmxServo | ✅ | ✅ (servos, 16-bit, brightness, transparency, static/motion images) | ✅ | Desktop `LayoutPanel.cpp:9500`, `adapters/DmxServoPropertyAdapter.cpp:29-72`; iPad `XLSequenceDocument.mm:5475`, `BuildDmxServoProps` `:8728` |
+| M26 | DmxServo3d | ✅ | ✅ (servo config, pivot axes, meshes, servo/mesh linkage) | ✅ | Desktop `LayoutPanel.cpp:9501` (**3D mode only** on desktop, gate `:9501-9503`), `adapters/DmxServo3dPropertyAdapter.cpp:125-183`; iPad `XLSequenceDocument.mm:5476`, `BuildDmxServo3dProps` `:8771` — iPad has no 3D-mode gate on creation |
+| M27 | DmxSkull | ✅ | ✅ (6 servos, orientations, eye brightness channel, skull config) | ✅ | Desktop `LayoutPanel.cpp:9504`, `adapters/DmxSkullPropertyAdapter.cpp:141-238`; iPad `XLSequenceDocument.mm:5477`, `BuildDmxSkullProps` `:8575` |
+| M28 | ModelGroup | ✅ | 🟡 dedicated group pane on both; iPad has camera / layout style / grid size / preview / centre-offset / tag colour / aliases / members, but no "show submodels / show inactive / show groups / show only current view" member-list filters and no Copy-From / Sort-By-Location | ✅ | Desktop `ModelGroupPanel.cpp:135-335` (filters `:218-229`, copy/sort menu `:1342-1351`), routed away from the grid at `LayoutPanel.cpp:4090-4093`; iPad `LayoutEditorView.swift:13336` (create), `:11751` (properties), members `:11814+` |
+| M29 | SubModel | ✅ | ✅ full editor (see S-rows) | ✅ | Desktop read-only mirror `adapters/SubModelPropertyAdapter.cpp:28-79` + editor `SubModelsPanel.cpp`; iPad `LayoutEditorView.swift:6742` (list) / `:7289` (detail) |
+| V1 | Gridlines (view object) | ✅ | ✅ (spacing, width, height, colour, axis, point-to-front) | ✅ | Desktop `LayoutPanel.cpp:9417`, `adapters/GridlinesObjectPropertyAdapter.cpp:23-54`; iPad type list `XLSequenceDocument.mm:7190`, props `LayoutEditorView.swift:12713-12727` |
+| V2 | Terrain (view object) | ✅ | ✅ + heightmap painting | ✅ | Desktop `LayoutPanel.cpp:9418`, `adapters/TerrainObjectPropertyAdapter.cpp:25-81`; iPad `LayoutEditorView.swift:12728-12750`, painting `:12761-12820` + `PreviewPaneView.swift:1572-1599` |
+| V3 | Mesh (view object) | ✅ | ✅ (obj file, mesh-only, brightness, scale) | ✅ | Desktop `LayoutPanel.cpp:9419`, `adapters/MeshObjectPropertyAdapter.cpp:25-38`; iPad `LayoutEditorView.swift:12692-12703`. Loader is dependency-free (`src-core/graphics/xlMesh.cpp:5-14` — no assimp), so iOS needs no extra lib |
+| V4 | Ruler (view object) | ✅ | ✅ (units, real length, P1/P2) | ✅ | Desktop `LayoutPanel.cpp:9421` (suppressed when one exists `:9420`), `adapters/RulerObjectPropertyAdapter.cpp:25-33`; iPad `XLSequenceDocument.mm:7196` (same suppression), props `LayoutEditorView.swift:12752-12754`, two-point P1/P2 `:12655-12669` |
+| V5 | Image (view object) | ✅ | ✅ (file, brightness, transparency, scale) | ✅ | Desktop `LayoutPanel.cpp:9416`, `adapters/ImageObjectPropertyAdapter.cpp:22-38`; iPad `LayoutEditorView.swift:12705-12712` |
+| V6 | Controller (view object) | ❌ | ❌ | 🟡 | Desktop has no property adapter — selection is intercepted at `LayoutPanel.cpp:4343-4347` and routed to `ControllerListPanel::CreatePropertiesPanel` (`ControllerListPanel.cpp:1104`); iPad `availableViewObjectTypes` (`XLSequenceDocument.mm:7190`) lists only Image/Mesh/Gridlines/Terrain/Ruler, and grep for `ControllerObject` under `src-iPad/` returns only `controllerNameForViewObject:` (`XLSequenceDocument.h:1835`). Controller-object placement is theme 07; noted here for completeness |
+| V7 | ObjectGroup | ❌ | ❌ | 🟡 | Referenced only in `src-core/models/ViewObjectManager.cpp:159` and `DisplayAsType.h:59`; the desktop Add-Object popup (`LayoutPanel.cpp:9414-9421`) has no entry either, so this is a data-format type with no creation UI on either platform |
+
+**Type-change:** neither platform can change an existing model's `DisplayAs`. Desktop exposes it only as a
+read-only category header (`ModelPropertyAdapter.cpp:307`); the iPad likewise shows Type as static text
+(`LayoutEditorView.swift:4783`). Not a gap.
+
+---
+
+## Features
+
+| # | Feature | Desktop evidence | iPad status | iPad evidence / gap |
+|---|---|---|---|---|
+| **Shell / navigation** |
+| 1 | Layout tab embedded in the main notebook | `xLightsMain.cpp` notebook; panel ctor `LayoutPanel.cpp:628` | 🟡 | Separate window opened from a Tools menu item, not a tab — `XLightsCommands.swift:1040-1051`, root `LayoutEditorView.swift:14579` |
+| 2 | Split view: object roster ⟷ preview canvas | `SplitterWindow2` `LayoutPanel.cpp:643`, sash persisted `:9335` | ✅ | `NavigationSplitView` sidebar + canvas, `LayoutEditorView.swift:123`, canvas `:3041` |
+| 3 | Object pages: Models / Groups / 3D Objects / Controllers | `LayoutPanel.cpp:661-662`, `:729`, `:731` | 🟡 | Models / Groups / Objects tabs exist (`LayoutEditorView.swift:1183`, `:1252`); Controllers page is a separate `ControllerVisualizeView.swift` window (theme 07) |
+| 4 | Model name filter box | `ModelFilterCtrl` `LayoutPanel.cpp:786-805`, regex match `:13109` | ✅ | Roster search field, `LayoutEditorView.swift:1889` region; sort menu `:78` (`ModelSortMode`) |
+| 5 | Group name filter box | `GroupFilterCtrl` `LayoutPanel.cpp:824-838` | ✅ | Same roster search applies to the Groups tab, `LayoutEditorView.swift:1183-1236` |
+| 6 | Dockable AUI panes (ModelList / ModelSettings) + saved perspective | `LayoutPanel.cpp:1017-1073`, key `LayoutAUIPerspective2` `:1059` | 🚫 | iPadOS has no floating-pane docking model; the sidebar is a fixed vertical split (`LayoutEditorView.swift:123`). Layout is driven by SwiftUI scene sizing, not user-arrangeable panes |
+| 7 | Show-folder footer + open-folder button | `LayoutPanel.cpp:1091`, `UpdateDirectoriesFooter` `:1349` | 🟡 | Show folder is picked globally (`ShowFolderPicker.swift`), not from the layout editor |
+| **Model creation** |
+| 8 | Per-type "new model" button row | `AddModelButton` `LayoutPanel.cpp:1251`, buttons `:881-900`, handler `:9345` | 🟡 | Single `+` → type-picker sheet (`LayoutEditorView.swift:3122`, `:13273`); 25 of 28 types (see M9/M19/M28 rows) |
+| 9 | Click-to-place after arming a type | `CreateNewModel` `LayoutPanel.cpp:5520-5563` | ✅ | Banner + tap-to-place, `LayoutEditorView.swift:3240-3246`, `PreviewPaneView.swift:1526-1553` |
+| 10 | Drag-to-size while creating | `BeginCreate` session `LayoutPanel.cpp:5551`, clamp `BoxedScreenLocation.cpp:839-861` | ✅ | `PreviewPaneView.swift:786-816` |
+| 11 | Multi-vertex append for poly-point types (Esc/Return to finish) | `LayoutPanel.cpp:5339-5383`, Escape `:9888`, Return `:9900` | ✅ | `PreviewPaneView.swift:1455-1471`, Esc/Return `LayoutEditorView.swift:4161-4177` |
+| 12 | Add 3D view object (Image/Gridlines/Terrain/Mesh/Ruler) | `DisplayAddObjectPopup` `LayoutPanel.cpp:9414`, handler `:9427` | ✅ | `AddViewObjectSheet` `LayoutEditorView.swift:10645`, create handler `:430`, bridge `XLSequenceDocument.h:1875` |
+| 13 | Add-object button enabled only in 3D + "Default" preview | `LayoutPanel.cpp:901-902`, re-enable `:11490` | ❌ | No such gate; iPad `+` on the Objects tab is always live (`LayoutEditorView.swift:1293`). Behavioural divergence, not a missing feature |
+| 14 | Import model from file (.xmodel / .lff / .lpf / .gdtf) | `LayoutPanel.cpp:5746` wildcard, `.xmodel` path `:5757-5774`, GDTF `:5906-5909` | ✅ | UTTypes `LayoutEditorView.swift:415`, button `:3133-3145`, importer `:842-848`, completion `:582-658`; bridge `XLMetalBridge.h:409`, `:430` |
+| 15 | GDTF multi-mode picker | Parsed in `XmlSerialize::ParseGdtfDescriptionXml`, chosen inline `LayoutPanel.cpp:5906` | ✅ | `GdtfModePickerSheet` `LayoutEditorView.swift:6482`, wired `:11317`, bridge `XLMetalBridge.h:423` |
+| 16 | Multi-model `<models>` .xmodel import | `LayoutPanel.cpp:5958-5990` (siblings → `additionalModelObjects`) | ✅ | Detected via `XLMetalBridge.h:444`, destination chosen in `LayoutGroupPickerSheet.swift:8` (wired `LayoutEditorView.swift:11251`) |
+| 17 | `ImportExtraModels` companion-file pull-in | `Model.cpp:666`, filter `LayoutPanel.cpp:6260` | 🟡 | Core-shared, but no iPad UI exposes the companion-file prompt; grepped `ImportExtraModels` under `src-iPad/` → 0 hits |
+| **Model lifecycle** |
+| 18 | Delete model(s) | `DeleteSelectedModels` `LayoutPanel.cpp:9998`, menu `:12307` | ✅ | Trash in the inline action bar `LayoutEditorView.swift:14126`, confirm `:1030-1051`, handler `:4185`, bridge `XLSequenceDocument.h:1457` |
+| 19 | Rename model | Property-grid `ModelName` path `LayoutPanel.cpp:1507-1534` | ✅ | Pencil on the Name row `LayoutEditorView.swift:4771-4781`, handler `:444`, bridge `XLSequenceDocument.h:1466` + sanitizer `:1950` |
+| 20 | Copy / Cut / Paste models | `DoCopy` `LayoutPanel.cpp:10414`, `DoCut` `:10431`, `DoPaste` `:10443` | ✅ | ⌘C/⌘X/⌘V `LayoutEditorView.swift:697-703`, `:11289`, `performCopy` `:4470`, `performPaste` `:4485`; UTI `com.xlights.layoutmodels` `:4513` |
+| 21 | Duplicate models | Not a distinct desktop op — copy+paste | 🔵 | Explicit Duplicate with +50/+50 offset, `LayoutEditorView.swift:14093`, `:13910`, `performDuplicate` `:4429`, bridge `XLMetalBridge.h:633` |
+| 22 | Lock / Unlock model(s) | `LockSelectedModels` `LayoutPanel.cpp:10403`, menu `:7456-7458` | ✅ | Inline action bar `LayoutEditorView.swift:13998+`, roster context menu; property row `:5034` |
+| 23 | Unlink model / group from base show folder | `UnlinkSelectedModels` `LayoutPanel.cpp:10392`, menu `:7460`, `:12301` | ✅ | Roster context menu `LayoutEditorView.swift:1197-1204`, `:1988`; bridge `XLSequenceDocument.h:3123`, `:3128` |
+| 24 | Replace model(s) with this model | `ReplaceModel` `LayoutPanel.cpp:10154`, dialog `layout/ReplaceModelDialog.h` | ✅ | `ReplaceModelSheet` `LayoutEditorView.swift:13664`, `performReplaceModel` `:4348`; same four options (keep start channel / merge submodels / copy size+pos / group mode), bridge `XLMetalBridge.h:619` |
+| 25 | Base-show-linked models excluded from Replace | `ReplaceModelDialog.h` (`RowEntry::baseLinked`, disabled + link icon) | 🟡 | iPad sheet has no visible baseLinked exclusion; grepped `baseLinked`, `fromBase` in `LayoutEditorView.swift` → only the roster unlink entries `:1197`, `:1988` |
+| 26 | Swap start/end | `LayoutPanel.cpp:7498`, handler `:8088` | ✅ | `LayoutEditorView.swift:14100`, `performSwapStartEnd` `:4413` (Single Line / Poly Line gate `:14035`), bridge `XLMetalBridge.h:591` |
+| 27 | Make Start Channel Valid / All Valid / Not Overlapping | `LayoutPanel.cpp:12422`, `:12448`, `:12451`, handlers `:11251`, `:11264`, `:11277` | ✅ | `LayoutEditorView.swift:1996-2011`, handlers `:2030-2050`, bridge `XLSequenceDocument.h:1671` |
+| 28 | "Make Start Channel Not Overlapping" (single model) reuses the "valid" ID | `LayoutPanel.cpp:12427` appends `ID_MNU_MAKESCVALID` a second time → `:11277` | — | Desktop bug worth noting; the iPad only ships the all-models variants so it doesn't inherit it |
+| **Selection** |
+| 29 | Multi-select in the tree (Ctrl/Shift) | `wxTL_MULTIPLE` `LayoutPanel.cpp:804`, partition `HandleSelectionChanged` `:12533-12546` | ✅ | Photos-style Select toggle `LayoutEditorView.swift:3164-3186`, roster multi-select |
+| 30 | Ctrl+click add/remove on canvas | `SelectMultipleModels` `LayoutPanel.cpp:4776`, entry `:5473-5479` | ✅ | Tap-toggle in Select mode, `PreviewPaneView.swift:1630-1650` |
+| 31 | Shift-drag marquee (2D) | `m_creating_bound_rect` `LayoutPanel.cpp:5480-5490`, finish `:5669-5688` | ✅ | Two-finger long-press + drag, `PreviewPaneView.swift:1210-1274`, bridge `XLMetalBridge.h:288` |
+| 32 | Screen-space lasso (3D), additive on repeat | `LayoutPanel.cpp:5306-5317`, additive state `:5673-5677`, highlight `:6705-6713` | 🟡 | Same marquee path works in 3D (`PreviewPaneView.swift:1210`) but there is no additive-consecutive-lasso state; grepped `lasso`, `additive` in `src-iPad/App/` → 0 hits |
+| 33 | Ctrl+click 3D cycle: highlight → group-select → primary → deselect | `LayoutPanel.cpp:5216-5305` | ❌ | No modifier-cycle semantics; grepped `highlight` + `groupSelect` in `PreviewPaneView.swift` / `LayoutEditorView.swift` → only hover-handle highlight (`PreviewPaneView.swift:1381`) |
+| 34 | Select All models | keybinding `SELECT_ALL_MODELS` `LayoutPanel.cpp:12912` | 🟡 | Select-mode multi-tap only; grepped `selectAll`, `"Select All"` in `LayoutEditorView.swift` → 0 layout hits |
+| 35 | Overlap checking toggle | `CheckBoxOverlap` `LayoutPanel.cpp:1092`, handler `:4392`, check `CheckModelForOverlaps` `:9196` | ❌ | Grepped `overlapCheck`, `Overlap` under `src-iPad/App/` + `src-iPad/Bridge/` → only the start-channel "Not Overlapping" command (`LayoutEditorView.swift:2008`); no per-model overlap highlighting |
+| **Align / distribute / resize / transform** |
+| 36 | Align Top / Bottom / Left / Right | `LayoutPanel.cpp:7552-7555`, impls `:8368`, `:8393`, `:8418`, `:8580` | ✅ | `LayoutEditorView.swift:13841-13853`, `performAlign` `:4205`, bridge `XLMetalBridge.h:549` |
+| 37 | Align Front / Back (3D) | `LayoutPanel.cpp:7557-7558`, impls `:8443`, `:8468` | ✅ | `LayoutEditorView.swift:13841-13853` (front/back), `performAlign` `:4205` |
+| 38 | Align With Ground (3D) | `LayoutPanel.cpp:7559`, impl `:8127` | ✅ | `LayoutEditorView.swift:13841-13853` (ground) |
+| 39 | Align H/V/Depth Center | `LayoutPanel.cpp:7561-7564`, impls `:8605`, `:8630`, `:8654` | ✅ | `LayoutEditorView.swift:13841-13853` (centerH/centerV/centerD) |
+| 40 | Distribute Horizontal / Vertical / Depth | `LayoutPanel.cpp:7569-7572`, impls `:8701`, `:8761`, `:8821` | ✅ | `LayoutEditorView.swift:13861-13863`, `performDistribute` `:4238`, bridge `XLMetalBridge.h:560` |
+| 41 | Match Width / Height / Size | `LayoutPanel.cpp:7577-7579`, `PreviewModelResize` `:8493` | ✅ | `LayoutEditorView.swift:13873-13877` (adds Depth + All), `performMatchSize` `:4262`, bridge `XLMetalBridge.h:569` |
+| 42 | Flip Horizontal / Vertical | `LayoutPanel.cpp:7495-7496`, `PreviewModelFlipH` `:8902`, `FlipV` `:8881` | ✅ | `LayoutEditorView.swift:13886-13887`, `performFlip` `:4283`, bridge `XLMetalBridge.h:581` |
+| 43 | Bulk Rotate X / Y / Z by degrees | `LayoutPanel.cpp:7523-7525`, `BulkEditRotateAxis` `:2606` | ✅ | `LayoutEditorView.swift:13897-13899`, prompt `:4305`, apply `:4324`, bridge `XLMetalBridge.h:600` |
+| 44 | Model-Set-aware alignment (linked models translate together; locked sets blocked) | `AlignSetAware` `LayoutPanel.cpp:2895`, `TranslateModelSet` `:2877`, `ReportBlockedSets` `:2914`, called per-verb e.g. `PreviewModelAlignTops` `:8368-8388` | ✅ | Both verbs are set-aware: `alignModels:` `XLMetalBridge.mm:1302` (first member wins via `doneSets` `:1350`, frozen sets skipped `:1341-1342`, peers translated `:1358`) and `distributeModels:` `:1365` (`:1398`, `:1435`), over the shared helpers `ModelSetPeers` `:539` / `TranslateModelSetPeers` `:564`. The earlier partial status came from grepping the desktop symbol names `AlignSetAware`/`blockedSet` under `src-iPad/`, which could never hit. Only gap: desktop's `ReportBlockedSets` message box naming frozen Sets — iPad skips them silently (`XLMetalBridge.mm:1341`) |
+| 45 | Correct Aspect Ratio (Matrix only) | `LayoutPanel.cpp:7430`, handler `:7957` | ❌ | Grepped `AspectRatio`, `"Aspect Ratio"`, `correctAspect` under `src-iPad/App/` + `src-iPad/Bridge/` → hits only in `SequenceSettingsSheet.swift:1149` (render buffer) and the submodel Squarify toggle `LayoutEditorView.swift:7736` |
+| 46 | Enter Segment Size (poly-line) | `LayoutPanel.cpp:7404`, handler `:8054` | ❌ | Grepped `Segment Size`, `segmentSize`, `setSegmentLength` under `src-iPad/` → 0 hits |
+| 47 | Model Sets — link, add, remove, rename, delete, manage | `AddModelSetOptionsToMenu` `LayoutPanel.cpp:2930`, `DoLinkAsSet` `:2974`, `DoAddSelectedToSet` `:3009`, `DoManageSet` `:3206` | ✅ | `MultiSelectActionBar` Set menu `LayoutEditorView.swift:13935-13969`, alerts `:13763`, `:13779`, helpers `:4525+`; bridge `XLSequenceDocument.h:1482-1508` (7 methods) |
+| **Canvas interaction** |
+| 48 | Click-select a model | `SelectSingleModel` `LayoutPanel.cpp:4621`, hit test `FindModelsClicked` `:4583` | ✅ | `pickModel` `PreviewPaneView.swift:1603`, tap `:1407`, bridge `XLMetalBridge.h:271` |
+| 49 | Empty-space click deselects | `LayoutPanel.cpp:5646-5662` (drag threshold) | ✅ | `PreviewPaneView.swift:1659` |
+| 50 | Body drag to move (2D) | `OnPreviewMouseMove` `LayoutPanel.cpp:7134`, `AddOffset` `:7307` | ✅ | `PreviewPaneView.swift:942-947` |
+| 51 | Body drag in 3D on a latched plane | `GetBestIntersection` `ModelScreenLocation.cpp:294`, `FindPlaneIntersection` `:338` | ✅ | `PreviewPaneView.swift:928-940`, bridge `XLMetalBridge.h:316`, `:324` |
+| 52 | Resize / rotate / vertex / segment handles | `handles::HitTest` via `LayoutPanel.cpp:5411-5445`, roles `src-core/models/handles/Handles.h:29-44` | ✅ | `pickHandle` `PreviewPaneView.swift:919-926`, `dragHandle` `:988-996`, bridge `XLMetalBridge.h:509-521` |
+| 53 | Shift = aspect-lock resize | `BoxedScreenLocation.cpp:1212-1220`, mods mapped `LayoutPanel.cpp:142-147` | ✅ | Exposed as a persistent "Uniform" chip instead of a held key, `LayoutEditorView.swift:14310` |
+| 54 | Shift = 5° rotation snap | `BoxedScreenLocation.cpp:1302-1304`, `ThreePointScreenLocation.cpp:541`, `:646` | 🟡 | Core-shared, but the iPad never sets `handles::Modifier::Shift` from a UI affordance for rotation; the Snap chip (`LayoutEditorView.swift:14432` → `PreviewPaneView.swift:322`, `XLMetalBridge.h:214`) is a separate grid snap |
+| 55 | Shift = 5-unit endpoint snap (two-point models) | `TwoPointScreenLocation.cpp:1099-1118` | 🟡 | Same as row 54 — core-shared, no iPad modifier source |
+| 56 | Ctrl = scale about centre (poly-point axis cube) | `PolyPointScreenLocation.cpp:2159`, applied `:2169-2183` | 🟡 | Core-shared, no iPad modifier source |
+| 57 | 3D axis gizmo; repeat-click cycles Translate→Scale→Rotate | `ProcessLeftMouseClick3D` `LayoutPanel.cpp:4905`, `AdvanceAxisTool` `:4974` (`ModelScreenLocation.h:329`) | ✅ | Centre-handle tap `PreviewPaneView.swift:1556`, bridge `XLMetalBridge.h:530`, `:539`; also a persistent Move/Rotate/Scale radio `LayoutEditorView.swift:14279-14283` and Lock-Axis chips `:14326-14332` (bridge `XLSequenceDocument.h:1430-1431`) |
+| 58 | Camera orbit (3D) | `OnPreviewMouseMove3D` `LayoutPanel.cpp:6909-6916` | ✅ | One-finger drag in 3D, `PreviewPaneView.swift:1036-1041` |
+| 59 | Camera pan | Middle-drag `LayoutPanel.cpp:6353`, Alt+drag `:5491-5513`, Shift+wheel 3D `:6557-6591` | ✅ | Two-finger pan via pinch centroid, `PreviewPaneView.swift:762-766` |
+| 60 | Zoom (wheel / pinch), zoom-to-cursor | `OnPreviewMouseWheel` `LayoutPanel.cpp:6547`, `ZoomMethodToCursor()` `:6599`, magnify `:6539` | ✅ | Pinch on empty space `PreviewPaneView.swift:758-761` (clamp 0.1–50); buttons + 1× + reset `LayoutEditorView.swift:14368-14374`; double-tap reset `PreviewPaneView.swift:1175` |
+| 61 | Fit-all / fit-selected framing | No dedicated desktop command found (grep `FitAll`/`ZoomToFit` in `src-ui-wx/layout/` → none); `wxID_ZOOM_IN/OUT` menu `xLightsMain.cpp:1072-1074` | 🔵 | Fit All / Fit Selected buttons `LayoutEditorView.swift:14378-14392`, bridge `XLMetalBridge.h:77-78` |
+| 62 | Rotate gesture (trackpad/touch) rotates the selected model | `OnPreviewRotateGesture` `LayoutPanel.cpp:6456` (Shift→X, Ctrl→Y, default Z `:6481-6484`) | 🟡 | Two-finger twist rotates the model or rolls the camera, `PreviewPaneView.swift:1096`, bridge `XLMetalBridge.h:490` — single axis only, no Shift/Ctrl axis choice |
+| 63 | Zoom gesture scales the selected model | `OnPreviewZoomGesture` `LayoutPanel.cpp:6500`, falls back to camera `:6532` | ✅ | Pinch on a selected model = uniform scale, `PreviewPaneView.swift:706-724`, bridge `XLMetalBridge.h:482` |
+| 64 | 3D SpaceMouse (3Dconnexion) navigation | `Mouse3DManager.cpp`; `OnPreviewMotion3D` `LayoutPanel.cpp:6381`, buttons `:6364` | 🚫 | No 3Dconnexion driver stack on iPadOS. Grepped `Mouse3D`, `SpaceMouse`, `Motion3D` under `src-iPad/` → 0 hits |
+| 65 | Cursor changes on handle hover | `GetResizeCursor` `LayoutPanel.cpp:7360-7364` | 🔵-equivalent | No cursor on touch; Apple Pencil hover highlights the handle instead, `PreviewPaneView.swift:1381`, bridge `XLMetalBridge.h:338` |
+| 66 | Add Point / Delete Point / Define Curve / Remove Curve on poly-point handles | `LayoutPanel.cpp:7406-7421`, handlers `:8007`, `:8018`, `:8036`, `:8045` | ✅ | Long-press handle → confirmation dialog `LayoutEditorView.swift:764`, buttons `:3425`; bridge `XLSequenceDocument.h:1439-1441` |
+| 67 | Arrow-key nudge with acceleration | `Nudge` `LayoutPanel.cpp:9603`, accel ×2→30 after 5 repeats `:9617-9640`, camera-relative in 3D `:9665-9771` | 🟡 | Arrows = 1 unit, Shift = 10 (`LayoutEditorView.swift:678-681`, `nudge()` `:4048`); no repeat-acceleration and no camera-relative axis remap |
+| 68 | Node info readout | Hover tooltip via `Model::GetNodeNear` `ModelPreview.cpp:311-313` — but gated on `currentModel` being a real model and `!is3d` (`:292-293`), and the Layout tab's preview never calls `SetModel` (call sites are `SubModelsPanel.cpp:431`/`:543`, `ModelFacesPanel.cpp:485`/`:538`, `PixelTestDialog.cpp:1848`), so `currentModel` stays the `"&---none---&"` sentinel (`ModelPreview.h:170`) and **no node tooltip fires on the Layout tab** — it is a per-model-dialog feature | 🔵 | Armed "Node Inspect" mode over the whole layout canvas, reporting node #, channel, controller, port — `LayoutEditorView.swift:3199-3208`, `PreviewPaneView.swift:1428-1444`, bridge `XLMetalBridge.h:690` |
+| 69 | Inline action bar anchored to the selected model | none | 🔵 | `InlineModelActionBar` `LayoutEditorView.swift:13998`, shown `:3338`, anchor from `XLMetalBridge.h:371` |
+| **Display toggles / background** |
+| 70 | Show Names | `CheckBoxShowNames` `LayoutPanel.cpp:1092`, handler `:4410` (config `LayoutShowNames`) | ✅ | "Labels" toggle `LayoutEditorView.swift:14447`, overlay `ModelLabelsOverlay` `:14157`, anchors `XLMetalBridge.h:473` |
+| 71 | Show Start Channel / model info | `CheckBoxShowInfo` `LayoutPanel.cpp:1092`, handler `:4418` | ✅ | "Info" toggle `LayoutEditorView.swift:14456` (disabled unless Labels is on) |
+| 72 | Background image (+ EXIF auto-rotate) | `showBackgroundProperties` `LayoutPanel.cpp:3950`, `BkgImage` `:4007`, EXIF `:4000-4003` | ✅ | `LayoutEditorBackgroundPropertiesView` `LayoutEditorView.swift:12147`, path + picker + clear `:12168-12191` |
+| 73 | Background brightness (0–100) | `BkgBrightness` `LayoutPanel.cpp:4023-4026`, handler `:1420` | ✅ | `LayoutEditorView.swift:12194` |
+| 74 | Background transparency / alpha | `BkgTransparency` `LayoutPanel.cpp:4028-4031`, handler `:1430` | ✅ | Alpha 0–100, `LayoutEditorView.swift:12197` |
+| 75 | Background fill / scale-to-fit | `BkgFill` `LayoutPanel.cpp:4012`, handler `:1476` | ✅ | Scale-to-fit toggle `LayoutEditorView.swift:12200` |
+| 76 | Preview canvas width / height | `BkgSizeWidth/Height` `LayoutPanel.cpp:4014-4021`, handlers `:1440`, `:1444` | ❌ | Read-only readout with an explicit "needs bridge setters" note, `LayoutEditorView.swift:12208-12215`; grepped `setLayoutPreviewWidth`, `previewWidth` setter under `src-iPad/Bridge/` → only getters `XLSequenceDocument.h:704-705` |
+| 77 | 2D bounding box toggle | `BoundingBox` `LayoutPanel.cpp:4033`, handler `:1448`, setter `:1567` | 🟡 | Live view toggle exists (`LayoutEditorView.swift:14422`) but the persisted show setting is read-only (`:12227`) |
+| 78 | 2D grid toggle + spacing | `2DGrid` `LayoutPanel.cpp:4036`, `2DGridSpacing` `:4039-4042`, setter `:1572` | 🟡 | View toggle `LayoutEditorView.swift:14415`; persisted spacing read-only `:12223` |
+| 79 | "X0 Is Center" | `2DXZeroIsCenter` `LayoutPanel.cpp:4044`, handler `:1462`, setter `:1577` | ❌ | Read-only readout `LayoutEditorView.swift:12219`; grepped `XZeroIsCenter`, `setCenter2D0` in `src-iPad/App/` → renderer-side only (`iPadModelPreview.h:122`), no editing UI |
+| 80 | Manipulation-handle size | Desktop preference (not on the Layout panel) | 🔵 | Inline 1×–5× menu on the canvas, `LayoutEditorView.swift:14467`, `iPadModelPreview.h:58-62` |
+| **Previews (layout groups)** |
+| 81 | Preview selector combo | `ChoiceLayoutGroups` `LayoutPanel.cpp:699`, handler `:11417` | ✅ | Capsule menu `LayoutEditorView.swift:3058-3082` + duplicate in the Models header `:1864-1878` |
+| 82 | Create new preview | `"<Create New Preview>"` sentinel `LayoutPanel.cpp:11429`, `AddPreviewOption` `:11447` | ✅ | Sheet `LayoutEditorView.swift:1797`, commit `:1830` (rejects reserved names), bridge `XLSequenceDocument.h:1325` |
+| 83 | Delete current preview (reassigns orphans to Unassigned) | `DeleteCurrentPreview` `LayoutPanel.cpp:11832`, reassignment `:11855-11860` | ❌ | Grepped `deleteLayoutGroup`, `removeLayoutGroup`, `deletePreview` across `src-iPad/App/`, `src-iPad/Bridge/`, `src-iPad/Metal/` → 0 hits |
+| 84 | Rename current preview | `RenameCurrentPreview` `LayoutPanel.cpp:11870` | ❌ | Grepped `renameLayoutGroup`, `renamePreview` across `src-iPad/` → 0 hits |
+| 85 | Per-model "Preview" assignment | `ModelLayoutGroup` property `ModelPropertyAdapter.cpp:401-410`, change `:1744` | ✅ | Property row `LayoutEditorView.swift:4808`, picker `:5234` |
+| 86 | Detached preview windows per layout group (View → Previews, Show All) | `LayoutGroup::ShowPreview` `LayoutGroup.cpp:147-189`, `PreviewPane.cpp:21`, menu `xLightsMain.cpp:4770-4790` | 🟡 | The iPad has a detachable House Preview scene (theme 09), but no per-layout-group preview windows; grepped `LayoutGroup` window / `PreviewPane` scene under `src-iPad/App/` → the only pane is `PreviewPaneView.swift`, instantiated once per host view |
+| 87 | Preview window position/size persisted per group | `LayoutGroup::SetPreviewPosition` `:71` / `SetPreviewSize` `:80`, `PreviewPane::OnResize` `:83` / `OnMoved` `:89` | 🚫 | Follows from row 86 — iPadOS scene geometry is system-managed, not app-persisted |
+| **Groups** |
+| 88 | Create empty group | `LayoutPanel.cpp:12373`, handler `:11318` | ✅ | `NewGroupSheet` `LayoutEditorView.swift:13336`, handler `:3608`, bridge `XLSequenceDocument.h:1923` |
+| 89 | Create group from selection | `CreateModelGroupFromSelected` `LayoutPanel.cpp:3559`, menu `:7493`, `:12385` | ✅ | `newGroupFromSelectionPrompt` `LayoutEditorView.swift:4519`, multi-select bar `:13910+` |
+| 90 | Rename group | `LayoutPanel.cpp:12397`, handler `:11289` | ✅ | `RenameGroupSheet` `LayoutEditorView.swift:11534`, handler `:3686`, bridge `XLSequenceDocument.h:1943` |
+| 91 | Delete group(s) | `DeleteSelectedGroups` `LayoutPanel.cpp:10073`, menu `:12390` | ✅ | Swipe-delete `LayoutEditorView.swift:1207-1222`, alert `:11511`, handler `:3675`, bridge `XLSequenceDocument.h:1930` |
+| 92 | Clone group | `LayoutPanel.cpp:12398`, handler `:11349` | ❌ | Grepped `cloneGroup`, `duplicateGroup`, `"Clone"` under `src-iPad/App/` → only `DisplayElementsSheet.swift:321` (views, theme 10) |
+| 93 | Delete empty groups | `LayoutPanel.cpp:12404`, handler `:11219` | ❌ | Grepped `"Empty Group"`, `deleteEmptyGroups` under `src-iPad/` → 0 hits |
+| 94 | Delete all aliases (bulk) | `LayoutPanel.cpp:12406`, handler + confirm `:11192-11194` | ❌ | Grepped `deleteAllAliases`, `"Delete All Aliases"` under `src-iPad/` → 0 hits |
+| 95 | Add selection to existing group(s) | `AddSelectedToExistingGroups` `LayoutPanel.cpp:3630`, menu `:7486` | ✅ | `LayoutEditorView.swift:3650`/`:3658`, sheet `:876` |
+| 96 | Remove selection from existing group(s) | `LayoutPanel.cpp:3724`, menu `:7491` | ✅ | Per-member remove `LayoutEditorView.swift:11816-11880`, bridge `XLSequenceDocument.h:1915` |
+| 97 | Remove model(s) from *this* group (tree) | `RemoveSelectedModelsFromGroup` `LayoutPanel.cpp:9952`, menu `:12270` | ✅ | Same member-row remove, `LayoutEditorView.swift:11816-11880` |
+| 98 | Add members: pick list with search | `ListBoxAddToModelGroup` `ModelGroupPanel.cpp:253`, filter `:247` | ✅ | `AddMemberSheet` `LayoutEditorView.swift:13418`, row `:13505`, handler `:3632` |
+| 99 | Add-members filters: show submodels / inactive / groups / current view only | `ModelGroupPanel.cpp:218-229` | 🟡 | Submodels reachable via chevron expand (`LayoutEditorView.swift:13418`); grepped `showInactive`, `showModelGroups`, `currentView` in `LayoutEditorView.swift` → 0 hits for the other three filters |
+| 100 | Reorder members (drag, up/down) | `MoveSelectedModelsTo` `ModelGroupPanel.cpp:1000`, up `:732`, down `:756`, DnD `:863-978` | ✅ | Per-row drag-reorder `LayoutEditorView.swift:11816-11880` |
+| 101 | Copy member list from another group | `CopyModelList` `ModelGroupPanel.cpp:1381`, menu `:1345` | ❌ | Grepped `copyModelList`, `"Copy From"` under `src-iPad/` → 0 hits |
+| 102 | Sort members by name / by location | `SortModelsByName` `ModelGroupPanel.cpp:1408`, `SortModelsByLocation` `:1427`, menu `:1348-1349` | ❌ | Grepped `sortByLocation`, `sortMembers` in `LayoutEditorView.swift` → 0 hits (the roster sort at `:78` sorts the model list, not group membership) |
+| 103 | Clear member list | `ModelGroupPanel.cpp:1361`, menu `:1351` | ❌ | Grepped `clearMembers`, `"Clear"` in the group properties block (`LayoutEditorView.swift:11751-11900`) → 0 hits |
+| 104 | Group: Default Layout Mode (16 buffer styles) | `ChoiceModelLayoutType` `ModelGroupPanel.cpp:163-182`, handler `:661` | ✅ | Layout Style picker `LayoutEditorView.swift:11795`, `:12068` |
+| 105 | Group: Default Camera | `Choice_DefaultCamera` `ModelGroupPanel.cpp:183-186`, populated `:312-314` | ✅ | `defaultCameraPicker` `LayoutEditorView.swift:11794`, `:12039` (options from the bridge, so saved viewpoints appear) |
+| 106 | Group: Max Grid Size | `SizeSpinCtrl` `ModelGroupPanel.cpp:187-191`, handler `:856` | ✅ | Grid Size field `LayoutEditorView.swift:11796`, `:12104` |
+| 107 | Group: Preview assignment | `ChoicePreviews` `ModelGroupPanel.cpp:192-195`, handler `:848` | ✅ | Layout-group row `LayoutEditorView.swift:11787` |
+| 108 | Group: Center Offset X / Y | `SpinCtrl_XCentreOffset` `ModelGroupPanel.cpp:196-208`, core `ModelGroup.cpp:436-451` | ✅ | Centre X / Centre Y fields `LayoutEditorView.swift:11809-11810` (+ Custom/Auto readout `:11804`) |
+| 109 | "Set Center Offset Here" from the canvas (2D, single group) | `LayoutPanel.cpp:7616` (gate `:7613`), handler `:7880` | ❌ | Numeric fields only; grepped `setCenterOffsetHere`, `centerOffsetAtPoint` under `src-iPad/` → 0 hits |
+| 110 | Group: Tag Color | `ModelGroupPanel.cpp:210-213`, handler `:1500` | ✅ | Tag color picker `LayoutEditorView.swift:11797`, `:12118` |
+| 111 | Group: Aliases | `OnButtonAliasesClick` `ModelGroupPanel.cpp:1510` → `EditAliasesDialog.cpp` | 🟡 | Model aliases have a full editor (`LayoutEditorView.swift:6569`); grepped for a group-scoped alias entry in the group properties block `:11751-11900` → none |
+| 112 | Bulk edit group Tag Color / Preview | `BulkEditGroupTagColor` `LayoutPanel.cpp:3476`, `BulkEditGroupControllerPreview` `:3540`, menu `:12410-12411` | ❌ | iPad bulk edit covers models only — `bulkEditTargets` reads `viewModel.layoutEditorSelection` (`LayoutEditorView.swift:4032-4041`), which the Groups tab does not populate |
+| **Property editing (common)** |
+| 113 | Bulk-edit a property across a multi-selection | `AddBulkEditOptionsToMenu` `LayoutPanel.cpp:7507`, ~24 entries `:7508-7547` | ✅ | Editing any property row applies to the whole selection, `bulkEditTargets` `LayoutEditorView.swift:4032`; deny-list (name / start channel / description) `:4028-4030` |
+| 114 | Name | `LayoutPanel.cpp:4122-4129`, rename `:1507` | ✅ | `LayoutEditorView.swift:4768` |
+| 115 | Description | `ModelPropertyAdapter.cpp:409`, change `:1576` | ✅ | `LayoutEditorView.swift:4787`, editor `:5333` |
+| 116 | Controller (auto-layout / start-channel / none) | `ModelPropertyAdapter.cpp:319-337`, change `:1228` | ✅ | `LayoutEditorView.swift:4809`, picker `:5879` |
+| 117 | Start Channel (structured editor: absolute / controller / universe / `>` / `@`) | `StartChannelProperty` `ModelPropertyAdapter.cpp:265`, dialog `model/StartChannelDialog.cpp` | ✅ | `StartChannelEditorSheet` `LayoutEditorView.swift:8399`, row `:4838`, picker `:5913` |
+| 118 | "From This Preview Only" filter in the start-channel model list | `StartChannelDialog.h:41` + handler `.h:86` | ❌ | Grepped `thisPreviewOnly`, `"This Preview"` in `LayoutEditorView.swift` → 0 hits |
+| 119 | Individual start channels per string | `ModelIndividualStartChannels` `ModelPropertyAdapter.cpp:344-377`, change `:1704` | ✅ | Toggle + per-string rows `LayoutEditorView.swift:4821-4836` |
+| 120 | Model Chain (chain after model) | `ModelChainProperty` `ModelPropertyAdapter.cpp:280`, dialog `model/ModelChainDialog.cpp:50-115` | ✅ | Row `LayoutEditorView.swift:4844`, picker `:5989`; candidate filtering lives in the shared core |
+| 121 | Shadow Model For | `ModelPropertyAdapter.cpp:385-399`, change `:1218` | ✅ | `LayoutEditorView.swift:4818`, picker `:5762` |
+| 122 | Low Definition Factor | `ModelPropertyAdapter.cpp:312-316`, change `:1158` | ✅ | `LayoutEditorView.swift:4815`, `:5745` |
+| 123 | In Model Groups (read-only) | `ModelPropertyAdapter.cpp:441-457` | ✅ | `LayoutEditorView.swift:4886` region |
+| 124 | In Model Set (read-only) | `ModelPropertyAdapter.cpp:459-467` | ✅ | Set menu shows membership, `LayoutEditorView.swift:13935-13969` |
+| 125 | String Type (27 node types) | `NODE_TYPES` `PropertyGridHelpers.cpp:27-35`, property `ModelPropertyAdapter.cpp:472-476` | ✅ | `LayoutEditorView.swift:4960`, picker `:5257` |
+| 126 | Single-colour string colour | `ModelPropertyAdapter.cpp:477-496` | ✅ | `LayoutEditorView.swift:4965`, `:5791` |
+| 127 | Superstring colours (1–32) | `SuperStringColours` `ModelPropertyAdapter.cpp:497-510` | ✅ | Count + per-index colours `LayoutEditorView.swift:4967-4990` |
+| 128 | RGBW Color Handling | `ModelPropertyAdapter.cpp:515-518` | ✅ | `LayoutEditorView.swift:4996`, `:5805` |
+| 129 | Active | `ModelPropertyAdapter.cpp:521-523`, change `:1313` | ✅ | `LayoutEditorView.swift:5001` |
+| 130 | Pixel Size / Style / Transparency / Black Transparency | `ModelPropertyAdapter.cpp:524-541`, changes `:1138-1153` | ✅ | `LayoutEditorView.swift:5006-5013`, style picker `:5283` |
+| 131 | Tag Color | `ModelPropertyAdapter.cpp:542-543`, change `:1163` | ✅ | `LayoutEditorView.swift:5019`, `:5314` |
+| 132 | Dimensions (Real Width / Height / Depth / Length) | `ScreenLocationPropertyHelper.cpp:80-92`, `:265-266`, `:498-518` | 🟡 | Editable W/H/D `LayoutEditorView.swift:5023`; ruler-calibrated real-world values shown read-only `:5695-5709` |
+| 133 | Size/Location — boxed (X/Y/Z, ScaleX/Y/Z, RotateX/Y/Z) | `ScreenLocationPropertyHelper.cpp:30-78` | ✅ | `LayoutEditorView.swift:5667-5679` |
+| 134 | Size/Location — two-point (World X/Y/Z, X1..Z2) | `ScreenLocationPropertyHelper.cpp:215-263` | ✅ | `LayoutEditorView.swift:5643-5652` |
+| 135 | Size/Location — three-point (+ Height, Shear, RotateX) | `ScreenLocationPropertyHelper.cpp:386-404` | ✅ | `LayoutEditorView.swift:5653-5666` |
+| 136 | Size/Location — poly-point per-vertex X/Y/Z + per-segment real length | `ScreenLocationPropertyHelper.cpp:457-518` | 🟡 | `screenLocationKind` branches cover `boxed`/`twoPoint`/`threePoint` only (`LayoutEditorView.swift:5638-5679`); poly-point vertices are edited on canvas, not numerically |
+| 137 | Locked | `ScreenLocationPropertyHelper.cpp:31`, `:216`, `:458` | ✅ | `LayoutEditorView.swift:5034` |
+| 138 | Layers / per-layer size, with right-click Insert/Delete layer | `AddLayerSizeProperty` `ModelPropertyAdapter.cpp:1081-1102`, change `:1104-1121`, context menu `:1774-1799` | 🟡 | `layerSizes` control kind exists (`LayoutEditorView.swift:6106`, builders `XLSequenceDocument.mm:7780`, `:7822`, `:7893`); grepped `insertLayer`, `deleteLayer` in `src-iPad/` → 0 hits, so the insert/delete-layer context menu is absent |
+| 139 | Grey-out of properties that don't apply | `DisableUnusedProperties` (per-adapter, e.g. `ImagePropertyAdapter.cpp:67`) | ✅ | Descriptor `enabled` flag honoured, `LayoutEditorView.swift:6135-6144` |
+| 140 | Collapse-state persistence of property categories | `LayoutPanel.cpp:4163-4188`, save `:1810-1830` | 🟡 | SwiftUI sections are always expanded; grepped `collapsed`, `isExpanded` in the property view (`LayoutEditorView.swift:4667-5100`) → 0 hits |
+| **Controller connection (model side)** |
+| 141 | Port | `ModelPropertyAdapter.cpp:637`, change `:1264` | ✅ | `LayoutEditorView.swift:5439` |
+| 142 | Protocol | `ModelPropertyAdapter.cpp:719`, change `:1364` | ✅ | `LayoutEditorView.swift:5443` |
+| 143 | Smart Remote (use / index / type / max cascade / cascade-on-port) | `ModelPropertyAdapter.cpp:676-708`, changes `:1317-1343` | ✅ | `LayoutEditorView.swift:5478-5510`; standalone sheet `ModelSmartRemoteSheet.swift:21` (letter grid `:122`) |
+| 144 | Serial DMX channel + speed | `ModelPropertyAdapter.cpp:726`, `:738` | ✅ | `LayoutEditorView.swift:5376-5385` |
+| 145 | PWM Gamma / Brightness | `ModelPropertyAdapter.cpp:746`, `:753` | ✅ | `LayoutEditorView.swift:5388-5390` |
+| 146 | Per-pixel overrides: start/end nulls, brightness, gamma, colour order, direction, group count, zig-zag, smart Ts | `ModelPropertyAdapter.cpp:760-865`, changes `:1408-1560` | ✅ | Toggle+value pairs `LayoutEditorView.swift:5397-5432`, each gated on the controller caps; standalone `ModelControllerPropertiesSheet.swift:82-178` |
+| **Model roster / tree** |
+| 147 | Columns: Start Chan / End Chan / Ctrlr Conn, reorderable, hideable | `LayoutPanel.cpp:1177-1198`, order persisted `:1137-1161`, visibility `:813` | 🟡 | Roster rows show name + a summary line; grepped `column`, `reorderColumns` in the roster block (`LayoutEditorView.swift:1183-1320`) → no user-configurable columns |
+| 148 | Sorting (groups float to top; by start/end channel, controller/port) | `ModelListComparator::SortElementsFunction` `LayoutPanel.cpp:4449-4530` | ✅ | 5-way sort menu (List Order / Name / Start Ch / End Ch / Type), `ModelSortMode` `LayoutEditorView.swift:78`, menu `:1889-1899` |
+| 149 | Per-type tree icons | `LayoutUtils::GetModelTreeIcon` `LayoutUtils.cpp:61-117` | 🟡 | SF Symbols per row; grepped `modelTypeIcon`, `iconForType` in `LayoutEditorView.swift` → the roster uses `modelTypeLabel` `:3508-3525` for text, not a per-type glyph table |
+| 150 | Show Models Not On Controller (Controllers page) | `LayoutPanel.cpp:7693` (gate `:7691`), handler `:7706` | ❌ | Grepped `notOnController`, `"Not On Controller"` under `src-iPad/` → 0 hits |
+| **Per-model dialogs — custom model** |
+| 151 | Custom-model grid editor with W/H/Depth | `CustomModelDialog.cpp` W/H/D `:403`, `ResizeCustomGrid` `:747`, save `:817` | ✅ | `CustomModelEditorSheet` `LayoutEditorView.swift:8637`, W/H/D spinners `:8795-8842`, load `:3843`, commit `:3881`, bridge `XLSequenceDocument.h:1742-1743` |
+| 152 | Paint / place nodes by dragging | Cell click + autonumber `CustomModelDialog.cpp:1209-1222` | ✅ | Drag-to-place with Bresenham fill `LayoutEditorView.swift:9637`, fat-finger snap `:9459` |
+| 153 | Auto-numbering (active / auto-increment / next channel) | `CustomModelDialog.cpp:482-499`, handlers `:1194-1204` | 🟡 | Renumber command exists (`LayoutEditorView.swift:9437`) but not the live auto-increment mode; grepped `autoNumber`, `autoIncrement` in `LayoutEditorView.swift` → 0 hits |
+| 154 | Layer navigation + per-layer view | `AddPage` `CustomModelDialog.cpp:2948`, `CopyLayer` `:943`, `PushPull` `:3018` | 🟡 | Per-layer slider `LayoutEditorView.swift:8891`; grepped `copyLayer`, `pushPull` in `LayoutEditorView.swift` → 0 hits |
+| 155 | Background image + lightness + per-cell offset nudge | `CustomModelDialog.cpp:444-477`, `ApplyBkgOffsetDelta` `:1155` | 🟡 | Background image underlay `LayoutEditorView.swift:8938`; grepped `bkgOffset`, `backgroundOffset` in `LayoutEditorView.swift` → 0 hits (no offset nudge, no lightness slider) |
+| 156 | Grid transforms: insert/clear, shift, flip H/V, rotate 90/arbitrary, reverse, compress, trim, expand/shrink space | `CustomModelDialog.cpp:1618`, `:2059`, `:1291`, `:1317`, `:1343`, `:1437`, `:1721`, `:1686`, `:2007`, `:1921`, `:1861` | ❌ | Grepped `flipHorizontal`, `rotate90`, `compress`, `trimSpace`, `shrinkSpace` inside `CustomModelEditorSheet` (`LayoutEditorView.swift:8637-10400`) → 0 hits; only Clear All `:9366`, delete-pixel, renumber `:9437`, distribute-N `:10395` |
+| 157 | Grid cut / copy / paste blocks | `CutOrCopyToClipboard` `CustomModelDialog.cpp:982`, `Paste` `:1034` | ❌ | Grepped `pasteGrid`, `copyGrid`, `clipboard` inside the custom-model sheet range → 0 hits |
+| 158 | Wiring "Number Selected" (L→R / R→L / T→B / B→T) | `WireSelectedHorizontal` `CustomModelDialog.cpp:3181`, `WireSelectedVertical` `:3218` | ❌ | Grepped `wireSelected`, `numberSelected` under `src-iPad/` → 0 hits |
+| 159 | Create submodel from layer / row / column (± minimal) | `CustomModelDialog.cpp:2369-2666`, menus `:2904-2907`, `:2823-2834` | ❌ | Grepped `createSubmodelFromLayer`, `submodelFromRow`, `submodelFromColumn` under `src-iPad/` → 0 hits |
+| 160 | Show duplicate nodes | `DrawDupNodes` `CustomModelDialog.cpp:3551` | ❌ | Grepped `duplicateNodes`, `dupNodes` under `src-iPad/` → 0 hits |
+| 161 | Find node / find last node | `Find` `CustomModelDialog.cpp:3254`, `FindLast` `:3293` | ❌ | Grepped `findNode`, `"Find Node"` under `src-iPad/` → 0 hits |
+| 162 | Import layout from a Twinkly controller | `OnButton_ImportFromControllerClick` `CustomModelDialog.cpp:3363`, `TwinklyOutput::GetLayout` `:3430` | ❌ | Grepped `Twinkly` under `src-iPad/` → only a discovery-protocol mention in `XLSequenceDocument.h:3184` and scanner copy `LayoutEditorView.swift:11180`; no custom-model import path |
+| 163 | Output to lights while editing the grid | `StartOutputToLights` `CustomModelDialog.cpp:3608`, timer `:3587` | 🟡 | The iPad has a Light Test surface (`src-iPad/App/LightTestSheet.swift`) but grepped `outputToLights`, `"Output to Lights"` under `src-iPad/` → 0 hits inside any layout editor |
+| 164 | Generate Custom Model wizard (photo/video → model) | `GenerateCustomModelDialog.cpp` (187 KB), state machine `.h:55-64`, menu `xLightsMain.cpp:1054` | ❌ | Grepped `GenerateCustomModel`, `generateCustomModel`, `"Generate Custom Model"`, `CustomModelDialog` across `src-iPad/App/`, `src-iPad/Bridge/`, `src-iPad/Metal/` → the only hit is an aspirational comment in `XLightsCommands.swift:376` |
+| 165 | Remap Custom Model | menu `ID_MNU_REMAPCUSTOM` `xLightsMain.cpp:1056` | 🟡 | `DMXRemapGridSheet.swift` exists but is a DMX-channel remapper (theme 07); grepped `remapCustom` under `src-iPad/` → 0 hits |
+| **Per-model dialogs — submodels** |
+| 166 | Submodel list: add / rename / copy / delete | `SubModelsPanel.cpp:768`, `:1471`, `:792`, `:816` | ✅ | `SubModelListSheet` `LayoutEditorView.swift:6742`, add `:6927-6939`, copy `:6994`, delete `:7011` |
+| 167 | Ranges vs SubBuffer type switch | `TypeNotebook` `SubModelsPanel.cpp:290-291`, handler `:1228` | ✅ | Picker `LayoutEditorView.swift:7460`; `SubBufferRectEditor` `:8092` |
+| 168 | Vertical buffer layout | `SubModelsPanel.cpp:243`, apply `:1217-1222` | ✅ | `LayoutEditorView.swift:7466` |
+| 169 | Buffer style | Populated from `SubModel::GetBufferStyleList()` `SubModelsPanel.cpp:410-412`, handler `:1256` | ✅ | 8-style picker `LayoutEditorView.swift:7326-7330` |
+| 170 | Per-strand node-range rows: add / delete / move / reverse nodes / reverse row / reverse all rows / sort | `SubModelsPanel.cpp:2901`, `:2919`, `:2872`, `:2842`, `:1417`, `:2787`, `:2755`, `:2810` | ✅ | `LayoutEditorView.swift:7813-7853` |
+| 171 | Generate Slices (vertical/horizontal/segments/nodes) | `SubModelGenerateDialog.cpp:74-80`, `SubModelsPanel::Generate` `:2210`; slice maths now wx-free core `src-core/models/SubModelOps.h` `GenerateSlice` / `SliceTypeNames` | ✅ | `GenerateSubmodelsSheet` `LayoutEditorView.swift:7911`, entry `:6940`. Both platforms can now run the same core generator; the iPad sheet still has its own implementation and could be switched over. |
+| 172 | Symmetrize (rotational) | `SubModelsPanel::Symmetrize` `:1530`; core `src-core/models/SubModelSymmetrize.h:38` | ✅ | `LayoutEditorView.swift:7317-7324`, `:7586` — the same wx-free core namespace |
+| 173 | Import submodels from .xmodel / another model / CSV / another show's rgbeffects | `SubModelsPanel.cpp:2903`, `:2903`, `:3042`, `ImportLayoutSubModel` `:3986` | ✅ | `LayoutEditorView.swift:6945-6969`; bridge `XLSequenceDocument.h:1618`, `:1623`, `:1638`, `:1645`, `:1652` |
+| 174 | Import submodels from the vendor download browser | `GetDownloadSubmodels` `SubModelsPanel.cpp:4032` | ❌ | Grepped `downloadSubmodels`, `vendor` inside the submodel sheet range (`LayoutEditorView.swift:6742-8400`) → 0 hits |
+| 175 | Import submodels from a State / from a Face | `SubModelsPanel.cpp:946-1077`, `CreateSubmodel` `:3140` | ❌ | Grepped `fromState`, `fromFace`, `importFromState` under `src-iPad/` → 0 hits |
+| 176 | Import custom-model overlay onto a matrix | `ImportCustomModel` `SubModelsPanel.cpp:3162` + helpers `:3653-3815` | ❌ | Grepped `importCustomModelOverlay`, `ImportCustomModel` under `src-iPad/` → 0 hits |
+| 177 | Export submodels as CSV | `ExportSubModels` `SubModelsPanel.cpp:3444`, now formatting via core `submodel_ops::ExportSubModelsCSV` (`src-core/models/SubModelOps.h`) | 🟡 | Bridge landed — `exportSubmodelsCSVForModel:` `XLSequenceDocument.h`, same core formatter so both platforms emit byte-identical files. No SwiftUI entry point yet, so a user cannot reach it. |
+| 178 | Export a submodel as an .xmodel custom model | `ExportSubModelAsxModel` `SubModelsPanel.cpp:3470` | ❌ | Same grep as row 177 → 0 hits |
+| 179 | Export submodels to other model(s) | `ExportSubmodelToOtherModels` `SubModelsPanel.cpp:3909` | ❌ | Grepped `exportSubmodelToOther`, `"To Other Model"` under `src-iPad/` → 0 hits |
+| 180 | Join / Join single strand / Split submodels | `JoinSelectedModels` `SubModelsPanel.cpp:3807`, `SplitSelectedSubmodel` `:3853`, menu `:1396-1415` | ❌ | Grepped `joinSubmodel`, `splitSubmodel`, `"Join"`, `"Split"` under `src-iPad/App/` → 0 hits |
+| 181 | Node-grid ops: remove/suppress duplicates, geometric sort, uniform row length, pad front/rear, pivot rows/cols, combine strands, expand/compress | All extracted wx-free to `src-core/models/SubModelOps.{h,cpp}`; panel now calls them — `RemoveDuplicates` `SubModelsPanel.cpp:3671`, `RemoveAllDuplicates` `:3694`, `MakeRowsUniform` `:3721`, `PivotRowsColumns` `:3763`, `CombineStrands` `:3785`, `OrderPoints` `:1723`, `processAllStrands` `:1696` | 🟡 | Bridge landed — `applySubmodelOperation:toStrands:nodeCount:displayRow:amount:` (`XLSequenceDocument.h`) covers the 20 pure-strand ops; geometric sort via `orderPointsInRanges:onModel:choice:firstRow:lastRow:forDocument:` + `submodelOrderPointsChoices` on `XLMetalBridge` (needs the 2D preview, like the existing `symmetrizeRanges:`). No SwiftUI node-grid surface yet. |
+| 182 | Flip all / shift all / reverse all nodes across submodels | `FlipVertical` `SubModelsPanel.cpp:3635`, `FlipHorizontal` `:3617`, `Shift` `:3570`, `Reverse` `:3654` — all now thin wrappers over `src-core/models/SubModelOps.h` | 🟡 | Same `applySubmodelOperation:` bridge as row 181 (`flip-horizontal`, `flip-vertical`, `shift`, `reverse`). No SwiftUI entry point yet. |
+| 183 | Visual node selection in a live model preview | `OnPreviewLeftDown` `SubModelsPanel.cpp:2802`, rubber band `:3196` | ✅ | `SubmodelPreviewPane.swift:45` embedded in the detail editor (`LayoutEditorView.swift:7375`), tap-toggle + marquee; bridge `XLMetalBridge.h:659`, `:668`, `:701` |
+| 184 | Submodel animation playback (speed / trail) | `OnPlayAnimClick` `SubModelsPanel.cpp:4119`, timer `:4850` | ✅ | `LayoutEditorView.swift:7771-7810` |
+| 185 | Submodel aliases | `EditSubmodelAliasesDialog.cpp:88-191` | ✅ | `SubModelAliasesSheet` `LayoutEditorView.swift:8015`, bridge `XLSequenceDocument.h:1595`, `:1602` |
+| 186 | Add/Edit SubModel Alias from the model tree | `EditSubModelAlias` `LayoutPanel.cpp:10110`, menu `:12322` | ✅ | Swipe action on the submodel row, `LayoutEditorView.swift:7000` |
+| **Per-model dialogs — faces / states** |
+| 187 | Faces editor | `ModelFacesPanel.cpp` — 3 types via choicebook `:405-407` | 🟡 | Generic name → key/value map editor with node-range picking, `FaceStateEditorSheet` `LayoutEditorView.swift:9801`, detail `:9912`, picker `NodePickerPane.swift:15`; bridge `XLSequenceDocument.h:1715` |
+| 188 | Face type: Single Nodes / Node Ranges / Matrix | `ModelFacesPanel.cpp:405-407`, constants used `:453`, `:701-710` | ❌ (structured form) | The iPad has no type switch or per-type grid; grepped `matrixFace`, `faceType`, `"Single Nodes"`, `SINGLE_NODE_FACE` under `src-iPad/` → 0 hits. The `Type` key can be typed by hand in the generic editor, so the data is reachable but the guided form is not |
+| 189 | Structured phoneme rows (10 mouths, eyes open/closed, face outline, ×2 variants) | `ModelFacesPanel.cpp:187-199` (single node), `:311-338` (node ranges) | 🟡 | Suggested-key chips only: `AI, E, FV, L, MBP, O, U, WQ, etc, Eyes-Open, Eyes-Closed` at `LayoutEditorView.swift:9791-9793` — a hint list, not 28 guided rows |
+| 190 | Matrix faces: image per phoneme + placement mode | `ModelFacesPanel.cpp:386-397`, placement `:367-370`, `SelectMatrixImage` `:840`, auto-fill `FaceMatrixHelpers.cpp:80-92` | ❌ | Grepped `SelectMatrixImage`, `AutoFillMatrixPhonemes`, `EyesOpen`, `Mouth-` under `src-iPad/` → 0 hits |
+| 191 | Download face images (catalog + zip extract) | `MatrixFaceDownloadDialog.cpp:477` (catalog URL), `FaceMatrixHelpers::DownloadFaceImages` `.h:58` | ❌ | Grepped `MatrixFace`, `"Download Faces"`, `xlights_faces` under `src-iPad/` → 0 hits |
+| 192 | Face quick preview + filter dropdowns + state-outline overlay | `UpdateFaceQuickPreview` `ModelFacesPanel.cpp:2292`, `ApplyStateOutlineOverlay` `:994` | ❌ | Grepped `facePreview`, `outlineOverlay`, `faceFilter` under `src-iPad/` → 0 hits |
+| 193 | Faces: copy / rename / import from model or file / export to other models / shift / reverse nodes | `ModelFacesPanel.cpp:1806`, `:1829`, `:1690`, `:1719`, `:2374`, `:2097`, `:2121` | ❌ | Grepped `importFaces`, `exportFaces`, `shiftFaceNodes` under `src-iPad/` → 0 hits |
+| 194 | Faces: import a submodel as a node range | `ImportSubmodel` `ModelFacesPanel.cpp:1566`, menu `:1509` | 🟡 | The node picker can select ranges visually (`NodePickerPane.swift:15`), but there is no "import submodel" shortcut; grepped `importSubmodel` under `src-iPad/App/` → 0 hits outside the submodel sheet |
+| 195 | States editor | `ModelStatesPanel.cpp` — 2 types `:271-272`, grids `:182-184`, `:263-265` | 🟡 | Same generic map editor, kind `.states` (`LayoutEditorView.swift:9777`, opened `:5124`); bridge `XLSequenceDocument.h:1717` |
+| 196 | State row ops: insert before/after, move up/down, delete/clear selected, sort, bulk colour change | `ModelStatesPanel.cpp:2230`, `:2277`, `:2365`, `:2440`, `:2324`, `:2204`, `:2515`, menu `:1001-1031` | ❌ | Grepped `insertLineBefore`, `bulkColorChange`, `moveSelectedUp` under `src-iPad/` → 0 hits |
+| 197 | 7-segment state generator | `OnButton_7SegmentClick` `ModelStatesPanel.cpp:1133`, dialog `model/SevenSegmentDialog.cpp:49-72` | ❌ | Grepped `SevenSegment`, `"7 Segment"`, `sevenSegment` under `src-iPad/` → 0 hits |
+| 198 | States: import from model / file / submodels / downloads; export to other models; shift / reverse | `ModelStatesPanel.cpp:1406`, `:1437`, `:1484`, `:2618`, `:2639`, `:1945`, `:1969` | ❌ | Grepped `importStates`, `exportStates` under `src-iPad/` → 0 hits |
+| 199 | State playback animation | `OnPlayStatesClick` `ModelStatesPanel.cpp:2159`, steps `:2119` | ❌ | Grepped `playStates`, `stateAnim` under `src-iPad/` → 0 hits (the animation player is submodel-only, row 184) |
+| 200 | Faces/States/SubModels share one dialog with a live model preview and cross-tab callbacks | `ModelDefinitionsDialog.cpp:54-56`, `:69`, `OnNotebookPageChanged` `:200` | 🟡 | Three separate sheets on iPad; no shared preview pane. `LayoutEditorView.swift:4861-4900`. Desktop added an Other Preferences option (`OtherSettingsPanel`, `xLightsFrame::GetLayoutDoubleClickAction`) for what double-clicking a model in the layout does — this dialog (default) or nothing — gating `LayoutPanel::OnPreviewLeftDClick`. Not ported: iPad's double-tap gesture on the layout is already bound to camera reset (`PreviewPaneView.swift:1175-1178`), an unrelated iPad-only behavior, so there is no equivalent gesture to gate |
+| **Per-model dialogs — other** |
+| 201 | Dimming curve editor (single/RGB, brightness+gamma or file) | `ModelDimmingCurveDialog.cpp:206-209`, `Init` `:349`, `Update` `:393` | 🟡 | Generic map editor with suggested keys `gamma/offset/subtract/scale/file` (`LayoutEditorView.swift:9796`), commit `:3932`, clear `:3943`, bridge `XLSequenceDocument.h:1754`, `:1683`. No four-mode form, no per-channel live curve preview |
+| 202 | Node names / strand names | `StrandNodeNamesDialog.cpp:107-192` | ✅ | `IndexedNamesEditorSheet` `LayoutEditorView.swift:6654`, opened `:5104-5122`, bridge `XLSequenceDocument.h:1527`, `:1529` |
+| 203 | "Generate Node Names" (DMX models only) | `StrandNodeNamesDialog.cpp:171-174`, handler `:281` | ✅ | Same DMX gate, `LayoutEditorView.swift:6660`, `:5119`, bridge `XLSequenceDocument.h:1536` |
+| 204 | Model aliases | `EditAliasesDialog.cpp:75-172` | ✅ | `AliasEditorSheet` `LayoutEditorView.swift:6569`, opened `:5099`, bridge `XLSequenceDocument.h:1517` |
+| 205 | Node Layout (channel layout HTML) | `ShowNodeLayout` `LayoutPanel.cpp:8258` → `ChannelLayoutDialog.cpp:116` | ✅ | `NodeLayoutSheet.swift:50` (`wiring: false`), opened `LayoutEditorView.swift:4943`; bridge `XLSequenceDocument.h:1704` |
+| 206 | Node Layout: print / open in browser / zoom | `ChannelLayoutDialog.cpp:98`, `:125`, `ApplyZoom` `:179` | 🟡 | Pinch/pan/double-tap-reset only (`NodeLayoutSheet.swift:191-204`); print and browser-open are absent, stated desktop-only at `NodeLayoutSheet.swift:47-49` |
+| 207 | Wiring view (node paths, front/rear flip, themes, rotate) | `ShowWiring` `LayoutPanel.cpp:8268` → `WiringDialog.cpp`, themes `.h:37-56`, menu `:669-707` | 🟡 | View + front/rear flip + per-string colours, `NodeLayoutSheet.swift:50` (`wiring: true`), `:80-88`, `:157-170`; no themes, font sizing, or rotate |
+| 208 | Wiring view export: PNG / large PNG / DXF / print | `WiringDialog.cpp:733`, `:736-742`, `:747`, `:751-763` | ❌ | Grepped `dxf`/`DXF` under `src-iPad/` → the only textual hit is the "desktop-only" comment `NodeLayoutSheet.swift:47-49`; the `XLMetalBridge.mm` matches are the `idxFor` lambda (`:2227`, `:2251`, `:2262`), not DXF |
+| 209 | Node select grid (visual node range picker) | `NodeSelectGrid.cpp` — select all/none/invert `.h:59-66`, ordered selection `:245`, find node `:1024`, load-model import `:892` | 🟡 | `NodePickerPane.swift:15` / `NodeRangePickerSheet` (`LayoutEditorView.swift:10011`) covers visual picking; grepped `orderedSelection`, `invertSelection`, `loadModel` in `NodePickerPane.swift` → 0 hits |
+| 210 | Path generation → value-curve pair (`<name>X.xvc` / `<name>Y.xvc`) | `PathGenerationDialog.cpp` (`OnButton_GenerateClick`) | ❌ | Grepped `PathGeneration`, `pathGenerate`, `xvc` pair generation under `src-iPad/` → 0 hits |
+| **Import / export** |
+| 211 | Export model as .xmodel (single or multi-select) | `LayoutPanel.cpp:7977-8004`, `XmlSerializer::SerializeModels` `:7998-8000` | 🟡 | Single-model export only — `LayoutEditorView.swift:1982`, `:2017`, `XmodelExportModifier` `:10732`, bridge `XLSequenceDocument.h:1661` takes one `modelName` |
+| 212 | Export as Custom xLights Model (2D) | `LayoutPanel.cpp:7473`, handler `:7909`; core `Model::ExportAsCustomXModel` `Model.cpp:2717`, gate `SupportsExportAsCustom()` | ❌ | Grepped `exportAsCustom`, `ExportAsCustomXModel`, `"as Custom"` under `src-iPad/` → 0 hits |
+| 213 | Export as 3D Custom xLights Model (Tree / Cube / Sphere only) | `LayoutPanel.cpp:7476`, handler `:7926`; impls `TreeModel.cpp:286`, `CubeModel.cpp:995`, `SphereModel.cpp:101` | ❌ | Same grep as row 212 → 0 hits |
+| 214 | Export Faces / States / SubModels | `LayoutPanel.cpp:7482`, handler `:8313` | ❌ | Grepped `"Export Faces"`, `ExportFacesStates`, `exportDefinitions` under `src-iPad/` → 0 hits |
+| 215 | Export model as CAD (DXF / STL / VRML) | `ExportModelAsCAD` `LayoutPanel.cpp:8277`; core `src-core/cad/ModelToCAD.cpp:23-41`. **Desktop menu item is `#ifdef _DEBUG` only** (`LayoutPanel.cpp:7479-7481`) | ❌ | Grepped `ModelToCAD`, `ExportCAD` under `src-iPad/` → 0 hits |
+| 216 | Export whole layout as DXF | `ExportLayoutDXF` `LayoutPanel.cpp:8300`, menu `:7643`; core `ModelToCAD::ExportCAD(ModelManager*…)` `ModelToCAD.cpp:49-75` | ❌ | Same grep as row 215 → 0 hits |
+| 217 | Export models list to XLSX | `ExportModels` `src-core/import_export/ExportModels.cpp:107`, menu `xLightsMain.cpp:1032` | ✅ | Same core call: `exportModelsReportToPath:` `XLSequenceDocument.mm:18869-18879` (`::ExportModels(path, ModelManager, OutputManager)` `:18874`), declared `XLSequenceDocument.h:3571-3572`, invoked from the roster toolbar `LayoutEditorView.swift:1936-1947` → temp `.xlsx` + `.fileExporter` (`ModelsReportExportDoc` `:13`). The earlier missing status cited a grep for `ExportModels`/`xlsx` under `src-iPad/` returning 0 hits; both strings are present. Primary ownership is theme 08 row 75, which already had this right |
+| 218 | Import previews / models / groups / viewpoints from another show's rgbeffects | `ImportModelsFromRGBEffects` `LayoutPanel.cpp:11604`, dialog `model/ImportPreviewsModelsDialog.cpp:94-436` | ❌ | Grepped `ImportPreviews`, `importModelsFrom`, `modelsFromRgbEffects` under `src-iPad/` → 0 hits. The iPad reads external rgbeffects files only to pull **submodels** (`LayoutEditorView.swift:6912`, bridge `XLSequenceDocument.h` `modelNamesInRGBEffectsFile:` / `submodelDetailsFromRGBEffectsFile:`) |
+| 219 | Import models / groups from LOR S5 | `ImportModelsFromLORS5` `LayoutPanel.cpp:11664`, menu `:7642`; `layout/LORPreview.cpp` | ❌ | Grepped `LORS5`, `LORPreview` under `src-iPad/` → 0 hits; the `"LOR S5"` matches are sequence import (`ImportEffectsView.swift`, `XLImportSession.*`), theme 08 |
+| 220 | Save layout image (JPG/PNG) | `PreviewSaveImage` `LayoutPanel.cpp:11484`, menu `:7639` | ❌ (in the Layout Editor) | The capture mechanism exists but is unreachable from the Layout Editor: `captureAndShare()` (`PreviewPaneView.swift:652-671`, `UIGraphicsImageRenderer` + `drawHierarchy` → `UIActivityViewController`) has exactly one caller, `:560`, on the shared preview-command channel, and the Layout Editor's control overlay deliberately omits it — `LayoutEditorView.swift:13257-13259` ("the Layout Editor doesn't need viewpoints, save-image, or detach"). Same shape as rows 232–234: a menu entry, no new bridge work |
+| 221 | Print layout image | `PreviewPrintImage` `LayoutPanel.cpp:11677`, menu `:7640` | ❌ | Grepped `printLayout`, `UIPrintInteractionController` under `src-iPad/` → 0 hits. The row-220 share sheet exposes system Print, but only where it is reachable (not the Layout Editor) |
+| **Vendor model browser** |
+| 222 | Browse vendors / models (catalog fetch + cache) | `VendorModelDialog.cpp:346-347` (URLs), `:330` (cached download); core `src-core/import_export/VendorCatalog.h` | ✅ | `VendorBrowserSheet.swift:11`, load `:66-108`, bridge `XLVendorCatalog.h:35` |
+| 223 | Search / filter the catalog | `BuildModelSearchIndex` `VendorModelDialog.h:88`, debounce `.h:84` | ✅ | Search over vendor + model names, `VendorBrowserSheet.swift:25`, `:181` |
+| 224 | Vendor detail (logo, contact, website, Facebook) | `VendorModelDialog.cpp:209-213` | ✅ | `VendorDetailView` `VendorBrowserSheet.swift:196`, About `:209` |
+| 225 | Model detail (images with paging, specs, wirings) | `VendorModelDialog.cpp:246`, `:819` | ✅ | `ModelDetailView` `VendorBrowserSheet.swift:274`, carousel `:292`, details `:298`, wirings `:331` |
+| 226 | Download + insert a model | `DownloadModel` `VendorModelDialog.cpp:717`, zip extract `:730-770`, insert `:886` | ✅ | `download(wiring:)` `VendorBrowserSheet.swift:349-380` → `XLVendorCatalog.h:57`; result feeds the tap-to-place flow, `LayoutEditorView.swift:797-800` |
+| 227 | Multi-select batch download ("Insert N Models") | `GetSelectedWirings` `VendorModelDialog.cpp:819`, `DownloadSelectedModels` `:852`, relabel `:1046-1056` | ❌ | One wiring per download; grepped `selectedWirings`, `batchDownload` in `VendorBrowserSheet.swift` → 0 hits |
+| 228 | Per-vendor suppression ("don't download this vendor's list") | `IsVendorSuppressed` `VendorModelDialog.cpp:1401`, `SuppressVendor` `:1410` | ❌ | Grepped `suppressVendor`, `hideVendor` under `src-iPad/` → 0 hits |
+| 229 | Vendor-model recommendation prompt on .xmodel import | `LayoutPanel.cpp:5777-5798` — **Windows-only gate** (see platform table) | 🚫 | Follows the desktop's own platform gate; no iPad equivalent needed |
+| **3D mode / cameras / view objects** |
+| 230 | 2D ⟷ 3D switch | `CheckBox_3D` `LayoutPanel.cpp:669`, handler `:12749`, persisted to config `:12773` **and** to the show XML `:12774-12779` | 🟡 | Segmented picker `LayoutEditorView.swift:14396`; bridge exposes `layoutMode3D` as a **getter only** (`XLSequenceDocument.h:1329-1331` comment: "not written back"), so the mode is per-session and never persisted |
+| 231 | 3D Objects page appears/disappears with 3D mode | `LayoutPanel.cpp:12760`, `:12767-12768` | ❌ | Objects tab is always present, `LayoutEditorView.swift:1252` |
+| 232 | Save current viewpoint | `SaveCurrentCameraPosition` `LayoutPanel.cpp:8074`, menu `:7651` | ❌ (in the Layout Editor) | Viewpoint save exists only in the House Preview pane (`HousePreviewView.swift:670`); the Layout Editor's control overlay deliberately omits it — `LayoutEditorView.swift:13257-13259` ("the Layout Editor doesn't need viewpoints, save-image, or detach") |
+| 233 | Load / delete a saved viewpoint | `LayoutPanel.cpp:7657-7667` (3D), `:7678-7686` (2D); handlers `:8098-8124` | ❌ (in the Layout Editor) | `PreviewPaneView.swift:613-638` implements apply/delete/refresh and would answer for `previewName: "LayoutEditor"`, but nothing posts `.previewViewpointCommand` from the Layout Editor — the menu lives only at `HousePreviewView.swift:573-620` |
+| 234 | Set / restore default viewpoint | `SaveDefaultCameraPosition` `LayoutPanel.cpp:8070`, restore `:8072`, menu `:7648-7649` | ❌ (in the Layout Editor) | `restoreDefaultViewpoint` exists on the bridge (`PreviewPaneView.swift:630`) but has no Layout Editor entry point |
+| 235 | `ViewpointDialog` (manage viewpoints) | `model/ViewpointDialog.cpp:47-59` — **all four handlers are empty stubs** (`:83`, `:87`, `:91`, `:95`) | — | Non-functional on desktop; nothing to port |
+| 236 | Z coordinate editing | `ScreenLocationPropertyHelper.cpp:43` (`ModelZ`), `:226` (`WorldZ`), `:242`/`:258` (`Z1`/`Z2`), per-point `:490` | ✅ | Boxed Z `LayoutEditorView.swift:5667-5679`; two-point Z1/Z2 `:5643-5652` |
+| 237 | Terrain heightmap painting | `TerrainEdit` property `adapters/TerrainObjectPropertyAdapter.cpp:71`, brush size `:66` | ✅ | Raise/Lower + step + brush with cosine falloff, `LayoutEditorView.swift:12761-12820`, apply `PreviewPaneView.swift:1572-1599`, undo snapshot `XLSequenceDocument.h:2013` |
+| 238 | View-object rename / duplicate | Desktop tree has Delete + Unlink only (`ViewObjectPanel.cpp:564-565`) | 🔵 | iPad adds rename (`LayoutEditorView.swift:457`) and duplicate (`:468`), bridge `XLSequenceDocument.h:1885`, `:1893` |
+| **Keyboard** |
+| 239 | Delete / Backspace deletes the selection (groups vs models vs objects by context) | `LayoutPanel.cpp:9855-9880` | 🟡 | Delete goes through the action bar with a confirmation (`LayoutEditorView.swift:1030-1051`); grepped `.onKeyPress(.delete` in `LayoutEditorView.swift` → 0 hits |
+| 240 | Ctrl+Z undo (non-macOS only on desktop) | `LayoutPanel.cpp:9810-9817` inside `#ifndef __WXOSX__` | ✅ | ⌘Z via `LayoutClipboardAndGdtfModifier` `LayoutEditorView.swift:11289`; also a canvas Undo button `:3087` and Pencil Pro squeeze `PreviewPaneView.swift:1331` |
+| 241 | Ctrl+F / Ctrl+Shift+F jump-to-model-by-letter in the tree | `HandleLayoutKeyBinding` `LayoutPanel.cpp:12790-12857` | 🟡 | Roster has a search field (`LayoutEditorView.swift:1889` region) but no first-letter jump; grepped `firstLetter`, `jumpTo` in `LayoutEditorView.swift` → 0 hits |
+| 242 | Named layout keybindings (LOCK_MODEL, WIRING_VIEW, NODE_LAYOUT, MODEL_SUBMODELS/FACES/STATES/MODELDATA, SAVE_LAYOUT, the 9 align verbs, 2 distribute verbs, 2 flip verbs, SELECT_ALL_MODELS, GROUP_MODELS, EXPORT_MODEL_CAD, EXPORT_LAYOUT_DXF) | `LayoutPanel.cpp:12860-12927` | ❌ | The iPad key-bindings sheet (`KeyBindingsSheet.swift`) is sequencer-scoped; grepped `KBSCOPE`, `Layout` scope in `KeyBindingsSheet.swift` → no layout scope |
+| 243 | Escape finalizes a poly-line / unselects in 3D; Return finalizes | `LayoutPanel.cpp:9888-9905` | ✅ | `LayoutEditorView.swift:4161-4177` |
+| **Undo / save** |
+| 244 | Undo point per layout operation | `CreateUndoPoint` `LayoutPanel.cpp:10779`, `DoUndo` `:10597` | ✅ | `pushLayoutUndoSnapshotForModel:` / `…ForViewObject:` / `…TerrainHeightmap` (`XLSequenceDocument.h:2002`, `:2007`, `:2013`), undo `:2018`, can-undo `:2021` |
+| 245 | Save layout | `ButtonSavePreview` `LayoutPanel.cpp:1092`, handler `:4435`; disabled read-only `xLightsMain.cpp:9307` | ✅ | Canvas Save with unsaved-dot `LayoutEditorView.swift:3100`, bridge `XLSequenceDocument.h:1421`, dirty flag `:1987` |
+| 246 | Confirm-before-save with explicit discard-and-rollback | Desktop saves directly | 🔵 | `LayoutEditorView.swift:1052-1065`, `discardChanges` replays the undo stack `:4623` |
+| **Added by the 2026-08-01 cross-check** (appended, not renumbered — see the numbering rule) |
+| 247 | Model Data count badges — SubModels (N) / Faces (N) / States (N) / Aliases / Strand-Node counts on the property rows | `FormatSubModelsLabel` `ModelPropertyAdapter.cpp:256-257`, `FormatFacesLabel` `:250`, `FormatStatesLabel` `:253`, `FormatStrandNodeNamesLabel` `:245`, `FormatAliasesLabel` `:259`, used `:414-419` | ✅ | `modelDataRow` prints `list.count` (or `—` when empty) `LayoutEditorView.swift:6044-6069`, one row per kind `:4868-4874` (submodels / faces / states / aliases / strands / nodes / groups) |
+| 248 | Double-click a model in the preview opens the Model Definitions dialog on the SubModels tab | `OnPreviewLeftDClick` `LayoutPanel.cpp:4837`, bound `:752`; re-runs the click to select, then `EditSubmodels()` `:4874` → `ModelDefinitionsDialog(…, TAB_SUBMODELS)` `:8178-8184`. Groups/submodels/empty space fall through to deselect `:4877-4880`. (The same handler also finalizes an in-progress poly-line `:4845-4848` — that half **is** at parity, row 11) | ❌ | Double-tap is bound to camera reset instead (`PreviewPaneView.swift:161` `numberOfTapsRequired = 2` → reset at `:1175`), so the launch gesture has no iPad equivalent; the editors themselves are reachable from the Model Data section (rows 166, 187, 195). Launch-affordance gap only, no data gap |
+| 249 | "Output to Lights" live test while editing SubModels | `CheckBox_OutputToLights` `SubModelsPanel.cpp:175-177`, bound `:321` | ❌ | The bridge exposes `startOutput`/`stopOutput` (`XLSequenceDocument.h:2229-2230`, impl `XLSequenceDocument.mm:12134`, `:12157`) but grep for callers across `src-iPad/` returns only `SequencerViewModel.swift:2232`, `:3236`, `:3243` — no layout-side editor drives the outputs |
+| 250 | "Output to Lights" live test while editing Faces | `CheckBox_OutputToLights` `ModelFacesPanel.cpp:228-230`, bound `:427` | ❌ | Same search as row 249 → no `startOutput` caller in `FaceStateEditorSheet` or `NodePickerPane.swift`. Note `setSubmodelHighlightedNodes` colours the preview `Model` only; it does not push to the output buffer, so this needs a render/output loop, not just a toggle |
+| 251 | "Output to Lights" live test while editing States | `CheckBox_OutputToLights` `ModelStatesPanel.cpp:206-208`, bound `:291`, `StartOutputToLights` `:2007` | ❌ | Same search as row 249 → 0 layout-side callers |
+| 252 | DMX colour-ability per-channel PWM Brightness + Gamma (Red / Green / Blue / White) | `src-ui-wx/modelproperties/helpers/DmxAbilityPropertyHelpers.cpp` — Red `:271`/`:275`, Green `:286`/`:290`, Blue `:301`/`:305`, White `:316`/`:320`; commits `:338-345`. Core accessors `src-core/models/DMX/DmxColorAbilityRGB.h:47-55` | ❌ | Grepped `RedBrightness`, `WhiteBrightness`, `GetRedGamma`, `redBrightness` under `src-iPad/` → 0 hits. The iPad's PWM pair (row 145) is the *controller-connection* `pwmGamma`/`pwmBrightness` (`XLSequenceDocument.mm:4421-4422`, commits `:5366-5371`), a different property set from the DMX colour-ability channels |
+| 253 | First-pixel highlight in the layout preview | Hardcoded **on**: the Layout tab constructs its preview with `showFirstPixel = true` (`LayoutPanel.cpp:738`, 6th ctor arg; signature `ModelPreview.h:73`), drawn at `ModelPreview.cpp:1038`. No desktop toggle — grep `showFirstPixel` over `src-ui-wx/` returns only the ctor/field/draw sites | ✅ | Shared draw path plus a user toggle desktop lacks: `settings.showFirstPixel` `LayoutEditorView.swift:14438`, pushed to the bridge `PreviewPaneView.swift:333-334`, stored `XLMetalBridge.mm:403-408` (`highlightFirst` arg to `DisplayModelOnWindow`, `:74`). Defaults off on iPad, always on for the desktop Layout tab |
+| 254 | Vendor catalog copyright disclaimer | `StaticText_Disclaimer` `VendorModelDialog.cpp:258-259` ("designs are copyrighted and not licensed for recreation or public distribution"), re-wrapped on resize `:282` | ❌ | Grepped `disclaimer`, `copyright` in `src-iPad/App/VendorBrowserSheet.swift` → 0 hits. Pairs with row 227 (batch download); both are footer/selection work on the existing `XLVendorCatalog` bridge |
+
+---
+
+## Desktop platform differences (macOS vs Windows vs Linux)
+
+| Behavior | macOS | Windows | Linux | Evidence |
+|---|---|---|---|---|
+| Model-button icon rescaling filter | `wxIMAGE_QUALITY_HIGH` | `wxIMAGE_QUALITY_BICUBIC` | `wxIMAGE_QUALITY_HIGH` | `src-ui-wx/layout/LayoutPanel.cpp:574-578` |
+| Tree freeze/thaw during bulk model-list rebuilds | Detaches the wxDataView model (`AssociateModel(nullptr)`) for speed, re-attaches after | no-op | no-op | `LayoutPanel.cpp:1872-1875`, `:1879-1882` |
+| Tree sort application | Double-toggles `SetSortColumn` because an unchanged sort direction won't re-sort | single call | single call | `LayoutPanel.cpp:1906-1910` |
+| Ctrl+Z / Ctrl+X / Ctrl+C / Ctrl+V, Ctrl+Insert, Shift+Insert, Shift+Delete in the layout panel | Handled by the app accelerator table, **not** by `OnCharHook` | Handled in `OnCharHook` | Handled in `OnCharHook` | `LayoutPanel.cpp:9810-9854` (`#ifndef __WXOSX__`), Shift+Delete cut `:9857-9865` |
+| Notebook page change clears selection | `UnSelectAllModels()` (full clear incl. preview) | `UnSelectAllModelsInTree()` | `UnSelectAllModelsInTree()` | `LayoutPanel.cpp:13007-13011` |
+| Import-from-rgbeffects file wildcard | `*.xml` (macOS dialogs ignore full-filename wildcards) | `xlights_rgbeffects.xml` | `xlights_rgbeffects.xml` | `LayoutPanel.cpp:11607-11611`; same split in `src-ui-wx/model/SubModelsPanel.cpp:4680-4684` |
+| CAD export file filter | One combined `DXF STL VRML File (*.dxf;*.stl;*.wrl)` entry | Three separate filter entries | Three separate filter entries | `LayoutPanel.cpp:8282-8286` |
+| Vendor-model recommendation prompt on `.xmodel` import | Local `block` flag path (no user opt-out) | Gated by `GetIgnoreVendorModelRecommendations()`, different dialog flow | Local `block` flag path | `LayoutPanel.cpp:5777` (`#ifdef __WXMSW__`), `:5794` (`#ifndef __WXMSW__`), flow `:5796-5880` |
+| Tree tooltip target | Set on the tree control itself | Set on `tv->GetView()` | Set on the tree control itself | `LayoutPanel.cpp:12459-12471` |
+| Face-zip extraction path length warning | none | Logs "This will likely fail" when the extracted path exceeds `MAX_PATH` | none | `src-ui-wx/model/FaceMatrixHelpers.cpp:236-240` |
+| 3D-objects tree column sizing | Width from the control | Width from the control | Computed manually — "GTK doesn't size the window in time" | `src-ui-wx/layout/ViewObjectPanel.cpp:314-317` |
+| Focus grab after a view-object selection | `SetFocus()` called | `SetFocus()` called | Skipped | `ViewObjectPanel.cpp:492-494` |
+| Focus grab on the model tree after a preview selection | Disabled everywhere (commented-out `#ifndef LINUX` block with a note that enabling it breaks keyboard cut/copy/paste) | same | same | `LayoutPanel.cpp:12649-12651` |
+| Export As DXF/STL/VRML context-menu item | Debug builds only (`#ifdef _DEBUG`) — not a platform split, but a build-config one worth recording | same | same | `LayoutPanel.cpp:7479-7481` |
+
+---
+
+## Notes
+
+**Where the iPad actually stands.** This is not a read-only viewer. The Layout Editor is a genuine
+second editor: 25 of 28 model types are creatable, per-type geometry properties are near-1:1 with the
+desktop adapters (spot-checked Tree, Arches, Star, Circle — including the `LayerSizes` control and the
+desktop's enable-gating), the full controller-connection block is present, all five view-object types
+are creatable with per-type properties, groups have full CRUD plus drag-reorder, model sets are
+implemented, and the submodel editor is arguably richer than desktop's in places (live Metal node
+preview with marquee, animation playback, two-column adaptive layout). Canvas manipulation covers
+2D/3D body drags, handle drags, the axis gizmo with tool cycling, marquee, snapping, and per-vertex
+poly-point editing.
+
+**Structural shape of the remaining gap.** The misses cluster into four groups, not one long tail:
+
+1. **The deep "grid" dialogs.** Desktop's `CustomModelDialog` (3,670 lines), `SubModelsPanel`
+   (4,880+), `ModelFacesPanel` (93 KB) and `ModelStatesPanel` (99 KB) each carry dozens of grid
+   transforms, import sources and export targets. The iPad reimplemented the *core* of custom-model
+   and submodel editing but skipped the transform/import/export shells almost entirely (rows
+   156–162, 174–182, 190–199). Faces and States in particular are served by one generic
+   name → key/value map editor (`LayoutEditorView.swift:9801`) rather than the guided
+   phoneme/state forms — the data is reachable, the affordance is not.
+2. **Everything CAD/print/image.** DXF, STL, VRML, wiring-view PNG/DXF/print, node-layout print,
+   save/print layout image (rows 206, 208, 215, 216, 220, 221). Nothing in `src-core/cad/` is
+   referenced from `src-iPad/` at all. This is a coherent, self-contained porting unit — the core
+   writers are already wx-free.
+3. **Cross-show import.** `ImportPreviewsModelsDialog` (previews + models + groups + viewpoints from
+   another show) and the LOR S5 model importer are both absent (rows 218, 219), even though the
+   iPad already parses external `xlights_rgbeffects.xml` files for submodel import — the file
+   plumbing exists, only the model/group/preview/viewpoint selection tree is missing.
+4. **Preview (layout-group) lifecycle and viewpoints.** Create works; delete and rename have no
+   bridge methods at all (rows 83, 84). Viewpoints are the odder case: `PreviewPaneView.swift:613-638`
+   already implements apply/delete/restore-default scoped by `previewName`, and the Layout Editor
+   *is* a `PreviewPaneView` host — but nothing posts `.previewViewpointCommand` from it
+   (`LayoutEditorView.swift:13257-13259` records the omission as deliberate). This is the cheapest
+   win in the theme: a menu, no new bridge work.
+
+**Bridge gaps worth naming.** `layoutMode3D` is getter-only and explicitly not written back
+(`XLSequenceDocument.h:1329-1331`), so the iPad's 3D toggle is session-scoped while the desktop's
+persists to both config and the show XML (`LayoutPanel.cpp:12773-12779`). Preview canvas width/height,
+grid spacing, bounding box and X0-is-center are read-only with a `// needs bridge setters` comment
+(`LayoutEditorView.swift:12208-12212`). `exportModelToXmodelFile:` takes a single model name, so
+multi-model export needs a signature change, not new logic (`XLSequenceDocument.h:1661` vs
+`XmlSerializer::SerializeModels` at `LayoutPanel.cpp:7998-8000`).
+
+**Suggested porting order within this theme** (cheapest-to-highest value first):
+viewpoint menu in the Layout Editor (row 232–234, UI only) → layout-group delete/rename (rows 83–84,
+two bridge methods) → background/grid setters (rows 76–79, setters already scoped by the existing
+`setLayoutModelProperty`-style pattern) → multi-model .xmodel export (row 211) → group member-list
+ops (clone/empty-cleanup/copy-from/sort, rows 92–93, 101–103) → structured Faces/States forms over
+the existing map bridge (rows 188–190, 195–197) → CAD/print/image export cluster (rows 208, 215–216,
+220–221) → cross-show import tree (rows 218–219) → the custom-model grid transform suite (rows
+156–162) → Generate Custom Model wizard (row 164, by far the largest single item).
+
+**Two desktop-side observations found while auditing.** `LayoutPanel.cpp:12427` appends
+`ID_MNU_MAKESCVALID` for the "Make Start Channel Not Overlapping" single-model entry, so it runs the
+"valid" handler at `:11277` — the two menu items are not distinct. And `model/ViewpointDialog.cpp`
+builds a full UI (`:47-59`) whose four handlers (`:83`, `:87`, `:91`, `:95`) are all empty bodies;
+it is dead code, and no iPad counterpart should be built for it.

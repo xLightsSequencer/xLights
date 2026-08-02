@@ -23,9 +23,81 @@ class MetalMeteorsEffectData {
 public:
     MetalMeteorsEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("MeteorsEffect");
+        scatterFn = MetalComputeUtilities::INSTANCE.FindComputeFunction("MeteorsRadialScatter");
+        resolveFn = MetalComputeUtilities::INSTANCE.FindComputeFunction("MeteorsRadialResolve");
     }
 
     bool canRender() { return fn != nil; }
+    bool canRenderRadial() { return scatterFn != nil && resolveFn != nil; }
+
+    bool RenderRadial(MetalMeteorsRadialData &mdata, const std::vector<MetalMeteorRadial> &parts, RenderBuffer &buffer) {
+        @autoreleasepool {
+            MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
+            if (!rbcd) return false;
+
+            id<MTLCommandBuffer> commandBuffer = rbcd->getCommandBuffer();
+            if (commandBuffer == nil) return false;
+
+            id<MTLBuffer> bufferResult = rbcd->getPixelBuffer();
+            if (bufferResult == nil) {
+                rbcd->abortCommandBuffer();
+                return false;
+            }
+
+            id<MTLDevice> device = scatterFn.device;
+            NSUInteger pixels = (NSUInteger)mdata.width * (NSUInteger)mdata.height;
+            id<MTLBuffer> partBuffer = [device newBufferWithBytes:parts.data()
+                                                           length:parts.size() * sizeof(MetalMeteorRadial)
+                                                          options:MTLResourceStorageModeShared];
+            // The key buffer is scratch that only the GPU ever reads or writes,
+            // so it never needs to come back across the bus.
+            id<MTLBuffer> keyBuffer = [device newBufferWithLength:pixels * sizeof(uint32_t)
+                                                          options:MTLResourceStorageModePrivate];
+            if (partBuffer == nil || keyBuffer == nil) {
+                rbcd->abortCommandBuffer();
+                return false;
+            }
+
+            id<MTLBlitCommandEncoder> blit = [commandBuffer blitCommandEncoder];
+            if (blit == nil) {
+                rbcd->abortCommandBuffer();
+                return false;
+            }
+            [blit fillBuffer:keyBuffer range:NSMakeRange(0, pixels * sizeof(uint32_t)) value:0];
+            [blit endEncoding];
+
+            id<MTLComputeCommandEncoder> enc = [commandBuffer computeCommandEncoder];
+            if (enc == nil) {
+                rbcd->abortCommandBuffer();
+                return false;
+            }
+            [enc setLabel:@"MeteorsRadialScatter"];
+            [enc setComputePipelineState:scatterFn];
+            [enc setBytes:&mdata length:sizeof(mdata) atIndex:0];
+            [enc setBuffer:partBuffer offset:0 atIndex:1];
+            [enc setBuffer:keyBuffer offset:0 atIndex:2];
+            NSInteger steps = (NSInteger)parts.size() * (NSInteger)mdata.stride;
+            NSInteger tg = std::min(steps, (NSInteger)scatterFn.maxTotalThreadsPerThreadgroup);
+            [enc dispatchThreads:MTLSizeMake(steps, 1, 1) threadsPerThreadgroup:MTLSizeMake(tg, 1, 1)];
+            [enc endEncoding];
+
+            id<MTLComputeCommandEncoder> enc2 = [commandBuffer computeCommandEncoder];
+            if (enc2 == nil) {
+                rbcd->abortCommandBuffer();
+                return false;
+            }
+            [enc2 setLabel:@"MeteorsRadialResolve"];
+            [enc2 setComputePipelineState:resolveFn];
+            [enc2 setBytes:&mdata length:sizeof(mdata) atIndex:0];
+            [enc2 setBuffer:bufferResult offset:0 atIndex:1];
+            [enc2 setBuffer:partBuffer offset:0 atIndex:2];
+            [enc2 setBuffer:keyBuffer offset:0 atIndex:3];
+            NSInteger tg2 = std::min((NSInteger)pixels, (NSInteger)resolveFn.maxTotalThreadsPerThreadgroup);
+            [enc2 dispatchThreads:MTLSizeMake(pixels, 1, 1) threadsPerThreadgroup:MTLSizeMake(tg2, 1, 1)];
+            [enc2 endEncoding];
+        }
+        return true;
+    }
 
     bool Render(MetalMeteorsData &mdata, const std::vector<MetalMeteorParticle> &parts,
                 const std::vector<int> &lineItems, const std::vector<int> &lineStart, RenderBuffer &buffer) {
@@ -95,6 +167,8 @@ public:
 
 private:
     id<MTLComputePipelineState> fn = nil;
+    id<MTLComputePipelineState> scatterFn = nil;
+    id<MTLComputePipelineState> resolveFn = nil;
 };
 
 
@@ -141,5 +215,55 @@ void MetalMeteorsEffect::GatherMeteors(RenderBuffer& buffer, const MeteorsGather
 
     if (!data->Render(mdata, mp, lineItems, lineStart, buffer)) {
         MeteorsEffect::GatherMeteors(buffer, params, parts);
+    }
+}
+
+void MetalMeteorsEffect::DrawRadialSnapshot(RenderBuffer& buffer, const MeteorsRadialFrameState& fs) {
+    MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
+    if (rbcd == nullptr || !data->canRenderRadial() || fs.meteors.empty() || buffer.dmx_buffer
+        || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
+        MeteorsEffect::DrawRadialSnapshot(buffer, fs);
+        return;
+    }
+
+    MetalMeteorsRadialData mdata;
+    mdata.width = buffer.BufferWi;
+    mdata.height = buffer.BufferHt;
+    mdata.implode = fs.implode ? 1 : 0;
+    mdata.tailLength = fs.tailLength;
+    mdata.stride = fs.tailLength + 1;
+    mdata.colorScheme = fs.colorScheme;
+    mdata.allowAlpha = buffer.allowAlpha ? 1 : 0;
+    mdata.fadeWithDistance = fs.fadeWithDistance ? 1 : 0;
+    mdata.centerX = fs.centerX;
+    mdata.centerY = fs.centerY;
+    mdata.maxdiag = fs.maxdiag;
+    mdata.numMeteors = (int)fs.meteors.size();
+    mdata.frameSeed = buffer.hashRandomFrameSeed();
+
+    // The key is n*stride + ph + 1 in a uint32; a buffer that could overflow it
+    // would need billions of trail steps, but bail to the CPU rather than wrap.
+    if ((int64_t)fs.meteors.size() * mdata.stride >= (int64_t)UINT32_MAX) {
+        MeteorsEffect::DrawRadialSnapshot(buffer, fs);
+        return;
+    }
+
+    std::vector<int> cuts;
+    ComputeRadialCuts(fs, cuts);
+
+    std::vector<MetalMeteorRadial> mp(fs.meteors.size());
+    for (size_t i = 0; i < fs.meteors.size(); i++) {
+        mp[i].x = fs.meteors[i].x;
+        mp[i].y = fs.meteors[i].y;
+        mp[i].dx = fs.meteors[i].dx;
+        mp[i].dy = fs.meteors[i].dy;
+        mp[i].hue = fs.meteors[i].hsv.hue;
+        mp[i].sat = fs.meteors[i].hsv.saturation;
+        mp[i].val = fs.meteors[i].hsv.value;
+        mp[i].cut = cuts[i];
+    }
+
+    if (!data->RenderRadial(mdata, mp, buffer)) {
+        MeteorsEffect::DrawRadialSnapshot(buffer, fs);
     }
 }

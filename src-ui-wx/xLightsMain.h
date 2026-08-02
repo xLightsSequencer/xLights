@@ -429,6 +429,7 @@ public:
     wxString _linkedControllerUpload = "None";
     wxString _aliasRenameBehavior = "Always Prompt";
     wxString _keybindingsLocation = "Show Folder";
+    wxString _layoutDoubleClickAction = "Faces/States/Submodels";
     static wxString CurrentDir; //expose current folder name -DJ
     static wxString FseqDir; //expose current fseq name
     static wxString PlaybackMarker; //keep track of where we are within grid -DJ
@@ -669,6 +670,7 @@ private :
 
     void DoMenuAction(wxMenuEvent &evt);
 	void ShowHideAllSequencerWindows(bool show);
+    void SyncFloatingPanePositions();
 	void ResetAllSequencerWindows();
 	void SetEffectAssistWindowState(bool show);
     void UpdateEffectAssistWindow(Effect* effect, RenderableEffect* ren_effect);
@@ -1083,6 +1085,8 @@ public:
     bool _modelBlendDefaultOff = true;
     bool _lowDefinitionRender = false;
     bool _saveLowDefinitionRender = false; // saves the value of the low definition render during batch render when it may be temporarily overridden
+    bool _batchRenderStarted = false;
+    wxStopWatch _batchRenderStopWatch;
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;
@@ -1232,6 +1236,9 @@ public:
 
     const wxString& GetKeybindingsLocation() const { return _keybindingsLocation; }
     void SetKeybindingsLocation(const wxString& e);
+
+    const wxString& GetLayoutDoubleClickAction() const { return _layoutDoubleClickAction; }
+    void SetLayoutDoubleClickAction(const wxString& e);
 
     int SaveFSEQVersion() const { return _fseqVersion; }
     void SetSaveFSEQVersion(int i) { _fseqVersion = i; }

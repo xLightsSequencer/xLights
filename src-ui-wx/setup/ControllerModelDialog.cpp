@@ -32,6 +32,8 @@
 #include <wx/position.h>
 
 #include "ControllerModelDialog.h"
+#include "layout/LayoutPanel.h"
+#include "layout/ModelPreview.h"
 #include "models/ControllerConnection.h"
 #include "models/Pixels.h"
 #include "UtilFunctions.h"
@@ -1996,7 +1998,7 @@ void ControllerModelPrintout::preparePrint()
     _page_setup.SetMarginBottomRight(wxPoint(16, 16));
 }
 
-void ControllerModelPrintout::SetDefaultPageSetup(wxPaperSize paperId, int orient)
+void ControllerModelPrintout::SetDefaultPageSetup(wxPaperSize paperId, wxPrintOrientation orient)
 {
     wxPrintData printdata = _page_setup.GetPrintData();
     printdata.SetPaperId(paperId);
@@ -4869,6 +4871,21 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
     for (const auto& it : _models) {
         auto m = static_cast<ModelCMObject*>(it);
         if (it->HitTest(mouse) != BaseCMObject::HITLOCATION::NONE) {
+            Model* clickedModel = _mm->GetModel(m->GetName());
+            if (clickedModel != nullptr && _xLights->GetLayoutPanel() != nullptr) {
+                ModelPreview* preview = _xLights->GetLayoutPanel()->GetMainPreview();
+                if (preview != nullptr) {
+                    const std::string& controllerName = clickedModel->GetControllerName();
+                    const bool unassigned = !clickedModel->IsShadowModel() &&
+                        (controllerName.empty() || controllerName == NO_CONTROLLER);
+                    for (auto pm : preview->GetModels()) {
+                        pm->NotOnController = unassigned && (pm == clickedModel);
+                    }
+                    _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+                        "ControllerModelDialog::OnPanelModelsLeftDown");
+                }
+            }
+
             wxTextDataObject dragData("Model:" + m->GetName());
 
             wxBitmap bmp(32, 32);
@@ -4898,8 +4915,31 @@ void ControllerModelDialog::OnPanelModelsLeftDown(wxMouseEvent& event)
             dragSource.DoDragDrop(wxDragMove);
 
             _dragging = nullptr;
+            ClearNotOnControllerHighlight();
             break;
         }
+    }
+}
+
+void ControllerModelDialog::ClearNotOnControllerHighlight()
+{
+    if (_xLights->GetLayoutPanel() == nullptr) {
+        return;
+    }
+    ModelPreview* preview = _xLights->GetLayoutPanel()->GetMainPreview();
+    if (preview == nullptr) {
+        return;
+    }
+    bool clearedNotOnController = false;
+    for (auto pm : preview->GetModels()) {
+        if (pm->NotOnController) {
+            pm->NotOnController = false;
+            clearedNotOnController = true;
+        }
+    }
+    if (clearedNotOnController) {
+        _xLights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+            "ControllerModelDialog::ClearNotOnControllerHighlight");
     }
 }
 
@@ -4907,6 +4947,7 @@ void ControllerModelDialog::OnPanelModelsLeftUp(wxMouseEvent& event)
 {
     _dragging = nullptr;
     ClearOver(PanelController, _controllers);
+    ClearNotOnControllerHighlight();
 }
 
 void ControllerModelDialog::OnPanelModelsLeftDClick(wxMouseEvent& event)

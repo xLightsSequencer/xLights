@@ -286,8 +286,15 @@ bool ValidateRenderPipeline(const std::string& vertexGLSL, const std::string& fr
         vd.layouts[kVertexBufferSlot].stepFunction = MTLVertexStepFunctionPerVertex;
         rpd.vertexDescriptor = vd;
 
-        id<MTLRenderPipelineState> pso = [device newRenderPipelineStateWithDescriptor:rpd error:&e];
-        if (pso == nil) { error = std::string("pipeline: ") + (e ? e.localizedDescription.UTF8String : "?"); return false; }
+        // A descriptor Metal considers malformed raises rather than filling in
+        // the NSError, so validating a shader must not be able to abort us.
+        @try {
+            id<MTLRenderPipelineState> pso = [device newRenderPipelineStateWithDescriptor:rpd error:&e];
+            if (pso == nil) { error = std::string("pipeline: ") + (e ? e.localizedDescription.UTF8String : "?"); return false; }
+        } @catch (NSException* ex) {
+            error = std::string("pipeline: ") + (ex.reason != nil ? ex.reason.UTF8String : "rejected by Metal");
+            return false;
+        }
     }
     return true;
 }

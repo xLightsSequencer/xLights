@@ -499,6 +499,36 @@ struct MetalMeteorParticle {
     float   val;
 };
 
+// One live meteor of a radial (Implode/Explode) trail.  float, not double: Metal
+// has no double, which is the documented source of the radial GPU path's small
+// positional drift against the CPU.
+struct MetalMeteorRadial {
+    float x;
+    float y;
+    float dx;
+    float dy;
+    float hue;
+    float sat;
+    float val;
+    int32_t cut;   // phase at which this trail stops (Implode); tailLength+1 = never
+};
+
+struct MetalMeteorsRadialData {
+    uint32_t width;
+    uint32_t height;
+    int32_t  implode;          // 1 = walk toward centre and stop there, 0 = outward
+    int32_t  tailLength;
+    int32_t  stride;           // tailLength + 1; also the key radix
+    int32_t  colorScheme;      // 0 = rainbow, 1 = range, 2 = palette
+    int32_t  allowAlpha;
+    int32_t  fadeWithDistance;
+    int32_t  centerX;
+    int32_t  centerY;
+    int32_t  maxdiag;
+    int32_t  numMeteors;
+    uint64_t frameSeed;
+};
+
 struct MetalMeteorsData {
     uint32_t width;
     uint32_t height;

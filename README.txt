@@ -1,4 +1,4 @@
-xLights is a show sequencer and player/scheduler designed to control
+xLights™ is a show sequencer and player/scheduler designed to control
 USB/DMX/sACN(e1.31)/ArtNET(e.1.17)/DDP controllers.
 xLights also integrates with the Falcon Player.
 xLights imports and exports sequence data from sequencers such as LOR (SE, PE, SS and S5),
@@ -13,6 +13,80 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.15  August ??, 2026
     -enh (cybercop23)            Layout: setting a model's shadow target automatically links the target model's
                                  start channel to the shadow model (@ShadowModel:1) and clears its controller.
+    -bug (cybercop23)            Layout: Fix single model undo leaving stale tree pointers causing model to disappear from preview (#6817)
+    -bug (dkulp)                 Fix a crash drawing a model preview when a graphics accumulator is null:
+                                 the OpenGL and Metal draw paths now guard null like Vulkan already did
+    -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
+                                 the render engine can render Faces frames in parallel. Blink timing may
+                                 differ slightly from renders made with older releases.
+    -bug (derwin12)              Fix typing negative numbers into effect slider/textbox pairs
+    -enh (dkulp)                 Sequences open several times faster when they contain many file-based effects
+                                 (Pictures, Video, Text, Shader, ...): the per-effect file existence checks are
+                                 now cached per load. On macOS each check was a round trip to the iCloud file
+                                 provider, so picture-heavy sequences paid seconds re-checking the same files.
+    -bug (dkulp)                 Fix a crash on app close resetting the effect panels to defaults, and track
+                                 effect-panel window lifetime so a destroyed panel can never be reused
+    -bug (derwin12)              Fix MovingHead Advanced: reset Path and Pattern on new effect
+    -enh (derwin12)              MovingHead: add save/recall presets for the Pattern tab, matching the
+                                 existing Position and Dimmer presets
+    -enh (derwin12)              Add an Other Preferences option for what double-clicking a model in the layout does.
+    -enh (dkulp)                 Meteors: the Implode and Explode styles render several times faster on large
+                                 buffers, and use far less memory while rendering. Output is unchanged.
+    -bug (dkulp)                 Ripple: the Thickness setting now draws the thickness asked for. Every shape
+                                 except Square grew its radius cumulatively across the thickness passes, so a
+                                 thick ripple ballooned far past the intended size and mostly off the buffer.
+                                 This changes how existing Ripple effects look.
+    -enh (dkulp)                 Ripple renders about 9x faster, and drawing to the render buffer got cheaper
+                                 for every effect - VU Meter, SingleStrand, Marquee, Shape and Kaleidoscope all
+                                 gained 10-38%. Output is unchanged.
+    -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
+    -bug (dkulp)                 Test: an RGB twinkle over a single selected channel spun until it ran out of memory
+    -bug (dkulp)                 Test: marking every 50th pixel read past the end of the selection when the
+                                 selection was not a whole multiple of 50 pixels
+    -change (dkulp)              Test: the pattern engine moved to shared core code so it is no longer carried in
+                                 function-local statics that persisted across dialog open/close
+    -enh (dkulp)                 Crash reports: an exception that is not a C++ std::exception is now named rather
+                                 than logged as "an unknown exception", including the class and reason of a
+                                 macOS/iOS system exception
+    -bug (dkulp)                 Layout: "Set Center Offset Here" crashed when the group it was invoked on had gone
+                                 away between the menu opening and the item being picked
+    -bug (dkulp)                 Layout: a polyline with no drop points placed its nodes at infinite coordinates
+    -bug (dkulp)                 Shader: a shader Metal refused to build aborted the render instead of just not
+                                 rendering that effect
+    -bug (dkulp)                 MacOS Video: a file whose display matrix encodes its pixel aspect as a scale made the
+                                 decoder target a frame far larger than the source, so every cached frame was tens
+                                 of MB. Renders using such a video could reach 40GB+ and be many times slower.
+                                 Such files decode at native size again, as they did before decode-time scaling.
+    -bug (dkulp)                 MacOS Video: only H.264/HEVC keyframes were treated as safe decode entry points, so an
+                                 all-intra file (MJPEG, ProRes) got exactly one, and every seek re-decoded the whole
+                                 file from its first frame. Chains were held long enough that other effects using
+                                 the same file timed out waiting, and a timeout was reported as end-of-video, which
+                                 restarted looping effects early - so the same sequence rendered differently every
+                                 time. Such files now render identically run to run, and a video-heavy sequence
+                                 measured 94s -> 34s
+    -enh (dkulp)                 MacOS Video: a single large effect on a file made the decode-scale anti-alias headroom
+                                 overshoot the source, so the file decoded at full native size and the scaling
+                                 bought nothing, however small every other effect using it was. Such files now
+                                 decode at the size actually rendered, and both decoder frame caches are bounded
+                                 in bytes as well as frame count so a 4K file cannot cost 8x a 1080p one per
+                                 cached frame. A sequence with 164 video effects over nine files, one of them 4K:
+                                 peak memory 22GB -> 8GB, render CPU -35%
+    -enh (dkulp)                 Render: throttle frame concurrency when memory use approaches the limit the OS will
+                                 kill the process at, and XL_RENDER_MEM=1 reports what a render is spending memory on
+    -bug (MrPierreB)             Effect drag: waveform time markers now show the full selection span rather than just the grabbed effect
+    -bug (MrPierreB)             Effect drag: restore start/end/duration status bar text during move drag
+    -bug (MrPierreB)             Clicking an effect in a multi-selection now narrows the selection to just that effect instead of keeping all effects selected.
+    -enh (dkulp)                 Frame rendering, per-model buffers and every parallel_for now share one
+                                 round-robin worker pool instead of running three pools of their own. The
+                                 render nests all three, so the separate pools put about three times as many
+                                 threads on the machine as there are cores, and the extra threads cost
+                                 context switches rather than adding throughput. How much that was costing
+                                 depends on the platform: macOS gains the most (render CPU down 20-30%,
+                                 system time roughly halved), Windows a few percent. Output is
+                                 byte-identical.
+    -enh (dkulp)                 Model load, parallel output transmission and FPP Connect frame upload spread their
+                                 work across the pool by index rather than by walking a linked list behind a lock,
+                                 so they no longer serialise every worker on that lock. Output is byte-identical.
     -enh (dkulp)                 Each show folder now carries a random id in xlights_rgbeffects.xml so a show
                                  that submits many crash reports is counted once rather than once per report.
                                  It identifies the show only - no machine, user or location - and is written
@@ -21,6 +95,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  to the temporary or permanent show folder, or after opening the base show folder.
     -enh (cybercop23)            Layout: the Import Previews/Models/Groups dialog can now also import
                                  named Viewpoints (2D/3D camera presets).
+    -enh (dkulp)                 Sped up the number-aware name sort used by the model, group, view and import
+                                 lists - it no longer copies and re-splits both names on every comparison
+                                 (~2.3x on its own), and the Import Effects mapping tree no longer converts
+                                 each name through wxString twice per comparison. Both showed up as
+                                 multi-minute freezes while sorting a large mapping tree.
     -bug (dkulp)                 macOS: fixed a crash when the Finder hands over more than one sequence at
                                  once - the save-changes prompt of the first open pumped the event queue and
                                  started the second open inside it, so the sequencer loaded against panes the
@@ -41,6 +120,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Layout: exporting a model included every member of any model group referenced
                                  by the model, not just the one actually being exported; each exported
                                  model group is now restricted to the model included in that export.
+    -enh (cybercop23)            Bulk Controller Upload: added controller upload status
     -enh (dkulp)                 Render: when a render or an abort will not finish, the log now names
                                  the models still outstanding along with the frame each one reached
     -enh (dkulp)                 The startup log now records the CPU model, physical/logical core counts,

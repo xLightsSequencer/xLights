@@ -1,7 +1,7 @@
 # Layout: Model Sets (linked-translation)
 
 **Status:** implemented on desktop (branch `model-sets`); iPad parity pending
-(tracked in `plans/ipad-parity/06-layout-models-preview.md`).
+(tracked in `plans/platform-parity/06-layout-models.md`).
 Decisions made during implementation: name prompt on Link-as-Set
 (auto-name pre-filled, in-place collision re-prompt); Manage dialog =
 filterable checkbox list with editable name field; right-click shows a

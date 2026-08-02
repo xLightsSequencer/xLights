@@ -9,6 +9,7 @@
 #include <string>
 
 #include "utils/Parallel.h"
+#include "utils/RangeWorkPool.h"
 #include "utils/UtilFunctions.h"
 
 namespace {
@@ -99,7 +100,7 @@ NSString* DeviceInfoText() {
 
 NSString* ThreadsText() {
     std::string status = "Parallel Job Pool:\n";
-    status += ParallelJobPool::POOL.GetThreadStatus();
+    status += ParallelForPool().GetStatus();
     return [NSString stringWithUTF8String:status.c_str()];
 }
 

@@ -1347,7 +1347,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexColorAccumulator *v
 }
 
 xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorAccumulator *vac, int start, int count) {
-    if (vac->getCount() == 0) {
+    if (vac == nullptr || vac->getCount() == 0) {
         return this;
     }
     int c = count;
@@ -1470,27 +1470,45 @@ public:
 xlVertexIndexedColorAccumulator *xlOGL3GraphicsContext::createVertexIndexedColorAccumulator() {
     return new glVertexIndexedColorAccumulator();
 }
+// The null checks in these pass-throughs are load-bearing: `&va->vac` on a
+// null vac yields a small near-null pointer the downstream drawPrimitive
+// null guard can't catch (crash sig 3eeb480b1f — Vulkan already guards).
 xlGraphicsContext* xlOGL3GraphicsContext::drawLines(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (vac == nullptr) {
+        return this;
+    }
     glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
     drawLines(&va->vac, start, count);
     return this;
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawLineStrip(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (vac == nullptr) {
+        return this;
+    }
     glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
     drawLineStrip(&va->vac, start, count);
     return this;
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawTriangles(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (vac == nullptr) {
+        return this;
+    }
     glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
     drawTriangles(&va->vac, start, count);
     return this;
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawTriangleStrip(xlVertexIndexedColorAccumulator *vac, int start, int count) {
+    if (vac == nullptr) {
+        return this;
+    }
     glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
     drawTriangleStrip(&va->vac, start, count);
     return this;
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexIndexedColorAccumulator *vac, float pointSize, bool smoothPoints, int start, int count) {
+    if (vac == nullptr) {
+        return this;
+    }
     glVertexIndexedColorAccumulator *va = (glVertexIndexedColorAccumulator*)vac;
     drawPoints(&va->vac, pointSize, smoothPoints, start, count);
     return this;

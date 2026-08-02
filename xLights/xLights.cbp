@@ -881,6 +881,8 @@
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHColorWheelPanel.h" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPatternPresetBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPatternPresetBitmapButton.h" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.h" />
 		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPresetBitmapButton.cpp" />
@@ -1290,6 +1292,8 @@
 		<Unit filename="../src-core/models/StarModel.h" />
 		<Unit filename="../src-core/models/SubModel.cpp" />
 		<Unit filename="../src-core/models/SubModel.h" />
+		<Unit filename="../src-core/models/SubModelOps.cpp" />
+		<Unit filename="../src-core/models/SubModelOps.h" />
 		<Unit filename="../src-core/models/SubModelSymmetrize.cpp" />
 		<Unit filename="../src-core/models/SubModelSymmetrize.h" />
 		<Unit filename="../src-core/models/TerrainObject.cpp" />
@@ -1360,6 +1364,10 @@
 		<Unit filename="../src-core/outputs/SocketAbstraction.h" />
 		<Unit filename="../src-core/outputs/SerialOutput.cpp" />
 		<Unit filename="../src-core/outputs/SerialOutput.h" />
+		<Unit filename="../src-core/outputs/ChannelTracker.cpp" />
+		<Unit filename="../src-core/outputs/ChannelTracker.h" />
+		<Unit filename="../src-core/outputs/TestPatternEngine.cpp" />
+		<Unit filename="../src-core/outputs/TestPatternEngine.h" />
 		<Unit filename="../src-core/outputs/TestPreset.cpp" />
 		<Unit filename="../src-core/outputs/TestPreset.h" />
 		<Unit filename="../src-core/outputs/TwinklyOutput.cpp" />

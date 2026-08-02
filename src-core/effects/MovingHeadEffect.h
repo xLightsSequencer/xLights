@@ -136,7 +136,11 @@ protected:
     static void GetValueCurvePosition(float& position, const std::string& settings, double eff_pos, long startMS, long endMS);
     static void CalculatePosition(int location, float& position, std::vector<std::string>& heads, int groupings, float offset, float& delta );
     static void CalculatePathPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, float time_offset, float path_scale, float delta, double eff_pos, const std::string& path_def);
+public:
+    // Public so preset preview UI (e.g. MHPatternPresetBitmapButton) can trace
+    // the same shape the renderer produces without duplicating the math.
     static void CalculatePatternPoint(const std::string& algorithm, float iterator, float x_freq, float y_freq, float x_phase, float y_phase, float& x, float& y);
+protected:
     static void CalculatePatternPositions(bool pan_path_active, bool tilt_path_active, float& pan_pos, float& tilt_pos, const std::string& algorithm, float width, float height, float x_offset, float y_offset, float rotation, float start_offset, float phase_offset, float x_freq, float y_freq, float x_phase, float y_phase, float delta, double eff_pos);
     void CalculateDimmer(double eff_pos, std::vector<std::string>& dimmers, uint32_t dimmer_channel, RenderBuffer &buffer);
     void CalculateColorWheelShutter(DmxColorAbility* mh_color, double eff_pos, const std::vector<std::string>& colors, int shutter_channel, int shutter_on, RenderBuffer& buffer);

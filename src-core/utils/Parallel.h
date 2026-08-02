@@ -10,35 +10,19 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <atomic>
 #include <functional>
-#include <list>
-#include <mutex>
-#include <thread>
 
-#include "JobPool.h"
+class RangeWorkPool;
 
-
-class ParallelJobPool : public JobPool {
-public:
-    ParallelJobPool(const std::string &name);
-    ParallelJobPool(const std::string &name, int maxThreads);
-
-    static ParallelJobPool POOL;
-
-    int calcSteps(int minStep, int size);
-
-    // Completion protocol shared by both parallel_for overloads. A worker calls
-    // signalDone() once the last block has finished; the empty critical section
-    // establishes the happens-before that makes the wakeup impossible to miss
-    // (see waitForDone). Do not notify without going through here.
-    void signalDone();
-    void waitForDone(std::atomic_int &doneCount, int calcSteps);
-
-    std::mutex poolLock;
-    std::condition_variable poolSignal;
-};
-
+// The pool backing the int parallel_for.  Workers round-robin over every live
+// loop rather than draining a queue of them, so a loop that starts while another
+// is already running gets pool threads within one BLOCK of the running loop
+// instead of after all of it.  The old FIFO could not do that: a queued job ran
+// until its whole range was exhausted, so it owned its thread for the loop's
+// full duration and a later caller was left running single-threaded on its own
+// thread.  Nested loops are safe on one pool because a caller drains its own
+// registration before it ever blocks, so an inner loop always progresses.
+RangeWorkPool& ParallelForPool();
 
 /**
  * Traditional for loop:
@@ -48,84 +32,5 @@ public:
  * parallel_for(start, max, [&] (int x) {} );
  */
 void parallel_for(int start, int max, std::function<void(int)>&& f, int minStep = 1,
-                  ParallelJobPool *pool = &ParallelJobPool::POOL, const std::string &tn = "");
-
-
-/**
- * Traditional for loop:
- * std::list<T> list;
- * int idx = 0;
- * for(T &t : list) { ++idx; ... use t ...}
- *
- * would convert to:
- * std::list<T> list;
- * std::function<void(T&, int)> f = [&](T &t, int idx) { ... use t and idx...}
- * parallel_for(list, f);
- */
-template <typename T>
-void parallel_for(std::list<T> &list, std::function<void(T&, int)>& f, int minStep = 1) {
-    class ParallelListJob : public Job {
-        std::atomic_int &doneCount;
-        std::function<void(T&, int)>& func;
-        std::mutex &lock;
-        std::atomic_int &index;
-        typename std::list<T>::iterator &iterator;
-        const int max;
-        const int calcSteps;
-    public:
-        ParallelListJob(std::atomic_int &dc,
-                        std::function<void(T&, int)>& f,
-                        typename std::list<T>::iterator &it,
-                        std::mutex &l,
-                        std::atomic_int &idx,
-                        int m,
-                        int cs)
-            : Job(), doneCount(dc), func(f), lock(l), index(idx), iterator(it), max(m), calcSteps(cs) {}
-        bool DeleteWhenComplete() override { return true; }
-        bool SetThreadName() override { return false; }
-        void Process() override {
-            try {
-                while (true) {
-                    lock.lock();
-                    int idx = index.fetch_add(1);
-                    if (idx < max) {
-                        T &t = *iterator;
-                        ++iterator;
-                        lock.unlock();
-                        func(t, idx);
-                    } else {
-                        lock.unlock();
-                        break;
-                    }
-                }
-            } catch (...) {
-                //nothing
-            }
-            if (++doneCount >= calcSteps) {
-                ParallelJobPool::POOL.signalDone();
-            }
-        }
-    };
-
-    int size = list.size();
-    int calcSteps = ParallelJobPool::POOL.calcSteps(minStep, size);
-    if (calcSteps == 1) {
-        int idx = 0;
-        for (auto &a : list) {
-            f(a, idx);
-            idx++;
-        }
-    } else {
-        std::atomic_int doneCount(0);
-        std::mutex lock;
-        std::atomic_int idx(0);
-        typename std::list<T>::iterator it = list.begin();
-
-        for (int x = 0; x < calcSteps-1; x++) {
-            ParallelJobPool::POOL.PushJob(new ParallelListJob(doneCount, f, it, lock, idx, size, calcSteps));
-        }
-        ParallelListJob(doneCount, f, it, lock, idx, size, calcSteps).Process();
-        ParallelJobPool::POOL.waitForDone(doneCount, calcSteps);
-    }
-}
+                  RangeWorkPool *pool = nullptr);
 

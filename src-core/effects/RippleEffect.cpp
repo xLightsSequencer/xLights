@@ -1273,24 +1273,66 @@ void RippleEffect::Drawsquare(RenderBuffer& buffer, int Movement, int x1, int x2
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            for (int y = y1 + i; y <= y2 - i; y++) {
-                buffer.SetPixel(x1 + i, y, color); // Turn pixel
-                buffer.SetPixel(x2 - i, y, color); // Turn pixel
+        // The four sides are axis-aligned runs, so clip each run once against the
+        // buffer rather than testing every pixel - a fixed column over a clamped
+        // y range, or a fixed row over a clamped x range.  A side whose fixed
+        // coordinate is off the buffer costs nothing at all, which matters
+        // because the square grows past the buffer as the ripple expands.
+        // Ordering is not observable: every side writes the same colour, so
+        // where two of them meet the result is the same either way.
+        auto vrun = [&](int x, int ya, int yb) { // inclusive; empty when ya > yb
+            if (x < 0 || x >= buffer.BufferWi) {
+                return;
             }
-            for (int x = x1 + i; x <= x2 - i; x++) {
-                buffer.SetPixel(x, y1 + i, color); // Turn pixel
-                buffer.SetPixel(x, y2 - i, color); // Turn pixel
+            const int lo = std::max(ya, 0);
+            const int hi = std::min(yb, buffer.BufferHt - 1);
+            for (int y = lo; y <= hi; ++y) {
+                buffer.SetPixelDirect(x, y, color);
+            }
+        };
+        auto hrun = [&](int y, int xa, int xb) { // inclusive; empty when xa > xb
+            if (y < 0 || y >= buffer.BufferHt) {
+                return;
+            }
+            const int lo = std::max(xa, 0);
+            const int hi = std::min(xb, buffer.BufferWi - 1);
+            for (int x = lo; x <= hi; ++x) {
+                buffer.SetPixelDirect(x, y, color);
+            }
+        };
+
+        if (Movement == MOVEMENT_EXPLODE) {
+            if (buffer.dmx_buffer) {
+                for (int y = y1 + i; y <= y2 - i; y++) {
+                    buffer.SetPixel(x1 + i, y, color);
+                    buffer.SetPixel(x2 - i, y, color);
+                }
+                for (int x = x1 + i; x <= x2 - i; x++) {
+                    buffer.SetPixel(x, y1 + i, color);
+                    buffer.SetPixel(x, y2 - i, color);
+                }
+            } else {
+                vrun(x1 + i, y1 + i, y2 - i);
+                vrun(x2 - i, y1 + i, y2 - i);
+                hrun(y1 + i, x1 + i, x2 - i);
+                hrun(y2 - i, x1 + i, x2 - i);
             }
         }
         if (Movement == MOVEMENT_IMPLODE) {
-            for (int y = y2 + i; y >= y1 - i; y--) {
-                buffer.SetPixel(x1 - i, y, color); // Turn pixel
-                buffer.SetPixel(x2 + i, y, color); // Turn pixel
-            }
-            for (int x = x2 + i; x >= x1 - i; x--) {
-                buffer.SetPixel(x, y1 - i, color); // Turn pixel
-                buffer.SetPixel(x, y2 + i, color); // Turn pixel
+            if (buffer.dmx_buffer) {
+                for (int y = y2 + i; y >= y1 - i; y--) {
+                    buffer.SetPixel(x1 - i, y, color);
+                    buffer.SetPixel(x2 + i, y, color);
+                }
+                for (int x = x2 + i; x >= x1 - i; x--) {
+                    buffer.SetPixel(x, y1 - i, color);
+                    buffer.SetPixel(x, y2 + i, color);
+                }
+            } else {
+                vrun(x1 - i, y1 - i, y2 + i);
+                vrun(x2 + i, y1 - i, y2 + i);
+                hrun(y1 - i, x1 - i, x2 + i);
+                hrun(y2 + i, x1 - i, x2 + i);
             }
         }
     }
@@ -1321,20 +1363,33 @@ void RippleEffect::Drawcircle(RenderBuffer& buffer, int Movement, int xc, int yc
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Each pass draws a ring OFFSET from the base radius.  This used to read
+        // `radius = radius + i`, which compounded the offset every pass: with
+        // i stepping 0, 0.5, 1.0 ... the radius grew by their running sum and
+        // reached the thousands on a buffer a few hundred wide, so almost every
+        // ring fell outside it and the ring never had the requested thickness.
+        // Drawsquare, which offsets from its original corners rather than
+        // accumulating, is what this should always have matched.
+        const double r = (Movement == MOVEMENT_EXPLODE) ? radius + i : radius - i;
 
-        if (radius >= 0.0) {
+        if (r >= 0.0) {
+            // The ring only meets the buffer if some buffer pixel sits at about
+            // r from the centre; if the whole buffer is inside it, all 360
+            // samples are clipped away, so skip them.  The slack covers the
+            // int() truncation, which moves a sample by under a pixel per axis.
+            const double fx = std::max((double)xc, (double)buffer.BufferWi - 1 - xc);
+            const double fy = std::max((double)yc, (double)buffer.BufferHt - 1 - yc);
+            const double farthest = std::sqrt(fx * fx + fy * fy);
+            if (r > farthest + 2.0) {
+                continue;
+            }
             // Consecutive degrees usually round to the same pixel on small
             // buffers; the store is idempotent, so skipping exact repeats of
             // the previous pixel is output-identical.
             int lastx = INT_MIN, lasty = INT_MIN;
             for (int d = 0; d < 360; ++d) {
-                int x = radius * kCircleSinCos[d].first + xc;
-                int y = radius * kCircleSinCos[d].second + yc;
+                int x = r * kCircleSinCos[d].first + xc;
+                int y = r * kCircleSinCos[d].second + yc;
                 if (x != lastx || y != lasty) {
                     buffer.SetPixel(x, y, color); // Turn pixel
                     lastx = x;
@@ -1372,6 +1427,7 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
 
     xlColor color(hsv);
 
+    const double baseRadius = radius;
     for (double i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1381,11 +1437,11 @@ void RippleEffect::Drawstar(RenderBuffer& buffer, int Movement, int xc, int yc, 
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
+        // what the old `radius = radius + i` did: with i stepping upward the
+        // radius grew by their running sum, so the shape never had the
+        // requested thickness and quickly left the buffer entirely.
+        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
 
         if (radius >= 0.0) {
             double InnerRadius = radius / 2.618034; // divide by golden ratio squared
@@ -1431,6 +1487,7 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
 
     std::vector<std::pair<int, int>> oldpts, newpts;
 
+    const double baseRadius = radius;
     for (double i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1440,11 +1497,11 @@ void RippleEffect::Drawpolygon(RenderBuffer& buffer, int Movement, int xc, int y
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
+        // what the old `radius = radius + i` did: with i stepping upward the
+        // radius grew by their running sum, so the shape never had the
+        // requested thickness and quickly left the buffer entirely.
+        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
 
         if (radius >= 0) {
             for (double degrees = 0.0; degrees < 361.0; degrees += increment) // 361 because it allows for small rounding errors
@@ -1500,6 +1557,7 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
 {
     xlColor color(hsv);
 
+    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += 0.5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1510,11 +1568,11 @@ void RippleEffect::Drawheart(RenderBuffer& buffer, int Movement, int xc, int yc,
             }
         }
 
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
+        // what the old `radius = radius + i` did: with i stepping upward the
+        // radius grew by their running sum, so the shape never had the
+        // requested thickness and quickly left the buffer entirely.
+        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
 
         if (radius >= 0) {
             double xincr = 0.01;
@@ -1581,6 +1639,7 @@ void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, 
 
     xlColor color(hsv);
 
+    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1590,11 +1649,11 @@ void RippleEffect::Drawtree(RenderBuffer& buffer, int Movement, int xc, int yc, 
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
+        // what the old `radius = radius + i` did: with i stepping upward the
+        // radius grew by their running sum, so the shape never had the
+        // requested thickness and quickly left the buffer entirely.
+        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
         if (radius >= 0) {
             for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 4.0) / 11.0 * radius);
@@ -1638,6 +1697,7 @@ void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int 
 
     xlColor color(hsv);
 
+    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1647,11 +1707,11 @@ void RippleEffect::Drawcrucifix(RenderBuffer& buffer, int Movement, int xc, int 
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
+        // what the old `radius = radius + i` did: with i stepping upward the
+        // radius grew by their running sum, so the shape never had the
+        // requested thickness and quickly left the buffer entirely.
+        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
         if (radius >= 0) {
             for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 2.5) / 7.0 * radius);
@@ -1692,6 +1752,7 @@ void RippleEffect::Drawpresent(RenderBuffer& buffer, int Movement, int xc, int y
 
     xlColor color(hsv);
 
+    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1701,11 +1762,11 @@ void RippleEffect::Drawpresent(RenderBuffer& buffer, int Movement, int xc, int y
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
+        // what the old `radius = radius + i` did: with i stepping upward the
+        // radius grew by their running sum, so the shape never had the
+        // requested thickness and quickly left the buffer entirely.
+        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
         if (radius >= 0) {
             for (int j = 0; j < count; ++j) {
                 int x1 = std::round(((double)points[j].start.x - 5) / 7.0 * radius);
@@ -1725,6 +1786,7 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
     double originalRadius = radius;
     xlColor color(hsv);
 
+    const double baseRadius = radius;
     for (float i = 0; i < Ripple_Thickness; i += .5) {
         if (CheckBox_Ripple3D) {
             if (buffer.allowAlpha) {
@@ -1734,11 +1796,11 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
                 color = hsv;
             }
         }
-        if (Movement == MOVEMENT_EXPLODE) {
-            radius = radius + i;
-        } else {
-            radius = radius - i;
-        }
+        // Offset from the base radius; do NOT accumulate.  See Drawcircle for
+        // what the old `radius = radius + i` did: with i stepping upward the
+        // radius grew by their running sum, so the shape never had the
+        // requested thickness and quickly left the buffer entirely.
+        const double radius = (Movement == MOVEMENT_EXPLODE) ? baseRadius + i : baseRadius - i;
         if (radius >= 0) {
             // draw the stick
             int y1 = std::round((double)yc + originalRadius / 6.0);
@@ -1847,7 +1909,7 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
     std::string file = settings["E_FILEPICKERCTRL_Ripple_SVG"];
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
+            if (!FileUtils::CachedFileExists(file)) {
                 std::string fixed = FileUtils::FixFile("", file);
                 std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel.empty() ? fixed : rel;

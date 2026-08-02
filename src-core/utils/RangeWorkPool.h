@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include <algorithm>
+#include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <memory>
@@ -88,11 +89,28 @@ public:
         RangeWorkPool* const pool;
         std::function<void(int)> fn;
         const int maxConcurrent;
-        // All four are guarded by pool->mtx.
+        // All guarded by pool->mtx.
         int next;
         int maxIdx;
         int inFlight = 0;
         bool open = true;
+        // Per ITEM, not per pool.  A retiring index has to signal whoever is
+        // waiting on THIS range, and a pool-wide condition variable turns that
+        // into a notify_all storm: with many live ranges some owner is almost
+        // always draining, so every retired index woke every waiting owner only
+        // for all but one to re-check its own predicate and sleep again.  That
+        // is invisible at frame granularity and ruinous at one-block-per-index.
+        //
+        // The two waiter kinds are counted apart because they wait for DIFFERENT
+        // transitions, and conflating them costs a wakeup per index: a capacity
+        // waiter is satisfied by any decrement, but a drainer only by the last
+        // one.  Signalling every decrement woke the drainer once per in-flight
+        // index - and the tail of a loop is always about one index per worker,
+        // however the range was divided, which is why it looked insensitive to
+        // block size.
+        int capWaiters = 0;   // waiting for inFlight < maxConcurrent
+        int drainWaiters = 0; // waiting for inFlight == 0
+        std::condition_variable doneCv;
     };
 
     RangeWorkPool(const std::string& name, int workers);
@@ -100,6 +118,16 @@ public:
 
     RangeWorkPool(const RangeWorkPool&) = delete;
     RangeWorkPool& operator=(const RangeWorkPool&) = delete;
+
+    int Workers() const { return numWorkers; }
+
+    // Approximate live-registration count, readable without the lock.  Callers
+    // use it to size how much concurrency to ASK for when the pool is already
+    // oversubscribed - see ParallelSteps in Parallel.cpp.
+    int LiveItems() const { return liveItems.load(std::memory_order_relaxed); }
+
+    // One line per live registration, for the diagnostic log package.
+    std::string GetStatus();
 
     // Register a range, running at most `concurrency` of its indices at a time
     // (the owner thread counts against that).  The returned Item is live
@@ -112,15 +140,27 @@ private:
     void WorkerLoop();
     bool ClaimLocked(Item*& outItem, int& outIdx);
     void RunOne(Item* it, int idx, std::unique_lock<std::mutex>& lk);
-    void NotifyWork(int newIndices);
+    // Caller holds mtx: how many sleeping workers it is worth waking for
+    // `newIndices` newly claimable indices.  A busy worker re-checks for a claim
+    // the moment it retires one, so waking is only ever needed for workers
+    // actually parked in workSignal.
+    int WakeCountLocked(int newIndices) const;
+    // Lock must be RELEASED.  `all` means the count covers every parked worker,
+    // in which case one notify_all replaces that many notify_one syscalls.
+    void WakeWorkers(int wake, bool all);
 
     const std::string poolName;
     const int numWorkers;
 
     std::mutex mtx;
     std::condition_variable workSignal; // an item gained claimable indices
-    std::condition_variable doneSignal; // an item's in-flight count dropped
     std::vector<Item*> items;
     size_t rotor = 0; // round-robin cursor into items
     bool stopping = false;
+    // Guarded by mtx.  Exists so the per-index retire path can skip the notify
+    // syscall when nobody is parked - at frame granularity a spurious notify per
+    // index is free, but parallel_for claims an index per block of a loop, where
+    // it is not.
+    int idleWorkers = 0; // parked in workSignal
+    std::atomic<int> liveItems{ 0 };
 };

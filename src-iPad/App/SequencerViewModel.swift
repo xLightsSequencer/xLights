@@ -579,6 +579,10 @@ class SequencerViewModel {
     // Tools → AI Services. Sheet at ContentView level so the user
     // can configure API keys / models even before opening a sequence.
     var showingAIServices = false
+    // Tools → Test. Drives controllers with the shared core test engine.
+    // Not gated on isSequenceLoaded — testing lights is a show-setup task
+    // that has nothing to do with having a sequence open.
+    var showingLightTest = false
     // CLN-1 — Tools → Cleanup File Locations. Sheet previews the
     // external media files that would be swept into the show folder,
     // then executes (non-undoable, matching desktop). Gated on

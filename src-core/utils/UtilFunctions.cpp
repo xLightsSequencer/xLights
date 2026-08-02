@@ -34,6 +34,8 @@
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
+#include <mach/mach.h>
+#include <mach/task_info.h>
 #endif
 
 #ifdef __linux__
@@ -480,19 +482,11 @@ std::string JSONSafe(const std::string& s) {
     return safe;
 }
 
-// Extract all chars before the first number in the string ... strip it from the input string
-static std::string BeforeInt(std::string& s) {
-    size_t i = 0;
-    while (i < s.size() && (s[i] > '9' || s[i] < '0')) {
-        i++;
-    }
-    if (i == 0) {
-        return "";
-    }
-
-    std::string res = s.substr(0, i);
-    s = s.substr(i);
-    return res;
+// Byte comparison, not std::isdigit: a UTF-8 continuation byte is negative in a
+// signed char and would be UB passed to isdigit. Non-ASCII bytes sort as text,
+// which is what the substring form this replaced did.
+static inline bool IsAsciiDigit(char c) {
+    return c >= '0' && c <= '9';
 }
 
 int intRand(const int& min, const int& max) {
@@ -535,33 +529,53 @@ int ExtractTrailingInt(const std::string& s) {
     return (int)std::strtol(s.substr(i).c_str(), nullptr, 10);
 }
 
+// Walks both strings in place. The previous form copied both arguments and then
+// rebuilt each remainder with substr() on every text/number segment, so a single
+// comparison allocated a dozen times; used as a wxDataViewModel sort comparator
+// over a large tree that dominated the sort.
 int NumberAwareStringCompare(const std::string& a, const std::string& b) {
-    std::string aa = a;
-    std::string bb = b;
+    size_t ai = 0;
+    size_t bi = 0;
 
     while (true) {
-        std::string abi = BeforeInt(aa);
-        std::string bbi = BeforeInt(bb);
+        // Leading run of non-digits from each position, compared as text.
+        const size_t aTextStart = ai;
+        const size_t bTextStart = bi;
+        while (ai < a.size() && !IsAsciiDigit(a[ai])) {
+            ai++;
+        }
+        while (bi < b.size() && !IsAsciiDigit(b[bi])) {
+            bi++;
+        }
+        const std::string_view aText(a.data() + aTextStart, ai - aTextStart);
+        const std::string_view bText(b.data() + bTextStart, bi - bTextStart);
+        if (aText != bText) {
+            return aText < bText ? -1 : 1;
+        }
 
-        if (abi == bbi) {
-            int ia = ExtractInt(aa);
-            int ib = ExtractInt(bb);
+        // Leading run of digits, compared numerically. -1 means "no number
+        // here", which orders before any real value - strtol on a digit run
+        // can't produce a negative, so the sentinel can't collide.
+        const size_t aNumStart = ai;
+        const size_t bNumStart = bi;
+        while (ai < a.size() && IsAsciiDigit(a[ai])) {
+            ai++;
+        }
+        while (bi < b.size() && IsAsciiDigit(b[bi])) {
+            bi++;
+        }
+        // strtol stops at the first non-digit, so it reads exactly the run we
+        // just measured without needing a null-terminated copy of it.
+        const int aNum = (ai == aNumStart) ? -1 : (int)std::strtol(a.c_str() + aNumStart, nullptr, 10);
+        const int bNum = (bi == bNumStart) ? -1 : (int)std::strtol(b.c_str() + bNumStart, nullptr, 10);
+        if (aNum != bNum) {
+            return aNum < bNum ? -1 : 1;
+        }
 
-            if (ia == ib) {
-                if (aa == bb) {
-                    return 0;
-                }
-            } else {
-                if (ia < ib) {
-                    return -1;
-                }
-                return 1;
-            }
-        } else {
-            if (abi < bbi) {
-                return -1;
-            }
-            return 1;
+        // Both segments matched. Only an empty remainder on both sides can be
+        // equal without consuming anything, so this always terminates.
+        if (ai >= a.size() && bi >= b.size()) {
+            return 0;
         }
     }
 }
@@ -652,6 +666,56 @@ uint64_t GetPhysicalMemorySizeMB() {
 #endif
     ret /= 1024; // -> MB
     return ret;
+}
+
+uint64_t GetProcessMemoryUsageMB() {
+#if defined(_WIN32)
+    PROCESS_MEMORY_COUNTERS_EX mc;
+    mc.cb = sizeof(mc);
+    if (::GetProcessMemoryInfo(::GetCurrentProcess(), (PPROCESS_MEMORY_COUNTERS)&mc, sizeof(mc)) != 0) {
+        return (uint64_t)mc.PrivateUsage / (1024 * 1024);
+    }
+    return 0;
+#elif defined(__APPLE__)
+    task_vm_info_data_t info;
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS) {
+        return (uint64_t)info.phys_footprint / (1024 * 1024);
+    }
+    return 0;
+#elif defined(__linux__)
+    // statm's second field is resident pages.
+    std::ifstream f("/proc/self/statm");
+    uint64_t total = 0, resident = 0;
+    if (f >> total >> resident) {
+        return resident * (uint64_t)getpagesize() / (1024 * 1024);
+    }
+    return 0;
+#else
+    return 0;
+#endif
+}
+
+uint64_t GetProcessMemoryLimitMB() {
+#if defined(__APPLE__)
+    // limit_bytes_remaining is what os_proc_available_memory() reports (that
+    // API is iOS-only; this struct is not), and it lands in task_vm_info from
+    // REV4 on — `count` says how much the kernel actually filled.
+    task_vm_info_data_t info;
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS
+        && count >= TASK_VM_INFO_REV4_COUNT
+        && info.limit_bytes_remaining != 0) {
+        const uint64_t limitMB = (uint64_t)(info.phys_footprint + info.limit_bytes_remaining) / (1024 * 1024);
+        // A ceiling at or above installed RAM is the kernel saying there is no
+        // meaningful per-process cap — which is the normal desktop answer.
+        const uint64_t physMB = GetPhysicalMemorySizeMB();
+        if (physMB != 0 && limitMB < physMB) {
+            return limitMB;
+        }
+    }
+#endif
+    return 0;
 }
 
 std::string GetCPUBrand() {

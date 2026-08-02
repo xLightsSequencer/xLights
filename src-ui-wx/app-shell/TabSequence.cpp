@@ -739,7 +739,7 @@ void xLightsFrame::LoadPerspectivesMenu()
     for (auto& p : _perspectives) {
         if (!p.name.empty()) {
             int id = wxNewId();
-            MenuItemPerspectives->AppendRadioItem(id, p.name);
+            MenuItemPerspectives->AppendCheckItem(id, p.name);
             if (mCurrentPerpective != nullptr && p.name == mCurrentPerpective->name)
                 MenuItemPerspectives->Check(id, true);
             PerspectiveId pmenu;
@@ -1440,6 +1440,10 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         _renderMode = false;
         EnableSequenceControls(true);
         spdlog::debug("Batch render done.");
+        if (_batchRenderStarted) {
+            spdlog::info("Batch render total time: {:.3f} seconds.", _batchRenderStopWatch.Time() / 1000.0);
+            _batchRenderStarted = false;
+        }
         printf("Done All Files\n");
         wxBell();
 
@@ -1470,6 +1474,10 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         _lowDefinitionRender = _saveLowDefinitionRender;
         _renderMode = false;
         EnableSequenceControls(true);
+        if (_batchRenderStarted) {
+            spdlog::info("Batch render total time: {:.3f} seconds (cancelled).", _batchRenderStopWatch.Time() / 1000.0);
+            _batchRenderStarted = false;
+        }
         printf("Batch render cancelled.\n");
 
         auto* config = GetXLightsConfig();
@@ -1495,6 +1503,11 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     }
 
     EnableSequenceControls(false);
+
+    if (!_batchRenderStarted) {
+        _batchRenderStarted = true;
+        _batchRenderStopWatch.Start();
+    }
 
     wxArrayString fileNames = origFilenames;
     wxString seq = fileNames[0];

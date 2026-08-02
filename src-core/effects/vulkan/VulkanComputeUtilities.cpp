@@ -110,6 +110,8 @@
 #include "shaders/compiled/GarlandsEffect.spv.h"
 #include "shaders/compiled/FillEffect.spv.h"
 #include "shaders/compiled/MeteorsEffect.spv.h"
+#include "shaders/compiled/MeteorsRadialScatter.spv.h"
+#include "shaders/compiled/MeteorsRadialResolve.spv.h"
 #include "shaders/compiled/TwinkleEffect.spv.h"
 #include "shaders/compiled/LifeEffect.spv.h"
 
@@ -551,6 +553,7 @@ void VulkanComputeUtilities::doInit() {
                                        &u.treeEffectFunction, &u.shimmerEffectFunction,
                                        &u.candleEffectFunction, &u.waveEffectFunction,
                                        &u.garlandsEffectFunction, &u.fillEffectFunction, &u.meteorsEffectFunction,
+                                       &u.meteorsRadialScatterFunction, &u.meteorsRadialResolveFunction,
                                        &u.twinkleEffectFunction, &u.lifeEffectFunction,
                                        &u.fireAdvanceEffectFunction, &u.fireDrawEffectFunction }) {
                     if (*p != VK_NULL_HANDLE) {
@@ -816,6 +819,8 @@ bool VulkanComputeUtilities::buildPipelines() {
     XLVK_PIPELINE(garlandsEffectFunction, GarlandsEffect)
     XLVK_PIPELINE(fillEffectFunction, FillEffect)
     XLVK_PIPELINE(meteorsEffectFunction, MeteorsEffect)
+    XLVK_PIPELINE(meteorsRadialScatterFunction, MeteorsRadialScatter)
+    XLVK_PIPELINE(meteorsRadialResolveFunction, MeteorsRadialResolve)
     XLVK_PIPELINE(twinkleEffectFunction, TwinkleEffect)
     XLVK_PIPELINE(lifeEffectFunction, LifeEffect)
     XLVK_PIPELINE(fireAdvanceEffectFunction, FireAdvanceEffect)

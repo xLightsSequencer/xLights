@@ -17,6 +17,7 @@
 #include <unordered_map>
 
 #include "Parallel.h"
+#include "RangeWorkPool.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_STDIO // we handle file I/O ourselves
@@ -397,7 +398,7 @@ void xlImage::Rescale(int newWidth, int newHeight) {
                           resized, newWidth, newHeight, newWidth * 4,
                           STBIR_RGBA, STBIR_TYPE_UINT8);
 
-        int numThreads = ParallelJobPool::POOL.maxSize();
+        int numThreads = ParallelForPool().Workers();
         if (numThreads < 2) numThreads = 2;
         int actualSplits = stbir_build_samplers_with_splits(&resize, numThreads);
 

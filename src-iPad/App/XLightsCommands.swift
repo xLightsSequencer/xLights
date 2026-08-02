@@ -386,6 +386,12 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // Tools → Test (desktop PixelTestDialog). Show-setup task, so
+            // it stays enabled with no sequence open.
+            Button("Test Lights…") {
+                viewModel.showingLightTest = true
+            }
+
             // Desktop Tools ▸ "Effect Symbols" + "Convert All Symbols to
             // Effects" (xLightsMain.cpp). Creating / linking is on the
             // grid's effect menu, matching desktop's right-click.

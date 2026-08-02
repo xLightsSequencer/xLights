@@ -315,6 +315,13 @@ struct ContentView: View {
                 .environment(viewModel)
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingLightTest },
+            set: { viewModel.showingLightTest = $0 }
+        )) {
+            LightTestSheet()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingRestoreBackup },
             set: { viewModel.showingRestoreBackup = $0 }
         )) {
@@ -996,7 +1003,7 @@ struct ShowFolderSetupView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("xLights")
+            Text("xLights™")
                 .font(.largeTitle)
             if isRestoring {
                 ProgressView()

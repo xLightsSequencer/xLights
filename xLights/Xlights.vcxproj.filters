@@ -79,6 +79,8 @@
     <ClCompile Include="..\src-ui-wx\shared\utils\NodesGridCellEditor.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\NoteImportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\dialogs\OptionChooser.cpp" />
+    <ClCompile Include="..\src-core\outputs\ChannelTracker.cpp" />
+    <ClCompile Include="..\src-core\outputs\TestPatternEngine.cpp" />
     <ClCompile Include="..\src-core\outputs\TestPreset.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\PerspectivesPanel.cpp" />
     <ClCompile Include="..\src-core\lyrics\LRCParser.cpp" />
@@ -239,6 +241,7 @@
     <ClCompile Include="..\src-core\models\ModelSetManager.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\models\SubModelOps.cpp" />
     <ClCompile Include="..\src-core\models\Model.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -1145,6 +1148,9 @@
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
       <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPatternPresetBitmapButton.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.cpp" />
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp">
       <Filter>Effects\ispc</Filter>
@@ -1624,6 +1630,8 @@
     <ClInclude Include="..\src-ui-wx\sequencer\NoteImportDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\dialogs\OptionChooser.h" />
     <ClInclude Include="..\src-core\utils\ExternalHooks.h" />
+    <ClInclude Include="..\src-core\outputs\ChannelTracker.h" />
+    <ClInclude Include="..\src-core\outputs\TestPatternEngine.h" />
     <ClInclude Include="..\src-core\outputs\TestPreset.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\PerspectivesPanel.h" />
     <ClInclude Include="..\src-core\lyrics\LRCParser.h" />
@@ -3089,6 +3097,9 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\shared\dialogs\CheckboxSelectDialog.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPatternPresetBitmapButton.h">
       <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.h">

@@ -399,6 +399,7 @@ const long LayoutPanel::ID_TREELISTVIEW_MODELS = wxNewId();
 const long LayoutPanel::ID_TREELISTVIEW_GROUPS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_REPLACEMODEL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESET = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODELS_NOT_ON_CONTROLLER = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN = wxNewId();
 const long LayoutPanel::ID_PREVIEW_RESIZE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_NODELAYOUT = wxNewId();
@@ -3852,6 +3853,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                 m->Selected(false);
                 m->Highlighted(false);
                 m->GroupSelected(false);
+                m->NotOnController = false;
                 m->SelectHandle();
                 m->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
 
@@ -4869,7 +4871,9 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
             if (m_lastClickWasCentreCycle) {
                 return;
             }
-            EditSubmodels();
+            if (xlights->GetLayoutDoubleClickAction() == "Faces/States/Submodels") {
+                EditSubmodels();
+            }
             return;
         }
         if (editing_models) {
@@ -5320,6 +5324,20 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
 
 void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
+    if (IsControllersPageActive()) {
+        bool clearedNotOnController = false;
+        for (auto m : modelPreview->GetModels()) {
+            if (m->NotOnController) {
+                m->NotOnController = false;
+                clearedNotOnController = true;
+            }
+        }
+        if (clearedNotOnController) {
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+                "LayoutPanel::OnPreviewLeftDown::ClearNotOnController");
+        }
+    }
+
     if (m_polyline_active)
     {
         Model *m = _newModel;
@@ -7172,8 +7190,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         obj = selectedBaseObject;
         if (obj == nullptr) return;
     }
-    Model* m = dynamic_cast<Model*>(obj);
-
+    
     if (m_moving_handle) {
         if (!xlights->AbortRender()) return;
         if (m_dragSession) {
@@ -7672,6 +7689,11 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         }
     }
 
+    if (IsControllersPageActive()) {
+        mnu.AppendSeparator();
+        mnu.Append(ID_PREVIEW_MODELS_NOT_ON_CONTROLLER, _("Show Models Not On Controller"));
+    }
+
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
     PopupMenu(&mnu);
     modelPreview->SetFocus();
@@ -7682,6 +7704,14 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
     if (event.GetId() == ID_PREVIEW_RESET) {
         modelPreview->Reset();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_RESET");
+    } else if (event.GetId() == ID_PREVIEW_MODELS_NOT_ON_CONTROLLER) {
+        UnSelectAllModels();
+        for (auto m : modelPreview->GetModels()) {
+            const std::string& controllerName = m->GetControllerName();
+            m->NotOnController = !m->IsShadowModel() && (controllerName.empty() || controllerName == NO_CONTROLLER);
+        }
+        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+            "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODELS_NOT_ON_CONTROLLER");
     } else if (event.GetId() == ID_PREVIEW_MODEL_LINKASSET) {
         DoLinkAsSet();
     } else if (event.GetId() == ID_PREVIEW_MODEL_ADDTOSET) {
@@ -7853,6 +7883,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         glm::vec3 ray_direction;
         GetMouseLocation(m_previous_mouse_x, m_previous_mouse_y, ray_origin, ray_direction);
         auto mg = GetSelectedModelGroup();
+        // The menu was built against a group that can be gone by the time the item
+        // is clicked - or the group panel hidden, which makes this return null.
+        // Same check the menu-build side already does.
+        if (!xlights->AllModels.IsModelValid(mg) || mg == nullptr) {
+            return;
+        }
         modelPreview->SetCenterOffset(mg, ray_origin.x, ray_origin.y);
         mg->RebuildBuffers();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -8901,6 +8937,14 @@ int LayoutPanel::GetSelectedModelIndex() const
 Model* LayoutPanel::GetModelFromTreeItem(wxTreeListItem treeItem) {
     ModelTreeData *data = (ModelTreeData*)ActiveModelTree()->GetItemData(treeItem);
     Model* model = ((data != nullptr) ? data->GetModel() : nullptr);
+    // A queued tree selection-changed event can be delivered after the model it
+    // referenced was deleted or the tree was refreshed, leaving the item holding
+    // a freed Model*. Validate before returning so callers that dereference the
+    // result (e.g. HandleSelectionChanged's force-select and panel-display paths)
+    // can't crash on a stale pointer.
+    if (model != nullptr && !xlights->AllModels.IsModelValid(model)) {
+        return nullptr;
+    }
     return model;
 }
 
@@ -10614,7 +10658,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 }
                 SelectModel(undoBuffer[sz].model);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                              OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "SingleObject") {
             spdlog::debug("LayoutPanel::DoUndo SingleObject");
@@ -10633,7 +10678,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 }
                 SelectModel(undoBuffer[sz].model);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                              OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "All") {
             spdlog::debug("LayoutPanel::DoUndo All");
@@ -12011,6 +12057,12 @@ void LayoutPanel::HideFloatingPanes() {
         }
     }
     if (!hasFloating) return;
+    for (size_t i = 0; i < panes.GetCount(); i++) {
+        if (panes[i].IsOk() && panes[i].IsFloating() && panes[i].frame != nullptr && panes[i].frame->IsShown()) {
+            panes[i].floating_pos = panes[i].frame->GetPosition();
+            panes[i].floating_size = panes[i].frame->GetSize();
+        }
+    }
     _savedFloatingPerspective = layout_mgr->SavePerspective();
     for (size_t i = 0; i < panes.GetCount(); i++) {
         if (panes[i].IsFloating() && panes[i].IsShown()) {
@@ -12943,6 +12995,12 @@ void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
         return;
     }
     const ObjectsPage page = CurrentObjectsPage();
+    if (page != ObjectsPage::Controllers) {
+        // "Models not on Controller" highlight only makes sense on the Controllers page.
+        for (auto m : modelPreview->GetModels()) {
+            m->NotOnController = false;
+        }
+    }
     // The Controllers page edits view objects too - controller placement boxes.
     // IsObjectEditable() keeps each page to its own subset of AllObjects.
     editing_models = (page != ObjectsPage::Objects && page != ObjectsPage::Controllers);

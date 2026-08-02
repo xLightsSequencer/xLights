@@ -375,6 +375,8 @@ void AccumulateVideoEffectDecodeSize(Effect* eff, Model* model, SequenceElements
 
     const int w = bw * 100 / minSpanX;
     const int h = bh * 100 / minSpanY;
+    spdlog::debug("VideoEffect decode size: '{}' buffer {}x{} crop span {}%x{}% -> decode {}x{}",
+                  resolved, bw, bh, minSpanX, minSpanY, w, h);
     VideoDecodeSizeRegistry::SetMaxDecodeSize(resolved, w, h);
 }
 } // namespace
@@ -445,7 +447,7 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
 
     // Resolve broken paths first, then convert to relative for portability
     std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
-    if (!file.empty() && !FileExists(file)) {
+    if (!file.empty() && !FileUtils::CachedFileExists(file)) {
         std::string fixed = FileUtils::FixFile("", file);
         if (!fixed.empty() && fixed != file) {
             settings["E_FILEPICKERCTRL_Video_Filename"] = fixed;
@@ -454,7 +456,7 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
     }
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
+            if (!FileUtils::CachedFileExists(file)) {
                 std::string fixed = FileUtils::FixFile("", file);
                 std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_Video_Filename"] = rel.empty() ? fixed : rel;

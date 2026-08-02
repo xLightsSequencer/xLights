@@ -10,6 +10,7 @@
 
 #import "XLSequenceDocument.h"
 #import "XLGridMetalBridge.h"
+#import "XLLightTest+Internal.h"
 #import <CoreGraphics/CoreGraphics.h>
 #include "iPadRenderContext.h"
 
@@ -65,6 +66,7 @@
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
+#include "models/SubModelOps.h"
 #include "models/ViewObject.h"
 #include "models/ViewObjectManager.h"
 #include "models/MeshObject.h"
@@ -228,6 +230,9 @@ static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
 
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
+    // Lazily built by -lightTest; holds the test channel selection so it
+    // survives the sheet being dismissed and reopened.
+    XLLightTest* _lightTest;
     // Snapshot of `SequenceElements::GetChangeCount()` at the last
     // successful load / save. Current count == snapshot ⇒ clean.
     unsigned int _lastSavedChangeCount;
@@ -6463,6 +6468,105 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     return (NSInteger)m->GetNodeCount();
 }
 
+- (nullable NSString*)exportSubmodelsCSVForModel:(NSString*)parentName {
+    if (!_context || !_context->HasModelManager() || !parentName) return nil;
+    Model* m = _context->GetModelManager()[std::string(parentName.UTF8String)];
+    if (!m) return nil;
+
+    std::vector<submodel_ops::SubModelSpec> specs;
+    for (Model* sub : m->GetSubModels()) {
+        if (sub == nullptr) continue;
+        SubModel* sm = dynamic_cast<SubModel*>(sub);
+        if (sm == nullptr) continue;
+
+        submodel_ops::SubModelSpec spec;
+        spec.name = sm->GetName();
+        spec.isRanges = sm->IsRanges();
+        spec.vertical = sm->IsVertical();
+        spec.bufferStyle = sm->GetSubModelBufferStyle();
+        if (spec.isRanges) {
+            const int n = sm->GetNumRanges();
+            for (int i = 0; i < n; ++i) {
+                spec.strands.push_back(sm->GetRange(i));
+            }
+        } else {
+            spec.subBuffer = sm->GetSubModelLines();
+        }
+        specs.push_back(std::move(spec));
+    }
+
+    return [NSString stringWithUTF8String:submodel_ops::ExportSubModelsCSV(specs).c_str()];
+}
+
+- (nullable NSArray<NSString*>*)applySubmodelOperation:(NSString*)op
+                                             toStrands:(NSArray<NSString*>*)strands
+                                             nodeCount:(NSInteger)nodeCount
+                                            displayRow:(NSInteger)displayRow
+                                                amount:(NSInteger)amount {
+    if (!op || !strands) return nil;
+
+    std::vector<std::string> s;
+    s.reserve(strands.count);
+    for (NSString* r in strands) {
+        if ([r isKindOfClass:[NSString class]]) {
+            s.emplace_back(r.UTF8String);
+        }
+    }
+
+    const std::string name = op.UTF8String;
+    const int row = (int)displayRow;
+
+    if (name == "reverse") {
+        submodel_ops::ReverseNodes(s, (int)nodeCount);
+    } else if (name == "shift") {
+        submodel_ops::ShiftNodes(s, (int)nodeCount, (int)amount);
+    } else if (name == "flip-horizontal") {
+        submodel_ops::FlipHorizontal(s);
+    } else if (name == "flip-vertical") {
+        submodel_ops::FlipVertical(s);
+    } else if (name == "pivot") {
+        submodel_ops::PivotRowsColumns(s);
+    } else if (name == "combine") {
+        submodel_ops::CombineStrands(s);
+    } else if (name == "uniform-distribute") {
+        submodel_ops::MakeRowsUniform(s, submodel_ops::PadMode::Distribute);
+    } else if (name == "uniform-front") {
+        submodel_ops::MakeRowsUniform(s, submodel_ops::PadMode::Front);
+    } else if (name == "uniform-rear") {
+        submodel_ops::MakeRowsUniform(s, submodel_ops::PadMode::Rear);
+    } else if (name == "remove-duplicates-row") {
+        submodel_ops::RemoveDuplicatesInRow(s, row, false);
+    } else if (name == "suppress-duplicates-row") {
+        submodel_ops::RemoveDuplicatesInRow(s, row, true);
+    } else if (name == "remove-duplicates-lr") {
+        submodel_ops::RemoveAllDuplicates(s, true, false);
+    } else if (name == "remove-duplicates-tb") {
+        submodel_ops::RemoveAllDuplicates(s, false, false);
+    } else if (name == "suppress-duplicates-lr") {
+        submodel_ops::RemoveAllDuplicates(s, true, true);
+    } else if (name == "suppress-duplicates-tb") {
+        submodel_ops::RemoveAllDuplicates(s, false, true);
+    } else if (name == "expand") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::ExpandStrand);
+    } else if (name == "compress") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::CompressStrand);
+    } else if (name == "blanks-to-zeros") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::BlanksToZeros);
+    } else if (name == "zeros-to-blanks") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::ZerosToBlanks);
+    } else if (name == "remove-blanks-zeros") {
+        submodel_ops::TransformAllStrands(s, submodel_ops::RemoveBlanksAndZeros);
+    } else {
+        return nil;
+    }
+
+    NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:s.size()];
+    for (const auto& r : s) {
+        [out addObject:[NSString stringWithUTF8String:r.c_str()]];
+    }
+    return out;
+}
+
 - (nullable NSDictionary*)nodeLayoutForModel:(NSString*)modelName {
     if (!_context || !_context->HasModelManager() || !modelName) return nil;
     Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
@@ -12152,6 +12256,14 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (void)stopOutput {
     _context->GetOutputManager().StopOutput();
+}
+
+- (XLLightTest*)lightTest {
+    if (_lightTest == nil && _context != nullptr) {
+        _lightTest = [[XLLightTest alloc] initWithOutputManager:&_context->GetOutputManager()
+                                                   modelManager:&_context->GetModelManager()];
+    }
+    return _lightTest;
 }
 
 - (NSArray<NSDictionary*>*)globalOutputSettings {
@@ -18771,7 +18883,7 @@ NSString* fppTypeString(FPP_TYPE t) {
             // transcoder is its own object, so AddFrameToUpload is
             // safe to run concurrently across targets. `dispatch_apply`
             // blocks until every closure returns — matches desktop's
-            // `parallel_for(instances, func)` semantics.
+            // `parallel_for(0, targets.size(), ...)` semantics.
             //
             // Block captures default to const, which would make the
             // captured std::vector unmodifiable inside. Reach mutable

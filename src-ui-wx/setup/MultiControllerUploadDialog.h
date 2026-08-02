@@ -12,12 +12,16 @@
 
 //(*Headers(MultiControllerUploadDialog)
 #include <wx/button.h>
-#include <wx/checklst.h>
 #include <wx/dialog.h>
+#include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 //*)
+
+#include <wx/timer.h>
+
+#include "layout/ControllerTreeUtils.h"
 
 class xLightsFrame;
 class Controller;
@@ -26,7 +30,14 @@ class MultiControllerUploadDialog : public wxDialog
 {
 	xLightsFrame* _frame = nullptr;
 	std::vector <Controller*> _controllers;
+	ControllerTree::ControllerLedIcons _pingIcons;
+	int _resultIconProcessing = -1;
+	int _resultIconSuccess = -1;
+	int _resultIconFailure = -1;
+	wxTimer _pingRefreshTimer;
 	void ValidateWindow();
+	wxArrayInt GetCheckedRows() const;
+	void RefreshPingIcons();
 
 public:
 
@@ -36,7 +47,7 @@ public:
 	//(*Declarations(MultiControllerUploadDialog)
 	wxButton* Button_Cancel;
 	wxButton* Button_Upload;
-	wxCheckListBox* CheckListBox_Controllers;
+	wxListCtrl* ListCtrl_Controllers;
 	wxStaticText* StaticText1;
 	wxTextCtrl* TextCtrl_Log;
 	//*)
@@ -45,7 +56,7 @@ protected:
 
 	//(*Identifiers(MultiControllerUploadDialog)
 	static const long ID_STATICTEXT1;
-	static const long ID_CHECKLISTBOX1;
+	static const long ID_LISTCTRL_CONTROLLERS;
 	static const long ID_BUTTON1;
 	static const long ID_BUTTON2;
 	static const long ID_TEXTCTRL1;
@@ -62,7 +73,7 @@ private:
 	//(*Handlers(MultiControllerUploadDialog)
 	void OnButton_UploadClick(wxCommandEvent& event);
 	void OnButton_CancelClick(wxCommandEvent& event);
-	void OnCheckListBox_ControllersToggled(wxCommandEvent& event);
+	void OnListCtrl_ControllersItemChecked(wxListEvent& event);
 	//*)
 
 	void OnListRClick(wxContextMenuEvent& event);

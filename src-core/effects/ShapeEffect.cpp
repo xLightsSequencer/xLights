@@ -1270,7 +1270,7 @@ void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, boo
     std::string file = settings["E_FILEPICKERCTRL_SVG"];
     if (!file.empty()) {
         if (std::filesystem::path(file).is_absolute()) {
-            if (!FileExists(file, false)) {
+            if (!FileUtils::CachedFileExists(file)) {
                 std::string fixed = FileUtils::FixFile("", file);
                 std::string rel = FileUtils::MakeRelativeFile(fixed);
                 settings["E_FILEPICKERCTRL_SVG"] = rel.empty() ? fixed : rel;

@@ -1502,7 +1502,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPoints(xlVertexAccumulator *vac, 
     return this;
 }
 xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexAccumulator *vac, const xlColor &c, int start, int count) {
-    if (vac->getCount() == 0) {
+    if (vac == nullptr || vac->getCount() == 0) {
         return this;
     }
     if (type == MTLPrimitiveTypePoint && frameData.renderType == RenderTypePointsSmooth) {
@@ -1569,7 +1569,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPoints(xlVertexColorAccumulator *
 }
 
 xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexColorAccumulator *vac, int start, int count) {
-    if (vac->getCount() == 0) {
+    if (vac == nullptr || vac->getCount() == 0) {
         return this;
     }
     if (type == MTLPrimitiveTypePoint && frameData.renderType == RenderTypePointsSmooth) {
@@ -1634,7 +1634,7 @@ xlGraphicsContext* xlMetalGraphicsContext::drawPoints(xlVertexIndexedColorAccumu
 
 
 xlGraphicsContext* xlMetalGraphicsContext::drawPrimitive(MTLPrimitiveType type, xlVertexIndexedColorAccumulator *vac, int start, int count) {
-    if (vac->getCount() == 0) {
+    if (vac == nullptr || vac->getCount() == 0) {
         return this;
     }
     if (type == MTLPrimitiveTypePoint && frameData.renderType == RenderTypePointsSmooth) {

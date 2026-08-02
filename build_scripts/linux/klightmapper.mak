@@ -6,8 +6,15 @@
 # is a required, auto-fetched dependency: the Makefile's `klightmapper` target
 # downloads libklightmapper.so + the headers before the build, so these flags are
 # added unconditionally. Paths are relative to the xLights/ build dir.
+
+MISSING_LIBAV := $(shell ldd ../lib/linux/libklightmapper.so | grep "libavformat.*not found")
+
 INC_LINUX_DEBUG   += -I../include/klightmapper
 INC_LINUX_RELEASE += -I../include/klightmapper
+
+ifeq ($(strip $(MISSING_LIBAV)),)
+INC_LINUX_DEBUG   += -DXLIGHTS_HAVE_KLIGHTMAPPER=1
+INC_LINUX_RELEASE += -DXLIGHTS_HAVE_KLIGHTMAPPER=1
 # Link the shared lib and bake in an $ORIGIN-relative RUNPATH so the binary finds
 # libklightmapper.so both from the dev tree (bin/xLights -> ../lib/linux) and when
 # installed (usr/bin/xLights -> ../lib, where the Makefile install target drops
@@ -15,3 +22,4 @@ INC_LINUX_RELEASE += -I../include/klightmapper
 # shell from touching it.
 LIB_LINUX_DEBUG   += -L../lib/linux -lklightmapper -Wl,-rpath,'$$ORIGIN/../lib/linux' -Wl,-rpath,'$$ORIGIN/../lib'
 LIB_LINUX_RELEASE += -L../lib/linux -lklightmapper -Wl,-rpath,'$$ORIGIN/../lib/linux' -Wl,-rpath,'$$ORIGIN/../lib'
+endif

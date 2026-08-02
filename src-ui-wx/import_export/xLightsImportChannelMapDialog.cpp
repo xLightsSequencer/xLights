@@ -261,10 +261,14 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
             int idx2 = findChildIndex(node2->GetParent(), node2->_strand);
             return idx1 - idx2;
         } else {
+            // GetModel() returns the name by value as a wxString, so going
+            // through it here cost two UTF-8 round trips per argument on every
+            // comparison. The node already holds the std::string the comparator
+            // wants.
             if (ascending) {
-                return NumberAwareStringCompare(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+                return NumberAwareStringCompare(node1->_model, node2->_model);
             } else {
-                return NumberAwareStringCompareRev(GetModel(item1).ToStdString(), GetModel(item2).ToStdString());
+                return NumberAwareStringCompareRev(node1->_model, node2->_model);
             }
         }
     }

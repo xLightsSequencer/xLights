@@ -92,6 +92,7 @@
 #include "import_export/ModelRemap.h"
 #include "setup/MultiControllerUploadDialog.h"
 #include "Parallel.h"
+#include "utils/RangeWorkPool.h"
 #include "model/PathGenerationDialog.h"
 #include "setup/PixelTestDialog.h"
 #include "sequencer/RenderCommandEvent.h"
@@ -2152,6 +2153,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsModelRename", &_aliasRenameBehavior, "Always Prompt");
     spdlog::debug("Model Rename Behavior: {}.", (const char*)_aliasRenameBehavior.c_str());
 
+    config->Read("xLightsLayoutDoubleClickAction", &_layoutDoubleClickAction, "Faces/States/Submodels");
+    spdlog::debug("Layout double-click action: {}.", (const char*)_layoutDoubleClickAction.c_str());
+
     std::thread th([this]() {
         try {
             xlCrashHandler::SetupCrashHandlerForNonWxThread();
@@ -2670,7 +2674,7 @@ void xLightsFrame::LogPerspective(const wxString& perspective) const
 
 void xLightsFrame::OnAbout(wxCommandEvent& event)
 {
-    wxString hdg = wxString::Format(_("About xLights %s"), GetDisplayVersionString());
+    wxString hdg = wxString::Format(_(L"About xLights\u2122 %s"), GetDisplayVersionString());
     wxString ver = wxString::Format(_("Version: %s\n%s"), GetDisplayVersionString(), wxVERSION_STRING);
 #if defined(_MSC_VER)
     ver += wxString::Format("\nVisual C++ %d" ,_MSC_VER);
@@ -2773,6 +2777,18 @@ void xLightsFrame::ResetAllSequencerWindows()
     }
 }
 
+void xLightsFrame::SyncFloatingPanePositions()
+{
+    if (m_mgr == nullptr) return;
+    wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
+    for (size_t x = 0; x < info.size(); x++) {
+        if (info[x].IsOk() && info[x].IsFloating() && info[x].frame != nullptr && info[x].frame->IsShown()) {
+            info[x].floating_pos = info[x].frame->GetPosition();
+            info[x].floating_size = info[x].frame->GetSize();
+        }
+    }
+}
+
 void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 {
 
@@ -2780,30 +2796,34 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
     spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows");
 
     if (m_mgr == nullptr) {
-        spdlog::critical("ShowHideAllSequencerWindows m_mgr is null ... this is going to crash");
+        spdlog::critical("ShowHideAllSequencerWindows m_mgr is null ... nothing to show or hide");
+        return;
     }
+    SyncFloatingPanePositions();
     wxAuiPaneInfoArray& info = m_mgr->GetAllPanes();
     bool update = false;
-    if (show && savedPaneShown.size() > 0) {
-        spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - show {} {}", (int)info.size(), (int)savedPaneShown.size());
-        for (size_t x = 0; x < info.size(); x++) {
-            spdlog::debug("     {}", (const char*)info[x].name.c_str());
-            if (info[x].IsOk() &&
-                savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
-                savedPaneShown[info[x].name]) {
-                if (info[x].frame != nullptr) {
-                    // Mirror of the Hide() above - restore the pane state too, or
-                    // Update() below would immediately re-hide the frame.
-                    info[x].Show();
-                    info[x].frame->Show();
-                    // On macOS, Cocoa repositions native floating frames during
-                    // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
-                    // reapplies floating_pos/floating_size from the pane info.
-                    update = true;
+    if (show) {
+        if (savedPaneShown.size() > 0) {
+            spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - show {} {}", (int)info.size(), (int)savedPaneShown.size());
+            for (size_t x = 0; x < info.size(); x++) {
+                spdlog::debug("     {}", (const char*)info[x].name.c_str());
+                if (info[x].IsOk() &&
+                    savedPaneShown.find(info[x].name) != savedPaneShown.end() &&
+                    savedPaneShown[info[x].name]) {
+                    if (info[x].frame != nullptr) {
+                        // Mirror of the Hide() above - restore the pane state too, or
+                        // Update() below would immediately re-hide the frame.
+                        info[x].Show();
+                        info[x].frame->Show();
+                        // On macOS, Cocoa repositions native floating frames during
+                        // Hide()/Show() cycles. Mark update=true so m_mgr->Update()
+                        // reapplies floating_pos/floating_size from the pane info.
+                        update = true;
+                    }
                 }
             }
+            savedPaneShown.clear();
         }
-        savedPaneShown.clear();
     } else {
         savedPaneShown.clear();
         spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - hide {}", (int)info.size());
@@ -2831,6 +2851,7 @@ void xLightsFrame::ShowHideAllSequencerWindows(bool show)
 
     if (update) {
         spdlog::debug("xLightsFrame::ShowHideAllSequencerWindows - update");
+        SyncFloatingPanePositions();
         m_mgr->Update();
     }
 
@@ -4403,7 +4424,7 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 
     threadStatus += "\n";
     threadStatus += "Parallel Job Pool:\n";
-    threadStatus += ParallelJobPool::POOL.GetThreadStatus();
+    threadStatus += ParallelForPool().GetStatus();
 
     threadStatus += "\n";
     threadStatus += "Thread traces:\n";
@@ -8680,6 +8701,15 @@ void xLightsFrame::SetKeybindingsLocation(const wxString& e)
     config->Write("xLightsKeybindingsLocation", _keybindingsLocation);
     config->Flush();
     spdlog::info("Keybindings location set to {}", _keybindingsLocation.ToStdString());
+}
+
+void xLightsFrame::SetLayoutDoubleClickAction(const wxString& e)
+{
+    _layoutDoubleClickAction = e;
+    auto* config = GetXLightsConfig();
+    config->Write("xLightsLayoutDoubleClickAction", _layoutDoubleClickAction);
+    config->Flush();
+    spdlog::info("Layout double-click action set to {}", _layoutDoubleClickAction.ToStdString());
 }
 
 void xLightsFrame::CollectUserEmail()

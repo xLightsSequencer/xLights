@@ -1001,6 +1001,10 @@ void PixelBufferClass::InitPerModelBuffers(const ModelGroup& model, int layer, i
     for (const auto& it : model.ActiveModels()) {
         Model* m = it;
         assert(m != nullptr);
+        if (m == nullptr) {
+            spdlog::warn("InitPerModelBuffers: skipping null model in group '{}' (stale ActiveModels() entry).", model.GetFullName());
+            continue;
+        }
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
         buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
@@ -1016,6 +1020,10 @@ void PixelBufferClass::InitPerModelBuffersDeep(const ModelGroup& model, int laye
     for (const auto& it : model.GetFlatModels(false, true)) {
         Model* m = it;
         assert(m != nullptr);
+        if (m == nullptr) {
+            spdlog::warn("InitPerModelBuffersDeep: skipping null model in group '{}' (stale GetFlatModels() entry).", model.GetFullName());
+            continue;
+        }
         RenderBuffer* buf = new RenderBuffer(renderContext, this, m);
         buf->SetLayerIndex(layer);
         buf->SetFrameTimeInMs(timing);
@@ -4092,4 +4100,21 @@ bool PixelBufferClass::LayerInfo::isMasked(int x, int y) {
 
 int PixelBufferClass::GetLayerCount() const {
     return layers.size();
+}
+
+uint64_t PixelBufferClass::GetApproxMemoryBytes() const {
+    uint64_t b = 0;
+    for (const auto& l : layers) {
+        if (l == nullptr) {
+            continue;
+        }
+        b += l->buffer.GetApproxMemoryBytes();
+        for (const auto& m : l->shallowModelBuffers) {
+            b += m->GetApproxMemoryBytes();
+        }
+        for (const auto& m : l->deepModelBuffers) {
+            b += m->GetApproxMemoryBytes();
+        }
+    }
+    return b;
 }
