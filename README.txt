@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (dkulp)                 Fix a crash drawing a model preview when a graphics accumulator is null:
+                                 the OpenGL and Metal draw paths now guard null like Vulkan already did
     -bug (derwin12)              Fix typing negative numbers into effect slider/textbox pairs
     -bug (dkulp)                 Fix a crash on app close resetting the effect panels to defaults, and track
                                  effect-panel window lifetime so a destroyed panel can never be reused
