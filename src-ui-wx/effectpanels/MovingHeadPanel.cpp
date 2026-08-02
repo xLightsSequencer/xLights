@@ -54,6 +54,8 @@ const wxWindowID MovingHeadPanel::ID_BUTTON_All = wxNewId();
 const wxWindowID MovingHeadPanel::ID_BUTTON_None = wxNewId();
 const wxWindowID MovingHeadPanel::ID_BUTTON_Evens = wxNewId();
 const wxWindowID MovingHeadPanel::ID_BUTTON_Odds = wxNewId();
+const wxWindowID MovingHeadPanel::ID_BUTTON_Left = wxNewId();
+const wxWindowID MovingHeadPanel::ID_BUTTON_Right = wxNewId();
 const wxWindowID MovingHeadPanel::IDD_CHECKBOX_MH1 = wxNewId();
 const wxWindowID MovingHeadPanel::IDD_CHECKBOX_MH2 = wxNewId();
 const wxWindowID MovingHeadPanel::IDD_CHECKBOX_MH3 = wxNewId();
@@ -226,6 +228,10 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     FlexGridSizer2->Add(Button_Evens, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Button_Odds = new wxButton(this, ID_BUTTON_Odds, _("Odds"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_Odds"));
     FlexGridSizer2->Add(Button_Odds, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Left = new wxButton(this, ID_BUTTON_Left, _("Left"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_Left"));
+    FlexGridSizer2->Add(Button_Left, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_Right = new wxButton(this, ID_BUTTON_Right, _("Right"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(25,-1)), 0, wxDefaultValidator, _T("ID_BUTTON_Right"));
+    FlexGridSizer2->Add(Button_Right, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerFixturesLabel->Add(FlexGridSizer2, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizerFixtures->Add(FlexGridSizerFixturesLabel, 1, wxLEFT|wxRIGHT|wxEXPAND, 5);
     FlexGridSizerFixturesSelection = new wxFlexGridSizer(0, 8, 0, 0);
@@ -655,6 +661,8 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     Connect(ID_BUTTON_None,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_NoneClick);
     Connect(ID_BUTTON_Evens,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_EvensClick);
     Connect(ID_BUTTON_Odds,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_OddsClick);
+    Connect(ID_BUTTON_Left,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_LeftClick);
+    Connect(ID_BUTTON_Right,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_RightClick);
     Connect(IDD_CHECKBOX_MH1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
     Connect(IDD_CHECKBOX_MH2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
     Connect(IDD_CHECKBOX_MH3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHClick);
@@ -1300,8 +1308,16 @@ void MovingHeadPanel::ForceNotebookPageResize(wxNotebook* nb)
     // the outer AUI "Effect" pane had its real geometry -- so the page can be
     // stuck at that stale, too-small size forever afterward. Force it here so it
     // actually fills the notebook's client area the first time it becomes visible.
+    //
+    // Previously this set page->SetSize(wxRect(wxPoint(0,0), clientSz)) directly.
+    // wxNotebook::GetClientSize() here always came back equal to GetSize() --
+    // it wasn't reserving room for the tab strip -- so the page was sized to
+    // cover the tab strip's own screen pixels, painting over the tabs whenever
+    // the page was refreshed (e.g. on every tab change). SendSizeEvent asks the
+    // notebook to redo its own internal page layout (which does know how to
+    // stay clear of its tab strip) instead of us guessing the page's rect.
     if (page->GetSize() != clientSz) {
-        page->SetSize(wxRect(wxPoint(0, 0), clientSz));
+        nb->SendSizeEvent();
         page->Layout();
         if (auto* sw = dynamic_cast<wxScrolledWindow*>(page)) {
             sw->FitInside();
@@ -2203,6 +2219,8 @@ void MovingHeadPanel::UpdateStatusPanel()
     Button_None->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_Evens->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Button_Odds->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    Button_Left->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+    Button_Right->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     wxColor btntext(0, 0, 0);
     if (IsDarkMode()) {
         btntext = wxColor (255, 255, 255);
@@ -2211,6 +2229,8 @@ void MovingHeadPanel::UpdateStatusPanel()
     Button_None->SetForegroundColour(wxColour(btntext));
     Button_Evens->SetForegroundColour(wxColour(btntext));
     Button_Odds->SetForegroundColour(wxColour(btntext));
+    Button_Left->SetForegroundColour(wxColour(btntext));
+    Button_Right->SetForegroundColour(wxColour(btntext));
 
     std::string all_settings = xlEMPTY_STRING;
     // Link is a single effect-wide checkbox, not per-fixture data parsed out of an
@@ -2566,6 +2586,104 @@ void MovingHeadPanel::OnButton_OddsClick(wxCommandEvent& event)
             DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
             int num = mhead->GetFixtureVal();
             if (num % 2 != 0) {
+                wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+                wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+                if (checkbox != nullptr) checkbox->SetValue(true);
+            }
+        }
+    }
+
+    if (selection_changed) {
+        wxCommandEvent _event;
+        OnCheckBox_MHClick(_event);
+    } else {
+        UpdateColorPanel();
+        UpdateStatusPanel();
+    }
+}
+
+void MovingHeadPanel::OnButton_LeftClick(wxCommandEvent& event)
+{
+    auto models = GetActiveModels();
+
+    int count = 0;
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            count++;
+        }
+    }
+    int half = (count + 1) / 2;
+
+    bool selection_changed = false;
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+            int num = mhead->GetFixtureVal();
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if (checkbox != nullptr && checkbox->IsChecked() != (num <= half)) {
+                selection_changed = true;
+                break;
+            }
+        }
+    }
+
+    UncheckAllFixtures();
+
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+            int num = mhead->GetFixtureVal();
+            if (num <= half) {
+                wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+                wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+                if (checkbox != nullptr) checkbox->SetValue(true);
+            }
+        }
+    }
+
+    if (selection_changed) {
+        wxCommandEvent _event;
+        OnCheckBox_MHClick(_event);
+    } else {
+        UpdateColorPanel();
+        UpdateStatusPanel();
+    }
+}
+
+void MovingHeadPanel::OnButton_RightClick(wxCommandEvent& event)
+{
+    auto models = GetActiveModels();
+
+    int count = 0;
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            count++;
+        }
+    }
+    int half = (count + 1) / 2;
+
+    bool selection_changed = false;
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+            int num = mhead->GetFixtureVal();
+            wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
+            wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
+            if (checkbox != nullptr && checkbox->IsChecked() != (num > half)) {
+                selection_changed = true;
+                break;
+            }
+        }
+    }
+
+    UncheckAllFixtures();
+
+    for (const auto& it : models) {
+        if (it->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv || it->GetDisplayAs() == DisplayAsType::DmxMovingHead) {
+            DmxMovingHeadComm* mhead = (DmxMovingHeadComm*)it;
+            int num = mhead->GetFixtureVal();
+            if (num > half) {
                 wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", num);
                 wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
                 if (checkbox != nullptr) checkbox->SetValue(true);
@@ -3293,6 +3411,10 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
         if (button != nullptr) { button->Hide(); }
         button = (wxButton*)(FindWindowByName("ID_BUTTON_Odds"));
         if (button != nullptr) { button->Hide(); }
+        button = (wxButton*)(FindWindowByName("ID_BUTTON_Left"));
+        if (button != nullptr) { button->Hide(); }
+        button = (wxButton*)(FindWindowByName("ID_BUTTON_Right"));
+        if (button != nullptr) { button->Hide(); }
         wxStaticText* text = (wxStaticText*)(FindWindowByName("ID_STATICTEXT_Fixtures"));
         if (text != nullptr) { text->Hide(); }
         for (int i = 1; i <= 8; ++i) {
@@ -3318,6 +3440,10 @@ void MovingHeadPanel::SetPanelStatus(Model* cls)
         button = (wxButton*)(FindWindowByName("ID_BUTTON_Evens"));
         if (button != nullptr) { button->Show(); }
         button = (wxButton*)(FindWindowByName("ID_BUTTON_Odds"));
+        if (button != nullptr) { button->Show(); }
+        button = (wxButton*)(FindWindowByName("ID_BUTTON_Left"));
+        if (button != nullptr) { button->Show(); }
+        button = (wxButton*)(FindWindowByName("ID_BUTTON_Right"));
         if (button != nullptr) { button->Show(); }
         wxStaticText* text = (wxStaticText*)(FindWindowByName("ID_STATICTEXT_Fixtures"));
         if (text != nullptr) { text->Show(); }

@@ -95,11 +95,13 @@ public:
     wxButton* ButtonSavePreset;
     wxButton* Button_All;
     wxButton* Button_Evens;
+    wxButton* Button_Left;
     wxButton* Button_MHPathClear;
     wxButton* Button_MHPathClose;
     wxButton* Button_MHPathContinue;
     wxButton* Button_None;
     wxButton* Button_Odds;
+    wxButton* Button_Right;
     wxButton* Button_ResetToDefault;
     wxCheckBox* CheckBoxAutoShutter;
     wxCheckBox* CheckBox_MHLinkToNext;
@@ -215,6 +217,8 @@ protected:
     static const wxWindowID ID_BUTTON_None;
     static const wxWindowID ID_BUTTON_Evens;
     static const wxWindowID ID_BUTTON_Odds;
+    static const wxWindowID ID_BUTTON_Left;
+    static const wxWindowID ID_BUTTON_Right;
     static const wxWindowID IDD_CHECKBOX_MH1;
     static const wxWindowID IDD_CHECKBOX_MH2;
     static const wxWindowID IDD_CHECKBOX_MH3;
@@ -341,6 +345,8 @@ private:
     void OnButton_NoneClick(wxCommandEvent& event);
     void OnButton_EvensClick(wxCommandEvent& event);
     void OnButton_OddsClick(wxCommandEvent& event);
+    void OnButton_LeftClick(wxCommandEvent& event);
+    void OnButton_RightClick(wxCommandEvent& event);
     void OnButton_MHLeftClick(wxCommandEvent& event);
     void OnButton_MHRightClick(wxCommandEvent& event);
     void OnButton_MHPathContinueClick(wxCommandEvent& event);
