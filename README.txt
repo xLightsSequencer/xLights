@@ -13,6 +13,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.15  August ??, 2026
     -bug (dkulp)                 Fix a crash drawing a model preview when a graphics accumulator is null:
                                  the OpenGL and Metal draw paths now guard null like Vulkan already did
+    -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
+                                 the render engine can render Faces frames in parallel. Blink timing may
+                                 differ slightly from renders made with older releases.
     -bug (derwin12)              Fix typing negative numbers into effect slider/textbox pairs
     -enh (dkulp)                 Sequences open several times faster when they contain many file-based effects
                                  (Pictures, Video, Text, Shader, ...): the per-effect file existence checks are
