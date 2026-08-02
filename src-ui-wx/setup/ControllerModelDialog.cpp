@@ -1998,7 +1998,7 @@ void ControllerModelPrintout::preparePrint()
     _page_setup.SetMarginBottomRight(wxPoint(16, 16));
 }
 
-void ControllerModelPrintout::SetDefaultPageSetup(wxPaperSize paperId, int orient)
+void ControllerModelPrintout::SetDefaultPageSetup(wxPaperSize paperId, wxPrintOrientation orient)
 {
     wxPrintData printdata = _page_setup.GetPrintData();
     printdata.SetPaperId(paperId);

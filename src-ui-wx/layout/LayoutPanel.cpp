@@ -7188,8 +7188,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         obj = selectedBaseObject;
         if (obj == nullptr) return;
     }
-    Model* m = dynamic_cast<Model*>(obj);
-
+    
     if (m_moving_handle) {
         if (!xlights->AbortRender()) return;
         if (m_dragSession) {

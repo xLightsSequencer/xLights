@@ -1665,7 +1665,7 @@ bool xLightsApp::OnInit()
                 } else {
                     allOk = false;
                 }
-                ctx.CloseSequence();
+                if (!ctx.CloseSequence()) allOk = false;
             }
         }
         spdlog::info("--headless: done ({})", allOk ? "success" : "with errors");
