@@ -3563,7 +3563,9 @@ void xLightsFrame::ShowSequenceSettings()
 
     SetAudioControls();
 
-    _sequenceElements.IncrementChangeCount(nullptr);
+    if (dialog.HasSettingsChanged()) {
+        _sequenceElements.IncrementChangeCount(nullptr);
+    }
 }
 
 void xLightsFrame::OnMenu_Settings_SequenceSelected(wxCommandEvent& event)
