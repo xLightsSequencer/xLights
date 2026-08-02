@@ -672,6 +672,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Radial effect wheel popup on empty sequencer-grid double-click for quick keybinding/effect access (ignored on timing
                                  tracks) (#6486).
     -enh (cybercop23)            Effect wheel: center circle now displays an Exit indicator; hovering highlights it red, clicking dismisses the wheel.
+    -enh (cybercop23)            Effect wheel: pages through more than 18 keybindings via a 4-quadrant selector
+                                 in the enlarged center circle, 18 effects per page (up to 72 total).
     -enh (cybercop23)            Shift-drag effect edges in the sequencer grid to adjust fade-in/fade-out times (#6492).
     -enh (agfazio)               Drag/drop effects in the sequencer, including ghost drag-to-move (#6478).
     -enh (agfazio)               Drag rows in the sequencer row header to reorder models and timing tracks (#6493).

@@ -398,14 +398,15 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
 
-        // D. Fetch sequencer-scoped EFFECT keybindings, limit to 18
+        // D. Fetch sequencer-scoped EFFECT keybindings, limit to 72 (paginated
+        // 18 per page by EffectWheelDialog)
         std::vector<const KeyBinding*> effectBindings;
         MainSequencer* ms = dynamic_cast<MainSequencer*>(mParent);
         if (ms != nullptr) {
             for (const auto& kb : ms->keyBindings.GetBindings()) {
                 if (!kb.IsDisabled() && kb.GetType() == "EFFECT" && kb.InScope(KBSCOPE::Sequence)) {
                     effectBindings.push_back(&kb);
-                    if (effectBindings.size() >= 18) {
+                    if (effectBindings.size() >= 72) {
                         break;
                     }
                 }
