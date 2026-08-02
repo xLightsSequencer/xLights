@@ -4871,7 +4871,9 @@ void LayoutPanel::OnPreviewLeftDClick(wxMouseEvent& event)
             if (m_lastClickWasCentreCycle) {
                 return;
             }
-            EditSubmodels();
+            if (xlights->GetLayoutDoubleClickAction() == "Faces/States/Submodels") {
+                EditSubmodels();
+            }
             return;
         }
         if (editing_models) {

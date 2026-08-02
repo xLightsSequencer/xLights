@@ -48,6 +48,7 @@ class OtherSettingsPanel: public wxPanel
 		wxChoice* ChoiceCodec;
 		wxChoice* Choice_AliasPromptBehavior;
 		wxChoice* Choice_KeybindingsLocation;
+		wxChoice* Choice_LayoutDoubleClickAction;
 		wxChoice* Choice_LinkControllerUpload;
 		wxChoice* Choice_MinTipLevel;
 		wxChoice* HardwareVideoRenderChoice;
@@ -60,6 +61,7 @@ class OtherSettingsPanel: public wxPanel
 		wxStaticText* StaticText7;
 		wxStaticText* StaticText8;
 		wxStaticText* StaticText9;
+		wxStaticText* StaticText10;
 		wxTextCtrl* eMailTextControl;
 		//*)
 		// Hand-added (outside the wxSmith guards): preview graphics backend
@@ -100,6 +102,8 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHECKBOX10;
 		static const wxWindowID ID_CHECKBOX11;
 		static const wxWindowID ID_CHECKBOX_CustomColorPicker;
+		static const wxWindowID ID_STATICTEXT_LAYOUTDOUBLECLICKACTION;
+		static const wxWindowID ID_CHOICE_LAYOUTDOUBLECLICKACTION;
 		//*)
 		static const wxWindowID ID_CHOICE_GfxBackend;
 

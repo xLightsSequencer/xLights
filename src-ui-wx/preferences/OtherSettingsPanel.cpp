@@ -57,6 +57,8 @@ const wxWindowID OtherSettingsPanel::ID_CTRLPINGINTERVAL = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX10 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX11 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX_CustomColorPicker = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_STATICTEXT_LAYOUTDOUBLECLICKACTION = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_LAYOUTDOUBLECLICKACTION = wxNewId();
 //*)
 const wxWindowID OtherSettingsPanel::ID_CHOICE_GfxBackend = wxNewId();
 
@@ -78,6 +80,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
     wxFlexGridSizer* FlexGridSizer9;
+    wxFlexGridSizer* FlexGridSizer10;
     wxGridBagSizer* GridBagSizer1;
     wxGridBagSizer* GridBagSizer2;
     wxStaticBoxSizer* StaticBoxSizer1;
@@ -158,7 +161,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     CheckBox_RecycleTips->SetValue(false);
     FlexGridSizer2->Add(CheckBox_RecycleTips, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     StaticBoxSizer3->Add(FlexGridSizer2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(7, 1), wxGBSpan(4, 1), wxALL|wxEXPAND, 0);
+    GridBagSizer1->Add(StaticBoxSizer3, wxGBPosition(7, 1), wxGBSpan(2, 1), wxALL|wxEXPAND, 0);
     FlexGridSizer5 = new wxFlexGridSizer(0, 2, 0, 0);
     StaticText3 = new wxStaticText(this, ID_STATICTEXT2, _("Link controller upload:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
     FlexGridSizer5->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -212,9 +215,17 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     FlexGridSizer4->Add(CheckBox_ShowZoneIndicator, 1, wxALL, 5);
     StaticBoxSizer4->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizer1->Add(StaticBoxSizer4, wxGBPosition(11, 0), wxGBSpan(2, 1), wxALL|wxEXPAND, 0);
-    CheckBox_UseCustomColorPicker = new wxCheckBox(this, ID_CHECKBOX_CustomColorPicker, _("Use custom color picker (experimental)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CustomColorPicker"));
+    CheckBox_UseCustomColorPicker = new wxCheckBox(this, ID_CHECKBOX_CustomColorPicker, _("Use custom color picker"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CustomColorPicker"));
     CheckBox_UseCustomColorPicker->SetValue(false);
-    GridBagSizer1->Add(CheckBox_UseCustomColorPicker, wxGBPosition(13, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    GridBagSizer1->Add(CheckBox_UseCustomColorPicker, wxGBPosition(9, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 0);
+    StaticText10 = new wxStaticText(this, ID_STATICTEXT_LAYOUTDOUBLECLICKACTION, _("Double-click on layout opens:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_LAYOUTDOUBLECLICKACTION"));
+    FlexGridSizer10->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Choice_LayoutDoubleClickAction = new wxChoice(this, ID_CHOICE_LAYOUTDOUBLECLICKACTION, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_LAYOUTDOUBLECLICKACTION"));
+    Choice_LayoutDoubleClickAction->SetSelection( Choice_LayoutDoubleClickAction->Append(_("Faces/States/Submodels")) );
+    Choice_LayoutDoubleClickAction->Append(_("Unassigned"));
+    FlexGridSizer10->Add(Choice_LayoutDoubleClickAction, 1, wxALL|wxEXPAND, 5);
+    GridBagSizer1->Add(FlexGridSizer10, wxGBPosition(11, 1), wxDefaultSpan, wxALL|wxEXPAND, 0);
     SetSizer(GridBagSizer1);
 
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -239,6 +250,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CHECKBOX10, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX11, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX_CustomColorPicker, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHOICE_LAYOUTDOUBLECLICKACTION, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
@@ -258,7 +270,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
         GraphicsBackendChoice->Append(_("Vulkan"));
         GraphicsBackendChoice->SetSelection(0);
         gfxSizer->Add(GraphicsBackendChoice, 1, wxALL | wxEXPAND, 5);
-        GridBagSizer1->Add(gfxSizer, wxGBPosition(14, 0), wxDefaultSpan, wxALL | wxEXPAND, 0);
+        GridBagSizer1->Add(gfxSizer, wxGBPosition(10, 1), wxDefaultSpan, wxALL | wxEXPAND, 0);
         Connect(ID_CHOICE_GfxBackend, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     }
 #endif
@@ -303,6 +315,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetUserEMAIL(eMailTextControl->GetValue());
     frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
     frame->SetKeybindingsLocation(Choice_KeybindingsLocation->GetStringSelection());
+    frame->SetLayoutDoubleClickAction(Choice_LayoutDoubleClickAction->GetStringSelection());
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
     frame->SetControllerPingInterval(CtrlPingInterval->GetValue());
@@ -338,6 +351,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
 	Choice_LinkControllerUpload->SetStringSelection(frame->GetLinkedControllerUpload());
     Choice_AliasPromptBehavior->SetStringSelection(frame->GetRenameModelAliasPromptBehavior());
     Choice_KeybindingsLocation->SetStringSelection(frame->GetKeybindingsLocation());
+    Choice_LayoutDoubleClickAction->SetStringSelection(frame->GetLayoutDoubleClickAction());
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
     CtrlPingInterval->SetValue(frame->GetControllerPingInterval());
