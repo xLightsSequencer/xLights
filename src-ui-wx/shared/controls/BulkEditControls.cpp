@@ -1202,16 +1202,31 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                 long lval = 0;
                 bool ok = GetValue().ToCLong(&lval);
                 auto t = static_cast<int>(lval);
-                if (!ok || s->GetValue() != t)
+                if (!ok)
                 {
-                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    // Mid-typing states (e.g. "-", "" while backspacing) don't parse yet.
+                    // Only snap back to the slider's value once the user is done editing;
+                    // otherwise this fires on every keystroke and clobbers what they're typing.
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%d", s->GetValue());
+                        SetValue(corrected);
+                    }
+                }
+                else
+                {
+                    if (s->GetValue() != t && (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin()))
                     {
                         s->SetValue(t);
-                        if (!ok || (s->GetValue() != t && force))
-                        {
-                            wxString corrected = wxString::Format("%d", s->GetValue());
-                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
-                        }
+                    }
+                    // Re-canonicalize the displayed text from the (possibly clamped)
+                    // slider value once editing is done, even if the slider didn't need
+                    // to move — otherwise a fully-typed, in-range value like "-5" is left
+                    // un-reformatted until something else repaints the field.
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%d", s->GetValue());
+                        if (GetValue() != corrected) ChangeValue(corrected);
                     }
                 }
             }
@@ -1221,16 +1236,24 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                 double dval = 0.0;
                 bool ok = GetValue().ToCDouble(&dval);
                 auto t = static_cast<int>(dval * 10);
-                if (!ok || s->GetValue() != t)
+                if (!ok)
                 {
-                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%.1f", (float)s->GetValue() / 10.0);
+                        SetValue(corrected);
+                    }
+                }
+                else
+                {
+                    if (s->GetValue() != t && (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin()))
                     {
                         s->SetValue(t);
-                        if (!ok || (s->GetValue() != t && force))
-                        {
-                            wxString corrected = wxString::Format("%.1f", (float)s->GetValue() / 10.0);
-                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
-                        }
+                    }
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%.1f", (float)s->GetValue() / 10.0);
+                        if (GetValue() != corrected) ChangeValue(corrected);
                     }
                 }
             }
@@ -1240,16 +1263,24 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                 double dval = 0.0;
                 bool ok = GetValue().ToCDouble(&dval);
                 auto t = static_cast<int>(dval * 100.0);
-                if (!ok || s->GetValue() != t)
+                if (!ok)
                 {
-                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 100.0);
+                        SetValue(corrected);
+                    }
+                }
+                else
+                {
+                    if (s->GetValue() != t && (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin()))
                     {
                         s->SetValue(t);
-                        if (!ok || (s->GetValue() != t && force))
-                        {
-                            wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 100.0);
-                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
-                        }
+                    }
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 100.0);
+                        if (GetValue() != corrected) ChangeValue(corrected);
                     }
                 }
             }
@@ -1259,16 +1290,24 @@ void BulkEditTextCtrl::TextUpdate(bool force)
                 double dval = 0.0;
                 bool ok = GetValue().ToCDouble(&dval);
                 auto t = static_cast<int>(dval * 360.0);
-                if (!ok || s->GetValue() != t)
+                if (!ok)
                 {
-                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 360.0);
+                        SetValue(corrected);
+                    }
+                }
+                else
+                {
+                    if (s->GetValue() != t && (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin()))
                     {
                         s->SetValue(t);
-                        if (!ok || (s->GetValue() != t && force))
-                        {
-                            wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 360.0);
-                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
-                        }
+                    }
+                    if (force)
+                    {
+                        wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 360.0);
+                        if (GetValue() != corrected) ChangeValue(corrected);
                     }
                 }
             }
