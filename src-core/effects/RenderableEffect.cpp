@@ -11,6 +11,7 @@
 #include "RenderableEffect.h"
 
 #include <cstdlib>
+#include <atomic>
 #include <mutex>
 #include <unordered_map>
 #include <spdlog/fmt/fmt.h>
@@ -383,7 +384,11 @@ std::list<std::string> RenderableEffect::CheckEffectSettings(const SettingsMap& 
 // def-independent.  A SettingsMap instance is only ever used by one render
 // thread at a time, which makes the lazy attach safe.
 namespace {
+constexpr char kVCMemoKind = 0;
+
 struct VCMemo : public SettingsMapRenderCache {
+    const void* CacheKind() const override { return &kVCMemoKind; }
+
     struct Entry {
         uint8_t variant = 0; // 1 = Int, 2 = Double, 3 = IntMax
         bool resolved = false;
@@ -398,19 +403,76 @@ struct VCMemo : public SettingsMapRenderCache {
     // fan-out in RenderEffectFromMap renders one effect across a group's
     // model buffers concurrently with a SHARED SettingsMap, and ValueCurve
     // evaluation itself memoizes internally (cached offsets), so lookup,
-    // resolve and eval all serialize here.  Uncontended in the common
-    // per-layer case; under the fan-out the critical section is a few
-    // microseconds against each model's full render.
+    // resolve and eval all serialize here.
     std::mutex mtx;
     std::unordered_map<std::string, Entry> entries;
+
+    // Lock-free fast path.  An entry that resolved WITHOUT an active
+    // ValueCurve - ~98% of settings in practice - is immutable and stateless
+    // afterwards: the answer is a read of a settings node (or, for IntMax, a
+    // constant).  Those get published here, and every later call for the same
+    // setting skips `mtx` entirely.  This is what the fan-out costs without
+    // it: one lock/unlock per setting per model per frame on the same mutex,
+    // which on macOS drops into __psynch_mutexwait and dwarfs a cheap effect's
+    // actual render.  Entries backed by a real ValueCurve deliberately stay on
+    // the locked path - ValueCurve caches state inside its evaluation, so
+    // concurrent eval of one curve is not safe.
+    struct Fast {
+        std::string name;
+        const SettingValue* fallback = nullptr;
+        double lo = 0, hi = 0;
+        int divisor = 1;
+        int maxValue = 0;
+        uint8_t variant = 0;
+        bool useMax = false;
+    };
+    static constexpr int MAX_FAST = 16;
+    Fast fast[MAX_FAST];
+    std::atomic<int> fastCount{ 0 };
 };
 
+VCMemo* AsVCMemo(SettingsMapRenderCache* c) {
+    return (c != nullptr && c->CacheKind() == &kVCMemoKind) ? static_cast<VCMemo*>(c) : nullptr;
+}
+
 VCMemo* VCMemoFor(const SettingsMap& settings) {
-    VCMemo* memo = dynamic_cast<VCMemo*>(settings.GetRenderCache());
+    VCMemo* memo = AsVCMemo(settings.GetRenderCache());
     if (memo == nullptr) {
-        memo = dynamic_cast<VCMemo*>(settings.AttachRenderCache(std::make_unique<VCMemo>()));
+        memo = AsVCMemo(settings.AttachRenderCache(std::make_unique<VCMemo>()));
     }
     return memo;
+}
+
+// Both of these key on the full (name, variant, limits, divisor) tuple, the
+// same thing VCMemoEntryLocked resets an entry on, so a caller that changes
+// limits mid-run can never read another caller's answer.
+const VCMemo::Fast* VCFastFind(const VCMemo* memo, const std::string& name, uint8_t variant, double lo, double hi, int divisor) {
+    const int n = memo->fastCount.load(std::memory_order_acquire);
+    for (int i = 0; i < n; i++) {
+        const VCMemo::Fast& f = memo->fast[i];
+        if (f.variant == variant && f.divisor == divisor && f.lo == lo && f.hi == hi && f.name == name) {
+            return &f;
+        }
+    }
+    return nullptr;
+}
+
+// Call with memo->mtx held, right after an entry resolved with no active curve.
+void VCFastPublish(VCMemo* memo, const std::string& name, uint8_t variant, double lo, double hi, int divisor, const VCMemo::Entry& e) {
+    const int n = memo->fastCount.load(std::memory_order_relaxed);
+    if (n >= VCMemo::MAX_FAST) {
+        return;
+    }
+    VCMemo::Fast& f = memo->fast[n];
+    f.name = name;
+    f.fallback = e.fallback;
+    f.lo = lo;
+    f.hi = hi;
+    f.divisor = divisor;
+    f.maxValue = e.maxValue;
+    f.variant = variant;
+    f.useMax = e.maxFromCurve;
+    memo->fastCount.store(n + 1, std::memory_order_release);
 }
 
 VCMemo::Entry& VCMemoEntryLocked(VCMemo* memo, const std::string& name, uint8_t variant, double lo, double hi, int divisor) {
@@ -444,6 +506,12 @@ double SettingValueDouble(const SettingValue* v, double def) {
 double RenderableEffect::GetValueCurveDouble(const std::string &name, double def, const SettingsMap &SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor)
 {
     VCMemo* memo = VCMemoFor(SettingsMap);
+    if (memo != nullptr) {
+        const VCMemo::Fast* f = VCFastFind(memo, name, 2, min, max, divisor);
+        if (f != nullptr) {
+            return SettingValueDouble(f->fallback, def);
+        }
+    }
     VCMemo::Entry local;
     std::unique_lock<std::mutex> lk;
     if (memo != nullptr) {
@@ -469,6 +537,9 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
             if (e.fallback == nullptr) {
                 e.fallback = SettingsMap.FindValue(tn);
             }
+            if (memo != nullptr) {
+                VCFastPublish(memo, name, 2, min, max, divisor, e);
+            }
         }
     }
     if (e.curve != nullptr) {
@@ -480,6 +551,12 @@ double RenderableEffect::GetValueCurveDouble(const std::string &name, double def
 int RenderableEffect::GetValueCurveIntMax(const std::string& name, int def, const SettingsMap& SettingsMap, int min, int max, int divisor)
 {
     VCMemo* memo = VCMemoFor(SettingsMap);
+    if (memo != nullptr) {
+        const VCMemo::Fast* f = VCFastFind(memo, name, 3, min, max, divisor);
+        if (f != nullptr) {
+            return f->useMax ? f->maxValue : SettingValueInt(f->fallback, def);
+        }
+    }
     VCMemo::Entry local;
     std::unique_lock<std::mutex> lk;
     if (memo != nullptr) {
@@ -508,6 +585,10 @@ int RenderableEffect::GetValueCurveIntMax(const std::string& name, int def, cons
                 e.fallback = SettingsMap.FindValue(tn);
             }
         }
+        // IntMax never evaluates a curve per call - both outcomes are constants.
+        if (memo != nullptr) {
+            VCFastPublish(memo, name, 3, min, max, divisor, e);
+        }
     }
     if (e.maxFromCurve) {
         return e.maxValue;
@@ -518,6 +599,12 @@ int RenderableEffect::GetValueCurveIntMax(const std::string& name, int def, cons
 int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const SettingsMap &SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor)
 {
     VCMemo* memo = VCMemoFor(SettingsMap);
+    if (memo != nullptr) {
+        const VCMemo::Fast* f = VCFastFind(memo, name, 1, min, max, divisor);
+        if (f != nullptr) {
+            return SettingValueInt(f->fallback, def);
+        }
+    }
     VCMemo::Entry local;
     std::unique_lock<std::mutex> lk;
     if (memo != nullptr) {
@@ -543,6 +630,9 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const S
             e.fallback = SettingsMap.FindValue(sn);
             if (e.fallback == nullptr) {
                 e.fallback = SettingsMap.FindValue(tn);
+            }
+            if (memo != nullptr) {
+                VCFastPublish(memo, name, 1, min, max, divisor, e);
             }
         }
     }
