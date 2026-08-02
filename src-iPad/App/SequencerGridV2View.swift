@@ -288,6 +288,87 @@ private struct DeleteLayersAlert: ViewModifier {
     }
 }
 
+/// One pending row-heading confirm/prompt (delete layer / delete all
+/// effects / delete model effects / rename layer). Captures the
+/// display bits the alert message needs at request time so the host
+/// doesn't have to re-resolve the row later.
+struct RowHeaderConfirmTarget {
+    enum Kind { case deleteLayer, deleteAllEffects, deleteModelEffects, renameLayer }
+    let kind: Kind
+    let rowId: Int
+    let displayName: String
+    let layerIndex: Int
+    let effectCount: Int
+}
+
+/// Row-heading delete/rename confirms, hosted once here instead of as
+/// four .alert modifiers on every ModelRowHeader — SwiftUI re-diffs
+/// per-row presentation modifiers on every grid update, which pinned
+/// the CPU for a minute+ on large shows (crash-log CPU-exception
+/// bucket). Extracted as a ViewModifier for the same type-check-budget
+/// reason as InsertLayersAlert.
+private struct RowHeaderConfirmAlerts: ViewModifier {
+    @Binding var target: RowHeaderConfirmTarget?
+    @Binding var renameText: String
+    let viewModel: SequencerViewModel
+
+    private func isPresented(_ kind: RowHeaderConfirmTarget.Kind) -> Binding<Bool> {
+        Binding(get: { target?.kind == kind },
+                set: { if !$0 { target = nil } })
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Delete Layer",
+                   isPresented: isPresented(.deleteLayer),
+                   presenting: target) { t in
+                Button("Delete", role: .destructive) {
+                    if viewModel.document.removeEffectLayer(at: Int32(t.rowId)) {
+                        viewModel.reloadRows()
+                    }
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { t in
+                Text("Delete layer \(t.layerIndex + 1) of \(t.displayName)? All effects on this layer will be lost.")
+            }
+            .alert("Delete All Effects",
+                   isPresented: isPresented(.deleteAllEffects),
+                   presenting: target) { t in
+                Button("Delete All", role: .destructive) {
+                    _ = viewModel.deleteAllEffectsOnRow(rowIndex: t.rowId)
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { t in
+                Text("Delete all \(t.effectCount) effects on \(t.displayName)? Undo with ⌘Z.")
+            }
+            .alert("Delete Model Effects",
+                   isPresented: isPresented(.deleteModelEffects),
+                   presenting: target) { t in
+                Button("Delete All", role: .destructive) {
+                    viewModel.deleteModelEffects(rowIndex: t.rowId)
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { t in
+                Text("Delete every effect on \(t.displayName) — all layers, submodels, strands and nodes? Undo with ⌘Z.")
+            }
+            .alert("Rename Layer",
+                   isPresented: isPresented(.renameLayer),
+                   presenting: target) { t in
+                TextField("Name", text: $renameText)
+                Button("OK") {
+                    _ = viewModel.renameLayer(rowIndex: t.rowId, name: renameText)
+                    target = nil
+                }
+                Button("Cancel", role: .cancel) { target = nil }
+            } message: { _ in
+                Text("Enter a layer name (used as the header label).")
+            }
+    }
+}
+
 /// #6268 — pick the target region for Copy-Effects-to-Region.
 /// Extracted as a ViewModifier (same type-check-budget reason as
 /// InsertLayersAlert / DeleteLayersAlert).
@@ -555,6 +636,8 @@ struct SequencerGridV2View: View {
     @State private var insertLayersCountText: String = "3"
     @State private var deleteLayersTargetRow: Int? = nil
     @State private var deleteLayersCountText: String = "2"
+    @State private var rowHeaderConfirm: RowHeaderConfirmTarget? = nil
+    @State private var renameLayerText: String = ""
 
     /// #6507 top-level row drag-reorder. `rowDragSourceId` is the
     /// visible row id of the row being dragged; `rowDropTargetId` is
@@ -1585,6 +1668,10 @@ struct SequencerGridV2View: View {
             targetRow: $deleteLayersTargetRow,
             countText: $deleteLayersCountText,
             viewModel: viewModel))
+        .modifier(RowHeaderConfirmAlerts(
+            target: $rowHeaderConfirm,
+            renameText: $renameLayerText,
+            viewModel: viewModel))
 
         .sheet(isPresented: Binding(
             get: { copyLayersSourceRow != nil },
@@ -2407,6 +2494,14 @@ struct SequencerGridV2View: View {
             ForEach(rows) { row in
                 let h: CGFloat = (row.id == selectedRowId)
                     ? metrics.selectedRowHeight : metrics.rowHeight
+                let requestConfirm = { (kind: RowHeaderConfirmTarget.Kind) in
+                    rowHeaderConfirm = RowHeaderConfirmTarget(
+                        kind: kind,
+                        rowId: row.id,
+                        displayName: row.displayName,
+                        layerIndex: row.layerIndex,
+                        effectCount: row.effects.count)
+                }
                 ModelRowHeader(
                     row: row,
                     height: h,
@@ -2419,15 +2514,19 @@ struct SequencerGridV2View: View {
                     onSelectAllEffectsInModel: {
                         viewModel.selectAllEffectsInModel(rowIndex: row.id)
                     },
-                    onRenameLayer: { newName in
-                        _ = viewModel.renameLayer(rowIndex: row.id, name: newName)
+                    onRequestRenameLayer: {
+                        renameLayerText = viewModel.document.rowLayerName(at: Int32(row.id))
+                        requestConfirm(.renameLayer)
+                    },
+                    onRequestDeleteLayer: {
+                        requestConfirm(.deleteLayer)
                     },
                     effectCountOnRow: row.effects.count,
                     onDeleteAllEffectsOnRow: {
-                        _ = viewModel.deleteAllEffectsOnRow(rowIndex: row.id)
+                        requestConfirm(.deleteAllEffects)
                     },
                     onDeleteModelEffects: {
-                        viewModel.deleteModelEffects(rowIndex: row.id)
+                        requestConfirm(.deleteModelEffects)
                     },
                     elementRenderDisabled: viewModel.isElementRenderDisabled(rowIndex: row.id),
                     onToggleRenderDisabled: {
