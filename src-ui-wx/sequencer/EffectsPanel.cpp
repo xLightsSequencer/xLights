@@ -185,6 +185,11 @@ void EffectsPanel::SetEffectPanelStatus(Model *cls, const wxString &name, int st
     if (eff != nullptr) {
         effectPanelManager->SetEffectTimeRange(eff->GetId(), startTimeMs, endTimeMs);
     }
+    wxScrolledWindow* w = (wxScrolledWindow*)EffectChoicebook->GetPage(EffectChoicebook->GetSelection());
+    if (w != nullptr) {
+        w->FitInside();
+        w->Scroll(0, 0);
+    }
 }
 
 wxString EffectsPanel::GetEffectString(int effectId) {
