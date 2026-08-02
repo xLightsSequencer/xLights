@@ -20,6 +20,7 @@
 #include "../models/TerrainScreenLocation.h"
 #include "../models/ViewObject.h"
 #include "../models/ViewObjectManager.h"
+#include "../utils/FileUtils.h"
 
 using namespace XmlSerialize;
 
@@ -124,7 +125,7 @@ ViewObject* XmlDeserializingObjectFactory::DeserializeController(pugi::xml_node 
 ViewObject* XmlDeserializingObjectFactory::DeserializeMesh(pugi::xml_node node, ViewObjectManager& objects, bool importing) {
     MeshObject* object = new MeshObject(objects);
     CommonDeserializeSteps(object, node, objects, importing);
-    object->SetObjectFile(node.attribute(XmlNodeKeys::ObjFileAttribute).as_string());
+    object->SetObjectFile(FileUtils::FixFile(std::string(""), std::string(node.attribute(XmlNodeKeys::ObjFileAttribute).as_string(""))));
     object->SetMeshOnly(std::string_view(node.attribute(XmlNodeKeys::MeshOnlyAttribute).as_string("0")) == "1");
     object->SetBrightness(node.attribute(XmlNodeKeys::BrightnessAttribute).as_float(100));
     object->Setup();
