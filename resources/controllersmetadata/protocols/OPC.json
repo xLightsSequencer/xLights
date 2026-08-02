@@ -1,0 +1,49 @@
+{
+    "schemaVersion": 1,
+    "objectType": "output",
+    "protocol": "OPC",
+    "description": "The single <network> child node under an ethernet <Controller Protocol=\"OPC\">. OPC (Open Pixel Control, http://openpixelcontrol.org/) is a TCP protocol; there is exactly one Output/one <network> node per controller. OPC adds no attributes of its own beyond the shared IP-output base set - source of truth: src-core/outputs/Output.cpp Output::SaveAttr (@42, base writer) and IPOutput.cpp IPOutput::SaveAttr (@27, IP-output writer), plus OPCOutput.cpp constructor (@55, reader) / Save (@88, writer) which adds nothing further. Cross-checked against OutputPropertyAdapters.cpp OPCOutputPropertyAdapter::AddProperties (@792) and ControllerEthernetPropertyAdapter::ValidateProperties (@601, ControllerEthernetPropertyAdapter.cpp) for grid labels, ranges and validation.",
+    "storage": { "file": "xlights_networks.xml", "node": "Controller/network" },
+    "properties": [
+        {
+            "xmlAttribute": "NetworkType",
+            "type": "string",
+            "default": "OPC",
+            "description": "Protocol discriminator for this <network> node; always the literal \"OPC\" (OPCOutput::GetType(), matching the OUTPUT_OPC constant in Output.h @46). Written unconditionally by Output::SaveAttr (Output.cpp @44). No property-grid row (fixed by the controller's Protocol selection)."
+        },
+        {
+            "xmlAttribute": "ComPort",
+            "type": "string",
+            "default": "",
+            "description": "IP address/hostname this controller's OPC TCP connection is made to. Verified trap: legacy attribute name \"ComPort\" holds an IP address, not a serial port (IPOutput::SaveAttr, IPOutput.cpp @29-31 writer / @40 reader). Only written when non-empty. No property-grid row of its own: mirrors the parent <Controller>'s IP attribute, cascaded by ControllerEthernet::SetIP (ControllerEthernet.cpp @153-177)."
+        },
+        {
+            "xmlAttribute": "BaudRate",
+            "label": "OPC Channel",
+            "gridKey": "Universe",
+            "type": "uint",
+            "min": 1,
+            "max": 255,
+            "default": 1,
+            "description": "OPC channel number, sent as the single-byte channel id in the OPC packet header (OPCOutput::Open, OPCOutput.cpp @160: `_data[0] = (uint8_t)_universe;`). Carried in the legacy BaudRate attribute (IPOutput::SaveAttr, IPOutput.cpp @32 writer / @47 reader, default 1 if absent). Verified trap: the grid's SpinCtrl allows 0-255 (OutputPropertyAdapters.cpp @793-796), but ControllerEthernetPropertyAdapter::ValidateProperties flags the row red outside 1-255 for OPC (ControllerEthernetPropertyAdapter.cpp @614-618) - so 0, though enterable, is not a valid value."
+        },
+        {
+            "xmlAttribute": "MaxChannels",
+            "label": "Message Data Size",
+            "gridKey": "Channels",
+            "type": "uint",
+            "min": 1,
+            "max": 65535,
+            "description": "Channel count for this OPC output, sent as the 16-bit payload-length field in the OPC packet header (OPCOutput::Open, OPCOutput.cpp @162-163). Written unconditionally (Output::SaveAttr, Output.cpp @46 writer / @76 reader). Grid range 1 to OPCOutput::GetMaxChannels() = 65535 (OPCOutput.h @56, OutputPropertyAdapters.cpp @798-800). New OPC outputs default to 510 channels via OPCOutput's parameterless constructor (OPCOutput.cpp @65)."
+        },
+        {
+            "xmlAttribute": "FPPProxy",
+            "type": "string",
+            "default": "",
+            "description": "IP/hostname of an FPP proxy this output's data is routed through. Written only when non-empty (Output::SaveAttr, Output.cpp @48-51). No property-grid row of its own: mirrors the parent <Controller>'s FPPProxy attribute, cascaded by ControllerEthernet::SetFPPProxy (ControllerEthernet.cpp @407-411). OPC is not in ControllerEthernet::IsFPPProxyable()'s list (E131/DDP/Twinkly/Player Only only, ControllerEthernet.h @76), so this attribute is written but not meaningfully usable for OPC."
+        }
+    ],
+    "notes": [
+        "OPC has exactly one <network> child per controller (like DDP/ZCPP/Twinkly) - there is no per-node universe concept and no Universes/UniversesDisplay/IndivSizes/Sizes rows."
+    ]
+}
