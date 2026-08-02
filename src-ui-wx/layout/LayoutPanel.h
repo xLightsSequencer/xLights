@@ -380,6 +380,7 @@ class LayoutPanel: public wxPanel
         void OnLayoutPaneClose(wxAuiManagerEvent& event);
         void DockAndRefresh(bool setModelListHeight);
         void SaveLayoutPerspective();
+        void SaveModelsListColumns();
 
 		DECLARE_EVENT_TABLE()
 
@@ -450,7 +451,6 @@ class LayoutPanel: public wxPanel
         void ThawTreeListView(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const std::list<wxTreeListItem> &toExpand);
         void SetTreeListViewItemText(wxTreeListCtrl* tree, wxTreeListItem &item, int col, const wxString &txt);
 
-        void SaveModelsListColumns();
         void SaveTreeListColumns(wxTreeListCtrl* tree, const std::string& configKey);
         std::string TreeModelName(const Model* model, bool fullname);
         NewModelBitmapButton* AddModelButton(const std::string &type, const char *imageData[]);

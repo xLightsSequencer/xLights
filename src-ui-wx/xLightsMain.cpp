@@ -85,6 +85,7 @@
 #include "setup/IPEntryDialog.h"
 #include "media/JukeboxPanel.h"
 #include "app-shell/KeyBindingEditDialog.h"
+#include "layout/ControllerListPanel.h"
 #include "layout/LayoutGroup.h"
 #include "layout/LayoutPanel.h"
 #include "sequencer/LyricUserDictDialog.h"
@@ -2292,6 +2293,10 @@ xLightsFrame::~xLightsFrame()
 
     if (layoutPanel != nullptr) {
         layoutPanel->SaveLayoutPerspective();
+        layoutPanel->SaveModelsListColumns();
+        if (layoutPanel->GetControllerListPanel() != nullptr) {
+            layoutPanel->GetControllerListPanel()->SaveColumnOrder();
+        }
     }
 
     xlColourData::INSTANCE.Save(config);

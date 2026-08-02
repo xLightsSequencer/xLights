@@ -1197,6 +1197,10 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel, long
     }
 
     tree->SetSortColumn(sortcol, sortasc);
+    tree->GetDataView()->Bind(wxEVT_DATAVIEW_COLUMN_REORDERED, [this, tree, colOrderKey](wxDataViewEvent&) {
+        SaveTreeListColumns(tree, colOrderKey);
+    });
+
     return tree;
 }
 
