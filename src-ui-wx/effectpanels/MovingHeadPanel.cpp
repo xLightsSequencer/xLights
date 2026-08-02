@@ -14,6 +14,7 @@
 #include "MovingHeadPanels/MHPresetBitmapButton.h"
 #include "MovingHeadPanels/MHPathPresetBitmapButton.h"
 #include "MovingHeadPanels/MHDimmerPresetBitmapButton.h"
+#include "MovingHeadPanels/MHPatternPresetBitmapButton.h"
 #include "models/Model.h"
 #include "models/DMX/DmxMovingHeadAdv.h"
 #include "models/DMX/DmxMovingHeadComm.h"
@@ -146,6 +147,7 @@ const wxWindowID MovingHeadPanel::IDD_TEXTCTRL_MHPatternXPhase = wxNewId();
 const wxWindowID MovingHeadPanel::ID_STATICTEXT_MHPatternYPhase = wxNewId();
 const wxWindowID MovingHeadPanel::ID_SLIDER_MHPatternYPhase = wxNewId();
 const wxWindowID MovingHeadPanel::IDD_TEXTCTRL_MHPatternYPhase = wxNewId();
+const wxWindowID MovingHeadPanel::ID_BUTTON_SavePatternPreset = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Pattern = wxNewId();
 const wxWindowID MovingHeadPanel::ID_PANEL_Color = wxNewId();
 const wxWindowID MovingHeadPanel::ID_CHECKBOX_AUTO_SHUTTER = wxNewId();
@@ -551,6 +553,10 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     TextCtrl_MHPatternYPhase = new BulkEditTextCtrl(PanelPattern, IDD_TEXTCTRL_MHPatternYPhase, _("0"), wxDefaultPosition, wxDLG_UNIT(PanelPattern,wxSize(25,-1)), wxTE_PROCESS_ENTER, wxDefaultValidator, _T("IDD_TEXTCTRL_MHPatternYPhase"));
     FlexGridSizer_PatternYPhase->Add(TextCtrl_MHPatternYPhase, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
     FlexGridSizerPattern->Add(FlexGridSizer_PatternYPhase, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 2);
+    ButtonSavePatternPreset = new wxButton(PanelPattern, ID_BUTTON_SavePatternPreset, _("Save Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SavePatternPreset"));
+    FlexGridSizerPattern->Add(ButtonSavePatternPreset, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    FlexGridSizerPatternPresets = new wxWrapSizer(wxHORIZONTAL, 0);
+    FlexGridSizerPattern->Add(FlexGridSizerPatternPresets, 1, wxALL|wxEXPAND, 5);
     PanelPattern->SetSizer(FlexGridSizerPattern);
     PanelPattern->FitInside();
     PanelControl = new wxPanel(Notebook1, ID_PANEL_Control, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Control"));
@@ -686,6 +692,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     Connect(ID_CHECKBOX_MHShutterEnable,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHShutterEnableClick);
     Connect(ID_CHOICE_MHPattern,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&MovingHeadPanel::OnChoice_MHPatternSelect);
     Connect(ID_CHECKBOX_MHPatternEnable,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHPatternEnableClick);
+    Connect(ID_BUTTON_SavePatternPreset,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButtonSavePatternPresetClick);
     Connect(ID_CHECKBOX_MHLinkToNext,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnCheckBox_MHLinkToNextClick);
     Connect(ID_BUTTON_ResetToDefault,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&MovingHeadPanel::OnButton_ResetToDefaultClick);
     Connect(ID_NOTEBOOK1,wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&MovingHeadPanel::OnNotebook1PageChanged);
@@ -908,9 +915,10 @@ void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
 {
     spdlog::info("MovingHeadPanel Scanning directory for *.xmh files: {}.", directory.GetNameWithSep().ToStdString());
 
-    auto existing        = FlexGridSizerPresets->GetChildren();
-    auto existing_path   = FlexGridSizerPathPresets->GetChildren();
-    auto existing_dimmer = FlexGridSizerDimmerPresets->GetChildren();
+    auto existing         = FlexGridSizerPresets->GetChildren();
+    auto existing_path    = FlexGridSizerPathPresets->GetChildren();
+    auto existing_dimmer  = FlexGridSizerDimmerPresets->GetChildren();
+    auto existing_pattern = FlexGridSizerPatternPresets->GetChildren();
 
     auto nameMatches = [](const wxSizerItemList& list, const wxString& name) {
         for (const auto& it : list) {
@@ -930,7 +938,8 @@ void MovingHeadPanel::ProcessPresetDir(wxDir& directory, bool subdirs)
         wxString baseName = fn.GetFullName();
         if (!nameMatches(existing, baseName) &&
             !nameMatches(existing_path, baseName) &&
-            !nameMatches(existing_dimmer, baseName)) {
+            !nameMatches(existing_dimmer, baseName) &&
+            !nameMatches(existing_pattern, baseName)) {
             LoadMHPreset(fn);
         }
     }
@@ -988,6 +997,7 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
         presetBtn->SetPreset(heads);
         FlexGridSizerPresets->Add(presetBtn, 0, wxALL, 2);
         Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPresetClick);
+        presetBtn->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&MovingHeadPanel::OnPresetRightClick, nullptr, this);
     }
     else if (std::string_view(root.name()) == "mhpathpreset")
     {
@@ -1001,6 +1011,7 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
         presetBtn->SetPreset(data);
         FlexGridSizerPathPresets->Add(presetBtn, 0, wxALL, 2);
         Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPathPresetClick);
+        presetBtn->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&MovingHeadPanel::OnPresetRightClick, nullptr, this);
     }
     else if (std::string_view(root.name()) == "mhdimmerpreset")
     {
@@ -1014,11 +1025,92 @@ void MovingHeadPanel::LoadMHPreset(const std::string& fn)
         presetBtn->SetPreset(data);
         FlexGridSizerDimmerPresets->Add(presetBtn, 0, wxALL, 2);
         Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonDimmerPresetClick);
+        presetBtn->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&MovingHeadPanel::OnPresetRightClick, nullptr, this);
+    }
+    else if (std::string_view(root.name()) == "mhpatternpreset")
+    {
+        std::string data = root.attribute("data").as_string();
+        wxString iid = wxString::Format("ID_BITMAPBUTTON_%d", (int)FlexGridSizerPatternPresets->GetItemCount());
+        long id = wxNewId();
+        MHPatternPresetBitmapButton* presetBtn = new MHPatternPresetBitmapButton(PanelPattern, id, wxNullBitmap, wxDefaultPosition, wxSize(48, 48), wxBU_AUTODRAW | wxNO_BORDER, wxDefaultValidator, iid);
+        presetBtn->SetLabel(fn);
+        presetBtn->SetToolTip(fn);
+        pattern_presets.push_back( presetBtn );
+        presetBtn->SetPreset(data);
+        FlexGridSizerPatternPresets->Add(presetBtn, 0, wxALL, 2);
+        Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MovingHeadPanel::OnButtonPatternPresetClick);
+        presetBtn->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&MovingHeadPanel::OnPresetRightClick, nullptr, this);
     }
     else
     {
         spdlog::error("MH preset file {} has unknown root element '{}', skipping.", fn, root.name());
     }
+}
+
+void MovingHeadPanel::OnPresetRightClick(wxMouseEvent& event)
+{
+    m_presetToDelete = (wxWindow*)event.GetEventObject();
+    if (m_presetToDelete == nullptr) return;
+
+    long id = wxNewId();
+    wxMenu mnu;
+    mnu.Append(id, _("Delete Preset"));
+    mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&MovingHeadPanel::OnDeletePresetClick, nullptr, this);
+    m_presetToDelete->PopupMenu(&mnu);
+}
+
+void MovingHeadPanel::OnDeletePresetClick(wxCommandEvent& event)
+{
+    if (m_presetToDelete == nullptr) return;
+
+    wxWindow* btn = m_presetToDelete;
+    m_presetToDelete = nullptr;
+
+    wxString path = btn->GetLabel();
+    if (wxMessageBox(wxString::Format(_("Delete preset file\n%s ?"), path), _("Delete Preset"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+        return;
+    }
+
+    RemovePresetButton(btn);
+
+    if (FileExists(path.ToStdString()) && !wxRemoveFile(path)) {
+        DisplayError(wxString::Format("Unable to delete preset file %s.", path).ToStdString());
+    }
+}
+
+void MovingHeadPanel::RemovePresetButton(wxWindow* btn)
+{
+    wxSizer* sizer = nullptr;
+    wxScrolledWindow* panel = nullptr;
+
+    if (auto* b = dynamic_cast<MHPresetBitmapButton*>(btn)) {
+        presets.erase(std::remove(presets.begin(), presets.end(), b), presets.end());
+        sizer = FlexGridSizerPresets;
+        panel = PanelPosition;
+    } else if (auto* b = dynamic_cast<MHPathPresetBitmapButton*>(btn)) {
+        path_presets.erase(std::remove(path_presets.begin(), path_presets.end(), b), path_presets.end());
+        sizer = FlexGridSizerPathPresets;
+        panel = PanelPathing;
+    } else if (auto* b = dynamic_cast<MHDimmerPresetBitmapButton*>(btn)) {
+        dimmer_presets.erase(std::remove(dimmer_presets.begin(), dimmer_presets.end(), b), dimmer_presets.end());
+        sizer = FlexGridSizerDimmerPresets;
+        panel = PanelDimmer;
+    } else if (auto* b = dynamic_cast<MHPatternPresetBitmapButton*>(btn)) {
+        pattern_presets.erase(std::remove(pattern_presets.begin(), pattern_presets.end(), b), pattern_presets.end());
+        sizer = FlexGridSizerPatternPresets;
+        panel = PanelPattern;
+    }
+
+    if (sizer != nullptr) {
+        sizer->Detach(btn);
+    }
+    btn->Destroy();
+
+    if (panel != nullptr) {
+        panel->FitInside();
+    }
+    Layout();
+    Refresh();
 }
 
 void MovingHeadPanel::PopulatePresets()
@@ -1119,7 +1211,92 @@ void MovingHeadPanel::OnButtonSaveDimmerPresetClick(wxCommandEvent& event)
     }
 }
 
-void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool is_dimmer)
+void MovingHeadPanel::OnButtonSavePatternPresetClick(wxCommandEvent& event)
+{
+    wxArrayString pattern_def;
+    pattern_def.Add(GetPatternDef());
+    SavePreset(pattern_def, false, false, true);
+    PanelPattern->FitInside();
+    Layout();
+    Refresh();
+}
+
+std::string MovingHeadPanel::GetPatternDef()
+{
+    wxChoice* shape = (wxChoice*)(this->FindWindowByName("ID_CHOICE_MHPattern"));
+    std::string algorithm = (shape != nullptr) ? shape->GetStringSelection().ToStdString() : "Circle";
+    if (algorithm == xlEMPTY_STRING) {
+        algorithm = "Circle";
+    }
+
+    std::string pattern_def = "Pattern: " + algorithm;
+    AddSetting("PatternWidth", "PatternWidth", pattern_def);
+    AddSetting("PatternHeight", "PatternHeight", pattern_def);
+    AddSetting("PatternXOffset", "PatternXOffset", pattern_def);
+    AddSetting("PatternYOffset", "PatternYOffset", pattern_def);
+    AddSetting("PatternRotation", "PatternRotation", pattern_def);
+    AddSetting("PatternStartOffset", "PatternStartOffset", pattern_def);
+    AddSetting("PatternPhaseOffset", "PatternPhaseOffset", pattern_def);
+    AddSetting("PatternXFreq", "PatternXFreq", pattern_def);
+    AddSetting("PatternYFreq", "PatternYFreq", pattern_def);
+    AddSetting("PatternXPhase", "PatternXPhase", pattern_def);
+    AddSetting("PatternYPhase", "PatternYPhase", pattern_def);
+    return pattern_def;
+}
+
+void MovingHeadPanel::ApplyPatternPreset(const std::string& pattern_def)
+{
+    // Deliberately not routed through RecallSettings: that function also
+    // resets the Ignore Pan/Tilt/Shutter checkboxes and clears the Pathing
+    // tab's sketch as side effects, neither of which a Pattern preset should
+    // touch (mirrors how Dimmer/Path presets avoid it for the same reason).
+    UpdateCheckbox("MHPatternEnable", false);
+
+    wxArrayString all_cmds = wxSplit(pattern_def, ';');
+    for (size_t j = 0; j < all_cmds.size(); ++j) {
+        std::string cmd = all_cmds[j].ToStdString();
+        if (cmd == xlEMPTY_STRING) continue;
+        size_t pos = cmd.find(":");
+        if (pos == std::string::npos) continue;
+        std::string cmd_type = cmd.substr(0, pos);
+        std::string settings = cmd.substr(pos + 2, cmd.length());
+        std::replace(settings.begin(), settings.end(), '@', ';');
+
+        if (cmd_type == "Pattern") {
+            UpdateCheckbox("MHPatternEnable", true);
+            wxChoice* shape = (wxChoice*)(this->FindWindowByName("ID_CHOICE_MHPattern"));
+            if (shape != nullptr) {
+                shape->SetStringSelection(settings);
+            }
+        } else if (cmd_type == "PatternWidth") {
+            UpdateTextbox("PatternWidth", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternHeight") {
+            UpdateTextbox("PatternHeight", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternXOffset") {
+            UpdateTextbox("PatternXOffset", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternYOffset") {
+            UpdateTextbox("PatternYOffset", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternRotation") {
+            UpdateTextbox("PatternRotation", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternRotation VC") {
+            UpdateValueCurve("PatternRotation", settings.c_str());
+        } else if (cmd_type == "PatternStartOffset") {
+            UpdateTextbox("PatternStartOffset", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternPhaseOffset") {
+            UpdateTextbox("PatternPhaseOffset", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternXFreq") {
+            UpdateTextbox("PatternXFreq", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternYFreq") {
+            UpdateTextbox("PatternYFreq", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternXPhase") {
+            UpdateTextbox("PatternXPhase", wxAtof(settings.c_str()));
+        } else if (cmd_type == "PatternYPhase") {
+            UpdateTextbox("PatternYPhase", wxAtof(settings.c_str()));
+        }
+    }
+}
+
+void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool is_dimmer, bool is_pattern)
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets after new file is written
     std::string mhf = GetMHPresetFolder(xLightsFrame::CurrentDir.ToStdString());
@@ -1157,6 +1334,13 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool
             f.Write(" >\n");
             f.Write("</mhdimmerpreset>");
             f.Close();
+    } else if( is_pattern ) {
+            f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mhpatternpreset \n");
+            f.Write(wxString::Format("data=\"%s\" ", (const char *)preset[0].c_str()));
+            f.Write(wxString::Format("SourceVersion=\"%s\" ", v));
+            f.Write(" >\n");
+            f.Write("</mhpatternpreset>");
+            f.Close();
     } else {
         f.Write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<mhpreset \n");
         for( int i = 1; i <= 8; ++i ) {
@@ -1179,6 +1363,13 @@ void MovingHeadPanel::SavePreset(const wxArrayString& preset, bool is_path, bool
             }
         } else if( is_dimmer ) {
             for (auto preset_ : dimmer_presets) {
+                if( fn.GetFullPath() == preset_->GetLabel() ) {
+                    preset_->SetPreset( preset[0].ToStdString() );
+                    break;
+                }
+            }
+        } else if( is_pattern ) {
+            for (auto preset_ : pattern_presets) {
                 if( fn.GetFullPath() == preset_->GetLabel() ) {
                     preset_->SetPreset( preset[0].ToStdString() );
                     break;
@@ -1273,6 +1464,18 @@ void MovingHeadPanel::OnButtonDimmerPresetClick(wxCommandEvent& event)
     m_movingHeadDimmerPanel->SetDimmerCommands(dimmer_def);
     recall = false;
     UpdateDimmerSettings();
+    FireChangeEvent();
+}
+
+void MovingHeadPanel::OnButtonPatternPresetClick(wxCommandEvent& event)
+{
+    recall = true;
+    MHPatternPresetBitmapButton* btn = (MHPatternPresetBitmapButton*)event.GetEventObject();
+    std::string pattern_def = btn->GetPreset();
+    ApplyPatternPreset(pattern_def);
+    recall = false;
+    UpdatePatternControlState();
+    UpdatePatternSettings();
     FireChangeEvent();
 }
 

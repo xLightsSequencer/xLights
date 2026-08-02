@@ -1148,6 +1148,9 @@
     <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
       <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPatternPresetBitmapButton.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.cpp" />
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp">
       <Filter>Effects\ispc</Filter>
@@ -3094,6 +3097,9 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\shared\dialogs\CheckboxSelectDialog.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPatternPresetBitmapButton.h">
       <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.h">

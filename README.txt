@@ -24,6 +24,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix a crash on app close resetting the effect panels to defaults, and track
                                  effect-panel window lifetime so a destroyed panel can never be reused
     -bug (derwin12)              Fix MovingHead Advanced: reset Path and Pattern on new effect
+    -enh (derwin12)              MovingHead: add save/recall presets for the Pattern tab, matching the
+                                 existing Position and Dimmer presets
     -enh (derwin12)              Add an Other Preferences option for what double-clicking a model in the layout does.
     -enh (dkulp)                 Meteors: the Implode and Explode styles render several times faster on large
                                  buffers, and use far less memory while rendering. Output is unchanged.
