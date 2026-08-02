@@ -2153,6 +2153,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsModelRename", &_aliasRenameBehavior, "Always Prompt");
     spdlog::debug("Model Rename Behavior: {}.", (const char*)_aliasRenameBehavior.c_str());
 
+    config->Read("xLightsLayoutDoubleClickAction", &_layoutDoubleClickAction, "Faces/States/Submodels");
+    spdlog::debug("Layout double-click action: {}.", (const char*)_layoutDoubleClickAction.c_str());
+
     std::thread th([this]() {
         try {
             xlCrashHandler::SetupCrashHandlerForNonWxThread();
@@ -8698,6 +8701,15 @@ void xLightsFrame::SetKeybindingsLocation(const wxString& e)
     config->Write("xLightsKeybindingsLocation", _keybindingsLocation);
     config->Flush();
     spdlog::info("Keybindings location set to {}", _keybindingsLocation.ToStdString());
+}
+
+void xLightsFrame::SetLayoutDoubleClickAction(const wxString& e)
+{
+    _layoutDoubleClickAction = e;
+    auto* config = GetXLightsConfig();
+    config->Write("xLightsLayoutDoubleClickAction", _layoutDoubleClickAction);
+    config->Flush();
+    spdlog::info("Layout double-click action set to {}", _layoutDoubleClickAction.ToStdString());
 }
 
 void xLightsFrame::CollectUserEmail()
