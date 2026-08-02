@@ -168,8 +168,20 @@ xlEffectPanel* EffectPanelManager::GetPanel(int effectId, wxWindow* parent) {
     auto& info = panels[effectId];
     if (info.panel == nullptr && info.factory && parent != nullptr) {
         info.panel = info.factory(parent);
-        if (info.panel != nullptr && sequenceElements_ != nullptr) {
-            info.panel->SetSequenceElements(sequenceElements_);
+        if (info.panel != nullptr) {
+            // wx owns the panel window; if wx destroys it (page/parent
+            // teardown) this raw pointer must not dangle — callers like
+            // SetDefaultParameters and SetPanelStatus call through it.
+            std::weak_ptr<bool> alive = alive_;
+            info.panel->Bind(wxEVT_DESTROY, [this, alive, effectId](wxWindowDestroyEvent& e) {
+                if (auto a = alive.lock(); a && effectId < static_cast<int>(panels.size()) && e.GetWindow() == panels[effectId].panel) {
+                    panels[effectId].panel = nullptr;
+                }
+                e.Skip();
+            });
+            if (sequenceElements_ != nullptr) {
+                info.panel->SetSequenceElements(sequenceElements_);
+            }
         }
     }
     return info.panel;
