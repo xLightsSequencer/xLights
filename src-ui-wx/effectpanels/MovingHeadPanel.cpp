@@ -890,6 +890,8 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
     }
     if ( IsShownOnScreen() ) {
         Layout();
+        ForceNotebookPageResize(Notebook1);
+        ForceNotebookPageResize(Notebook2);
     }
     event.Skip();
 }
@@ -1266,13 +1268,44 @@ void MovingHeadPanel::OnButtonDimmerPresetClick(wxCommandEvent& event)
     FireChangeEvent();
 }
 
+void MovingHeadPanel::RefreshLayoutOnShow()
+{
+    Layout();
+    ForceNotebookPageResize(Notebook1);
+    ForceNotebookPageResize(Notebook2);
+}
+
 void MovingHeadPanel::OnNotebook1PageChanged(wxNotebookEvent& event)
 {
+    ForceNotebookPageResize(Notebook1);
     wxString page = Notebook1->GetPageText(Notebook1->GetSelection());
     if (page == "Status") {
         UpdateStatusPanel();
     } else if (page == "Control") {
         UpdateColorPanel();
+    }
+}
+
+void MovingHeadPanel::ForceNotebookPageResize(wxNotebook* nb)
+{
+    if (nb == nullptr) return;
+    wxWindow* page = nb->GetCurrentPage();
+    if (page == nullptr) return;
+    wxSize clientSz = nb->GetClientSize();
+    if (clientSz.GetWidth() <= 0 || clientSz.GetHeight() <= 0) return;
+    // This whole panel is pre-built hidden at startup (EffectsPanel builds every
+    // effect's panel up front) and only actually shown later, the first time the
+    // user picks "Moving Head" in the effect choicebook. wxNotebook only resizes
+    // a page as part of SetSelection(), which already ran once back then, before
+    // the outer AUI "Effect" pane had its real geometry -- so the page can be
+    // stuck at that stale, too-small size forever afterward. Force it here so it
+    // actually fills the notebook's client area the first time it becomes visible.
+    if (page->GetSize() != clientSz) {
+        page->SetSize(wxRect(wxPoint(0, 0), clientSz));
+        page->Layout();
+        if (auto* sw = dynamic_cast<wxScrolledWindow*>(page)) {
+            sw->FitInside();
+        }
     }
 }
 

@@ -63,6 +63,7 @@ public:
     virtual void SetDefaultParameters() override;
     virtual void SetPanelStatus(Model* cls) override;
     virtual void SetEffectTimeRange(int startTimeMs, int endTimeMs) override;
+    virtual void RefreshLayoutOnShow() override;
     std::list<Model*> GetActiveModels();
     void UpdateStatusPanel();
     void CheckAllFixtures();
@@ -390,6 +391,7 @@ private:
     void SyncLinkToNext();
     void UpdateLinkTabState();
     void ApplyLinkedHeadPosition(int headNum, float pan, float tilt);
+    void ForceNotebookPageResize(wxNotebook* nb);
     
     // Preset Functions
     void PopulatePresets();
