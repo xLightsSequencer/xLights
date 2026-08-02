@@ -10658,7 +10658,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 }
                 SelectModel(undoBuffer[sz].model);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                              OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "SingleObject") {
             spdlog::debug("LayoutPanel::DoUndo SingleObject");
@@ -10677,7 +10678,8 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
                 }
                 SelectModel(undoBuffer[sz].model);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::DoUndo");
+                                                              OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                              OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::DoUndo");
             }
         } else if (undoBuffer[sz].type == "All") {
             spdlog::debug("LayoutPanel::DoUndo All");
