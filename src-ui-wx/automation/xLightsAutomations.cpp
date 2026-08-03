@@ -14,6 +14,8 @@
 #include "nlohmann/json.hpp"
 
 #include "render/FSEQFile.h"
+#include "render/SeqMediaMigration.h"
+#include "media/MediaCompatibility.h"
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
 #include "layout/LayoutPanel.h"
@@ -1310,6 +1312,47 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         nlohmann::json res;
         res["media"] = arr;
         return sendResponse(res.dump(), "", 200, true);
+    } else if (cmd == "getMediaIssues" || cmd == "convertMedia") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        // Same inputs the open-sequence compatibility warning uses.
+        auto issues = MediaCompatibility::CheckSequenceMedia(
+            CurrentSeqXmlFile->GetMediaFile(),
+            _sequenceElements.GetSequenceMedia().GetVideoFilePaths());
+
+        if (cmd == "getMediaIssues") {
+            nlohmann::json arr = nlohmann::json::array();
+            for (const auto& i : issues) {
+                nlohmann::json j;
+                j["path"] = i.filePath;
+                j["reason"] = i.reason;
+                j["type"] = i.isVideo ? "video" : "audio";
+                j["canconvert"] = i.isVideo && i.canConvert();
+                j["animatedgif"] = i.isAnimatedGif();
+                arr.push_back(j);
+            }
+            nlohmann::json res;
+            res["issues"] = arr;
+            return sendResponse(res.dump(), "", 200, true);
+        }
+
+        auto result = seqmedia::ConvertIncompatibleVideos(_sequenceElements, issues);
+        if (result.effectsUpdated > 0 || result.gifEffectsConverted > 0) {
+            _sequenceElements.IncrementChangeCount(nullptr);
+            if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+                mainSequencer->PanelEffectGrid->ForceRefresh();
+            }
+        }
+        nlohmann::json res;
+        res["msg"] = wxString::Format("Converted %d of %d file(s). %d video effect(s) updated.",
+                                      result.converted, result.attempted, result.effectsUpdated).ToStdString();
+        res["attempted"] = result.attempted;
+        res["converted"] = result.converted;
+        res["effectsupdated"] = result.effectsUpdated;
+        res["gifeffectsconverted"] = result.gifEffectsConverted;
+        if (!result.failures.empty()) res["failed"] = result.failures;
+        return sendResponse(res.dump(), "", result.failures.empty() ? 200 : 503, true);
     } else if (cmd == "embedMedia" || cmd == "extractMedia") {
         if (CurrentSeqXmlFile == nullptr) {
             return sendResponse("Sequence not open.", "msg", 503, false);
