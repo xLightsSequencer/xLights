@@ -166,6 +166,21 @@ static bool doesFileExistInDirs(const std::string& baseDir, const std::string& a
     return false;
 }
 
+// Searches the installation's bundled resources/meshobjects tree
+static std::string FindBundledMeshObjectFile(const std::string& filename) {
+    std::string resDir = GetResourcesDir();
+    if (resDir.empty()) return {};
+    std::error_code ec;
+    std::string meshRoot = (std::filesystem::path(resDir) / "meshobjects").string();
+    std::filesystem::recursive_directory_iterator dirIt(meshRoot, ec);
+    for (; !ec && dirIt != std::filesystem::recursive_directory_iterator(); dirIt.increment(ec)) {
+        if (dirIt->is_regular_file(ec) && dirIt->path().filename() == filename) {
+            return dirIt->path().string();
+        }
+    }
+    return {};
+}
+
 std::string FixFile(const std::string& showDir, const std::string& file) {
     if (file.empty()) return file;
 
@@ -174,8 +189,6 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     // arbitrary and could bind to an unrelated same-named file.
     const bool rooted = IsAbsoluteOrRootedPath(file);
     if (rooted && FileExists(file, false)) return file;
-
-    // Handle meshobjects special case
     auto meshPos = file.find("/meshobjects/");
     if (meshPos != std::string::npos) {
         return GetResourcesDir() + file.substr(meshPos);
@@ -309,6 +322,19 @@ std::string FixFile(const std::string& showDir, const std::string& file) {
     if (showDir.empty() && !components.empty()) {
         std::string lastDir = sd + std::string(1, std::filesystem::path::preferred_separator) + components.back();
         return FileUtils::FixFile(lastDir, file);
+    }
+
+    {
+        std::string ext = std::filesystem::path(filename).extension().string();
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        if (ext == ".obj" || ext == ".mtl") {
+            std::string resolved = FindBundledMeshObjectFile(filename);
+            if (!resolved.empty()) {
+                lock.lock();
+                _fixFileMap[file] = resolved;
+                return resolved;
+            }
+        }
     }
 
     spdlog::debug("   could not find a fixed file location for : {}", file);
