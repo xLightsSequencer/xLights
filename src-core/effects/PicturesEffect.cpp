@@ -139,7 +139,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
 
 bool PicturesEffect::needToAdjustSettings(const std::string &version)
 {
-    return true;
+    return IsVersionOlder("2017.6", version) || RenderableEffect::needToAdjustSettings(version);
 }
 
 void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
@@ -163,38 +163,19 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
         }
         settings.erase("E_CHECKBOX_Pictures_ScaleToFit");
     }
+}
 
+void PicturesEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_TEXTCTRL_Pictures_Filename"];
     auto &media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
     if (!file.empty() && !media.HasImage(file)) {
-        if (!std::filesystem::path(file).is_absolute()) {
-            std::string fixed = FileUtils::FixFile("", file);
-            if (fixed != file) {
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                std::string newPath = rel.empty() ? fixed : rel;
-                auto normalize = [](std::string s) {
-                    std::replace(s.begin(), s.end(), '\\', '/');
-                    return s;
-                };
-                if (normalize(newPath) != normalize(file)) {
-                    settings["E_TEXTCTRL_Pictures_Filename"] = newPath;
-                    media.RecordRelocation(file, newPath);
-                }
-            }
-        } else if (!FileUtils::CachedFileExists(file)) {
-            std::string fixed = FileUtils::FixFile("", file);
-            // If the resolved path is inside a show/media directory, store as
-            // relative so the sequence is portable across machines.
-            std::string rel = FileUtils::MakeRelativeFile(fixed);
-            std::string newPath = rel.empty() ? fixed : rel;
-            settings["E_TEXTCTRL_Pictures_Filename"] = newPath;
-            if (newPath != file)
-                media.RecordRelocation(file, newPath);
-        } else {
-            // File exists at its absolute path — still prefer relative storage
-            std::string rel = FileUtils::MakeRelativeFile(file);
-            if (!rel.empty()) {
-                settings["E_TEXTCTRL_Pictures_Filename"] = rel;
+        const auto resolved = media.ResolveImagePath(file);
+        if (!resolved.settingsPath.empty()) {
+            settings["E_TEXTCTRL_Pictures_Filename"] = resolved.settingsPath;
+            if (resolved.settingsPath != file) {
+                media.RecordRelocation(file, resolved.settingsPath);
             }
         }
         std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
@@ -216,9 +197,11 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
                 media.AddAnimatedImage(NewPictureName, effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetFrameMS());
             }
         }
-        auto a = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia().GetImage(settings["E_TEXTCTRL_Pictures_Filename"]);
-        if (!a->IsOk()) {
-            spdlog::warn("Could not load image file: {}", settings["E_TEXTCTRL_Pictures_Filename"]);
+        auto* ctx = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetRenderContext();
+        if (auto* pool = ctx != nullptr ? ctx->GetJobPool() : nullptr) {
+            media.QueueImageLoad(settings["E_TEXTCTRL_Pictures_Filename"], resolved.loadPath, *pool);
+        } else {
+            media.GetImage(settings["E_TEXTCTRL_Pictures_Filename"]);
         }
     }
 }

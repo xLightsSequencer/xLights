@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Sequence load: file-based effects resolve their media once through the sequence's
+                                 media list, and the images are decoded in parallel on the background thread pool
+                                 rather than one at a time. Images embedded in the .xsq are included, and an
+                                 embedded multi-frame image no longer decodes every frame while the file is still
+                                 being parsed. A sequence with a few hundred picture effects opens about twice as
+                                 fast; rendered output is unchanged.
     -enh (dkulp)                 Video: the decoder's scaled-frame cache is now sized by a memory budget instead
                                  of a fixed 48 entries, so a clip reused by several effects at the same output
                                  size is decoded once rather than once per effect. Rendered output is unchanged.

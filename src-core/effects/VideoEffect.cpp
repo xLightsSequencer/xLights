@@ -423,6 +423,11 @@ void VideoEffect::PrepareDecodeSizes(SequenceElements& seqElements, const std::l
                   models.size(), scanned, videos, ms);
 }
 
+bool VideoEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2026.04", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
 void VideoEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
@@ -444,30 +449,16 @@ void VideoEffect::adjustSettings(const std::string &version, Effect *effect, boo
     if (settings.Contains("E_SLIDER_Video_Starttime")) {
         settings.erase("E_SLIDER_Video_Starttime");
     }
+}
 
-    // Resolve broken paths first, then convert to relative for portability
+void VideoEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKERCTRL_Video_Filename"];
-    if (!file.empty() && !FileUtils::CachedFileExists(file)) {
-        std::string fixed = FileUtils::FixFile("", file);
-        if (!fixed.empty() && fixed != file) {
-            settings["E_FILEPICKERCTRL_Video_Filename"] = fixed;
-            file = fixed;
-        }
-    }
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileUtils::CachedFileExists(file)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_Video_Filename"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_Video_Filename"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        const auto resolved = SequenceMedia::ResolveFilePath(file);
+        settings["E_FILEPICKERCTRL_Video_Filename"] = resolved.settingsPath;
         media.GetVideo(settings["E_FILEPICKERCTRL_Video_Filename"]);
     }
 }

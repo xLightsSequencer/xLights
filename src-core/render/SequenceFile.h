@@ -180,6 +180,7 @@ public:
     void UpdateVersion();
     void UpdateVersion(const std::string& version);
     void AdjustEffectSettingsForVersion(SequenceElements& elements, RenderContext* ctx);
+    void LoadEffectFiles(SequenceElements& elements, RenderContext* ctx);
 
     bool IsOpen() const { return is_open; }
     bool HasAudioMedia() const { return audio != nullptr; }

@@ -536,8 +536,6 @@ void JobPool::Start(size_t poolSize, size_t minPoolSize)
 
     maxNumThreads = (int)poolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : (int)poolSize;
     minNumThreads = (int)minPoolSize < MIN_JOBPOOLTHREADS ? MIN_JOBPOOLTHREADS : (int)minPoolSize;
-    idleThreads = 0;
-    numThreads = 0;
     //logger_jobpool.info("Background thread pool started with %d threads", poolSize);
 }
 

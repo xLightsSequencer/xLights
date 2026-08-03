@@ -348,7 +348,7 @@ ShaderConfig* ShaderEffect::ParseShader(const std::string& filename, SequenceEle
 
 bool ShaderEffect::needToAdjustSettings(const std::string& version)
 {
-    return true;
+    return IsVersionOlder("2021.18", version) || RenderableEffect::needToAdjustSettings(version);
 }
 
 void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
@@ -386,30 +386,16 @@ void ShaderEffect::adjustSettings(const std::string& version, Effect* effect, bo
         settings[it.second] = settings[it.first];
         settings.erase(it.first);
     }
+}
 
-    // Resolve broken paths first, then convert to relative for portability
+void ShaderEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_0FILEPICKERCTRL_IFS"];
-    if (!file.empty() && !FileUtils::CachedFileExists(file)) {
-        std::string fixed = FileUtils::FixFile("", file);
-        if (!fixed.empty() && fixed != file) {
-            settings["E_0FILEPICKERCTRL_IFS"] = fixed;
-            file = fixed;
-        }
-    }
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileUtils::CachedFileExists(file)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_0FILEPICKERCTRL_IFS"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_0FILEPICKERCTRL_IFS"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        const auto resolved = SequenceMedia::ResolveFilePath(file);
+        settings["E_0FILEPICKERCTRL_IFS"] = resolved.settingsPath;
         media.GetShader(settings["E_0FILEPICKERCTRL_IFS"]);
     }
 }

@@ -1246,7 +1246,7 @@ void ShapeEffect::Drawpresent(RenderBuffer& buffer, int xc, int yc, double radiu
 bool ShapeEffect::needToAdjustSettings(const std::string& version)
 {
     // give the base class a chance to adjust any settings
-    return IsVersionOlder("2024.02", version);
+    return IsVersionOlder("2024.02", version) || RenderableEffect::needToAdjustSettings(version);
 }
 
 void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
@@ -1265,23 +1265,15 @@ void ShapeEffect::adjustSettings(const std::string& version, Effect* effect, boo
             }
         }
     }
+}
 
-    // Convert absolute file paths to relative for portability
+void ShapeEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKERCTRL_SVG"];
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileUtils::CachedFileExists(file)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_SVG"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_SVG"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        settings["E_FILEPICKERCTRL_SVG"] = SequenceMedia::ResolveFilePath(file).settingsPath;
         media.GetSVG(settings["E_FILEPICKERCTRL_SVG"]);
     }
 }

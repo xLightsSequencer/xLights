@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <thread>
 
 xLightsShowContext::MissingModelScan xLightsShowContext::ScanForMissingModels() const {
@@ -77,6 +78,17 @@ void xLightsShowContext::CheckForValidModels() {
 }
 
 bool xLightsShowContext::LoadSequenceElements(SequenceFile& file, pugi::xml_document& doc) {
+    const bool profileLoad = std::getenv("XL_LOAD_PROFILE") != nullptr;
+    auto phaseStart = std::chrono::steady_clock::time_point{};
+    auto profilePhase = [&](const char* phase) {
+        if (!profileLoad) return;
+        const auto now = std::chrono::steady_clock::now();
+        spdlog::info("XL_LOAD_PROFILE phase={} file={} ms={}", phase, file.GetFullPath(),
+                     std::chrono::duration_cast<std::chrono::milliseconds>(now - phaseStart).count());
+        phaseStart = now;
+    };
+    if (profileLoad) phaseStart = std::chrono::steady_clock::now();
+
     // A fresh open must see fresh filesystem state: a file that was missing on
     // the previous load may have been put in place since, so forget cached
     // existence answers (FixFile's non-existent list and the FileExists memo).
@@ -93,21 +105,38 @@ bool xLightsShowContext::LoadSequenceElements(SequenceFile& file, pugi::xml_docu
     if (!_sequenceElements.LoadSequencerFile(file, doc, showDirectory)) {
         return false;
     }
+    profilePhase("elements");
+
+    // Kick the embedded images off now rather than after LoadEffectFiles: the
+    // migration and path-resolution passes below are single-threaded, so the
+    // decodes run for free alongside them. Everything lands in the same
+    // WaitForImageLoads join further down.
+    if (JobPool* pool = GetJobPool(); pool != nullptr) {
+        _sequenceElements.GetSequenceMedia().QueueUnloadedImages(*pool);
+    }
 
     // Migrate legacy effect settings to the current format; without this older
     // sequences render with un-migrated settings.
     file.AdjustEffectSettingsForVersion(_sequenceElements, this);
+    profilePhase("settings-migration");
+
+    file.LoadEffectFiles(_sequenceElements, this);
+    _sequenceElements.GetSequenceMedia().WaitForImageLoads();
+    profilePhase("file-load");
 
     // Resolve any models the sequence references that aren't in the layout. This
     // can add/rename elements (desktop remap), so it must run before PrepareViews.
     CheckForValidModels();
+    profilePhase("model-validation");
 
     // PrepareViews grows mAllViews to one slot per view; without it switching
     // views crashes in PopulateRowInformation.
     _sequenceElements.PrepareViews(file);
     _sequenceElements.PopulateRowInformation();
+    profilePhase("views-and-rows");
 
     OnSequenceElementsLoaded(file);
+    profilePhase("host-loaded");
 
     // Route new timing-track additions through the live in-memory path.
     file.SetSequenceLoaded(true);

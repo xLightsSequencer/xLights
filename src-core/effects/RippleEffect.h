@@ -39,6 +39,8 @@ public:
     }
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    bool needsLoadFiles() const override { return true; }
+    void loadFiles(Effect* effect) override;
 
     virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
     {

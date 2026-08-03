@@ -275,23 +275,15 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
             settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
         }
     }
+}
 
-    // Convert absolute file paths to relative for portability
+void VUMeterEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKERCTRL_SVGFile"];
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileUtils::CachedFileExists(file)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_SVGFile"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_SVGFile"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        settings["E_FILEPICKERCTRL_SVGFile"] = SequenceMedia::ResolveFilePath(file).settingsPath;
         media.GetSVG(settings["E_FILEPICKERCTRL_SVGFile"]);
     }
 }
