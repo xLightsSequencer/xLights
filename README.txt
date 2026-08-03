@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Windows video decode: hardware decoding and the DirectX11 reader are now the
+                                 default, and that reader converts and scales on the GPU with the colour space
+                                 stated explicitly instead of leaving it to the system. Video-heavy sequences
+                                 render 2-3x faster (the weaker the CPU, the bigger the gain); formats the
+                                 reader cannot open still fall back to FFmpeg automatically
+    -bug (dkulp)                 Windows video decode: the DirectX11 reader picked the next frame instead of the
+                                 nearest one for a requested time, so video ran up to a frame ahead of where
+                                 macOS put it. Two separate causes, both fixed
+    -bug (dkulp)                 Video decode on Windows/Linux now asks the scaler for full-range RGB with the
+                                 right matrix, snaps near-black pixels to true black, and uses an averaging
+                                 filter for large reductions. Colours and blacks now match macOS closely, which
+                                 matters for video composited with Transparent Black, and large downscales are
+                                 faster
     -enh (dkulp)                 Automation API: added getMediaIssues and convertMedia so a script can find and
                                  convert media that isn't playable on all platforms, without opening each
                                  sequence by hand

@@ -2121,8 +2121,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     _taskBarIcon = std::make_unique<xlMacDockIcon>(this);
 #else
-    config->Read("xLightsVideoReaderAccelerated", &_hwVideoAccleration, false);
-    config->Read("xLightsVideoReaderRenderer", &_hwVideoRenderer, 1);
+    config->Read("xLightsVideoReaderAccelerated", &_hwVideoAccleration, true);
+    config->Read("xLightsVideoReaderRenderer", &_hwVideoRenderer, 0);
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::SetHardwareRenderType(_hwVideoRenderer);
 #endif

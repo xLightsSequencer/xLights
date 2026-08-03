@@ -27,7 +27,7 @@
 								<item>FFmpeg AMF</item>
 								<item>FFmpeg DirectX11</item>
 							</content>
-							<selection>1</selection>
+							<selection>0</selection>
 							<handler function="OnControlChanged" entry="EVT_CHOICE" />
 						</object>
 						<flag>wxALL|wxEXPAND</flag>

@@ -96,8 +96,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     HardwareVideoDecodingCheckBox->SetValue(false);
     FlexGridSizer3->Add(HardwareVideoDecodingCheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     HardwareVideoRenderChoice = new wxChoice(this, ID_CHOICE4, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE4"));
-    HardwareVideoRenderChoice->Append(_("DirectX11"));
-    HardwareVideoRenderChoice->SetSelection( HardwareVideoRenderChoice->Append(_("FFmpeg Auto")) );
+    HardwareVideoRenderChoice->SetSelection( HardwareVideoRenderChoice->Append(_("DirectX11")) );
+    HardwareVideoRenderChoice->Append(_("FFmpeg Auto"));
     HardwareVideoRenderChoice->Append(_("FFmpeg CUDA"));
     HardwareVideoRenderChoice->Append(_("FFmpeg QSV"));
     HardwareVideoRenderChoice->Append(_("FFmpeg Vulkan"));
