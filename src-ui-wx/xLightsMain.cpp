@@ -85,6 +85,7 @@
 #include "setup/IPEntryDialog.h"
 #include "media/JukeboxPanel.h"
 #include "app-shell/KeyBindingEditDialog.h"
+#include "app-shell/KeyBindingsDialog.h"
 #include "layout/ControllerListPanel.h"
 #include "layout/LayoutGroup.h"
 #include "layout/LayoutPanel.h"
@@ -8860,9 +8861,14 @@ void xLightsFrame::OnMenuItemBulkControllerUploadSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_KeyBindingsSelected(wxCommandEvent& event)
 {
-    KeyBindingEditDialog dlg(this, &GetMainSequencer()->keyBindings, &effectManager);
-
-    dlg.ShowModal();
+    // Modeless so it can stay open while you keep working. Reuse the open
+    // instance rather than stacking duplicates.
+    if (_keyBindingsDialog != nullptr) {
+        _keyBindingsDialog->Raise();
+        return;
+    }
+    _keyBindingsDialog = new KeyBindingsDialog(this, this, [this]() { _keyBindingsDialog = nullptr; });
+    _keyBindingsDialog->Show();
 }
 
 void xLightsFrame::OnMenuItem_ExportControllerConnectionsSelected(wxCommandEvent& event)

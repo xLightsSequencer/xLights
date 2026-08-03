@@ -966,6 +966,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\ToolbarLayout.cpp" />
     <ClCompile Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.cpp" />
@@ -1538,6 +1539,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\KeyBindingsDialog.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
     <ClInclude Include="..\src-ui-wx\layout\ReplaceModelDialog.h" />
@@ -1631,6 +1633,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h" />
     <ClInclude Include="..\src-ui-wx\preferences\ToolbarLayout.h" />
     <ClInclude Include="..\src-ui-wx\preferences\ToolbarsSettingsPanel.h" />

@@ -681,6 +681,9 @@
     <ClCompile Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.cpp">
+      <Filter>Preferences</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
@@ -1615,6 +1618,7 @@
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\KeyBindingsDialog.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
     <ClInclude Include="..\src-ui-wx\layout\ReplaceModelDialog.h" />
@@ -2228,6 +2232,9 @@
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.h">
+      <Filter>Preferences</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\preferences\KeyBindingsSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.h">
