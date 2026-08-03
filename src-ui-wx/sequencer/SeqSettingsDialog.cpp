@@ -26,6 +26,7 @@
 #include <wx/textdlg.h>
 
 #include <list>
+#include <sstream>
 
 #include "SeqSettingsDialog.h"
 #include "sequencer/NewTimingDialog.h"
@@ -658,6 +659,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     UpdateDataLayer();
     needs_render = false;
 
+    _initialSettingsSignature = BuildSettingsSignature();
+
     int x, y, w, h;
     GetPosition(&x, &y);
     GetSize(&w, &h);
@@ -706,6 +709,35 @@ SeqSettingsDialog::~SeqSettingsDialog()
     }
 	//(*Destroy(SeqSettingsDialog)
 	//*)
+}
+
+std::string SeqSettingsDialog::BuildSettingsSignature() const
+{
+    std::ostringstream sig;
+    sig << xml_file->GetSequenceType() << "|"
+        << xml_file->GetMediaFile() << "|"
+        << xml_file->GetSequenceDurationMS() << "|"
+        << (int)xml_file->supportsModelBlending() << "|"
+        << xml_file->GetRenderMode() << "|";
+
+    for (int i = 0; i < (int)HEADER_INFO_TYPES::NUM_TYPES; ++i) {
+        sig << xml_file->GetHeaderInfo((HEADER_INFO_TYPES)i) << "|";
+    }
+
+    auto timings = xml_file->GetSequenceLoaded() ? xml_file->GetTimingList(xLightsParent->GetSequenceElements()) : xml_file->GetTimingList();
+    for (const auto& t : timings) {
+        sig << t << ",";
+    }
+    sig << "|";
+
+    DataLayerSet& data_layers = xml_file->GetDataLayers();
+    for (int i = 0; i < data_layers.GetNumLayers(); ++i) {
+        DataLayer* layer = data_layers.GetDataLayer(i);
+        sig << layer->GetName() << ":" << layer->GetSource() << ":" << layer->GetDataSource() << ":"
+            << layer->GetNumChannels() << ":" << layer->GetChannelOffset() << ",";
+    }
+
+    return sig.str();
 }
 
 void SeqSettingsDialog::RemoveWizard()
