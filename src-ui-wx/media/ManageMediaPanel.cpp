@@ -1175,93 +1175,22 @@ void ManageMediaPanel::ShowPreviewFrame(size_t index)
     _preview->Refresh();
 }
 
-std::string ManageMediaPanel::StrippedPath(const std::string& fullPath) const
-{
-    if (_showDirectory.empty()) return {};
-    wxString showDir = _showDirectory;
-    if (showDir.Last() != wxFileName::GetPathSeparator())
-        showDir += wxFileName::GetPathSeparator();
-    wxString wx = fullPath;
-    if (wx.StartsWith(showDir))
-        return ToStdString(wx.Mid(showDir.Length()));
-    return {};
-}
-
 std::string ManageMediaPanel::EmbedWithRename(const std::string& fullPath)
 {
-    // Check if this is an image or another media type
-    bool isImage = _sequenceMedia->HasImage(fullPath);
-
-    // Compute the new (stripped) path. If it's the same, just embed as-is.
-    std::string newPath = StrippedPath(fullPath);
-    if (newPath.empty() || newPath == fullPath) {
-        if (isImage)
-            _sequenceMedia->EmbedImage(fullPath);
-        else
-            _sequenceMedia->EmbedMedia(fullPath);
-        return fullPath;
-    }
-
-    // Rename in the cache first (rename is image-only for now)
-    if (isImage) {
-        if (!_sequenceMedia->RenameImage(fullPath, newPath)) {
-            // Rename failed (e.g. newPath already exists) — embed under old name
-            _sequenceMedia->EmbedImage(fullPath);
-            return fullPath;
-        }
-    } else {
-        // For non-image types, just embed under original name
-        _sequenceMedia->EmbedMedia(fullPath);
-        return fullPath;
-    }
-
-    // Update every effect in the sequence that references fullPath -> newPath
+    // Strip the show/media folder prefix first: the bytes are about to move
+    // into the document, so an absolute path would only pin the sequence to
+    // this machine. MakeMediaPathRelative re-keys the cache entry and repoints
+    // every effect + face reference, and is a no-op when the file sits outside
+    // the show and media folders or the relative key is already taken.
+    std::string newPath = fullPath;
     if (_sequenceElements != nullptr) {
-        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
-            Element* e = _sequenceElements->GetElement(i);
-            if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
-            ModelElement* model = dynamic_cast<ModelElement*>(e);
-            if (!model) continue;
-
-            // Helper lambda to scan one EffectLayer
-            auto scanLayer = [&](EffectLayer* layer) {
-                for (int k = 0; k < layer->GetEffectCount(); ++k) {
-                    Effect* eff = layer->GetEffect(k);
-                    const SettingsMap& settings = eff->GetSettings();
-                    // Collect keys first to avoid modifying map during iteration
-                    std::vector<std::string> keysToUpdate;
-                    for (auto it = settings.begin(); it != settings.end(); ++it) {
-                        if (it->second == fullPath) {
-                            keysToUpdate.push_back(it->first);
-                        }
-                    }
-                    for (const auto& key : keysToUpdate) {
-                        eff->SetSetting(key, newPath);
-                    }
-                }
-            };
-
-            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
-                scanLayer(model->GetEffectLayer(j));
-
-            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
-                SubModelElement* sub = model->GetSubModel(j);
-                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
-                    scanLayer(sub->GetEffectLayer(l));
-                if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                    StrandElement* strand = dynamic_cast<StrandElement*>(sub);
-                    if (strand) {
-                        for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
-                            scanLayer(strand->GetNodeLayer(k));
-                    }
-                }
-            }
-        }
+        newPath = _sequenceElements->MakeMediaPathRelative(fullPath);
     }
-
-    RewriteSequenceFacePaths(fullPath, newPath);
-
-    _sequenceMedia->EmbedImage(newPath);
+    if (_sequenceMedia->HasImage(newPath)) {
+        _sequenceMedia->EmbedImage(newPath);
+    } else {
+        _sequenceMedia->EmbedMedia(newPath);
+    }
     return newPath;
 }
 
@@ -1885,56 +1814,8 @@ void ManageMediaPanel::RewriteSequenceFacePaths(const std::string& oldPath, cons
 
 std::map<std::string, std::pair<int,int>> ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::string& newPath)
 {
-    std::map<std::string, std::pair<int,int>> dirtyModels;
-    if (_sequenceElements == nullptr || oldPath == newPath) return dirtyModels;
-    RewriteSequenceFacePaths(oldPath, newPath);
-
-    // model name -> [startMS, endMS] union of all affected effects
-    const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
-
-    auto scanLayer = [&](EffectLayer* layer, const std::string& modelName) {
-        for (int k = 0; k < layer->GetEffectCount(); ++k) {
-            Effect* eff = layer->GetEffect(k);
-            const SettingsMap& settings = eff->GetSettings();
-            std::vector<std::string> keysToUpdate;
-            for (auto it = settings.begin(); it != settings.end(); ++it) {
-                if (it->second == oldPath)
-                    keysToUpdate.push_back(it->first);
-            }
-            if (keysToUpdate.empty()) continue;
-            for (const auto& key : keysToUpdate)
-                eff->SetSetting(key, newPath);
-            auto& range = dirtyModels.emplace(modelName, initRange).first->second;
-            range.first  = std::min(range.first,  eff->GetStartTimeMS());
-            range.second = std::max(range.second, eff->GetEndTimeMS());
-        }
-    };
-
-    for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
-        Element* e = _sequenceElements->GetElement(i);
-        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
-        ModelElement* model = dynamic_cast<ModelElement*>(e);
-        if (!model) continue;
-
-        const std::string& modelName = model->GetModelName();
-        for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
-            scanLayer(model->GetEffectLayer(j), modelName);
-
-        for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
-            SubModelElement* sub = model->GetSubModel(j);
-            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
-                scanLayer(sub->GetEffectLayer(l), modelName);
-            if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                StrandElement* strand = dynamic_cast<StrandElement*>(sub);
-                if (strand) {
-                    for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
-                        scanLayer(strand->GetNodeLayer(k), modelName);
-                }
-            }
-        }
-    }
-
-    return dirtyModels;
+    if (_sequenceElements == nullptr) return {};
+    return _sequenceElements->RewriteMediaReferences(oldPath, newPath);
 }
 
 void ManageMediaPanel::RenderDirtyModels(const std::map<std::string, std::pair<int,int>>& dirtyModels)
@@ -2525,7 +2406,10 @@ void ManageMediaPanel::OnEmbedAllButtonClick(wxCommandEvent& event)
     for (const auto& [path, type] : allPaths) {
         if (type == MediaType::Image) {
             auto entry = _sequenceMedia->GetImage(path);
-            if (entry && !entry->IsEmbedded() && entry->IsEmbeddable())
+            // Already-embedded entries go through too: a -1.png frame series is
+            // embedded the moment it loads, under whatever path the effect held,
+            // so this is the only chance to make that path show-relative.
+            if (entry && entry->IsEmbeddable())
                 EmbedWithRename(path);
         } else if (type != MediaType::Video) {
             // Non-image, non-video: use generic embed

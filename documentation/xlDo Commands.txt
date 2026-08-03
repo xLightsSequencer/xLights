@@ -43,6 +43,30 @@ GET /saveSequence
 GET /batchRender
     seq_#=  # starts at 0 and increases, each sequence to render
    
+GET /getMedia
+    lists every media file the open sequence references (images, SVGs, shaders,
+    text files, binary files, video, audio) with its embed state
+    Optional query param:
+    type= image|svg|shader|text|binary|video|audio to list only that type
+
+GET /embedMedia
+    embeds media into the open sequence so it no longer depends on external files,
+    and rewrites each embedded entry's stored path to be show/media-folder relative
+    (effect settings and face definitions are repointed to match).
+    You must save the sequence afterwards.
+    Optional query params:
+    file= a single media path (as reported by getMedia); omit to embed everything
+    type= image|svg|shader|text to restrict to one type
+
+GET /extractMedia
+    writes embedded media back out to files and repoints the sequence at them.
+    You must save the sequence afterwards.
+    Optional query params:
+    file= a single media path; omit to extract everything embedded
+    type= image|svg|shader|text to restrict to one type
+    dir=  directory to write into (must be inside the show or a media folder);
+          omit to write back to where the stored path resolves
+
 GET /cleanupFileLocations
     cleans up file locations in layout and any open sequence. You must save both the sequence and the layout to ensure it isnt lost.
 
@@ -417,6 +441,44 @@ Command
     {"cmd":"setModelProperty","model":"model name","key":"ModelControllerConnectionPort","data":"5"}
 Response
     {"res":200, "msg":"Set Model Property.","worked":"true"}
+
+List the media referenced by the open sequence, with its embed state.
+"embedded" is whether the bytes live in the .xsq; "embeddable" is whether they could
+(video and audio are always referenced by path, never embedded). Images also report
+width/height and frame count (>1 for animated GIF/WebP and for -1/-2/-3 frame series).
+Command
+    {"cmd":"getMedia"}
+    {"cmd":"getMedia","type":"image"}
+Response
+    {"res":200, "media":[{"path":"Images/star.png","type":"image","embedded":false,"embeddable":true,"used":true,"width":64,"height":64,"frames":1}, ...]}
+
+Embed media into the open sequence so it carries its own copy and no longer depends on
+external files. The sequence must be saved afterwards for this to persist. Media that
+cannot be embedded (video, audio, binary/Glediator files) is skipped.
+Embedded bytes travel inside the .xsq, so the stored path is only an identity key -
+each one is rewritten relative to the show folder or a media folder, and every effect
+setting and face definition referencing it is repointed. Paths outside those folders,
+and any whose relative form is already taken by another entry, are left alone.
+Entries that were already embedded are re-keyed too but not re-counted: "count" is
+newly embedded files, "maderelative" is how many paths were shortened.
+Command
+    {"cmd":"embedMedia"}
+    {"cmd":"embedMedia","type":"image"}
+    {"cmd":"embedMedia","file":"Images/star.png"}
+Response
+    {"res":200, "msg":"Embedded 12 media file(s).","count":12,"maderelative":12}
+    A "failed" array of paths is returned with res 503 if any named file could not be embedded.
+
+Extract embedded media back out to files and repoint the sequence's effects and face
+definitions at them. The sequence must be saved afterwards for this to persist.
+Command
+    {"cmd":"extractMedia"}
+    {"cmd":"extractMedia","type":"image","dir":"C:\\ShowFolder\\Images"}
+    {"cmd":"extractMedia","file":"Images/star.png"}
+Response
+    {"res":200, "msg":"Extracted 12 media file(s).","count":12}
+    "dir" must be inside the show folder or a media folder; omit it to write each file
+    back to where its stored path resolves.
 
 Get current show folder.
 Command

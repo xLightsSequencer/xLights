@@ -1095,7 +1095,14 @@ bool SequenceMedia::LoadFromXml(const pugi::xml_node& node)
             auto entry = std::make_shared<ImageCacheEntry>();
             if (entry->LoadFromXml(child)) {
                 _imageCache[entry->GetFilePath()] = entry;
-                _imageResolvedCache[ResolvePath(entry->GetFilePath())] = entry;
+                // The resolved map only exists to fold two stored paths that
+                // name the same physical file into one entry. An embedded
+                // entry is never opened from disk, so resolving it buys
+                // nothing and costs a FixFile search per image - which on a
+                // few thousand embedded images dominates the sequence open.
+                if (!entry->IsEmbedded()) {
+                    _imageResolvedCache[ResolvePath(entry->GetFilePath())] = entry;
+                }
             } else {
                 spdlog::warn("Failed to load image entry from XML");
             }

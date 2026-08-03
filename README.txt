@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (dkulp)                 Automation API: added getMedia, embedMedia and extractMedia so a script can
+                                 inventory a sequence's media and embed or extract it in bulk
+    -bug (dkulp)                 Embedding media now strips the show/media folder prefix from its stored path
+                                 (and repoints the effects) instead of leaving an absolute path behind. Media
+                                 folders are honoured, not just the show folder, and an image series embedded
+                                 at load time is no longer skipped.
+    -enh (dkulp)                 Sequence load: embedded media no longer does a file-system path search per
+                                 entry, which dominated the open of a sequence with a few thousand images
     -enh (dkulp)                 Sequence load: file-based effects resolve their media once through the sequence's
                                  media list, and the images are decoded in parallel on the background thread pool
                                  rather than one at a time. Images embedded in the .xsq are included, and an
