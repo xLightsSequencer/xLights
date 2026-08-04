@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 A crash during a render could leave the program running but frozen instead
+                                 of reporting the crash - the crash handler could deadlock against itself,
+                                 or wait forever for a report that the main thread was never going to build.
+                                 It now always finishes, and a render with no window to report through
+                                 writes its crash report to disk rather than silently discarding it.
     -bug (dkulp)                 Windows: the Intel QuickSync (qsv) hardware video decode option never
                                  actually engaged - it silently decoded in software instead, on every
                                  machine. FFmpeg only offers QuickSync as a separate decoder rather than

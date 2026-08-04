@@ -53,8 +53,17 @@ public:
 
 private:
     std::string m_appName;
-    std::mutex m_crashMutex;
-    std::condition_variable m_crashDoneSignal;
+    // Timed, so a thread that arrives while another is stuck partway through
+    // reporting gives up instead of blocking behind it forever.  Paired with
+    // condition_variable_any because std::condition_variable only accepts
+    // unique_lock<std::mutex>.
+    std::timed_mutex m_crashMutex;
+    std::condition_variable_any m_crashDoneSignal;
+    // Predicate for m_crashDoneSignal.  Without it the wait can miss the notify
+    // entirely: the report is built on the main thread via CallAfter, which can
+    // finish and signal before the crashing thread reaches the wait, and a
+    // condition_variable does not remember a notify nobody was waiting for.
+    bool m_crashReportDone = false;
     wxDebugReportCompress* m_report;
 };
 

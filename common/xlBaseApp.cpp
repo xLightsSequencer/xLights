@@ -7,6 +7,7 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
+#include <chrono>
 #include <iomanip>
 #include <thread>
 #include <inttypes.h>
@@ -252,8 +253,34 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             // During debug, don't generate crash dumps. Instead, just bring debugger here.
             wxTrap();
 #else
-            // Protect against simultaneous crashes from different threads.
-            std::unique_lock<std::mutex> lock(m_crashMutex);
+            // A crash INSIDE the crash handler must not come back through here.
+            // The mutex below is not recursive, so re-entering on the same thread
+            // blocks on a lock this thread already holds and the process wedges
+            // at zero CPU - which is what a user reports as a hung render rather
+            // than as a crash.  Reporting has already failed at that point; the
+            // useful thing left is to die promptly and let the log stand.
+            static thread_local bool handlingCrash = false;
+            if (handlingCrash) {
+                spdlog::critical("Crashed again while reporting a crash - abandoning the report and aborting.");
+                spdlog::default_logger()->flush();
+                std::abort();
+            }
+            handlingCrash = true;
+            struct ClearHandling {
+                bool& flag;
+                ~ClearHandling() { flag = false; }
+            } clearHandling{ handlingCrash };
+
+            // Protect against simultaneous crashes from different threads, but do
+            // not wait on it indefinitely: if the holder is stuck mid-report,
+            // blocking here just converts a second crash into a second hang.
+            std::unique_lock<std::timed_mutex> lock(m_crashMutex, std::defer_lock);
+            if (!lock.try_lock_for(std::chrono::seconds(30))) {
+                spdlog::critical("Another thread has been reporting a crash for over 30s - abandoning this report and aborting.");
+                spdlog::default_logger()->flush();
+                std::abort();
+            }
+            m_crashReportDone = false;
 
             spdlog::critical("Crashed: " + msg);
 
@@ -366,13 +393,36 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
 
             if (topFrame == nullptr) {
-                spdlog::critical("Unable to tell user about debug report. Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
+                // No UI to ask through - headless, or the frame is already gone.
+                // Write the report anyway: Process() is what actually produces
+                // the file, so skipping it left nothing on disk and logged an
+                // empty path, which is the worst of both worlds.
+                if (report.Process()) {
+                    spdlog::critical("No UI to report through. Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
+                } else {
+                    spdlog::critical("No UI to report through, and the crash report could not be written.");
+                }
             } else {
                 if (wxThread::IsMain()) {
                     topFrame->CreateDebugReport(this);
                 } else {
+                    // The report is built on the main thread, so this only
+                    // completes if the main thread is pumping events.  During a
+                    // render it frequently is not - it can be sat waiting on the
+                    // render itself - and an unbounded wait here then wedges the
+                    // process at zero CPU forever, which users see as a hung
+                    // render rather than as a crash.  Bound it, and carry on
+                    // regardless so the process can finish dying.
                     topFrame->CallAfter(&xlFrame::CreateDebugReport, this);
-                    m_crashDoneSignal.wait(lock);
+                    if (!m_crashDoneSignal.wait_for(lock, std::chrono::seconds(60),
+                                                    [this] { return m_crashReportDone; })) {
+                        spdlog::critical("Timed out waiting for the main thread to build the crash report - it is most likely not processing events. Writing the report here instead.");
+                        if (report.Process()) {
+                            spdlog::critical("Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
+                        } else {
+                            spdlog::critical("Crash report could not be written.");
+                        }
+                    }
                 }
             }
 #endif // (defined(_DEBUG))
@@ -461,6 +511,21 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
 {
     
 
+    // Whatever happens below - including an exception out of Process(), the
+    // preview dialog or the upload - the crashing thread has to be released.  It
+    // is sitting on m_crashDoneSignal, and stranding it there turns a crash into
+    // a hung process.
+    struct ReleaseWaiter {
+        xlCrashHandler* self;
+        ~ReleaseWaiter() {
+            {
+                std::lock_guard<std::timed_mutex> lg(self->m_crashMutex);
+                self->m_crashReportDone = true;
+            }
+            self->m_crashDoneSignal.notify_all();
+        }
+    } releaseWaiter{ this };
+
     if ((sendOption == SendReportOptions::ALWAYS_SEND) || ((sendOption == SendReportOptions::ASK_USER_TO_SEND) && wxDebugReportPreviewStd().Show(*m_report)))
     {
         m_report->Process();
@@ -473,7 +538,6 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
     }
 
     spdlog::critical("Created debug report: " + m_report->GetCompressedFileName().ToStdString());
-    m_crashDoneSignal.notify_all();
 }
 
 void xlCrashHandler::SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report)
