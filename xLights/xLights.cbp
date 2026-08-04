@@ -24,6 +24,7 @@
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="`pkg-config --cflags freetype2 harfbuzz fontconfig`" />
+					<Add option="`pkg-config --cflags avahi-compat-libdns_sd`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -64,6 +65,7 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
+					<Add option="`pkg-config --libs avahi-compat-libdns_sd`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
 					<Add option="-lz" />
@@ -99,6 +101,7 @@
 					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="`pkg-config --cflags freetype2 harfbuzz fontconfig`" />
+					<Add option="`pkg-config --cflags avahi-compat-libdns_sd`" />
 					<Add option="-Winvalid-pch" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DLINUX" />
@@ -139,6 +142,7 @@
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --libs lua53`" />
 					<Add option="`pkg-config --libs freetype2 harfbuzz fontconfig`" />
+					<Add option="`pkg-config --libs avahi-compat-libdns_sd`" />
 					<Add option="-lexpat" />
 					<Add option="-rdynamic" />
 					<Add option="-lz" />

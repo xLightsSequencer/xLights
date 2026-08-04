@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (scott)                 Linux: enable mDNS/Bonjour controller discovery (e.g. WLED) by linking
+                                 against the avahi-compat-libdns_sd shim; previously the Linux build
+                                 always compiled the discovery code out, silently, with no error
     -bug (scott)                 Linux: hardware video decoding (VA-API, Preferences > Other) actually works now.
                                  The Linux build force-disabled it in code regardless of the setting, so the
                                  checkbox was hidden and had no effect even if re-enabled via config file
