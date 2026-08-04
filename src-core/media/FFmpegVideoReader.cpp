@@ -642,9 +642,19 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         // name instead meant any FFmpeg build with CUDA compiled in always chose
         // cuda and then fell back to software on non-NVIDIA machines, never
         // reaching qsv/d3d11va/vulkan.
+        for (int i = 0;; i++) {
+            const AVCodecHWConfig* config = avcodec_get_hw_config(_decoder, i);
+            if (!config) {
+                break;
+            }
+            spdlog::debug("VideoReader: decoder '{}' hw config {}: device_type={} pix_fmt={} methods=0x{:x}",
+                          _decoder->name, i, av_hwdevice_get_type_name(config->device_type),
+                          av_get_pix_fmt_name(config->pix_fmt), (unsigned)config->methods);
+        }
         for (const auto& it : hwdecoders) {
             const AVHWDeviceType candidate = av_hwdevice_find_type_by_name(it.c_str());
             if (candidate == AV_HWDEVICE_TYPE_NONE) {
+                spdlog::debug("VideoReader: hw candidate '{}' rejected - not built into this FFmpeg.", it);
                 continue;
             }
 
@@ -661,6 +671,12 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
                 }
             }
             if (candidatePixFmt == AV_PIX_FMT_NONE) {
+                // Reaching here means the device type is not a hwaccel of this
+                // decoder, which is not the same as the hardware being incapable
+                // - say so, because a silent skip here is indistinguishable from
+                // "your GPU cannot do it" and hides a whole class of problem.
+                spdlog::debug("VideoReader: hw candidate '{}' rejected - decoder '{}' advertises no hw config for it.",
+                              it, _decoder->name);
                 continue;
             }
 
