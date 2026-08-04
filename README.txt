@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (scott)                 Linux: the log file (xLights_spdlog.log) now lives in $XDG_STATE_HOME (default
+                                 ~/.local/state/xLights) instead of /tmp, where it was wiped on every reboot
+                                 and could vanish mid-session to a systemd-tmpfiles sweep
     -enh (dkulp)                 Windows video decode: hardware decoding and the DirectX11 reader are now the
                                  default, and that reader converts and scales on the GPU with the colour space
                                  stated explicitly instead of leaving it to the system. Video-heavy sequences
