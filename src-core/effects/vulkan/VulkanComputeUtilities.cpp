@@ -499,9 +499,11 @@ void VulkanComputeUtilities::doInit() {
         enabled = false;
         return;
     }
-    // The 2048 default was tuned on Apple unified memory.  Elsewhere the
+    // The original 2048 default was tuned on Apple unified memory.  Elsewhere the
     // per-dispatch submit/fence cost is much higher, so the break-even buffer
-    // size differs per driver; this makes it sweepable without a rebuild.
+    // size differs per driver; this makes it sweepable without a rebuild.  8192
+    // seems to work best on AMD Ryzen 5 with shared memory and is likely closer
+    // to what would work best for other discreet cards
     long thr = envLong("XL_GPU_SIZE_THRESHOLD", -1);
     if (thr >= 0) {
         bufferSizeThreshold = (uint32_t)thr;
