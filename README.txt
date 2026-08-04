@@ -11,8 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
-
-
+    -bug (dkulp)                 Windows: the Intel QuickSync (qsv) hardware video decode option never
+                                 actually engaged - it silently decoded in software instead, on every
+                                 machine. FFmpeg only offers QuickSync as a separate decoder rather than
+                                 as an accelerator of the normal one, which the selection code did not
+                                 account for. Measured about 3x faster than software decode where the
+                                 hardware supports it.
 2026.15  August 4, 2026
     -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
                                  the render engine can render Faces frames in parallel. Blink timing may

@@ -606,6 +606,10 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     const int streamProfile = _videoStream != nullptr ? _videoStream->codecpar->profile : -99;
 
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
+    // Set when the chosen device type is served by a standalone '<codec>_qsv'
+    // decoder rather than by a hwaccel of the native decoder - see the QSV branch
+    // in the candidate loop below.
+    const AVCodec* qsvDecoder = nullptr;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(_WIN32)
         std::list<std::string> hwdecoders = { "cuda", "qsv", "d3d11va", "vulkan" };
@@ -658,6 +662,35 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
                 continue;
             }
 
+            // QSV is not a hwaccel of the native decoder - FFmpeg ships it only
+            // as standalone '<codec>_qsv' decoders - so it can never match the
+            // hw-config scan below and was previously skipped on every machine,
+            // however capable the GPU.  Resolve it the same way CUDA resolves
+            // '<codec>_cuvid', except that it has to happen HERE rather than
+            // after the loop, because there is no hw config to get it this far.
+            // Given a device the _qsv decoder returns real hardware frames, so
+            // they go through av_hwframe_transfer_data to NV12 and then the usual
+            // scale to RGBA - the same route d3d11va already takes.
+            if (candidate == AV_HWDEVICE_TYPE_QSV) {
+                const std::string qsvName = std::string(_decoder->name) + "_qsv";
+                const AVCodec* qsv = avcodec_find_decoder_by_name(qsvName.c_str());
+                if (qsv == nullptr) {
+                    spdlog::debug("VideoReader: hw candidate 'qsv' rejected - decoder '{}' not in this FFmpeg build.", qsvName);
+                    continue;
+                }
+                if (!CreateHWDeviceContext(candidate, _hw_device_ctx, _filename)) {
+                    continue;
+                }
+                type = candidate;
+                qsvDecoder = qsv;
+                // Frames arrive in system memory, so there is no hardware pixel
+                // format to negotiate; leaving this NONE keeps srcIsHwBacked
+                // false and routes them down the software path.
+                __hw_pix_fmt = AV_PIX_FMT_NONE;
+                spdlog::debug("VideoReader: QSV decoder '{}' selected", qsvName);
+                break;
+            }
+
             AVPixelFormat candidatePixFmt = AV_PIX_FMT_NONE;
             for (int i = 0;; i++) {
                 const AVCodecHWConfig* config = avcodec_get_hw_config(_decoder, i);
@@ -698,6 +731,10 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
 
     const AVCodec* decoderToUse = _decoder;
     bool usingCuvid = false;
+    const bool usingQsv = (qsvDecoder != nullptr);
+    if (usingQsv) {
+        decoderToUse = qsvDecoder;
+    }
 #if defined(_WIN32)
     if (allowHWDecoder && type == AV_HWDEVICE_TYPE_CUDA) {
         std::string cuvidName = std::string(_decoder->name) + "_cuvid";
@@ -733,7 +770,11 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     _codecContext->hwaccel_context = nullptr;
     if (_hw_device_ctx != nullptr) {
         _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
-        if (!usingCuvid) {
+        // Neither cuvid nor the _qsv decoders negotiate a hardware pixel format
+        // through get_format - they take the device and hand back frames the
+        // ordinary path can consume - and installing the callback for them makes
+        // the codec open fail.
+        if (!usingCuvid && !usingQsv) {
             _codecContext->get_format = get_hw_format;
         }
         _hwDeviceType = type;
