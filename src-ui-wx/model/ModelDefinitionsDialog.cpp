@@ -16,6 +16,7 @@
 #include "models/Model.h"
 #include "outputs/OutputManager.h"
 #include <wx/button.h>
+#include <wx/intl.h> // _() - don't rely on a transitive include
 #include <wx/sizer.h>
 #include <wx/splitter.h>
 #include <wx/msgdlg.h>
@@ -31,7 +32,13 @@ END_EVENT_TABLE()
 
 ModelDefinitionsDialog::ModelDefinitionsDialog(wxWindow* parent, OutputManager* outputManager,
                                                Model* model, int initialTab)
-    : wxDialog(parent, wxID_ANY, "Model Definitions", wxDefaultPosition, wxDefaultSize,
+    // Name the model in the title - with three tabs and a preview it was
+    // otherwise impossible to tell which model was being edited.
+    : wxDialog(parent, wxID_ANY,
+               model != nullptr
+                   ? wxString::Format(_("Model Definitions - %s"), wxString::FromUTF8(model->GetName()))
+                   : wxString(_("Model Definitions")),
+               wxDefaultPosition, wxDefaultSize,
                wxCAPTION | wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX),
       _outputManager(outputManager),
       _model(model)
