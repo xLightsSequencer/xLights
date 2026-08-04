@@ -81,11 +81,7 @@ WINHARDWARERENDERTYPE FFmpegVideoReader::HW_ACCELERATION_TYPE = WINHARDWARERENDE
 
 void FFmpegVideoReader::SetHardwareAcceleratedVideo(bool accel)
 {
-#ifdef __LINUX__
-    HW_ACCELERATION_ENABLED = false;
-#else
     HW_ACCELERATION_ENABLED = accel;
-#endif
 }
 
 void FFmpegVideoReader::SetHardwareRenderType(int type)
