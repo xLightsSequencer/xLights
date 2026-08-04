@@ -17,6 +17,7 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/hwcontext.h>
 #include <libswscale/swscale.h>
 }
 
@@ -82,6 +83,8 @@ private:
     AVStream* _videoStream = nullptr;
     const AVCodec* _decoder = nullptr;
     AVBufferRef* _hw_device_ctx = nullptr;
+    AVHWDeviceType _hwDeviceType = AV_HWDEVICE_TYPE_NONE;
+    bool _hwDecodeConfirmed = false;
     void* hwDecoderCache = nullptr;
     int _streamIndex = 0;
     int _width = 0;

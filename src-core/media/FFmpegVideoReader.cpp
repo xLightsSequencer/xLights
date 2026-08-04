@@ -15,14 +15,17 @@
 #undef min
 #include <algorithm>
 #include <climits>
+#include <cstdarg>
 #include <cstring>
 #include <filesystem>
 #include <list>
 #include <mutex>
 #include <set>
+#include <tuple>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
+#include <libavutil/log.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/hwcontext.h>
 #if __has_include(<libavdevice/avdevice.h>)
@@ -50,6 +53,101 @@ inline bool IsVideoToolboxAcceleratedFrame(AVFrame*) { return false; }
 #include "WindowsHardwareVideoReader.h"
 #include <VersionHelpers.h>
 #endif
+
+// FFmpeg writes its own diagnostics straight to stderr, so decoder chatter -
+// most visibly a hwaccel that turns out not to handle the stream - lands on the
+// console looking like a crash dump while never reaching the xLights log at all.
+// Route it into spdlog: only a fatal is worth a user's attention, the rest is
+// detail that the xLights_logger=debug option can turn on when diagnosing.
+static void ffmpeg_log_callback(void* avcl, int level, const char* fmt, va_list vl)
+{
+    if (level > av_log_get_level()) {
+        return;
+    }
+    char buf[1024];
+    int prefix = 1;
+    av_log_format_line2(avcl, level, fmt, vl, buf, sizeof(buf), &prefix);
+    std::string msg(buf);
+    while (!msg.empty() && (msg.back() == '\n' || msg.back() == '\r')) {
+        msg.pop_back();
+    }
+    if (msg.empty()) {
+        return;
+    }
+    if (level <= AV_LOG_FATAL) {
+        spdlog::error("FFmpeg: {}", msg);
+    } else {
+        spdlog::debug("FFmpeg: {}", msg);
+    }
+}
+
+static void EnsureFFmpegLogRedirect()
+{
+    static std::once_flag redirectOnce;
+    std::call_once(redirectOnce, []() {
+        av_log_set_level(AV_LOG_WARNING);
+        av_log_set_callback(ffmpeg_log_callback);
+    });
+}
+
+// A hardware decoder can open cleanly and still fail once real slices arrive:
+// the device exists and the codec advertises the hwaccel, but the driver has no
+// config for this codec profile.  A VM is the common case - Parallels' virtio
+// GPU brings up a VA-API display that decodes nothing - and FFmpeg reports it as
+// AVERROR_INVALIDDATA, indistinguishable from a corrupt file.  Remembering the
+// rejected combination matters as much as reporting it accurately: a render
+// builds a reader per model, so otherwise every one of them repeats the doomed
+// probe and its log noise.  Keyed on profile, and only ever recorded for a
+// combination that has never decoded, so one damaged file cannot switch off
+// hardware decoding for every other video using the same codec.
+using HWStreamKey = std::tuple<int, int, int>; // device type, codec id, profile
+static std::mutex s_hwStreamMutex;
+static std::set<HWStreamKey> s_hwStreamRejected;
+static std::set<HWStreamKey> s_hwStreamDecoded;
+
+static HWStreamKey MakeHWStreamKey(AVHWDeviceType type, AVCodecID codec, int profile)
+{
+    return HWStreamKey((int)type, (int)codec, profile);
+}
+
+static bool IsHWStreamRejected(AVHWDeviceType type, AVCodecID codec, int profile)
+{
+    std::lock_guard<std::mutex> lock(s_hwStreamMutex);
+    return s_hwStreamRejected.count(MakeHWStreamKey(type, codec, profile)) != 0;
+}
+
+static void NoteHWStreamDecoded(AVHWDeviceType type, AVCodecID codec, int profile)
+{
+    std::lock_guard<std::mutex> lock(s_hwStreamMutex);
+    s_hwStreamDecoded.insert(MakeHWStreamKey(type, codec, profile));
+}
+
+// Returns true when this combination has never produced a hardware frame, ie the
+// failure is a capability gap rather than one bad file, and it was blacklisted.
+static bool NoteHWStreamFailed(AVHWDeviceType type, AVCodecID codec, int profile)
+{
+    std::lock_guard<std::mutex> lock(s_hwStreamMutex);
+    const HWStreamKey key = MakeHWStreamKey(type, codec, profile);
+    if (s_hwStreamDecoded.count(key) != 0) {
+        return false;
+    }
+    s_hwStreamRejected.insert(key);
+    return true;
+}
+
+static std::string DescribeStream(AVCodecID codec, int profile)
+{
+    std::string desc = avcodec_get_name(codec);
+    const char* profileName = avcodec_profile_name(codec, profile);
+    if (profileName != nullptr) {
+        desc += " ";
+        desc += profileName;
+        desc += " profile";
+    } else if (profile >= 0) {
+        desc += " profile " + std::to_string(profile);
+    }
+    return desc;
+}
 
 static thread_local enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
@@ -92,6 +190,7 @@ void FFmpegVideoReader::SetHardwareRenderType(int type)
 }
 
 void FFmpegVideoReader::InitHWAcceleration() {
+    EnsureFFmpegLogRedirect();
     AppleVideoToolboxBridge::InitVideoToolboxAcceleration();
 }
 
@@ -233,6 +332,7 @@ static VideoPixelFormat AVPixelFormatToVideoPixelFormat(AVPixelFormat fmt) {
 FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, int maxheight, bool keepaspectratio, bool usenativeresolution,
                          bool wantAlpha, bool bgr, bool wantsHWType)
 {
+    EnsureFFmpegLogRedirect();
     _wantsHWType = wantsHWType;
     _maxwidth = maxwidth;
     _maxheight = maxheight;
@@ -499,6 +599,12 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         av_buffer_unref(&_hw_device_ctx);
         _hw_device_ctx = nullptr;
     }
+    _hwDeviceType = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
+    _hwDecodeConfirmed = false;
+
+    const AVCodecID streamCodecId = _videoStream != nullptr ? _videoStream->codecpar->codec_id : AV_CODEC_ID_NONE;
+    const int streamProfile = _videoStream != nullptr ? _videoStream->codecpar->profile : -99;
+
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
 #if defined(_WIN32)
@@ -558,6 +664,12 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
                 continue;
             }
 
+            // Already proven at slice level that this device cannot decode this
+            // codec/profile - skip it rather than repeat the failure per reader.
+            if (IsHWStreamRejected(candidate, streamCodecId, streamProfile)) {
+                continue;
+            }
+
             if (!CreateHWDeviceContext(candidate, _hw_device_ctx, _filename)) {
                 continue;
             }
@@ -608,11 +720,17 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         if (!usingCuvid) {
             _codecContext->get_format = get_hw_format;
         }
+        _hwDeviceType = type;
         spdlog::debug("Hardware decoding('{}') enabled for codec '{}'", av_hwdevice_get_type_name(type), decoderToUse->long_name);
     } else {
         spdlog::debug("Software decoding enabled for codec '{}'", decoderToUse->long_name);
     }
-    _videoToolboxAccelerated = AppleVideoToolboxBridge::SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
+    const bool allowVideoToolbox = HW_ACCELERATION_ENABLED && allowHWDecoder &&
+                                   !IsHWStreamRejected(AV_HWDEVICE_TYPE_VIDEOTOOLBOX, streamCodecId, streamProfile);
+    _videoToolboxAccelerated = AppleVideoToolboxBridge::SetupVideoToolboxAcceleration(_codecContext, allowVideoToolbox);
+    if (_videoToolboxAccelerated) {
+        _hwDeviceType = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
+    }
 
     AVDictionary *opts = nullptr;
     if (usingCuvid) {
@@ -814,6 +932,12 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
     if (_codecContext == nullptr) return false;
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
+        // A frame arriving at all means hwaccel init succeeded, so a later
+        // failure on this device/codec/profile is about the file, not the GPU.
+        if (!_hwDecodeConfirmed && _hwDeviceType != AV_HWDEVICE_TYPE_NONE) {
+            _hwDecodeConfirmed = true;
+            NoteHWStreamDecoded(_hwDeviceType, _videoStream->codecpar->codec_id, _videoStream->codecpar->profile);
+        }
         if (_srcFrame->pts == (int64_t)0x8000000000000000LL) {
             _curPos = (_srcFrame->pkt_dts * _lengthMS) / _frames;
         } else {
@@ -1023,7 +1147,20 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                     if (ret != AVERROR(EAGAIN) && !_abandonHardwareDecode && (_videoToolboxAccelerated || _hw_device_ctx )) {
                         char errbuf[AV_ERROR_MAX_STRING_SIZE];
                         av_strerror(ret, errbuf, sizeof(errbuf));
-                        spdlog::warn("VideoReader: Hardware video decoding failed for {} (error: {}). Reverting to software decoding.", (const char*)_filename.c_str(), errbuf);
+                        const AVCodecID codecId = _videoStream->codecpar->codec_id;
+                        const int profile = _videoStream->codecpar->profile;
+                        const char* hwName = av_hwdevice_get_type_name(_hwDeviceType);
+                        // FFmpeg cannot tell "the GPU has no config for this
+                        // profile" from "this file is damaged" - both surface as
+                        // AVERROR_INVALIDDATA - so report what actually differs:
+                        // the format the hardware was asked to decode.
+                        if (NoteHWStreamFailed(_hwDeviceType, codecId, profile)) {
+                            spdlog::warn("VideoReader: Hardware video decoding ({}) does not support {} on this machine. Using software decoding for that format from now on. First seen on {}.",
+                                         hwName != nullptr ? hwName : "GPU", DescribeStream(codecId, profile), _filename);
+                        } else {
+                            spdlog::warn("VideoReader: Hardware video decoding failed for {}. Using software decoding for this file.", _filename);
+                        }
+                        spdlog::debug("VideoReader: hardware decode error was '{}' ({})", errbuf, ret);
                         reopenContext(false);
                         if (_codecContext == nullptr) {
                             spdlog::error("VideoReader: Failed to reopen context for {} after HW decode error; aborting render.", (const char*)_filename.c_str());

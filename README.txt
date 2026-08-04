@@ -192,6 +192,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crashes rendering after editing submodels. A model group holding a
                                  submodel kept pointing at the old one once its parent rebuilt them, so the
                                  next render could use a submodel that no longer existed
+    -bug (dkulp)                 Video: a GPU that cannot decode a file's codec profile (common in a VM) reported
+                                 it as a corrupt file and repeated the failed attempt, plus raw FFmpeg errors, for
+                                 every video reader. It now names the codec and profile the hardware rejected,
+                                 stops retrying that format, and FFmpeg's own messages go to the log not the console
     -bug (dkulp)                 Video: a narrow crop asked the decoder for a frame up to 100x the render buffer,
                                  which could exceed what a frame buffer can address and crash the render. The
                                  requested decode size is now bounded and an unusable one is refused
