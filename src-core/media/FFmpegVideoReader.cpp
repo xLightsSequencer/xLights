@@ -982,6 +982,11 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                             spdlog::warn("VideoReader: av_hwframe_transfer_data failed for {} — abandoning hardware decode.", _filename);
                             spdlog::default_logger()->flush();
                             _abandonHardwareDecode = true;
+                            // The transfer allocates the destination before it can
+                            // fail, so a failed call can still leave buffers on
+                            // _srcFrame2.  Without this the frame keeps them and the
+                            // next transfer reuses a frame that was never released.
+                            av_frame_unref(_srcFrame2);
                             if (_swsCtx != nullptr) {
                                 sws_freeContext(_swsCtx);
                                 _swsCtx = nullptr;
