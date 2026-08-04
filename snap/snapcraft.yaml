@@ -113,6 +113,7 @@ parts:
       # Lua (xLights scripting; Ubuntu pkg-config name is lua5.3 / lua5.4)
       - liblua5.3-dev
       - liblua5.4-dev
+      - libavahi-compat-libdnssd-dev
 
     override-build: |
       # Build wxWidgets, ISPC, and xLights sequentially.
