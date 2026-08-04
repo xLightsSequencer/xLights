@@ -44,6 +44,7 @@ std::vector<std::string> ModelGroup::GROUP_BUFFER_STYLES;
 
 Model* ModelGroup::GetModel(std::string modelName) const
 {
+    EnsureModelsCurrent();
     for (const auto& it : models) {
         if (it->GetFullName() == modelName) {
             return it;
@@ -55,6 +56,7 @@ Model* ModelGroup::GetModel(std::string modelName) const
 
 Model* ModelGroup::GetFirstModel() const
 {
+    EnsureModelsCurrent();
     for (const auto& it : models) {
         if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
             return it;
@@ -94,6 +96,7 @@ std::list<Model*> ModelGroup::GetFlatModels(bool removeDuplicates, bool activeOn
 
 bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
 {
+    EnsureModelsCurrent();
     std::set<Model*> visited;
     visited.insert(this);
 
@@ -125,6 +128,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg)
 
 bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited)
 {
+    EnsureModelsCurrent();
     visited.insert(this);
 
     bool found = false;
@@ -155,6 +159,7 @@ bool ModelGroup::ContainsModelGroup(ModelGroup* mg, std::set<Model*>& visited)
 
 bool ModelGroup::DirectlyContainsModel(Model* m) const
 {
+    EnsureModelsCurrent();
     for (const auto& it : models) {
         if (m == it) {
             return true;
@@ -171,6 +176,7 @@ bool ModelGroup::DirectlyContainsModel(std::string const& m) const
 
 bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 {
+    EnsureModelsCurrent();
     assert(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
@@ -196,6 +202,7 @@ bool ModelGroup::ContainsModelOrSubmodel(const Model* m) const
 
 bool ModelGroup::ContainsModel(const Model* m) const
 {
+    EnsureModelsCurrent();
     assert(m->GetDisplayAs() != DisplayAsType::ModelGroup);
 
     std::list<const Model*> visited;
@@ -229,6 +236,7 @@ bool ModelGroup::ContainsModel(const Model* m) const
 
 bool ModelGroup::ContainsModel(const Model* m, std::list<const Model*>& visited) const
 {
+    EnsureModelsCurrent();
     visited.push_back(this);
 
     bool found = false;
@@ -261,6 +269,7 @@ bool ModelGroup::ContainsModel(const Model* m, std::list<const Model*>& visited)
 
 bool ModelGroup::ContainsModelOrSubmodel(const Model* m, std::list<const Model*>& visited) const
 {
+    EnsureModelsCurrent();
     visited.push_back(this);
 
     bool found = false;
@@ -760,11 +769,34 @@ bool ModelGroup::RebuildBuffers() {
     return true;
 }
 
+void ModelGroup::EnsureModelsCurrent() const
+{
+    if (modelsGeneration == modelManager.GetModelGeneration()) {
+        return;
+    }
+    if (!IsMainThread()) {
+        // Re-resolving reaches into the manager and into nested groups, so it
+        // has the same main-thread-only constraint CheckForChanges documents.
+        // Every crash this guards against has been on the main thread.
+        return;
+    }
+    if (resolvingModels) {
+        // ResetModels recurses into nested groups, and two groups can name each
+        // other. Re-entering here would clear the vector an outer frame is
+        // still walking.
+        return;
+    }
+    resolvingModels = true;
+    const_cast<ModelGroup*>(this)->ResetModels();
+    resolvingModels = false;
+}
+
 void ModelGroup::ResetModels()
 {
+    modelsGeneration = modelManager.GetModelGeneration();
     models.clear();
     activeModels.clear();
-    
+
     for (const auto& modelName : modelNames) {
         Model* c = modelManager.GetModel(modelName);
         if (c != nullptr && c != this) {
@@ -927,6 +959,7 @@ bool ModelGroup::SubModelRenamed(const std::string &oldName, const std::string &
 }
 
 bool ModelGroup::CheckForChanges() const {
+    EnsureModelsCurrent();
     unsigned long l = 0;
     for (const auto& it : models) {
         ModelGroup *grp = dynamic_cast<ModelGroup*>(it);

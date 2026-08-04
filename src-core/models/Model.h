@@ -428,6 +428,7 @@ public:
     }
     void RemoveSubModel(const std::string& name);
     void RemoveAllSubModels();
+    void DeleteAllSubModels();
     void ClearRenderCaches();
     [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 

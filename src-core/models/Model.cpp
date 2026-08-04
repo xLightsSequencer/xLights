@@ -101,7 +101,7 @@ Model::Model(const ModelManager& manager)
 
 Model::~Model()
 {
-    RemoveAllSubModels();
+    DeleteAllSubModels();
     deleteUIObjects();
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
@@ -501,6 +501,10 @@ void Model::AddSubmodel(SubModel* sm)
 {
     subModels.push_back(sm);
     sortedSubModels[sm->GetName()] = sm;
+    // Also notified on add, not just on delete: a group that names this
+    // submodel resolved it to nothing while it did not exist, so without this
+    // the group stays missing it until something else happens to reset.
+    modelManager.NoteModelPointersChanged();
 }
 
 std::string Model::SerialiseFace() const
@@ -1219,6 +1223,7 @@ void Model::RemoveSubModel(const std::string& name)
             sortedSubModels.erase(name);
             delete m;
             it = subModels.erase(it);
+            modelManager.NoteModelPointersChanged();
             return;
         } else {
             ++it;
@@ -1227,6 +1232,16 @@ void Model::RemoveSubModel(const std::string& name)
 }
 
 void Model::RemoveAllSubModels()
+{
+    DeleteAllSubModels();
+    modelManager.NoteModelPointersChanged();
+}
+
+// Raw teardown, no notification. Separate from RemoveAllSubModels because the
+// destructor runs this while the manager is mid-delete (or mid-clear, with the
+// whole map being freed) — telling it that pointers changed there would either
+// be redundant or hand it a half-destroyed model set.
+void Model::DeleteAllSubModels()
 {
     for (auto it = subModels.begin(); it != subModels.end(); ) {
         Model* m = *it;

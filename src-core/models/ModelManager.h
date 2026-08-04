@@ -128,11 +128,20 @@ class ModelManager : public ObjectManager
         std::map<std::string, Model *> GetModels() const { return models; }
 
         // Bumped on every structural mutation (add / replace / delete /
-        // clear). The render tree folds this into its change-count gate so
-        // a freed Model* can never survive in the cached tree — see
-        // RenderEngine::BuildRenderTree. Atomic because models load in
+        // clear) and by NoteModelPointersChanged below. The render tree folds
+        // this into its change-count gate and ModelGroup re-resolves its
+        // cached vectors off it, so a freed Model* can never survive in
+        // either — see RenderEngine::BuildRenderTree and
+        // ModelGroup::EnsureModelsCurrent. Atomic because models load in
         // parallel.
         unsigned int GetModelGeneration() const { return _modelGeneration.load(); }
+
+        // Every Model* this manager has handed out must be treated as stale.
+        // Submodels are owned and freed by their parent Model, not by the
+        // map, so a submodel rebuild is invisible to the mutation sites above
+        // even though GetModel("Parent/Sub") hands those pointers out and
+        // model groups cache them.
+        void NoteModelPointersChanged() const { _modelGeneration++; }
 
         // Model Sets - persistent translation-only links between models.
         // See plans/layout-group-move-lock.md and ModelSetManager.h.
@@ -149,7 +158,7 @@ class ModelManager : public ObjectManager
     std::map<std::string, Model *> models;
     mutable std::recursive_mutex _modelMutex;
     std::atomic<bool> _modelsLoading;
-    std::atomic<unsigned int> _modelGeneration{ 0 };
+    mutable std::atomic<unsigned int> _modelGeneration{ 0 };
     mutable std::string lastGeneratedModelName = "";
     ModelSetManager _setManager;
 };

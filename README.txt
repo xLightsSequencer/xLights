@@ -189,6 +189,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  which frames are still being rendered. A render that stops making progress
                                  now says so on its own after 60 seconds rather than only when cancelled,
                                  headless included
+    -bug (dkulp)                 Fix crashes rendering after editing submodels. A model group holding a
+                                 submodel kept pointing at the old one once its parent rebuilt them, so the
+                                 next render could use a submodel that no longer existed
     -bug (dkulp)                 Video: a narrow crop asked the decoder for a frame up to 100x the render buffer,
                                  which could exceed what a frame buffer can address and crash the render. The
                                  requested decode size is now bounded and an unusable one is refused
