@@ -14,6 +14,7 @@
 
 #undef min
 #include <algorithm>
+#include <climits>
 #include <cstring>
 #include <filesystem>
 #include <list>
@@ -384,23 +385,36 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
 
     _keyFrameCount = _codecContext->keyint_min;
 
+    // Sized in 64-bit and failed explicitly: a requested size whose byte count
+    // does not fit an int wraps negative, av_malloc rejects it, and every decoded
+    // frame then writes through null frame data. _valid gates every read path.
+    const long long frameBytes = (long long)_width * (long long)_height * GetPixelChannels();
+    if (_width <= 0 || _height <= 0 || frameBytes > (long long)INT_MAX) {
+        spdlog::error("FFmpegVideoReader: refusing a {}x{} reader for {} ({} bytes per frame)", _width, _height, filename, frameBytes);
+        return;
+    }
+
     _dstFrame = av_frame_alloc();
     _dstFrame->width = _width;
     _dstFrame->height = _height;
     _dstFrame->linesize[0] = _width * GetPixelChannels();
-    _dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
-    // Zero the destination: av_malloc does not, and sws_scale is not guaranteed
-    // to write every pixel for every filter and size ratio, so anything it skips
-    // would be served to the renderer as whatever was in the heap.
-    memset(_dstFrame->data[0], 0x00, (size_t)_width * _height * GetPixelChannels());
+    _dstFrame->data[0] = (uint8_t *)av_malloc((size_t)frameBytes);
     _dstFrame->format = _pixelFmt;
     _dstFrame2 = av_frame_alloc();
     _dstFrame2->width = _width;
     _dstFrame2->height = _height;
     _dstFrame2->linesize[0] = _width * GetPixelChannels();
-    _dstFrame2->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
-    memset(_dstFrame2->data[0], 0x00, (size_t)_width * _height * GetPixelChannels());
+    _dstFrame2->data[0] = (uint8_t *)av_malloc((size_t)frameBytes);
     _dstFrame2->format = _pixelFmt;
+    if (_dstFrame->data[0] == nullptr || _dstFrame2->data[0] == nullptr) {
+        spdlog::error("FFmpegVideoReader: could not allocate {}x{} frames for {}", _width, _height, filename);
+        return;
+    }
+    // Zero the destinations: av_malloc does not, and sws_scale is not guaranteed
+    // to write every pixel for every filter and size ratio, so anything it skips
+    // would be served to the renderer as whatever was in the heap.
+    memset(_dstFrame->data[0], 0x00, (size_t)frameBytes);
+    memset(_dstFrame2->data[0], 0x00, (size_t)frameBytes);
 
     _srcFrame = av_frame_alloc();
     _srcFrame2 = av_frame_alloc();

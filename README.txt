@@ -189,6 +189,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  which frames are still being rendered. A render that stops making progress
                                  now says so on its own after 60 seconds rather than only when cancelled,
                                  headless included
+    -bug (dkulp)                 Video: a narrow crop asked the decoder for a frame up to 100x the render buffer,
+                                 which could exceed what a frame buffer can address and crash the render. The
+                                 requested decode size is now bounded and an unusable one is refused
     -bug (cybercop23)            Layout: Fix single model undo leaving stale tree pointers causing model to
                                  disappear from preview (#6817)
     -bug (cybercop23)            Layout: exporting a model included every member of any model group
