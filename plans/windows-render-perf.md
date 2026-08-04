@@ -528,7 +528,55 @@ Two incidental findings on that box:
   NVIDIA-less machine before reaching a usable device. Cached after the first
   miss, so it is cheap, but the ordering does needless work on Intel and AMD.
 
-### OPEN: the FFmpeg path is not deterministic on the full corpus
+### OPEN: a latent GPU/CPU race in the Windows render path (not a video bug)
+
+One sequence renders differently between two full-corpus runs on the FFmpeg
+path. Bisected to a conclusion, and the conclusion is **not** the video work:
+
+| condition | result |
+|---|---|
+| pre-change binary (control) | clean 56/56 |
+| new binary, default | **differs** (3 of 3 runs, same sequence) |
+| `SWS_AREA` disabled | clean |
+| near-black snap disabled | differs |
+| `sws_setColorspaceDetails` disabled | differs |
+| destination buffers zeroed | differs |
+| `XL_NO_PARALLEL_FRAMES=1` | differs |
+| **`XL_SERIAL=1`** | **clean** |
+| **`XL_NO_GPU_COMPUTE=1`** | **clean** |
+| `XL_NO_GPU_BLEND=1` | **clean** |
+| `XL_NO_GPU_TRANS=1` | **clean** |
+| `XL_NO_GPU_BLUR=1` | differs |
+| `XL_NO_GPU_ROTO=1` | differs |
+
+**The decoder is deterministic.** Hashing every frame served in two failing
+runs: the complete multiset of (file, size, requested ms, served ms, pixel hash)
+is identical - 75,495 tuples, zero differences either way. So the decoded
+content does not vary; only what happens downstream of it does.
+
+**The divergence needs GPU compute AND concurrent CPU work.** Disabling either
+axis alone fixes it, and it survives frame-parallel being switched off. Within
+the GPU stages, disabling blend or transitions fixes it while blur and rotozoom
+do not - the two that fix it share command-buffer machinery, so this points at
+the blend/transition submission path rather than at one kernel.
+
+**This cannot live in the video changes**: the commit touches no file under
+`render/`, `effects/`, `graphics/` or `vulkan/`. What `SWS_AREA` did was change
+the decoded pixel *content* - deterministically - into a pattern that makes an
+existing race land. Bicubic's content happened not to trigger it. Reverting the
+scaler would hide the race, not fix it, and some other content change would
+resurface it later on a user's show rather than on a bench.
+
+Symptom shape, for whoever picks this up: ~100 channels of 193,268 on a single
+large model, `maxAbsDiff=88`, frames correctly aligned, 0.00% of samples. It
+needs full-corpus contention - the sequence alone never reproduces, in any
+configuration.
+
+Next step: instrument the Vulkan blend/transition submission path
+(`XL_BLENDSUM=1` gives per-layer blend checksums) under corpus load and find
+what is read before its producing command buffer has completed.
+
+### Superseded analysis: the FFmpeg path is not deterministic on the full corpus
 
 Final-build determinism gate, two full-corpus renders per config:
 

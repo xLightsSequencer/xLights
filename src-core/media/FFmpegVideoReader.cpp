@@ -14,6 +14,7 @@
 
 #undef min
 #include <algorithm>
+#include <cstring>
 #include <filesystem>
 #include <list>
 #include <mutex>
@@ -116,13 +117,20 @@ static int VideoScaleAlgorithmToSWS(VideoScaleAlgorithm alg) {
 // darker than macOS with a quarter as many exact-black pixels. Blacks that are
 // not black matter here because VideoEffect's TransparentBlack keys off
 // R+G+B > threshold. State the matrix and ask for full-range RGB explicitly.
-static void ApplySwsColorspace(SwsContext* ctx, const AVFrame* f)
+// Takes the colour metadata from the CODEC CONTEXT, not the frame. A frame that
+// came back from av_hwframe_transfer_data carries no colorspace/color_range -
+// that call moves pixels, not properties - so reading them off the frame gives
+// the stream's real values on a software-decoded frame and "unspecified" on a
+// hardware-decoded one, and a reader can switch between the two at runtime when
+// a failed transfer sets _abandonHardwareDecode. The codec context has the
+// stream's values either way.
+static void ApplySwsColorspace(SwsContext* ctx, const AVCodecContext* cc, int height)
 {
-    if (ctx == nullptr || f == nullptr) {
+    if (ctx == nullptr || cc == nullptr) {
         return;
     }
     int coefId;
-    switch (f->colorspace) {
+    switch (cc->colorspace) {
     case AVCOL_SPC_BT709:
         coefId = SWS_CS_ITU709;
         break;
@@ -131,13 +139,13 @@ static void ApplySwsColorspace(SwsContext* ctx, const AVFrame* f)
         coefId = SWS_CS_ITU601;
         break;
     default:
-        // Unspecified in the bitstream (the common case for these files) - use
-        // the SD/HD split a decoder would assume.
-        coefId = (f->height > 576) ? SWS_CS_ITU709 : SWS_CS_ITU601;
+        // Unspecified in the bitstream (the common case) - use the SD/HD split
+        // a decoder would assume.
+        coefId = (height > 576) ? SWS_CS_ITU709 : SWS_CS_ITU601;
         break;
     }
     const int* coef = sws_getCoefficients(coefId);
-    const int srcRange = (f->color_range == AVCOL_RANGE_JPEG) ? 1 : 0;
+    const int srcRange = (cc->color_range == AVCOL_RANGE_JPEG) ? 1 : 0;
 
     int* invTable = nullptr;
     int* table = nullptr;
@@ -381,12 +389,17 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     _dstFrame->height = _height;
     _dstFrame->linesize[0] = _width * GetPixelChannels();
     _dstFrame->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
+    // Zero the destination: av_malloc does not, and sws_scale is not guaranteed
+    // to write every pixel for every filter and size ratio, so anything it skips
+    // would be served to the renderer as whatever was in the heap.
+    memset(_dstFrame->data[0], 0x00, (size_t)_width * _height * GetPixelChannels());
     _dstFrame->format = _pixelFmt;
     _dstFrame2 = av_frame_alloc();
     _dstFrame2->width = _width;
     _dstFrame2->height = _height;
     _dstFrame2->linesize[0] = _width * GetPixelChannels();
     _dstFrame2->data[0] = (uint8_t *)av_malloc(_width * _height * GetPixelChannels() * sizeof(uint8_t));
+    memset(_dstFrame2->data[0], 0x00, (size_t)_width * _height * GetPixelChannels());
     _dstFrame2->format = _pixelFmt;
 
     _srcFrame = av_frame_alloc();
@@ -861,7 +874,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
                         } else {
-                            ApplySwsColorspace(_swsCtx, f);
+                            ApplySwsColorspace(_swsCtx, _codecContext, f->height);
                             spdlog::debug("Hardware Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }
@@ -874,7 +887,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
                         } else {
-                            ApplySwsColorspace(_swsCtx, f);
+                            ApplySwsColorspace(_swsCtx, _codecContext, f->height);
                             spdlog::debug("Software Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }

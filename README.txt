@@ -20,6 +20,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Linux: the log file (xLights_spdlog.log) now lives in $XDG_STATE_HOME (default
                                  ~/.local/state/xLights) instead of /tmp, where it was wiped on every reboot
                                  and could vanish mid-session to a systemd-tmpfiles sweep
+    -bug (dkulp)                 Video decode: hardware-decoded frames now take their colour space from the
+                                 stream rather than being guessed from the frame size, and the scaler's output
+                                 buffer is cleared before use so any pixel the scaler skips cannot show as
+                                 stray colour
     -enh (dkulp)                 Windows video decode: hardware decoding and the DirectX11 reader are now the
                                  default, and that reader converts and scales on the GPU with the colour space
                                  stated explicitly instead of leaving it to the system. Video-heavy sequences
