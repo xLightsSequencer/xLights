@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (scott)                 Linux: hardware video decoding (VA-API, Preferences > Other) actually works now.
+                                 The Linux build force-disabled it in code regardless of the setting, so the
+                                 checkbox was hidden and had no effect even if re-enabled via config file
     -enh (dkulp)                 Windows video decode: hardware decoding and the DirectX11 reader are now the
                                  default, and that reader converts and scales on the GPU with the colour space
                                  stated explicitly instead of leaving it to the system. Video-heavy sequences

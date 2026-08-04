@@ -276,7 +276,11 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
 #endif
 
 #ifdef __LINUX__
-    HardwareVideoDecodingCheckBox->Hide();
+    // The renderer choice list is Windows-vendor-specific (CUDA/QSV/AMF/
+    // DirectX11); Linux's decode path always auto-tries vaapi then vdpau
+    // (FFmpegVideoReader.cpp reopenContext()), so there is nothing for this
+    // dropdown to select between here. The checkbox itself is real: it gates
+    // that vaapi/vdpau auto-selection.
     ShaderCheckbox->Hide();
     HardwareVideoRenderChoice->Hide();
 #endif

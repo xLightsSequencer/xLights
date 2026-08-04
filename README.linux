@@ -96,6 +96,20 @@ Instructions for other Linux distributions will vary.
        (mesa-vulkan-drivers covers Intel/AMD; NVIDIA users get Vulkan from the
        proprietary driver. Enable it under Preferences > Other > GPU rendering.)
 
+     Hardware video decode (VA-API):
+       No build-time dependency — decode goes through FFmpeg's generic
+       hwaccel API (libavcodec/libavutil, already required above), which
+       resolves VAAPI via the distro's own libva at runtime; nothing
+       VAAPI-specific is linked by xLights itself.
+
+       RUNTIME: needs a VA-API driver for the GPU (Intel: intel-media-va-driver
+       or intel-media-va-driver-non-free for newer iGPUs; AMD/Mesa:
+       mesa-va-drivers):
+         sudo apt-get install vainfo intel-media-va-driver mesa-va-drivers
+       `vainfo` confirms the driver initializes ("VAProfile..." lines printed)
+       before relying on it. Enable under Preferences > Other > Hardware Video
+       Decoding — it auto-tries vaapi then vdpau, no manual selection needed.
+
      Example commands to install packages on Fedora 42
 
      Fedora 38+ defaults to "ffmpeg-free" library to switch to full ffmpeg run, add rpmfusion repo first:
