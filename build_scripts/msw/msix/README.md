@@ -119,26 +119,85 @@ The **release workflow** (`.github/workflows/Ubuntu_Window_Release.yml`) does th
 on every release tag and uploads `xLights-Store-x64.msix` as the **`xLights_Store_MSIX`
 workflow artifact** (deliberately *not* a public release asset — an unsigned
 Store-identity package isn't user-installable). Download it from the workflow run
-to submit.
+to submit by hand, or let the `publish-store` job push it for you (below).
 
-### Submission checklist (Partner Center, manual)
+### Automated submission (`publish-store` job)
 
-Before the package can go live, the submission needs:
+The release workflow's `publish-store` job downloads that artifact and uploads it
+into the app's Partner Center draft submission with the [Microsoft Store Developer
+CLI](https://learn.microsoft.com/windows/apps/publish/msstore-dev-cli/overview)
+(`microsoft/microsoft-store-apppublisher` action + `msstore reconfigure` /
+`msstore publish`). It is a **separate job** on purpose: `publish-release` does not
+depend on it, so a Partner Center outage or a rejected package can never hold up
+the GitHub release.
 
-- [ ] **Custom license terms** — the default Store license terms conflict with
-      GPLv3; supply your own GPL-aligned EULA in the submission (the real gate).
-- [ ] **Privacy policy URL** — required (the app declares `webcam`/`microphone`/
-      network + `runFullTrust`).
-- [ ] **`runFullTrust` justification** — short note; it's a restricted capability.
-- [ ] **WACK pass** — run the Windows App Certification Kit on the `.msix` first.
-- [ ] **Listing** — description, ≥1 screenshot, store logo, category, search terms.
-- [ ] **Age rating** (IARC), **pricing** (Free) + markets.
+Gated on repo **variables**, so the release behaves exactly as before until they
+are set:
 
-Store updates are automatic for users once a new submission is live — no client
-code (the in-app updater is already disabled when packaged). Automating submission
-from CI (Store submission API / StoreBroker) needs an Azure AD app linked to
-Partner Center (Tenant/Client ID + secret) and the Store ID `9PGTCKZNKJ2G`; defer
-until after the first manual submission.
+| Repo variable | Required | Purpose |
+|---|---|---|
+| `MSSTORE_PUBLISH_ENABLED` | yes (`true`) | Master switch for the job. |
+| `MSSTORE_PRODUCT_ID` | optional | Defaults to the Store ID `9PGTCKZNKJ2G`, which is the form the API returns for this app (`GET /v1.0/my/applications`), so it normally needs no override. |
+| `MSSTORE_AUTO_COMMIT` | optional | `true` also commits the draft, starting certification. Default (unset) passes `--noCommit`: the package is uploaded and waits for you to review the listing and press Submit in Partner Center. |
+
+Repo **secrets** (all four required when enabled):
+`MSSTORE_TENANT_ID`, `MSSTORE_SELLER_ID`, `MSSTORE_CLIENT_ID`,
+`MSSTORE_CLIENT_SECRET`.
+
+These are **not** the Trusted Signing credentials. That is a different Entra app
+using federated (OIDC) credentials; the Store CLI needs a client *secret*.
+
+All four come from Partner Center (`partner.microsoft.com/dashboard`) →
+**Account settings**:
+
+- **Organization profile → Legal info** — the Seller ID. (Not *Identifiers*,
+  which holds the packaging identity: the `CN=…` Windows publisher ID that has to
+  match the manifest's `Publisher`, plus the Windows phone publisher ID.)
+- **Organization profile → Tenants** — the associated Entra tenant(s), and where
+  to Associate one. Nothing else works until this lists a tenant.
+- **User management → Microsoft Entra applications** — create or add the app
+  registration and give it the **Manager** role (Developer can publish offers but
+  not authenticate this API path). Selecting the app afterwards shows its Tenant
+  ID and Client ID, and **Add new key** mints the secret, displayed once.
+
+Creating the app here rather than with `az ad app create` guarantees it lands in
+a tenant Partner Center accepts and authorizes it in the same flow. Either way
+the key expires — Entra caps client secrets at 2 years, and CI fails at whatever
+release falls after that, so note the date the dashboard shows.
+
+The submission API only updates an app that has already shipped once. xLights is
+live and has been submitted by hand for two releases, so that is satisfied — the
+only work left is registering the Entra app and setting the secrets above. Note
+the path is **free products only** today; paid products aren't supported.
+
+Each release also needs a higher four-part version than the live one, and the
+revision component must be 0. `BuildMSIX.ps1 -Store` enforces the 0 and derives
+the rest from `../xLights_common.iss`, so bumping `Version` there for the release
+is what makes the upload monotonic. (The derivation matches what shipped: at the
+2026.14 tag `Other=""` gave build 0, and the published package is 2026.14.0.0.)
+
+The job uploads the **package** only. Per-release listing text ("What's new in
+this version") is still a Partner Center edit — the Microsoft Store block in
+`documentation/store-notes/<version>.md` is what to paste. Automating that too
+means `msstore submission updateMetadata`, which needs a base metadata JSON
+dumped from `msstore submission get 9PGTCKZNKJ2G` first.
+
+### Submission checklist (Partner Center)
+
+Worked once for the initial listing; re-check an item only when it changes:
+
+- **Custom license terms** — the default Store license terms conflict with
+  GPLv3, so the listing carries its own GPL-aligned EULA.
+- **Privacy policy URL** — required (the app declares `webcam`/`microphone`/
+  network + `runFullTrust`).
+- **`runFullTrust` justification** — short note; it's a restricted capability.
+- **WACK** — worth re-running the Windows App Certification Kit on the `.msix`
+  when the bundled binaries change materially.
+- **Listing** — description, ≥1 screenshot, store logo, category, search terms.
+- **Age rating** (IARC), **pricing** (Free) + markets.
+
+Store updates are automatic for users once a submission goes live — no client
+code (the in-app updater is already disabled when packaged).
 
 ## Versioning
 
