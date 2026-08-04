@@ -63,6 +63,7 @@ ModelDefinitionsDialog::ModelDefinitionsDialog(wxWindow* parent, OutputManager* 
 
     _modelPreview = new ModelPreview(previewPanel);
     _modelPreview->SetMinSize(wxSize(150, 150));
+    _modelPreview->SetSupportsPencil(true);
     previewSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
     previewPanel->SetSizer(previewSizer);
 

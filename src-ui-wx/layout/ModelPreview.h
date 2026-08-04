@@ -183,6 +183,8 @@ public:
     static int GetPencilSizeIndex();
     static void SetPencilSizeIndex(int index);
     static void ResetPencilSize();
+    // Only previews used for freeform node painting (faces/states/submodels) show the pencil
+    void SetSupportsPencil(bool b) { _supportsPencil = b; }
     bool IsPencilActive() const;
     float GetPencilCatchRadiusMultiplier() const override;
     std::vector<float> GetPencilStrokeOffsets() const;
@@ -243,6 +245,7 @@ private:
     long _displayGridSpacing = 100;
     bool _center2D0 = false;
     bool scaleImage = false;
+    bool _supportsPencil = false;
     bool allowSelected;
     bool allowPreviewChange;
     ControllerObjectContext _controllerObjectContext = ControllerObjectContext::None;
