@@ -223,6 +223,7 @@ protected:
 private:
     Effect* GetEffectAtRowAndTime(int row, int ms,int &index, HitLocation &selectionType, int y = -1);
     int GetClippedPositionFromTimeMS(int ms) const;
+    void PrepareEffectFiles(Effect* effect);
 
     void DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVertexColorAccumulator *backgrounds) const;
     void CreateEffectForFile(int x, int y, const std::string& effectName, const std::string& filename);

@@ -141,7 +141,6 @@ private:
     std::vector<std::string> GetSelectedPaths() const;
 
     // Compute the stripped display path for a full path (empty if no change needed)
-    std::string StrippedPath(const std::string& fullPath) const;
 
     // Rename image in cache + update all effect references, then embed it.
     // Returns the path actually used (stripped if renamed, original otherwise).

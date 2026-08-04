@@ -72,6 +72,7 @@ public:
     // this object; the owning host constructs it (and wires any UI status
     // callbacks) once fully built, so it starts null here.
     JobPool jobPool;
+    JobPool* GetJobPool() override { return &jobPool; }
     RenderCache _renderCache;
     std::unique_ptr<RenderEngine> _renderEngine;
 

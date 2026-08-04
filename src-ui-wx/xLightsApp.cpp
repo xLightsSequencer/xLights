@@ -1584,10 +1584,10 @@ bool xLightsApp::OnInit()
             VideoReader::SetHardwareAcceleratedVideo(hwVideo);
             VideoReader::InitHWAcceleration();
 #else
-            bool hwVideo = false;
-            int hwRenderer = 1;
-            cfg->Read("xLightsVideoReaderAccelerated", &hwVideo, false);
-            cfg->Read("xLightsVideoReaderRenderer", &hwRenderer, 1);
+            bool hwVideo = true;
+            int hwRenderer = 0;
+            cfg->Read("xLightsVideoReaderAccelerated", &hwVideo, true);
+            cfg->Read("xLightsVideoReaderRenderer", &hwRenderer, 0);
             VideoReader::SetHardwareAcceleratedVideo(hwVideo);
             VideoReader::SetHardwareRenderType(hwRenderer);
 #endif

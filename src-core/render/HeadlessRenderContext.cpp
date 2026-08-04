@@ -139,6 +139,7 @@ bool HeadlessRenderContext::OpenSequence(const std::string& path) {
         return false;
     }
 
+    const bool profileLoad = std::getenv("XL_LOAD_PROFILE") != nullptr;
     auto openStart = std::chrono::steady_clock::now();
     _sequenceFile = std::make_unique<SequenceFile>(path);
     _sequenceDoc = _sequenceFile->Open(showDirectory, false, path);
@@ -147,6 +148,7 @@ bool HeadlessRenderContext::OpenSequence(const std::string& path) {
         _sequenceFile.reset();
         return false;
     }
+    const auto xmlOpenEnd = std::chrono::steady_clock::now();
 
     // Shared load steps (frequency, views manager, LoadSequencerFile, settings
     // migration, CheckForValidModels [base logs missing models], view prep). See
@@ -157,11 +159,21 @@ bool HeadlessRenderContext::OpenSequence(const std::string& path) {
         _sequenceDoc.reset();
         return false;
     }
+    const auto elementsEnd = std::chrono::steady_clock::now();
 
     EnsureSequenceDataSized();
+    const auto sequenceDataEnd = std::chrono::steady_clock::now();
 
-    auto openMS = std::chrono::duration_cast<std::chrono::milliseconds>(
-                      std::chrono::steady_clock::now() - openStart).count();
+    auto openMS = std::chrono::duration_cast<std::chrono::milliseconds>(sequenceDataEnd - openStart).count();
+    if (profileLoad) {
+        const auto ms = [](const auto& from, const auto& to) {
+            return std::chrono::duration_cast<std::chrono::milliseconds>(to - from).count();
+        };
+        spdlog::info("XL_LOAD_PROFILE phase=xml-open file={} ms={}", path, ms(openStart, xmlOpenEnd));
+        spdlog::info("XL_LOAD_PROFILE phase=shared-load file={} ms={}", path, ms(xmlOpenEnd, elementsEnd));
+        spdlog::info("XL_LOAD_PROFILE phase=sequence-data file={} ms={}", path, ms(elementsEnd, sequenceDataEnd));
+        spdlog::info("XL_LOAD_PROFILE phase=total file={} ms={}", path, openMS);
+    }
     spdlog::info("HeadlessRenderContext: opened {} ({} elements, {} ms long) in {} ms",
                  path, _sequenceElements.GetElementCount(),
                  _sequenceFile->GetSequenceDurationMS(), (long long)openMS);

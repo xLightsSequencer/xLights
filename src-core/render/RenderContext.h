@@ -19,6 +19,7 @@ class AudioManager;
 class Effect;
 class EffectManager;
 class IModelPreview;
+class JobPool;
 class Model;
 class OutputModelManager;
 class PreviewCamera;
@@ -69,6 +70,7 @@ public:
     // ---- managers ----
     virtual EffectManager& GetEffectManager() = 0;
     virtual OutputModelManager* GetOutputModelManager() = 0;
+    virtual JobPool* GetJobPool() { return nullptr; }
 
     // ---- rendering control ----
     virtual bool AbortRender(int maxTimeMs = 60000) = 0;

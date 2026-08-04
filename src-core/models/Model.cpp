@@ -4382,13 +4382,27 @@ void Model::AddSuperStringColour(xlColor c)
     superStringColours.push_back(c);
 }
 
-void Model::SetShadowModelFor(const std::string& shadowModelFor)
+void Model::SetShadowModelFor(const std::string& shadowModelFor, bool applyLink)
 {
     // models should not be a shadow model for themselves
     if (shadowModelFor != name && shadowModelFor != _shadowModelFor) {
         _shadowModelFor = shadowModelFor;
-        IncrementChangeCount();
-        AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::SetShadowModelFor");
+        // applyLink is false when this is just restoring saved state (file load/import) rather
+        // than a user picking a new shadow target - it must not mutate the target model then.
+        if (applyLink) {
+            if (!_shadowModelFor.empty()) {
+                Model* targetModel = GetModelManager().GetModel(_shadowModelFor);
+                if (targetModel != nullptr) {
+                    const std::string curSc = targetModel->GetModelStartChannel();
+                    if (!StartsWith(curSc, "@") && !StartsWith(curSc, "!")) {
+                        targetModel->SetStartChannel("@" + name + ":1");
+                        targetModel->SetControllerName("");
+                    }
+                }
+            }
+            IncrementChangeCount();
+            AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE | OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetShadowModelFor");
+        }
     }
 }
 

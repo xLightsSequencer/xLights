@@ -12,9 +12,11 @@
 
 #include "../utils/xlImage.h"
 #include <atomic>
+#include <condition_variable>
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <set>
 #include <string>
 #include <memory>
 #include <mutex>
@@ -22,6 +24,8 @@
 
 
 class AnimatedImage;
+class ImageLoadJob;
+class JobPool;
 namespace pugi { class xml_node; }
 
 /**
@@ -35,6 +39,15 @@ enum class MediaType {
     BinaryFile,
     Video,
     Audio
+};
+
+struct ResolvedMediaPath {
+    // What to store back into the effect's settings (relative where possible,
+    // for portability) and what to actually open. They differ whenever the
+    // stored path is relative or had to be re-resolved against the current
+    // show/media folders.
+    std::string settingsPath;
+    std::string loadPath;
 };
 
 /**
@@ -204,9 +217,12 @@ private:
     void storeAnimated(AnimatedImageData result);
     void loadAnimated(const std::vector<uint8_t> &data, const AnimationLoaderFunc &loader);
     void loadImage(const std::vector<uint8_t> &data);
+    void LoadDeferredFrames();
     int GetExifOrientation(const uint8_t* data, size_t len);
 
     mutable std::vector<std::string> _frameData; // Base64 encoded PNG per frame (multi-frame embedded, cached to avoid re-encode)
+    // <Frame> nodes were read but not yet decoded; _frameData holds them.
+    bool _deferredFrames = false;
     int _imageCount = 0;                // Number of frames in image (1 for static, >1 for animated)
     bool _frameBasedAnimation = true;
     bool _framesEmbeddable = false;     // Frames exist only in memory and can be saved as <Frame> nodes
@@ -404,9 +420,16 @@ public:
 
     // === Image-specific API (existing, unchanged) ===
     std::shared_ptr<ImageCacheEntry> GetImage(const std::string& filepath);
+    ResolvedMediaPath ResolveImagePath(const std::string& filepath) const;
+    static ResolvedMediaPath ResolveFilePath(const std::string& filepath);
     bool HasImage(const std::string& filepath) const;
     // Create the cache entry without decoding (GetImage loads eagerly)
     void RegisterImage(const std::string& filepath);
+    void QueueImageLoad(const std::string& filepath, const std::string& loadPath, JobPool& pool);
+    // Queue every cached-but-undecoded image (i.e. the embedded ones, which no
+    // effect's loadFiles reaches) so they decode on the pool like the rest.
+    void QueueUnloadedImages(JobPool& pool);
+    void WaitForImageLoads();
     // Flag/query an entry as referenced by sequence metadata (see
     // MediaCacheEntry::SetUsedByMetadata); no-op when the path isn't cached
     void MarkUsedByMetadata(const std::string& filepath, bool used = true);
@@ -496,13 +519,17 @@ public:
     void SaveToXml(pugi::xml_node& parent) const;
 
 private:
+    friend class ImageLoadJob;
+    void LoadQueuedImage(const std::string& filepath);
     // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
+    void RegisterImage(const std::string& filepath, const std::string& loadPath);
 
     std::vector<std::pair<std::string, std::string>> _pendingRelocations;
 
     // Per-type caches
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
+    std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageResolvedCache;
     std::map<std::string, std::shared_ptr<TextMediaCacheEntry>> _textCache;
     std::map<std::string, std::shared_ptr<SVGMediaCacheEntry>> _svgCache;
     std::map<std::string, std::shared_ptr<ShaderMediaCacheEntry>> _shaderCache;
@@ -511,4 +538,8 @@ private:
     std::map<std::string, std::shared_ptr<AudioMediaCacheEntry>> _audioCache;
 
     mutable std::recursive_mutex _cacheMutex;
+    std::mutex _imageLoadMutex;
+    std::condition_variable _imageLoadComplete;
+    std::set<std::string> _queuedImageLoads;
+    size_t _pendingImageLoads = 0;
 };

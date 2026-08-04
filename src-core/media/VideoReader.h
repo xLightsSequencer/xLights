@@ -51,4 +51,9 @@ public:
     static void InitHWAcceleration();
 private:
     VideoReaderImpl* _impl = nullptr;
+    const char* _decoderTag = "?";   // XL_VIDEO_DUMP label
+    int _dumpedFrames = 0;           // XL_VIDEO_DUMP budget for this reader
+    int _readerId = 0;               // XL_VIDEO_TRACE: distinguishes concurrent
+                                     // readers on the same file+size, whose
+                                     // requests otherwise interleave in the log
 };

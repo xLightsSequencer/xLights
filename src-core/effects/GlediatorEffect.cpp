@@ -222,6 +222,11 @@ bool GlediatorEffect::IsCSVFile(std::string filename) const
     return false;
 }
 
+bool GlediatorEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2017.6", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
 void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect, bool removeDefaults)
 {
     // give the base class a chance to adjust any settings
@@ -239,30 +244,15 @@ void GlediatorEffect::adjustSettings(const std::string &version, Effect *effect,
         settings.erase("E_TEXTCTRL_Glediator_Filename");
         settings["E_FILEPICKERCTRL_Glediator_Filename"] = file;
     }
+}
 
-    // Resolve broken paths first, then convert to relative for portability
-    file = settings["E_FILEPICKERCTRL_Glediator_Filename"];
-    if (!file.empty() && !FileUtils::CachedFileExists(file)) {
-        std::string fixed = FileUtils::FixFile("", file);
-        if (!fixed.empty() && fixed != file) {
-            settings["E_FILEPICKERCTRL_Glediator_Filename"] = fixed;
-            file = fixed;
-        }
-    }
+void GlediatorEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
+    std::string file = settings["E_FILEPICKERCTRL_Glediator_Filename"];
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileUtils::CachedFileExists(file)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_Glediator_Filename"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_Glediator_Filename"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        settings["E_FILEPICKERCTRL_Glediator_Filename"] = SequenceMedia::ResolveFilePath(file).settingsPath;
         media.GetBinaryFile(settings["E_FILEPICKERCTRL_Glediator_Filename"], "glediator");
     }
 }
@@ -529,4 +519,3 @@ void GlediatorEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
         }
     }
 }
-

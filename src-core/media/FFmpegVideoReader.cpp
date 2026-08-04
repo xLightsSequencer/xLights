@@ -29,6 +29,7 @@ extern "C" {
 }
 
 #include "../utils/SpecialOptions.h"
+#include "Parallel.h"
 #include <log.h>
 
 #ifdef __APPLE__
@@ -72,15 +73,15 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
 }
 
 bool FFmpegVideoReader::HW_ACCELERATION_ENABLED = false;
-WINHARDWARERENDERTYPE FFmpegVideoReader::HW_ACCELERATION_TYPE = WINHARDWARERENDERTYPE::FFMPEG_AUTO;
+// Media Foundation by default on Windows: measured 2.3x faster than the FFmpeg
+// path on video-heavy sequences (3.0x on a weaker box), with output closer to
+// macOS. Files it cannot open - uncompressed/rawvideo, mkv - fall back to
+// FFmpeg automatically, and those are cheap to decode anyway.
+WINHARDWARERENDERTYPE FFmpegVideoReader::HW_ACCELERATION_TYPE = WINHARDWARERENDERTYPE::DIRECX11_API;
 
 void FFmpegVideoReader::SetHardwareAcceleratedVideo(bool accel)
 {
-#ifdef __LINUX__
-    HW_ACCELERATION_ENABLED = false;
-#else
     HW_ACCELERATION_ENABLED = accel;
-#endif
 }
 
 void FFmpegVideoReader::SetHardwareRenderType(int type)
@@ -105,6 +106,96 @@ static int VideoScaleAlgorithmToSWS(VideoScaleAlgorithm alg) {
     case VideoScaleAlgorithm::Default:
     default:                           return SWS_BICUBIC;
     }
+}
+
+
+// swscale defaults to BT.601 coefficients and, for a YUV->RGB conversion, does
+// not produce full-range RGB unless told to. Left alone it therefore disagrees
+// with both AVFoundation (macOS) and the Media Foundation reader, which do
+// full-range output: measured on one h264 file, the FFmpeg path came out ~7.5%
+// darker than macOS with a quarter as many exact-black pixels. Blacks that are
+// not black matter here because VideoEffect's TransparentBlack keys off
+// R+G+B > threshold. State the matrix and ask for full-range RGB explicitly.
+static void ApplySwsColorspace(SwsContext* ctx, const AVFrame* f)
+{
+    if (ctx == nullptr || f == nullptr) {
+        return;
+    }
+    int coefId;
+    switch (f->colorspace) {
+    case AVCOL_SPC_BT709:
+        coefId = SWS_CS_ITU709;
+        break;
+    case AVCOL_SPC_SMPTE170M:
+    case AVCOL_SPC_BT470BG:
+        coefId = SWS_CS_ITU601;
+        break;
+    default:
+        // Unspecified in the bitstream (the common case for these files) - use
+        // the SD/HD split a decoder would assume.
+        coefId = (f->height > 576) ? SWS_CS_ITU709 : SWS_CS_ITU601;
+        break;
+    }
+    const int* coef = sws_getCoefficients(coefId);
+    const int srcRange = (f->color_range == AVCOL_RANGE_JPEG) ? 1 : 0;
+
+    int* invTable = nullptr;
+    int* table = nullptr;
+    int sr = 0, dr = 0, brightness = 0, contrast = 0, saturation = 0;
+    if (sws_getColorspaceDetails(ctx, &invTable, &sr, &table, &dr, &brightness, &contrast, &saturation) < 0) {
+        brightness = 0;
+        contrast = 1 << 16;
+        saturation = 1 << 16;
+    }
+    if (sws_setColorspaceDetails(ctx, coef, srcRange, coef, 1 /* full-range RGB out */,
+                                 brightness, contrast, saturation) < 0) {
+        spdlog::debug("VideoReader: sws_setColorspaceDetails not supported for this conversion");
+    }
+}
+
+
+// Snap uniformly-near-black pixels to exact (0,0,0), matching what the macOS
+// bridge does in copyPixelBufferToFrame and what the Media Foundation reader
+// now does. H.264 artifacts in dark regions decode to values like (2,0,2) -
+// sum 4, one over a typical TransparentBlack threshold of 3 - which render as
+// faint blotches where the user expects clean transparency, and as reveal
+// halos in the "1 reveals 2" composite modes. Requires ALL THREE channels <= 4
+// so deliberately dark single-channel content (e.g. RGB(0,0,10)) survives.
+static void SnapNearBlack(AVFrame* frame, int width, int height, int channels)
+{
+    if (frame == nullptr || frame->data[0] == nullptr) {
+        return;
+    }
+    uint8_t* base = frame->data[0];
+    const int stride = frame->linesize[0];
+    parallel_for(0, height, [base, stride, width, channels](int y) {
+        uint8_t* row = base + (size_t)y * stride;
+        for (int x = 0; x < width; ++x) {
+            uint8_t* p = row + (size_t)x * channels;
+            if (p[0] <= 4 && p[1] <= 4 && p[2] <= 4) {
+                p[0] = 0;
+                p[1] = 0;
+                p[2] = 0;
+            }
+        }
+    });
+}
+
+
+// swscale's bicubic is a poor choice for a large reduction: with a 10:1
+// downscale it samples a handful of taps out of each 10x10 source block and
+// aliases, which showed up as a systematic ~7% level difference against
+// AVFoundation's vImage resampler and the Media Foundation video processor,
+// both of which average properly. SWS_AREA is the correct filter for that
+// regime. Only applied when the user has not chosen a specific algorithm.
+static int PickScaleAlgorithm(VideoScaleAlgorithm alg, int srcW, int srcH, int dstW, int dstH)
+{
+    int sws = VideoScaleAlgorithmToSWS(alg);
+    if (alg == VideoScaleAlgorithm::Default && dstW > 0 && dstH > 0 &&
+        (srcW >= dstW * 2 || srcH >= dstH * 2)) {
+        return SWS_AREA;
+    }
+    return sws;
 }
 
 // Helper to populate the VideoFrame from an AVFrame
@@ -764,20 +855,26 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     if (srcIsHwBacked) {
                         spdlog::debug("Hardware format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
-                            _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
+                            _width, _height, _pixelFmt,
+                            PickScaleAlgorithm(_scaleAlgorithm, f->width, f->height, _width, _height),
+                            nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
                         } else {
+                            ApplySwsColorspace(_swsCtx, f);
                             spdlog::debug("Hardware Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }
                     } else {
                         spdlog::debug("Software format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)f->format), av_get_pix_fmt_name((AVPixelFormat)_pixelFmt));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
-                            _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
+                            _width, _height, _pixelFmt,
+                            PickScaleAlgorithm(_scaleAlgorithm, f->width, f->height, _width, _height),
+                            nullptr, nullptr, nullptr);
                         if (_swsCtx == nullptr) {
                             spdlog::error("VideoReader: Error creating SWSContext");
                         } else {
+                            ApplySwsColorspace(_swsCtx, f);
                             spdlog::debug("Software Decoding Pixel format conversion {} -> {}.", av_get_pix_fmt_name(_codecContext->pix_fmt), av_get_pix_fmt_name(_pixelFmt));
                             spdlog::debug("Size conversion {},{} -> {},{}.", f->width, f->height, _width, _height);
                         }
@@ -807,6 +904,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
                         _dstFrame2->linesize);
+                    SnapNearBlack(_dstFrame2, _width, _height, GetPixelChannels());
                 }
             }
             std::swap(_dstFrame, _dstFrame2);

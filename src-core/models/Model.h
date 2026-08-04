@@ -389,7 +389,7 @@ public:
     void SetSuperStringColour(int index, xlColor c);
     void AddSuperStringColour(xlColor c);
     void Reinitialize() { InitModel(); }
-    void SetShadowModelFor(const std::string& shadowFor);
+    void SetShadowModelFor(const std::string& shadowFor, bool applyLink = true);
     [[nodiscard]] bool IsShadowModel() const;
     [[nodiscard]] std::string GetShadowModelFor() const;
     [[nodiscard]] std::string GetRGBWHandling() const;

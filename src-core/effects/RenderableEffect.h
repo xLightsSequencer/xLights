@@ -179,6 +179,8 @@ public:
 
     virtual bool needToAdjustSettings(const std::string& version);
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true);
+    virtual bool needsLoadFiles() const { return false; }
+    virtual void loadFiles(Effect* effect) {}
     virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) {}
 
     static std::string UpgradeValueCurve(EffectManager* effectManager, const std::string& name, const std::string& value, const std::string& effectName);

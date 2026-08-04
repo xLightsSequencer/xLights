@@ -328,6 +328,7 @@ void ControllerListPanel::CreateTree() {
     _tree->GetDataView()->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, &ControllerListPanel::OnBeginDrag, this);
     _tree->GetDataView()->Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &ControllerListPanel::OnDragPossible, this);
     _tree->GetDataView()->Bind(wxEVT_DATAVIEW_ITEM_DROP, &ControllerListPanel::OnDragDrop, this);
+    _tree->GetDataView()->Bind(wxEVT_DATAVIEW_COLUMN_REORDERED, [this](wxDataViewEvent&) { SaveColumnOrder(); });
 
 
     _tree->Bind(wxEVT_TREELIST_SELECTION_CHANGED, &ControllerListPanel::OnSelectionChanged, this);
@@ -523,6 +524,11 @@ void ControllerListPanel::OnControllerFilterTextChanged(wxCommandEvent& event) {
 void ControllerListPanel::OnFullColumnsClick(wxCommandEvent& event) {
     ControllerFullColumnsDialog dlg(this, _frame);
     dlg.ShowModal();
+
+    wxString lastSelected = dlg.GetLastSelectedController();
+    if (!lastSelected.IsEmpty()) {
+        SelectController(lastSelected.ToStdString());
+    }
 }
 
 bool ControllerListPanel::ControllerMatchesFilter(const Controller* controller) const {

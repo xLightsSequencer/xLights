@@ -14,6 +14,7 @@
 #include "../utils/XsqFileScanner.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
@@ -1911,8 +1912,11 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, Re
     // files, so the memo is safe for the pass's own lifetime.
     FileUtils::ClearNonExistentFiles();
 
+    const bool profileLoad = std::getenv("XL_LOAD_PROFILE") != nullptr;
     std::string ver = GetVersion();
     std::vector<RenderableEffect*> effects(ctx->GetEffectManager().size());
+    std::vector<uint64_t> adjustmentNs(profileLoad ? effects.size() : 0);
+    std::vector<uint64_t> adjustmentCount(profileLoad ? effects.size() : 0);
     int count = 0;
     for (int x = 0; x < (int)ctx->GetEffectManager().size(); x++) {
         RenderableEffect* eff = ctx->GetEffectManager()[x];
@@ -1922,6 +1926,20 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, Re
         }
     }
     if (count > 0) {
+        const auto adjust = [&](Effect* effect) {
+            if (effect == nullptr || effect->GetEffectIndex() < 0) return;
+            const int effectIndex = effect->GetEffectIndex();
+            if (effectIndex >= static_cast<int>(effects.size()) || effects[effectIndex] == nullptr) return;
+            if (!profileLoad) {
+                effects[effectIndex]->adjustSettings(ver, effect);
+                return;
+            }
+            const auto start = std::chrono::steady_clock::now();
+            effects[effectIndex]->adjustSettings(ver, effect);
+            adjustmentNs[effectIndex] += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now() - start).count();
+            ++adjustmentCount[effectIndex];
+        };
         for (size_t i = 0; i < elements.GetElementCount(); i++) {
             Element* elem = elements.GetElement(i);
             if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -1930,9 +1948,7 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, Re
                     EffectLayer* layer = elem->GetEffectLayer(j);
                     for (int k = 0; k < (int)layer->GetEffectCount(); k++) {
                         Effect* eff = layer->GetEffect(k);
-                        if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
-                            effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
-                        }
+                        adjust(eff);
                     }
                 }
                 for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
@@ -1941,9 +1957,7 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, Re
                         EffectLayer* layer = se->GetEffectLayer(j);
                         for (int k = 0; k < (int)layer->GetEffectCount(); k++) {
                             Effect* eff = layer->GetEffect(k);
-                            if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
-                                effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
-                            }
+                            adjust(eff);
                         }
                     }
                     if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
@@ -1952,14 +1966,106 @@ void SequenceFile::AdjustEffectSettingsForVersion(SequenceElements& elements, Re
                             NodeLayer* nlayer = ste->GetNodeLayer(k);
                             for (int l = 0; l < nlayer->GetEffectCount(); l++) {
                                 Effect* eff = nlayer->GetEffect(l);
-                                if (eff != nullptr && eff->GetEffectIndex() >= 0 && effects[eff->GetEffectIndex()] != nullptr) {
-                                    effects[eff->GetEffectIndex()]->adjustSettings(ver, eff);
-                                }
+                                adjust(eff);
                             }
                         }
                     }
                 }
             }
+        }
+        if (profileLoad) {
+            std::vector<int> ranked;
+            for (int i = 0; i < static_cast<int>(effects.size()); ++i) {
+                if (adjustmentCount[i] != 0) ranked.push_back(i);
+            }
+            std::sort(ranked.begin(), ranked.end(), [&](int a, int b) { return adjustmentNs[a] > adjustmentNs[b]; });
+            for (int effectIndex : ranked) {
+                spdlog::info("XL_LOAD_PROFILE adjustment effect={} count={} ms={}", effects[effectIndex]->Name(),
+                             adjustmentCount[effectIndex], adjustmentNs[effectIndex] / 1000000.0);
+            }
+        }
+    }
+}
+
+void SequenceFile::LoadEffectFiles(SequenceElements& elements, RenderContext* ctx)
+{
+    std::vector<RenderableEffect*> effects(ctx->GetEffectManager().size());
+    for (int x = 0; x < static_cast<int>(effects.size()); ++x) {
+        effects[x] = ctx->GetEffectManager()[x];
+    }
+
+    std::unordered_map<std::string, std::string> resolvedSettings;
+    const bool profileLoad = std::getenv("XL_LOAD_PROFILE") != nullptr;
+    std::vector<uint64_t> loadNs(profileLoad ? effects.size() : 0);
+    std::vector<uint64_t> loadCount(profileLoad ? effects.size() : 0);
+    std::vector<uint64_t> reuseCount(profileLoad ? effects.size() : 0);
+    uint64_t loaded = 0;
+    uint64_t reused = 0;
+    const auto load = [&](Effect* effect) {
+        if (effect == nullptr || effect->GetEffectIndex() < 0) return;
+        const int effectIndex = effect->GetEffectIndex();
+        if (effectIndex >= static_cast<int>(effects.size()) || effects[effectIndex] == nullptr || !effects[effectIndex]->needsLoadFiles()) return;
+
+        const std::string key = std::to_string(effectIndex) + '\n' + effect->GetSettings().AsString();
+        if (const auto it = resolvedSettings.find(key); it != resolvedSettings.end()) {
+            effect->SetSettings(it->second, true);
+            ++reused;
+            if (profileLoad) ++reuseCount[effectIndex];
+            return;
+        }
+
+        const auto start = profileLoad ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point();
+        effects[effectIndex]->loadFiles(effect);
+        if (profileLoad) {
+            loadNs[effectIndex] += std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now() - start).count();
+            ++loadCount[effectIndex];
+        }
+        resolvedSettings.emplace(key, effect->GetSettings().AsString());
+        ++loaded;
+    };
+
+    for (size_t i = 0; i < elements.GetElementCount(); i++) {
+        Element* elem = elements.GetElement(i);
+        if (elem->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+
+        ModelElement* me = dynamic_cast<ModelElement*>(elem);
+        for (int j = 0; j < static_cast<int>(elem->GetEffectLayerCount()); j++) {
+            EffectLayer* layer = elem->GetEffectLayer(j);
+            for (int k = 0; k < static_cast<int>(layer->GetEffectCount()); k++) {
+                load(layer->GetEffect(k));
+            }
+        }
+        for (int s = 0; s < me->GetSubModelAndStrandCount(); s++) {
+            SubModelElement* se = me->GetSubModel(s);
+            for (int j = 0; j < static_cast<int>(se->GetEffectLayerCount()); j++) {
+                EffectLayer* layer = se->GetEffectLayer(j);
+                for (int k = 0; k < static_cast<int>(layer->GetEffectCount()); k++) {
+                    load(layer->GetEffect(k));
+                }
+            }
+            if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                StrandElement* ste = dynamic_cast<StrandElement*>(se);
+                for (int k = 0; k < ste->GetNodeLayerCount(); k++) {
+                    NodeLayer* layer = ste->GetNodeLayer(k);
+                    for (int l = 0; l < layer->GetEffectCount(); l++) {
+                        load(layer->GetEffect(l));
+                    }
+                }
+            }
+        }
+    }
+
+    if (profileLoad) {
+        spdlog::info("XL_LOAD_PROFILE files loaded={} reused={}", loaded, reused);
+        std::vector<int> ranked;
+        for (int i = 0; i < static_cast<int>(effects.size()); ++i) {
+            if (loadCount[i] != 0 || reuseCount[i] != 0) ranked.push_back(i);
+        }
+        std::sort(ranked.begin(), ranked.end(), [&](int a, int b) { return loadNs[a] > loadNs[b]; });
+        for (int effectIndex : ranked) {
+            spdlog::info("XL_LOAD_PROFILE file-load effect={} loaded={} reused={} ms={}", effects[effectIndex]->Name(),
+                         loadCount[effectIndex], reuseCount[effectIndex], loadNs[effectIndex] / 1000000.0);
         }
     }
 }

@@ -19,6 +19,7 @@
 namespace pugi { class xml_node; class xml_document; }
 #include <array>
 #include <vector>
+#include <map>
 #include <set>
 #include <string>
 #include <mutex>
@@ -224,6 +225,19 @@ public:
     // Media cache management
     SequenceMedia& GetSequenceMedia() { return mSequenceMedia; }
     const SequenceMedia& GetSequenceMedia() const { return mSequenceMedia; }
+
+    // Repoint every reference to a media file - effect settings (exact-value
+    // match on any key), and the sequence-level face definitions - from one
+    // path to another. Returns model name -> [startMS, endMS] covering the
+    // effects that changed, so a caller can re-render just those.
+    std::map<std::string, std::pair<int, int>> RewriteMediaReferences(const std::string& from, const std::string& to);
+
+    // Strip the show/media folder prefix off a media entry's stored path and
+    // repoint every reference at the relative form. Embedded bytes travel in
+    // the document, so an absolute path just pins the sequence to one machine.
+    // No-op (returns `path`) when the file is outside the show and media
+    // folders, or when the relative key is already taken by another entry.
+    std::string MakeMediaPathRelative(const std::string& path);
 
     // Sequence-level face definitions (Matrix/image style only)
     SequenceFaces& GetSequenceFaces() { return mSequenceFaces; }

@@ -165,31 +165,16 @@ void TextEffect::adjustSettings(const std::string& version, Effect* effect, bool
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
 
-    SettingsMap &settings = effect->GetSettings();
+}
 
-    // Resolve broken paths first, then convert to relative for portability
+void TextEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKERCTRL_Text_File"];
-    if (!file.empty() && !FileUtils::CachedFileExists(file)) {
-        std::string fixed = FileUtils::FixFile("", file);
-        if (!fixed.empty() && fixed != file) {
-            settings["E_FILEPICKERCTRL_Text_File"] = fixed;
-            file = fixed;
-        }
-    }
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileUtils::CachedFileExists(file)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_Text_File"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_Text_File"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        const auto resolved = SequenceMedia::ResolveFilePath(file);
+        settings["E_FILEPICKERCTRL_Text_File"] = resolved.settingsPath;
         media.GetTextFile(settings["E_FILEPICKERCTRL_Text_File"]);
     }
 }

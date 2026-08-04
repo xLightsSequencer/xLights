@@ -192,6 +192,13 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
     _wantAlpha = wantAlpha;
     _width = maxwidth;
     _height = maxheight;
+    // The video processor IS the DirectX11 path now: it is faster than letting
+    // the source reader convert and scale (~17% on a video-heavy sequence) and it
+    // is the only way to state the colour space. XL_MF_NO_D3DVP falls back to
+    // the source reader's own processing for debugging. Native-resolution
+    // requests skip it - there is nothing to scale.
+    static const bool sNoVP = (getenv("XL_MF_NO_D3DVP") != nullptr);
+    _useVideoProcessor = !sNoVP && !usenativeresolution;
 
     if (!_init.IsOk())
         return;
@@ -225,7 +232,12 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
 
     SAFEEXEC(attributes->SetUnknown(MF_SOURCE_READER_D3D_MANAGER, _deviceManager), "WHVD: Failed to set attribute");
     SAFEEXEC(attributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE), "WHVD: Failed to set attribute");
-    SAFEEXEC(attributes->SetUINT32(MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING, TRUE), "WHVD: Failed to set attribute");
+    if (!_useVideoProcessor) {
+        // Advanced video processing is what we are replacing: it converts and
+        // scales with a colour space we cannot set. With the direct video
+        // processor path we want the decoder's untouched NV12 surface instead.
+        SAFEEXEC(attributes->SetUINT32(MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING, TRUE), "WHVD: Failed to set attribute");
+    }
 #else
     SAFEEXEC(attributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE), "WHVD: Failed to set attribute");
 #endif
@@ -250,6 +262,18 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
         _frame->data[0] = (uint8_t*)av_malloc((size_t)_height * _frame->linesize[0]);
         memset(_frame->data[0], 0x00, (size_t)_height * _frame->linesize[0]);
         _frame->format = _pixelFormat;
+
+        if (_useVideoProcessor) {
+            if (!InitVideoProcessor(DXGI_FORMAT_NV12)) {
+                spdlog::warn("WHVD: direct video-processor setup failed for {}; abandoning MF for this file", filename);
+                ReleaseVideoProcessor();
+                _useVideoProcessor = false;
+                SafeRelease(&_reader);
+                SafeRelease(&_deviceManager);
+                return;
+            }
+        }
+
         assert(_reader != nullptr);
         assert(_deviceManager != nullptr);
 
@@ -281,6 +305,7 @@ WindowsHardwareVideoReader::~WindowsHardwareVideoReader()
 #endif
     SafeRelease(&_reader);
     SafeRelease(&_deviceManager);
+    ReleaseVideoProcessor();
     SafeRelease(&_device);
 
     if (_frame != nullptr) {
@@ -335,7 +360,7 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     if (SUCCEEDED(hr) && pType != nullptr) {
         SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
-        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
+        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, _useVideoProcessor ? MFVideoFormat_NV12 : MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
 
         SAFEEXEC(_reader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType), "WHVD: Failed to set media type");
 
@@ -387,10 +412,14 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
     if (SUCCEEDED(hr) && pType != nullptr) {
         SAFEEXEC(pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video), "WHVD: Failed to set major type");
 
-        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE, _wantAlpha ? MFVideoFormat_ARGB32 : MFVideoFormat_RGB32), "WHVD: Failed to set sub type");
+        SAFEEXEC(pType->SetGUID(MF_MT_SUBTYPE,
+                                _useVideoProcessor ? MFVideoFormat_NV12
+                                                   : (_wantAlpha ? MFVideoFormat_ARGB32 : MFVideoFormat_RGB32)),
+                 "WHVD: Failed to set sub type");
+
 
         if (SUCCEEDED(hr)) {
-            if (usenativeresolution) {
+            if (usenativeresolution || _useVideoProcessor) {
             } else {
                 SAFEEXEC(MFSetAttributeSize(pType, MF_MT_FRAME_SIZE, _width, _height), "WHVD: Failed to set target size");
 
@@ -410,6 +439,33 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
         pType = nullptr;
     }
 
+    if (getenv("XL_MF_COLOR_DEBUG") != nullptr) {
+        auto dumpColor = [](const char* what, IMFMediaType* mt) {
+            if (mt == nullptr) {
+                return;
+            }
+            auto attr = [mt](const GUID& g) -> long {
+                UINT32 v = 0;
+                return SUCCEEDED(mt->GetUINT32(g, &v)) ? (long)v : -1;
+            };
+            UINT32 w = 0, h = 0;
+            MFGetAttributeSize(mt, MF_MT_FRAME_SIZE, &w, &h);
+            spdlog::warn("WHVD COLOR {}: size={}x{} nominalRange={} yuvMatrix={} transferFn={} primaries={} lighting={}  (-1 = not set)",
+                         what, w, h, attr(MF_MT_VIDEO_NOMINAL_RANGE), attr(MF_MT_YUV_MATRIX),
+                         attr(MF_MT_TRANSFER_FUNCTION), attr(MF_MT_VIDEO_PRIMARIES), attr(MF_MT_VIDEO_LIGHTING));
+        };
+        IMFMediaType* pNative = nullptr;
+        if (SUCCEEDED(_reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, &pNative))) {
+            dumpColor("source", pNative);
+            SafeRelease(&pNative);
+        }
+        IMFMediaType* pCur = nullptr;
+        if (SUCCEEDED(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pCur))) {
+            dumpColor("output", pCur);
+            SafeRelease(&pCur);
+        }
+    }
+
     SAFEEXEC(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pType), "WHVD: Failed to get media type");
     if (SUCCEEDED(hr) && pType != nullptr) {
         _stride = (LONG)MFGetAttributeUINT32(pType, MF_MT_DEFAULT_STRIDE, 1);
@@ -419,7 +475,9 @@ HRESULT WindowsHardwareVideoReader::SelectVideoStream(bool usenativeresolution, 
         SAFEEXEC(pType->GetGUID(MF_MT_SUBTYPE, &subtype), "WHVD: Failed to get media subtype");
 
         if (SUCCEEDED(hr)) {
-            if (!IsEqualGUID(subtype, MFVideoFormat_RGB32) && !IsEqualGUID(subtype, MFVideoFormat_ARGB32)) {
+            const bool wantNV12 = _useVideoProcessor;
+            if (wantNV12 ? !IsEqualGUID(subtype, MFVideoFormat_NV12)
+                         : (!IsEqualGUID(subtype, MFVideoFormat_RGB32) && !IsEqualGUID(subtype, MFVideoFormat_ARGB32))) {
                 spdlog::error("WHVD: Invalid media subtype");
                 hr = E_UNEXPECTED;
             }
@@ -548,6 +606,251 @@ std::string WindowsHardwareVideoReader::DecodeDXGIReason(HRESULT reason) const
     return "Unknown code.";
 }
 
+bool WindowsHardwareVideoReader::InitVideoProcessor(DXGI_FORMAT inputFormat)
+{
+    if (_device == nullptr) {
+        return false;
+    }
+
+    _device->GetImmediateContext(&_immediateContext);
+    if (_immediateContext == nullptr) {
+        spdlog::warn("WHVD VP: no immediate context");
+        return false;
+    }
+    if (FAILED(_device->QueryInterface(__uuidof(ID3D11VideoDevice), (void**)&_videoDevice)) ||
+        FAILED(_immediateContext->QueryInterface(__uuidof(ID3D11VideoContext), (void**)&_videoContext))) {
+        spdlog::warn("WHVD VP: ID3D11VideoDevice/VideoContext unavailable");
+        return false;
+    }
+
+    D3D11_VIDEO_PROCESSOR_CONTENT_DESC desc = {};
+    desc.InputFrameFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE;
+    desc.InputWidth = _nativeWidth;
+    desc.InputHeight = _nativeHeight;
+    desc.OutputWidth = _width;
+    desc.OutputHeight = _height;
+    desc.Usage = D3D11_VIDEO_USAGE_PLAYBACK_NORMAL;
+
+    if (FAILED(_videoDevice->CreateVideoProcessorEnumerator(&desc, &_vpEnum)) || _vpEnum == nullptr) {
+        spdlog::warn("WHVD VP: CreateVideoProcessorEnumerator failed");
+        return false;
+    }
+    UINT fmtFlags = 0;
+    if (FAILED(_vpEnum->CheckVideoProcessorFormat(inputFormat, &fmtFlags)) ||
+        (fmtFlags & D3D11_VIDEO_PROCESSOR_FORMAT_SUPPORT_INPUT) == 0) {
+        spdlog::warn("WHVD VP: input format {} not supported by the processor", (int)inputFormat);
+        return false;
+    }
+    if (FAILED(_videoDevice->CreateVideoProcessor(_vpEnum, 0, &_videoProcessor)) || _videoProcessor == nullptr) {
+        spdlog::warn("WHVD VP: CreateVideoProcessor failed");
+        return false;
+    }
+
+    // State the colour space instead of letting the processor guess - but take
+    // it from the decoder rather than assuming. A fixed studio/BT.709 guess was
+    // measured wrong per file: brightness ratios against the FFmpeg path ranged
+    // 0.84 to 1.31 across models, because different files really do differ.
+    // Only fall back to the resolution heuristic when the decoder says nothing.
+    UINT32 srcRange = 0;
+    UINT32 srcMatrix = 0;
+    bool haveRange = false;
+    bool haveMatrix = false;
+    {
+        IMFMediaType* cur = nullptr;
+        if (SUCCEEDED(_reader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &cur)) && cur != nullptr) {
+            haveRange = SUCCEEDED(cur->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE, &srcRange));
+            haveMatrix = SUCCEEDED(cur->GetUINT32(MF_MT_YUV_MATRIX, &srcMatrix));
+            SafeRelease(&cur);
+        }
+    }
+
+    D3D11_VIDEO_PROCESSOR_COLOR_SPACE inCS = {};
+    inCS.Usage = 0;         // playback, not video processing
+    inCS.RGB_Range = 0;     // full (not meaningful for a YUV input)
+    // 1 = BT.709, 0 = BT.601. When nothing is declared - which is every file
+    // measured here - match swscale rather than guess by resolution: FFmpeg
+    // falls back to BT.601 coefficients for an unspecified colorspace, and the
+    // FFmpeg reader is the path this has to agree with.
+    inCS.YCbCr_Matrix = haveMatrix ? (srcMatrix == MFVideoTransferMatrix_BT601 ? 0 : 1) : 0;
+    inCS.YCbCr_xvYCC = 0;
+    inCS.Nominal_Range = (haveRange && srcRange == MFNominalRange_0_255)
+                             ? D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_0_255
+                             : D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_16_235;
+    _videoContext->VideoProcessorSetStreamColorSpace(_videoProcessor, 0, &inCS);
+    spdlog::info("WHVD VP: source colour range={} matrix={} (declared: range {} matrix {})",
+                 (int)inCS.Nominal_Range, (int)inCS.YCbCr_Matrix,
+                 haveRange ? (int)srcRange : -1, haveMatrix ? (int)srcMatrix : -1);
+
+    D3D11_VIDEO_PROCESSOR_COLOR_SPACE outCS = {};
+    outCS.Usage = 0;
+    outCS.RGB_Range = 0;    // 0 = full 0-255, which is what the render buffer wants
+    outCS.YCbCr_Matrix = inCS.YCbCr_Matrix;
+    outCS.YCbCr_xvYCC = 0;
+    outCS.Nominal_Range = D3D11_VIDEO_PROCESSOR_NOMINAL_RANGE_0_255;
+    _videoContext->VideoProcessorSetOutputColorSpace(_videoProcessor, &outCS);
+
+    // Drivers otherwise apply denoise/sharpening/skin-tone "enhancements" that
+    // would alter pixels in ways no other decode path in xLights does.
+    _videoContext->VideoProcessorSetStreamAutoProcessingMode(_videoProcessor, 0, FALSE);
+
+    // Explicitly neutralise every filter. Turning auto-processing off is not
+    // enough: a driver may still apply a non-neutral default, and this one did
+    // - raw frames came out a near-constant +2.5 brighter than swscale at every
+    // intensity, which is an additive offset (a brightness filter), not the
+    // multiplicative error a colour-space mistake produces. Each filter is
+    // pinned to the range's stated default and disabled.
+    static const D3D11_VIDEO_PROCESSOR_FILTER kFilters[] = {
+        D3D11_VIDEO_PROCESSOR_FILTER_BRIGHTNESS,
+        D3D11_VIDEO_PROCESSOR_FILTER_CONTRAST,
+        D3D11_VIDEO_PROCESSOR_FILTER_HUE,
+        D3D11_VIDEO_PROCESSOR_FILTER_SATURATION,
+        D3D11_VIDEO_PROCESSOR_FILTER_NOISE_REDUCTION,
+        D3D11_VIDEO_PROCESSOR_FILTER_EDGE_ENHANCEMENT,
+        D3D11_VIDEO_PROCESSOR_FILTER_ANAMORPHIC_SCALING,
+        D3D11_VIDEO_PROCESSOR_FILTER_STEREO_ADJUSTMENT,
+    };
+    for (auto filter : kFilters) {
+        D3D11_VIDEO_PROCESSOR_FILTER_RANGE range = {};
+        if (SUCCEEDED(_vpEnum->GetVideoProcessorFilterRange(filter, &range))) {
+            _videoContext->VideoProcessorSetStreamFilter(_videoProcessor, 0, filter, FALSE, range.Default);
+        }
+    }
+
+    D3D11_TEXTURE2D_DESC td = {};
+    td.Width = _width;
+    td.Height = _height;
+    td.MipLevels = 1;
+    td.ArraySize = 1;
+    td.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    td.SampleDesc.Count = 1;
+    td.Usage = D3D11_USAGE_DEFAULT;
+    td.BindFlags = D3D11_BIND_RENDER_TARGET;
+    if (FAILED(_device->CreateTexture2D(&td, nullptr, &_vpOutput))) {
+        spdlog::warn("WHVD VP: output texture creation failed");
+        return false;
+    }
+
+    D3D11_VIDEO_PROCESSOR_OUTPUT_VIEW_DESC ovd = {};
+    ovd.ViewDimension = D3D11_VPOV_DIMENSION_TEXTURE2D;
+    ovd.Texture2D.MipSlice = 0;
+    if (FAILED(_videoDevice->CreateVideoProcessorOutputView(_vpOutput, _vpEnum, &ovd, &_vpOutputView))) {
+        spdlog::warn("WHVD VP: output view creation failed");
+        return false;
+    }
+
+    td.Usage = D3D11_USAGE_STAGING;
+    td.BindFlags = 0;
+    td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    if (FAILED(_device->CreateTexture2D(&td, nullptr, &_staging))) {
+        spdlog::warn("WHVD VP: staging texture creation failed");
+        return false;
+    }
+
+    spdlog::info("WHVD VP: ready {}x{} -> {}x{}, matrix BT.{}",
+                  _nativeWidth, _nativeHeight, _width, _height, inCS.YCbCr_Matrix ? 709 : 601);
+    return true;
+}
+
+// Convert + scale the decoder's GPU surface with the video processor and read
+// back the (small) result. Only the final target-size frame crosses the bus.
+bool WindowsHardwareVideoReader::BltFromSample(IMFSample* sample)
+{
+    IMFMediaBuffer* buf = nullptr;
+    if (FAILED(sample->GetBufferByIndex(0, &buf)) || buf == nullptr) {
+        return false;
+    }
+
+    IMFDXGIBuffer* dxgi = nullptr;
+    if (FAILED(buf->QueryInterface(__uuidof(IMFDXGIBuffer), (void**)&dxgi)) || dxgi == nullptr) {
+        // Software-decoded sample - there is no GPU surface to process.
+        SafeRelease(&buf);
+        return false;
+    }
+
+    ID3D11Texture2D* tex = nullptr;
+    UINT subIdx = 0;
+    HRESULT hr = dxgi->GetResource(__uuidof(ID3D11Texture2D), (void**)&tex);
+    dxgi->GetSubresourceIndex(&subIdx);
+
+    bool ok = false;
+    if (SUCCEEDED(hr) && tex != nullptr) {
+        D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC ivd = {};
+        ivd.FourCC = 0;
+        ivd.ViewDimension = D3D11_VPIV_DIMENSION_TEXTURE2D;
+        ivd.Texture2D.MipSlice = 0;
+        ivd.Texture2D.ArraySlice = subIdx;
+
+        ID3D11VideoProcessorInputView* iv = nullptr;
+        if (SUCCEEDED(_videoDevice->CreateVideoProcessorInputView(tex, _vpEnum, &ivd, &iv)) && iv != nullptr) {
+            D3D11_VIDEO_PROCESSOR_STREAM stream = {};
+            stream.Enable = TRUE;
+            stream.pInputSurface = iv;
+
+            if (SUCCEEDED(_videoContext->VideoProcessorBlt(_videoProcessor, _vpOutputView, 0, 1, &stream))) {
+                _immediateContext->CopyResource(_staging, _vpOutput);
+
+                D3D11_MAPPED_SUBRESOURCE map = {};
+                if (SUCCEEDED(_immediateContext->Map(_staging, 0, D3D11_MAP_READ, 0, &map))) {
+                    const uint8_t pb = GetPixelBytes();
+                    const bool bgrOut = (_pixelFormat == AV_PIX_FMT_BGRA || _pixelFormat == AV_PIX_FMT_BGR24);
+                    const uint8_t* base = (const uint8_t*)map.pData;
+                    const uint32_t pitch = map.RowPitch;
+                    const uint32_t w = _width;
+                    AVFrame* frame = _frame;
+                    parallel_for(0, (int)_height, [base, pitch, w, pb, bgrOut, frame](int y) {
+                        const uint8_t* src = base + (size_t)y * pitch;
+                        uint8_t* dst = frame->data[0] + (size_t)y * frame->linesize[0];
+                        for (uint32_t x = 0; x < w; ++x) {
+                            uint8_t b = src[x * 4 + 0];
+                            uint8_t g = src[x * 4 + 1];
+                            uint8_t r = src[x * 4 + 2];
+                            // See BitmapFromSample: near-black must land on exact
+                            // zero or TransparentBlack treats it as opaque.
+                            if (r <= 4 && g <= 4 && b <= 4) {
+                                r = 0;
+                                g = 0;
+                                b = 0;
+                            }
+                            if (bgrOut) {
+                                dst[x * pb + 0] = b;
+                                dst[x * pb + 1] = g;
+                                dst[x * pb + 2] = r;
+                            } else {
+                                dst[x * pb + 0] = r;
+                                dst[x * pb + 1] = g;
+                                dst[x * pb + 2] = b;
+                            }
+                            if (pb == 4) {
+                                dst[x * pb + 3] = src[x * 4 + 3];
+                            }
+                        }
+                    });
+                    _immediateContext->Unmap(_staging, 0);
+                    ok = true;
+                }
+            }
+            SafeRelease(&iv);
+        }
+        SafeRelease(&tex);
+    }
+
+    SafeRelease(&dxgi);
+    SafeRelease(&buf);
+    return ok;
+}
+
+void WindowsHardwareVideoReader::ReleaseVideoProcessor()
+{
+    SafeRelease(&_staging);
+    SafeRelease(&_vpOutputView);
+    SafeRelease(&_vpOutput);
+    SafeRelease(&_videoProcessor);
+    SafeRelease(&_vpEnum);
+    SafeRelease(&_videoContext);
+    SafeRelease(&_videoDevice);
+    SafeRelease(&_immediateContext);
+}
+
 bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* frame)
 {
     
@@ -576,17 +879,40 @@ bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* fr
     if (SUCCEEDED(hr)) {
         assert(pBitmapData != nullptr);
         assert(cbBitmapData > 0);
+        // Snap uniformly-near-black pixels to exact (0,0,0). H.264 artifacts in
+        // dark regions decode to values like (2,0,2) - sum 4, one over a typical
+        // TransparentBlack threshold of 3 - which render as faint blotches where
+        // the user expects clean transparency. FFmpeg's swscale bicubic happens
+        // to clip those during scaling; the MF video processor preserves them.
+        // Requires ALL THREE channels <= 4 so deliberately dark single-channel
+        // content (e.g. RGB(0,0,10)) is left alone. Mirrors the macOS bridge's
+        // copyPixelBufferToFrame.
+        auto snap = [](uint8_t& r, uint8_t& g, uint8_t& b) {
+            if (r <= 4 && g <= 4 && b <= 4) {
+                r = 0;
+                g = 0;
+                b = 0;
+            }
+        };
+        uint8_t pb = GetPixelBytes();
+        AVFrame* dstFrame = _frame;
+        uint32_t dstRows = _height;
         if (_pixelFormat == AVPixelFormat::AV_PIX_FMT_BGRA || _pixelFormat == AVPixelFormat::AV_PIX_FMT_BGR24) {
-            // I am not sure this is correct
-            memcpy(_frame->data[0], pBitmapData, std::min((uint32_t)cbBitmapData, (uint32_t)_frame->linesize[0] * _height));
+            // Source layout already matches the destination; copy then snap.
+            memcpy(dstFrame->data[0], pBitmapData, std::min((uint32_t)cbBitmapData, (uint32_t)dstFrame->linesize[0] * dstRows));
+            parallel_for(0, std::min((uint32_t)cbBitmapData / 4, ((uint32_t)dstFrame->linesize[0] * dstRows) / pb), [dstFrame, pb, snap](int i) {
+                uint8_t* p = dstFrame->data[0] + i * pb;
+                snap(p[0], p[1], p[2]);
+            });
         } else {
-            uint8_t pb = GetPixelBytes();
-            parallel_for(0, std::min((uint32_t)cbBitmapData / 4, ((uint32_t)_frame->linesize[0] * _height) / pb), [this, pb, pBitmapData](int i) {
-                *(this->_frame->data[0] + i * pb + 0) = *(pBitmapData + i * 4 + 2);
-                *(this->_frame->data[0] + i * pb + 1) = *(pBitmapData + i * 4 + 1);
-                *(this->_frame->data[0] + i * pb + 2) = *(pBitmapData + i * 4 + 0);
+            parallel_for(0, std::min((uint32_t)cbBitmapData / 4, ((uint32_t)dstFrame->linesize[0] * dstRows) / pb), [dstFrame, pb, pBitmapData, snap](int i) {
+                uint8_t* p = dstFrame->data[0] + i * pb;
+                p[0] = *(pBitmapData + i * 4 + 2);
+                p[1] = *(pBitmapData + i * 4 + 1);
+                p[2] = *(pBitmapData + i * 4 + 0);
+                snap(p[0], p[1], p[2]);
                 if (pb == 4)
-                    *(this->_frame->data[0] + i * pb + 3) = *(pBitmapData + i * 4 + 3);
+                    p[3] = *(pBitmapData + i * 4 + 3);
             });
         }
         res = true;
@@ -650,7 +976,17 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
     if (_reader == nullptr || (timestampMS != 0xFFFFFFFF && timestampMS > GetDuration()))
         return nullptr;
 
-    if (timestampMS != 0xFFFFFFFF && timestampMS != 0 && _curPos > timestampMS && _curPos < timestampMS + GetFrameMS()) {
+    // Reuse the frame already decoded when it is the one NEAREST the request.
+    // The old test was `_curPos > timestampMS`, strictly greater, so a request
+    // landing exactly on the cached frame (curPos == timestampMS) fell through
+    // to the read loop - and that loop always reads at least one new sample, so
+    // it overshot by a whole frame. Measured against AVFoundation on a 30fps
+    // clip that was a constant +16.6ms (half a frame) on every such request.
+    // Allowing half a frame of lead-in makes the reuse test the same
+    // nearest-frame rule the read loop uses.
+    if (timestampMS != 0xFFFFFFFF && timestampMS != 0 &&
+        (int64_t)_curPos + (int64_t)(_frameMS / 2) >= (int64_t)timestampMS &&
+        _curPos < timestampMS + GetFrameMS()) {
         // the last frame should be ok ... so just return it again
 #ifdef DETAILED_LOGGING
         spdlog::debug("WHVD: Just returning last frame at {}.", _curPos);
@@ -666,6 +1002,7 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
     }
 
     IMFSample* sample = nullptr;
+    bool wantMore = false;   // set at the bottom of the loop; drives the do-while
     do {
         assert(sample == nullptr);
 
@@ -716,18 +1053,28 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 #endif
         }
 
+        // Stop on the frame NEAREST the requested time, not the first frame at
+        // or after it. `_curPos < timestampMS` overshoots by a whole frame
+        // whenever the request falls in the first half of a frame interval:
+        // measured against AVFoundation on a 29.97fps clip, MF served the
+        // following frame on roughly half of all requests (+9.3ms mean, vs
+        // +0.9ms for FFmpeg, which agrees with AVFoundation). Half a frame of
+        // lead-in makes the three paths pick the same frame.
+        wantMore = (timestampMS != 0xFFFFFFFF) &&
+                   ((int64_t)_curPos + (int64_t)(_frameMS / 2) < (int64_t)timestampMS);
+
         // we are not going to use this frame so we can let it go
-        if (_curPos < timestampMS) {
+        if (wantMore) {
 #ifdef DETAILED_LOGGING
             spdlog::debug("WHVD: Release sample");
 #endif
             SafeRelease(&sample);
         }
 
-    } while (_curPos < timestampMS && timestampMS != 0xFFFFFFFF);
+    } while (wantMore);
 
     if (timestampMS != 0xFFFFFFFF && sample != nullptr) {
-        if (!BitmapFromSample(sample, _frame)) {
+        if (_useVideoProcessor ? !BltFromSample(sample) : !BitmapFromSample(sample, _frame)) {
             spdlog::error("WHVD: Failed to extract the frame bitmap ... Media Foundations may be in a corrupt state.");
         }
 #ifdef DETAILED_LOGGING

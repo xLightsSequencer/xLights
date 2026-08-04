@@ -14,8 +14,53 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Linux: enable mDNS/Bonjour controller discovery (e.g. WLED) by linking
                                  against the avahi-compat-libdns_sd shim; previously the Linux build
                                  always compiled the discovery code out, silently, with no error
+    -bug (scott)                 Linux: hardware video decoding (VA-API, Preferences > Other) actually works now.
+                                 The Linux build force-disabled it in code regardless of the setting, so the
+                                 checkbox was hidden and had no effect even if re-enabled via config file
+    -bug (scott)                 Linux: the log file (xLights_spdlog.log) now lives in $XDG_STATE_HOME (default
+                                 ~/.local/state/xLights) instead of /tmp, where it was wiped on every reboot
+                                 and could vanish mid-session to a systemd-tmpfiles sweep
+    -enh (dkulp)                 Windows video decode: hardware decoding and the DirectX11 reader are now the
+                                 default, and that reader converts and scales on the GPU with the colour space
+                                 stated explicitly instead of leaving it to the system. Video-heavy sequences
+                                 render 2-3x faster (the weaker the CPU, the bigger the gain); formats the
+                                 reader cannot open still fall back to FFmpeg automatically
+    -bug (dkulp)                 Windows video decode: the DirectX11 reader picked the next frame instead of the
+                                 nearest one for a requested time, so video ran up to a frame ahead of where
+                                 macOS put it. Two separate causes, both fixed
+    -bug (dkulp)                 Video decode on Windows/Linux now asks the scaler for full-range RGB with the
+                                 right matrix, snaps near-black pixels to true black, and uses an averaging
+                                 filter for large reductions. Colours and blacks now match macOS closely, which
+                                 matters for video composited with Transparent Black, and large downscales are
+                                 faster
+    -enh (dkulp)                 Automation API: added getMediaIssues and convertMedia so a script can find and
+                                 convert media that isn't playable on all platforms, without opening each
+                                 sequence by hand
+    -enh (dkulp)                 Automation API: added getMedia, embedMedia and extractMedia so a script can
+                                 inventory a sequence's media and embed or extract it in bulk
+    -bug (dkulp)                 Embedding media now strips the show/media folder prefix from its stored path
+                                 (and repoints the effects) instead of leaving an absolute path behind. Media
+                                 folders are honoured, not just the show folder, and an image series embedded
+                                 at load time is no longer skipped.
+    -enh (dkulp)                 Sequence load: embedded media no longer does a file-system path search per
+                                 entry, which dominated the open of a sequence with a few thousand images
+    -enh (dkulp)                 Sequence load: file-based effects resolve their media once through the sequence's
+                                 media list, and the images are decoded in parallel on the background thread pool
+                                 rather than one at a time. Images embedded in the .xsq are included, and an
+                                 embedded multi-frame image no longer decodes every frame while the file is still
+                                 being parsed. A sequence with a few hundred picture effects opens about twice as
+                                 fast; rendered output is unchanged.
+    -enh (dkulp)                 Video: the decoder's scaled-frame cache is now sized by a memory budget instead
+                                 of a fixed 48 entries, so a clip reused by several effects at the same output
+                                 size is decoded once rather than once per effect. Rendered output is unchanged.
+    -enh (cybercop23)            Layout: setting a model's shadow target automatically links the target model's
+                                 start channel to the shadow model (@ShadowModel:1) and clears its controller.
+    -bug (cybercop23)            Layout: Fix single model undo leaving stale tree pointers causing model to disappear from preview (#6817)
     -bug (dkulp)                 Fix a crash drawing a model preview when a graphics accumulator is null:
                                  the OpenGL and Metal draw paths now guard null like Vulkan already did
+    -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
+                                 the render engine can render Faces frames in parallel. Blink timing may
+                                 differ slightly from renders made with older releases.
     -bug (derwin12)              Fix typing negative numbers into effect slider/textbox pairs
     -enh (dkulp)                 Sequences open several times faster when they contain many file-based effects
                                  (Pictures, Video, Text, Shader, ...): the per-effect file existence checks are
@@ -24,6 +69,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix a crash on app close resetting the effect panels to defaults, and track
                                  effect-panel window lifetime so a destroyed panel can never be reused
     -bug (derwin12)              Fix MovingHead Advanced: reset Path and Pattern on new effect
+    -enh (derwin12)              MovingHead: add save/recall presets for the Pattern tab, matching the
+                                 existing Position and Dimmer presets
     -enh (derwin12)              Add an Other Preferences option for what double-clicking a model in the layout does.
     -enh (dkulp)                 Meteors: the Implode and Explode styles render several times faster on large
                                  buffers, and use far less memory while rendering. Output is unchanged.
@@ -34,6 +81,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Ripple renders about 9x faster, and drawing to the render buffer got cheaper
                                  for every effect - VU Meter, SingleStrand, Marquee, Shape and Kaleidoscope all
                                  gained 10-38%. Output is unchanged.
+    -enh (dkulp)                 SingleStrand renders 15-25% faster. The settings it reads that cannot change
+                                 during an effect are now decoded once instead of on every frame of every
+                                 model, and the chase draw writes whole buffer columns directly. Output is
+                                 unchanged.
     -bug (cybercop23)            Try fix floating sequencer panes shifting position on macOS after switching tabs (#6631)
     -bug (dkulp)                 Test: an RGB twinkle over a single selected channel spun until it ran out of memory
     -bug (dkulp)                 Test: marking every 50th pixel read past the end of the selection when the
@@ -685,6 +736,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Radial effect wheel popup on empty sequencer-grid double-click for quick keybinding/effect access (ignored on timing
                                  tracks) (#6486).
     -enh (cybercop23)            Effect wheel: center circle now displays an Exit indicator; hovering highlights it red, clicking dismisses the wheel.
+    -enh (cybercop23)            Effect wheel: pages through more than 18 keybindings via a 4-quadrant selector
+                                 in the enlarged center circle, 18 effects per page (up to 72 total).
     -enh (cybercop23)            Shift-drag effect edges in the sequencer grid to adjust fade-in/fade-out times (#6492).
     -enh (agfazio)               Drag/drop effects in the sequencer, including ghost drag-to-move (#6478).
     -enh (agfazio)               Drag rows in the sequencer row header to reorder models and timing tracks (#6493).

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <cassert>
+#include <limits>
 
 #include <algorithm>
 #include <spdlog/fmt/fmt.h>
@@ -2190,6 +2191,75 @@ void SequenceElements::MoveElementDown(const std::string &name, int view)
 }
 
 
+
+std::map<std::string, std::pair<int, int>> SequenceElements::RewriteMediaReferences(const std::string& from, const std::string& to) {
+    std::map<std::string, std::pair<int, int>> dirtyModels;
+    if (from == to) return dirtyModels;
+
+    mSequenceFaces.RewriteImagePath(from, to);
+
+    const auto initRange = std::make_pair(std::numeric_limits<int>::max(), 0);
+    auto scanLayer = [&](EffectLayer* layer, const std::string& modelName) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const SettingsMap& settings = eff->GetSettings();
+            std::vector<std::string> keysToUpdate;
+            for (auto it = settings.begin(); it != settings.end(); ++it) {
+                if (it->second == from) keysToUpdate.push_back(it->first);
+            }
+            if (keysToUpdate.empty()) continue;
+            for (const auto& key : keysToUpdate) {
+                eff->SetSetting(key, to);
+            }
+            auto& range = dirtyModels.emplace(modelName, initRange).first->second;
+            range.first = std::min(range.first, eff->GetStartTimeMS());
+            range.second = std::max(range.second, eff->GetEndTimeMS());
+        }
+    };
+
+    for (size_t i = 0; i < GetElementCount(); ++i) {
+        Element* e = GetElement(i);
+        if (e == nullptr || e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* model = dynamic_cast<ModelElement*>(e);
+        if (model == nullptr) continue;
+
+        const std::string& modelName = model->GetModelName();
+        for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j) {
+            scanLayer(model->GetEffectLayer(j), modelName);
+        }
+        for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = model->GetSubModel(j);
+            if (sub == nullptr) continue;
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l) {
+                scanLayer(sub->GetEffectLayer(l), modelName);
+            }
+            if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                if (strand != nullptr) {
+                    for (int k = 0; k < strand->GetNodeLayerCount(); ++k) {
+                        scanLayer(strand->GetNodeLayer(k), modelName);
+                    }
+                }
+            }
+        }
+    }
+    return dirtyModels;
+}
+
+std::string SequenceElements::MakeMediaPathRelative(const std::string& path) {
+    if (path.empty()) return path;
+
+    if (renderContext == nullptr) return path;
+    const std::string key = renderContext->MakeRelativePath(path);
+    if (key.empty() || key == path) return path;
+
+    // RenameMedia refuses when the target key already exists in any cache, so
+    // two entries from different folders that share a filename keep their
+    // original paths rather than collapsing into one.
+    if (!mSequenceMedia.RenameMedia(path, key)) return path;
+    RewriteMediaReferences(path, key);
+    return key;
+}
 
 void SequenceElements::IncrementChangeCount(Element *el) {
     mChangeCount++;

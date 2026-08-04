@@ -244,18 +244,38 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
         xLightsImportModelNode *node2 = (xLightsImportModelNode*)item2.GetID();
 
         if (node1->_node != "" && node2->_node != "") {
-            if (ascending) {
-                return NumberAwareStringCompare(node1->_node, node2->_node);
-            } else {
-                return NumberAwareStringCompareRev(node1->_node, node2->_node);
+            int cmp = ascending ? NumberAwareStringCompare(node1->_node, node2->_node)
+                                : NumberAwareStringCompareRev(node1->_node, node2->_node);
+            if (cmp != 0) return cmp;
+
+            // Same node name (stacked-duplicate mapping row) - keep insertion order.
+            if (node1->GetParent() == node2->GetParent() && node1->GetParent() != nullptr) {
+                auto& siblings = node1->GetParent()->GetChildren();
+                int idx1 = -1, idx2 = -1;
+                for (unsigned int i = 0; i < siblings.GetCount(); ++i) {
+                    if (siblings[i] == node1) idx1 = (int)i;
+                    if (siblings[i] == node2) idx2 = (int)i;
+                }
+                return idx1 - idx2;
             }
+            return 0;
         } else if (node1->_strand != "" && node2->_strand != "") {
             if (_sortSubmodelsByName) {
-                if (ascending) {
-                    return NumberAwareStringCompare(node1->_strand, node2->_strand);
-                } else {
-                    return NumberAwareStringCompareRev(node1->_strand, node2->_strand);
+                int cmp = ascending ? NumberAwareStringCompare(node1->_strand, node2->_strand)
+                                    : NumberAwareStringCompareRev(node1->_strand, node2->_strand);
+                if (cmp != 0) return cmp;
+            }
+            // Same strand name (or not sorting by name at all) - preserve
+            // insertion order, including among stacked-duplicate rows that
+            // share their original's strand name.
+            if (node1->GetParent() == node2->GetParent() && node1->GetParent() != nullptr) {
+                auto& siblings = node1->GetParent()->GetChildren();
+                int idx1 = -1, idx2 = -1;
+                for (unsigned int i = 0; i < siblings.GetCount(); ++i) {
+                    if (siblings[i] == node1) idx1 = (int)i;
+                    if (siblings[i] == node2) idx2 = (int)i;
                 }
+                return idx1 - idx2;
             }
             int idx1 = findChildIndex(node1->GetParent(), node1->_strand);
             int idx2 = findChildIndex(node2->GetParent(), node2->_strand);
@@ -265,11 +285,22 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
             // through it here cost two UTF-8 round trips per argument on every
             // comparison. The node already holds the std::string the comparator
             // wants.
-            if (ascending) {
-                return NumberAwareStringCompare(node1->_model, node2->_model);
-            } else {
-                return NumberAwareStringCompareRev(node1->_model, node2->_model);
+            int cmp = ascending ? NumberAwareStringCompare(node1->_model, node2->_model)
+                                : NumberAwareStringCompareRev(node1->_model, node2->_model);
+            if (cmp != 0) return cmp;
+
+            // Same name (e.g. a stacked-duplicate mapping row shares its
+            // original's model name) - fall back to insertion order so the
+            // duplicate stays immediately after the row it was added for.
+            // wx's generic wxDataViewCtrl (Windows/Linux) doesn't sort
+            // stably, so without this tie-break equal-named rows can end up
+            // swapped; the native macOS backend happened to preserve order.
+            int idx1 = -1, idx2 = -1;
+            for (unsigned int i = 0; i < m_children.GetCount(); ++i) {
+                if (m_children[i] == node1) idx1 = (int)i;
+                if (m_children[i] == node2) idx2 = (int)i;
             }
+            return idx1 - idx2;
         }
     }
 

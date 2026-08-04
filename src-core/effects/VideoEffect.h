@@ -71,9 +71,8 @@ public:
 
 protected:
     virtual void OnMetadataLoaded() override;
-    virtual bool needToAdjustSettings(const std::string& version) override
-    {
-        return true;
-    };
+    virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
+    virtual bool needsLoadFiles() const override { return true; }
+    virtual void loadFiles(Effect* effect) override;
 };

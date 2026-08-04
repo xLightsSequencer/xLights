@@ -1904,23 +1904,15 @@ void RippleEffect::adjustSettings(const std::string& version, Effect* effect, bo
     if (RenderableEffect::needToAdjustSettings(version)) {
         RenderableEffect::adjustSettings(version, effect, removeDefaults);
     }
+}
 
-    // Convert absolute file paths to relative for portability
+void RippleEffect::loadFiles(Effect* effect)
+{
+    SettingsMap& settings = effect->GetSettings();
     std::string file = settings["E_FILEPICKERCTRL_Ripple_SVG"];
     if (!file.empty()) {
-        if (std::filesystem::path(file).is_absolute()) {
-            if (!FileUtils::CachedFileExists(file)) {
-                std::string fixed = FileUtils::FixFile("", file);
-                std::string rel = FileUtils::MakeRelativeFile(fixed);
-                settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel.empty() ? fixed : rel;
-            } else {
-                std::string rel = FileUtils::MakeRelativeFile(file);
-                if (!rel.empty())
-                    settings["E_FILEPICKERCTRL_Ripple_SVG"] = rel;
-            }
-        }
-        // Register with SequenceMedia so it appears in the Media tab
         auto& media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
+        settings["E_FILEPICKERCTRL_Ripple_SVG"] = SequenceMedia::ResolveFilePath(file).settingsPath;
         media.GetSVG(settings["E_FILEPICKERCTRL_Ripple_SVG"]);
     }
 }

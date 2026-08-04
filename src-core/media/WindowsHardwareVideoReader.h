@@ -57,6 +57,25 @@ class WindowsHardwareVideoReader
     IMFDXGIDeviceManager* _deviceManager = nullptr;
     ID3D11Device* _device = nullptr;
 
+    // Direct D3D11 video-processor path.
+    //
+    // MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING hands YUV->RGB and the
+    // downscale to a processor we cannot configure: it ignores every colour
+    // attribute offered on the media types, and scales in a colour space that
+    // measured ~18% brighter than swscale. Driving ID3D11VideoProcessor
+    // ourselves is the same GPU work with the colour space stated explicitly.
+    // MF is then used for decode only, which is what FFmpeg's d3d11va hwaccel
+    // does too.
+    bool _useVideoProcessor = false;
+    ID3D11DeviceContext* _immediateContext = nullptr;
+    ID3D11VideoDevice* _videoDevice = nullptr;
+    ID3D11VideoContext* _videoContext = nullptr;
+    ID3D11VideoProcessorEnumerator* _vpEnum = nullptr;
+    ID3D11VideoProcessor* _videoProcessor = nullptr;
+    ID3D11Texture2D* _vpOutput = nullptr;              // BGRA, target size, render target
+    ID3D11VideoProcessorOutputView* _vpOutputView = nullptr;
+    ID3D11Texture2D* _staging = nullptr;               // BGRA, target size, CPU readable
+
     template<class T>
     void SafeRelease(T** ppT)
     {
@@ -68,6 +87,9 @@ class WindowsHardwareVideoReader
     HRESULT SelectVideoStream(bool usenativeresolution, bool keepaspectratio);
     bool CanSeek() const;
     bool BitmapFromSample(IMFSample* sample, AVFrame* frame);
+    bool InitVideoProcessor(DXGI_FORMAT inputFormat);
+    bool BltFromSample(IMFSample* sample);
+    void ReleaseVideoProcessor();
     uint8_t GetPixelBytes() const;
     std::string DecodeDXGIReason(HRESULT reason) const;
     std::string DecodeReadFlags(DWORD flags) const;

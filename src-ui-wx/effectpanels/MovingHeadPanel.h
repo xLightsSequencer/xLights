@@ -47,6 +47,7 @@ class Model;
 class MHPresetBitmapButton;
 class MHPathPresetBitmapButton;
 class MHDimmerPresetBitmapButton;
+class MHPatternPresetBitmapButton;
 
 class MovingHeadPanel: public xlEffectPanel,
                        public IMovingHeadCanvasParent,
@@ -95,11 +96,13 @@ public:
     wxButton* ButtonSavePreset;
     wxButton* Button_All;
     wxButton* Button_Evens;
+    wxButton* Button_Left;
     wxButton* Button_MHPathClear;
     wxButton* Button_MHPathClose;
     wxButton* Button_MHPathContinue;
     wxButton* Button_None;
     wxButton* Button_Odds;
+    wxButton* Button_Right;
     wxButton* Button_ResetToDefault;
     wxCheckBox* CheckBoxAutoShutter;
     wxCheckBox* CheckBox_MHLinkToNext;
@@ -192,6 +195,8 @@ public:
     BulkEditTextCtrl* TextCtrl_MHPatternXPhase;
     BulkEditTextCtrl* TextCtrl_MHPatternYPhase;
     BulkEditValueCurveButton* ValueCurve_MHPatternRotation;
+    wxButton* ButtonSavePatternPreset;
+    wxWrapSizer* FlexGridSizerPatternPresets;
     wxFlexGridSizer* FlexGridSizerPattern;
     wxFlexGridSizer* FlexGridSizerPatternShape;
     wxFlexGridSizer* FlexGridSizer_PatternWidth;
@@ -215,6 +220,8 @@ protected:
     static const wxWindowID ID_BUTTON_None;
     static const wxWindowID ID_BUTTON_Evens;
     static const wxWindowID ID_BUTTON_Odds;
+    static const wxWindowID ID_BUTTON_Left;
+    static const wxWindowID ID_BUTTON_Right;
     static const wxWindowID IDD_CHECKBOX_MH1;
     static const wxWindowID IDD_CHECKBOX_MH2;
     static const wxWindowID IDD_CHECKBOX_MH3;
@@ -305,6 +312,7 @@ protected:
     static const wxWindowID ID_STATICTEXT_MHPatternYPhase;
     static const wxWindowID ID_SLIDER_MHPatternYPhase;
     static const wxWindowID IDD_TEXTCTRL_MHPatternYPhase;
+    static const wxWindowID ID_BUTTON_SavePatternPreset;
     static const wxWindowID ID_PANEL_Pattern;
     static const wxWindowID ID_PANEL_Color;
     static const wxWindowID ID_CHECKBOX_AUTO_SHUTTER;
@@ -341,6 +349,8 @@ private:
     void OnButton_NoneClick(wxCommandEvent& event);
     void OnButton_EvensClick(wxCommandEvent& event);
     void OnButton_OddsClick(wxCommandEvent& event);
+    void OnButton_LeftClick(wxCommandEvent& event);
+    void OnButton_RightClick(wxCommandEvent& event);
     void OnButton_MHLeftClick(wxCommandEvent& event);
     void OnButton_MHRightClick(wxCommandEvent& event);
     void OnButton_MHPathContinueClick(wxCommandEvent& event);
@@ -352,6 +362,7 @@ private:
     void OnButtonSavePathPresetClick(wxCommandEvent& event);
     void OnButton_ResetToDefaultClick(wxCommandEvent& event);
     void OnButtonSaveDimmerPresetClick(wxCommandEvent& event);
+    void OnButtonSavePatternPresetClick(wxCommandEvent& event);
     void OnButtonDimmerOnClick(wxCommandEvent& event);
     void OnButtonDimmerOffClick(wxCommandEvent& event);
     void OnValueCurve_MHTiltOffsetClick(wxCommandEvent& event);
@@ -400,11 +411,17 @@ private:
     void OnButtonPresetClick(wxCommandEvent& event);
     void OnButtonPathPresetClick(wxCommandEvent& event);
     void OnButtonDimmerPresetClick(wxCommandEvent& event);
-    void SavePreset(const wxArrayString& preset, bool is_path = false, bool is_dimmer = false);
+    void OnButtonPatternPresetClick(wxCommandEvent& event);
+    void SavePreset(const wxArrayString& preset, bool is_path = false, bool is_dimmer = false, bool is_pattern = false);
     void LoadMHPreset(const wxFileName& fn);
     void LoadMHPreset(const std::string& fn);
+    std::string GetPatternDef();
+    void ApplyPatternPreset(const std::string& pattern_def);
     void UpdateColorPanel();
     void OnResize(wxSizeEvent& event);
+    void OnPresetRightClick(wxMouseEvent& event);
+    void OnDeletePresetClick(wxCommandEvent& event);
+    void RemovePresetButton(wxWindow* btn);
 
     // private variables
     bool recall {false};
@@ -412,6 +429,8 @@ private:
     std::vector<MHPresetBitmapButton*> presets;
     std::vector<MHPathPresetBitmapButton*> path_presets;
     std::vector<MHDimmerPresetBitmapButton*> dimmer_presets;
+    std::vector<MHPatternPresetBitmapButton*> pattern_presets;
+    wxWindow* m_presetToDelete {nullptr};
 
     MovingHeadCanvasPanel* m_movingHeadCanvasPanel = nullptr;
     MovingHeadDimmerPanel* m_movingHeadDimmerPanel = nullptr;

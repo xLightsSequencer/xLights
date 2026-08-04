@@ -16,6 +16,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <algorithm>
 #include <cerrno>
 #include <climits>
@@ -162,10 +163,18 @@ public:
 class SettingsMapRenderCache {
 public:
     virtual ~SettingsMapRenderCache() = default;
+    // Identify the concrete type without dynamic_cast.  Every attached cache is
+    // fetched on a path that runs per setting per model per frame, where the
+    // RTTI walk is measurable; each implementation returns the address of its
+    // own static tag.
+    virtual const void* CacheKind() const = 0;
 };
 
 class SettingsMap {
-    std::map<std::string, SettingValue> _internal;
+    // Transparent comparator: the const char* accessors below are the hot ones
+    // and several render-time keys are longer than the SSO buffer, so building
+    // a std::string just to probe the map was a malloc/free per lookup.
+    std::map<std::string, SettingValue, std::less<>> _internal;
     // Derived data only (see SettingsMapRenderCache); logically not part of
     // the map's value, so const accessors may attach it.
     mutable std::atomic<SettingsMapRenderCache*> _renderCache{ nullptr };
@@ -223,35 +232,35 @@ public:
         return _internal[key];
     }
     int GetInt(const std::string &key, const int def = 0) const {
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(key);
         if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         return i->second.getInt(def);
     }
     float GetFloat(const std::string& key, const float def = 0.0) const {
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(key);
         if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         return i->second.getFloat(def);
     }
     double GetDouble(const std::string& key, const double def = 0.0) const {
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(key);
         if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
             return def;
         }
         return i->second.getDouble(def);
     }
     bool GetBool(const std::string& key, const bool def = false) const {
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(key);
         if (i == _internal.end()) {
             return def;
         }
         return i->second.getBool();
     }
     const std::string& Get(const std::string& key, const std::string& def) const {
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(key);
         if (i == _internal.end()) {
             return def;
         }
@@ -259,7 +268,7 @@ public:
     }
 
     std::string Get(const std::string& key, const char* def) const {
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(key);
         if (i == _internal.end()) {
             return def;
         }
@@ -267,7 +276,7 @@ public:
     }
 
     bool Contains(const std::string& key) const {
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(key);
         if (i == _internal.end()) {
             return false;
         }
@@ -283,25 +292,65 @@ public:
         return _internal[key];
     }
     int GetInt(const char* ckey, const int def = 0) const {
-        return GetInt(std::string(ckey), def);
+        return GetInt(std::string_view(ckey), def);
     }
     double GetDouble(const char* ckey, const double& def = 0.0) const {
-        return GetDouble(std::string(ckey), def);
+        return GetDouble(std::string_view(ckey), def);
     }
     float GetFloat(const char* ckey, const float& def = 0.0) const {
-        return GetFloat(std::string(ckey), def);
+        return GetFloat(std::string_view(ckey), def);
     }
     bool GetBool(const char* ckey, const bool def = false) const {
-        return GetBool(std::string(ckey), def);
+        return GetBool(std::string_view(ckey), def);
     }
     const std::string& Get(const char* ckey, const std::string& def) const {
-        return Get(std::string(ckey), def);
+        return Get(std::string_view(ckey), def);
     }
     bool Contains(const char* ckey) const {
-        std::string key(ckey);
-        return Contains(key);
+        return Contains(std::string_view(ckey));
     }
-    
+
+    // string_view overloads - these are what the const char* accessors above
+    // resolve to, so a literal key never builds a std::string.
+    int GetInt(std::string_view key, const int def = 0) const {
+        auto i = _internal.find(key);
+        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+            return def;
+        }
+        return i->second.getInt(def);
+    }
+    float GetFloat(std::string_view key, const float def = 0.0) const {
+        auto i = _internal.find(key);
+        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+            return def;
+        }
+        return i->second.getFloat(def);
+    }
+    double GetDouble(std::string_view key, const double def = 0.0) const {
+        auto i = _internal.find(key);
+        if (i == _internal.end() || i->second.length() == 0 || i->second.at(0) == ' ') {
+            return def;
+        }
+        return i->second.getDouble(def);
+    }
+    bool GetBool(std::string_view key, const bool def = false) const {
+        auto i = _internal.find(key);
+        if (i == _internal.end()) {
+            return def;
+        }
+        return i->second.getBool();
+    }
+    const std::string& Get(std::string_view key, const std::string& def) const {
+        auto i = _internal.find(key);
+        if (i == _internal.end()) {
+            return def;
+        }
+        return i->second;
+    }
+    bool Contains(std::string_view key) const {
+        return _internal.find(key) != _internal.end();
+    }
+
     bool empty() const { return _internal.empty(); }
     void clear() {
         InvalidateRenderCache();
@@ -313,8 +362,7 @@ public:
     auto end() const { return _internal.end(); }
 
     std::string Get(const char* ckey, const char* def) const {
-        std::string key(ckey);
-        std::map<std::string, SettingValue>::const_iterator i(_internal.find(key));
+        auto i = _internal.find(std::string_view(ckey));
         if (i == _internal.end()) {
             return def;
         }

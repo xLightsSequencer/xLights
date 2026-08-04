@@ -1069,8 +1069,8 @@ public:
     bool _excludeAudioFromPackagedSequences = true;
     bool _promptBatchRenderIssues = true;
     bool _disablePromptBatchRenderIssues = false;
-    bool _hwVideoAccleration = false;
-    int _hwVideoRenderer = 1;
+    bool _hwVideoAccleration = true;
+    int _hwVideoRenderer = 0;
     bool _showACRamps = false;
     std::vector<std::pair<wxString, wxMenuItem*>> _toolbarMenuItems;
     wxString _enableRenderCache;

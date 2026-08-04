@@ -14,6 +14,8 @@
 #include "nlohmann/json.hpp"
 
 #include "render/FSEQFile.h"
+#include "render/SeqMediaMigration.h"
+#include "media/MediaCompatibility.h"
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
 #include "layout/LayoutPanel.h"
@@ -92,6 +94,43 @@ inline bool ReadBool(const nlohmann::json& v) {
 }
 inline bool ReadBool(const std::string &v) {
     return v == "true" || v == "1";
+}
+
+static const char* MediaTypeName(MediaType t) {
+    switch (t) {
+    case MediaType::Image:      return "image";
+    case MediaType::SVG:        return "svg";
+    case MediaType::Shader:     return "shader";
+    case MediaType::TextFile:   return "text";
+    case MediaType::BinaryFile: return "binary";
+    case MediaType::Video:      return "video";
+    case MediaType::Audio:      return "audio";
+    }
+    return "unknown";
+}
+
+static std::optional<MediaType> MediaTypeFromName(const std::string& n) {
+    if (n == "image") return MediaType::Image;
+    if (n == "svg") return MediaType::SVG;
+    if (n == "shader") return MediaType::Shader;
+    if (n == "text") return MediaType::TextFile;
+    if (n == "binary") return MediaType::BinaryFile;
+    if (n == "video") return MediaType::Video;
+    if (n == "audio") return MediaType::Audio;
+    return std::nullopt;
+}
+
+static std::shared_ptr<MediaCacheEntry> LookupMediaEntry(SequenceMedia& media, const std::string& path, MediaType type) {
+    switch (type) {
+    case MediaType::Image:      return media.GetImage(path);
+    case MediaType::SVG:        return media.GetSVG(path);
+    case MediaType::Shader:     return media.GetShader(path);
+    case MediaType::TextFile:   return media.GetTextFile(path);
+    case MediaType::BinaryFile: return media.GetBinaryFile(path);
+    case MediaType::Video:      return media.GetVideo(path);
+    case MediaType::Audio:      return media.GetAudio(path);
+    }
+    return nullptr;
 }
 
 
@@ -1239,6 +1278,190 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         return sendResponse(response, "", 200, true);
     } else if (cmd == "getFseqDirectory") {
         return sendResponse(JSONSafe(GetFseqDirectory()), "folder", 200, false);
+    } else if (cmd == "getMedia") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        auto& media = _sequenceElements.GetSequenceMedia();
+        std::optional<MediaType> onlyType;
+        if (!params["type"].empty() && params["type"] != "null") {
+            onlyType = MediaTypeFromName(params["type"]);
+            if (!onlyType) {
+                return sendResponse("Unknown media type '" + params["type"] + "'.", "msg", 503, false);
+            }
+        }
+        nlohmann::json arr = nlohmann::json::array();
+        for (const auto& [path, type] : media.GetAllMediaPaths()) {
+            if (onlyType && type != *onlyType) continue;
+            auto entry = LookupMediaEntry(media, path, type);
+            if (!entry) continue;
+            nlohmann::json j;
+            j["path"] = path;
+            j["type"] = MediaTypeName(type);
+            j["embedded"] = entry->IsEmbedded();
+            j["embeddable"] = entry->IsEmbeddable();
+            j["used"] = entry->IsUsed() || entry->IsUsedByMetadata();
+            if (type == MediaType::Image) {
+                auto img = std::static_pointer_cast<ImageCacheEntry>(entry);
+                j["width"] = img->GetImageWidth();
+                j["height"] = img->GetImageHeight();
+                j["frames"] = img->GetImageCount();
+            }
+            arr.push_back(j);
+        }
+        nlohmann::json res;
+        res["media"] = arr;
+        return sendResponse(res.dump(), "", 200, true);
+    } else if (cmd == "getMediaIssues" || cmd == "convertMedia") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        // Same inputs the open-sequence compatibility warning uses.
+        auto issues = MediaCompatibility::CheckSequenceMedia(
+            CurrentSeqXmlFile->GetMediaFile(),
+            _sequenceElements.GetSequenceMedia().GetVideoFilePaths());
+
+        if (cmd == "getMediaIssues") {
+            nlohmann::json arr = nlohmann::json::array();
+            for (const auto& i : issues) {
+                nlohmann::json j;
+                j["path"] = i.filePath;
+                j["reason"] = i.reason;
+                j["type"] = i.isVideo ? "video" : "audio";
+                j["canconvert"] = i.isVideo && i.canConvert();
+                j["animatedgif"] = i.isAnimatedGif();
+                arr.push_back(j);
+            }
+            nlohmann::json res;
+            res["issues"] = arr;
+            return sendResponse(res.dump(), "", 200, true);
+        }
+
+        auto result = seqmedia::ConvertIncompatibleVideos(_sequenceElements, issues);
+        if (result.effectsUpdated > 0 || result.gifEffectsConverted > 0) {
+            _sequenceElements.IncrementChangeCount(nullptr);
+            if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+                mainSequencer->PanelEffectGrid->ForceRefresh();
+            }
+        }
+        nlohmann::json res;
+        res["msg"] = wxString::Format("Converted %d of %d file(s). %d video effect(s) updated.",
+                                      result.converted, result.attempted, result.effectsUpdated).ToStdString();
+        res["attempted"] = result.attempted;
+        res["converted"] = result.converted;
+        res["effectsupdated"] = result.effectsUpdated;
+        res["gifeffectsconverted"] = result.gifEffectsConverted;
+        if (!result.failures.empty()) res["failed"] = result.failures;
+        return sendResponse(res.dump(), "", result.failures.empty() ? 200 : 503, true);
+    } else if (cmd == "embedMedia" || cmd == "extractMedia") {
+        if (CurrentSeqXmlFile == nullptr) {
+            return sendResponse("Sequence not open.", "msg", 503, false);
+        }
+        const bool embed = (cmd == "embedMedia");
+        auto& media = _sequenceElements.GetSequenceMedia();
+
+        std::optional<MediaType> onlyType;
+        if (!params["type"].empty() && params["type"] != "null") {
+            onlyType = MediaTypeFromName(params["type"]);
+            if (!onlyType) {
+                return sendResponse("Unknown media type '" + params["type"] + "'.", "msg", 503, false);
+            }
+        }
+        const std::string file = (params["file"] == "null") ? "" : params["file"];
+        if (!file.empty() && !media.HasMedia(file)) {
+            return sendResponse("Media '" + file + "' is not referenced by this sequence.", "msg", 503, false);
+        }
+
+        // Extract needs somewhere to write the bytes back to. Default to
+        // wherever the stored path resolves today so the effect keeps working
+        // without a reference rewrite.
+        std::string destDir = (params["dir"] == "null") ? "" : params["dir"];
+        if (!embed && !destDir.empty()) {
+            if (!IsInShowOrMediaFolder(destDir)) {
+                return sendResponse("Extract directory must be inside the show or a media folder.", "msg", 503, false);
+            }
+            ObtainAccessToURL(destDir, true);
+        }
+
+        int changed = 0;
+        int relativized = 0;
+        std::vector<std::string> failures;
+        for (const auto& [path, type] : media.GetAllMediaPaths()) {
+            if (!file.empty() && path != file) continue;
+            if (onlyType && type != *onlyType) continue;
+            auto entry = LookupMediaEntry(media, path, type);
+            if (!entry) continue;
+
+            if (embed) {
+                const bool already = entry->IsEmbedded();
+                if (!already) {
+                    // Embed only flips a flag - the base64 payload comes from
+                    // the load. An entry the render never touched is still
+                    // undecoded here, and embedding it would write an <Image>
+                    // with no data.
+                    if (!entry->isLoaded()) entry->Load();
+                    if (!entry->IsEmbeddable()) {
+                        if (!file.empty()) failures.push_back(path);
+                        continue;
+                    }
+                }
+                // Embedded bytes live in the document, so an absolute path only
+                // pins the sequence to one machine - store it show/media
+                // relative. Done for already-embedded entries too: a -1.png
+                // frame series arrives from AddAnimatedImage pre-embedded under
+                // whatever path the effect held, and would otherwise keep it.
+                const std::string key = _sequenceElements.MakeMediaPathRelative(path);
+                if (already) {
+                    if (key != path) ++relativized;
+                    continue;
+                }
+                media.EmbedMedia(key);
+                if (key != path) ++relativized;
+                ++changed;
+            } else {
+                if (!entry->IsEmbedded()) continue;
+                std::string dest;
+                if (!destDir.empty()) {
+                    dest = (std::filesystem::path(destDir) / std::filesystem::path(path).filename()).string();
+                } else {
+                    dest = FileUtils::FixFile("", path);
+                    if (dest.empty()) dest = entry->GetFilePath();
+                }
+                if (dest.empty()) { failures.push_back(path); continue; }
+                bool ok;
+                if (type == MediaType::Image) {
+                    ok = media.ExtractImageToFile(path, dest);
+                } else {
+                    ok = entry->SaveToFile(dest);
+                    if (ok) media.ExtractMedia(path);
+                }
+                if (!ok) { failures.push_back(path); continue; }
+                if (dest != path) {
+                    const std::string rel = MakeRelativePath(dest);
+                    const std::string finalPath = rel.empty() ? dest : rel;
+                    if (type == MediaType::Image) {
+                        media.RenameImage(dest, finalPath);
+                    } else {
+                        media.RenameMedia(path, finalPath);
+                    }
+                    _sequenceElements.RewriteMediaReferences(path, finalPath);
+                }
+                ++changed;
+            }
+        }
+
+        if (changed > 0 || relativized > 0) {
+            _sequenceElements.IncrementChangeCount(nullptr);
+            if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+                mainSequencer->PanelEffectGrid->Refresh();
+            }
+        }
+        nlohmann::json res;
+        res["msg"] = (embed ? "Embedded " : "Extracted ") + std::to_string(changed) + " media file(s).";
+        res["count"] = changed;
+        if (embed) res["maderelative"] = relativized;
+        if (!failures.empty()) res["failed"] = failures;
+        return sendResponse(res.dump(), "", failures.empty() ? 200 : 503, true);
     }
     return false;
 }
