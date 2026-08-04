@@ -528,10 +528,82 @@ Two incidental findings on that box:
   NVIDIA-less machine before reaching a usable device. Cached after the first
   miss, so it is cheap, but the ordering does needless work on Intel and AMD.
 
-### OPEN: a latent GPU/CPU race in the Windows render path (not a video bug)
+### DIAGNOSED + FIXED (2026-08-04): uninitialized GPU blend scratch, published by a zero-input canvas blend
 
-One sequence renders differently between two full-corpus runs on the FFmpeg
-path. Bisected to a conclusion, and the conclusion is **not** the video work:
+The "latent GPU/CPU race" below is solved, and it was **not a race in the
+submission path at all**. Root cause: `doBlendLayers` creates its per-model
+`tmpBufferBlend` scratch without initializing it, and a **canvas-mode layer
+whose below-layers are all empty** produces a blend with ZERO valid input
+layers — no dispatch ever writes the scratch, yet `saveToPixels` still
+publishes it (PutColors scatters it into the canvas layer's pixel buffer, and
+the completion loop copies it into the nodes). Freshly created VMA memory is
+arbitrary — frequently a recycled GPU buffer's old contents — so the canvas
+base was whatever bytes that memory happened to hold, different every run.
+The effect then draws over that base and the output blend feeds it back into
+the next frame's preload, so one bad frame persists for the whole effect.
+
+On the affected sequence the shape is: a large tree model with a submodel
+row whose canvas layer runs a Pictures effect over empty lower layers. The
+divergence window (~112 frames) is exactly that effect's duration, ending
+where its fade-out rounds the contamination to zero.
+
+The trail that got there, each step with a reproduced differing pair and
+content checksums (new `XL_EFFSUM=<model>` / `XL_BLENDSUM=<model>` /
+`XLDBG_PICSUM=<model>` filtered probes; prefix-matched so submodel rows are
+included — an equality filter on the model name silently exempts exactly the
+rows most likely to matter):
+
+1. **Not a silent GPU→CPU path flip.** New `XL_GPU_STATS2` probes count every
+   transient fallback (command-buffer budget, allocation failures, descriptor
+   failures): all zero in differing runs, dispatch counts identical.
+2. **Not the image pipeline.** The consumed picture pixels hash identical in
+   differing runs (and stb_image_resize2's split-parallel resize proved
+   byte-deterministic in a 400-iteration adversarial stress test).
+3. **Not the blend math or its inputs.** Every per-layer and FINAL blend
+   checksum identical across a differing pair — for the main model row.
+4. **The submodel row was the producer.** With prefix-filtered probes, the
+   first divergent stage is the canvas preload result (`SUM C`) of the
+   submodel's layer 0 at the effect's first frame — and that preload's blend
+   prints **no input-layer checksums at all**: the zero-valid-layers case.
+
+The fix enforces the invariant at the buffer's single creation point: zero
+`tmpBufferBlend` at creation, which is exactly the semantics of the CPU
+path's `std::vector` scratch (zero-initialized on growth). The same hole
+exists in the Metal backend (`newBufferWithLength:` does not guarantee zeroed
+contents) — fixed there too; Apple's allocator happening to hand back zeroed
+pages is why macOS never showed it.
+
+Why the bisect table looked like a blend/transition submission race: the
+blend and transition toggles remove ~30k GPU dispatches each (blur/roto only
+hundreds), which collapses the GPU-buffer churn that determines whether the
+fresh scratch lands on recycled (dirty) or new (zeroed) memory — hiding the
+bug, not locating it. `XL_NO_GPU_BLEND` also happened to route the affected
+row to the (correct) ISPC path. The video colour changes mattered only
+because they changed what CONTENT earlier GPU buffers held when their memory
+got recycled into the new scratch.
+
+**Verification (the check could fail, and did fail pre-fix):**
+
+| check | result |
+|---|---|
+| pre-fix, corpus-subset pair loop | diff on iteration 1–2, every attempt (3 of 3 that night) |
+| fixed binary, same loop ×8 | **8 × 27/27 identical — zero diffs in 216 sequence-pairs** |
+| fixed binary, full corpus ×2, FFmpeg path | **56/56 byte-identical** |
+| fixed binary, full corpus ×2, D3DVP path (default) | **56/56 byte-identical** |
+| macOS, same sequence rendered twice (Metal + fix) | identical |
+| macOS, pre-fix Metal vs fixed Metal A/B (rebuilt control) | byte-identical — Apple's allocator already zeroed, hole latent not active |
+| macOS desktop + iPad library builds | clean |
+
+Incidental hardening that came out of the hunt (all landed alongside):
+`xlImage::Rescale` now checks every stbir return code and logs failures
+instead of silently shipping an uninitialized band (stb_image_resize2's
+split-parallel resize itself proved byte-deterministic in a 400-iteration
+adversarial stress test); `XL_GPU_STATS2` fallback-probe counters
+(cbOverLimit / alloc / descriptor failures, peak command buffers, peak
+deferred-free bytes) make "no silent GPU→CPU path flips happened" a
+checkable gate condition instead of an assumption.
+
+The original analysis, kept for the record:
 
 | condition | result |
 |---|---|

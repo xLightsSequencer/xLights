@@ -526,6 +526,14 @@ void VulkanComputeUtilities::doInit() {
                     (unsigned long long)u.statTransition.load(), (unsigned long long)u.statBlend.load(),
                     (unsigned long long)u.statEffect.load(),
                     (unsigned long long)u.statSetup.load(), (unsigned long long)u.statBlurCall.load());
+            // Fallback probes: any nonzero count here means a GPU path declined
+            // for a transient reason and the output is not gated deterministic.
+            fprintf(stderr, "XL_GPU_STATS2: cbOverLimit=%llu cbBeginFail=%llu bufAllocFail=%llu descAllocFail=%llu paramsFail=%llu peakCB=%u peakDeferredMB=%llu activeCBatExit=%u\n",
+                    (unsigned long long)u.statCbOverLimit.load(), (unsigned long long)u.statCbBeginFail.load(),
+                    (unsigned long long)u.statBufAllocFail.load(), (unsigned long long)u.statDescAllocFail.load(),
+                    (unsigned long long)u.statParamsFail.load(), u.peakCommandBuffers.load(),
+                    (unsigned long long)(u.peakDeferredFreeBytes.load() >> 20),
+                    VulkanRenderBufferComputeData::activeCommandBufferCount());
         });
     }
 
@@ -648,6 +656,9 @@ bool VulkanComputeUtilities::createSharedBuffer(VulkanBuffer& b, size_t size, co
 
     VmaAllocationInfo info = {};
     if (vmaCreateBuffer(allocator, &bi, &ai, &b.buffer, &b.allocation, &info) != VK_SUCCESS) {
+        statBufAllocFail++;
+        spdlog::error("Vulkan compute: shared-buffer alloc failed {} size={} deferred={}MB",
+                      name, size, deferredFreeBytes >> 20);
         b = VulkanBuffer();
         return false;
     }
@@ -672,6 +683,9 @@ bool VulkanComputeUtilities::createDeviceBuffer(VulkanBuffer& b, size_t size, co
     ai.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 
     if (vmaCreateBuffer(allocator, &bi, &ai, &b.buffer, &b.allocation, nullptr) != VK_SUCCESS) {
+        statBufAllocFail++;
+        spdlog::error("Vulkan compute: device-buffer alloc failed {} size={} deferred={}MB",
+                      name, size, deferredFreeBytes >> 20);
         b = VulkanBuffer();
         return false;
     }
@@ -692,6 +706,10 @@ void VulkanComputeUtilities::destroyBuffer(VulkanBuffer& b) {
     if (b.buffer != VK_NULL_HANDLE) {
         std::lock_guard<std::mutex> lock(deferredFreeMutex);
         deferredFree.push_back(b);
+        deferredFreeBytes += b.size;
+        uint64_t peak = peakDeferredFreeBytes.load();
+        while (deferredFreeBytes > peak && !peakDeferredFreeBytes.compare_exchange_weak(peak, deferredFreeBytes)) {
+        }
     }
     b = VulkanBuffer();
     drainDeferredFreesIfIdle();
@@ -708,6 +726,7 @@ void VulkanComputeUtilities::drainDeferredFreesIfIdle() {
     {
         std::lock_guard<std::mutex> lock(deferredFreeMutex);
         toFree.swap(deferredFree);
+        deferredFreeBytes = 0;
     }
     for (VulkanBuffer& b : toFree) {
         if (b.buffer != VK_NULL_HANDLE) {
@@ -1168,6 +1187,15 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
         if (!u.createSharedBuffer(tmpBufferBlend, len, pixelBuffer->GetModelName() + "-BlendBuffer")) {
             return false;
         }
+        // Must start zeroed, matching the CPU path's std::vector scratch.  A
+        // blend with NO valid input layers (a canvas layer whose below-layers
+        // are all empty) encodes no dispatch that writes this buffer yet still
+        // publishes it — PutColors scatters it into the save layer's pixels and
+        // the completion loop copies it into the nodes.  Freshly created VMA
+        // memory is arbitrary (often a recycled GPU buffer's old contents), so
+        // without this the canvas base was whatever memory happened to hold —
+        // different every run.
+        memset(tmpBufferBlend.mapped, 0, len);
     }
     VulkanRenderBufferComputeData* slRMRB = VulkanRenderBufferComputeData::getVulkanRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
     if (!slRMRB) {
@@ -1383,8 +1411,12 @@ bool VulkanPixelBufferComputeData::doBlendLayers(PixelBufferClass* pixelBuffer, 
 
     // XL_BLENDSUM=1: dump per-layer node-color and final blend checksums to
     // stderr so two runs can be diffed to the first divergent blend stage.
-    static const bool blendSum = (getenv("XL_BLENDSUM") != nullptr);
-    if (blendSum) {
+    // Any other value filters to that model name only (keeps the stderr volume
+    // and timing perturbation off every other row).
+    static const char* blendSumEnv = getenv("XL_BLENDSUM");
+    static const bool blendSum = (blendSumEnv != nullptr);
+    // Prefix match so "Model" also covers "Model/Submodel" rows.
+    if (blendSum && (blendSumEnv[0] == '1' && blendSumEnv[1] == '\0' ? true : pixelBuffer->GetModelName().rfind(blendSumEnv, 0) == 0)) {
         auto fnv = [](const uint8_t* d, size_t n) {
             uint64_t h = 1469598103934665603ULL;
             for (size_t i = 0; i < n; i++) {
@@ -1486,6 +1518,9 @@ VkDescriptorSet VulkanRenderBufferComputeData::allocateDescriptorSet() {
                 return set;
             }
             if (res != VK_ERROR_OUT_OF_POOL_MEMORY && res != VK_ERROR_FRAGMENTED_POOL) {
+                u.statDescAllocFail++;
+                spdlog::error("Vulkan compute: descriptor-set alloc failed res={} model={}",
+                              (int)res, renderBuffer->GetModelName());
                 return VK_NULL_HANDLE;
             }
             ++activePool;
@@ -1501,6 +1536,9 @@ VkDescriptorSet VulkanRenderBufferComputeData::allocateDescriptorSet() {
         pi.pPoolSizes = &ps;
         VkDescriptorPool pool = VK_NULL_HANDLE;
         if (vkCreateDescriptorPool(u.device, &pi, nullptr, &pool) != VK_SUCCESS) {
+            u.statDescAllocFail++;
+            spdlog::error("Vulkan compute: descriptor-pool create failed model={}",
+                          renderBuffer->GetModelName());
             return VK_NULL_HANDLE;
         }
         descriptorPools.push_back(pool);
@@ -1528,12 +1566,16 @@ bool VulkanRenderBufferComputeData::stageParams(const void* data, size_t size, V
     static const VkDeviceSize ARENA_SIZE = 64 * 1024;
     if (!paramArena) {
         if (!u.createSharedBuffer(paramArena, ARENA_SIZE, renderBuffer->GetModelName() + "-ParamArena")) {
+            u.statParamsFail++;
             return false;
         }
     }
     VkDeviceSize align = u.storageBufferAlignment;
     VkDeviceSize off = (paramArenaOffset + align - 1) & ~(align - 1);
     if (off + size > paramArena.size) {
+        u.statParamsFail++;
+        spdlog::warn("Vulkan compute: param-arena overflow model={} off={} size={}",
+                     renderBuffer->GetModelName(), (uint64_t)off, size);
         return false;
     }
     memcpy(static_cast<uint8_t*>(paramArena.mapped) + off, data, size);
@@ -1705,17 +1747,25 @@ VkCommandBuffer VulkanRenderBufferComputeData::getCommandBuffer(const std::strin
             // use a lower command buffer count if the GPU is needed for frontend
             max = 64;
         }
-        if (commandBufferCount.fetch_add(1) > max) {
+        uint32_t prev = commandBufferCount.fetch_add(1);
+        if (prev > max) {
             --commandBufferCount;
+            u.statCbOverLimit++;
             static std::atomic<long> s_cbNil{0};
             long n = ++s_cbNil;
             if ((n & (n - 1)) == 0) { // powers of two, avoid log spam
-                fprintf(stderr, "XLDBG: getCommandBuffer over-limit fallback count=%ld\n", n);
+                spdlog::warn("Vulkan compute: getCommandBuffer over-limit fallback count={} model={}",
+                             n, renderBuffer->GetModelName());
             }
             return VK_NULL_HANDLE;
         }
+        uint32_t cnt = prev + 1;
+        uint32_t peak = u.peakCommandBuffers.load();
+        while (cnt > peak && !u.peakCommandBuffers.compare_exchange_weak(peak, cnt)) {
+        }
         if (!ensureCommandInfra()) {
             --commandBufferCount;
+            u.statCbBeginFail++;
             return VK_NULL_HANDLE;
         }
         VkCommandBufferBeginInfo bi = {};
@@ -1723,6 +1773,7 @@ VkCommandBuffer VulkanRenderBufferComputeData::getCommandBuffer(const std::strin
         bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         if (vkBeginCommandBuffer(commandBuffer, &bi) != VK_SUCCESS) {
             --commandBufferCount;
+            u.statCbBeginFail++;
             return VK_NULL_HANDLE;
         }
         u.setObjectName((uint64_t)commandBuffer, VK_OBJECT_TYPE_COMMAND_BUFFER,

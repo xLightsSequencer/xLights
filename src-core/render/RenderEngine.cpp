@@ -61,7 +61,20 @@
 // XL_EFFSUM=1 determinism diagnostic: emit content checksums at render stages
 // (C = canvas preload result, O = post-blend seqData slice) to stderr.  Two
 // runs' sorted outputs diff at the first non-deterministic producer.
-static const bool xldbgEffSum = (getenv("XL_EFFSUM") != nullptr);
+// Any value other than "1" filters to that MODEL name only — the SUM L site
+// fence-waits the GPU per layer, so the unfiltered form perturbs scheduling
+// enough to hide a timing-sensitive divergence; the filtered form confines the
+// waits and the stderr traffic to the model under investigation.
+static const char* xldbgEffSumEnv = getenv("XL_EFFSUM");
+static const bool xldbgEffSum = (xldbgEffSumEnv != nullptr);
+static bool xldbgEffSumMatch(const std::string& model) {
+    static const std::string filter = xldbgEffSum ? xldbgEffSumEnv : "";
+    // Prefix match, not equality: submodel/strand rows carry the full name
+    // ("Model/Submodel") and render as their own producers — an equality
+    // filter on the model name silently exempts exactly the rows most likely
+    // to be interesting.
+    return xldbgEffSum && (filter == "1" || model.rfind(filter, 0) == 0);
+}
 
 // XL_RENDER_PROFILE=1 diagnostic: accumulate per-row / per-effect render timing
 // and dump aggregate tables to stderr when the batch completes.  Checked before
@@ -1435,7 +1448,7 @@ public:
                         });
                     buffer->UnMergeBuffersForLayer(layer);
 
-                    if (xldbgEffSum) {
+                    if (xldbgEffSumMatch(el->GetFullName())) {
                         fprintf(stderr, "SUM C f=%d m=%s s=%d l=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, layer,
                                 (unsigned long long)xldbgFNV((const uint8_t*)rb.GetPixels(), rb.GetPixelCount() * 4));
                     }
@@ -1461,7 +1474,11 @@ public:
                       buffer->HandleLayerTransitions(frame, layer); }
                 }
 
-                if (xldbgEffSum && info.validLayers[layer]) {
+                // XL_EFFSUM_NOL=1 drops the SUM L stage: it is the only SUM
+                // site that inserts a GPU wait, which perturbs the scheduling
+                // a timing-sensitive divergence depends on.
+                static const bool xldbgEffSumNoL = (getenv("XL_EFFSUM_NOL") != nullptr);
+                if (!xldbgEffSumNoL && xldbgEffSumMatch(el->GetFullName()) && info.validLayers[layer]) {
                     RenderBuffer& rbl = buffer->BufferForLayer(layer, -1);
                     GPURenderUtils::waitForRenderCompletion(&rbl);
                     fprintf(stderr, "SUM L f=%d m=%s s=%d l=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, layer,
@@ -1536,14 +1553,14 @@ public:
                   buffer->SetColors(effectiveNumLayers, &((*seqData)[frame][0]), seqData->NumChannels()); }
                 info.validLayers[effectiveNumLayers] = true;
             }
-            if (xldbgEffSum && blend) {
+            if (xldbgEffSumMatch(el->GetFullName()) && blend) {
                 RenderBuffer& blrb = buffer->BufferForLayer(effectiveNumLayers, -1);
                 fprintf(stderr, "SUM B f=%d m=%s s=%d pfd=%d h=%016llx\n", frame, el->GetFullName().c_str(), strand, (int)GetPreviousFrameDone(),
                         (unsigned long long)xldbgFNV((const uint8_t*)blrb.GetPixels(), blrb.GetPixelCount() * 4));
             }
             { StageTimer st(profRender ? &profile.blendNs : nullptr);
               buffer->CalcOutput(frame, info.validLayers); }
-            if (xldbgEffSum) {
+            if (xldbgEffSumMatch(el->GetFullName())) {
                 uint64_t h = 1469598103934665603ULL;
                 for (const auto& n : buffer->BufferForLayer(0, -1).GetNodes()) {
                     xlColor c;
@@ -1584,7 +1601,7 @@ public:
             { StageTimer st(profRender ? &profile.getColorsNs : nullptr);
               buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels()); }
 
-            if (xldbgEffSum) {
+            if (xldbgEffSumMatch(el->GetFullName())) {
                 // hash only this row's actual node channels — the model span
                 // of a group includes gap channels owned by rows this one is
                 // not ordered against, which made span hashes racy artifacts

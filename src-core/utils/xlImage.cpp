@@ -10,11 +10,14 @@
 
 #include "xlImage.h"
 
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <string>
 #include <unordered_map>
+
+#include <log.h>
 
 #include "Parallel.h"
 #include "RangeWorkPool.h"
@@ -402,19 +405,36 @@ void xlImage::Rescale(int newWidth, int newHeight) {
         if (numThreads < 2) numThreads = 2;
         int actualSplits = stbir_build_samplers_with_splits(&resize, numThreads);
 
+        // A failed or skipped split leaves its band of `resized` as
+        // uninitialized heap memory — that must never ship silently as image
+        // content, so every stbir return code is checked and any failure is
+        // loud.
         if (actualSplits > 1) {
-            parallel_for(0, actualSplits, [&resize](int i) {
-                stbir_resize_extended_split(&resize, i, 1);
+            std::atomic<int> failed{ 0 };
+            parallel_for(0, actualSplits, [&resize, &failed](int i) {
+                if (!stbir_resize_extended_split(&resize, i, 1)) {
+                    failed.fetch_add(1);
+                }
             });
+            if (failed.load() != 0) {
+                spdlog::error("xlImage::Rescale split resize failed ({} of {} splits) {}x{} -> {}x{}",
+                              failed.load(), actualSplits, _width, _height, newWidth, newHeight);
+            }
         } else {
-            stbir_resize_extended(&resize);
+            if (!stbir_resize_extended(&resize)) {
+                spdlog::error("xlImage::Rescale resize failed (splits={}) {}x{} -> {}x{}",
+                              actualSplits, _width, _height, newWidth, newHeight);
+            }
         }
         stbir_free_samplers(&resize);
     } else {
-        stbir_resize_uint8_linear(
-            _data.get(), _width, _height, _width * 4,
-            resized, newWidth, newHeight, newWidth * 4,
-            STBIR_RGBA);
+        if (!stbir_resize_uint8_linear(
+                _data.get(), _width, _height, _width * 4,
+                resized, newWidth, newHeight, newWidth * 4,
+                STBIR_RGBA)) {
+            spdlog::error("xlImage::Rescale linear resize failed {}x{} -> {}x{}",
+                          _width, _height, newWidth, newHeight);
+        }
     }
 
     _data.reset(resized);

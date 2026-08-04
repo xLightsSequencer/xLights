@@ -95,6 +95,12 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         int len = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * sizeof(uint32_t);
         tmpBufferBlend = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared];
         setLabel(tmpBufferBlend, pixelBuffer->GetModelName() + "-BlendBuffer");
+        // Must start zeroed, matching the CPU path's std::vector scratch: a
+        // blend with NO valid input layers (a canvas layer whose below-layers
+        // are all empty) writes nothing into this buffer yet still publishes
+        // it via the saveToPixels scatter and the node copy-back.
+        // newBufferWithLength: does not guarantee zeroed contents.
+        memset(tmpBufferBlend.contents, 0, len);
     }
     MetalRenderBufferComputeData *slRMRB = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
     if (!slRMRB) {

@@ -79,6 +79,7 @@ public:
     // True while any command buffer is recording or in flight anywhere; gates
     // the deferred GPU-buffer free (see VulkanComputeUtilities::deferredFree).
     static bool anyCommandBuffersActive() { return commandBufferCount.load() != 0; }
+    static uint32_t activeCommandBufferCount() { return commandBufferCount.load(); }
 
     void bufferResized();
 
@@ -422,6 +423,23 @@ public:
     std::atomic<uint64_t> statSetup{0};
     std::atomic<uint64_t> statBlurCall{0};
     std::atomic<uint64_t> statEffect{0};
+
+    // Nondeterministic-fallback probes.  Each counts a place where a GPU path
+    // declined based on TRANSIENT global state (contention or memory pressure)
+    // rather than on the work itself — the GPU and CPU implementations are not
+    // byte-identical, so any of these firing during a render means path
+    // selection (and therefore output) can differ run to run.  Dumped with
+    // XL_GPU_STATS; a determinism gate should require them all zero.
+    std::atomic<uint64_t> statCbOverLimit{0};
+    std::atomic<uint64_t> statCbBeginFail{0};
+    std::atomic<uint64_t> statBufAllocFail{0};
+    std::atomic<uint64_t> statDescAllocFail{0};
+    std::atomic<uint64_t> statParamsFail{0};
+    std::atomic<uint32_t> peakCommandBuffers{0};
+    // bytes queued in deferredFree, and its high-water mark (only drains at
+    // global GPU idle, so sustained load can grow it without bound).
+    size_t deferredFreeBytes = 0;
+    std::atomic<uint64_t> peakDeferredFreeBytes{0};
 
     void setObjectName(uint64_t handle, VkObjectType type, const std::string& name);
 

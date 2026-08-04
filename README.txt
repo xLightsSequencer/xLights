@@ -20,6 +20,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (scott)                 Linux: the log file (xLights_spdlog.log) now lives in $XDG_STATE_HOME (default
                                  ~/.local/state/xLights) instead of /tmp, where it was wiped on every reboot
                                  and could vanish mid-session to a systemd-tmpfiles sweep
+    -bug (dkulp)                 GPU rendering: a canvas-mode layer with no active layers below it rendered
+                                 on top of uninitialized GPU memory, so its output could differ run to run
+                                 (mostly visible on Windows; latent on macOS). The blend scratch buffer is
+                                 now zeroed, matching the CPU render path
     -bug (dkulp)                 Video decode: hardware-decoded frames now take their colour space from the
                                  stream rather than being guessed from the frame size, and the scaler's output
                                  buffer is cleared before use so any pixel the scaler skips cannot show as

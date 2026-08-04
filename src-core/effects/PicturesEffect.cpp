@@ -554,6 +554,24 @@ void PicturesEffect::Render(RenderBuffer& buffer,
         }
     }
 
+    // XLDBG_PICSUM=<model> (or =1 for all): checksum the exact image pixels this
+    // render consumes, so two runs can be diffed to answer "did the decoded or
+    // rescaled image itself differ" independently of everything downstream.
+    static const char* picSumEnv = getenv("XLDBG_PICSUM");
+    if (picSumEnv != nullptr && image != nullptr && image->IsOk() &&
+        ((picSumEnv[0] == '1' && picSumEnv[1] == '\0') || buffer.GetModelName().rfind(picSumEnv, 0) == 0)) {
+        const uint8_t* d = image->GetData();
+        size_t n = (size_t)image->GetWidth() * image->GetHeight() * 4;
+        uint64_t h = 1469598103934665603ULL;
+        for (size_t i = 0; i < n; i++) {
+            h ^= d[i];
+            h *= 1099511628211ULL;
+        }
+        fprintf(stderr, "PICSUM f=%d m=%s fr=%d img=%dx%d h=%016llx\n", buffer.curPeriod,
+                buffer.GetModelName().c_str(), cache->frame, image->GetWidth(), image->GetHeight(),
+                (unsigned long long)h);
+    }
+
     int waveX = 0;
     int waveW = 0;
     int waveN = 0; //location of first wave, height adjust, width, wave# -DJ
