@@ -883,6 +883,15 @@ elseif(UNIX AND NOT APPLE)
             target_link_libraries(xLights PRIVATE ${ALSA_LIBRARIES})
             target_include_directories(xLights PRIVATE ${ALSA_INCLUDE_DIRS})
         endif()
+        # avahi-compat-libdns_sd — provides <dns_sd.h>, the same DNS-SD API
+        # Discovery.cpp already targets via __has_include(<dns_sd.h>). Without
+        # it, BonjourData's ctor/dtor/handleEvents compile to empty bodies and
+        # WLED controllers are never auto-discovered (mDNS-only).
+        pkg_check_modules(DNSSD QUIET avahi-compat-libdns_sd)
+        if(DNSSD_FOUND)
+            target_link_libraries(xLights PRIVATE ${DNSSD_LIBRARIES})
+            target_include_directories(xLights PRIVATE ${DNSSD_INCLUDE_DIRS})
+        endif()
     endif()
     # libusb for uDMX (detected earlier, before add_executable)
     if(LIBUSB_FOUND)

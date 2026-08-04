@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -bug (scott)                 Linux: enable mDNS/Bonjour controller discovery (e.g. WLED) by linking
+                                 against the avahi-compat-libdns_sd shim; previously the Linux build
+                                 always compiled the discovery code out, silently, with no error
     -bug (dkulp)                 Fix a crash drawing a model preview when a graphics accumulator is null:
                                  the OpenGL and Metal draw paths now guard null like Vulkan already did
     -bug (derwin12)              Fix typing negative numbers into effect slider/textbox pairs
