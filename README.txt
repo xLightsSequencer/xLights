@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
+                                 also has a matching alias for the model part.
+                                 "Update Aliases" now promotes a submodel alias to the model itself when
+                                 the submodel name already matches, instead of adding a redundant slashed alias
     -bug (dkulp)                 On Windows, rendering a sequence with many video effects could hang forever
                                  with the DirectX11/MF decoder selected: every render thread ended up parked
                                  inside Media Foundation waiting for a frame that never arrived. Frame reads
