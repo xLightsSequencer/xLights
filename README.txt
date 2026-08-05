@@ -11,10 +11,6 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
-    -bug (dkulp)                 macOS Debug builds could not catch C++ exceptions at all - the Debug link
-                                 passed -no_compact_unwind, so the binary carried no unwind info and every
-                                 throw terminated instead of reaching its handler. Debug-only; release
-                                 builds were never affected.
     -change (dkulp)              Crash reports for an exception escaping the main loop now say when the stack
                                  was unwound by neither the C++ nor the Objective-C runtime, instead of
                                  reporting an unhelpful "unknown exception".
