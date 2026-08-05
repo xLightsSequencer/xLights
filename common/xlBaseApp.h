@@ -51,10 +51,6 @@ public:
     static void SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report);
     static void SetupCrashHandlerForNonWxThread();
 
-    // Exercises the unwind-capture path when XL_UNWIND_HOOK_TEST=1.  Must run
-    // after wx is initialised - a throw during wxEntryStart is not catchable.
-    static void TestUnwindHookIfRequested();
-
 private:
     std::string m_appName;
     // Timed, so a thread that arrives while another is stuck partway through
@@ -95,12 +91,6 @@ public:
     {
         HandleCrash(true, "Exception from main loop. " + xlCrashHandler::DescribeCurrentException());
         return false;
-    }
-
-    virtual int OnRun() override
-    {
-        xlCrashHandler::TestUnwindHookIfRequested();
-        return wxApp::OnRun();
     }
 
     virtual void OnFatalException() override
