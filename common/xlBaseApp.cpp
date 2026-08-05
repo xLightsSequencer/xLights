@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 #include <chrono>
+#include <exception>
 #include <iomanip>
 #include <thread>
 #include <inttypes.h>
@@ -497,6 +498,15 @@ std::string xlCrashHandler::DescribeCurrentException()
             return fmt::format("An exception of non-standard type \"{}\" occurred.", *t);
         }
 #endif
+        // Every exception the C++ or Objective-C runtime raises is named above, so
+        // reaching here means the stack was unwound by neither - a forced unwind or
+        // a foreign runtime.  current_exception() is null only in that case, and
+        // saying so is the difference between a searchable report and a dead end:
+        // there is no C++ throw site to go looking for.
+        if (std::current_exception() == nullptr)
+        {
+            return "A foreign (non-C++) exception occurred - the stack was unwound by neither the C++ nor the Objective-C runtime, so no type information exists.";
+        }
         return "An unknown exception occurred.";
     }
 }

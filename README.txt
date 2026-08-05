@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -change (dkulp)              Crash reports for an exception escaping the main loop now say when the stack
+                                 was unwound by neither the C++ nor the Objective-C runtime, instead of
+                                 reporting an unhelpful "unknown exception".
     -bug (dkulp)                 Opening a sequence whose images are embedded in the .xsq still searched the
                                  disk for every one of them. On macOS that pulls files evicted to iCloud back
                                  down - so opening a sequence with a few hundred embedded images spent many
