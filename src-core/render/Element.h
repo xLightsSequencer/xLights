@@ -68,7 +68,7 @@ public:
     int GetLayerNumberFromIndex(int index);
     virtual NodeLayer* GetNodeEffectLayer(int index) const = 0;
     size_t GetEffectLayerCount() const;
-    std::list<std::string> GetFileReferences(Model* model, EffectManager& em) const;
+    std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, EffectManager& em) const;
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
     bool CleanupFileLocations(RenderContext* ctx, EffectManager& em);
     Effect* SelectEffectUsingDescription(std::string description);

@@ -1410,7 +1410,7 @@ void SequenceChecker::CheckEffect(Effect* ef, CheckSequenceReport& report,
 
             // Accumulate referenced files for this effect
             if (m != nullptr) {
-                auto refs = re->GetFileReferences(m, sm);
+                auto refs = re->GetFileReferences(_elements.GetRenderContext(), m, sm);
                 allFiles.splice(allFiles.end(), refs);
             }
 
@@ -1485,7 +1485,7 @@ void SequenceChecker::CheckElement(Element* e, CheckSequenceReport& report,
             } else {
                 RenderableEffect* eff = em.GetEffect(ef->GetEffectIndex());
                 if (eff != nullptr) {
-                    auto refs = eff->GetFileReferences(m, ef->GetSettings());
+                    auto refs = eff->GetFileReferences(_elements.GetRenderContext(), m, ef->GetSettings());
                     allFiles.splice(allFiles.end(), refs);
                 }
 
@@ -1695,7 +1695,7 @@ int SequenceChecker::RunSequenceChecks(CheckSequenceReport& report) {
                                     EffectManager& em = _elements.GetEffectManager();
                                     RenderableEffect* eff = em.GetEffect(ef->GetEffectIndex());
                                     if (eff != nullptr && model != nullptr) {
-                                        auto refs = eff->GetFileReferences(model, ef->GetSettings());
+                                        auto refs = eff->GetFileReferences(_elements.GetRenderContext(), model, ef->GetSettings());
                                         allfiles.splice(allfiles.end(), refs);
                                     }
                                 }
@@ -1796,7 +1796,7 @@ int SequenceChecker::RunFileReferenceChecks(CheckSequenceReport& report) {
                     Model* refModel = isFaces ? faceModel : model;
                     RenderableEffect* eff = em.GetEffect(ef->GetEffectIndex());
                     if (eff != nullptr && refModel != nullptr) {
-                        auto refs = eff->GetFileReferences(refModel, ef->GetSettings());
+                        auto refs = eff->GetFileReferences(_elements.GetRenderContext(), refModel, ef->GetSettings());
                         allfiles.splice(allfiles.end(), refs);
                     }
                     // Sequence-level face definitions aren't covered by the
@@ -1847,6 +1847,13 @@ int SequenceChecker::RunFileReferenceChecks(CheckSequenceReport& report) {
     }
 
     for (const auto& it : allfiles) {
+        // Test the reference as stored, before resolving: media embedded in the
+        // .xsq is keyed under that stored path and has no file to find, so
+        // resolving it only costs a filesystem probe -- an iCloud download, for
+        // a file evicted to the cloud.
+        if (_elements.GetSequenceMedia().GetMediaEmbedState(it).first) {
+            continue;
+        }
         std::string ff = FileUtils::FixFile(_showFolder, it);
         if (_elements.GetSequenceMedia().GetMediaEmbedState(ff).first) {
             continue;

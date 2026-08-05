@@ -26,7 +26,9 @@
 
 #include "../render/ValueCurveConsts.h"
 #include "../render/RenderContext.h"
+#include "../render/SequenceMedia.h"
 #include "../models/SubModel.h"
+#include "utils/FileUtils.h"
 
 RenderableEffect::RenderableEffect(int i, std::string n,
                                    const char **data16,
@@ -640,6 +642,15 @@ int RenderableEffect::GetValueCurveInt(const std::string &name, int def, const S
         return e.curve->GetOutputValueAt(offset, startMS, endMS);
     }
     return SettingValueInt(e.fallback, def);
+}
+
+std::string RenderableEffect::ResolveFileReference(RenderContext* ctx, const std::string& file)
+{
+    if (file.empty()) return file;
+    if (ctx != nullptr && ctx->GetSequenceElements().GetSequenceMedia().GetMediaEmbedState(file).first) {
+        return file;
+    }
+    return FileUtils::FixFile("", file);
 }
 
 EffectLayer* RenderableEffect::GetTiming(const std::string& timingtrack, SequenceElements* seqEl) const

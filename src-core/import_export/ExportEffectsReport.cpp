@@ -76,6 +76,7 @@ static int ExportElementLayers(FILE* f, Element* e,
                                 const std::string& elementType,
                                 ModelManager& allModels,
                                 EffectManager& effectManager,
+                                RenderContext* ctx,
                                 std::map<std::string, int>& freq,
                                 std::map<std::string, int>& totalTime,
                                 std::list<std::string>& allFiles) {
@@ -91,7 +92,7 @@ static int ExportElementLayers(FILE* f, Element* e,
             if (ef->GetEffectIndex() >= 0) {
                 RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
                 if (eff && m) {
-                    auto files = eff->GetFileReferences(m, ef->GetSettings());
+                    auto files = eff->GetFileReferences(ctx, m, ef->GetSettings());
                     for (const auto& fp : files) {
                         if (!fs.empty()) fs += ",";
                         fs += fp;
@@ -116,6 +117,7 @@ static int ExportElementLayers(FILE* f, Element* e,
 static int ExportNodes(FILE* f, StrandElement* se,
                        ModelManager& allModels,
                        EffectManager& effectManager,
+                       RenderContext* ctx,
                        std::map<std::string, int>& freq,
                        std::map<std::string, int>& totalTime,
                        std::list<std::string>& allFiles) {
@@ -140,7 +142,7 @@ static int ExportNodes(FILE* f, StrandElement* se,
             if (ef->GetEffectIndex() >= 0) {
                 RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
                 if (eff && m) {
-                    auto files = eff->GetFileReferences(m, ef->GetSettings());
+                    auto files = eff->GetFileReferences(ctx, m, ef->GetSettings());
                     for (const auto& fp : files) {
                         if (!fs.empty()) fs += ",";
                         fs += fp;
@@ -179,6 +181,7 @@ bool ExportEffects(const std::string& filename,
     int totalEffects = 0;
 
     EffectManager& effectManager = elements.GetEffectManager();
+    RenderContext* ctx = elements.GetRenderContext();
 
     fprintf(f, "Effect Name,StartTime,EndTime,Duration,Description,Element,ElementType,Files\n");
 
@@ -209,7 +212,7 @@ bool ExportEffects(const std::string& filename,
         }
 
         totalEffects += ExportElementLayers(f, e, e->GetFullName(), typeName,
-                                            allModels, effectManager,
+                                            allModels, effectManager, ctx,
                                             freq, totalTime, allFiles);
 
         if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
@@ -220,13 +223,13 @@ bool ExportEffects(const std::string& filename,
                 std::string seType = (se->GetType() == ElementType::ELEMENT_TYPE_STRAND)
                                      ? "Strand" : "Submodel";
                 totalEffects += ExportElementLayers(f, se, se->GetFullName(), seType,
-                                                    allModels, effectManager,
+                                                    allModels, effectManager, ctx,
                                                     freq, totalTime, allFiles);
             }
             for (int s = 0; s < me->GetStrandCount(); s++) {
                 StrandElement* strand = me->GetStrand(s);
                 if (!strand) continue;
-                totalEffects += ExportNodes(f, strand, allModels, effectManager,
+                totalEffects += ExportNodes(f, strand, allModels, effectManager, ctx,
                                             freq, totalTime, allFiles);
             }
         }

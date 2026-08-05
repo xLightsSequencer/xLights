@@ -901,13 +901,13 @@ SubModelElement* ModelElement::GetSubModel(const std::string& name, bool create)
     return nullptr;
 }
 
-std::list<std::string> Element::GetFileReferences(Model* model, EffectManager& em) const
+std::list<std::string> Element::GetFileReferences(RenderContext* ctx, Model* model, EffectManager& em) const
 {
     std::list<std::string> res;
     if (GetType() != ElementType::ELEMENT_TYPE_TIMING) {
         for (size_t j = 0; j < GetEffectLayerCount(); j++) {
             EffectLayer* el = GetEffectLayer(j);
-            res.splice(end(res), el->GetFileReferences(model, em));
+            res.splice(end(res), el->GetFileReferences(ctx, model, em));
         }
     }
     return res;

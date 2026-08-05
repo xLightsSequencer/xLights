@@ -149,6 +149,30 @@ static std::string DescribeStream(AVCodecID codec, int profile)
     return desc;
 }
 
+#ifdef _WIN32
+// AVI never goes to Media Foundation.
+//
+// It is the container people reach for when they want uncompressed or
+// lossless frames, so in practice it carries codecs no GPU decodes -
+// rawvideo, and H.264 in 4:4:4, which the Media Foundation H.264 decoder does
+// not support at all. Media Foundation still accepts many of those files and
+// then decodes them on the CPU inside its own machinery, which is slower than
+// FFmpeg doing the same work and holds one of the scarce decoder sessions while
+// it does it. macOS reached the same conclusion and stopped handing AVI to
+// AVFoundation; this keeps the two platforms on the same decoder for the same
+// file.
+static bool IsAviFile(const std::string& filename)
+{
+    const auto dot = filename.find_last_of('.');
+    if (dot == std::string::npos) {
+        return false;
+    }
+    std::string ext = filename.substr(dot + 1);
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return (char)::tolower(c); });
+    return ext == "avi";
+}
+#endif
+
 static thread_local enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
@@ -361,7 +385,14 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     _height = _maxheight;
 
 #ifdef _WIN32
-    if (HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() && HW_ACCELERATION_TYPE == WINHARDWARERENDERTYPE::DIRECX11_API) {
+    _usenativeresolution = usenativeresolution;
+    _keepaspectratio = keepaspectratio;
+
+    // A recent read past its deadline stands hardware decode down for a while;
+    // go straight to software rather than stall this file too.
+    if (HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() && HW_ACCELERATION_TYPE == WINHARDWARERENDERTYPE::DIRECX11_API &&
+        !IsAviFile(filename) &&
+        !WindowsHardwareVideoReader::MediaFoundationInCooldown()) {
         _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
         if (_windowsHardwareVideoReader->IsOk()) {
             _frames = _windowsHardwareVideoReader->GetFrames();
@@ -388,6 +419,13 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     }
 #endif
 
+    OpenWithFFmpeg(filename, usenativeresolution, keepaspectratio, maxwidth, maxheight);
+}
+
+// The software decode path. Split out of the constructor so it can also be run
+// after a hardware reader gives up part way through a file.
+void FFmpegVideoReader::OpenWithFFmpeg(const std::string& filename, bool usenativeresolution, bool keepaspectratio, int maxwidth, int maxheight)
+{
     int res = avformat_open_input(&_formatContext, filename.c_str(), nullptr, nullptr);
     if (res != 0) {
         spdlog::error("Error opening the file " + filename);
@@ -551,6 +589,37 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
 
     _firstFramePos = -1;
 }
+
+#ifdef _WIN32
+// The hardware reader stopped responding part way through the file. Discard it
+// and reopen the same file on the software decoder so the render keeps its
+// frames instead of losing the effect.
+bool FFmpegVideoReader::FallBackFromHardwareReader()
+{
+    delete _windowsHardwareVideoReader;
+    _windowsHardwareVideoReader = nullptr;
+
+    // Everything the hardware reader published about the file is recomputed:
+    // the software path can size and time frames differently.
+    _valid = false;
+    _atEnd = false;
+    _curPos = -1000;
+    _firstFramePos = -1;
+    _frames = 0;
+    _lengthMS = 0.0;
+    _dtspersec = 1.0;
+    _width = _maxwidth;
+    _height = _maxheight;
+
+    OpenWithFFmpeg(_filename, _usenativeresolution, _keepaspectratio, _maxwidth, _maxheight);
+    if (!_valid) {
+        spdlog::error("FFmpegVideoReader: software fallback could not open {}", _filename);
+    } else {
+        spdlog::info("FFmpegVideoReader: now decoding {} in software", _filename);
+    }
+    return _valid;
+}
+#endif
 
 // Whether a hardware device of this type can actually be opened on this machine.
 // Absence is machine-global, so it is remembered: a render creates dozens of
@@ -935,13 +1004,21 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
     #ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
         _windowsHardwareVideoReader->Seek(timestampMS);
-        _curPos = _windowsHardwareVideoReader->GetPos();
-        if (_curPos >= (int)_windowsHardwareVideoReader->GetDuration()) {
-            _atEnd = true;
+        // Seek decodes forward to land on the frame, so it can time out too.
+        if (_windowsHardwareVideoReader->HasFailed()) {
+            if (!FallBackFromHardwareReader()) {
+                return;
+            }
+            // fall through and seek the software decoder instead
         } else {
-            _atEnd = false;
+            _curPos = _windowsHardwareVideoReader->GetPos();
+            if (_curPos >= (int)_windowsHardwareVideoReader->GetDuration()) {
+                _atEnd = true;
+            } else {
+                _atEnd = false;
+            }
+            return;
         }
-        return;
     }
     #endif
 
@@ -1148,16 +1225,25 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
 #ifdef _WIN32
     if (_windowsHardwareVideoReader != nullptr) {
         AVFrame* frame = _windowsHardwareVideoReader->GetNextFrame(timestampMS, gracetime);
-        _curPos = _windowsHardwareVideoReader->GetPos();
-        if (_curPos >= (int)_windowsHardwareVideoReader->GetDuration()) {
-            _atEnd = true;
-            return nullptr;
-        } else {
-            if (frame) {
-                PopulateVideoFrame(_videoFrame, frame, AVPixelFormatToVideoPixelFormat(_pixelFmt));
-                return &_videoFrame;
+        if (frame == nullptr && _windowsHardwareVideoReader->HasFailed()) {
+            // Hardware decode gave up on this file; retry the same request in
+            // software rather than serve the effect a missing frame.
+            if (!FallBackFromHardwareReader()) {
+                return nullptr;
             }
-            return nullptr;
+            // fall through to the software path below
+        } else {
+            _curPos = _windowsHardwareVideoReader->GetPos();
+            if (_curPos >= (int)_windowsHardwareVideoReader->GetDuration()) {
+                _atEnd = true;
+                return nullptr;
+            } else {
+                if (frame) {
+                    PopulateVideoFrame(_videoFrame, frame, AVPixelFormatToVideoPixelFormat(_pixelFmt));
+                    return &_videoFrame;
+                }
+                return nullptr;
+            }
         }
     }
 #endif

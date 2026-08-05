@@ -335,12 +335,12 @@ void PicturesEffect::SetTransparentBlackPixel(RenderBuffer& buffer, int x, int y
     }
 }
 
-std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
+std::list<std::string> PicturesEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     std::string file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
     if (!file.empty()) {
-        res.push_back(FileUtils::FixFile("", file));
+        res.push_back(ResolveFileReference(ctx, file));
     }
     return res;
 }

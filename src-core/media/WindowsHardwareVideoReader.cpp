@@ -27,9 +27,334 @@
 
 #include <log.h>
 
+#include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <climits>
 #include <map>
 #include <string>
+#include <thread>
+
+// How long a single ReadSample may take before the reader is written off.
+// Generous on purpose: a first decode of a large frame on a box already running
+// a dozen decoders is slow, but it is not minutes. Overridable for testing.
+static DWORD ReadSampleTimeoutMS()
+{
+    static const DWORD ms = []() -> DWORD {
+        const char* e = getenv("XL_MF_READ_TIMEOUT_MS");
+        if (e != nullptr) {
+            long v = strtol(e, nullptr, 10);
+            if (v > 0)
+                return (DWORD)v;
+        }
+        return 10000;
+    }();
+    return ms;
+}
+
+// Media Foundation stops responding when too many decoders run at once, and it
+// recovers when the load goes away. So a missed deadline stands hardware decode
+// down for a while rather than for good: switching it off permanently would
+// cost a batch render its remaining sequences, and a long-running session the
+// rest of its day, over one busy moment. Each further timeout doubles the wait,
+// so a box where this keeps happening quickly stops paying the deadline while
+// one bad patch costs only the first window.
+// Guards the cooldown window and the learned decoder limit.
+static std::mutex __mfStateMutex;
+static std::chrono::steady_clock::time_point __mfCooldownUntil{};
+static int __mfTimeouts = 0;
+
+static constexpr int MF_COOLDOWN_BASE_MS = 30000;
+static constexpr int MF_COOLDOWN_MAX_MS = 600000;
+
+// How many hardware decoders may be open at once.
+//
+// Nothing reports this number: D3D11 and Media Foundation describe the formats
+// and profiles a decoder supports, never how many sessions the driver will
+// actually service, so it can only be learned by exceeding it. Start unlimited,
+// and each time decode fails with several readers open, cap it below the number
+// that were live at the time and step down again if that still fails. Readers
+// beyond the cap decode in software, which is slower but always works.
+static std::atomic<int> __mfActiveReaders{ 0 };
+static int __mfMaxReaders = INT_MAX;
+
+// Below this, a failure is about the file rather than the load, and capping
+// concurrency would be treating the wrong cause.
+static constexpr int MF_MIN_CONCURRENCY_TO_BLAME = 3;
+static constexpr int MF_CAP_STEP = 2;
+// One shortage produces a burst of failures; only the first should count.
+static constexpr int MF_CAP_SETTLE_MS = 2000;
+static std::chrono::steady_clock::time_point __mfLastCapChange{};
+static std::chrono::steady_clock::time_point __mfLastFailure{};
+
+// After a long clean spell, try one more decoder than the learned limit. What
+// forced the limit down is usually a busy moment rather than a hard ceiling, and
+// without this a single bad patch early on would hold a long session or a batch
+// render below capacity for ever. Down by two and back up by one, so a limit
+// that keeps failing settles just under whatever the driver really allows
+// instead of oscillating across it.
+static constexpr int MF_CAP_RECOVER_MS = 120000;
+static constexpr int MF_CAP_RECOVER_STEP = 1;
+
+// Give a lowered limit back one decoder once nothing has gone wrong for a while.
+// Called on the open path, which is where a raised limit can be put to use.
+static void MaybeRecoverCap()
+{
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+    if (__mfMaxReaders == INT_MAX) {
+        return; // never lowered, nothing to give back
+    }
+    const auto now = std::chrono::steady_clock::now();
+    if (now - __mfLastFailure < std::chrono::milliseconds(MF_CAP_RECOVER_MS) ||
+        now - __mfLastCapChange < std::chrono::milliseconds(MF_CAP_RECOVER_MS)) {
+        return;
+    }
+    __mfMaxReaders += MF_CAP_RECOVER_STEP;
+    __mfLastCapChange = now;
+    spdlog::info("WHVD: no decode trouble for {}s - trying {} hardware decoders at a time",
+                 MF_CAP_RECOVER_MS / 1000, __mfMaxReaders);
+}
+
+bool WindowsHardwareVideoReader::TryReserveDecoder()
+{
+    MaybeRecoverCap();
+
+    int active = __mfActiveReaders.load(std::memory_order_acquire);
+    for (;;) {
+        int cap;
+        {
+            std::lock_guard<std::mutex> lock(__mfStateMutex);
+            cap = __mfMaxReaders;
+        }
+        if (active >= cap) {
+            return false;
+        }
+        if (__mfActiveReaders.compare_exchange_weak(active, active + 1,
+                                                    std::memory_order_acq_rel, std::memory_order_acquire)) {
+            return true;
+        }
+    }
+}
+
+void WindowsHardwareVideoReader::ReleaseDecoder()
+{
+    if (__mfActiveReaders.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+        // Last reader out. Nothing can be contending for a decoder any more, so
+        // whatever the cooldown was waiting to subside has subsided - end it now
+        // rather than make the next sequence sit out the remainder. A wedged
+        // reader never gets here, because its slot is only given back once the
+        // release that is stuck actually returns, so a real wedge still holds
+        // the cooldown open. The learned cap is deliberately kept.
+        std::lock_guard<std::mutex> lock(__mfStateMutex);
+        __mfCooldownUntil = std::chrono::steady_clock::time_point{};
+    }
+}
+
+// Hardware decode just failed with `observed` readers open. If that is enough
+// readers for contention to be the explanation, learn from it.
+//
+// Readers run out of decoders in groups, so one shortage arrives as a burst of
+// failures milliseconds apart. Each one is the same piece of evidence, and
+// letting them all step the limit would take it from unlimited to 1 before the
+// first reduction had been tried: measured, four failures in 53ms did exactly
+// that. One reduction per settling window, then see whether it was enough.
+static void NoteHardwareFailure(int observed, const std::string& filename)
+{
+    if (observed < MF_MIN_CONCURRENCY_TO_BLAME) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+
+    const auto now = std::chrono::steady_clock::now();
+    // Recorded even when the limit does not move, so a steady trickle of
+    // failures keeps postponing recovery.
+    __mfLastFailure = now;
+
+    if (now - __mfLastCapChange < std::chrono::milliseconds(MF_CAP_SETTLE_MS)) {
+        return;
+    }
+
+    int newCap = std::max(std::min(__mfMaxReaders, observed) - MF_CAP_STEP, 1);
+    if (newCap < __mfMaxReaders) {
+        spdlog::warn("WHVD: hardware decode failed with {} readers open ({}) - limiting hardware decode to {} at a time",
+                     observed, filename, newCap);
+        __mfMaxReaders = newCap;
+        __mfLastCapChange = now;
+    }
+}
+
+bool WindowsHardwareVideoReader::MediaFoundationInCooldown()
+{
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+    return std::chrono::steady_clock::now() < __mfCooldownUntil;
+}
+
+// Returns the length of the cooldown just started, for the log.
+static int StartMediaFoundationCooldown()
+{
+    std::lock_guard<std::mutex> lock(__mfStateMutex);
+    const auto now = std::chrono::steady_clock::now();
+    // Readers wedge in groups; the first one to notice sets the window and the
+    // rest of that group should not push it out again.
+    if (now < __mfCooldownUntil) {
+        return 0;
+    }
+    int ms = MF_COOLDOWN_BASE_MS;
+    for (int i = 0; i < __mfTimeouts && ms < MF_COOLDOWN_MAX_MS; ++i) {
+        ms *= 2;
+    }
+    ms = std::min(ms, MF_COOLDOWN_MAX_MS);
+    ++__mfTimeouts;
+    __mfCooldownUntil = now + std::chrono::milliseconds(ms);
+    return ms;
+}
+
+// Receives the result of an asynchronous ReadSample.
+//
+// Lifetime is the whole point of this class. When a read misses its deadline
+// the caller walks away, but the decoder may still deliver - minutes later, or
+// never. The callback therefore outlives the reader that created it: the reader
+// drops its reference and Media Foundation drops the last one whenever it is
+// finally done. Orphan() makes any late delivery a no-op instead of a write
+// through a freed reader.
+class MFReadSampleCallback : public IMFSourceReaderCallback
+{
+    std::mutex _mutex;
+    HANDLE _ready = nullptr;
+    std::atomic<long> _refCount{ 1 };
+    bool _orphaned = false;
+
+    HRESULT _status = S_OK;
+    DWORD _flags = 0;
+    LONGLONG _timestamp = 0;
+    IMFSample* _sample = nullptr;
+
+    ~MFReadSampleCallback()
+    {
+        if (_sample != nullptr)
+            _sample->Release();
+        if (_ready != nullptr)
+            ::CloseHandle(_ready);
+    }
+
+public:
+    MFReadSampleCallback()
+    {
+        // Auto-reset: exactly one waiter is released per delivered sample.
+        _ready = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    }
+
+    bool IsOk() const { return _ready != nullptr; }
+
+    // IUnknown
+    STDMETHODIMP QueryInterface(REFIID riid, void** ppv) override
+    {
+        if (ppv == nullptr)
+            return E_POINTER;
+        if (riid == __uuidof(IMFSourceReaderCallback) || riid == __uuidof(IUnknown)) {
+            *ppv = static_cast<IMFSourceReaderCallback*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    STDMETHODIMP_(ULONG) AddRef() override
+    {
+        return (ULONG)_refCount.fetch_add(1, std::memory_order_relaxed) + 1;
+    }
+    STDMETHODIMP_(ULONG) Release() override
+    {
+        long c = _refCount.fetch_sub(1, std::memory_order_acq_rel) - 1;
+        if (c == 0)
+            delete this;
+        return (ULONG)c;
+    }
+
+    // IMFSourceReaderCallback
+    STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD, DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample* pSample) override
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_orphaned)
+            return S_OK; // nobody is waiting any more
+        _status = hrStatus;
+        _flags = dwStreamFlags;
+        _timestamp = llTimestamp;
+        if (_sample != nullptr)
+            _sample->Release();
+        _sample = pSample;
+        if (_sample != nullptr)
+            _sample->AddRef();
+        ::SetEvent(_ready);
+        return S_OK;
+    }
+    STDMETHODIMP OnFlush(DWORD) override { return S_OK; }
+    STDMETHODIMP OnEvent(DWORD, IMFMediaEvent*) override { return S_OK; }
+
+    // Blocks until a sample arrives or the deadline passes. On success the
+    // sample reference is transferred to the caller.
+    bool WaitForSample(DWORD timeoutMS, HRESULT& status, DWORD& flags, LONGLONG& timestamp, IMFSample** sample)
+    {
+        if (::WaitForSingleObject(_ready, timeoutMS) != WAIT_OBJECT_0)
+            return false;
+        std::lock_guard<std::mutex> lock(_mutex);
+        status = _status;
+        flags = _flags;
+        timestamp = _timestamp;
+        *sample = _sample;
+        _sample = nullptr;
+        return true;
+    }
+
+    // Abandon any future delivery. Called by the reader before it lets go.
+    void Orphan()
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _orphaned = true;
+        if (_sample != nullptr) {
+            _sample->Release();
+            _sample = nullptr;
+        }
+    }
+};
+
+// Release a wedged reader's Media Foundation and D3D objects off the render
+// thread. IMFSourceReader::Release tears the decoder down, which is exactly the
+// thing that has stopped responding, so doing it inline would trade a hung
+// render for a hung render. The thread is detached and may never finish; that
+// leak is bounded by the one-shot latch above and is the point of the exercise.
+static void AbandonReaderObjects(IMFSourceReader* reader, MFReadSampleCallback* callback,
+                                 IMFDXGIDeviceManager* deviceManager, ID3D11Device* device,
+                                 bool releaseSlot)
+{
+    // Stop delivery first, on this thread: if the thread below cannot start we
+    // still must not be left with a callback that can fire into a dead reader.
+    if (callback != nullptr)
+        callback->Orphan();
+    try {
+        std::thread([reader, callback, deviceManager, device, releaseSlot]() {
+            if (reader != nullptr)
+                reader->Release();
+            if (callback != nullptr)
+                callback->Release();
+            if (deviceManager != nullptr)
+                deviceManager->Release();
+            if (device != nullptr)
+                device->Release();
+            // Only now is the decoder session really gone. Giving the slot back
+            // any earlier would let a replacement open against a session the
+            // driver has not actually let go of.
+            if (releaseSlot)
+                WindowsHardwareVideoReader::ReleaseDecoder();
+        }).detach();
+    } catch (...) {
+        // Out of threads. Leaking these is the only safe option left - the
+        // decoder still owns them and releasing here could block the render.
+        // The slot stays taken, which is honest: the session is still out there.
+        spdlog::warn("WHVD: could not start cleanup thread; abandoning decoder objects");
+    }
+}
 
 // All of this allows me to dynamically load the Direct X DLLs ensuring that on older platforms it still loads but hardware decoding wont work
 
@@ -192,6 +517,7 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
     _wantAlpha = wantAlpha;
     _width = maxwidth;
     _height = maxheight;
+    _filename = filename;
     // The video processor IS the DirectX11 path now: it is faster than letting
     // the source reader convert and scale (~17% on a video-heavy sequence) and it
     // is the only way to state the colour space. XL_MF_NO_D3DVP falls back to
@@ -202,6 +528,15 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
 
     if (!_init.IsOk())
         return;
+
+    // Take a decoder slot before anything is created. Over the learned limit the
+    // reader simply never opens, which the caller already handles as "Media
+    // Foundation cannot take this file" and decodes in software.
+    if (!TryReserveDecoder()) {
+        spdlog::debug("WHVD: at the hardware decoder limit; {} will decode in software", filename);
+        return;
+    }
+    _reservedDecoder = true;
 
     HRESULT hr = S_OK;
 
@@ -241,6 +576,16 @@ WindowsHardwareVideoReader::WindowsHardwareVideoReader(const std::string& filena
 #else
     SAFEEXEC(attributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE), "WHVD: Failed to set attribute");
 #endif
+
+    // Asynchronous reads. Media Foundation delivers on one of its own work
+    // queue threads, so the wait below is a plain event wait with a deadline
+    // rather than an open-ended call into the decoder.
+    _callback = new MFReadSampleCallback();
+    if (!_callback->IsOk()) {
+        spdlog::error("WHVD: Failed to create read completion event");
+        hr = E_FAIL;
+    }
+    SAFEEXEC(attributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, _callback), "WHVD: Failed to set async callback attribute");
 
     // Create the source reader from the URL.
     std::wstring fn(filename.begin(), filename.end());
@@ -303,10 +648,23 @@ WindowsHardwareVideoReader::~WindowsHardwareVideoReader()
 #ifdef DETAILED_LOGGING
     spdlog::debug("WHVD: Destructor.");
 #endif
+    // Release the reader before our own reference to the callback: the reader
+    // holds one too, and dropping ours first would leave it calling into an
+    // object that is already gone.
     SafeRelease(&_reader);
+    if (_callback != nullptr) {
+        _callback->Orphan();
+        _callback->Release();
+        _callback = nullptr;
+    }
     SafeRelease(&_deviceManager);
     ReleaseVideoProcessor();
     SafeRelease(&_device);
+
+    if (_reservedDecoder) {
+        _reservedDecoder = false;
+        ReleaseDecoder();
+    }
 
     if (_frame != nullptr) {
         if (_frame->data[0] != nullptr) {
@@ -318,6 +676,35 @@ WindowsHardwareVideoReader::~WindowsHardwareVideoReader()
 #ifdef DETAILED_LOGGING
     spdlog::debug("WHVD: Destructor DONE.");
 #endif
+}
+
+// A read missed its deadline. The decoder still owns the request and may
+// complete it at any time or not at all, so this reader is finished: its Media
+// Foundation objects are handed to a detached thread and never touched again.
+// The caller falls back to software decode for this file, and hardware decode
+// stands down for a cooldown so the files after it do not each pay the deadline.
+void WindowsHardwareVideoReader::HandleReadTimeout(uint32_t timestampMS)
+{
+    _hardwareFailed = true;
+
+    NoteHardwareFailure(__mfActiveReaders.load(std::memory_order_acquire), _filename);
+
+    const int cooldownMS = StartMediaFoundationCooldown();
+    if (cooldownMS > 0) {
+        spdlog::error("WHVD: no frame after {}ms seeking {}ms in {} - Media Foundation decode has stopped responding. "
+                      "Using software decode for the next {}s.",
+                      ReadSampleTimeoutMS(), timestampMS, _filename, cooldownMS / 1000);
+    } else {
+        spdlog::warn("WHVD: no frame after {}ms seeking {}ms in {} - falling back to software decode",
+                     ReadSampleTimeoutMS(), timestampMS, _filename);
+    }
+
+    AbandonReaderObjects(_reader, _callback, _deviceManager, _device, _reservedDecoder);
+    _reservedDecoder = false; // the cleanup thread owns the slot now
+    _reader = nullptr;
+    _callback = nullptr;
+    _deviceManager = nullptr;
+    _device = nullptr;
 }
 
 bool WindowsHardwareVideoReader::CanSeek() const
@@ -518,6 +905,18 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
     SAFEEXEC(_reader->SetCurrentPosition(GUID_NULL, var), "WHVD: Failed to seek");
 
     if (FAILED(hr)) {
+        // A reader that cannot reposition is finished - every later frame
+        // request would seek again and fail again, silently handing the effect
+        // no video at all. Hand the file to the software decoder instead.
+        if (!_hardwareFailed) {
+            spdlog::error("WHVD: seek to {}ms failed in {} ({}) - falling back to software decode",
+                          pos, _filename, DecodeMFError(hr));
+            // Under load this is what running out of decoders looks like: the
+            // reader answers, but can no longer reposition. Same lesson as a
+            // missed deadline, so it feeds the same limit.
+            NoteHardwareFailure(__mfActiveReaders.load(std::memory_order_acquire), _filename);
+        }
+        _hardwareFailed = true;
         PropVariantClear(&var);
         return false;
     }
@@ -533,7 +932,9 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
                 return false;
             }
             if (!first && lastPos == _curPos) {
-                spdlog::error("WHVD: Seek failed.");
+                spdlog::error("WHVD: seek to {}ms stopped advancing at {}ms in {} - falling back to software decode",
+                              pos, _curPos, _filename);
+                _hardwareFailed = true;
                 PropVariantClear(&var);
                 return false;
             }
@@ -1003,6 +1404,8 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 
     IMFSample* sample = nullptr;
     bool wantMore = false;   // set at the bottom of the loop; drives the do-while
+    uint32_t lastPos = _curPos;
+    int stalled = 0;
     do {
         assert(sample == nullptr);
 
@@ -1010,11 +1413,22 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         spdlog::debug("WHVD: Reading sample");
 #endif
         DWORD dwFlags = 0;
-        LONGLONG currentTime;
+        LONGLONG currentTime = 0;
         spdlog::trace("WHVD: ReadSample enter pos={}ms target={}ms thread={:#x}", _curPos, timestampMS, (uintptr_t)::GetCurrentThreadId());
         {
             auto _rs_t0 = std::chrono::steady_clock::now();
-            SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &dwFlags, &currentTime, &sample), "WHVD: Failed to read frame");
+            // Asynchronous form: every out-parameter must be null, the result
+            // arrives on the callback. Only one read may be outstanding per
+            // stream, which holds because this is the sole caller and it waits.
+            SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, nullptr, nullptr, nullptr), "WHVD: Failed to request frame");
+            if (SUCCEEDED(hr)) {
+                HRESULT readStatus = S_OK;
+                if (!_callback->WaitForSample(ReadSampleTimeoutMS(), readStatus, dwFlags, currentTime, &sample)) {
+                    HandleReadTimeout(timestampMS);
+                    return nullptr;
+                }
+                hr = readStatus;
+            }
             auto _rs_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - _rs_t0).count();
             if (_rs_ms > 500)
                 spdlog::warn("WHVD: ReadSample took {}ms (pos={}ms target={}ms thread={:#x}) — possible GPU stall or TDR", _rs_ms, _curPos, timestampMS, (uintptr_t)::GetCurrentThreadId());
@@ -1062,6 +1476,25 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
         // lead-in makes the three paths pick the same frame.
         wantMore = (timestampMS != 0xFFFFFFFF) &&
                    ((int64_t)_curPos + (int64_t)(_frameMS / 2) < (int64_t)timestampMS);
+
+        // A decoder that keeps succeeding without advancing would spin here for
+        // ever. Seek has always guarded against that; this loop had not.
+        if (wantMore && _curPos == lastPos) {
+            if (++stalled >= 100) {
+                // This file, not the platform: the decoder is answering, it just
+                // will not move on. Fall back for this reader only - the
+                // process-wide latch is for a decoder that has stopped
+                // responding altogether.
+                spdlog::error("WHVD: decoder stopped advancing at {}ms seeking {}ms in {} - falling back to software decode",
+                              _curPos, timestampMS, _filename);
+                SafeRelease(&sample);
+                _hardwareFailed = true;
+                return nullptr;
+            }
+        } else {
+            stalled = 0;
+        }
+        lastPos = _curPos;
 
         // we are not going to use this frame so we can let it go
         if (wantMore) {

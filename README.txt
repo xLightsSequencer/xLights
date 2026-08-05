@@ -13,6 +13,46 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -bug (kylegrymonprez)        Layout: on the Controllers tab, "Show on Layout" for a controller
                                  could fall into edgecases where it wouldn't show in the property grid.
+    -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
+                                 also has a matching alias for the model part.
+                                 "Update Aliases" now promotes a submodel alias to the model itself when
+                                 the submodel name already matches, instead of adding a redundant slashed alias
+    -bug (dkulp)                 Headless render sized the frame buffer from the controller channel count
+                                 alone, so a model mapped past the last controller channel was truncated:
+                                 those channels were missing from the .fseq entirely, and the one node
+                                 straddling the end wrote its tail into the next frame, corrupting that
+                                 frame's first channel differently from run to run. It now covers the models
+                                 too, matching the normal render. Reading or writing a node's channels also
+                                 stops at the end of the frame.
+    -bug (dkulp)                 On Windows, rendering a sequence with many video effects could hang forever
+                                 with the DirectX11/MF decoder selected: every render thread ended up parked
+                                 inside Media Foundation waiting for a frame that never arrived. Frame reads
+                                 now have a deadline, and a video Media Foundation stops decoding - or can no
+                                 longer seek - falls back to the software decoder instead of stalling
+                                 the render. How many videos can be hardware decoded at once is learned as
+                                 it goes: exceeding what the graphics driver will service lowers the limit,
+                                 and the videos over it decode in software. The limit is retried upwards
+                                 again after a quiet spell.
+    -change (dkulp)              AVI videos now always use the software decoder on Windows, matching macOS.
+                                 AVI is typically used for uncompressed or lossless frames that no GPU can
+                                 decode, but Media Foundation accepts those files anyway, decodes them on the
+                                 CPU slower than FFmpeg does, and holds one of the few hardware decoder
+                                 sessions the whole time it does it. A sequence with several AVI videos could
+                                 exhaust those sessions and stall or hang the render outright. That is a
+                                 Windows-specific reason to move AVI media to mov/mp4, on top of AVI not
+                                 being usable on macOS at all - re-wrapping the same footage into mov was
+                                 measured to clear the hang on its own.
+    -enh (dkulp)                 Crash reports now include a recent-activity trace showing the last few
+                                 hundred dispatched events and playback actions, so a report says what the
+                                 program was doing without the user having enabled debug logging.
+    -change (dkulp)              Crash reports for an exception escaping the main loop now say when the stack
+                                 was unwound by neither the C++ nor the Objective-C runtime, instead of
+                                 reporting an unhelpful "unknown exception".
+    -bug (dkulp)                 Opening a sequence whose images are embedded in the .xsq still searched the
+                                 disk for every one of them. On macOS that pulls files evicted to iCloud back
+                                 down - so opening a sequence with a few hundred embedded images spent many
+                                 seconds downloading images the sequence already contained. Embedded media is
+                                 now recognised before anything touches the filesystem.
     -bug (dkulp)                 A crash during a render could leave the program running but frozen instead
                                  of reporting the crash - the crash handler could deadlock against itself,
                                  or wait forever for a report that the main thread was never going to build.

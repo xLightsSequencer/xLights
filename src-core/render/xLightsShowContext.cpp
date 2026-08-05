@@ -209,7 +209,13 @@ void xLightsShowContext::EnsureSequenceDataSized() {
     if (!_sequenceFile) return;
     const unsigned int numFrames =
         (unsigned int)(_sequenceFile->GetSequenceDurationMS() / _sequenceFile->GetFrameMS());
-    unsigned int numChannels = (unsigned int)_outputManager.GetTotalChannels();
+    // Must match xLightsFrame::GetMaxNumChannels: a model can be mapped past the
+    // last channel the controllers define, and the buffer has to cover it. Sizing
+    // to the controller total alone truncated those models, and the last node
+    // straddling the end wrote its tail into the NEXT frame (frames are exactly
+    // adjacent), racing that frame's real writer.
+    unsigned int numChannels = std::max((uint32_t)_outputManager.GetTotalChannels(),
+                                        (uint32_t)(AllModels.GetLastChannel() + 1));
     if (numChannels == 0) numChannels = 1;
     const unsigned int frameTime = (unsigned int)_sequenceFile->GetFrameMS();
 

@@ -67,6 +67,14 @@ private:
 
     bool readFrame(int timestampMS);
     void reopenContext(bool allowHWDecoder = true);
+    void OpenWithFFmpeg(const std::string& filename, bool usenativeresolution, bool keepaspectratio, int maxwidth, int maxheight);
+#ifdef _WIN32
+    // Swap a hardware reader that stopped responding for the software decoder,
+    // mid-file. Returns true if the software path is ready to serve frames.
+    bool FallBackFromHardwareReader();
+    bool _usenativeresolution = false;
+    bool _keepaspectratio = false;
+#endif
 
     bool _wantsHWType = false;
     int _maxwidth = 0;

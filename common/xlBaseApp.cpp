@@ -7,7 +7,10 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
+#include <atomic>
 #include <chrono>
+#include <cstdio>
+#include <exception>
 #include <iomanip>
 #include <thread>
 #include <inttypes.h>
@@ -46,6 +49,157 @@
 #include "xLightsVersion.h"
 #include "xlBaseApp.h"
 #include "xlStackWalker.h"
+
+namespace {
+
+// Ring buffer of recent activity.  Written on every dispatched event, so it
+// must stay allocation-free and lock-free; a torn entry read during a crash is
+// an acceptable trade for not perturbing the very timing we are trying to
+// observe.
+struct ActivityEntry {
+    uint64_t seq = 0;
+    uint32_t millis = 0;
+    int eventType = 0;
+    int id = 0;
+    wxChar const* eventClass = nullptr; // static storage from wxClassInfo
+    char const* note = nullptr;         // static storage from the caller
+    uint32_t repeat = 0;                // extra consecutive occurrences
+    char detail[48] = { 0 };
+};
+
+constexpr size_t ACTIVITY_SLOTS = 256;
+ActivityEntry g_activity[ACTIVITY_SLOTS];
+std::atomic<uint64_t> g_activitySeq{ 0 };
+std::chrono::steady_clock::time_point g_activityStart = std::chrono::steady_clock::now();
+
+uint32_t ActivityMillis()
+{
+    return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::steady_clock::now() - g_activityStart).count();
+}
+
+ActivityEntry& NextActivitySlot(uint64_t& seqOut)
+{
+    seqOut = g_activitySeq.fetch_add(1, std::memory_order_relaxed) + 1;
+    return g_activity[(seqOut - 1) % ACTIVITY_SLOTS];
+}
+
+class xlActivityTraceFilter : public wxEventFilter
+{
+public:
+    int FilterEvent(wxEvent& event) override
+    {
+        wxEventType const type = event.GetEventType();
+        int const id = event.GetId();
+
+        // Idle and update-UI are pure bookkeeping and arrive in the thousands,
+        // alternating with each other so they never coalesce.  Recorded, they
+        // evict everything worth reading within a second of the app sitting
+        // still - a crash after any quiet period would show nothing else.
+        if (type == wxEVT_IDLE || type == wxEVT_UPDATE_UI) {
+            return Event_Skip;
+        }
+
+        // Runs of the same event (repaints, mouse motion) collapse to a count
+        // so the buffer's reach is measured in distinct actions.
+        uint64_t const cur = g_activitySeq.load(std::memory_order_relaxed);
+        if (cur > 0) {
+            ActivityEntry& prev = g_activity[(cur - 1) % ACTIVITY_SLOTS];
+            if (prev.seq == cur && prev.note == nullptr && prev.eventType == (int)type && prev.id == id) {
+                ++prev.repeat;
+                prev.millis = ActivityMillis();
+                return Event_Skip;
+            }
+        }
+
+        uint64_t seq = 0;
+        ActivityEntry& e = NextActivitySlot(seq);
+        e.millis = ActivityMillis();
+        e.eventType = (int)type;
+        e.id = id;
+        wxClassInfo const* ci = event.GetClassInfo();
+        e.eventClass = (ci != nullptr) ? ci->GetClassName() : nullptr;
+        e.note = nullptr;
+        e.repeat = 0;
+        e.detail[0] = '\0';
+        // Published last: a reader that sees the sequence number can assume the
+        // rest of the entry is filled in.
+        e.seq = seq;
+        return Event_Skip; // never alters dispatch
+    }
+};
+
+xlActivityTraceFilter g_activityFilter;
+bool g_activityFilterAdded = false;
+
+} // namespace
+
+void xlCrashHandler::StartActivityTrace()
+{
+    if (!g_activityFilterAdded) {
+        wxEvtHandler::AddFilter(&g_activityFilter);
+        g_activityFilterAdded = true;
+    }
+}
+
+void xlCrashHandler::StopActivityTrace()
+{
+    if (g_activityFilterAdded) {
+        wxEvtHandler::RemoveFilter(&g_activityFilter);
+        g_activityFilterAdded = false;
+    }
+}
+
+void xlCrashHandler::TraceNote(char const* text, std::string const& detail)
+{
+    uint64_t seq = 0;
+    ActivityEntry& e = NextActivitySlot(seq);
+    e.millis = ActivityMillis();
+    e.eventType = 0;
+    e.id = 0;
+    e.eventClass = nullptr;
+    e.note = text;
+    e.repeat = 0;
+    std::snprintf(e.detail, sizeof(e.detail), "%s", detail.c_str());
+    e.seq = seq;
+}
+
+wxString xlCrashHandler::FormatActivityTrace()
+{
+    uint64_t const total = g_activitySeq.load(std::memory_order_relaxed);
+    if (total == 0) {
+        return wxEmptyString;
+    }
+
+    wxString out;
+    out += "Most recent activity, oldest first. 'evt' lines are dispatched wx\n";
+    out += "events (class, wx event type id, control/menu id); 'note' lines are\n";
+    out += "explicit markers left by the app. Times are ms since startup.\n\n";
+    out += wxString::Format("Total recorded: %llu (showing last %llu)\n\n",
+                            (unsigned long long)total,
+                            (unsigned long long)std::min<uint64_t>(total, ACTIVITY_SLOTS));
+
+    uint64_t const first = (total > ACTIVITY_SLOTS) ? (total - ACTIVITY_SLOTS) : 0;
+    for (uint64_t s = first; s < total; ++s) {
+        ActivityEntry const& e = g_activity[s % ACTIVITY_SLOTS];
+        if (e.seq != s + 1) {
+            continue; // overwritten while we were reading it
+        }
+        if (e.note != nullptr) {
+            out += wxString::Format("%8u ms  note  %s%s%s\n", e.millis, e.note,
+                                    (e.detail[0] != '\0') ? " " : "", e.detail);
+        } else {
+            wxString rep;
+            if (e.repeat > 0) {
+                rep = wxString::Format("  x%u", e.repeat + 1);
+            }
+            out += wxString::Format("%8u ms  evt   %-22s type=%d id=%d%s\n", e.millis,
+                                    (e.eventClass != nullptr) ? wxString(e.eventClass) : wxString("?"),
+                                    e.eventType, e.id, rep);
+        }
+    }
+    return out;
+}
 
 xlCrashHandler::xlCrashHandler(std::string const& appName) :
     m_appName(appName),
@@ -381,6 +535,15 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
 #endif
 
+            try {
+                wxString const activity = FormatActivityTrace();
+                if (!activity.empty()) {
+                    report.AddText("activity-trace.txt", activity, "Recent activity");
+                }
+            } catch (...) {
+                spdlog::critical("Exception while formatting the activity trace.");
+            }
+
             std::string const logFilePath = GetLogFilePath().string();
             std::string const logFileName = GetLogFileName();
             xlFrame* const topFrame = GetTopWindow();
@@ -497,6 +660,15 @@ std::string xlCrashHandler::DescribeCurrentException()
             return fmt::format("An exception of non-standard type \"{}\" occurred.", *t);
         }
 #endif
+        // Every exception the C++ or Objective-C runtime raises is named above, so
+        // reaching here means the stack was unwound by neither - a forced unwind or
+        // a foreign runtime.  current_exception() is null only in that case, and
+        // saying so is the difference between a searchable report and a dead end:
+        // there is no C++ throw site to go looking for.
+        if (std::current_exception() == nullptr)
+        {
+            return "A foreign (non-C++) exception occurred - the stack was unwound by neither the C++ nor the Objective-C runtime, so no type information exists.";
+        }
         return "An unknown exception occurred.";
     }
 }

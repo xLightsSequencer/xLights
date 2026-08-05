@@ -117,6 +117,7 @@
 #include "layout/ViewsModelsPanel.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "../common/xlBaseApp.h"
 #include "xLightsVersion.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "preferences/ToolbarLayout.h"
@@ -3923,6 +3924,7 @@ void xLightsFrame::SetPlaySpeedTo(float speed)
     playAnimation = false;
     playSpeed = speed;
 
+    xlCrashHandler::TraceNote("play speed", fmt::format("{:.2f}", speed));
     AudioManager::SetPlaybackRate(playSpeed);
     if (CurrentSeqXmlFile != nullptr) {
         if (CurrentSeqXmlFile->GetMedia() == nullptr) {
@@ -5469,7 +5471,12 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
                 for (const auto& ef : el->GetEffects()) {
                     RenderableEffect* eff = em.GetEffect(ef->GetEffectIndex());
                     if (eff != nullptr && model != nullptr) {
-                        allfiles.splice(allfiles.end(), eff->GetFileReferences(model, ef->GetSettings()));
+                        for (const auto& fr : eff->GetFileReferences(this, model, ef->GetSettings())) {
+                            // Embedded media has no drive to be slow
+                            if (!_sequenceElements.GetSequenceMedia().GetMediaEmbedState(fr).first) {
+                                allfiles.push_back(fr);
+                            }
+                        }
                     }
                 }
             }
@@ -5535,13 +5542,16 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
 void xLightsFrame::ValidateEffectAssets()
 {
     std::string missing;
+    // GetAllReferencedFiles hands back embedded media exactly as stored, so the
+    // embed test lands before anything touches the filesystem. Probing an
+    // embedded reference would pull an evicted iCloud file all the way back down
+    // to answer a question the .xsq already answers.
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
-        auto f = FileUtils::FixFile("", it);
-        if (_sequenceElements.GetSequenceMedia().GetMediaEmbedState(f).first) {
+        if (_sequenceElements.GetSequenceMedia().GetMediaEmbedState(it).first) {
             continue;
         }
-        ObtainAccessToURL(f);
-        if (!FileExists(f, false)) {
+        ObtainAccessToURL(it);
+        if (!FileExists(it, false)) {
             missing += it + "\n";
         }
     }
@@ -5643,7 +5653,7 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
         std::string fs = "";
         if (ef->GetEffectIndex() >= 0) {
             RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
-            auto files = eff->GetFileReferences(m, ef->GetSettings());
+            auto files = eff->GetFileReferences(this, m, ef->GetSettings());
 
             for (auto it = files.begin(); it != files.end(); ++it) {
                 if (fs != "") {
@@ -5721,7 +5731,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                 std::string fs = "";
                 if (ef->GetEffectIndex() >= 0) {
                     RenderableEffect* eff = effectManager[ef->GetEffectIndex()];
-                    auto files = eff->GetFileReferences(m, ef->GetSettings());
+                    auto files = eff->GetFileReferences(this, m, ef->GetSettings());
 
                     for (auto it = files.begin(); it != files.end(); ++it) {
                         if (fs != "") {
