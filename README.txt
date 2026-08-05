@@ -11,6 +11,24 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 On Windows, rendering a sequence with many video effects could hang forever
+                                 with the DirectX11/MF decoder selected: every render thread ended up parked
+                                 inside Media Foundation waiting for a frame that never arrived. Frame reads
+                                 now have a deadline, and a video Media Foundation stops decoding - or can no
+                                 longer seek - falls back to the software decoder instead of stalling
+                                 the render. How many videos can be hardware decoded at once is learned as
+                                 it goes: exceeding what the graphics driver will service lowers the limit,
+                                 and the videos over it decode in software. The limit is retried upwards
+                                 again after a quiet spell.
+    -change (dkulp)              AVI videos now always use the software decoder on Windows, matching macOS.
+                                 AVI is typically used for uncompressed or lossless frames that no GPU can
+                                 decode, but Media Foundation accepts those files anyway, decodes them on the
+                                 CPU slower than FFmpeg does, and holds one of the few hardware decoder
+                                 sessions the whole time it does it. A sequence with several AVI videos could
+                                 exhaust those sessions and stall or hang the render outright. That is a
+                                 Windows-specific reason to move AVI media to mov/mp4, on top of AVI not
+                                 being usable on macOS at all - re-wrapping the same footage into mov was
+                                 measured to clear the hang on its own.
     -change (dkulp)              Crash reports for an exception escaping the main loop now say when the stack
                                  was unwound by neither the C++ nor the Objective-C runtime, instead of
                                  reporting an unhelpful "unknown exception".
