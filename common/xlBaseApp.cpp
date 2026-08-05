@@ -75,12 +75,19 @@ static void TestUnwindHook()
         return;
     }
 
-    // Nothing should have been recorded before the test unwind below: ordinary
-    // exceptions must not leave a record, or every crash report would carry a
-    // stale one.  Reported rather than asserted - this runs in shipping code.
-    bool const recordedBefore = (xlUnwindHook_GetLastForeign != nullptr) && xlUnwindHook_GetLastForeign(nullptr, nullptr, 0, nullptr);
-    fprintf(stderr, "XL_UNWIND_HOOK_TEST: a foreign unwind was already recorded before the test: %s (expected no)\n",
-            recordedBefore ? "YES" : "no");
+    // An ordinary exception must leave no record, or every crash report would
+    // carry a stale one from whatever threw last.  Checked before the test
+    // unwind below, while nothing has been recorded yet.
+    try
+    {
+        throw std::runtime_error("native control");
+    }
+    catch (...)
+    {
+    }
+    bool const recordedNative = (xlUnwindHook_GetLastForeign != nullptr) && xlUnwindHook_GetLastForeign(nullptr, nullptr, 0, nullptr);
+    fprintf(stderr, "XL_UNWIND_HOOK_TEST: an ordinary exception left a foreign-unwind record: %s (expected no)\n",
+            recordedNative ? "YES" : "no");
 
     static _Unwind_Exception e;
     memset(&e, 0, sizeof(e));
