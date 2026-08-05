@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (kylegrymonprez)        Layout: on the Controllers tab, "Show on Layout" for a controller
+                                 could fall into edgecases where it wouldn't show in the property grid.
     -bug (dkulp)                 A crash during a render could leave the program running but frozen instead
                                  of reporting the crash - the crash handler could deadlock against itself,
                                  or wait forever for a report that the main thread was never going to build.

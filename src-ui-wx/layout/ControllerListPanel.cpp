@@ -1381,7 +1381,7 @@ void ControllerListPanel::UpdateControllerProperties() {
 
                 wxPGProperty* p = _propGrid->GetProperty("LastInputUpload");
                 if (!p) {
-                    p = _propGrid->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
+                    p = _propGrid->AppendIn(_propGrid->GetRoot(), new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -1391,7 +1391,7 @@ void ControllerListPanel::UpdateControllerProperties() {
 
                 p = _propGrid->GetProperty("LastOutputUpload");
                 if (!p) {
-                    p = _propGrid->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
+                    p = _propGrid->AppendIn(_propGrid->GetRoot(), new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -1410,7 +1410,7 @@ void ControllerListPanel::UpdateControllerProperties() {
                     vis.Add("Controller Tab Only");
                     vis.Add("Layout Panel");
                     vis.Add("Always");
-                    p = _propGrid->Append(new wxEnumProperty("Show on Layout", "LayoutVisibility", vis, 0));
+                    p = _propGrid->AppendIn(_propGrid->GetRoot(), new wxEnumProperty("Show on Layout", "LayoutVisibility", vis, 0));
                     p->SetHelpString("Shows this controller as a movable box in the layout preview so you can place it where it physically sits. "
                                      "Controller Tab Only shows it while this tab is selected; Layout Panel shows it anywhere in the layout editor "
                                      "but not during playback; Always shows it everywhere.");
