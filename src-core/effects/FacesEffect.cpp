@@ -318,7 +318,7 @@ std::list<std::string> FacesEffect::GetFacesUsed(const SettingsMap& SettingsMap)
     return res;
 }
 
-std::list<std::string> FacesEffect::GetFileReferences(Model* model, const SettingsMap& settings) const {
+std::list<std::string> FacesEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& settings) const {
     std::list<std::string> res;
 
     if (model != nullptr) {
@@ -352,7 +352,7 @@ std::list<std::string> FacesEffect::GetFileReferences(Model* model, const Settin
             for (const auto& it2 : images) {
                 if (it2.first.find("Mouth") == 0) {
                     if (it2.second != "" && std::find(begin(res), end(res), it2.second) == end(res)) {
-                        res.push_back(it2.second);
+                        res.push_back(ResolveFileReference(ctx, it2.second));
                     }
                 }
             }

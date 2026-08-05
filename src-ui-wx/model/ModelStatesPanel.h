@@ -28,6 +28,8 @@
 #include <vector>
 #include <functional>
 
+#include "utils/xlPoint.h"
+
 class Model;
 class ModelPreview;
 class OutputManager;
@@ -209,7 +211,9 @@ private:
 
     void RenderModel();
     void GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction);
-    void SelectAllInBoundingRect(bool shiftdwn);
+    void SelectAllInBoundingRect(bool shiftdwn, bool freeform = false);
+    std::vector<int> GetDragSelectedNodes(bool freeform = false);
+    void RemoveNodes(bool freeform = false);
 
     wxTimer timer1;
     wxTimer _stateAnimTimer;
@@ -224,10 +228,12 @@ private:
     std::vector<uint32_t> _selected;
     bool _isActive = false;
     bool m_creating_bound_rect = false;
+    bool m_freeform_mode = false;
     int m_bound_start_x = 0;
     int m_bound_start_y = 0;
     int m_bound_end_x = 0;
     int m_bound_end_y = 0;
+    std::vector<xlPoint> m_paint_path;
     int mPointSize;
     Model* model = nullptr;
     bool overRide = false;

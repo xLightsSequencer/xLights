@@ -179,11 +179,11 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
     return res;
 }
 
-std::list<std::string> ShapeEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+std::list<std::string> ShapeEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     if (SettingsMap["E_FILEPICKERCTRL_SVG"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKERCTRL_SVG"]);
+        res.push_back(ResolveFileReference(ctx, SettingsMap["E_FILEPICKERCTRL_SVG"]));
     }
     return res;
 }

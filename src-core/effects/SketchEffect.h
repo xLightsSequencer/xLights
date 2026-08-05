@@ -44,7 +44,7 @@ public:
     bool needsLoadFiles() const override { return true; }
     void loadFiles(Effect* effect) override;
     std::list<std::string> CheckEffectSettings( const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache ) override;
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
 protected:

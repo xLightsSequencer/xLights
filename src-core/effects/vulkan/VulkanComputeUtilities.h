@@ -362,7 +362,7 @@ public:
 
     bool enabled = false;
     std::atomic<bool> pg{false};
-    uint32_t bufferSizeThreshold = 2048;
+    uint32_t bufferSizeThreshold = 8192;
 
     VkInstance instance = VK_NULL_HANDLE;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

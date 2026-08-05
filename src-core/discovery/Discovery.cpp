@@ -52,6 +52,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 
 DiscoveredData::DiscoveredData(ControllerEthernet *e) {
     controller = e;
@@ -178,12 +179,19 @@ public:
 };
 
 #ifdef _DNS_SD_H
-void bonjourDNSCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
-    const char *hostname, const struct sockaddr *address, uint32_t ttl, void *context) {
+static void bonjourDNSCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
+    const char *fullname, uint16_t rrtype, uint16_t rrclass, uint16_t rdlen, const void *rdata, uint32_t ttl, void *context) {
 
-    char buf[256];
-    inet_ntop(AF_INET, &(((struct sockaddr_in *)address)->sin_addr),
-                        buf, 256);
+    if (errorCode != kDNSServiceErr_NoError || (flags & kDNSServiceFlagsAdd) == 0
+        || rrtype != kDNSServiceType_A || rdata == nullptr || rdlen != sizeof(struct in_addr)) {
+        return;
+    }
+    struct in_addr addr;
+    std::memcpy(&addr, rdata, sizeof(addr));
+    char buf[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &addr, buf, sizeof(buf)) == nullptr) {
+        return;
+    }
     std::string ip = buf;
     if (ip != "0.0.0.0") {
         BonjourData *bj = (BonjourData*)context;
@@ -193,17 +201,23 @@ void bonjourDNSCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t int
 
 static void bonjourReplyCallBack(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
     const char *fullname, const char *hosttarget, uint16_t port, uint16_t txtLen, const unsigned char *txtRecord, void *context) {
-    DNSServiceRef ipRef;
-    DNSServiceGetAddrInfo(&ipRef, 0, interfaceIndex, 0, hosttarget, bonjourDNSCallBack, context);
-    BonjourData *bj = (BonjourData*)context;
-    bj->bonjourRefs.push_back(ipRef);
+    // An explicit A-record query rather than DNSServiceGetAddrInfo: Linux's
+    // avahi-compat shim implements the former but not the latter, and discovery
+    // only ever uses the IPv4 address.
+    DNSServiceRef ipRef = nullptr;
+    if (DNSServiceQueryRecord(&ipRef, 0, interfaceIndex, hosttarget, kDNSServiceType_A, kDNSServiceClass_IN,
+                              bonjourDNSCallBack, context) == kDNSServiceErr_NoError) {
+        BonjourData *bj = (BonjourData*)context;
+        bj->bonjourRefs.push_back(ipRef);
+    }
 }
 static void BonjourBrowseCallBack(DNSServiceRef service, DNSServiceFlags flags, uint32_t interfaceIndex, DNSServiceErrorType errorCode,
                                   const char * name, const char * type, const char * domain, void * context) {
-    DNSServiceRef serviceRef;
-    DNSServiceResolve(&serviceRef, 0, interfaceIndex, name, type, domain, bonjourReplyCallBack, context);
-    BonjourData *bj = (BonjourData*)context;
-    bj->bonjourRefs.push_back(serviceRef);
+    DNSServiceRef serviceRef = nullptr;
+    if (DNSServiceResolve(&serviceRef, 0, interfaceIndex, name, type, domain, bonjourReplyCallBack, context) == kDNSServiceErr_NoError) {
+        BonjourData *bj = (BonjourData*)context;
+        bj->bonjourRefs.push_back(serviceRef);
+    }
 }
 #endif
 
@@ -388,7 +402,7 @@ void BonjourData::handleEvents() {
     FD_ZERO( &fds );
 
     for (auto &ref : bonjourRefs) {
-        dnssd_sock_t sock = DNSServiceRefSockFD(ref);
+        auto sock = DNSServiceRefSockFD(ref);
         FD_SET(sock, &fds );
     }
 
@@ -398,7 +412,7 @@ void BonjourData::handleEvents() {
     tv.tv_usec = 5000;
     if (select( FD_SETSIZE, &fds, 0, 0, &tv ) > 0 ) {
         for (auto &ref : bonjourRefs) {
-            dnssd_sock_t sock = DNSServiceRefSockFD(ref);
+            auto sock = DNSServiceRefSockFD(ref);
             if (FD_ISSET( sock, &fds ) != 0) {
                 DNSServiceProcessResult(ref);
             }

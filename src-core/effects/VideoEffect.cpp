@@ -14,6 +14,7 @@
 #include "../../include/video-48.xpm"
 #include "../../include/video-64.xpm"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
@@ -265,6 +266,18 @@ namespace {
 // `size * headroom` can't overflow.
 constexpr int kDecodeSizeForceNative = 1 << 24;
 
+// The reader is opened at buffer/cropSpan so the cropped-in region still holds
+// buffer resolution — a 1% span asks for 100x the buffer. Unbounded that reached
+// 38400x21800, whose byte count no longer fits the reader's frame-buffer size,
+// leaving it with no frame buffers at all. Nothing past the cap can add detail
+// the source does not have, so bound the request instead of trusting the crop.
+constexpr int kMaxVideoDecodeDim = 4096;
+
+int CropScaledDecodeDim(int bufferDim, int cropSpan) {
+    const int span = std::max(1, cropSpan);
+    return std::clamp(bufferDim * 100 / span, 1, kMaxVideoDecodeDim);
+}
+
 // One crop setting resolved once per effect: either an active value curve or a
 // constant. Mirrors RenderableEffect::GetValueCurveInt for the raw (E_-prefixed)
 // stored settings the pre-pass reads, but built outside the sampling loop.
@@ -373,8 +386,8 @@ void AccumulateVideoEffectDecodeSize(Effect* eff, Model* model, SequenceElements
     minSpanX = std::max(1, minSpanX);
     minSpanY = std::max(1, minSpanY);
 
-    const int w = bw * 100 / minSpanX;
-    const int h = bh * 100 / minSpanY;
+    const int w = CropScaledDecodeDim(bw, minSpanX);
+    const int h = CropScaledDecodeDim(bh, minSpanY);
     spdlog::debug("VideoEffect decode size: '{}' buffer {}x{} crop span {}%x{}% -> decode {}x{}",
                   resolved, bw, bh, minSpanX, minSpanY, w, h);
     VideoDecodeSizeRegistry::SetMaxDecodeSize(resolved, w, h);
@@ -463,11 +476,11 @@ void VideoEffect::loadFiles(Effect* effect)
     }
 }
 
-std::list<std::string> VideoEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
+std::list<std::string> VideoEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;
     if (SettingsMap["E_FILEPICKERCTRL_Video_Filename"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKERCTRL_Video_Filename"]);
+        res.push_back(ResolveFileReference(ctx, SettingsMap["E_FILEPICKERCTRL_Video_Filename"]));
     }
     return res;
 }
@@ -638,8 +651,8 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
                 } else {
                     filename = resolved;
                     // have to open the file
-                    int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
-                    int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+                    int width = CropScaledDecodeDim(buffer.BufferWi, cropRight - cropLeft);
+                    int height = CropScaledDecodeDim(buffer.BufferHt, cropTop - cropBottom);
 
                     bool useNativeResolution = (sampleSpacing > 0);
 
@@ -722,8 +735,8 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
     }
 
     if (_videoreader != nullptr && sampleSpacing == 0) {
-        int width = buffer.BufferWi * 100 / (cropRight - cropLeft);
-        int height = buffer.BufferHt * 100 / (cropTop - cropBottom);
+        int width = CropScaledDecodeDim(buffer.BufferWi, cropRight - cropLeft);
+        int height = CropScaledDecodeDim(buffer.BufferHt, cropTop - cropBottom);
         bool vwidthEq = width == cache->_openedWidth;
         bool vheightEq = height == cache->_openedHeight;
         if (!vwidthEq || !vheightEq) {

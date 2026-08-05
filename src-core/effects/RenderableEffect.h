@@ -76,7 +76,14 @@ public:
     {
         return false;
     }
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+    // The files this effect's settings point at, resolved through `ctx` the way
+    // a caller that intends to open them needs. Media embedded in the .xsq comes
+    // back exactly as stored -- it is never read from disk, so resolving it
+    // would probe the filesystem (on macOS, pulling an evicted iCloud file all
+    // the way back down) to answer something the sequence already carries. The
+    // stored path is also the key SequenceMedia caches it under, so callers can
+    // ask GetMediaEmbedState about the returned string directly.
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const
     {
         return std::list<std::string>();
     }
@@ -249,6 +256,11 @@ protected:
     double GetValueCurveDouble(const std::string& name, double def, const SettingsMap& SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveInt(const std::string& name, int def, const SettingsMap& SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveIntMax(const std::string& name, int def, const SettingsMap& SettingsMap, int min, int max, int divisor = 1);
+
+    // Shared body of GetFileReferences: the stored path back untouched when the
+    // sequence has the media embedded, FixFile-resolved otherwise.
+    static std::string ResolveFileReference(RenderContext* ctx, const std::string& file);
+
     // Resolve a timing track's mark layer from the given sequence elements.
     // Callers pass the elements from their context: GetSequenceElements(buffer)
     // in a render, or eff->GetParentEffectLayer()->GetParentElement()->

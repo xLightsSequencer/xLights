@@ -70,7 +70,7 @@ public:
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     bool needsLoadFiles() const override { return true; }
     void loadFiles(Effect* effect) override;
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
     static int sStartSizeDefault;
     static int sStartSizeMin;

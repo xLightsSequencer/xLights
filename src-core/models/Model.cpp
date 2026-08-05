@@ -101,7 +101,7 @@ Model::Model(const ModelManager& manager)
 
 Model::~Model()
 {
-    RemoveAllSubModels();
+    DeleteAllSubModels();
     deleteUIObjects();
     if (modelDimmingCurve != nullptr) {
         delete modelDimmingCurve;
@@ -501,6 +501,10 @@ void Model::AddSubmodel(SubModel* sm)
 {
     subModels.push_back(sm);
     sortedSubModels[sm->GetName()] = sm;
+    // Also notified on add, not just on delete: a group that names this
+    // submodel resolved it to nothing while it did not exist, so without this
+    // the group stays missing it until something else happens to reset.
+    modelManager.NoteModelPointersChanged();
 }
 
 std::string Model::SerialiseFace() const
@@ -1219,6 +1223,7 @@ void Model::RemoveSubModel(const std::string& name)
             sortedSubModels.erase(name);
             delete m;
             it = subModels.erase(it);
+            modelManager.NoteModelPointersChanged();
             return;
         } else {
             ++it;
@@ -1227,6 +1232,16 @@ void Model::RemoveSubModel(const std::string& name)
 }
 
 void Model::RemoveAllSubModels()
+{
+    DeleteAllSubModels();
+    modelManager.NoteModelPointersChanged();
+}
+
+// Raw teardown, no notification. Separate from RemoveAllSubModels because the
+// destructor runs this while the manager is mid-delete (or mid-clear, with the
+// whole map being freed) — telling it that pointers changed there would either
+// be redundant or hand it a half-destroyed model set.
+void Model::DeleteAllSubModels()
 {
     for (auto it = subModels.begin(); it != subModels.end(); ) {
         Model* m = *it;
@@ -3559,6 +3574,139 @@ std::vector<int> Model::GetNodesInBoundingBox(IModelPreview* preview, xlPoint st
             }
         }
         i++;
+    }
+    return nodes;
+}
+
+namespace {
+    float DistanceSqPointToSegment(float px, float py, float ax, float ay, float bx, float by)
+    {
+        float abx = bx - ax;
+        float aby = by - ay;
+        float lenSq = abx * abx + aby * aby;
+        float t = 0.0f;
+        if (lenSq > 0.0f) {
+            t = ((px - ax) * abx + (py - ay) * aby) / lenSq;
+            t = std::clamp(t, 0.0f, 1.0f);
+        }
+        float cx = ax + t * abx;
+        float cy = ay + t * aby;
+        float dx = px - cx;
+        float dy = py - cy;
+        return dx * dx + dy * dy;
+    }
+}
+
+std::vector<int> Model::GetNodesNearPath(IModelPreview* preview, const std::vector<xlPoint>& path)
+{
+    std::vector<int> nodes;
+    if (path.empty()) return nodes;
+
+    int w, h;
+    float scale = GetPreviewDimScale(preview, w, h);
+
+    float pointScale = scale;
+    if (pointScale > 2.5) {
+        pointScale = 2.5;
+    }
+    if (pointScale > GetModelScreenLocation().RenderHt) {
+        pointScale = GetModelScreenLocation().RenderHt;
+    }
+    if (pointScale > GetModelScreenLocation().RenderWi) {
+        pointScale = GetModelScreenLocation().RenderWi;
+    }
+    float catchMult = preview ? preview->GetPencilCatchRadiusMultiplier() : 8.0f;
+    const float catchRadius = catchMult * pointScale;
+    const float radiusSq = catchRadius * catchRadius;
+
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
+    auto toScreen = [&](float sx, float sy, float& outX, float& outY) {
+        if (!centerBased) {
+            sx -= renderWi / 2.0f;
+            sy *= vScaleFactor;
+            if (vScaleFactor < 0.0f) {
+                sy += renderHt / 2.0f;
+            } else {
+                sy -= renderHt / 2.0f;
+            }
+            sy = (sy * scale) + (h / 2.0f);
+            sx = (sx * scale) + (w / 2.0f);
+        } else {
+            sx = ((sx - ml) * scale) + (w / 2.0f);
+            sy = ((sy - mb) * scale) + (h / 2.0f);
+        }
+        outX = sx;
+        outY = sy;
+    };
+
+    struct NodeScreenCoords {
+        int nodeIndex;
+        std::vector<std::pair<float, float>> coords;
+    };
+    std::vector<NodeScreenCoords> nodeCoords;
+    nodeCoords.reserve(Nodes.size());
+
+    int idx = 1;
+    for (const auto& it : Nodes) {
+        NodeScreenCoords nsc;
+        nsc.nodeIndex = idx++;
+        nsc.coords.reserve(it->Coords.size());
+        for (const auto& it2 : it->Coords) {
+            float sx, sy;
+            toScreen(it2.screenX, it2.screenY, sx, sy);
+            nsc.coords.emplace_back(sx, sy);
+        }
+        nodeCoords.push_back(std::move(nsc));
+    }
+
+    std::vector<bool> visited(Nodes.size() + 1, false);
+
+    // Walk the path segments in order so nodes get added as they are first hit
+    if (path.size() == 1) {
+        float px = (float)path[0].x;
+        float py = (float)path[0].y;
+        for (const auto& nc : nodeCoords) {
+            for (const auto& pt : nc.coords) {
+                float dx = pt.first - px;
+                float dy = pt.second - py;
+                if ((dx * dx + dy * dy) <= radiusSq) {
+                    nodes.push_back(nc.nodeIndex);
+                    break;
+                }
+            }
+        }
+        return nodes;
+    }
+
+    for (size_t p = 0; p + 1 < path.size(); ++p) {
+        float p1x = (float)path[p].x;
+        float p1y = (float)path[p].y;
+        float p2x = (float)path[p + 1].x;
+        float p2y = (float)path[p + 1].y;
+
+        for (const auto& nc : nodeCoords) {
+            if (visited[nc.nodeIndex]) {
+                continue;
+            }
+            for (const auto& pt : nc.coords) {
+                float distSq = DistanceSqPointToSegment(pt.first, pt.second, p1x, p1y, p2x, p2y);
+                if (distSq <= radiusSq) {
+                    visited[nc.nodeIndex] = true;
+                    nodes.push_back(nc.nodeIndex);
+                    break;
+                }
+            }
+        }
     }
     return nodes;
 }

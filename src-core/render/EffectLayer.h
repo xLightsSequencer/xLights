@@ -46,7 +46,7 @@ public:
     int GetLastSelectedEffectEndMS() const;
     void RemoveEffect(int index);
     void RemoveAllEffects(UndoManager* undo_mgr);
-    std::list<std::string> GetFileReferences(Model* model, EffectManager& em) const;
+    std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, EffectManager& em) const;
     std::list<std::string> GetFacesUsed(EffectManager& em) const;
     bool CleanupFileLocations(RenderContext* ctx, EffectManager& em);
 

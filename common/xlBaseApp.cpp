@@ -7,6 +7,9 @@
  * Copyright claimed based on commit dates recorded in Github
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
+#include <chrono>
+#include <exception>
+#include <stdexcept>
 #include <iomanip>
 #include <thread>
 #include <inttypes.h>
@@ -34,6 +37,7 @@
 #include <mach/thread_act.h>
 #include <pthread.h>
 #include <dlfcn.h>
+#include <unwind.h>
 #include <cstdio>
 #endif
 
@@ -46,6 +50,64 @@
 #include "xlBaseApp.h"
 #include "xlStackWalker.h"
 
+static std::string DescribeForeignUnwind();
+
+#ifdef __APPLE__
+// Implemented in libxlUnwindHook.dylib, which interposes the unwinder so a
+// foreign unwind is recorded where it is raised - the only place its stack
+// still exists.  Weakly imported so the app still links and runs if the dylib
+// is missing from the bundle.
+extern "C" bool xlUnwindHook_GetLastForeign(uint64_t* outClass, void** outFrames, int maxFrames, int* outFrameCount) __attribute__((weak_import));
+
+// Interposition that fails to apply is silent - the reports would just keep
+// saying nothing was recorded - so give it a way to be checked on a build in
+// hand.  Set XL_UNWIND_HOOK_TEST=1 and a known foreign unwind is raised at
+// startup and described on stderr.
+//
+// The raise has to happen here rather than inside the hook dylib: dyld does not
+// interpose an image's calls to itself, so a helper living in the dylib would
+// bypass the very binding under test and report success either way.
+static void TestUnwindHook()
+{
+    char const* env = getenv("XL_UNWIND_HOOK_TEST");
+    if (env == nullptr || env[0] != '1')
+    {
+        return;
+    }
+
+    // An ordinary exception must leave no record, or every crash report would
+    // carry a stale one from whatever threw last.  Checked before the test
+    // unwind below, while nothing has been recorded yet.
+    try
+    {
+        throw std::runtime_error("native control");
+    }
+    catch (...)
+    {
+    }
+    bool const recordedNative = (xlUnwindHook_GetLastForeign != nullptr) && xlUnwindHook_GetLastForeign(nullptr, nullptr, 0, nullptr);
+    fprintf(stderr, "XL_UNWIND_HOOK_TEST: an ordinary exception left a foreign-unwind record: %s (expected no)\n",
+            recordedNative ? "YES" : "no");
+
+    static _Unwind_Exception e;
+    memset(&e, 0, sizeof(e));
+    // Packed high byte first, the way the ABI lays out a vendor tag (libc++abi's
+    // own class is 'CLNGC++\0' in exactly this order), so the test tag reads back
+    // the same way a real one will.
+    e.exception_class = 0x584C544553540000ULL; // XLTEST\0\0
+    e.exception_cleanup = [](_Unwind_Reason_Code, _Unwind_Exception*) {};
+    try
+    {
+        _Unwind_RaiseException(&e);
+    }
+    catch (...)
+    {
+    }
+    fprintf(stderr, "XL_UNWIND_HOOK_TEST: %s\n", DescribeForeignUnwind().c_str());
+    fflush(stderr);
+}
+#endif
+
 xlCrashHandler::xlCrashHandler(std::string const& appName) :
     m_appName(appName),
     m_crashMutex(),
@@ -54,6 +116,13 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 {
 #if wxUSE_ON_FATAL_EXCEPTION
     wxHandleFatalExceptions();
+#endif
+}
+
+void xlCrashHandler::TestUnwindHookIfRequested()
+{
+#ifdef __APPLE__
+    TestUnwindHook();
 #endif
 }
 
@@ -252,8 +321,34 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             // During debug, don't generate crash dumps. Instead, just bring debugger here.
             wxTrap();
 #else
-            // Protect against simultaneous crashes from different threads.
-            std::unique_lock<std::mutex> lock(m_crashMutex);
+            // A crash INSIDE the crash handler must not come back through here.
+            // The mutex below is not recursive, so re-entering on the same thread
+            // blocks on a lock this thread already holds and the process wedges
+            // at zero CPU - which is what a user reports as a hung render rather
+            // than as a crash.  Reporting has already failed at that point; the
+            // useful thing left is to die promptly and let the log stand.
+            static thread_local bool handlingCrash = false;
+            if (handlingCrash) {
+                spdlog::critical("Crashed again while reporting a crash - abandoning the report and aborting.");
+                spdlog::default_logger()->flush();
+                std::abort();
+            }
+            handlingCrash = true;
+            struct ClearHandling {
+                bool& flag;
+                ~ClearHandling() { flag = false; }
+            } clearHandling{ handlingCrash };
+
+            // Protect against simultaneous crashes from different threads, but do
+            // not wait on it indefinitely: if the holder is stuck mid-report,
+            // blocking here just converts a second crash into a second hang.
+            std::unique_lock<std::timed_mutex> lock(m_crashMutex, std::defer_lock);
+            if (!lock.try_lock_for(std::chrono::seconds(30))) {
+                spdlog::critical("Another thread has been reporting a crash for over 30s - abandoning this report and aborting.");
+                spdlog::default_logger()->flush();
+                std::abort();
+            }
+            m_crashReportDone = false;
 
             spdlog::critical("Crashed: " + msg);
 
@@ -366,13 +461,36 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             }
 
             if (topFrame == nullptr) {
-                spdlog::critical("Unable to tell user about debug report. Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
+                // No UI to ask through - headless, or the frame is already gone.
+                // Write the report anyway: Process() is what actually produces
+                // the file, so skipping it left nothing on disk and logged an
+                // empty path, which is the worst of both worlds.
+                if (report.Process()) {
+                    spdlog::critical("No UI to report through. Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
+                } else {
+                    spdlog::critical("No UI to report through, and the crash report could not be written.");
+                }
             } else {
                 if (wxThread::IsMain()) {
                     topFrame->CreateDebugReport(this);
                 } else {
+                    // The report is built on the main thread, so this only
+                    // completes if the main thread is pumping events.  During a
+                    // render it frequently is not - it can be sat waiting on the
+                    // render itself - and an unbounded wait here then wedges the
+                    // process at zero CPU forever, which users see as a hung
+                    // render rather than as a crash.  Bound it, and carry on
+                    // regardless so the process can finish dying.
                     topFrame->CallAfter(&xlFrame::CreateDebugReport, this);
-                    m_crashDoneSignal.wait(lock);
+                    if (!m_crashDoneSignal.wait_for(lock, std::chrono::seconds(60),
+                                                    [this] { return m_crashReportDone; })) {
+                        spdlog::critical("Timed out waiting for the main thread to build the crash report - it is most likely not processing events. Writing the report here instead.");
+                        if (report.Process()) {
+                            spdlog::critical("Crash report saved to {}.", report.GetCompressedFileName().ToStdString());
+                        } else {
+                            spdlog::critical("Crash report could not be written.");
+                        }
+                    }
                 }
             }
 #endif // (defined(_DEBUG))
@@ -393,6 +511,52 @@ void xlCrashHandler::HandleAssertFailure(wxChar const* file, int line, wxChar co
         << msg << wxASCII_STR("'");
 
     HandleCrash(false, assertMsg.ToStdString());
+}
+
+static std::string DescribeForeignUnwind()
+{
+    std::string const summary = "A foreign (non-C++) exception occurred - the stack was unwound by neither the C++ nor the Objective-C runtime, so no type information exists.";
+
+#ifdef __APPLE__
+    if (xlUnwindHook_GetLastForeign == nullptr)
+    {
+        return summary + " (unwind hook not loaded)";
+    }
+
+    uint64_t exceptionClass = 0;
+    void* frames[64];
+    int frameCount = 0;
+    if (!xlUnwindHook_GetLastForeign(&exceptionClass, frames, 64, &frameCount))
+    {
+        return summary + " No raise was recorded on this thread.";
+    }
+
+    // The class is a vendor tag packed big-endian into the 64 bits, so the
+    // readable form is the bytes from the top down.
+    std::string tag;
+    for (int i = 7; i >= 0; --i)
+    {
+        char const c = static_cast<char>((exceptionClass >> (i * 8)) & 0xff);
+        if (c >= 0x20 && c <= 0x7e)
+        {
+            tag += c;
+        }
+    }
+
+    std::string res = fmt::format("{} Unwind exception class 0x{:016x} (\"{}\"). Raised at:", summary, exceptionClass, tag);
+    if (char** symbols = backtrace_symbols(frames, frameCount))
+    {
+        for (int i = 0; i < frameCount; ++i)
+        {
+            res += "\n    ";
+            res += symbols[i];
+        }
+        free(symbols);
+    }
+    return res;
+#else
+    return summary;
+#endif
 }
 
 std::string xlCrashHandler::DescribeCurrentException()
@@ -447,6 +611,15 @@ std::string xlCrashHandler::DescribeCurrentException()
             return fmt::format("An exception of non-standard type \"{}\" occurred.", *t);
         }
 #endif
+        // Every exception the C++ or Objective-C runtime raises is named above, so
+        // reaching here means the stack was unwound by neither - a forced unwind or
+        // a foreign runtime.  current_exception() is null only in that case, and
+        // saying so is the difference between a searchable report and a dead end:
+        // there is no C++ throw site to go looking for.
+        if (std::current_exception() == nullptr)
+        {
+            return DescribeForeignUnwind();
+        }
         return "An unknown exception occurred.";
     }
 }
@@ -461,6 +634,21 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
 {
     
 
+    // Whatever happens below - including an exception out of Process(), the
+    // preview dialog or the upload - the crashing thread has to be released.  It
+    // is sitting on m_crashDoneSignal, and stranding it there turns a crash into
+    // a hung process.
+    struct ReleaseWaiter {
+        xlCrashHandler* self;
+        ~ReleaseWaiter() {
+            {
+                std::lock_guard<std::timed_mutex> lg(self->m_crashMutex);
+                self->m_crashReportDone = true;
+            }
+            self->m_crashDoneSignal.notify_all();
+        }
+    } releaseWaiter{ this };
+
     if ((sendOption == SendReportOptions::ALWAYS_SEND) || ((sendOption == SendReportOptions::ASK_USER_TO_SEND) && wxDebugReportPreviewStd().Show(*m_report)))
     {
         m_report->Process();
@@ -473,7 +661,6 @@ void xlCrashHandler::ProcessCrashReport(SendReportOptions sendOption)
     }
 
     spdlog::critical("Created debug report: " + m_report->GetCompressedFileName().ToStdString());
-    m_crashDoneSignal.notify_all();
 }
 
 void xlCrashHandler::SendReport(std::string const& appName, std::string const& loc, wxDebugReportCompress& report)

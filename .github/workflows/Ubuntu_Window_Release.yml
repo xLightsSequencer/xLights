@@ -155,10 +155,10 @@ jobs:
         timestamp-rfc3161: http://timestamp.acs.microsoft.com
 
     # --- Microsoft Store package (unsigned; the Store re-signs on ingestion) ----
-    # Built every release so the .msix is ready for manual Partner Center upload.
-    # Bundles the already-signed exes. Output to a separate dir and uploaded as a
-    # workflow artifact (NOT a public release asset) - an unsigned Store-identity
-    # package isn't user-installable, so it must not land in the GitHub release.
+    # Built every release and handed to the publish-store job below. Bundles the
+    # already-signed exes. Output to a separate dir and uploaded as a workflow
+    # artifact (NOT a public release asset) - an unsigned Store-identity package
+    # isn't user-installable, so it must not land in the GitHub release.
     - name: Build Store MSIX
       shell: pwsh
       working-directory: build_scripts\msw\msix
@@ -186,6 +186,83 @@ jobs:
            omitBodyDuringUpdate: true
            artifacts: 'build_scripts\msw\output\*'
            token: ${{ secrets.GITHUB_TOKEN }}
+
+  # --- Microsoft Store submission ---------------------------------------------
+  # Uploads the Store MSIX into the app's Partner Center draft submission via the
+  # Microsoft Store Developer CLI. Deliberately its own job rather than a step in
+  # build-windows: publish-release must not depend on it, so a Partner Center
+  # outage or a rejected package can never hold up the GitHub release.
+  #
+  # Gated on the MSSTORE_PUBLISH_ENABLED repo variable - until that is set the
+  # release behaves exactly as it did before. The one-time setup is an Entra ID
+  # app registration holding the Manager role on the Partner Center account
+  # (Account settings > User management > Microsoft Entra applications); the app
+  # itself is already live in the Store, which is what the submission API needs.
+  #
+  # By default the draft is left uncommitted, so the package is uploaded and
+  # waits for a human to review the listing and press Submit. Set the
+  # MSSTORE_AUTO_COMMIT variable to true to have CI start certification too.
+  publish-store:
+    needs: build-windows
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-2022
+    environment: release
+    env:
+      STORE_PUBLISH: ${{ vars.MSSTORE_PUBLISH_ENABLED == 'true' }}
+    steps:
+      - name: Download Store MSIX
+        if: env.STORE_PUBLISH == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: xLights_Store_MSIX
+          path: store-msix
+
+      - name: Setup Microsoft Store Developer CLI
+        if: env.STORE_PUBLISH == 'true'
+        uses: microsoft/microsoft-store-apppublisher@v1.4
+
+      # Checked before calling reconfigure: with a parameter missing the CLI
+      # prompts for it, and an interactive prompt on a runner hangs the job
+      # until the 6-hour timeout rather than failing.
+      - name: Configure Partner Center credentials
+        if: env.STORE_PUBLISH == 'true'
+        shell: pwsh
+        env:
+          TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          foreach ($n in 'TENANT_ID','SELLER_ID','CLIENT_ID','CLIENT_SECRET') {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($n))) {
+              throw "MSSTORE_$n is not set - MSSTORE_PUBLISH_ENABLED needs all four Partner Center secrets"
+            }
+          }
+          msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID `
+                              --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed ($LASTEXITCODE)" }
+
+      - name: Upload MSIX to Partner Center
+        if: env.STORE_PUBLISH == 'true'
+        shell: pwsh
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+          AUTO_COMMIT: ${{ vars.MSSTORE_AUTO_COMMIT }}
+        run: |
+          $msix = Get-ChildItem store-msix -Filter *.msix -Recurse | Select-Object -First 1
+          if (-not $msix) { throw "No .msix in the xLights_Store_MSIX artifact" }
+          $pubArgs = @($msix.FullName, '-id', $env:PRODUCT_ID)
+          if ($env:AUTO_COMMIT -ne 'true') { $pubArgs += '--noCommit' }
+          Write-Host "msstore publish $($pubArgs -join ' ')"
+          & msstore publish @pubArgs
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish failed ($LASTEXITCODE)" }
+
+      - name: Report submission status
+        if: env.STORE_PUBLISH == 'true'
+        continue-on-error: true
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
+        run: msstore submission status $env:PRODUCT_ID
 
   publish-release:
     needs: [build-linux, build-windows]

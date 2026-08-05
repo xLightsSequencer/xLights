@@ -475,6 +475,7 @@ void ModelFacesPanel::NotifyChange()
 void ModelFacesPanel::OnActivate()
 {
     _isActive = true;
+    ModelPreview::ResetPencilSize();
     if (_modelPreview) {
         _modelPreview->Bind(wxEVT_LEFT_DOWN,    &ModelFacesPanel::OnPreviewLeftDown,   this);
         _modelPreview->Bind(wxEVT_LEFT_UP,      &ModelFacesPanel::OnPreviewLeftUp,     this);
@@ -1878,7 +1879,9 @@ void ModelFacesPanel::OnPreviewLeftUp(wxMouseEvent& event)
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
 
-        SelectAllInBoundingRect(event.ShiftDown());
+        bool freeform = m_freeform_mode || (_modelPreview && _modelPreview->IsPencilActive());
+        ModelPreview::EndPaintPath(m_paint_path, m_bound_end_x, m_bound_end_y, freeform);
+        SelectAllInBoundingRect(event.ShiftDown(), freeform);
         m_creating_bound_rect = false;
     }
 }
@@ -1893,7 +1896,12 @@ void ModelFacesPanel::OnPreviewMouseLeave(wxMouseEvent& event)
 void ModelFacesPanel::OnPreviewLeftDown(wxMouseEvent& event)
 {
     if (!_isActive) return;
+    if (_modelPreview && _modelPreview->HitTestPencilIcon(event.GetX(), event.GetY())) {
+        _modelPreview->ShowPencilSizeMenu();
+        return;
+    }
     m_creating_bound_rect = true;
+    m_freeform_mode = _modelPreview && _modelPreview->IsPencilActive();
     glm::vec3 ray_origin;
     glm::vec3 ray_direction;
     GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
@@ -1901,6 +1909,7 @@ void ModelFacesPanel::OnPreviewLeftDown(wxMouseEvent& event)
     m_bound_start_y = ray_origin.y;
     m_bound_end_x = m_bound_start_x;
     m_bound_end_y = m_bound_start_y;
+    ModelPreview::StartPaintPath(m_paint_path, m_bound_start_x, m_bound_start_y, m_freeform_mode);
 }
 
 void ModelFacesPanel::OnPreviewLeftDClick(wxMouseEvent& event)
@@ -1966,11 +1975,13 @@ void ModelFacesPanel::OnPreviewMouseMove(wxMouseEvent& event)
     event.ResumePropagation(1);
     event.Skip();
     if (m_creating_bound_rect) {
+        m_freeform_mode = _modelPreview && _modelPreview->IsPencilActive();
         glm::vec3 ray_origin;
         glm::vec3 ray_direction;
         GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
         m_bound_end_x = ray_origin.x;
         m_bound_end_y = ray_origin.y;
+        ModelPreview::AddPaintPathPoint(m_paint_path, m_bound_end_x, m_bound_end_y, m_freeform_mode);
         RenderModel();
     }
 }
@@ -1980,10 +1991,23 @@ void ModelFacesPanel::RenderModel()
     if (_modelPreview == nullptr || !_modelPreview->StartDrawing(mPointSize)) return;
 
     if (m_creating_bound_rect) {
-        _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        if (m_freeform_mode) {
+            _modelPreview->AddPathToAccumulator(m_paint_path);
+        } else {
+            _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        }
     }
     model->DisplayEffectOnWindow(_modelPreview, mPointSize);
     _modelPreview->EndDrawing();
+}
+
+std::vector<int> ModelFacesPanel::GetDragSelectedNodes(bool freeform)
+{
+    if (freeform) {
+        return model->GetNodesNearPath(_modelPreview, m_paint_path);
+    } else {
+        return model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    }
 }
 
 void ModelFacesPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm::vec3& ray_direction)
@@ -1998,10 +2022,10 @@ void ModelFacesPanel::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm:
     );
 }
 
-void ModelFacesPanel::SelectAllInBoundingRect(bool shiftDwn)
+void ModelFacesPanel::SelectAllInBoundingRect(bool shiftDwn, bool freeform)
 {
     if (shiftDwn) {
-        RemoveNodes();
+        RemoveNodes(freeform);
         return;
     }
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
@@ -2018,7 +2042,7 @@ void ModelFacesPanel::SelectAllInBoundingRect(bool shiftDwn)
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = GetDragSelectedNodes(freeform);
     if (nodes.size() == 0)
         return;
 
@@ -2039,11 +2063,13 @@ void ModelFacesPanel::SelectAllInBoundingRect(bool shiftDwn)
         }
     }
 
-    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
-        [](const wxString& a, const wxString& b)
-        {
-            return wxAtoi(a) < wxAtoi(b);
-        });
+    if (!freeform) {
+        std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+            {
+                return wxAtoi(a) < wxAtoi(b);
+            });
+    }
 
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
@@ -2051,7 +2077,7 @@ void ModelFacesPanel::SelectAllInBoundingRect(bool shiftDwn)
     UpdateFaceFilterDropdownItems();
 }
 
-void ModelFacesPanel::RemoveNodes()
+void ModelFacesPanel::RemoveNodes(bool freeform)
 {
     const std::string name = NameChoice->GetString(NameChoice->GetSelection()).ToStdString();
     if (name == "") {
@@ -2066,7 +2092,7 @@ void ModelFacesPanel::RemoveNodes()
         return;
 
     std::vector<wxRealPoint> pts;
-    std::vector<int> nodes = model->GetNodesInBoundingBox(_modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
+    std::vector<int> nodes = GetDragSelectedNodes(freeform);
     if (nodes.size() == 0)
         return;
     wxString oldnodes = NodeUtils::ExpandNodes(NodeRangeGrid->GetCellValue(row, CHANNEL_COL));
@@ -2082,11 +2108,13 @@ void ModelFacesPanel::RemoveNodes()
         }
     }
 
-    std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
-        [](const wxString& a, const wxString& b)
-        {
-            return wxAtoi(a) < wxAtoi(b);
-        });
+    if (!freeform) {
+        std::sort(oldNodeArrray.begin(), oldNodeArrray.end(),
+            [](const wxString& a, const wxString& b)
+            {
+                return wxAtoi(a) < wxAtoi(b);
+            });
+    }
 
     NodeRangeGrid->SetCellValue(row, CHANNEL_COL, NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',')));
     NodeRangeGrid->Refresh();
