@@ -15,6 +15,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  also has a matching alias for the model part.
                                  "Update Aliases" now promotes a submodel alias to the model itself when
                                  the submodel name already matches, instead of adding a redundant slashed alias
+    -bug (dkulp)                 Headless render sized the frame buffer from the controller channel count
+                                 alone, so a model mapped past the last controller channel was truncated:
+                                 those channels were missing from the .fseq entirely, and the one node
+                                 straddling the end wrote its tail into the next frame, corrupting that
+                                 frame's first channel differently from run to run. It now covers the models
+                                 too, matching the normal render. Reading or writing a node's channels also
+                                 stops at the end of the frame.
     -bug (dkulp)                 On Windows, rendering a sequence with many video effects could hang forever
                                  with the DirectX11/MF decoder selected: every render thread ended up parked
                                  inside Media Foundation waiting for a frame that never arrived. Frame reads
