@@ -236,11 +236,11 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     return res;
 }
 
-std::list<std::string> VUMeterEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+std::list<std::string> VUMeterEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     if (SettingsMap["E_FILEPICKERCTRL_SVGFile"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKERCTRL_SVGFile"]);
+        res.push_back(ResolveFileReference(ctx, SettingsMap["E_FILEPICKERCTRL_SVGFile"]));
     }
     return res;
 }

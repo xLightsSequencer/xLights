@@ -1888,7 +1888,7 @@ std::list<std::string> SequenceElements::GetAllReferencedFiles()
         Element* e = GetElement(i);
         if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
             Model* m = renderContext->GetModel(e->GetModelName());
-            for (const auto& it : e->GetFileReferences(m, GetEffectManager())) {
+            for (const auto& it : e->GetFileReferences(renderContext, m, GetEffectManager())) {
                 if (std::find(begin(res), end(res), it) == end(res)) {
                     res.push_back(it);
                 }

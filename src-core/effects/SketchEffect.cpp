@@ -207,7 +207,7 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-std::list<std::string> SketchEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+std::list<std::string> SketchEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     return res;

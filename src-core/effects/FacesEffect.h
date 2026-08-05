@@ -33,7 +33,7 @@ public:
         return false;
     }
     virtual std::list<std::string> GetFacesUsed(const SettingsMap& SettingsMap) const override;
-    virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
+    virtual std::list<std::string> GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override;
 
     // Cached from Faces.json. The MouthMovements (phoneme/timing track) and

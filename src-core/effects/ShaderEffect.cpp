@@ -288,11 +288,11 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
     return res;
 }
 
-std::list<std::string> ShaderEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+std::list<std::string> ShaderEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     if (SettingsMap["E_0FILEPICKERCTRL_IFS"] != "") {
-        res.push_back(SettingsMap["E_0FILEPICKERCTRL_IFS"]);
+        res.push_back(ResolveFileReference(ctx, SettingsMap["E_0FILEPICKERCTRL_IFS"]));
     }
     return res;
 }

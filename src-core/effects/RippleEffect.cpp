@@ -1822,11 +1822,11 @@ void RippleEffect::Drawcandycane(RenderBuffer& buffer, int Movement, int xc, int
     }
 }
 
-std::list<std::string> RippleEffect::GetFileReferences(Model* model, const SettingsMap& SettingsMap) const
+std::list<std::string> RippleEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap& SettingsMap) const
 {
     std::list<std::string> res;
     if (SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"] != "") {
-        res.push_back(SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"]);
+        res.push_back(ResolveFileReference(ctx, SettingsMap["E_FILEPICKERCTRL_Ripple_SVG"]));
     }
     return res;
 }

@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 Opening a sequence whose images are embedded in the .xsq still searched the
+                                 disk for every one of them. On macOS that pulls files evicted to iCloud back
+                                 down - so opening a sequence with a few hundred embedded images spent many
+                                 seconds downloading images the sequence already contained. Embedded media is
+                                 now recognised before anything touches the filesystem.
     -bug (dkulp)                 A crash during a render could leave the program running but frozen instead
                                  of reporting the crash - the crash handler could deadlock against itself,
                                  or wait forever for a report that the main thread was never going to build.

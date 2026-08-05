@@ -1306,7 +1306,7 @@ void EffectLayer::IncrementChangeCount(int startMS, int endMS)
     }
 }
 
-std::list<std::string> EffectLayer::GetFileReferences(Model* model, EffectManager& em) const
+std::list<std::string> EffectLayer::GetFileReferences(RenderContext* ctx, Model* model, EffectManager& em) const
 {
     std::list<std::string> res;
 
@@ -1317,7 +1317,7 @@ std::list<std::string> EffectLayer::GetFileReferences(Model* model, EffectManage
         if (ef->GetEffectIndex() >= 0)
         {
             RenderableEffect *eff = em[ef->GetEffectIndex()];
-            res.splice(end(res), eff->GetFileReferences(model, ef->GetSettings()));
+            res.splice(end(res), eff->GetFileReferences(ctx, model, ef->GetSettings()));
         }
     }
 

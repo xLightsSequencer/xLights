@@ -121,13 +121,13 @@ std::list<std::string> TextEffect::CheckEffectSettings(const SettingsMap& settin
     return res;
 }
 
-std::list<std::string> TextEffect::GetFileReferences(Model* model, const SettingsMap &SettingsMap) const
+std::list<std::string> TextEffect::GetFileReferences(RenderContext* ctx, Model* model, const SettingsMap &SettingsMap) const
 {
     std::list<std::string> res;    
     std::string textFilename = SettingsMap["E_FILEPICKERCTRL_Text_File"];
     if (textFilename != "")
     {
-        res.push_back(textFilename);
+        res.push_back(ResolveFileReference(ctx, textFilename));
     }
     return res;
 }
