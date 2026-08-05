@@ -26,7 +26,7 @@
 #include <wx/textfile.h>
 
 #include "xLightsMain.h"
-#include "xlBaseApp.h"
+#include "../../common/xlBaseApp.h"
 #include "shared/utils/wxUtilities.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"

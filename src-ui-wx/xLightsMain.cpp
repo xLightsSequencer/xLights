@@ -117,7 +117,7 @@
 #include "layout/ViewsModelsPanel.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
-#include "xlBaseApp.h"
+#include "../common/xlBaseApp.h"
 #include "xLightsVersion.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "preferences/ToolbarLayout.h"
