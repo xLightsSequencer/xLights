@@ -33,6 +33,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Windows-specific reason to move AVI media to mov/mp4, on top of AVI not
                                  being usable on macOS at all - re-wrapping the same footage into mov was
                                  measured to clear the hang on its own.
+    -enh (dkulp)                 Crash reports now include a recent-activity trace showing the last few
+                                 hundred dispatched events and playback actions, so a report says what the
+                                 program was doing without the user having enabled debug logging.
     -change (dkulp)              Crash reports for an exception escaping the main loop now say when the stack
                                  was unwound by neither the C++ nor the Objective-C runtime, instead of
                                  reporting an unhelpful "unknown exception".

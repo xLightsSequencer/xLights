@@ -117,6 +117,7 @@
 #include "layout/ViewsModelsPanel.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
+#include "xlBaseApp.h"
 #include "xLightsVersion.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "preferences/ToolbarLayout.h"
@@ -3923,6 +3924,7 @@ void xLightsFrame::SetPlaySpeedTo(float speed)
     playAnimation = false;
     playSpeed = speed;
 
+    xlCrashHandler::TraceNote("play speed", fmt::format("{:.2f}", speed));
     AudioManager::SetPlaybackRate(playSpeed);
     if (CurrentSeqXmlFile != nullptr) {
         if (CurrentSeqXmlFile->GetMedia() == nullptr) {

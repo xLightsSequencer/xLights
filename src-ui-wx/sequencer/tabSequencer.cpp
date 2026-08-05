@@ -26,6 +26,7 @@
 #include <wx/textfile.h>
 
 #include "xLightsMain.h"
+#include "xlBaseApp.h"
 #include "shared/utils/wxUtilities.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceMedia.h"
@@ -1823,7 +1824,9 @@ void xLightsFrame::DoPlaySequence()
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
 				AudioManager* playAudio = GetPlaybackAudio();
 				if (playAudio != nullptr) {
+					xlCrashHandler::TraceNote("audio seek", std::to_string(playStartTime));
 					playAudio->Seek(playStartTime);
+					xlCrashHandler::TraceNote("audio seek done");
 				}
 			}
 			if (playEndTime == -1 || playEndTime > CurrentSeqXmlFile->GetSequenceDurationMS()) {
@@ -1833,7 +1836,9 @@ void xLightsFrame::DoPlaySequence()
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
 				AudioManager* playAudio = GetPlaybackAudio();
 				if (playAudio != nullptr) {
+					xlCrashHandler::TraceNote("audio play");
 					playAudio->Play();
+					xlCrashHandler::TraceNote("audio play done");
 				}
 			}
 		}
