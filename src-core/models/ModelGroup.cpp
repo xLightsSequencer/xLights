@@ -13,6 +13,7 @@
 #include "ModelGroup.h"
 #include "ModelManager.h"
 #include "SingleLineModel.h"
+#include "SubModel.h"
 #include "ModelScreenLocation.h"
 #include "UtilFunctions.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
@@ -58,8 +59,16 @@ Model* ModelGroup::GetFirstModel() const
 {
     EnsureModelsCurrent();
     for (const auto& it : models) {
-        if (it->GetDisplayAs() != DisplayAsType::ModelGroup && it->GetDisplayAs() != DisplayAsType::SubModel) {
-            return it;
+        if (it != nullptr) {
+            if (it->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                Model* fm = static_cast<ModelGroup*>(it)->GetFirstModel();
+                if (fm != nullptr) return fm;
+            } else if (it->GetDisplayAs() == DisplayAsType::SubModel) {
+                Model* p = static_cast<SubModel*>(it)->GetParent();
+                if (p != nullptr) return p;
+            } else {
+                return it;
+            }
         }
     }
     return nullptr;
