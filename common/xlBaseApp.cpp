@@ -9,6 +9,7 @@
  **************************************************************/
 #include <chrono>
 #include <exception>
+#include <stdexcept>
 #include <iomanip>
 #include <thread>
 #include <inttypes.h>
@@ -36,6 +37,7 @@
 #include <mach/thread_act.h>
 #include <pthread.h>
 #include <dlfcn.h>
+#include <unwind.h>
 #include <cstdio>
 #endif
 
@@ -48,6 +50,57 @@
 #include "xlBaseApp.h"
 #include "xlStackWalker.h"
 
+static std::string DescribeForeignUnwind();
+
+#ifdef __APPLE__
+// Implemented in libxlUnwindHook.dylib, which interposes the unwinder so a
+// foreign unwind is recorded where it is raised - the only place its stack
+// still exists.  Weakly imported so the app still links and runs if the dylib
+// is missing from the bundle.
+extern "C" bool xlUnwindHook_GetLastForeign(uint64_t* outClass, void** outFrames, int maxFrames, int* outFrameCount) __attribute__((weak_import));
+
+// Interposition that fails to apply is silent - the reports would just keep
+// saying nothing was recorded - so give it a way to be checked on a build in
+// hand.  Set XL_UNWIND_HOOK_TEST=1 and a known foreign unwind is raised at
+// startup and described on stderr.
+//
+// The raise has to happen here rather than inside the hook dylib: dyld does not
+// interpose an image's calls to itself, so a helper living in the dylib would
+// bypass the very binding under test and report success either way.
+static void TestUnwindHook()
+{
+    char const* env = getenv("XL_UNWIND_HOOK_TEST");
+    if (env == nullptr || env[0] != '1')
+    {
+        return;
+    }
+
+    // Nothing should have been recorded before the test unwind below: ordinary
+    // exceptions must not leave a record, or every crash report would carry a
+    // stale one.  Reported rather than asserted - this runs in shipping code.
+    bool const recordedBefore = (xlUnwindHook_GetLastForeign != nullptr) && xlUnwindHook_GetLastForeign(nullptr, nullptr, 0, nullptr);
+    fprintf(stderr, "XL_UNWIND_HOOK_TEST: a foreign unwind was already recorded before the test: %s (expected no)\n",
+            recordedBefore ? "YES" : "no");
+
+    static _Unwind_Exception e;
+    memset(&e, 0, sizeof(e));
+    // Packed high byte first, the way the ABI lays out a vendor tag (libc++abi's
+    // own class is 'CLNGC++\0' in exactly this order), so the test tag reads back
+    // the same way a real one will.
+    e.exception_class = 0x584C544553540000ULL; // XLTEST\0\0
+    e.exception_cleanup = [](_Unwind_Reason_Code, _Unwind_Exception*) {};
+    try
+    {
+        _Unwind_RaiseException(&e);
+    }
+    catch (...)
+    {
+    }
+    fprintf(stderr, "XL_UNWIND_HOOK_TEST: %s\n", DescribeForeignUnwind().c_str());
+    fflush(stderr);
+}
+#endif
+
 xlCrashHandler::xlCrashHandler(std::string const& appName) :
     m_appName(appName),
     m_crashMutex(),
@@ -56,6 +109,13 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 {
 #if wxUSE_ON_FATAL_EXCEPTION
     wxHandleFatalExceptions();
+#endif
+}
+
+void xlCrashHandler::TestUnwindHookIfRequested()
+{
+#ifdef __APPLE__
+    TestUnwindHook();
 #endif
 }
 
@@ -446,6 +506,52 @@ void xlCrashHandler::HandleAssertFailure(wxChar const* file, int line, wxChar co
     HandleCrash(false, assertMsg.ToStdString());
 }
 
+static std::string DescribeForeignUnwind()
+{
+    std::string const summary = "A foreign (non-C++) exception occurred - the stack was unwound by neither the C++ nor the Objective-C runtime, so no type information exists.";
+
+#ifdef __APPLE__
+    if (xlUnwindHook_GetLastForeign == nullptr)
+    {
+        return summary + " (unwind hook not loaded)";
+    }
+
+    uint64_t exceptionClass = 0;
+    void* frames[64];
+    int frameCount = 0;
+    if (!xlUnwindHook_GetLastForeign(&exceptionClass, frames, 64, &frameCount))
+    {
+        return summary + " No raise was recorded on this thread.";
+    }
+
+    // The class is a vendor tag packed big-endian into the 64 bits, so the
+    // readable form is the bytes from the top down.
+    std::string tag;
+    for (int i = 7; i >= 0; --i)
+    {
+        char const c = static_cast<char>((exceptionClass >> (i * 8)) & 0xff);
+        if (c >= 0x20 && c <= 0x7e)
+        {
+            tag += c;
+        }
+    }
+
+    std::string res = fmt::format("{} Unwind exception class 0x{:016x} (\"{}\"). Raised at:", summary, exceptionClass, tag);
+    if (char** symbols = backtrace_symbols(frames, frameCount))
+    {
+        for (int i = 0; i < frameCount; ++i)
+        {
+            res += "\n    ";
+            res += symbols[i];
+        }
+        free(symbols);
+    }
+    return res;
+#else
+    return summary;
+#endif
+}
+
 std::string xlCrashHandler::DescribeCurrentException()
 {
     // Caller must be inside a catch handler; rethrow to recover the type.
@@ -505,7 +611,7 @@ std::string xlCrashHandler::DescribeCurrentException()
         // there is no C++ throw site to go looking for.
         if (std::current_exception() == nullptr)
         {
-            return "A foreign (non-C++) exception occurred - the stack was unwound by neither the C++ nor the Objective-C runtime, so no type information exists.";
+            return DescribeForeignUnwind();
         }
         return "An unknown exception occurred.";
     }
