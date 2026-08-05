@@ -123,7 +123,17 @@ bool HeadlessRenderContext::LoadShowFolder(const std::string& showDir,
         viewpoint_mgr.Load(viewpointsNode);
     }
 
-    AllModels.RecalcStartChannels();
+    // Mirrors xLightsFrame::RecalcModels: when the recalc moved anything, the
+    // desktop queues WORK_MODELS_REWORK_STARTCHANNELS, which normalizes each
+    // controller port's model chain and can rewrite start channels.  Nothing
+    // drains the work queue here, so run it inline - and because the rewrite
+    // only sets ModelStartChannel (the desktop resolves it via the queued
+    // WORK_CALCULATE_START_CHANNELS), resolve the new strings a second time.
+    if (AllModels.RecalcStartChannels()) {
+        if (AllModels.ReworkStartChannel()) {
+            AllModels.RecalcStartChannels();
+        }
+    }
 
     spdlog::info("HeadlessRenderContext: loaded {} models ({}x{}) from {}",
                  AllModels.GetModels().size(), _previewWidth, _previewHeight, showDir);
