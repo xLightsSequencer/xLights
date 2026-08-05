@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.15  August ??, 2026
+    -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
+                                 also has a matching alias for the model part.
+                                 "Update Aliases" now promotes a submodel alias to the model itself when
+                                 the submodel name already matches, instead of adding a redundant slashed alias
+                                 to every identically-named submodel.
     -bug (scott)                 Linux: enable mDNS/Bonjour controller discovery (e.g. WLED) by linking
                                  against the avahi-compat-libdns_sd shim; previously the Linux build
                                  always compiled the discovery code out, silently, with no error
