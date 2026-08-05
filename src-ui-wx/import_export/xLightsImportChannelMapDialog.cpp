@@ -1710,9 +1710,9 @@ void xLightsImportChannelMapDialog::AddModel(Model *m, int &ms) {
         xLightsImportModelNode* laststrand;
         // note we deliberately passing in the models node count ... as this is most relevant
         if (channelColors.find(subModel->GetName()) != channelColors.end()) {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), xlColorToWxColour(channelColors.find(subModel->GetName())->second), wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, subModel->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), xlColorToWxColour(channelColors.find(subModel->GetName())->second), wxString(""), effectCount);
         } else {
-            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, m->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
+            laststrand = new xLightsImportModelNode(lastmodel, wxString(m->GetName()), wxString(subModel->GetName()), std::string(""), true, subModel->GetAliases(), DisplayAsTypeToString(m->GetDisplayAs()), "", true, "", m->GetNodeCount(), *wxWHITE, wxString(""), effectCount);
         }
         laststrand->_strandCount = subModel->GetNumStrands();
         int smW = 0, smH = 0;
@@ -4560,7 +4560,10 @@ void xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick(wxCommandEvent& 
             xLightsImportModelNode* astrand = (xLightsImportModelNode*)strands[j].GetID();
             if (astrand->HasMapping() && !astrand->_mapping.empty()) {
                 auto sm0 = Split(astrand->_mapping, '/');
-                if ((sm0[0] != m->_mapping) || ((sm0.size() > 1) && (sm0[1] != astrand->_strand))) {
+                if (sm0.size() > 1 && sm0[1] == astrand->_strand && sm0[0] != m->_mapping) {
+                    // Submodel name matches, but not the model, so promote alias to model instead of every identically-named submodel.
+                    addedAny |= xlights->GetModel(m->_model)->AddAlias(sm0[0]);
+                } else if ((sm0[0] != m->_mapping) || ((sm0.size() > 1) && (sm0[1] != astrand->_strand))) {
                     auto sm = xlights->GetModel((astrand->_model + "/" + astrand->_strand));
                     if (sm != nullptr)
                         addedAny |= sm->AddAlias(astrand->_mapping);
