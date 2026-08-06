@@ -14,6 +14,7 @@
     <ClCompile Include="..\src-core\utils\AnimatedImage.cpp" />
     <ClCompile Include="..\src-core\render\FontManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\HousePreviewExportOptionsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\HousePreviewPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\IPEntryDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.cpp" />
@@ -1554,6 +1555,7 @@
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTimingDialog.h" />
     <ClInclude Include="..\src-core\render\FontManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\layout\HousePreviewExportOptionsDialog.h" />
     <ClInclude Include="..\src-ui-wx\layout\HousePreviewPanel.h" />
     <ClInclude Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\CustomTimingDialog.h" />
