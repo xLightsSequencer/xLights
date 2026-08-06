@@ -666,10 +666,13 @@ public:
     void OnCharHook(wxKeyEvent& event);
     void OnHelp(wxHelpEvent& event);
 
+    void CompressToolbarGaps();
+
 private :
 
     void DoMenuAction(wxMenuEvent &evt);
 	void ShowHideAllSequencerWindows(bool show);
+    void UpdateEffectsToolbarVisibility();
     void SyncFloatingPanePositions();
 	void ResetAllSequencerWindows();
 	void SetEffectAssistWindowState(bool show);
@@ -1679,6 +1682,8 @@ private:
     // Last value passed to EnableSequenceControls, so a toolbar rebuilt outside
     // that call can still apply the right enable state to its new buttons.
     bool _sequenceControlsEnabled = false;
+    bool _effectsToolbarChecked = true;
+    wxString _defaultToolbarPerspective;
     int mGridSpacing;
     bool mGridIconBackgrounds;
     bool mShowAlternateTimingFormat = false;

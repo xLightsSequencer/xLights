@@ -41,6 +41,7 @@
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
 
+#include <algorithm>
 #include <cctype>
 #include <cstring>
 #include <thread>
@@ -564,6 +565,7 @@ void xLightsFrame::RebuildEffectsToolbar()
     // no sequence open or while rendering, and the drag they start dereferences
     // the not-yet-set SequenceElements.
     EnableEffectsToolbar();
+    UpdateEffectsToolbarVisibility();
 }
 
 void xLightsFrame::SetEffectsToolbarLayout(std::vector<std::pair<std::string, bool>> layout)
@@ -924,6 +926,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     AUIStatusBar->SetSizer(StatusBarSizer);
     MainAuiManager->AddPane(AUIStatusBar, wxAuiPaneInfo().Name(_T("Status Bar")).DefaultPane().Caption(_("Status bar")).CaptionVisible(false).CloseButton(false).Bottom().DockFixed().Dockable(false).Floatable(false).FloatingPosition(wxPoint(0,0)).FloatingSize(wxSize(0,0)).Movable(false).PaneBorder(false));
     MainAuiManager->Update();
+    _defaultToolbarPerspective = MainAuiManager->SavePerspective();
     MenuBar = new wxMenuBar();
     MenuFile = new wxMenu();
     MenuItem3 = new wxMenuItem(MenuFile, ID_NEW_SEQUENCE, _("New Sequence\tCtrl-n"), wxEmptyString, wxITEM_NORMAL);
@@ -1730,6 +1733,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
         MainAuiManager->GetPane("Status Bar").MinSize(wxSize(-1, size));
         MainAuiManager->Update();
     }
+    config->Read("ShowEffectsToolbar", &_effectsToolbarChecked, true);
+    UpdateEffectsToolbarVisibility();
     UpdateToolbarsMenu();
     spdlog::debug("Perspectives loaded.");
 
@@ -2237,7 +2242,15 @@ xLightsFrame::~xLightsFrame()
     if (mResetToolbars) {
         config->DeleteEntry("ToolbarLocations");
     } else {
+        if (MainAuiManager != nullptr) {
+            wxAuiPaneInfo& pane = MainAuiManager->GetPane("EffectsToolBar");
+            if (pane.IsOk()) {
+                pane.Show(_effectsToolbarChecked);
+            }
+        }
         config->Write("ToolbarLocations", TOOLBAR_SAVE_VERSION + MainAuiManager->SavePerspective());
+        config->Write("ShowEffectsToolbar", _effectsToolbarChecked);
+        UpdateEffectsToolbarVisibility();
     }
     config->Write("xLightsIconSize", mIconSize);
     SaveToolbarLayout(config, "EffectsToolbarLayout", _effectsToolbarLayout);
@@ -2968,7 +2981,74 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         MenuItem_File_Save->SetItemLabel("Save");
         SetStatusText(_(""));
     }
+    UpdateEffectsToolbarVisibility();
     SetAudioControls();
+}
+
+void xLightsFrame::UpdateEffectsToolbarVisibility()
+{
+    if (MainAuiManager == nullptr || Notebook1 == nullptr) return;
+
+    wxAuiPaneInfo& pane = MainAuiManager->GetPane("EffectsToolBar");
+    if (!pane.IsOk()) return;
+
+    bool isSequencer = (Notebook1->GetSelection() == NEWSEQUENCER);
+    bool shouldShow = _effectsToolbarChecked && isSequencer;
+
+    if (pane.IsShown() != shouldShow) {
+        pane.Show(shouldShow);
+        CompressToolbarGaps();
+        MainAuiManager->Update();
+    }
+}
+
+void xLightsFrame::CompressToolbarGaps()
+{
+    static bool inCompress = false;
+    if (inCompress || MainAuiManager == nullptr) return;
+
+    struct CompressGuard {
+        bool& flag;
+        CompressGuard(bool& f) : flag(f) { flag = true; }
+        ~CompressGuard() { flag = false; }
+    } guard(inCompress);
+
+    wxAuiPaneInfoArray& panes = MainAuiManager->GetAllPanes();
+
+    for (auto& pane : panes) {
+        if (pane.HasFlag(wxAuiPaneInfo::actionPane)) {
+            return;
+        }
+    }
+
+    std::map<std::tuple<int, int, int>, std::vector<wxAuiPaneInfo*>> rows;
+    for (auto& pane : panes) {
+        if (!pane.IsToolbar() || !pane.IsDocked() || !pane.IsShown()) continue;
+        rows[{pane.dock_direction, pane.dock_layer, pane.dock_row}].push_back(&pane);
+    }
+
+    bool changed = false;
+    for (auto& entry : rows) {
+        std::vector<wxAuiPaneInfo*>& rowPanes = entry.second;
+        std::sort(rowPanes.begin(), rowPanes.end(), [](wxAuiPaneInfo* a, wxAuiPaneInfo* b) {
+            return a->dock_pos < b->dock_pos;
+        });
+        int pos = 0;
+        for (auto* pane : rowPanes) {
+            if (pane->dock_pos != pos) {
+                pane->dock_pos = pos;
+                changed = true;
+            }
+            ++pos;
+        }
+    }
+
+    if (changed) {
+        wxString fixedPerspective = MainAuiManager->SavePerspective();
+        MainAuiManager->LoadPerspective(fixedPerspective);
+        MainAuiManager->Update();
+        spdlog::info("CompressToolbarGaps: closed a toolbar gap.");
+    }
 }
 
 void xLightsFrame::CycleOutputsIfOn()
@@ -3890,8 +3970,19 @@ void xLightsFrame::SetGridSpacing(int size)
 
 void xLightsFrame::ResetToolbarLocations(wxCommandEvent& event)
 {
-    DisplayInfo("Toolbar locations will reset to defaults upon restart.", this);
-    mResetToolbars = true;
+    _effectsToolbarChecked = true;
+    auto* config = GetXLightsConfig();
+    if (config != nullptr) {
+        config->DeleteEntry("ToolbarLocations");
+        config->DeleteEntry("ShowEffectsToolbar");
+    }
+    if (MainAuiManager != nullptr && !_defaultToolbarPerspective.IsEmpty()) {
+        MainAuiManager->LoadPerspective(_defaultToolbarPerspective);
+        UpdateEffectsToolbarVisibility();
+        UpdateToolbarsMenu();
+        MainAuiManager->Update();
+    }
+    mResetToolbars = false;
 }
 
 void xLightsFrame::SetToolIconSize(int size)
@@ -6676,6 +6767,17 @@ void xLightsFrame::BuildToolbarsMenu()
 
 void xLightsFrame::ToggleToolbarPane(const wxString& paneName)
 {
+    if (paneName == "EffectsToolBar") {
+        _effectsToolbarChecked = !_effectsToolbarChecked;
+        auto* config = GetXLightsConfig();
+        if (config != nullptr) {
+            config->Write("ShowEffectsToolbar", _effectsToolbarChecked);
+        }
+        UpdateEffectsToolbarVisibility();
+        UpdateToolbarsMenu();
+        return;
+    }
+
     wxAuiPaneInfo& pane = MainAuiManager->GetPane(paneName);
     if (!pane.IsOk()) return;
     if (pane.IsShown()) {
@@ -6690,7 +6792,11 @@ void xLightsFrame::ToggleToolbarPane(const wxString& paneName)
 void xLightsFrame::UpdateToolbarsMenu()
 {
     for (auto& [paneName, item] : _toolbarMenuItems) {
-        item->Check(MainAuiManager->GetPane(paneName).IsShown());
+        if (paneName == "EffectsToolBar") {
+            item->Check(_effectsToolbarChecked);
+        } else {
+            item->Check(MainAuiManager->GetPane(paneName).IsShown());
+        }
     }
 }
 

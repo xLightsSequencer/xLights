@@ -13,6 +13,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -change (cybercop23)         Add warning prompt when opening a sequence outside the show directory. Save requires
                                  saving inside the show directory - Save As was already ensuring that path.
+    -enh (cybercop23)            Toolbars automatically close gaps between docked items when moved and update
+                                 visibility live when switching tabs.
     -bug (kylegrymonprez)        Layout: on the Controllers tab, "Show on Layout" for a controller
                                  could fall into edgecases where it wouldn't show in the property grid.
     -enh (derwin12)              Ripple can now trigger a new cycle from a timing track, matching Shockwave
