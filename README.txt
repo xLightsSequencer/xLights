@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (derwin12)              Ripple can now trigger a new cycle from a timing track, matching Shockwave
+                                 (Timing Track/Filter/Regex/Duration settings).
     -enh (derwin12)              Export House Preview Video now lets you choose the output resolution.
     -bug (dkulp)                 Fix crash setting a model's serial Speed in the Layout property grid. The Speed
                                  choices are built for the protocol in effect when the grid was created, so a

@@ -82,6 +82,8 @@ int RippleEffect::sDirectionDefault = 0;
 int RippleEffect::sDirectionMin = -360;
 int RippleEffect::sDirectionMax = 360;
 bool RippleEffect::s3DDefault = false;
+int RippleEffect::sDurationDefault = 1000;
+bool RippleEffect::sFilterRegexDefault = false;
 
 RippleEffect::RippleEffect(int id) : RenderableEffect(id, "Ripple", ripple_16, ripple_24, ripple_32, ripple_48, ripple_64)
 {
@@ -138,6 +140,8 @@ void RippleEffect::OnMetadataLoaded()
     sDirectionMin = (int)GetMinFromMetadata("Ripple_Direction", sDirectionMin);
     sDirectionMax = (int)GetMaxFromMetadata("Ripple_Direction", sDirectionMax);
     s3DDefault = GetBoolDefault("Ripple3D", s3DDefault);
+    sDurationDefault = GetIntDefault("Ripple_Duration", sDurationDefault);
+    sFilterRegexDefault = GetBoolDefault("Ripple_FilterRegex", sFilterRegexDefault);
 }
 #define RENDER_RIPPLE_CIRCLE     0
 #define RENDER_RIPPLE_SQUARE     1
@@ -992,6 +996,88 @@ public:
     }
 };
 
+int RippleEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
+                                       xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps)
+{
+    std::string timingtrack = e->GetSettings().Get("E_CHOICE_Ripple_TimingTrack", "");
+    if (!timingtrack.empty()) {
+        EffectLayer* el = GetTiming(timingtrack, e->GetParentEffectLayer()->GetParentElement()->GetSequenceElements());
+        if (el) {
+            int effectStartMs = (int)e->GetStartTimeMS();
+            int effectEndMs = (int)e->GetEndTimeMS();
+
+            double x_size = (double)(x2 - x1) / ((double)(effectEndMs - effectStartMs));
+            bool found1 = false;
+            for (int j = 0; j < el->GetEffectCount(); j++) {
+                Effect* mark = el->GetEffect(j);
+                int startMs = mark->GetStartTimeMS();
+                if (startMs < effectStartMs) continue; // ignore marks before effect start
+                if (startMs > effectEndMs) return 2; //we are done
+
+                double start = startMs - effectStartMs;
+                double end = std::min((int)mark->GetEndTimeMS(), effectEndMs) - effectStartMs;
+                backgrounds.AddHBlendedRectangleAsTriangles(x1 + x_size * start, y1, x1 + end * x_size, y2, colorMask, 0, e->GetPalette());
+                found1 = true;
+            }
+            if (found1) {
+                return 2;
+            }
+        }
+    }
+    return 2;
+}
+
+void RippleEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Ripple_TimingTrack", "");
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Ripple_TimingTrack"] = newname;
+    }
+}
+
+double RippleEffect::getEffectPosition(RenderBuffer& buffer, const SettingsMap& SettingsMap, const std::string& timingtrack, float cycles)
+{
+    EffectLayer* el = GetTiming(timingtrack, GetSequenceElements(buffer));
+    if (cycles < 1) cycles = 1;
+
+    if (el == nullptr) {
+        return buffer.GetEffectTimeIntervalPosition(cycles);
+    }
+    bool filterRegex = SettingsMap.GetBool("CHECKBOX_Ripple_FilterRegex", sFilterRegexDefault);
+    int effectStartMs = (int)buffer.GetStartTimeMS();
+    int currentMs = buffer.curPeriod * buffer.frameTimeInMs;
+    int lastMarkMs = -1;
+    for (int j = 0; j < el->GetEffectCount(); j++) {
+        Effect* mark = el->GetEffect(j);
+        int startMs = mark->GetStartTimeMS();
+        if (startMs < effectStartMs) continue; // ignore marks before effect start
+        if (startMs <= currentMs) {
+            std::string filterLabel = SettingsMap.Get("TEXTCTRL_Ripple_FilterLabel", "");
+            if (mark->FilteredIn(filterLabel, filterRegex))
+                lastMarkMs = startMs;
+        } else {
+            break;
+        }
+    }
+
+    if (lastMarkMs < 0) return -1; // no timing mark within effect has fired yet
+
+    int durationMs = SettingsMap.GetInt("SLIDER_Ripple_Duration", sDurationDefault);
+    if (durationMs < buffer.frameTimeInMs) durationMs = buffer.frameTimeInMs;
+
+    float periodsPerCycle = (float)durationMs / buffer.frameTimeInMs;
+    float lastMarkPeriod = (float)lastMarkMs / buffer.frameTimeInMs;
+    float periodsSinceMark = (float)buffer.curPeriod - lastMarkPeriod;
+
+    // All cycles for this mark have completed — nothing to draw
+    if (periodsSinceMark >= periodsPerCycle * cycles) return -1;
+
+    float retval = periodsSinceMark;
+    while (retval >= periodsPerCycle) retval -= periodsPerCycle;
+    retval /= (periodsPerCycle - 1.0f);
+    return retval > 1.0f ? 1.0f : retval;
+}
+
 // TODO:
 // 4 ENH: There is the matter of colors (around; this is a matter of breaking long segments up)
 
@@ -1015,14 +1101,31 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     double twist = GetValueCurveDouble("Ripple_Twist", sTwistDefault, SettingsMap, oset, sTwistMin, sTwistMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sTwistDivisor);
     double vel = GetValueCurveDouble("Ripple_Velocity", sVelocityDefault, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sVelocityDivisor);
     double veldir = GetValueCurveDouble("Ripple_Direction", sDirectionDefault, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    std::string timingtrack = SettingsMap.Get("CHOICE_Ripple_TimingTrack", "");
 
     RippleRenderCache* cache = (RippleRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
         cache = new RippleRenderCache();
         buffer.infoCache[id] = cache;
     }
+    if (buffer.needToInit && !timingtrack.empty()) {
+        // Registered here (ahead of the possible early-return below) so the
+        // dependency is recorded even on frames where no mark has fired yet.
+        // The needToInit flag itself is cleared later, once Object_To_Draw
+        // is known and the SVG cache can be initialised.
+        effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->AddRenderDependency(timingtrack, buffer.cur_model);
+    }
 
-    double position = buffer.GetEffectTimeIntervalPosition(cycles); // how far are we into the effect; value is 0.0 to 1.0
+    double position;
+    if (timingtrack.empty()) {
+        position = buffer.GetEffectTimeIntervalPosition(cycles); // how far are we into the effect; value is 0.0 to 1.0
+    } else {
+        position = getEffectPosition(buffer, SettingsMap, timingtrack, cycles);
+        if (position < 0) {
+            // nothing to draw yet
+            return;
+        }
+    }
 
     int Object_To_Draw;
     dpointvec shapePts;
