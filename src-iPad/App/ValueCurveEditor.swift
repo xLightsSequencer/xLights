@@ -304,7 +304,13 @@ struct ValueCurveEditorSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button("Done") {
+                        // Desktop's OK handler calls SetRealValue()
+                        // (`ValueCurveDialog.cpp:446-449`); there is no
+                        // user-facing control for it on either platform.
+                        vc?.realValues = true
+                        dismiss()
+                    }
                 }
             }
         }
@@ -381,26 +387,18 @@ struct ValueCurveEditorSheet: View {
                                  value: $vc.parameter4, type: vc.type, parm: 4)
                 }
 
+                // Read-only, as on desktop (`ValueCurveDialog` shows Min
+                // and Max as static labels, :386-388). The range belongs
+                // to the host property's metadata; editing it here could
+                // leave a curve whose scale disagrees with the slider it
+                // drives.
                 Section("Range") {
-                    HStack {
-                        Text("Min")
-                        Spacer()
-                        TextField("Min", value: $vc.minValue, format: .number)
-                            .multilineTextAlignment(.trailing)
-                            .keyboardType(.numbersAndPunctuation)
-                    }
-                    HStack {
-                        Text("Max")
-                        Spacer()
-                        TextField("Max", value: $vc.maxValue, format: .number)
-                            .multilineTextAlignment(.trailing)
-                            .keyboardType(.numbersAndPunctuation)
-                    }
+                    LabeledContent("Min", value: vc.minValue, format: .number)
+                    LabeledContent("Max", value: vc.maxValue, format: .number)
                 }
 
                 Section {
                     Toggle("Wrap", isOn: $vc.wrap).toggleStyle(.switch)
-                    Toggle("Real Values", isOn: $vc.realValues).toggleStyle(.switch)
                     HStack {
                         Text("Time Offset (ms)")
                         Spacer()

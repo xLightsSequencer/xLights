@@ -509,9 +509,19 @@ struct DisplayElementsSheet: View {
                                     .foregroundStyle(.secondary)
                                     .font(.caption)
                             } else {
+                                // Drag-reorder mirrors desktop's Up / Down /
+                                // Top / Bottom buttons on the Master View
+                                // (ViewsModelsPanel.cpp:2658-2801, :3137-3273).
+                                // Timing tracks stay fixed: they always
+                                // precede models in the Master View, and
+                                // reordering across that boundary would fight
+                                // the element order the grid relies on.
                                 Section("Models") {
                                     ForEach(members.filter { $0.kind == .model }) { item in
                                         masterMemberRow(item)
+                                    }
+                                    .onMove { source, destination in
+                                        moveMasterModels(from: source, to: destination)
                                     }
                                 }
                                 Section("Timing Tracks") {
@@ -980,6 +990,17 @@ struct DisplayElementsSheet: View {
 
         model.refresh()
         viewModel.reloadRows()
+    }
+
+    /// Reorder the Master View's models. `source`/`destination` index the
+    /// models-only slice the ForEach renders, so the moved order is
+    /// resolved there and then replayed through the same
+    /// name-before-name bridge op the Sort menu uses.
+    private func moveMasterModels(from source: IndexSet, to destination: Int) {
+        var names = model.masterMembers().filter { $0.kind == .model }.map { $0.name }
+        guard !names.isEmpty else { return }
+        names.move(fromOffsets: source, toOffset: destination)
+        applyMasterViewOrder(names)
     }
 
     private func applyMasterViewOrder(_ names: [String]) {

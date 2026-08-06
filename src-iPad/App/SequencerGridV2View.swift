@@ -1358,9 +1358,9 @@ struct SequencerGridV2View: View {
                 }
             }
             // B43 alt-track switch — only surfaced when the sequence
-            // declares at least one alternate audio track. Selection
-            // is purely cosmetic (waveform-only); playback stays on
-            // the main track.
+            // declares at least one alternate audio track. The
+            // selection drives both the waveform and playback, as on
+            // desktop; switching mid-playback stops the old track.
             if viewModel.altAudioTrackNames.count > 0 {
                 Button {
                     viewModel.setActiveWaveformTrack(-1)

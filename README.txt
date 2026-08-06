@@ -11,6 +11,18 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 iPad - Playback now follows the audio track picked in the waveform, so selecting
+                                 a stem plays that stem. Switching tracks while playing pauses first
+    -bug (dkulp)                 iPad - A newly dropped State effect starts on the model's first state, and a
+                                 Faces effect on the phoneme it does on the desktop, instead of starting blank
+    -enh (dkulp)                 iPad - Effect presets can be exported as .xpreset and imported from one, so a
+                                 preset library moves between the iPad and the desktop in either direction
+    -enh (dkulp)                 iPad - Models in the Master View can be dragged into a new order
+    -bug (dkulp)                 iPad - Preset and group names with illegal characters or collisions are
+                                 corrected when the library loads, as they are on the desktop
+    -change (dkulp)              iPad - The value curve editor no longer offers Min/Max fields or a Real Values
+                                 switch. Min and Max belong to the setting being curved, and the switch only
+                                 ever turned on; both now behave as they do on the desktop
     -bug (dkulp)                 iPad - Effects that follow a timing track or another model now re-render on
                                  their own when the thing they follow changes, instead of showing a stale
                                  result until the next Render All

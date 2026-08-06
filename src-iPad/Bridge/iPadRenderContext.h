@@ -99,14 +99,18 @@ public:
     SequenceViewManager& GetSequenceViewManager() { return _sequenceViewManager; }
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
 
-    // B43: alt audio track switching for the *waveform display*. Does
-    // NOT change playback — playback still plays the main sequence
-    // track via GetCurrentMediaManager. -1 = main, 0..N-1 = alt index.
-    // GetWaveformMedia falls back to the main track when the requested
+    // B43: alt audio track selection. -1 = main, 0..N-1 = alt index.
+    // Drives both the waveform display and playback, matching desktop
+    // (`xLightsFrame::GetPlaybackAudio` returns the selected track's
+    // AudioManager). Falls back to the main track when the requested
     // alt index is out of range or its AudioManager hasn't loaded.
     int GetWaveformTrackIndex() const { return _waveformTrackIndex; }
     void SetWaveformTrackIndex(int idx);
     AudioManager* GetWaveformMedia() const;
+    // Audio the transport should drive. Same resolution as
+    // GetWaveformMedia — named separately because the two are distinct
+    // concepts on desktop and callers should say which they mean.
+    AudioManager* GetPlaybackMedia() const { return GetWaveformMedia(); }
     int GetAltTrackCount() const;
     std::string GetAltTrackDisplayName(int idx) const;
 

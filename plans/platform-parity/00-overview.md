@@ -20,23 +20,23 @@ fine-grained — a menu entry, a dialog field, a gesture):
 |---|---|---|---|---|---|---|
 | 01 File & show lifecycle | 69 | 48 | 36 | 8 | 18 | iPad "backup" is a per-sequence snapshot ring; no show-folder backup/restore (feasibility under the sandbox verified — it's backlog, not a platform limit) |
 | 02 Sequencer grid & editing | 116 | 37 | 31 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
-| 03 Timing, lyrics & audio | 112 | 20 | 22 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
-| 04 Effects catalog & panels | 83 | 11 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
-| 05 Color, palettes & curves | 70 | 16 | 27 | 3 | 11 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
+| 03 Timing, lyrics & audio | 113 | 20 | 21 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
+| 04 Effects catalog & panels | 84 | 10 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
+| 05 Color, palettes & curves | 72 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
 | 06 Layout, models, 3D | 165 | 51 | 67 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
 | 07 Controllers, outputs, upload | 61 | 39 | 33 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
 | 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
 | 09 Render & playback | 62 | 12 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
-| 10 Presets, views, jukebox | 46 | 14 | 24 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
+| 10 Presets, views, jukebox | 49 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 54 | 12 | 15 | 5 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **962** | **296** | **373** | **158** | **90** | |
+| **Total (01–13)** | **969** | **295** | **369** | **158** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,631 rows where an iPad status is meaningful (✅+🟡+❌), **59%** are
+**Parity index:** of the 1,633 rows where an iPad status is meaningful (✅+🟡+❌), **59%** are
 at full parity and **77%** at full-or-partial. Counting partials at half weight the iPad sits
 at **≈68% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
 writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (158) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
@@ -96,15 +96,15 @@ All survived adversarial re-verification.
 | 7 | ~~Stop doesn't blank outputs — lights hold the last frame~~ | 09 r88 | **FIXED 2026-08-06** — `blankOutputs` calls `AllOff()` from Stop and both natural end-of-playback paths; `stopOutput` blanks before closing |
 | 8 | FPP Connect FSEQ type — **the three-mis-served-families claim was wrong**: iPad discovery admits only FPP and ESPixelStick, so Falcon V4/V5 and Genius/PowerDMX never receive an upload at all. The one real case, a master-mode FPP getting sparse, is **FIXED 2026-08-06** | 07 r69 | Downgraded from S1 to a missing picker (07 r69, still partial). A reminder that a ❌ needs the reachability check, not just the code read |
 | 9 | ~~`DidConvert` never consulted; no `NetworkChangesAllowed()` guard~~ | 07 r81 / r26 | **BOTH FIXED 2026-08-06** — the load path now flags a converted legacy networks file dirty so the migration persists, and controller edits are blocked while outputting |
-| 10 | 46 | 14 | 24 |
+| 10 | 49 | 14 | 21 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
 | 13 | 54 | 12 | 15 |
 | 14 | ~~Different default palette colors *and* default-enabled slots~~ | 05 r5–6 | **FIXED 2026-08-06** — the new-effect seed now carries desktop's eight colours in desktop's slot order plus `C_CHECKBOX_Palette1/2=1`; without the checkboxes `ParseColorMap` gave the effect an empty colour list |
-| 15 | Missing `SetDefaultParameters` seeding on effect drop — Faces/State land wrong-looking | 04 | Only theme-04 gap that produces wrong output |
+| 15 | ~~Missing `SetDefaultParameters` seeding on effect drop~~ | 04 | **FIXED 2026-08-06** — the bridge supplies the list-derived defaults at creation (State's first state, Faces' phoneme source) |
 | 16 | ~~AI-generated images land as loose files, never embedded~~ | 12 r34 | **FIXED 2026-08-06** — embedded under the same `AIImages/…` key desktop uses, so the image travels inside the `.xsq`; loose file remains the fallback |
-| 17 | Alt-timing-track playback routes different audio than desktop for the same selection | 03 r125 | Behaviour trap, flagged intentional in code |
-| 18 | iPad-only VC Min/Max + irreversible "Real Values" toggle can desync curves from host sliders | 05 r111–112 | Remove or give desktop counterpart |
+| 17 | ~~Alt-timing-track playback routes different audio than desktop~~ | 03 r125 | **FIXED 2026-08-06** — playback follows the selected track; switching mid-playback parks the transport and re-seeks |
+| 18 | ~~iPad-only VC Min/Max + irreversible "Real Values" toggle~~ | 05 r111–112 | **FIXED 2026-08-06** — both iPad-only affordances removed; Min/Max are read-only and Done sets the real-value flag, as desktop does |
 | 19 | Tip-of-Day ignores its own level filter (**won't fix** — feature declined on iPad, 2026-08-06). Release-notes URL 404s on untagged patch releases: **FIXED 2026-08-06** | 13 r57/66 | Small bug-fix pair; only the release-notes half was in scope |
 | 20 | Two undo stacks (Foundation `UndoManager` + core `UndoManager`) — future bridge-level ops will undo out of order | 02 | Decide one owner before adding more mutating bridge calls |
 | 21 | Desktop allows multiple active timing tracks; the iPad bridge forces radio behaviour on the same data | 03 r49 | Divergent semantics both docs had missed |
@@ -215,9 +215,11 @@ Highest-leverage first within rough effort bands.
 
 ## Prioritized iPad → Desktop roadmap
 
-**P1 — Correctness first (small, high-trust):** the S1 table, roughly in order; plus three
-nearly-free S2 unlocks that repair advertised-but-broken surfaces: the Visualize re-gate (07),
-the render progress sink (09), and preset interchange (10).
+**P1 — Correctness first (small, high-trust):** the S1 table, roughly in order. Most of it is
+now done (2026-08-06); what remains is show-folder backup/restore + config autosave (01), the
+frame-interval snap cycle (01 r146), the two undo stacks (02), and the timing-track
+multi-active semantics (03 r49, still an open product question). The Visualize re-gate (07) is
+held pending desktop/iPad work already in flight.
 Everything in P1 is bridge-level or view-level work with no new architecture.
 
 **P2 — Close the daily-driver workflow:** cell-range selection + grid drop target (02);

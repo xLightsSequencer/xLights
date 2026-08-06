@@ -79,6 +79,7 @@
 #include "models/BoxedScreenLocation.h"
 #include "models/TwoPointScreenLocation.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
+#include "XmlSerializer/FileSerializingVisitor.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "XmlSerializer/XmlSerializeFunctions.h"
 #include "XmlSerializer/GdtfParser.h"
@@ -11517,6 +11518,36 @@ std::string buildXccDocument(const std::string& serialised) {
     return [self _keysOfFaceStateData:m->GetStateInfo()];
 }
 
+- (NSString*)seedSettingsForEffect:(NSString*)effectName onRow:(int)rowIndex {
+    if (!_context || !_context->IsSequenceLoaded() || effectName.length == 0) return @"";
+    std::string name([effectName UTF8String]);
+
+    // Desktop seeds a handful of panels' list-derived choices when an
+    // effect is created (`EffectsPanel::SetDefaultEffectValues` →
+    // the panel's `SetDefaultParameters`). Static defaults resolve from
+    // the JSON metadata on both platforms, so only the selections that
+    // come from a live list need seeding here.
+    if (name == "State") {
+        // StatePanel.cpp:114-121 — state source, first state in the
+        // model's list. iPad derives the mode from which key is
+        // non-empty, so seeding the state alone puts it in state mode.
+        NSArray<NSString*>* states = [self statesForRow:rowIndex atIndex:0];
+        if (states.count > 0) {
+            return [NSString stringWithFormat:@"E_CHOICE_State_State=%@", states.firstObject];
+        }
+        return @"";
+    }
+    if (name == "Faces") {
+        // FacesPanel.cpp:154-165 — phoneme source with "AI" selected.
+        // Desktop also preselects the first lyric track in its choice,
+        // but its radio stays on phoneme so that selection is inert;
+        // seeding the track here would instead flip the iPad row into
+        // timing-track mode, which is not desktop's default state.
+        return @"E_CHOICE_Faces_Phoneme=AI";
+    }
+    return @"";
+}
+
 - (NSArray<NSString*>*)facesForRow:(int)rowIndex atIndex:(int)effectIndex {
     (void)effectIndex;
     Model* m = [self _targetModelForRow:rowIndex];
@@ -12489,7 +12520,11 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 // MARK: - Audio Playback
 
 - (AudioManager*)audioManager {
-    return _context->GetCurrentMediaManager();
+    // Playback follows the selected audio track, as on desktop
+    // (`xLightsFrame::GetPlaybackAudio`, xLightsMain.cpp:2398-2412):
+    // pick an alternate stem in the waveform and the transport drives
+    // that stem. Falls back to the main track when none is selected.
+    return _context->GetPlaybackMedia();
 }
 
 - (NSInteger)altTrackCount {
@@ -19976,9 +20011,13 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     EffectPresetGroup* parent = ResolveGroup(mgr, groupPath);
     if (parent == nullptr) return NO;
 
-    // Accept either a bare <effects> fragment or a full rgbeffects doc
-    // (<xrgb>/<xlights> with an <effects> child).
-    pugi::xml_node effectsNode = doc.child("effects");
+    // Accept a `.xpreset` file (root element <preset>, what desktop's
+    // Export writes — EffectTreeDialog.cpp:894-909), a bare <effects>
+    // fragment, or a full rgbeffects doc (<xrgb>/<xlights> with an
+    // <effects> child). ImportFromXml walks the node's children, so the
+    // <preset> root is handed over directly.
+    pugi::xml_node effectsNode = doc.child("preset");
+    if (!effectsNode) effectsNode = doc.child("effects");
     if (!effectsNode) {
         pugi::xml_node root = doc.child("xrgb");
         if (!root) root = doc.child("xlights");
@@ -19987,6 +20026,41 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     if (!effectsNode) return NO;
     mgr.ImportFromXml(effectsNode, parent);
     return YES;
+}
+
+- (BOOL)exportPresetAtPath:(NSString*)presetPath toXPresetFile:(NSString*)filePath {
+    if (!filePath) return NO;
+    std::string out = [filePath UTF8String];
+    ObtainAccessToURL(out, true);
+
+    auto& mgr = _context->GetEffectPresetManager();
+    FileSerializingVisitor visitor(out);
+    if (!visitor.IsOpen()) return NO;
+
+    BaseSerializingVisitor::AttrCollector attr;
+    attr.Add("SourceVersion", xlights_version_string);
+    visitor.WriteOpenTag("preset", attr);
+
+    bool wrote = false;
+    // Empty / absent path means "the whole library", matching desktop's
+    // export-with-the-root-selected branch (EffectTreeDialog.cpp:911-918).
+    if (presetPath.length == 0) {
+        for (const auto& child : mgr.GetRoot().GetChildren()) {
+            if (child) {
+                child->Save(visitor);
+                wrote = true;
+            }
+        }
+    } else {
+        EffectPresetItem* item = mgr.FindItemByPath([presetPath UTF8String]);
+        if (item) {
+            item->Save(visitor);
+            wrote = true;
+        }
+    }
+
+    visitor.WriteCloseTag();
+    return wrote ? YES : NO;
 }
 
 - (BOOL)exportPresetsToPath:(NSString*)path {

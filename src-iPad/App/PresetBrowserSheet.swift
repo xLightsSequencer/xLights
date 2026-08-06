@@ -50,6 +50,8 @@ struct PresetBrowserSheet: View {
     @State private var showImporter = false
     @State private var showExporter = false
     @State private var exportDoc: PresetExportDocument? = nil
+    @State private var showXPresetExporter = false
+    @State private var xpresetDoc: PresetXPresetDocument? = nil
 
     /// Lazily-rendered still-thumbnail cache (the pragmatic stand-in for
     /// the desktop animated preview GIF). Keyed by preset path.
@@ -158,7 +160,17 @@ struct PresetBrowserSheet: View {
                         exportDoc = PresetExportDocument(data: makeExportData())
                         showExporter = true
                     } label: {
-                        Label("Export…", systemImage: "tray.and.arrow.up")
+                        Label("Export as JSON…", systemImage: "tray.and.arrow.up")
+                    }
+                    .disabled(viewModel.presetTree.isEmpty)
+                    // The desktop's own format. Its Import reads
+                    // `.xpreset` and nothing else portable, so this is
+                    // what makes a library built here openable there.
+                    Button {
+                        xpresetDoc = PresetXPresetDocument(data: makeXPresetData())
+                        showXPresetExporter = true
+                    } label: {
+                        Label("Export as .xpreset…", systemImage: "square.and.arrow.up.on.square")
                     }
                     .disabled(viewModel.presetTree.isEmpty)
                 }
@@ -258,8 +270,10 @@ struct PresetBrowserSheet: View {
             } message: {
                 Text("Overwrite this preset with the currently selected effect's settings?")
             }
+            // `.xpreset` is its own extension, so a desktop-exported
+            // file wouldn't be selectable under a bare `.xml` filter.
             .fileImporter(isPresented: $showImporter,
-                          allowedContentTypes: [.xml],
+                          allowedContentTypes: [.xml, PresetXPresetDocument.xpresetType],
                           allowsMultipleSelection: false) { result in
                 if case .success(let urls) = result, let url = urls.first {
                     let needsStop = url.startAccessingSecurityScopedResource()
@@ -272,6 +286,12 @@ struct PresetBrowserSheet: View {
                           contentType: .json,
                           defaultFilename: "xlights_effectpresets") { _ in
                 exportDoc = nil
+            }
+            .fileExporter(isPresented: $showXPresetExporter,
+                          document: xpresetDoc,
+                          contentType: PresetXPresetDocument.xpresetType,
+                          defaultFilename: "presets") { _ in
+                xpresetDoc = nil
             }
         }
     }
@@ -394,6 +414,18 @@ struct PresetBrowserSheet: View {
             return d
         }
         return Data("{}".utf8)
+    }
+
+    /// Same round-trip as `makeExportData`, in the desktop's XML
+    /// interchange format instead of the library's own JSON.
+    private func makeXPresetData() -> Data {
+        let tmp = FileManager.default.temporaryDirectory
+            .appendingPathComponent("xlights_presets_export.xpreset")
+        if viewModel.exportPresetsAsXPreset(toPath: tmp.path),
+           let d = try? Data(contentsOf: tmp) {
+            return d
+        }
+        return Data()
     }
 
     private func baseUsingLayers(for path: String) -> Bool {
@@ -533,6 +565,27 @@ struct PresetExportDocument: FileDocument {
     init(data: Data) {
         self.data = data
     }
+
+    init(configuration: ReadConfiguration) throws {
+        data = configuration.file.regularFileContents ?? Data()
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
+
+/// `.xpreset` counterpart to `PresetExportDocument`. Declared as a
+/// filename-extension type so the picker offers `.xpreset` rather than
+/// a generic `.xml`.
+struct PresetXPresetDocument: FileDocument {
+    static let xpresetType: UTType =
+        UTType(filenameExtension: "xpreset", conformingTo: .xml) ?? .xml
+    static var readableContentTypes: [UTType] { [xpresetType] }
+
+    private let data: Data
+
+    init(data: Data) { self.data = data }
 
     init(configuration: ReadConfiguration) throws {
         data = configuration.file.regularFileContents ?? Data()

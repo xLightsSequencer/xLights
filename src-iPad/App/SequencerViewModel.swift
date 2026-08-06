@@ -4589,6 +4589,13 @@ class SequencerViewModel {
         document.exportPresets(toPath: path)
     }
 
+    /// Export in the desktop's `.xpreset` interchange format. Empty
+    /// `presetPath` exports the whole library, matching desktop's
+    /// export-with-the-root-selected branch.
+    func exportPresetsAsXPreset(toPath path: String, presetPath: String = "") -> Bool {
+        document.exportPreset(atPath: presetPath, toXPresetFile: path)
+    }
+
     // MARK: - Randomize / Reset (B15)
 
     /// B15: reset every `E_*` setting on the selected effect(s) back
@@ -7094,7 +7101,7 @@ class SequencerViewModel {
 
     func addEffect(rowIndex: Int, startMS: Int, endMS: Int) {
         let name = selectedPaletteEffect ?? "On"
-        let seed = seedsForNewEffect(ofType: name)
+        let seed = seedsForNewEffect(ofType: name, rowIndex: rowIndex)
         addEffectWithSettings(rowIndex: rowIndex, name: name,
                                settings: seed.settings, palette: seed.palette,
                                startMS: startMS, endMS: endMS)
@@ -7115,9 +7122,17 @@ class SequencerViewModel {
     /// `C_BUTTON_PaletteN` is always populated — otherwise flipping
     /// a `C_CHECKBOX_PaletteN` toggle on would parse as
     /// `xlColor("") == black`.
-    private func seedsForNewEffect(ofType name: String) -> (settings: String, palette: String) {
+    private func seedsForNewEffect(ofType name: String,
+                                    rowIndex: Int) -> (settings: String, palette: String) {
+        // Choices whose value comes from a live list (a model's states,
+        // the sequence's timing tracks) have no usable JSON default, so
+        // desktop seeds them per-panel in `SetDefaultParameters`. Used
+        // whenever we'd otherwise hand the new effect an empty settings
+        // string — inheriting from a same-type selection already carries
+        // a real value for these keys.
+        let defaults = document.seedSettings(forEffect: name, onRow: Int32(rowIndex))
         guard let sel = selectedEffect else {
-            return ("", Self.defaultPaletteString)
+            return (defaults, Self.defaultPaletteString)
         }
         let palette: String = {
             let pal = document.effectPaletteString(forRow: Int32(sel.rowIndex),
@@ -7127,7 +7142,7 @@ class SequencerViewModel {
         let settings: String = (sel.name == name)
             ? (document.effectSettingsString(forRow: Int32(sel.rowIndex),
                                               at: Int32(sel.effectIndex)))
-            : ""
+            : defaults
         return (settings, palette)
     }
 
@@ -7201,7 +7216,7 @@ class SequencerViewModel {
         }
         guard endMS > startMS + 10 else { return } // too tight to fit
 
-        let seed = seedsForNewEffect(ofType: paletteName)
+        let seed = seedsForNewEffect(ofType: paletteName, rowIndex: rowIndex)
         let newIdx = addEffectWithSettings(rowIndex: rowIndex,
                                             name: paletteName,
                                             settings: seed.settings, palette: seed.palette,
@@ -7238,7 +7253,7 @@ class SequencerViewModel {
         }
         guard clampedEnd > clampedStart + 10 else { return }
 
-        let seed = seedsForNewEffect(ofType: paletteName)
+        let seed = seedsForNewEffect(ofType: paletteName, rowIndex: rowIndex)
         let newIdx = addEffectWithSettings(rowIndex: rowIndex,
                                             name: paletteName,
                                             settings: seed.settings, palette: seed.palette,
@@ -8482,8 +8497,15 @@ class SequencerViewModel {
     func setActiveWaveformTrack(_ index: Int) {
         guard hasAudio else { return }
         let clamped = (index < -1 || index >= altAudioTrackNames.count) ? -1 : index
+        guard clamped != activeWaveformTrack else { return }
+        // Playback follows this selection now, so park the transport
+        // before the audio underneath it changes, then seek the newly
+        // selected track to the current position — otherwise Play would
+        // resume the new stem from wherever it happened to be left.
+        if isPlaying { pause() }
         document.setActiveWaveformTrack(clamped)
         activeWaveformTrack = clamped
+        document.audioSeek(toMS: playPositionMS)
         reloadWaveformCurrent()
     }
 

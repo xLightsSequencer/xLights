@@ -1283,6 +1283,14 @@ NS_ASSUME_NONNULL_BEGIN
 // model, matching desktop (JsonEffectPanel.cpp:1815-1818). Empty on
 // unresolvable model.
 - (NSArray<NSString*>*)statesForRow:(int)rowIndex atIndex:(int)effectIndex;
+
+// Settings a freshly-created effect of `effectName` should start with
+// on `rowIndex`, as a comma-separated settings string ("" for most
+// effects). Desktop does this in each panel's `SetDefaultParameters`;
+// only choices whose value comes from a live list need it, since
+// static defaults resolve from the JSON metadata on both platforms.
+- (NSString*)seedSettingsForEffect:(NSString*)effectName onRow:(int)rowIndex
+    NS_SWIFT_NAME(seedSettings(forEffect:onRow:));
 - (NSArray<NSString*>*)facesForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (NSArray<NSString*>*)modelNodeNamesForRow:(int)rowIndex atIndex:(int)effectIndex;
 
@@ -3840,6 +3848,15 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // JSON format). Returns NO on write failure.
 - (BOOL)exportPresetsToPath:(NSString*)path
     NS_SWIFT_NAME(exportPresets(toPath:));
+
+// Export in the desktop's interchange format: a `.xpreset` XML file
+// (root `<preset SourceVersion=…>`). `presetPath` is a backslash-
+// separated preset or group path; pass an empty string to export the
+// whole library, matching desktop's export-with-root-selected. Pairs
+// with `importPresets(fromPath:…)`, which now also reads `<preset>`,
+// so a preset written on either platform opens on the other.
+- (BOOL)exportPresetAtPath:(NSString*)presetPath toXPresetFile:(NSString*)filePath
+    NS_SWIFT_NAME(exportPreset(atPath:toXPresetFile:));
 
 // Persist the in-memory preset tree to
 // `<showFolder>/xlights_effectpresets.json` (+ .jbkp backup). Returns

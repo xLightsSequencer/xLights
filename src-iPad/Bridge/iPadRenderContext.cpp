@@ -21,6 +21,7 @@
 #include "render/RenderProgressInfo.h"
 #include "render/SeqMediaMigration.h"
 #include "render/SequenceMedia.h"
+#include "media/AudioManager.h"
 #include "media/MediaCompatibility.h"
 #include "xLightsVersion.h"
 #include <map>
@@ -455,6 +456,16 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     }
     if (_effectPresetManager.GetVersion().empty()) {
         _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    }
+    // Repair illegal characters and name collisions in the loaded
+    // library, as desktop does when the preset tree opens
+    // (EffectTreeDialog.cpp:227-236). Write the repaired names straight
+    // back: desktop can afford to tell the user to save from the Layout
+    // tab, but here nothing else would carry the change and the next
+    // load would just repeat the repair.
+    if (_effectPresetManager.FixRgbEffects()) {
+        spdlog::info("iPadRenderContext: auto-corrected preset/group names in {}", presetsPath);
+        SaveEffectPresets();
     }
 
     LoadBasePresets();
@@ -1828,6 +1839,15 @@ void iPadRenderContext::SetWaveformTrackIndex(int idx) {
     }
     if (idx < -1) idx = -1;
     if (idx >= _sequenceFile->GetAltTrackCount()) idx = -1;
+    if (idx == _waveformTrackIndex) return;
+
+    // The selected track is also the one playback uses, so a switch
+    // mid-playback would otherwise leave the previous track running
+    // while the transport reports on the new one. Stop the old track;
+    // the next Play starts the new one from the transport position.
+    if (AudioManager* previous = GetPlaybackMedia()) {
+        previous->Stop();
+    }
     _waveformTrackIndex = idx;
 }
 
