@@ -927,7 +927,16 @@ bool WindowsHardwareVideoReader::Seek(uint32_t pos)
             uint32_t lastPos = _curPos;
             AVFrame* frame = GetNextFrame(0xFFFFFFFF, 0xFFFFFFFF);
             if (frame == nullptr) {
-                spdlog::error("WHVD: GetNextFrame failed");
+                // Reached over a real end of stream the container's reported
+                // duration said was still ahead - some encodes overstate it.
+                // Every other path here marks the reader failed before giving
+                // up; this one did not, so the caller never saw HasFailed()
+                // and kept re-issuing the same hardware seek every frame -
+                // each one landing on the same premature end of stream -
+                // forever, without ever falling back to software decode.
+                spdlog::error("WHVD: seek to {}ms found end of stream at {}ms in {} - falling back to software decode",
+                              pos, _curPos, _filename);
+                _hardwareFailed = true;
                 PropVariantClear(&var);
                 return false;
             }

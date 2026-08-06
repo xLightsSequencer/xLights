@@ -1581,6 +1581,10 @@ bool xLightsApp::OnInit()
 #ifdef __APPLE__
             bool hwVideo = true;
             cfg->Read("xLightsVideoReaderAccelerated", &hwVideo, true);
+            if (getenv("XL_HEADLESS_NO_HWVIDEO") != nullptr) {
+                hwVideo = false;
+                spdlog::warn("--headless: XL_HEADLESS_NO_HWVIDEO set — hardware video decode disabled");
+            }
             VideoReader::SetHardwareAcceleratedVideo(hwVideo);
             VideoReader::InitHWAcceleration();
 #else
@@ -1588,6 +1592,10 @@ bool xLightsApp::OnInit()
             int hwRenderer = 0;
             cfg->Read("xLightsVideoReaderAccelerated", &hwVideo, true);
             cfg->Read("xLightsVideoReaderRenderer", &hwRenderer, 0);
+            if (getenv("XL_HEADLESS_NO_HWVIDEO") != nullptr) {
+                hwVideo = false;
+                spdlog::warn("--headless: XL_HEADLESS_NO_HWVIDEO set — hardware video decode disabled");
+            }
             VideoReader::SetHardwareAcceleratedVideo(hwVideo);
             VideoReader::SetHardwareRenderType(hwRenderer);
 #endif
