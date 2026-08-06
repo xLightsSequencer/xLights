@@ -992,25 +992,25 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < (int)names.size()) {
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() <= (int)names.size()) {
         names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
-    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < (int)names.size()) {
+    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() <= (int)names.size()) {
         names[pan_motor->GetChannelCoarse() - 1] = "Pan";
     }
-    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < (int)names.size()) {
+    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() <= (int)names.size()) {
         names[tilt_motor->GetChannelCoarse() - 1] = "Tilt";
     }
-    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < (int)names.size()) {
+    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() <= (int)names.size()) {
         names[pan_motor->GetChannelFine() - 1] = "Pan Fine";
     }
-    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < (int)names.size()) {
+    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() <= (int)names.size()) {
         names[tilt_motor->GetChannelFine() - 1] = "Tilt Fine";
     }
-    if (0 != pan_motor->GetSpeedChannel() && pan_motor->GetSpeedChannel() < (int)names.size()) {
+    if (0 != pan_motor->GetSpeedChannel() && pan_motor->GetSpeedChannel() <= (int)names.size()) {
         names[pan_motor->GetSpeedChannel() - 1] = "Pan Speed";
     }
-    if (0 != tilt_motor->GetSpeedChannel() && tilt_motor->GetSpeedChannel() < (int)names.size()) {
+    if (0 != tilt_motor->GetSpeedChannel() && tilt_motor->GetSpeedChannel() <= (int)names.size()) {
         names[tilt_motor->GetSpeedChannel() - 1] = "Tilt Speed";
     }
 
