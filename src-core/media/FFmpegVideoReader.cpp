@@ -171,6 +171,53 @@ static bool IsAviFile(const std::string& filename)
     std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return (char)::tolower(c); });
     return ext == "avi";
 }
+
+// The comment above names the actual disqualifying property as the codec
+// profile ("H.264 in 4:4:4, which the Media Foundation H.264 decoder does not
+// support at all"), but only ever tested the container extension - so an MP4
+// or MOV carrying that same profile sailed straight past it. Media Foundation
+// does not reject such a stream outright either: it silently substitutes a
+// placeholder frame for roughly the opening 5 seconds before recovering,
+// which reads as valid video (a render finishes, no error is logged) but is
+// wrong - solid blue in place of the real decoded picture. Probing the
+// profile is a full header parse (no decode), so it costs one open/close per
+// file, same as the existing GetVideoLengthStatic probe just above.
+//
+// Also covers codecs Media Foundation has no decoder for at all, regardless
+// of profile - ProRes chief among them (no vendor ships a ProRes MFT on
+// Windows). Unlike the 4:4:4 case this fails loudly (MF_E_TOPO_CODEC_NOT_FOUND
+// while negotiating the media type) rather than silently, so it was never a
+// correctness bug - it was 632 of those failed negotiations logged across one
+// render (one per model on the affected files). This skips them. Measured:
+// that render's total time was unaffected (346s vs 357s) - whatever else
+// makes a ProRes/MJPEG-heavy sequence slow dominates over this cost - so
+// treat this as removing pointless failure noise and redundant per-model
+// construction work, not as a render-time fix.
+static bool IsUnsupportedProfile(const std::string& filename)
+{
+    AVFormatContext* formatContext = nullptr;
+    if (avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr) != 0) {
+        return false;
+    }
+    if (avformat_find_stream_info(formatContext, nullptr) < 0) {
+        avformat_close_input(&formatContext);
+        return false;
+    }
+    int streamIndex = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+    bool unsupported = false;
+    if (streamIndex >= 0) {
+        AVCodecParameters* pars = formatContext->streams[streamIndex]->codecpar;
+        if (pars->codec_id == AV_CODEC_ID_H264) {
+            unsupported = pars->profile == AV_PROFILE_H264_HIGH_444 ||
+                          pars->profile == AV_PROFILE_H264_HIGH_444_PREDICTIVE ||
+                          pars->profile == AV_PROFILE_H264_HIGH_444_INTRA;
+        } else if (pars->codec_id == AV_CODEC_ID_PRORES) {
+            unsupported = true;
+        }
+    }
+    avformat_close_input(&formatContext);
+    return unsupported;
+}
 #endif
 
 static thread_local enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
@@ -391,7 +438,7 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
     // A recent read past its deadline stands hardware decode down for a while;
     // go straight to software rather than stall this file too.
     if (HW_ACCELERATION_ENABLED && ::IsWindows8OrGreater() && HW_ACCELERATION_TYPE == WINHARDWARERENDERTYPE::DIRECX11_API &&
-        !IsAviFile(filename) &&
+        !IsAviFile(filename) && !IsUnsupportedProfile(filename) &&
         !WindowsHardwareVideoReader::MediaFoundationInCooldown()) {
         _windowsHardwareVideoReader = new WindowsHardwareVideoReader(filename, _wantAlpha, usenativeresolution, keepaspectratio, maxwidth, maxheight, _pixelFmt);
         if (_windowsHardwareVideoReader->IsOk()) {
