@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (derwin12)              Export House Preview Video now lets you choose the output resolution.
     -bug (dkulp)                 Fix crash setting a model's serial Speed in the Layout property grid. The Speed
                                  choices are built for the protocol in effect when the grid was created, so a
                                  speed picked before the grid caught up with a protocol change read past the end
