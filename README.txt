@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (derwin12)              Export House Preview Video now lets you choose the output resolution.
     -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
                                  also has a matching alias for the model part.
                                  "Update Aliases" now promotes a submodel alias to the model itself when
