@@ -24,14 +24,14 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 04 Effects catalog & panels | 83 | 11 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
 | 05 Color, palettes & curves | 70 | 16 | 27 | 3 | 11 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
 | 06 Layout, models, 3D | 165 | 51 | 67 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
-| 07 Controllers, outputs, upload | 60 | 39 | 34 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
+| 07 Controllers, outputs, upload | 61 | 39 | 33 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
 | 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
-| 09 Render & playback | 61 | 12 | 19 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
+| 09 Render & playback | 62 | 12 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
 | 10 Presets, views, jukebox | 46 | 14 | 24 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
-| 13 Tools, diagnostics, help | 53 | 12 | 16 | 5 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **959** | **296** | **376** | **158** | **90** | |
+| 13 Tools, diagnostics, help | 54 | 12 | 15 | 5 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
+| **Total (01–13)** | **962** | **296** | **373** | **158** | **90** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
@@ -92,14 +92,14 @@ All survived adversarial re-verification.
 | 3 | Autosave never covers `xlights_rgbeffects.xml` / `xlights_effectpresets.json`; no recovery prompt for either | 01 r95–96 | Layout edits protected only by explicit saves |
 | 4 | Frame-interval change rewrites timing without desktop's save/close/reopen snap cycle — existing effects silently go off-grid | 01 r146 | Correctness; either port the cycle or restrict to empty sequences |
 | 5 | Base-show-folder merge re-runs unconditionally on every show open (desktop skips when unchanged) — **controllers half FIXED 2026-08-06**; models/objects still re-merge | 01 r179 | The controller pass now gates on the core `NeedsBaseControllersUpdate()`. The models/objects pass **cannot** be gated until its merge is persisted: it only mutates the in-memory ModelManager, and the unconditional re-merge is what makes it reappear each open. Persist first, then gate — that half is where the mesh-access cost is |
-| 6 | No render dependency tracking — nothing polls `GetElementsToRender`; effects depending on a timing track or another model go stale until Render All | 09 r7 | Wrong output, invisible cause |
+| 6 | ~~No render dependency tracking — effects depending on a timing track or another model go stale until Render All~~ | 09 r7 | **FIXED 2026-08-06** — `RenderDependentModels()` drains the set from the 0.5 s dirty poll (the iPad has no output timer, which is where desktop drains it) |
 | 7 | ~~Stop doesn't blank outputs — lights hold the last frame~~ | 09 r88 | **FIXED 2026-08-06** — `blankOutputs` calls `AllOff()` from Stop and both natural end-of-playback paths; `stopOutput` blanks before closing |
-| 8 | FPP Connect hardcodes FSEQ type V2-sparse/zstd — devices needing V1/uncompressed get unplayable files, Falcon V4/V5 get zstd where desktop sends zlib, Genius/PowerDMX get type 2 where desktop forces 3 | 07 r69 | Cross-check broadened this from one bug to three mis-served device families |
-| 9 | `DidConvert` never consulted — legacy `xlights_networks.xml` re-migrated every open. (The `NetworkChangesAllowed()` half — controllers editable mid-output — was **FIXED 2026-08-06**, 07 r26) | 07 | Silent-correctness gap, fix before controller UI work |
+| 8 | FPP Connect FSEQ type — **the three-mis-served-families claim was wrong**: iPad discovery admits only FPP and ESPixelStick, so Falcon V4/V5 and Genius/PowerDMX never receive an upload at all. The one real case, a master-mode FPP getting sparse, is **FIXED 2026-08-06** | 07 r69 | Downgraded from S1 to a missing picker (07 r69, still partial). A reminder that a ❌ needs the reachability check, not just the code read |
+| 9 | ~~`DidConvert` never consulted; no `NetworkChangesAllowed()` guard~~ | 07 r81 / r26 | **BOTH FIXED 2026-08-06** — the load path now flags a converted legacy networks file dirty so the migration persists, and controller edits are blocked while outputting |
 | 10 | 46 | 14 | 24 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
-| 13 | 53 | 12 | 16 |
+| 13 | 54 | 12 | 15 |
 | 14 | ~~Different default palette colors *and* default-enabled slots~~ | 05 r5–6 | **FIXED 2026-08-06** — the new-effect seed now carries desktop's eight colours in desktop's slot order plus `C_CHECKBOX_Palette1/2=1`; without the checkboxes `ParseColorMap` gave the effect an empty colour list |
 | 15 | Missing `SetDefaultParameters` seeding on effect drop — Faces/State land wrong-looking | 04 | Only theme-04 gap that produces wrong output |
 | 16 | ~~AI-generated images land as loose files, never embedded~~ | 12 r34 | **FIXED 2026-08-06** — embedded under the same `AIImages/…` key desktop uses, so the image travels inside the `.xsq`; loose file remains the fallback |
@@ -160,8 +160,9 @@ Highest-leverage first within rough effort bands.
   render** (09 r47); **FSEQ version selector** (09 r30).
 - **Discovery seeding + FPP auth on the discovery path** (07 r51–52); **visualizer bulk port
   ops** (07 r34–39); **smart-remote TYPE block propagation** (07 r89).
-- **Cleanup File Locations: rgbeffects half** (13 r28) — the one gap that silently leaves a
-  show non-portable.
+- ~~**Cleanup File Locations: rgbeffects half** (13 r28)~~ — **DONE 2026-08-06**: the sweep now
+  covers the preview background, models and view objects via the shared-core
+  `CleanupFileLocations(RenderContext*)`.
 
 **Large (rebuilt surfaces):**
 - **AC mode** (02 #181) — deferred by decision; revisit touch-first if demand surfaces.

@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 iPad - Effects that follow a timing track or another model now re-render on
+                                 their own when the thing they follow changes, instead of showing a stale
+                                 result until the next Render All
+    -bug (dkulp)                 iPad - Cleanup File Locations now also gathers the files referenced by the
+                                 layout - face images, dimming curves, mesh and image files, and the preview
+                                 background - not just the ones used by the sequence
+    -bug (dkulp)                 iPad - A show still using the old networks file format is converted once and
+                                 saved, instead of being reconverted every time it is opened
+    -bug (dkulp)                 iPad - FPP Connect sends a master-mode FPP a non-sparse sequence file, matching
+                                 the desktop; sparse files leave a master player without the channel data it
+                                 needs for its remotes
     -enh (dkulp)                 iPad - Long-press the render button to see per-model render progress, with the
                                  status of each model being rendered
     -bug (dkulp)                 iPad - AI-generated images are now stored inside the sequence rather than as

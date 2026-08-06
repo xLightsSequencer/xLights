@@ -12427,6 +12427,11 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     return _context && _context->WasRenderAborted() ? YES : NO;
 }
 
+- (int)renderDependentModels {
+    if (!_context || !_context->IsSequenceLoaded()) return 0;
+    return _context->RenderDependentModels();
+}
+
 - (float)renderProgressFraction {
     if (!_context) return 1.0f;
     return _context->GetRenderProgressFraction();
@@ -14347,6 +14352,57 @@ int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
     if (!_context || !_context->IsSequenceLoaded()) return 0;
     int moved = cleanupExternalMedia(*_context, /*execute*/ true, nil);
     if (moved > 0) bumpSequenceDirty(_context.get());
+    moved += [self cleanupRGBEffectsFileLocations];
+    return moved;
+}
+
+// Desktop's Cleanup File Locations runs two sweeps: the sequence's
+// media (above) and the show file's own references —
+// `CleanupRGBEffectsFileLocations` (xLightsMain.cpp:6592-6613), which
+// covers the preview background image plus every model's and view
+// object's files (face images, dimming curves, custom-model and mesh
+// assets). Without this half a show could still be non-portable after
+// the user ran Cleanup, with no indication which files were left
+// behind. `CleanupFileLocations` itself is shared core taking a
+// `RenderContext*`, so both platforms run the same code.
+- (int)cleanupRGBEffectsFileLocations {
+    if (!_context) return 0;
+    int moved = 0;
+
+    const std::string bg = _context->GetBackgroundImage();
+    if (!bg.empty() && FileExists(bg) && !_context->IsInShowFolder(bg)) {
+        std::string dest = _context->MoveToShowFolder(
+            bg, std::string(1, std::filesystem::path::preferred_separator),
+            /*reuse*/ false);
+        if (!dest.empty() && dest != bg) {
+            _context->SetActiveBackgroundImage(dest);
+            ++moved;
+        }
+    }
+
+    if (_context->HasModelManager()) {
+        for (const auto& [name, model] : _context->GetModelManager().GetModels()) {
+            if (!model) continue;
+            if (model->CleanupFileLocations(_context.get())) {
+                _context->MarkLayoutModelDirty(name);
+                ++moved;
+            }
+        }
+    }
+
+    if (_context->HasViewObjectManager()) {
+        for (auto it = _context->GetAllObjects().begin(); it != _context->GetAllObjects().end(); ++it) {
+            if (!it->second) continue;
+            if (it->second->CleanupFileLocations(_context.get())) {
+                _context->MarkLayoutViewObjectDirty(it->first);
+                ++moved;
+            }
+        }
+    }
+
+    if (moved > 0 && !_context->SaveLayoutChanges()) {
+        spdlog::warn("XLSequenceDocument: cleanup rewrote show-file paths but the save failed");
+    }
     return moved;
 }
 
@@ -18896,7 +18952,19 @@ NSString* fppTypeString(FPP_TYPE t) {
         if ([mediaNS isKindOfClass:[NSString class]]) {
             ctx.media = mediaNS.UTF8String;
         }
-        ctx.fseqType = (match->fppType == FPP_TYPE::ESPIXELSTICK) ? 3 : 2;
+        // Discovery admits only FPP and ESPixelStick (see the fppType
+        // filter in the discovery path), so these are the only two
+        // cases desktop's picker can present here. ESPixelStick is
+        // fixed at V2 Sparse/Uncompressed; a plain FPP takes desktop's
+        // default for its mode — V2 zstd for a `master` instance, V2
+        // Sparse/zstd for anything else (FPPConnectDialog.cpp:661).
+        // Sparse costs a master player the channel ranges it needs to
+        // drive its remotes.
+        if (match->fppType == FPP_TYPE::ESPIXELSTICK) {
+            ctx.fseqType = 3;
+        } else {
+            ctx.fseqType = (match->mode == "master") ? 1 : 2;
+        }
         ctxs.push_back(ctx);
     }
 

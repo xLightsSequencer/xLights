@@ -2015,6 +2015,16 @@ class SequencerViewModel {
                 if dirty != self.isDirty {
                     self.isDirty = dirty
                 }
+                // Render-dependency sweep. An effect that reads a timing
+                // track or another model goes stale when the thing it
+                // depends on changes; core records the dependent model
+                // and desktop drains that set on every output tick
+                // (tabSequencer.cpp:2757-2767). This poll is the iPad's
+                // equivalent — skipped while a full render is in flight
+                // so the two don't fight over the same rows.
+                if !self.isRendering {
+                    _ = self.document.renderDependentModels()
+                }
             }
         }
     }

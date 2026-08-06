@@ -188,6 +188,15 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     // Load network/controller configuration
     if (!_outputManager.Load(showDir)) {
         spdlog::warn("iPadRenderContext: Failed to load xlights_networks.xml from {}", showDir);
+    } else if (_outputManager.DidConvert()) {
+        // A legacy <network> file was migrated to the controller
+        // structure in memory. Desktop flags the show as having unsaved
+        // network changes so the converted form is written back
+        // (TabSetup.cpp:456-458 → NetworkChange()); without the same
+        // flag here the migration is thrown away and redone on every
+        // single open.
+        _outputManager.SomethingChanged();
+        MarkControllersDirty();
     }
 
     // Reset the (base-owned, eager) model/view managers for this show — same
@@ -2027,6 +2036,24 @@ void iPadRenderContext::RenderEffectForModel(const std::string& model,
                                              _sequenceElements, _seqData,
                                              false, modelsChangeCount, clear);
     }
+}
+
+int iPadRenderContext::RenderDependentModels() {
+    if (!_renderEngine || !_seqData.IsValidData()) return 0;
+    std::vector<Element*> elsToRender;
+    if (!_sequenceElements.GetElementsToRender(elsToRender)) return 0;
+
+    int started = 0;
+    for (Element* el : elsToRender) {
+        if (!el) continue;
+        int ss = 0, es = 0;
+        el->GetDirtyRange(ss, es);
+        _renderEngine->RenderEffectForModel(el->GetModelName(), ss, es,
+                                             _sequenceElements, _seqData,
+                                             false, modelsChangeCount, false);
+        ++started;
+    }
+    return started;
 }
 
 bool iPadRenderContext::RenderModelAndWait(const std::string& model, int maxTimeMs) {

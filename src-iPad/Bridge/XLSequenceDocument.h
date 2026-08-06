@@ -2302,6 +2302,13 @@ NS_ASSUME_NONNULL_BEGIN
 // Coarse render-progress fraction (0..1) for the in-flight render of the
 // currently-loaded sequence. Aggregates per-row job frame counters against
 // the sequence's frame range. Returns 1.0 when no render is active.
+// Drain the render-dependency set: kick off a render for every model
+// core has flagged as depending on something that changed (a timing
+// track, another model's output). Returns how many were started; 0 is
+// the common case. Cheap enough to call from a periodic poll — that's
+// what desktop does on its output tick.
+- (int)renderDependentModels;
+
 - (float)renderProgressFraction;
 
 // Per-model render progress — one entry per in-flight render job,

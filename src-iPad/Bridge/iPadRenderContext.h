@@ -134,6 +134,16 @@ public:
     bool LoadBasePresets();
 
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
+
+    // Render-dependency sweep. An effect can depend on a timing track
+    // or on another model (Kaleidoscope, Shockwave's timing-track
+    // trigger, per-model canvas reads); when the thing it depends on
+    // changes, core records the dependent model in
+    // `SequenceElements::modelsToRender`. Desktop drains that set on
+    // every output tick (tabSequencer.cpp:2757-2767) — nothing drained
+    // it here, so a dependent model kept its stale render until the
+    // next Render All. Returns the number of models it kicked off.
+    int RenderDependentModels();
     // Render a single model over the whole sequence and BLOCK until the
     // render workers finish (or maxTimeMs elapses). Used by the
     // Convert-To-Effect bridge, which must read fully-rendered
