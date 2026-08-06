@@ -29,6 +29,7 @@ EffectSymbolManager::~EffectSymbolManager()
 
 void EffectSymbolManager::Clear()
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     _linkedEffects.clear();
     _symbols.clear();
     _nextSymbolId = 1;
@@ -36,6 +37,7 @@ void EffectSymbolManager::Clear()
 
 std::string EffectSymbolManager::GenerateUniqueId()
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     std::string id;
     do {
         id = "sym_" + std::to_string(_nextSymbolId++);
@@ -45,6 +47,7 @@ std::string EffectSymbolManager::GenerateUniqueId()
 
 EffectSymbol* EffectSymbolManager::CreateSymbol(const std::string& name, const Effect* sourceEffect)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     if (sourceEffect == nullptr) return nullptr;
 
     std::string uniqueName = name;
@@ -68,6 +71,7 @@ EffectSymbol* EffectSymbolManager::CreateSymbol(const std::string& name, const E
 
 EffectSymbol* EffectSymbolManager::CreateEmptySymbol(const std::string& name, const std::string& effectType, int effectIndex)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     std::string uniqueName = name;
     if (SymbolNameExists(name)) {
         uniqueName = GetUniqueSymbolName(name);
@@ -90,6 +94,7 @@ EffectSymbol* EffectSymbolManager::CreateEmptySymbol(const std::string& name, co
 
 EffectSymbol* EffectSymbolManager::GetSymbol(const std::string& id) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     auto it = _symbols.find(id);
     if (it != _symbols.end()) {
         return it->second.get();
@@ -99,6 +104,7 @@ EffectSymbol* EffectSymbolManager::GetSymbol(const std::string& id) const
 
 EffectSymbol* EffectSymbolManager::GetSymbolByName(const std::string& name) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     for (const auto& pair : _symbols) {
         if (pair.second->GetName() == name) {
             return pair.second.get();
@@ -109,6 +115,7 @@ EffectSymbol* EffectSymbolManager::GetSymbolByName(const std::string& name) cons
 
 std::vector<EffectSymbol*> EffectSymbolManager::GetAllSymbols() const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     std::vector<EffectSymbol*> result;
     result.reserve(_symbols.size());
     for (const auto& pair : _symbols) {
@@ -119,6 +126,7 @@ std::vector<EffectSymbol*> EffectSymbolManager::GetAllSymbols() const
 
 bool EffectSymbolManager::DeleteSymbol(const std::string& id)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     auto it = _symbols.find(id);
     if (it == _symbols.end()) {
         return false;
@@ -145,6 +153,7 @@ bool EffectSymbolManager::DeleteSymbol(const std::string& id)
 
 bool EffectSymbolManager::RenameSymbol(const std::string& id, const std::string& newName)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     auto it = _symbols.find(id);
     if (it == _symbols.end()) {
         return false;
@@ -167,16 +176,19 @@ bool EffectSymbolManager::RenameSymbol(const std::string& id, const std::string&
 
 bool EffectSymbolManager::SymbolExists(const std::string& id) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     return _symbols.find(id) != _symbols.end();
 }
 
 bool EffectSymbolManager::SymbolNameExists(const std::string& name) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     return GetSymbolByName(name) != nullptr;
 }
 
 std::string EffectSymbolManager::GetUniqueSymbolName(const std::string& baseName) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     if (!SymbolNameExists(baseName)) {
         return baseName;
     }
@@ -192,6 +204,7 @@ std::string EffectSymbolManager::GetUniqueSymbolName(const std::string& baseName
 
 void EffectSymbolManager::RegisterLinkedEffect(Effect* effect, const std::string& symbolId)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     if (effect == nullptr || !SymbolExists(symbolId)) return;
 
     UnregisterLinkedEffect(effect);
@@ -200,6 +213,7 @@ void EffectSymbolManager::RegisterLinkedEffect(Effect* effect, const std::string
 
 void EffectSymbolManager::UnregisterLinkedEffect(Effect* effect)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     if (effect == nullptr) return;
 
     for (auto it = _linkedEffects.begin(); it != _linkedEffects.end(); ) {
@@ -213,6 +227,7 @@ void EffectSymbolManager::UnregisterLinkedEffect(Effect* effect)
 
 std::vector<Effect*> EffectSymbolManager::GetLinkedEffects(const std::string& symbolId) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     std::vector<Effect*> result;
     auto range = _linkedEffects.equal_range(symbolId);
     for (auto it = range.first; it != range.second; ++it) {
@@ -223,11 +238,13 @@ std::vector<Effect*> EffectSymbolManager::GetLinkedEffects(const std::string& sy
 
 size_t EffectSymbolManager::GetLinkedEffectCount(const std::string& symbolId) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     return _linkedEffects.count(symbolId);
 }
 
 void EffectSymbolManager::UpdateSymbolSettings(const std::string& id, const std::string& settings)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     EffectSymbol* symbol = GetSymbol(id);
     if (symbol == nullptr) return;
 
@@ -237,6 +254,7 @@ void EffectSymbolManager::UpdateSymbolSettings(const std::string& id, const std:
 
 void EffectSymbolManager::UpdateSymbolPalette(const std::string& id, const std::string& palette)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     EffectSymbol* symbol = GetSymbol(id);
     if (symbol == nullptr) return;
 
@@ -246,6 +264,7 @@ void EffectSymbolManager::UpdateSymbolPalette(const std::string& id, const std::
 
 void EffectSymbolManager::NotifySymbolChanged(const std::string& symbolId)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     EffectSymbol* symbol = GetSymbol(symbolId);
     if (symbol == nullptr) return;
 
@@ -264,6 +283,7 @@ void EffectSymbolManager::NotifySymbolChanged(const std::string& symbolId)
 
 void EffectSymbolManager::LoadFromXml(const pugi::xml_node& symbolsNode)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     if (!symbolsNode || std::strcmp(symbolsNode.name(), "EffectSymbols") != 0) {
         return;
     }
@@ -295,6 +315,7 @@ void EffectSymbolManager::LoadFromXml(const pugi::xml_node& symbolsNode)
 
 void EffectSymbolManager::SaveToXml(pugi::xml_node& parent) const
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     auto node = parent.append_child("EffectSymbols");
     for (const auto& pair : _symbols) {
         pair.second->SaveToXml(node);
@@ -303,6 +324,7 @@ void EffectSymbolManager::SaveToXml(pugi::xml_node& parent) const
 
 void EffectSymbolManager::AddListener(IEffectSymbolListener* listener)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     if (listener != nullptr) {
         _listeners.push_back(listener);
     }
@@ -310,6 +332,7 @@ void EffectSymbolManager::AddListener(IEffectSymbolListener* listener)
 
 void EffectSymbolManager::RemoveListener(IEffectSymbolListener* listener)
 {
+    std::lock_guard<std::recursive_mutex> lock(_lock);
     _listeners.erase(
         std::remove(_listeners.begin(), _listeners.end(), listener),
         _listeners.end()

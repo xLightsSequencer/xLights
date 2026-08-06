@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <mutex>
 
 class EffectSymbol;
 class Effect;
@@ -42,7 +43,7 @@ public:
     EffectSymbol* GetSymbol(const std::string& id) const;
     EffectSymbol* GetSymbolByName(const std::string& name) const;
     std::vector<EffectSymbol*> GetAllSymbols() const;
-    size_t GetSymbolCount() const { return _symbols.size(); }
+    size_t GetSymbolCount() const { std::lock_guard<std::recursive_mutex> lock(_lock); return _symbols.size(); }
     bool DeleteSymbol(const std::string& id);
     bool RenameSymbol(const std::string& id, const std::string& newName);
     bool SymbolExists(const std::string& id) const;
@@ -69,6 +70,15 @@ public:
 
 private:
     std::string GenerateUniqueId();
+
+    // Guards every container below. Effects are destroyed on render worker
+    // threads (EffectLayer::CleanupAfterRender runs inside RenderJob), and
+    // ~Effect calls UnregisterLinkedEffect, so _linkedEffects is mutated off
+    // the main thread while the UI mutates it too — copy/paste of linked
+    // effects corrupted the multimap and aborted in __tree_remove.
+    // Recursive because RegisterLinkedEffect calls SymbolExists and
+    // UnregisterLinkedEffect, and DeleteSymbol calls NotifySymbolChanged.
+    mutable std::recursive_mutex _lock;
 
     std::map<std::string, std::unique_ptr<EffectSymbol>> _symbols;
     std::multimap<std::string, Effect*> _linkedEffects;

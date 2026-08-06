@@ -29,6 +29,8 @@
 #include <filesystem>
 #include <chrono>
 #include <unordered_map>
+#include <map>
+#include <algorithm>
 #include <regex>
 
 #include <log.h>
@@ -193,7 +195,15 @@ Effect::Effect(const Effect& ef)
     mPaletteMap = ef.mPaletteMap;
     mColors = ef.mColors;
     mCC = ef.mCC;
-    _linkedSymbolId = ef._linkedSymbolId;
+
+    // Deliberately NOT copying _linkedSymbolId. This copy is a short-lived
+    // render temporary (RenderEngine's `new Effect(*ef)`) that is never passed
+    // to RegisterLinkedEffect, so it owns no entry in the symbol manager. If it
+    // carried the id, ~Effect would call UnregisterLinkedEffect from a render
+    // worker thread — mutating the shared multimap for an entry it never owned,
+    // and matching a live effect outright whenever the allocator reused the
+    // address. It would also let IncrementChangeCount fan symbol changes out
+    // off the main thread. Render reads mSettings/mPaletteMap, never the id.
 }
 
 Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing) :
@@ -370,10 +380,18 @@ std::string Effect::GetDescription() const
         return GetSetting("X_Effect_Description");
 }
 
+// A symbol captures an effect's *settings*, not where it sits on the timeline,
+// so moving or resizing an effect must not fan out to its linked siblings.
+// Without the suppressor a single drag ran CopyFromEffect plus a full
+// settings+palette re-parse on every sibling and posted one render event each,
+// twice over (start and end) — seconds of frozen UI per drag on a symbol with
+// a few hundred links. The layer's own dirty-marking still happens, so this
+// effect re-renders normally.
 void Effect::SetStartTimeMS(int startTimeMS)
 {
     assert(!IsLocked());
 
+    ScopedSymbolPropagationSuppressor noFanOut;
     if (startTimeMS > mStartTime) {
         IncrementChangeCount();
         mStartTime = startTimeMS;
@@ -387,6 +405,7 @@ void Effect::SetEndTimeMS(int endTimeMS)
 {
     assert(!IsLocked());
 
+    ScopedSymbolPropagationSuppressor noFanOut;
     if (endTimeMS < mEndTime) {
         IncrementChangeCount();
         mEndTime = endTimeMS;
@@ -537,22 +556,41 @@ void Effect::IncrementChangeCount()
 
                     s_propagatingSymbolChanges = prevPropagating;
 
+                    // Coalesce the render requests per model rather than per
+                    // effect. A symbol reused a few hundred times still spans
+                    // only a handful of models, so the naive per-effect loop
+                    // queued one render job per linked effect (986 on a real
+                    // sequence across 5 models), and each job pays a full
+                    // RenderJob + PixelBuffer::InitBuffer setup. That setup
+                    // dominates, so one widened job per model is far cheaper
+                    // than many narrow ones — this is also what
+                    // RenderDirtyModels does for every ordinary edit.
                     RenderContext* ctx = seqElements->GetRenderContext();
                     if (ctx != nullptr) {
+                        std::map<std::string, std::pair<int, int>> perModel;
                         for (Effect* effect : linkedEffects) {
                             if (effect != this && effect != nullptr) {
                                 EffectLayer* el = effect->GetParentEffectLayer();
                                 if (el != nullptr && el->GetParentElement() != nullptr) {
-                                    // Async: must NOT render synchronously here — we hold
-                                    // this effect's settingsLock, and the render workers
-                                    // would deadlock waiting for it (the indefinite hang
-                                    // when changing a linked effect's color to a gradient).
-                                    ctx->RequestRenderForModel(
-                                        el->GetParentElement()->GetModelName(),
-                                        effect->GetStartTimeMS(),
-                                        effect->GetEndTimeMS());
+                                    const std::string& mn = el->GetParentElement()->GetModelName();
+                                    int s = effect->GetStartTimeMS();
+                                    int e = effect->GetEndTimeMS();
+                                    auto it = perModel.find(mn);
+                                    if (it == perModel.end()) {
+                                        perModel.emplace(mn, std::make_pair(s, e));
+                                    } else {
+                                        it->second.first = std::min(it->second.first, s);
+                                        it->second.second = std::max(it->second.second, e);
+                                    }
                                 }
                             }
+                        }
+                        for (const auto& [modelName, range] : perModel) {
+                            // Async: must NOT render synchronously here — we hold
+                            // this effect's settingsLock, and the render workers
+                            // would deadlock waiting for it (the indefinite hang
+                            // when changing a linked effect's color to a gradient).
+                            ctx->RequestRenderForModel(modelName, range.first, range.second);
                         }
                     }
                 }
