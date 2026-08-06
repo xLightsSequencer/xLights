@@ -1068,6 +1068,24 @@ class SequencerViewModel {
         /// empty when the model is not a single-colour string type. Drives
         /// the trailing single-colour swatch chip on the row heading.
         let nodeMaskColor: String
+        // The row heading used to ask the document for the six values below on
+        // every SwiftUI body evaluation. Two of them take the model manager's
+        // mutex and trim strings to look the model up, so a scroll over a large
+        // show turned into sustained CPU. They only change when the row list is
+        // rebuilt, which is exactly when this struct is built.
+        /// True iff this row's element is a ModelGroup.
+        let isModelGroup: Bool
+        /// Effect-layer count for the row's element (0 for node rows).
+        let layerCount: Int
+        /// Element-level collapsed flag (distinct from `isCollapsed`, which
+        /// mirrors the row struct's own flag).
+        let isElementCollapsed: Bool
+        /// True iff the row can disclose submodels/strands.
+        let canToggleSubmodels: Bool
+        /// True iff the row can disclose nodes.
+        let canToggleNodes: Bool
+        /// Current disclosure state for whichever of the two above applies.
+        let showsChildren: Bool
     }
 
     struct TimingRowInfo: Equatable {
@@ -8653,6 +8671,9 @@ class SequencerViewModel {
             let rawDisplayName = document.rowDisplayName(at: idx)
             let layerIndex = Int(document.rowLayerIndex(at: idx))
             let isCollapsed = document.rowIsCollapsed(at: idx)
+            let rowStrandIndex = Int(document.rowStrandIndex(at: idx))
+            let rowNodeIndex = Int(document.rowNodeIndex(at: idx))
+            let rowIsSubmodel = document.rowIsSubmodel(at: idx)
 
             let effectNames = document.effectNames(forRow: idx)
             let effectStarts = document.effectStartTimes(forRow: idx)
@@ -8693,21 +8714,35 @@ class SequencerViewModel {
                 // Strand / node rows may have no assigned name; mirror
                 // desktop's "Strand N" / "Node N" fallback (RowHeading.cpp:
                 // 2035-2039) so the header reads sensibly instead of blank.
-                let strandIndex = Int(document.rowStrandIndex(at: idx))
-                let nodeIndex = Int(document.rowNodeIndex(at: idx))
-                if rawDisplayName.isEmpty && nodeIndex >= 0 {
-                    displayName = "Node \(nodeIndex + 1)"
-                } else if rawDisplayName.isEmpty && strandIndex >= 0 {
-                    displayName = "Strand \(strandIndex + 1)"
+                if rawDisplayName.isEmpty && rowNodeIndex >= 0 {
+                    displayName = "Node \(rowNodeIndex + 1)"
+                } else if rawDisplayName.isEmpty && rowStrandIndex >= 0 {
+                    displayName = "Strand \(rowStrandIndex + 1)"
                 } else {
                     displayName = rawDisplayName
                 }
             }
 
             let isToplevelModel = timingInfo == nil && layerIndex == 0
-                && Int(document.rowStrandIndex(at: idx)) < 0
-                && Int(document.rowNodeIndex(at: idx)) < 0
-                && !document.rowIsSubmodel(at: idx)
+                && rowStrandIndex < 0 && rowNodeIndex < 0 && !rowIsSubmodel
+
+            // Same gating the row heading applied inline, so the cached values
+            // match what body used to compute per evaluation.
+            let isSubLayer = layerIndex > 0
+            let isNodeRow = rowNodeIndex >= 0
+            let isModelGroup = !isSubLayer && !rowIsSubmodel
+                && document.rowIsModelGroup(at: idx)
+            let layerCount = isNodeRow ? 0 : Int(document.rowLayerCount(at: idx))
+            let isElementCollapsed = !isSubLayer && !isNodeRow
+                && document.rowIsElementCollapsed(at: idx)
+            let canToggleSubmodels = !isSubLayer && !isNodeRow
+                && document.rowHasSubmodels(at: idx)
+            let canToggleNodes = !isSubLayer && rowStrandIndex >= 0
+                && document.rowHasNodes(at: idx)
+            let showsChildren = canToggleNodes
+                ? document.rowShowsNodes(at: idx)
+                : document.rowShowsSubmodels(at: idx)
+
             newRows.append(RowInfo(
                 id: i,
                 displayName: displayName,
@@ -8715,13 +8750,19 @@ class SequencerViewModel {
                 isCollapsed: isCollapsed,
                 effects: effects,
                 timing: timingInfo,
-                isSubmodel: document.rowIsSubmodel(at: idx),
+                isSubmodel: rowIsSubmodel,
                 nestDepth: Int(document.rowNestDepth(at: idx)),
-                strandIndex: Int(document.rowStrandIndex(at: idx)),
-                nodeIndex: Int(document.rowNodeIndex(at: idx)),
+                strandIndex: rowStrandIndex,
+                nodeIndex: rowNodeIndex,
                 hasEffects: isToplevelModel && document.rowHasEffects(at: idx),
                 tagColor: isToplevelModel ? document.rowTagColor(at: idx) : "",
-                nodeMaskColor: isToplevelModel ? document.rowNodeMaskColor(at: idx) : ""
+                nodeMaskColor: isToplevelModel ? document.rowNodeMaskColor(at: idx) : "",
+                isModelGroup: isModelGroup,
+                layerCount: layerCount,
+                isElementCollapsed: isElementCollapsed,
+                canToggleSubmodels: canToggleSubmodels,
+                canToggleNodes: canToggleNodes,
+                showsChildren: showsChildren
             ))
         }
 
