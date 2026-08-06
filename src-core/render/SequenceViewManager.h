@@ -56,6 +56,7 @@ class SequenceViewManager
 	int _selectedView;
 
 	void AddMasterView();
+	void SanitizeViewNames();
 
 public:
 	SequenceViewManager() { _modelManager = nullptr; _selectedView = 0; };
