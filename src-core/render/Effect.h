@@ -112,6 +112,25 @@ public:
     void ApplySymbolSettings(const EffectSymbol* symbol);
     void HandlePastedSymbolLink();
 
+    // Suppresses the outward half of symbol propagation (effect -> symbol ->
+    // every other linked effect) on this thread. Linking still applies the
+    // symbol's settings *to* the effect; only the fan-out is skipped.
+    //
+    // Sequence load must hold this: effects are linked one at a time, and each
+    // link would otherwise fan out to every sibling already registered, making
+    // the load O(K^2) in re-parses and, on desktop, posting K(K-1) render
+    // events per symbol. The file is already consistent with the symbol, so
+    // the fan-out is pure waste. See SequenceElements::LoadEffects.
+    class ScopedSymbolPropagationSuppressor {
+    public:
+        ScopedSymbolPropagationSuppressor();
+        ~ScopedSymbolPropagationSuppressor();
+        ScopedSymbolPropagationSuppressor(const ScopedSymbolPropagationSuppressor&) = delete;
+        ScopedSymbolPropagationSuppressor& operator=(const ScopedSymbolPropagationSuppressor&) = delete;
+    private:
+        bool _prev;
+    };
+
     bool IsModelRenderDisabled() const;
     bool IsEffectRenderDisabled() const;
     bool IsRenderDisabled() const;

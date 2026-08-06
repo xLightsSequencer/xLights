@@ -743,6 +743,11 @@ int SequenceElements::LoadEffects(EffectLayer* effectLayer,
                     if (newEffect != nullptr && !effect.attribute("linkedSymbol").empty()) {
                         std::string symbolId = effect.attribute("linkedSymbol").as_string("");
                         if (!symbolId.empty() && _effectSymbolManager.SymbolExists(symbolId)) {
+                            // Suppress the fan-out to already-linked siblings: the file
+                            // is already consistent with the symbol, and propagating on
+                            // every link makes the load quadratic (a 334-effect symbol
+                            // posts >111k render events on desktop, hanging the open).
+                            Effect::ScopedSymbolPropagationSuppressor noFanOut;
                             newEffect->LinkToSymbol(symbolId);
                         }
                     }
