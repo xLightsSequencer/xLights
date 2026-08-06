@@ -4095,7 +4095,7 @@ void xLightsFrame::CheckUnsavedChanges()
         Notebook1->SetSelection(LAYOUTTAB);
 
         if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
-                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SaveEffectsFile();
         }
     }
@@ -4106,7 +4106,7 @@ void xLightsFrame::CheckUnsavedChanges()
         Notebook1->SetSelection(LAYOUTTAB);
 
         if (wxYES == wxMessageBox("Save Network Setup changes?",
-                                  "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+                                  "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SaveNetworksFile();
         }
     }
@@ -4114,7 +4114,7 @@ void xLightsFrame::CheckUnsavedChanges()
     if (UnsavedPresetChanges) {
         if (wxYES == wxMessageBox("Save Effect Preset changes?",
                                   "Effect Presets Changes Confirmation",
-                                  wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+                                  wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SavePresetsFile();
         }
     }

@@ -14,6 +14,7 @@
 #import "Bridge/XLLogPackager.h"
 #import "Bridge/XLSequencePackager.h"
 #import "Bridge/XLDiagnosticSession.h"
+#import "Bridge/XLCrashCapture.h"
 #import "Bridge/XLAIServices.h"
 #import "Bridge/XLAIImageSession.h"
 #import "Bridge/XLVendorCatalog.h"

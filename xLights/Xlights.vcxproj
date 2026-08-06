@@ -1056,6 +1056,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\shared\utils\tmGridCell.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\TopEffectsPanel.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
+    <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
+    <ClCompile Include="..\src-core\utils\xlExceptionDescribe.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\UpdaterDialog.cpp" />
     <ClCompile Include="..\src-core\utils\UtilClasses.cpp" />
     <ClCompile Include="..\src-core\utils\UtilFunctions.cpp" />
@@ -1716,6 +1718,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\shared\utils\tmGridCell.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TopEffectsPanel.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
+    <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
+    <ClInclude Include="..\src-core\utils\xlExceptionDescribe.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\UpdaterDialog.h" />
     <ClInclude Include="..\src-core\utils\UtilClasses.h" />
     <ClInclude Include="..\src-core\utils\UtilFunctions.h" />

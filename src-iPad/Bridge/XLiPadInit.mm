@@ -9,6 +9,7 @@
  **************************************************************/
 
 #import "XLiPadInit.h"
+#import "XLCrashCapture.h"
 #import "XLLaunchTiming.h"
 #import "XLAIServices.h"
 
@@ -267,6 +268,12 @@ static void LogMachineConfig() {
     } catch (const spdlog::spdlog_ex& ex) {
         NSLog(@"spdlog init failed: %s", ex.what());
     }
+
+    // Crash capture. Installed before anything else that can fault, and the
+    // rotate has to happen first so this session's handler starts from an empty
+    // slot rather than overwriting the record we are about to upload.
+    [XLCrashCapture rotatePendingRecord];
+    [XLCrashCapture installWithLogsDirectory:logsDir];
 
     // MetricKit collector — JSON payloads land alongside the log files,
     // and Tools > Package Logs sweeps them into the user-shared zip.

@@ -1392,7 +1392,7 @@ void SubModelsPanel::OnButton_ReverseNodesClick(wxCommandEvent& event)
 {
     SubModelInfo* sm = GetSubModelInfo(GetSelectedName());
 
-    if (sm->isRanges)
+    if (sm != nullptr && sm->isRanges)
     {
         for (auto it = sm->strands.begin(); it != sm->strands.end(); ++it)
         {

@@ -300,6 +300,14 @@ std::list<std::string> DmxMovingHead::CheckModelSettings()
         res.push_back(fmt::format("    ERR: Model {} tilt motor fine is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetChannelFine(), nodeCount));
     }
 
+    if (pan_motor->GetSpeedChannel() > nodeCount) {
+        res.push_back(fmt::format("    ERR: Model {} pan motor speed is assigned to channel {} but the model only has {} channels.", GetName(), pan_motor->GetSpeedChannel(), nodeCount));
+    }
+
+    if (tilt_motor->GetSpeedChannel() > nodeCount) {
+        res.push_back(fmt::format("    ERR: Model {} tilt motor speed is assigned to channel {} but the model only has {} channels.", GetName(), tilt_motor->GetSpeedChannel(), nodeCount));
+    }
+
     res.splice(res.end(), DmxModel::CheckModelSettings());
     return res;
 }
@@ -410,8 +418,17 @@ void DmxMovingHead::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xl
 
     if (time_delta != 0 && active) {
         // pan slew limiting
-        if (pan_motor->GetSlewLimit() > 0.0f) {
-            float slew_limit = pan_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
+        float pan_slew_rate = pan_motor->GetSlewLimit();
+        bool pan_speed_scaled = false;
+        if (pan_motor->GetSpeedChannel() > 0 && pan_motor->GetSpeedChannel() <= (int)NodeCount) {
+            pan_slew_rate *= (float)GetChannelValue(pan_motor->GetSpeedChannel() - 1, false) / 255.0f;
+            pan_speed_scaled = true;
+        }
+        // a speed channel scaling the rate to 0 means "don't move" (the fixture's
+        // speed channel is at 0), not "unlimited" -- only a SlewLimit of 0 with no
+        // speed channel configured means unlimited/instant movement.
+        if (pan_slew_rate > 0.0f || pan_speed_scaled) {
+            float slew_limit = pan_slew_rate * (float)time_delta / 1000.0f;
             float pan_delta = pan_angle - old_pan_angle;
             if (std::abs(pan_delta) > slew_limit) {
                 if (pan_delta < 0) {
@@ -426,8 +443,14 @@ void DmxMovingHead::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xl
 
     if (time_delta != 0 && active) {
         // tilt slew limiting
-        if (tilt_motor->GetSlewLimit() > 0.0f) {
-            float slew_limit = tilt_motor->GetSlewLimit() * (float)time_delta / 1000.0f;
+        float tilt_slew_rate = tilt_motor->GetSlewLimit();
+        bool tilt_speed_scaled = false;
+        if (tilt_motor->GetSpeedChannel() > 0 && tilt_motor->GetSpeedChannel() <= (int)NodeCount) {
+            tilt_slew_rate *= (float)GetChannelValue(tilt_motor->GetSpeedChannel() - 1, false) / 255.0f;
+            tilt_speed_scaled = true;
+        }
+        if (tilt_slew_rate > 0.0f || tilt_speed_scaled) {
+            float slew_limit = tilt_slew_rate * (float)time_delta / 1000.0f;
             float tilt_delta = tilt_angle - old_tilt_angle;
             if (std::abs(tilt_delta) > slew_limit) {
                 if (tilt_delta < 0) {
@@ -969,20 +992,26 @@ std::vector<std::string> DmxMovingHead::GenerateNodeNames() const
 {
     std::vector<std::string> names = DmxModel::GenerateNodeNames();
 
-    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() < (int)names.size()) {
+    if (0 != shutter_ability->GetShutterChannel() && shutter_ability->GetShutterChannel() <= (int)names.size()) {
         names[shutter_ability->GetShutterChannel() - 1] = "Shutter";
     }
-    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() < (int)names.size()) {
+    if (0 != pan_motor->GetChannelCoarse() && pan_motor->GetChannelCoarse() <= (int)names.size()) {
         names[pan_motor->GetChannelCoarse() - 1] = "Pan";
     }
-    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() < (int)names.size()) {
+    if (0 != tilt_motor->GetChannelCoarse() && tilt_motor->GetChannelCoarse() <= (int)names.size()) {
         names[tilt_motor->GetChannelCoarse() - 1] = "Tilt";
     }
-    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() < (int)names.size()) {
+    if (0 != pan_motor->GetChannelFine() && pan_motor->GetChannelFine() <= (int)names.size()) {
         names[pan_motor->GetChannelFine() - 1] = "Pan Fine";
     }
-    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() < (int)names.size()) {
+    if (0 != tilt_motor->GetChannelFine() && tilt_motor->GetChannelFine() <= (int)names.size()) {
         names[tilt_motor->GetChannelFine() - 1] = "Tilt Fine";
+    }
+    if (0 != pan_motor->GetSpeedChannel() && pan_motor->GetSpeedChannel() <= (int)names.size()) {
+        names[pan_motor->GetSpeedChannel() - 1] = "Pan Speed";
+    }
+    if (0 != tilt_motor->GetSpeedChannel() && tilt_motor->GetSpeedChannel() <= (int)names.size()) {
+        names[tilt_motor->GetSpeedChannel() - 1] = "Tilt Speed";
     }
 
     if (nullptr != color_ability) {

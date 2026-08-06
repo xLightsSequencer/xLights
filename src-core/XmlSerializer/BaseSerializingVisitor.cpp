@@ -400,6 +400,7 @@ void BaseSerializingVisitor::WriteDmxMotorElement(const DmxMotor* motor) {
     attrs.Add(XmlNodeKeys::OrientZeroAttribute,    std::to_string(motor->GetOrientZero()));
     attrs.Add(XmlNodeKeys::OrientHomeAttribute,    std::to_string(motor->GetOrientHome()));
     attrs.Add(XmlNodeKeys::SlewLimitAttribute,     std::to_string(motor->GetSlewLimit()));
+    attrs.Add(XmlNodeKeys::SpeedChannelAttribute,  std::to_string(motor->GetSpeedChannel()));
     attrs.Add(XmlNodeKeys::ReverseAttribute,       std::to_string(motor->GetReverse()));
     attrs.Add(XmlNodeKeys::UpsideDownAttribute,    std::to_string(motor->GetUpsideDown()));
     WriteOpenTag(motor->GetName(), attrs, true);

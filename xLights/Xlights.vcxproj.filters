@@ -601,6 +601,8 @@
     <ClCompile Include="..\src-ui-wx\color\ColoursPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
+    <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
+    <ClCompile Include="..\src-core\utils\xlExceptionDescribe.cpp" />
     <ClCompile Include="..\src-core\effects\StrobeEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -2153,6 +2155,8 @@
     <ClInclude Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="..\src-core\utils\SpecialOptions.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
+    <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
+    <ClInclude Include="..\src-core\utils\xlExceptionDescribe.h" />
     <ClInclude Include="..\src-core\effects\StrobeEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
