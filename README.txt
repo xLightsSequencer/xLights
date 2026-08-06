@@ -21,8 +21,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash clicking Reverse Nodes in the submodel editor with no submodel selected
     -bug (dkulp)                 Fix crash starting or stopping playback with auto-show house preview enabled while
                                  the sequencer tab had never been opened
+    -enh (dkulp)                 iPad - Crash reports now carry a backtrace taken at the moment of the crash,
+                                 plus every thread's stack and the recent-activity trace the desktop already
+                                 sent. Previously the only crash detail came from Apple a day later, with a
+                                 truncated stack
     -bug (dkulp)                 iPad - Fix sustained CPU use, and the battery drain with it, when scrolling
                                  the sequencer in a show with many rows
+    -bug (dkulp)                 An exception raised by the graphics or video frameworks on a render thread was
+                                 logged only as "non-std exception type"; it is now named and described
     -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
                                  also has a matching alias for the model part.
                                  "Update Aliases" now promotes a submodel alias to the model itself when

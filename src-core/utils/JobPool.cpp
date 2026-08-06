@@ -38,6 +38,7 @@
 #include "string_utils.h"
 
 #include "../utils/TraceLog.h"
+#include "../utils/xlExceptionDescribe.h"
 using namespace TraceLog;
 
 
@@ -48,27 +49,9 @@ const std::string Job::GetName() const {
     return xlEMPTY_STRING;
 }
 
-// Re-throws the in-flight exception so we can identify its type and message.
-// Always called from inside a catch handler.
-static std::string DescribeCurrentException() {
-    try {
-        auto eptr = std::current_exception();
-        if (!eptr) {
-            return "no active exception";
-        }
-        std::rethrow_exception(eptr);
-    } catch (const std::exception& e) {
-        return fmt::format("{}: {}", typeid(e), e.what());
-    } catch (const std::string& s) {
-        return fmt::format("std::string: {}", s);
-    } catch (const char* s) {
-        return fmt::format("const char*: {}", s ? s : "(null)");
-    } catch (int v) {
-        return fmt::format("int: {}", v);
-    } catch (...) {
-        return "non-std exception type";
-    }
-}
+// DescribeCurrentException() now lives in xlExceptionDescribe.h. The local copy
+// this replaces could not name a Cocoa NSException, so a Metal/AVFoundation
+// raise on a render thread was logged as "non-std exception type".
 
 
 class JobPoolWorker
