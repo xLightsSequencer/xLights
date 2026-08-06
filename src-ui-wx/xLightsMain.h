@@ -1642,6 +1642,7 @@ public:
     void NewSequence(const std::string& media = "", uint32_t durationMS = 0, uint32_t frameMS = 0, const std::string& defView = "");
     void SaveAsSequence();
     void SaveAsSequence(const std::string& filename);
+    bool IsSequenceInShowDir(const wxString& filename) const;
     wxString GetLastSequenceDialogDir() const;
     void SetLastSequenceDialogDir(const wxString& dir);
     void SetPasteByCell();
