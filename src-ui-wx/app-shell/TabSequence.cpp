@@ -1606,6 +1606,17 @@ void xLightsFrame::SaveSequence()
         return;
     }
 
+    if (CurrentSeqXmlFile != nullptr && !CurrentSeqXmlFile->GetFullPath().empty()) {
+        if (!IsSequenceInShowDir(CurrentSeqXmlFile->GetFullPath())) {
+            wxFileName fnDir(CurrentDir, "");
+            fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+            wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
+            DisplayError("Sequence files must be saved within the current show directory:\n" + showPath +
+                         "\n\nPlease use Save As to save this sequence inside the show directory.", this);
+            return;
+        }
+    }
+
     wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
     wxPostEvent(this, playEvent);
 
@@ -1638,6 +1649,17 @@ void xLightsFrame::SaveSequence()
             if (NewFilename.IsEmpty()) {
                 ok=false;
                 DisplayError("File name cannot be empty", this);
+            }
+            if (ok) {
+                if (!IsSequenceInShowDir(NewFilename)) {
+                    ok = false;
+                    wxFileName fnDir(CurrentDir, "");
+                    fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+                    wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
+                    DisplayError("Sequence files must be saved within the current show directory:\n" + showPath +
+                                 "\n\nPlease choose a location inside the show directory.", this);
+                    fd.SetDirectory(CurrentDir);
+                }
             }
         }
         while (!ok);
@@ -1820,6 +1842,22 @@ void xLightsFrame::SetLastSequenceDialogDir(const wxString& dir)
     GetXLightsConfig()->Flush();
 }
 
+bool xLightsFrame::IsSequenceInShowDir(const wxString& filename) const
+{
+    if (filename.IsEmpty()) return false;
+    wxFileName fnFile(filename);
+    fnFile.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    wxFileName fnDir(CurrentDir, "");
+    fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+    wxString filePath = fnFile.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
+    wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
+#ifdef __WXMSW__
+    return filePath.StartsWith(showPath) || filePath.Lower().StartsWith(showPath.Lower());
+#else
+    return filePath.StartsWith(showPath);
+#endif
+}
+
 void xLightsFrame::SaveAsSequence()
 {
     if (readOnlyMode) {
@@ -1863,14 +1901,11 @@ void xLightsFrame::SaveAsSequence()
             DisplayError("File name cannot be empty", this);
         }
         if (ok) {
-            wxFileName fnFile(newFilename);
-            fnFile.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
-            wxFileName fnDir(CurrentDir, "");
-            fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
-            wxString filePath = fnFile.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
-            wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
-            if (!filePath.StartsWith(showPath)) {
+            if (!IsSequenceInShowDir(newFilename)) {
                 ok = false;
+                wxFileName fnDir(CurrentDir, "");
+                fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
+                wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
                 DisplayError("Sequence files must be saved within the current show directory:\n" + showPath +
                              "\n\nPlease choose a location inside the show directory.", this);
                 fd.SetDirectory(CurrentDir);

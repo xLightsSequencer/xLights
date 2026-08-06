@@ -796,6 +796,13 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
         AddToMRU(filename);
         UpdateRecentFilesList(false);
+
+        if (!_renderMode && !_checkSequenceMode && CurrentSeqXmlFile != nullptr) {
+            if (!IsSequenceInShowDir(CurrentSeqXmlFile->GetFullPath())) {
+                wxMessageBox(_("This sequence is located outside the current show directory.\n\nYou will not be able to save changes directly using Save. You must use Save As to save it within the show directory."),
+                             _("Sequence Outside Show Directory"), wxOK | wxICON_INFORMATION, this);
+            }
+        }
     }
 }
 
