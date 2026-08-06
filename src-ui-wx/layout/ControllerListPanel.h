@@ -101,6 +101,10 @@ private:
 
     xlPropertyGrid* _propGrid = nullptr;
     std::unique_ptr<ControllerPropertyAdapter> _adapter;
+    // GetFPPProxy() resolves the proxy hostname over the network; cache its result per
+    // controller selection so dragging/refreshing the same controller doesn't re-resolve.
+    Controller* _fppProxyCacheController = nullptr;
+    std::string _fppProxyCacheResolved;
     wxPanel* _propsPanel = nullptr;
     wxStaticText* _noSelectionHint = nullptr;
     wxStaticBitmap* _ledPing = nullptr;

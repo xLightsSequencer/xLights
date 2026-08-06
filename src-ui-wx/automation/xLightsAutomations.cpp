@@ -853,7 +853,9 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         if (filename == "" || filename == "null") {
             filename = CurrentDir + wxFileName::GetPathSeparator() + CurrentSeqXmlFile->GetName() + ".mp4";
         }
-        auto const worked = ExportVideoPreview(filename);
+        int width = params["width"].empty() ? -1 : (int)std::strtol(params["width"].c_str(), nullptr, 10);
+        int height = params["height"].empty() ? -1 : (int)std::strtol(params["height"].c_str(), nullptr, 10);
+        auto const worked = ExportVideoPreview(filename, width, height);
         if (worked) {
             std::string response = wxString::Format("{\"msg\":\"Export Video Preview.\",\"output\":\"%s\"}", JSONSafe(filename));
             return sendResponse(response, "", 200, true);

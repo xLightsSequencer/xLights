@@ -649,11 +649,32 @@ Keep descriptions brief (1-2 lines). Indent continuation lines to align with the
 description start. If the release at the top has a concrete date with no `?` in
 it, start a new release above it.
 
-**Do NOT add iPad-specific changes to `README.txt`.** It is the **desktop**
-release-notes file — iPad-only entries just clutter it. iPad changes go in the
-parity plans (§3): update the matching feature's scorecard status (→ ✅ / 🟡).
-Git history is the iPad changelog. Changes that touch shared `src-core/` code
-**and** user-visible desktop behavior still belong in `README.txt`.
+### iPad entries
+
+The iPad app ships to real users, so its changes belong in `README.txt` too.
+Prefix an iPad-only entry with `iPad - `:
+
+```
+    -enh (author)                iPad - Description of the enhancement
+    -bug (author)                iPad - Description of the bug fix
+```
+
+Which prefix to use:
+
+| Change | Entry |
+|---|---|
+| iPad-only (`src-iPad/`) | One entry, prefixed `iPad - ` |
+| Desktop-only (`src-ui-wx/`) | One entry, no prefix |
+| Shared (`src-core/`) affecting both, same user-visible behavior | One entry, no prefix — don't split it in two |
+| Shared, but the platforms surface it differently | Separate entries so each reads correctly for its audience |
+
+Write the entry for the user of that platform, not for the diff: describe what
+changed for someone using the app, not which files moved. A pure refactor with
+no user-visible effect on either platform still gets no entry at all.
+
+This does **not** replace the parity plans (§3) — a change still updates the
+matching scorecard row. `README.txt` says what shipped; the scorecards say where
+the two platforms stand relative to each other.
 
 ---
 

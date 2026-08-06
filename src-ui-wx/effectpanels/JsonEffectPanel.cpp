@@ -34,6 +34,7 @@
 #include "effects/RenderableEffect.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
+#include "models/SubModel.h"
 #include "render/SequenceElements.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
@@ -2039,10 +2040,14 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
     RepopulateTimingTrackChoices();
 
     // Populate model-driven choices (states, faces, modelNodeNames). For
-    // ModelGroups, use the first contained model — matches legacy behavior.
+    // ModelGroups, use the first contained model (unwrapping submodels/nested groups).
     Model* m = cls;
-    if (cls != nullptr && cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        m = static_cast<ModelGroup*>(cls)->GetFirstModel();
+    if (cls != nullptr) {
+        if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            m = static_cast<ModelGroup*>(cls)->GetFirstModel();
+        } else if (cls->GetDisplayAs() == DisplayAsType::SubModel) {
+            m = static_cast<SubModel*>(cls)->GetParent();
+        }
     }
 
     auto populateFromDefinitions = [this, m](const std::string& sourceName, const FaceStateData& defs) {

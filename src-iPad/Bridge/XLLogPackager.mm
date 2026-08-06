@@ -1,4 +1,5 @@
 #import "XLLogPackager.h"
+#import "XLCrashCapture.h"
 #import "XLSequenceDocument.h"
 
 #import <UIKit/UIKit.h>
@@ -6,11 +7,14 @@
 #import <sys/utsname.h>
 #import <mach/mach.h>
 
+#include <list>
 #include <string>
 
 #include "utils/Parallel.h"
 #include "utils/RangeWorkPool.h"
+#include "utils/TraceLog.h"
 #include "utils/UtilFunctions.h"
+#include "utils/xlCrashCapture.h"
 
 namespace {
 
@@ -101,6 +105,17 @@ NSString* DeviceInfoText() {
 NSString* ThreadsText() {
     std::string status = "Parallel Job Pool:\n";
     status += ParallelForPool().GetStatus();
+
+    // The dashboard's "breadcrumbs" come from these, and they are what turns a
+    // stack into a reproducible report - the desktop has shipped them in
+    // threads.txt for a while, the iPad was dropping them on the floor.
+    status += "\nThread traces:\n";
+    std::list<std::string> traceMessages;
+    TraceLog::GetTraceMessages(traceMessages);
+    for (auto const& a : traceMessages) {
+        status += a;
+        status += "\n";
+    }
     return [NSString stringWithUTF8String:status.c_str()];
 }
 
@@ -220,6 +235,19 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
                       encoding:NSUTF8StringEncoding
                          error:nil];
 
+    // Every thread's stack right now. After a crash this describes the new
+    // session rather than the dead one (xLightsCrash.prev.txt carries that),
+    // but it is what makes a hang or a runaway-CPU report actionable - those
+    // never crash, so there is no other moment to catch them at.
+    std::string allThreads = xlCrashCapture::BuildAllThreadsReport();
+    if (!allThreads.empty()) {
+        [[NSString stringWithUTF8String:allThreads.c_str()]
+            writeToFile:[stagingDir.path stringByAppendingPathComponent:@"all-threads.txt"]
+             atomically:YES
+               encoding:NSUTF8StringEncoding
+                  error:nil];
+    }
+
     // 5. Zip via NSFileCoordinator. .forUploading hands back a
     //    temporary zipped copy of the directory; copy it into the
     //    caller's chosen destination directory.
@@ -258,6 +286,12 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
             [fm removeItemAtPath:[diagnosticsSrc stringByAppendingPathComponent:name]
                            error:nil];
         }
+        // Same reasoning as the JSONs above: the crash record is durable inside
+        // the zip now, so drop the source or every later bundle reships it and
+        // one crash is counted once per upload.
+        [fm removeItemAtPath:[logsDir stringByAppendingPathComponent:
+                                          XLCrashCapture.pendingRecordFileName]
+                       error:nil];
     }
 
     if (coordErr) {
