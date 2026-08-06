@@ -16,6 +16,11 @@
 #include <cstdint>
 #include <filesystem>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
+#if !TARGET_OS_IPHONE
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -23,8 +28,11 @@ extern "C" {
 #include <libavutil/opt.h>
 #include <libswscale/swscale.h>
 }
+#endif
 
 #include <log.h>
+
+#if !TARGET_OS_IPHONE
 
 namespace {
 
@@ -85,12 +93,28 @@ struct Cleanup {
 
 } // namespace
 
+#endif
+
 std::string VideoTranscoder::SuggestedOutputPath(const std::string& inputPath)
 {
     std::filesystem::path p(inputPath);
     p.replace_extension(".mov");
     return p.string();
 }
+
+#if TARGET_OS_IPHONE
+
+// Transcoding exists to rescue files AVFoundation cannot decode, so the
+// decode side has to be FFmpeg - which iOS does not link. Anything that
+// would need converting here is unreadable on the device by definition.
+std::string VideoTranscoder::Transcode(const std::string& /*inputPath*/,
+                                       const std::string& /*outputPath*/,
+                                       ProgressCallback /*progress*/)
+{
+    return "Video conversion is not available on this platform";
+}
+
+#else
 
 std::string VideoTranscoder::Transcode(const std::string& inputPath,
                                        const std::string& outputPath,
@@ -309,3 +333,5 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
     spdlog::debug("Transcoded {} -> {} ({} frames, {})", inputPath, outputPath, framesEmitted, params.videoCodec);
     return "";
 }
+
+#endif
