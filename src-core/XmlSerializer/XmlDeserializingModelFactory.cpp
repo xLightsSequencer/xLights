@@ -1172,6 +1172,7 @@ void XmlDeserializingModelFactory::DeserializeDmxMotor(DmxMotor* motor, pugi::xm
     motor->SetOrientZero(node.attribute(XmlNodeKeys::OrientZeroAttribute).as_int(0));
     motor->SetOrientHome(node.attribute(XmlNodeKeys::OrientHomeAttribute).as_int(0));
     motor->SetSlewLimit(node.attribute(XmlNodeKeys::SlewLimitAttribute).as_float(0.0f));
+    motor->SetSpeedChannel(node.attribute(XmlNodeKeys::SpeedChannelAttribute).as_int(0));
     motor->SetReverse(std::string_view(node.attribute(XmlNodeKeys::ReverseAttribute).as_string("0")) == "1");
     motor->SetUpsideDown(std::string_view(node.attribute(XmlNodeKeys::UpsideDownAttribute).as_string("0")) == "1");
 }

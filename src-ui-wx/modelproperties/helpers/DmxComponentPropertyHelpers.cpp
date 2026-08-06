@@ -240,6 +240,12 @@ void AddMotorProperties(wxPropertyGridInterface* grid, const DmxMotor& motor) {
     p->SetAttribute("Step", 0.1);
     p->SetEditor("SpinCtrl");
 
+    p = grid->Append(new wxUIntProperty("Speed Channel", base_name + "SpeedChannel", motor.GetSpeedChannel()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 512);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("Optional DMX channel that scales the Slew Limit (0-255 -> 0-100% of the Slew Limit). Leave at 0 to always move at the full Slew Limit.");
+
     p = grid->Append(new wxBoolProperty("Reverse Rotation", base_name + "Reverse", motor.GetReverse()));
     p->SetAttribute("UseCheckbox", true);
 
@@ -300,6 +306,12 @@ int OnMotorPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent
         base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::SlewLimit");
         base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::SlewLimit");
         base->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "DmxMotor::OnPropertyGridChange::SlewLimit");
+        return 0;
+    } else if (base_name + "SpeedChannel" == name) {
+        motor.SetSpeedChannel((int)event.GetPropertyValue().GetLong());
+        base->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "DmxMotor::OnPropertyGridChange::SpeedChannel");
+        base->AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "DmxMotor::OnPropertyGridChange::SpeedChannel");
+        base->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "DmxMotor::OnPropertyGridChange::SpeedChannel");
         return 0;
     } else if (base_name + "Reverse" == name) {
         motor.SetReverse(event.GetValue().GetBool());

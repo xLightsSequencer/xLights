@@ -8462,9 +8462,9 @@ static void AppendDmxDimmerProps(const DmxDimmerAbility& dim, NSMutableArray* ou
                                  dim.GetDimmerChannel(), 0, 512)];
 }
 
-// J-3 (DMX) — emit a DmxMotor's 10 knobs (channel coarse/fine,
+// J-3 (DMX) — emit a DmxMotor's 11 knobs (channel coarse/fine,
 // min/max limit, range of motion, orient zero/home, slew limit,
-// reverse, upside down). Key prefix is the motor's `base_name`
+// speed channel, reverse, upside down). Key prefix is the motor's `base_name`
 // (`PanMotor` / `TiltMotor`) so the setter side can route via the
 // shared keys (`PanMotorChannelCoarse`, …, `TiltMotorUpsideDown`).
 // Matches desktop's `DmxComponentPropertyHelpers::
@@ -8505,6 +8505,9 @@ static void AppendDmxMotorProps(const DmxMotor& motor, NSMutableArray* out) {
                                     @"Slew Limit (deg/sec)",
                                     (double)motor.GetSlewLimit(),
                                     0.0, 500.0, 0.1, 2)];
+    [out addObject:MakeIntProp([base stringByAppendingString:@"SpeedChannel"],
+                                 @"Speed Channel",
+                                 motor.GetSpeedChannel(), 0, 512)];
     [out addObject:MakeBoolProp([base stringByAppendingString:@"Reverse"],
                                   @"Reverse Rotation",
                                   motor.GetReverse() ? YES : NO)];
@@ -10427,6 +10430,9 @@ static void BuildCustomProps(CustomModel* cm, NSMutableArray* out) {
             if (std::fabs((double)motor->GetSlewLimit() - v) > 1e-3) {
                 motor->SetSlewLimit((float)v); changed = YES;
             }
+        } else if (suffix == "SpeedChannel") {
+            int v = asInt(&ok); if (!ok) return NO;
+            if (motor->GetSpeedChannel() != v) { motor->SetSpeedChannel(v); changed = YES; }
         } else if (suffix == "Reverse") {
             BOOL v = asBool(&ok); if (!ok) return NO;
             if (motor->GetReverse() != (bool)v) { motor->SetReverse(v); changed = YES; }

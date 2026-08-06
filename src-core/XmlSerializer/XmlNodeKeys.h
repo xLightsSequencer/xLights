@@ -238,6 +238,7 @@ namespace XmlNodeKeys {
     constexpr auto OrientZeroAttribute    = "OrientZero";
     constexpr auto OrientHomeAttribute    = "OrientHome";
     constexpr auto SlewLimitAttribute     = "SlewLimit";
+    constexpr auto SpeedChannelAttribute  = "SpeedChannel";
     constexpr auto UpsideDownAttribute    = "UpsideDown";
 
     // Servo Model
