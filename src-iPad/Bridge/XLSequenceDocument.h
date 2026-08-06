@@ -2276,6 +2276,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)startOutput;
 - (void)stopOutput;
 - (BOOL)isOutputting;
+// Send an all-channels-zero frame so the lights don't hold the last
+// rendered frame. No-op when output isn't running.
+- (void)blankOutputs;
 - (void)outputFrame:(int)frameMS;
 - (NSInteger)outputCount;
 
@@ -3202,8 +3205,17 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   @"needsReselect"      — NSNumber BOOL (optional; YES when
 //                            the bookmark is stale and the
 //                            user should re-pick the folder)
+// Both variants save what they merged before returning.
 - (NSDictionary*)updateFromBaseShowDirectory
     NS_SWIFT_NAME(updateFromBaseShowDirectory());
+
+// Same, but with `skipUnchanged` YES the controller merge is skipped
+// when the base networks file hasn't changed since the last one — the
+// show-open path, mirroring desktop's `NeedsBaseControllersUpdate()`
+// gate. The explicit "Update From Base Now" action passes NO. The
+// model / view-object passes always run; see the .mm for why.
+- (NSDictionary*)updateFromBaseShowDirectorySkippingUnchanged:(BOOL)skipUnchanged
+    NS_SWIFT_NAME(updateFromBaseShowDirectory(skippingUnchanged:));
 
 // Phase J-31.6 — push the show's pixel-string / model
 // configuration to a physical controller via its HTTP API.

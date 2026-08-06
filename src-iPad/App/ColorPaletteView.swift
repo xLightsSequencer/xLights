@@ -96,8 +96,8 @@ struct ColorPaletteView: View {
             set: { swatchPickerSlot = $0?.id }
         )) { ref in
             let buttonKey = "C_BUTTON_Palette\(ref.id)"
-            let defaultHex = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00",
-                               "#FFFFFF", "#000000", "#FFA500", "#800080"][ref.id - 1]
+            let defaultHex = ["#FFFFFF", "#FF0000", "#00FF00", "#0000FF",
+                               "#FFFF00", "#000000", "#00FFFF", "#FF00FF"][ref.id - 1]
             let current = viewModel.settingValue(forKey: buttonKey, defaultValue: defaultHex)
             XLColorSwatchPicker(initialHex: current) { hex in
                 viewModel.setSettingValue(hex, forKey: buttonKey)
@@ -239,9 +239,10 @@ struct ColorPaletteView: View {
         let checkboxKey = "C_CHECKBOX_Palette\(slot)"
         let buttonKey = "C_BUTTON_Palette\(slot)"
 
-        // Default palette colors — match desktop's first-run palette.
-        let defaultHex = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00",
-                          "#FFFFFF", "#000000", "#FFA500", "#800080"][slot - 1]
+        // Default palette colors — match desktop's first-run palette
+        // (`ColorPanel::SetDefaultPalette`), in the same slot order.
+        let defaultHex = ["#FFFFFF", "#FF0000", "#00FF00", "#0000FF",
+                          "#FFFF00", "#000000", "#00FFFF", "#FF00FF"][slot - 1]
 
         let enabledBinding = Binding<Bool>(
             get: {

@@ -516,7 +516,6 @@ struct FolderConfigView: View {
         let controllersChanged = result["controllersChanged"] as? Bool ?? false
         let modelsChanged = result["modelsChanged"] as? Bool ?? false
         let objectsChanged = result["objectsChanged"] as? Bool ?? false
-        _ = viewModel.document.saveLayoutChanges()
 
         if !controllersChanged && !modelsChanged && !objectsChanged {
             updateResult = BaseDirUpdateResult(

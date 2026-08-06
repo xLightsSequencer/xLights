@@ -18,28 +18,28 @@ fine-grained — a menu entry, a dialog field, a gesture):
 
 | Theme | ✅ | 🟡 | ❌ | 🚫 | 🔵 | Biggest gap in one line |
 |---|---|---|---|---|---|---|
-| 01 File & show lifecycle | 69 | 47 | 37 | 8 | 18 | iPad "backup" is a per-sequence snapshot ring; no show-folder backup/restore (feasibility under the sandbox verified — it's backlog, not a platform limit) |
+| 01 File & show lifecycle | 69 | 48 | 36 | 8 | 18 | iPad "backup" is a per-sequence snapshot ring; no show-folder backup/restore (feasibility under the sandbox verified — it's backlog, not a platform limit) |
 | 02 Sequencer grid & editing | 116 | 37 | 31 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
 | 03 Timing, lyrics & audio | 112 | 20 | 22 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
 | 04 Effects catalog & panels | 83 | 11 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
-| 05 Color, palettes & curves | 68 | 18 | 27 | 3 | 11 | Curve editors have no session-scoped Cancel/revert; different default palette than desktop on a fresh effect |
+| 05 Color, palettes & curves | 70 | 16 | 27 | 3 | 11 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
 | 06 Layout, models, 3D | 163 | 50 | 70 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
-| 07 Controllers, outputs, upload | 59 | 39 | 35 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
-| 08 Import & export | 49 | 11 | 44 | 1 | 4 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
-| 09 Render & playback | 58 | 12 | 22 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; outputs not blanked on Stop |
-| 10 Presets, views, jukebox | 45 | 14 | 25 | 4 | 3 | **View edits are never saved** (no `<views>` writer — confirmed definitively); preset formats don't interchange |
+| 07 Controllers, outputs, upload | 60 | 39 | 34 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
+| 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
+| 09 Render & playback | 59 | 12 | 21 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
+| 10 Presets, views, jukebox | 46 | 14 | 24 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
-| 12 AI, automation, scripting | 37 | 6 | 3 | 102 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
-| 13 Tools, diagnostics, help | 49 | 15 | 16 | 5 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **941** | **299** | **385** | **157** | **91** | |
+| 12 AI, automation, scripting | 39 | 8 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
+| 13 Tools, diagnostics, help | 52 | 13 | 16 | 5 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
+| **Total (01–13)** | **952** | **298** | **381** | **158** | **90** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,625 rows where an iPad status is meaningful (✅+🟡+❌), **58%** are
-at full parity and **76%** at full-or-partial. Counting partials at half weight the iPad sits
-at **≈67% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
-writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (157) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
+**Parity index:** of the 1,631 rows where an iPad status is meaningful (✅+🟡+❌), **58%** are
+at full parity and **77%** at full-or-partial. Counting partials at half weight the iPad sits
+at **≈68% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
+writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (158) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
 
 **The structural headline:** the iPad is not a viewer. It creates 25/28 model types, runs all
 six discovery scanners, renders 52/56 effects with shared-core fidelity, imports 11 of 13
@@ -87,20 +87,20 @@ All survived adversarial re-verification.
 
 | # | Gap | Where | Why it's S1 |
 |---|---|---|---|
-| 1 | View create/rename/clone/delete/membership edits **evaporate on relaunch** — iPad reads `<views>` but has no writer | 10 r71 | Confirmed definitively: sole `SequenceViewManager::Save` caller is desktop `TabSequence.cpp:115`; the iPad's three rgbeffects writers never emit a views node. Small fix (`SaveViews()` mirroring `SaveViewpoints()`) |
+| 1 | ~~View create/rename/clone/delete/membership edits **evaporate on relaunch**~~ | 10 r71 | **FIXED 2026-08-06** — `iPadRenderContext::SaveViews()` writes the `<views>` subtree from the shared `SequenceViewManager::Save`; every view mutation writes through, and model rename now renames through the views too |
 | 2 | No show-folder backup or restore; snapshot ring covers the current `.xsq` only. Corrupt your layout on iPad → no recovery path | 01 r108–110 | Cross-check killed the old "sandbox makes this infeasible" claim: the write grant is already folder-wide and the tree walk exists — this is backlog, not platform limit |
 | 3 | Autosave never covers `xlights_rgbeffects.xml` / `xlights_effectpresets.json`; no recovery prompt for either | 01 r95–96 | Layout edits protected only by explicit saves |
 | 4 | Frame-interval change rewrites timing without desktop's save/close/reopen snap cycle — existing effects silently go off-grid | 01 r146 | Correctness; either port the cycle or restrict to empty sequences |
-| 5 | Base-show-folder merge re-runs unconditionally on every show open (desktop skips when unchanged) | 01 r179 | Cheapest fix in theme 01 — one existing core predicate call (`OutputManager.cpp:465`) |
+| 5 | Base-show-folder merge re-runs unconditionally on every show open (desktop skips when unchanged) — **controllers half FIXED 2026-08-06**; models/objects still re-merge | 01 r179 | The controller pass now gates on the core `NeedsBaseControllersUpdate()`. The models/objects pass **cannot** be gated until its merge is persisted: it only mutates the in-memory ModelManager, and the unconditional re-merge is what makes it reappear each open. Persist first, then gate — that half is where the mesh-access cost is |
 | 6 | No render dependency tracking — nothing polls `GetElementsToRender`; effects depending on a timing track or another model go stale until Render All | 09 r7 | Wrong output, invisible cause |
-| 7 | Stop doesn't blank outputs — lights hold the last frame (`AllOff()` is one call away) | 09 r88 | Real hardware left lit |
+| 7 | ~~Stop doesn't blank outputs — lights hold the last frame~~ | 09 r88 | **FIXED 2026-08-06** — `blankOutputs` calls `AllOff()` from Stop and both natural end-of-playback paths; `stopOutput` blanks before closing |
 | 8 | FPP Connect hardcodes FSEQ type V2-sparse/zstd — devices needing V1/uncompressed get unplayable files, Falcon V4/V5 get zstd where desktop sends zlib, Genius/PowerDMX get type 2 where desktop forces 3 | 07 r69 | Cross-check broadened this from one bug to three mis-served device families |
-| 9 | `DidConvert` never consulted — legacy `xlights_networks.xml` re-migrated every open; and no `NetworkChangesAllowed()` guard — controllers editable mid-output | 07 | Two silent-correctness gaps, fix before controller UI work |
-| 10 | 45 | 14 | 25 |
+| 9 | `DidConvert` never consulted — legacy `xlights_networks.xml` re-migrated every open. (The `NetworkChangesAllowed()` half — controllers editable mid-output — was **FIXED 2026-08-06**, 07 r26) | 07 | Silent-correctness gap, fix before controller UI work |
+| 10 | 46 | 14 | 24 |
 | 11 | 33 | 19 | 51 |
-| 12 | 37 | 6 | 3 |
-| 13 | 49 | 15 | 16 |
-| 14 | Different default palette colors *and* default-enabled slots — the same new effect looks different per platform | 05 r5–6 | Two-line fix |
+| 12 | 39 | 8 | 3 |
+| 13 | 52 | 13 | 16 |
+| 14 | ~~Different default palette colors *and* default-enabled slots~~ | 05 r5–6 | **FIXED 2026-08-06** — the new-effect seed now carries desktop's eight colours in desktop's slot order plus `C_CHECKBOX_Palette1/2=1`; without the checkboxes `ParseColorMap` gave the effect an empty colour list |
 | 15 | Missing `SetDefaultParameters` seeding on effect drop — Faces/State land wrong-looking | 04 | Only theme-04 gap that produces wrong output |
 | 16 | AI-generated images land as loose files, never embedded — sequence moved off the iPad loses them | 12 r34 | Self-containment |
 | 17 | Alt-timing-track playback routes different audio than desktop for the same selection | 03 r125 | Behaviour trap, flagged intentional in code |

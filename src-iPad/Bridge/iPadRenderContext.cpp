@@ -599,6 +599,41 @@ bool iPadRenderContext::SaveViewpoints() {
     return true;
 }
 
+bool iPadRenderContext::SaveViews() {
+    if (showDirectory.empty()) return false;
+    std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
+    if (!ObtainAccessToURL(rgbPath, true)) {
+        spdlog::warn("iPadRenderContext::SaveViews: ObtainAccessToURL failed for '{}' — write will likely fail", rgbPath);
+    }
+
+    pugi::xml_document doc;
+    auto result = doc.load_file(rgbPath.c_str());
+    if (!result) {
+        spdlog::error("iPadRenderContext::SaveViews: load failed: {}",
+                      result.description());
+        return false;
+    }
+    auto root = doc.child("xrgb");
+    if (!root) root = doc.child("xlights");
+    if (!root) {
+        spdlog::error("iPadRenderContext::SaveViews: no root element");
+        return false;
+    }
+
+    while (auto existing = root.child("views")) {
+        root.remove_child(existing);
+    }
+    XmlSerializingVisitor visitor(root);
+    _sequenceViewManager.Save(visitor);
+
+    if (!doc.save_file(rgbPath.c_str(), "  ")) {
+        spdlog::error("iPadRenderContext::SaveViews: write failed for {}",
+                      rgbPath);
+        return false;
+    }
+    return true;
+}
+
 bool iPadRenderContext::SaveModelStates() {
     if (_dirtyStateModels.empty()) return true;
     if (showDirectory.empty()) return false;

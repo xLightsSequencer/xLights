@@ -433,6 +433,13 @@ public:
     // viewpoint edits are a rare user action.
     bool SaveViewpoints();
 
+    // Rewrite just the `<views>` subtree of the on-disk
+    // xlights_rgbeffects.xml, same load-modify-write shape as
+    // SaveViewpoints(). View definitions (name + ordered model list)
+    // live in the show file, not the sequence, so a view edit is only
+    // durable once this runs.
+    bool SaveViews();
+
     // Mark a model as having dirty in-memory <stateInfo> so the next
     // SaveModelStates() call rewrites its on-disk entry. DMX state
     // saves are the current caller; future model-edit flows can

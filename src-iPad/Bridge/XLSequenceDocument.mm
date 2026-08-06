@@ -3435,6 +3435,18 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         postNotificationName:@"XLViewsChanged" object:self];
 }
 
+// View definitions live in xlights_rgbeffects.xml, not the .xsq, so
+// marking the sequence dirty is not enough to make a view edit
+// durable — every mutation of the SequenceViewManager writes through.
+// Element visibility and timing membership (which live in the .xsq)
+// deliberately don't call this.
+- (void)persistViews {
+    if (!_context) return;
+    if (!_context->SaveViews()) {
+        spdlog::warn("XLSequenceDocument: view edit applied in memory but SaveViews failed — change is session-scoped");
+    }
+}
+
 - (BOOL)addViewNamed:(NSString*)name {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     if (!name) return NO;
@@ -3450,6 +3462,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     // view index is addressable via GetElement(i, viewIdx).
     _context->GetSequenceElements().AddView(n);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3477,6 +3490,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         se.PopulateRowInformation();
     }
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3499,6 +3513,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     // stale view names there are silently dropped at load. Match that
     // behaviour to avoid surprising round-trip side effects.
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3552,6 +3567,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
 
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3564,6 +3580,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     if (idx >= vm.GetViewCount()) return NO;
     vm.MoveViewUp(idx);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3575,6 +3592,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     if (idx >= vm.GetViewCount() - 1) return NO;
     vm.MoveViewDown(idx);
     _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3639,6 +3657,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
     se.PopulateRowInformation();
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3659,6 +3678,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         se.PopulateRowInformation();
     }
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3680,6 +3700,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
         se.PopulateRowInformation();
     }
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return YES;
 }
@@ -3795,6 +3816,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
 
     se.IncrementChangeCount(nullptr);
+    [self persistViews];
     [self postViewsChanged];
     return [NSString stringWithUTF8String:viewName.c_str()];
 }
@@ -5629,6 +5651,15 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
 
     _context->MarkModelRenamed(oldStd, newStd);
     _context->MarkLayoutModelDirty(newStd);
+
+    // Views reference their models by name in xlights_rgbeffects.xml,
+    // so a rename that skipped them would silently drop the model from
+    // every view it belonged to (desktop TabSequence.cpp:1020-1021).
+    _context->GetSequenceViewManager().RenameModel(oldStd, newStd);
+    [self persistViews];
+    if (_context->IsSequenceLoaded()) {
+        _context->GetSequenceElements().RenameModelInViews(oldStd, newStd);
+    }
 
     // Any group whose member list referenced the old name will
     // now reference the new — mark those groups dirty too so the
@@ -10829,8 +10860,8 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
     // Fallback defaults match `ColorPaletteView` so a new / partly-
     // populated palette still serialises as 8 slots.
     static const char* defaults[8] = {
-        "#FF0000", "#00FF00", "#0000FF", "#FFFF00",
-        "#FFFFFF", "#000000", "#FFA500", "#800080",
+        "#FFFFFF", "#FF0000", "#00FF00", "#0000FF",
+        "#FFFF00", "#000000", "#00FFFF", "#FF00FF",
     };
     NSMutableString* out = [NSMutableString string];
     for (int i = 0; i < 8; i++) {
@@ -12262,7 +12293,22 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 }
 
 - (void)stopOutput {
-    _context->GetOutputManager().StopOutput();
+    // Blank before closing — StopOutput only closes the outputs, so
+    // without this the lights hold the last frame sent (desktop
+    // DisableOutputs does AllOff() then StopOutput()).
+    auto& om = _context->GetOutputManager();
+    if (om.IsOutputting()) {
+        om.AllOff();
+    }
+    om.StopOutput();
+}
+
+- (void)blankOutputs {
+    if (!_context) return;
+    auto& om = _context->GetOutputManager();
+    if (om.IsOutputting()) {
+        om.AllOff();
+    }
 }
 
 - (XLLightTest*)lightTest {
@@ -16830,6 +16876,10 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
 }
 
 - (NSDictionary*)updateFromBaseShowDirectory {
+    return [self updateFromBaseShowDirectorySkippingUnchanged:NO];
+}
+
+- (NSDictionary*)updateFromBaseShowDirectorySkippingUnchanged:(BOOL)skipUnchanged {
     if (!_context) {
         return @{ @"error": @"No show folder loaded.",
                   @"controllersChanged": @NO,
@@ -16878,12 +16928,37 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     bool acceptAll = false;
     bool rejectAll = false;
 
+    // The automatic on-open path skips the controller merge when the
+    // base networks file hasn't changed since the last one (desktop
+    // TabSetup.cpp:495). The explicit "Update From Base Now" button
+    // stays unconditional, matching desktop's menu action, so the user
+    // always has a way to force the merge. The checkpoint is only
+    // recorded when the base file actually loaded — a failed load
+    // leaves it unset so the merge is retried on the next open.
+    //
+    // The model / view-object passes below are deliberately NOT gated
+    // the same way, even though desktop gates them on
+    // NeedsBaseRgbEffectsUpdate (TabSequence.cpp:686). Their merge
+    // results only exist in memory here: ModelManager::MergeFromBase
+    // mutates the manager, and SaveLayoutChanges only rewrites models
+    // in the bridge's own dirty set, which core code cannot reach. The
+    // unconditional re-merge on every open is what makes those changes
+    // appear at all. Gating them requires persisting the merge first.
+    const bool doControllers = !skipUnchanged || om.NeedsBaseControllersUpdate();
+
     BOOL controllersChanged = NO;
-    bool controllersDidChange = false;
-    om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr, &controllersDidChange);
-    if (controllersDidChange) {
-        controllersChanged = YES;
-        [self recalcAndMarkControllersDirty];
+    if (doControllers) {
+        bool controllersDidChange = false;
+        if (om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr, &controllersDidChange)) {
+            om.MarkBaseControllersSynced();
+            // The checkpoint lives in the networks file alongside the
+            // controllers it describes, so it needs that same save.
+            _context->MarkControllersDirty();
+        }
+        if (controllersDidChange) {
+            controllersChanged = YES;
+            [self recalcAndMarkControllersDirty];
+        }
     }
 
     BOOL modelsChanged = NO;
@@ -16904,6 +16979,13 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         if (objectsDidChange) {
             objectsChanged = YES;
         }
+    }
+
+    // Flush whatever the merge produced. The controller checkpoint is
+    // part of that — it lives in the networks file, so recording it
+    // needs this save to land.
+    if (!_context->SaveLayoutChanges()) {
+        spdlog::warn("XLSequenceDocument: base show folder merge applied but the save failed");
     }
 
     return @{ @"controllersChanged": @(controllersChanged),

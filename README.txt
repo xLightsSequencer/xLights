@@ -11,6 +11,19 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 iPad - Views are saved again. Creating, renaming, cloning, deleting or changing the
+                                 models in a view was only kept in memory, so every view edit was lost on relaunch.
+                                 Renaming a model now updates the views that contain it too
+    -bug (dkulp)                 iPad - Blank the lights when playback stops, instead of leaving them holding the
+                                 last frame. Also blanks when output to lights is switched off
+    -bug (dkulp)                 iPad - Controllers can no longer be added, deleted, reordered, edited or uploaded
+                                 while the show is outputting to lights
+    -enh (dkulp)                 iPad - Opening a show that uses a base show folder no longer re-merges the base
+                                 controllers when that file hasn't changed since the last merge. "Update From Base
+                                 Now" still merges unconditionally
+    -bug (dkulp)                 iPad - A newly dropped effect now starts with the same palette as the desktop:
+                                 the same eight colours in the same order, with the first two enabled. Previously
+                                 no colour was enabled, so the new effect rendered with an empty palette
     -change (cybercop23)         Add warning prompt when opening a sequence outside the show directory. Save requires
                                  saving inside the show directory - Save As was already ensuring that path.
     -bug (kylegrymonprez)        Layout: on the Controllers tab, "Show on Layout" for a controller

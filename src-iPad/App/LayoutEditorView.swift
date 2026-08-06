@@ -1328,6 +1328,12 @@ struct LayoutEditorView: View {
         }
     }
 
+    /// Desktop's `ControllerListPanel::NetworkChangesAllowed()` — no
+    /// controller add/delete/reorder/edit/upload while the show is
+    /// driving lights. The show-folder half of desktop's predicate is
+    /// implied here: the Layout Editor can't open without one.
+    private var networkChangesAllowed: Bool { !viewModel.isOutputting }
+
     @ViewBuilder
     private var controllersList: some View {
         List(selection: controllerListBinding) {
@@ -1356,13 +1362,15 @@ struct LayoutEditorView: View {
                                     Label("Delete", systemImage: "trash")
                                 }
                                 .tint(.red)
+                                .disabled(!networkChangesAllowed)
                             }
                             // J-31.5 — disallow drag-reorder while a
                             // filter is active. The filter masks the
                             // real list order; reordering filtered
                             // items would silently scramble the
                             // hidden ones.
-                            .moveDisabled(!controllerFilter
+                            .moveDisabled(!networkChangesAllowed
+                                || !controllerFilter
                                 .trimmingCharacters(in: .whitespaces)
                                 .isEmpty)
                     }
@@ -1381,23 +1389,26 @@ struct LayoutEditorView: View {
                         } label: {
                             Label("Ethernet", systemImage: "network")
                         }
+                        .disabled(!networkChangesAllowed)
                         Button {
                             handleAddController(type: "Serial")
                         } label: {
                             Label("Serial", systemImage: "cable.connector")
                         }
+                        .disabled(!networkChangesAllowed)
                         Button {
                             handleAddController(type: "Null")
                         } label: {
                             Label("Null", systemImage: "circle.slash")
                         }
+                        .disabled(!networkChangesAllowed)
                         Divider()
                         Button {
                             startControllerDiscovery()
                         } label: {
                             Label("Discover…", systemImage: "antenna.radiowaves.left.and.right")
                         }
-                        .disabled(controllerDiscoveryRunning)
+                        .disabled(controllerDiscoveryRunning || !networkChangesAllowed)
                         Divider()
                         Button {
                             pendingBulkUploadConfirm = true
@@ -1405,7 +1416,8 @@ struct LayoutEditorView: View {
                             Label("Upload All…", systemImage: "icloud.and.arrow.up")
                         }
                         .disabled(openSourceUploadableControllerNames().isEmpty
-                                   || bulkUploadState != nil)
+                                   || bulkUploadState != nil
+                                   || !networkChangesAllowed)
                         Divider()
                         Menu {
                             Button("Name") { sortControllers(byMode: "name") }
@@ -2738,6 +2750,7 @@ struct LayoutEditorView: View {
                     token: summaryToken,
                     models: (viewModel.document.modelNames(forController: name) as [String]),
                     openSourceFirmware: osf,
+                    editingAllowed: networkChangesAllowed,
                     httpURL: httpURL,
                     proxyURL: proxyURL,
                     pingState: controllerPingStates[name],
@@ -2768,6 +2781,7 @@ struct LayoutEditorView: View {
                     commit: { key, value in
                         commitGlobalSetting(key: key, value: value)
                     })
+                    .disabled(!networkChangesAllowed)
             }
         }
     }
@@ -12342,6 +12356,7 @@ private struct LayoutEditorControllerDetailView: View {
     let token: Int
     let models: [String]
     let openSourceFirmware: Bool
+    let editingAllowed: Bool
     let httpURL: URL?
     let proxyURL: URL?
     let pingState: String?
@@ -12412,6 +12427,7 @@ private struct LayoutEditorControllerDetailView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                    .disabled(!editingAllowed)
                     Button {
                         onVisualize()
                     } label: {
@@ -12420,10 +12436,18 @@ private struct LayoutEditorControllerDetailView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                    .disabled(!editingAllowed)
                 }
             }
 
             Divider()
+
+            if !editingAllowed {
+                Label("Properties can't be edited while outputting to lights.",
+                      systemImage: "lock.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             ForEach(Array(descriptors.enumerated()), id: \.offset) { _, d in
                 ControllerDescriptorRow(
@@ -12432,6 +12456,7 @@ private struct LayoutEditorControllerDetailView: View {
                     token: token,
                     commit: commit)
             }
+            .disabled(!editingAllowed)
 
             Divider()
 

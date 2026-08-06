@@ -1226,15 +1226,13 @@ class SequencerViewModel {
         // result dictionary and save inside the detached task so only a
         // Sendable tuple crosses back to the main actor.
         let outcome = await Task.detached { [document] () -> (error: String?, needsReselect: Bool) in
-            let result = document.updateFromBaseShowDirectory()
+            // skippingUnchanged: the base folder is usually untouched
+            // between opens, so the controller merge is skipped when its
+            // base file hasn't moved. The bridge saves what it merged,
+            // including the checkpoint that makes the skip work.
+            let result = document.updateFromBaseShowDirectory(skippingUnchanged: true)
             if let error = result["error"] as? String {
                 return (error, result["needsReselect"] as? Bool ?? false)
-            }
-            let changed = result["controllersChanged"] as? Bool ?? false
-                       || result["modelsChanged"] as? Bool ?? false
-                       || result["objectsChanged"] as? Bool ?? false
-            if changed {
-                _ = document.saveLayoutChanges()
             }
             return (nil, false)
         }.value
@@ -2464,6 +2462,7 @@ class SequencerViewModel {
         isPaused = false
         playPositionMS = 0
         stopPlaybackTimer()
+        document.blankOutputs()
     }
 
     func togglePlayPause() {
@@ -2959,6 +2958,7 @@ class SequencerViewModel {
                         self.isPlaying = false
                         self.isPaused = false
                         self.stopPlaybackTimer()
+                        self.document.blankOutputs()
                         return
                     }
                     // B33 play-loop: wrap back to loopStart when the
@@ -2983,6 +2983,7 @@ class SequencerViewModel {
                         self.isPlaying = false
                         self.isPaused = false
                         self.stopPlaybackTimer()
+                        self.document.blankOutputs()
                         return
                     }
                     self.playPositionMS = pos
@@ -7120,18 +7121,26 @@ class SequencerViewModel {
     /// drop time. All eight `C_BUTTON_Palette*` entries are populated
     /// with the hex values the palette UI shows as swatch defaults,
     /// so flipping a `C_CHECKBOX_PaletteN` toggle on produces the
-    /// expected colour instead of `xlColor("") == black`. Checkboxes
-    /// stay off — matches the desktop ColorPanel-emitted string for
-    /// a fresh effect.
+    /// expected colour instead of `xlColor("") == black`.
+    ///
+    /// Colours and enabled slots both match what an untouched desktop
+    /// ColorPanel emits for a fresh effect: the default palette from
+    /// `ColorPanel::SetDefaultPalette()` with slots 1 and 2 checked
+    /// (`cb->SetValue(x < 2)` at construction, written out by
+    /// `GetColorString`). Without the two checkbox entries the new
+    /// effect renders with an empty colour list — `ParseColorMap`
+    /// only collects slots whose checkbox is set.
     static let defaultPaletteString = [
-        "C_BUTTON_Palette1=#FF0000",
-        "C_BUTTON_Palette2=#00FF00",
-        "C_BUTTON_Palette3=#0000FF",
-        "C_BUTTON_Palette4=#FFFF00",
-        "C_BUTTON_Palette5=#FFFFFF",
+        "C_BUTTON_Palette1=#FFFFFF",
+        "C_BUTTON_Palette2=#FF0000",
+        "C_BUTTON_Palette3=#00FF00",
+        "C_BUTTON_Palette4=#0000FF",
+        "C_BUTTON_Palette5=#FFFF00",
         "C_BUTTON_Palette6=#000000",
-        "C_BUTTON_Palette7=#FFA500",
-        "C_BUTTON_Palette8=#800080"
+        "C_BUTTON_Palette7=#00FFFF",
+        "C_BUTTON_Palette8=#FF00FF",
+        "C_CHECKBOX_Palette1=1",
+        "C_CHECKBOX_Palette2=1"
     ].joined(separator: ",")
 
     /// Tap-to-add flow from the grid: insert a new effect of the
