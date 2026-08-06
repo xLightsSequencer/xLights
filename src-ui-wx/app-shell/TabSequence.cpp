@@ -1529,8 +1529,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     _renderMode = b;
 
     printf("Processing file %s\n", (const char *)seq.c_str());
-    spdlog::info("=== Batch Render [{} remaining] HWAccel={} File: {}",
-                 fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", seq.ToStdString());
+    spdlog::info("=== Batch Render [{} remaining] HWAccel={} GPU={} File: {}",
+             fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", UseGPURendering() ? "ON" : "OFF", seq.ToStdString());
     LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
     OpenSequence(seq, nullptr, "", true);
     EnableSequenceControls(false);
