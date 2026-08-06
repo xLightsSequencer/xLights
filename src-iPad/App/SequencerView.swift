@@ -641,6 +641,12 @@ struct SequencerView: View {
             }
             .disabled(!viewModel.isSequenceLoaded)
             .help("Render all effects")
+            // Desktop opens its per-model progress dialog by double-
+            // clicking the status gauge; long-press is the touch
+            // equivalent on the control that carries the same gauge.
+            .onLongPressGesture {
+                viewModel.showingRenderProgress = true
+            }
 
             Spacer()
 

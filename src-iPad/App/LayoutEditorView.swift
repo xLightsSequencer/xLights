@@ -14391,6 +14391,13 @@ private struct LayoutEditorCanvasControls: View {
     let selectedModelName: String?
     @AppStorage("layoutEditor.handleScale") private var storedHandleScale: Int = 1
 
+    /// Saved viewpoints for this pane, pushed by the preview
+    /// coordinator on `.previewViewpointListChanged`.
+    @State private var viewpoints: [String] = []
+    @State private var appliedViewpoint: String? = nil
+    @State private var savePromptVisible: Bool = false
+    @State private var savePromptName: String = ""
+
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
             HStack(spacing: 4) {
@@ -14401,6 +14408,13 @@ private struct LayoutEditorCanvasControls: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
+
+            // Viewpoints — desktop has these on the Layout preview
+            // (LayoutPanel.cpp:7648-7686 save / load / delete /
+            // set-default / restore-default). PreviewPaneView already
+            // answers the command for any pane; this overlay just never
+            // posted it.
+            viewpointMenu
 
             HStack(spacing: 4) {
                 Button {
@@ -14520,7 +14534,93 @@ private struct LayoutEditorCanvasControls: View {
             if settings.handleScale != storedHandleScale {
                 settings.handleScale = storedHandleScale
             }
+            postViewpointCommand(action: "refresh", name: nil)
         }
+        // The saved list is per-pane and per-mode, so re-ask whenever
+        // 2D/3D flips.
+        .onChange(of: settings.is3D) { _, _ in
+            appliedViewpoint = nil
+            postViewpointCommand(action: "refresh", name: nil)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .previewViewpointListChanged)) { note in
+            guard (note.object as? String) == previewName,
+                  let names = note.userInfo?["names"] as? [String] else { return }
+            viewpoints = names
+        }
+        .alert("Save Viewpoint", isPresented: $savePromptVisible) {
+            TextField("Name", text: $savePromptName)
+            Button("Save") {
+                let trimmed = savePromptName.trimmingCharacters(in: .whitespaces)
+                guard !trimmed.isEmpty else { return }
+                postViewpointCommand(action: "save", name: trimmed)
+                appliedViewpoint = trimmed
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Saves the current camera position under this name.")
+        }
+    }
+
+    @ViewBuilder
+    private var viewpointMenu: some View {
+        Menu {
+            ForEach(viewpoints, id: \.self) { name in
+                Button {
+                    postViewpointCommand(action: "apply", name: name)
+                    appliedViewpoint = name
+                } label: {
+                    HStack {
+                        Text(name)
+                        if name == appliedViewpoint {
+                            Spacer()
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+            // "Default" is a virtual entry — restorable, not deletable.
+            let deletable = viewpoints.filter { $0 != "Default" }
+            if !deletable.isEmpty {
+                Divider()
+                Menu("Delete…") {
+                    ForEach(deletable, id: \.self) { name in
+                        Button(role: .destructive) {
+                            postViewpointCommand(action: "delete", name: name)
+                            if appliedViewpoint == name { appliedViewpoint = nil }
+                        } label: {
+                            Text(name)
+                        }
+                    }
+                }
+            }
+            Divider()
+            Button("Save Current View As…") {
+                savePromptName = ""
+                savePromptVisible = true
+            }
+            Button("Restore Default View") {
+                postViewpointCommand(action: "restore", name: nil)
+                appliedViewpoint = nil
+            }
+        } label: {
+            HStack(spacing: 3) {
+                Image(systemName: "camera.viewfinder")
+                Text(appliedViewpoint ?? "View")
+                    .font(.caption2)
+                    .lineLimit(1)
+            }
+        }
+        .menuStyle(.borderlessButton)
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+    }
+
+    private func postViewpointCommand(action: String, name: String?) {
+        var info: [String: Any] = ["action": action]
+        if let name { info["name"] = name }
+        NotificationCenter.default.post(name: .previewViewpointCommand,
+                                        object: previewName,
+                                        userInfo: info)
     }
 
     private enum Action {

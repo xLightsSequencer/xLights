@@ -553,6 +553,10 @@ class SequencerViewModel {
     // hard-coupling the command handler to view internals.
     var showingSequenceSettings = false
     var showingRestoreBackup = false
+    // Per-model render progress (desktop's RenderProgressDialog).
+    // Opened by long-pressing the toolbar render button — desktop
+    // double-clicks its status-bar gauge for the same thing.
+    var showingRenderProgress = false
     var showingDisplayElements = false
     // Phase I-2 — Tools → Import Effects sheet. Reset to false after
     // the user dismisses the sheet (Apply or Cancel).

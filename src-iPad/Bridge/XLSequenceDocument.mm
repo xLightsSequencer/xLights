@@ -12432,6 +12432,19 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     return _context->GetRenderProgressFraction();
 }
 
+- (NSArray<NSDictionary*>*)renderJobProgress {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    for (const auto& p : _context->GetRenderJobProgress()) {
+        [out addObject:@{
+            @"model":   [NSString stringWithUTF8String:p.model.c_str()],
+            @"percent": @(p.percent),
+            @"status":  [NSString stringWithUTF8String:p.status.c_str()],
+        }];
+    }
+    return out;
+}
+
 - (BOOL)abortRenderAndWait:(NSTimeInterval)timeoutSeconds {
     if (!_context) return YES;
     // AbortRender signals every in-flight render job to bail and waits
@@ -13432,6 +13445,24 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     // writes.
     if (!entry->isLoaded()) entry->Load();
     media.EmbedMedia(spath);
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (sourcePath.length == 0 || name.length == 0) return NO;
+    std::string src([sourcePath UTF8String]);
+    std::string key([name UTF8String]);
+    ObtainAccessToURL(src, false);
+    if (!FileExists(src)) return NO;
+
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    media.AddEmbeddedImageFromFile(key, src);
+    // AddEmbeddedImageFromFile is a no-op when the key is already
+    // cached or the bytes couldn't be read, so confirm before
+    // reporting success — the caller falls back to a loose file.
+    if (!media.HasImage(key)) return NO;
     bumpSequenceDirty(_context.get());
     return YES;
 }

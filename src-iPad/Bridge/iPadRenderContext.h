@@ -210,6 +210,20 @@ public:
     // can use this directly without racing IsRenderDone().
     float GetRenderProgressFraction() const;
 
+    // Per-model render progress — the data behind desktop's
+    // RenderProgressDialog (one gauge + status tooltip per job,
+    // RenderUI.cpp:44-56). Desktop pushes it through an
+    // IRenderProgressSink because its gauges are wx windows built at
+    // job-setup time; there is nothing to pre-build here, so the same
+    // job list is read straight off RenderProgressInfo, exactly as
+    // GetRenderProgressFraction does. Empty when no render is active.
+    struct RenderJobProgress {
+        std::string model;
+        int percent = 0;
+        std::string status;
+    };
+    std::vector<RenderJobProgress> GetRenderJobProgress() const;
+
     // === Preset model / preview rendering =================================
     // Mirrors xLightsFrame's standalone preset-render scaffolding: a 64×64
     // RGB `MatrixModel` owned by its own `ModelManager`, plus a dedicated

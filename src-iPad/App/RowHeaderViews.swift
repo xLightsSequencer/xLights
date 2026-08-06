@@ -269,6 +269,8 @@ struct TimingRowHeader: View {
                         Button("÷4") { fire(4) }
                         Button("÷6") { fire(6) }
                         Button("÷8") { fire(8) }
+                        Button("÷12") { fire(12) }
+                        Button("÷16") { fire(16) }
                     } label: {
                         Label("Divide Timing Marks…",
                                systemImage: "square.split.2x2")

@@ -11,6 +11,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (dkulp)                 iPad - Long-press the render button to see per-model render progress, with the
+                                 status of each model being rendered
+    -bug (dkulp)                 iPad - AI-generated images are now stored inside the sequence rather than as
+                                 loose files in the show folder, so a sequence copied off the iPad keeps them
+    -enh (dkulp)                 iPad - The Layout Editor's preview now has the same viewpoint menu as the House
+                                 Preview: apply, save, delete and restore the default view
+    -enh (dkulp)                 iPad - The AI image generator now shows all of a generator's settings, not just
+                                 the ones offering a fixed list of choices
+    -enh (dkulp)                 iPad - Divide Timing Marks gained the missing 12 and 16 entries
+    -bug (dkulp)                 iPad - Help / Release Notes no longer lands on a missing page for a patch
+                                 release that has no release notes of its own
     -bug (dkulp)                 iPad - Views are saved again. Creating, renaming, cloning, deleting or changing the
                                  models in a view was only kept in memory, so every view edit was lost on relaunch.
                                  Renaming a model now updates the views that contain it too

@@ -335,6 +335,12 @@ struct ContentView: View {
             EffectSymbolsSheet(viewModel: viewModel)
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingRenderProgress },
+            set: { viewModel.showingRenderProgress = $0 }
+        )) {
+            RenderProgressSheet(viewModel: viewModel)
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingAIServices },
             set: { viewModel.showingAIServices = $0 }
         )) {

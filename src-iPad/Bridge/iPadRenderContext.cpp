@@ -2203,6 +2203,41 @@ float iPadRenderContext::GetRenderProgressFraction() const {
     return static_cast<float>(totalDone) / static_cast<float>(totalWork);
 }
 
+std::vector<iPadRenderContext::RenderJobProgress> iPadRenderContext::GetRenderJobProgress() const {
+    std::vector<RenderJobProgress> out;
+    if (!_renderEngine) return out;
+    auto& list = const_cast<RenderEngine*>(_renderEngine.get())->GetRenderProgressInfo();
+    if (list.empty()) return out;
+
+    for (auto* rpi : list) {
+        int totalFrames = rpi->endFrame - rpi->startFrame + 1;
+        if (totalFrames <= 0 || !rpi->jobs) continue;
+        for (int i = 0; i < rpi->numRows; ++i) {
+            IRenderJobStatus* job = rpi->jobs[i];
+            if (!job) continue;
+            RenderJobProgress p;
+            p.model = job->GetName();
+            const int cur = job->GetCurrentFrame();
+            if (cur == END_OF_RENDER_FRAME) {
+                p.percent = 100;
+            } else {
+                int rel = cur - rpi->startFrame;
+                if (rel < 0) rel = 0;
+                if (rel > totalFrames) rel = totalFrames;
+                p.percent = (100 * rel) / totalFrames;
+            }
+            // GetStatusForUser walks live effect state, which is why
+            // desktop only calls it while its progress dialog is shown
+            // (RenderUI.cpp:232-236). Same contract here: the caller is
+            // expected to poll this only while the progress list is on
+            // screen, not from the always-running toolbar gauge.
+            p.status = job->GetStatusForUser();
+            out.push_back(std::move(p));
+        }
+    }
+    return out;
+}
+
 void iPadRenderContext::SetModelColors(int frameMS) {
     if (!_seqData.IsValidData()) return;
 

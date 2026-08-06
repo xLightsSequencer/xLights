@@ -2303,6 +2303,14 @@ NS_ASSUME_NONNULL_BEGIN
 // currently-loaded sequence. Aggregates per-row job frame counters against
 // the sequence's frame range. Returns 1.0 when no render is active.
 - (float)renderProgressFraction;
+
+// Per-model render progress — one entry per in-flight render job,
+// `{model: NSString, percent: NSNumber 0-100, status: NSString}`. The
+// data behind desktop's RenderProgressDialog. Empty when no render is
+// running. Building each status string walks live effect state, so poll
+// this only while the per-model list is actually on screen (desktop
+// gates the same work on its dialog being shown).
+- (NSArray<NSDictionary*>*)renderJobProgress;
 // Signal all in-flight render jobs to abort and block until they've
 // completed (or `timeoutSeconds` elapses). Returns YES if the render
 // is fully quiesced by the time the call returns. Call on shutdown /
@@ -2594,6 +2602,16 @@ NS_ASSUME_NONNULL_BEGIN
 // entry's embedded state.
 - (BOOL)embedMediaAtPath:(NSString*)path;
 - (BOOL)extractMediaAtPath:(NSString*)path;
+
+// Embed an image straight into the sequence from a file on disk,
+// keyed by `name` rather than by the source path — the AI image
+// generator's path, matching desktop's
+// `SequenceMedia::AddEmbeddedImage("AIImages/…")`. The source file is
+// only read, never referenced afterwards, so the caller can stage to a
+// temp file and delete it. Returns NO if the key was already cached or
+// the bytes couldn't be read.
+- (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name
+    NS_SWIFT_NAME(embedImage(fromFile:asName:));
 
 // Embed / extract every embeddable cache entry. `typeFilter` nil
 // or empty operates on all types; specifying "image" / "svg" /
