@@ -498,6 +498,12 @@ void ControllerListPanel::SelectController(const std::string& name) {
             _tree->UnselectAll();
             _tree->Select(item);
             _tree->EnsureVisible(item);
+            // Select() does not fire wxEVT_TREELIST_SELECTION_CHANGED, so callers
+            // driving selection programmatically (e.g. clicking the controller's
+            // box in the layout preview) would otherwise see the tree highlight
+            // update but the property grid stay stale.
+            UpdateControllerProperties();
+            UpdatePreviewHighlights();
             break;
         }
     }
@@ -1285,10 +1291,6 @@ void ControllerListPanel::UpdateControllerProperties() {
 
     if (!haveController) {
         _adapter.reset();
-        // Deliberately not clearing _fppProxyCacheController here: deselecting (e.g.
-        // clicking off the controller in the preview) shouldn't force a re-resolve when
-        // the same controller is reselected - only selecting a genuinely different
-        // controller should, which the cache-miss check below already handles.
         _propGrid->Clear();
         _ledPing->Disable();
         _ledPing->SetBitmap(_ledPingBitmaps.gray);
@@ -1366,15 +1368,14 @@ void ControllerListPanel::UpdateControllerProperties() {
             _btnUploadOutput->Enable(allowed && usingip == 1 && _frame->ControllerSupportsOutputUpload(controller));
             _btnOpen->Enable(allowed && eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetIP() != "" && (caps == nullptr || !caps->NoWebUI()));
 
-            // GetFPPProxy() does a live DNS/mDNS resolve of the proxy hostname (ControllerEthernet.cpp)
-            // that blocks for the full timeout when the proxy is unreachable, and failed resolutions
-            // aren't cached - resolve once per controller selection instead of on every property-grid
-            // refresh (which fires on nearly every mouse-move while dragging the controller box).
-            if (controller != _fppProxyCacheController) {
-                _fppProxyCacheController = controller;
-                _fppProxyCacheResolved = (eth != nullptr) ? eth->GetFPPProxy() : "";
-            }
-            bool showOpenProxy = (_fppProxyCacheResolved != "");
+            // Whether to show "Open Proxy" only depends on whether a proxy is configured, not
+            // whether it currently resolves/responds - checking reachability here would mean
+            // resolving the hostname on every selection change, which blocks the UI thread for
+            // the full DNS/mDNS timeout (multiple seconds) whenever the proxy is unreachable
+            // (see https://github.com/xLightsSequencer/xLights/issues/6852). The button's own
+            // click handler resolves the proxy address at click time instead.
+            bool showOpenProxy = (eth != nullptr && !eth->GetControllerFPPProxy().empty()) ||
+                                  (om->GetGlobalFPPProxy() != "" && (eth == nullptr || eth->GetIP() != om->GetGlobalFPPProxy()));
             _btnOpenProxy->Show(showOpenProxy);
             _btnOpenProxy->Enable(allowed && showOpenProxy);
 
@@ -1386,7 +1387,6 @@ void ControllerListPanel::UpdateControllerProperties() {
             if (_adapter) {
                 _adapter->UpdateProperties(_propGrid, &_frame->AllModels, expandProperties, _frame->GetOutputModelManager());
             }
-
             {
                 auto* config = GetXLightsConfig();
                 auto ctrlName = controller->GetName();
