@@ -1775,14 +1775,22 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
 
 void xLightsFrame::AutoShowHouse()
 {
+    if (m_mgr == nullptr || IsExiting()) return;
+
     if (_autoShowHousePreview)
     {
-        bool visible = m_mgr->GetPane("HousePreview").IsShown();
+        // Playback state changes reach here from queued events, so this can run
+        // with the sequencer never initialised (Layout/Setup tab), where GetPane
+        // hands back the shared null pane. Showing that and calling Update()
+        // relayouts against a pane the manager does not own.
+        auto& hp = m_mgr->GetPane("HousePreview");
+        if (!hp.IsOk()) return;
+
+        bool visible = hp.IsShown();
         if (playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED)
         {
             if (!visible)
             {
-                auto& hp = m_mgr->GetPane("HousePreview");
                 hp.Show();
                 if (_wasMaximised)
                 {
@@ -1796,7 +1804,6 @@ void xLightsFrame::AutoShowHouse()
             _wasMaximised = false;
             if (visible)
             {
-                auto& hp = m_mgr->GetPane("HousePreview");
                 if (hp.IsMaximized() && hp.IsDocked())
                 {
                     _wasMaximised = true;

@@ -1340,7 +1340,17 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         int sel = -1;
         std::vector<std::string> cs;
         _model.GetSerialProtocolSpeeds(_model.GetControllerProtocol(), cs, sel);
-        _model.SetControllerSerialProtocolSpeed((int)std::strtol(cs[event.GetValue().GetLong()].c_str(), nullptr, 10));
+        // The Speed choices were built for whatever protocol was current when the
+        // page was created, but a protocol change only rebuilds the grid on the
+        // next deferred WORK_RELOAD_PROPERTYGRID. A selection made in between can
+        // index past the shorter list the new protocol offers (dmx has one speed,
+        // renard four, the default six).
+        long speedIdx = event.GetValue().GetLong();
+        if (speedIdx < 0 || speedIdx >= (long)cs.size()) {
+            spdlog::critical("Speed being set is not in the protocol speeds which has {} speeds.", (int)cs.size());
+            return 0;
+        }
+        _model.SetControllerSerialProtocolSpeed((int)std::strtol(cs[speedIdx].c_str(), nullptr, 10));
         return 0;
     } else if (event.GetPropertyName() == "SmartRemoteType") {
         std::string newType = _model.GetSmartRemoteTypeName(wxAtoi(event.GetValue().GetString()));

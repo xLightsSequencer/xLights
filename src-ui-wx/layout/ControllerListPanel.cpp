@@ -1285,6 +1285,10 @@ void ControllerListPanel::UpdateControllerProperties() {
 
     if (!haveController) {
         _adapter.reset();
+        // Deliberately not clearing _fppProxyCacheController here: deselecting (e.g.
+        // clicking off the controller in the preview) shouldn't force a re-resolve when
+        // the same controller is reselected - only selecting a genuinely different
+        // controller should, which the cache-miss check below already handles.
         _propGrid->Clear();
         _ledPing->Disable();
         _ledPing->SetBitmap(_ledPingBitmaps.gray);
@@ -1362,7 +1366,15 @@ void ControllerListPanel::UpdateControllerProperties() {
             _btnUploadOutput->Enable(allowed && usingip == 1 && _frame->ControllerSupportsOutputUpload(controller));
             _btnOpen->Enable(allowed && eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetIP() != "" && (caps == nullptr || !caps->NoWebUI()));
 
-            bool showOpenProxy = (eth != nullptr && eth->GetFPPProxy() != "");
+            // GetFPPProxy() does a live DNS/mDNS resolve of the proxy hostname (ControllerEthernet.cpp)
+            // that blocks for the full timeout when the proxy is unreachable, and failed resolutions
+            // aren't cached - resolve once per controller selection instead of on every property-grid
+            // refresh (which fires on nearly every mouse-move while dragging the controller box).
+            if (controller != _fppProxyCacheController) {
+                _fppProxyCacheController = controller;
+                _fppProxyCacheResolved = (eth != nullptr) ? eth->GetFPPProxy() : "";
+            }
+            bool showOpenProxy = (_fppProxyCacheResolved != "");
             _btnOpenProxy->Show(showOpenProxy);
             _btnOpenProxy->Enable(allowed && showOpenProxy);
 

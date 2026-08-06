@@ -473,23 +473,21 @@ struct ModelRowHeader: View {
         let isSubmodelRow = row.isSubmodel
         let isStrandRow = row.strandIndex >= 0
         let isNodeRow = row.nodeIndex >= 0
-        let isGroup = !isSubLayer && !isSubmodelRow
-            && document.rowIsModelGroup(at: Int32(row.id))
-        let layerCount = isNodeRow ? 0 : Int(document.rowLayerCount(at: Int32(row.id)))
-        let collapsed = !isSubLayer && !isNodeRow
-            && document.rowIsElementCollapsed(at: Int32(row.id))
+        // All resolved when the row list was built. Asking the document here
+        // instead put six bridge calls per row into every body evaluation, two
+        // of them taking the model manager's mutex, which showed up as
+        // sustained CPU while scrolling a large show.
+        let isGroup = row.isModelGroup
+        let layerCount = row.layerCount
+        let collapsed = row.isElementCollapsed
         let showLayerToggle = !isSubLayer && !isNodeRow && layerCount > 1
 
         // Submodel/node disclosure — show only on the element's primary
         // row (first layer, not a sub-layer) and only when there's
         // something to disclose.
-        let canToggleSubmodels = !isSubLayer && !isNodeRow
-            && document.rowHasSubmodels(at: Int32(row.id))
-        let canToggleNodes = !isSubLayer && isStrandRow
-            && document.rowHasNodes(at: Int32(row.id))
-        let showsChildren = canToggleNodes
-            ? document.rowShowsNodes(at: Int32(row.id))
-            : document.rowShowsSubmodels(at: Int32(row.id))
+        let canToggleSubmodels = row.canToggleSubmodels
+        let canToggleNodes = row.canToggleNodes
+        let showsChildren = row.showsChildren
         let hasDisclosure = canToggleSubmodels || canToggleNodes
 
         let indent = CGFloat(row.nestDepth) * 10

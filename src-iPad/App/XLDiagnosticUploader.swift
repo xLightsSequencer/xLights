@@ -100,7 +100,10 @@ final class XLDiagnosticUploader {
         // so hold it all until the launch window has closed.
         workQueue.asyncAfter(deadline: .now() + 20) { [weak self] in
             guard let self else { return }
-            if hadStaleSession {
+            // A crash record can outlive the sentinel: a fault while
+            // backgrounded has already run endCurrentSession(), so staging on
+            // the sentinel alone would sit on the report indefinitely.
+            if hadStaleSession || XLCrashCapture.hasPendingRecord() {
                 self.stagePendingUploadAsync()
             }
             self.pruneStaleDiagnosticsAsync()

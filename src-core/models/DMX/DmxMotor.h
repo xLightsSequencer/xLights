@@ -35,6 +35,7 @@ protected:
         int GetOrientZero() const { return orient_zero; }
         int GetOrientHome() const { return orient_home; }
         float GetSlewLimit() const { return slew_limit; }
+        int GetSpeedChannel() const { return speed_channel; }
         bool GetReverse() const { return reverse; }
         bool GetUpsideDown() const { return upside_down; }
 
@@ -50,6 +51,7 @@ protected:
         void SetOrientZero(int val) { orient_zero = val; }
         void SetOrientHome(int val) { orient_home = val; }
         void SetSlewLimit(float limit) { slew_limit = limit; }
+        void SetSpeedChannel(int chan) { speed_channel = chan; }
         void SetReverse(bool val) { reverse = val; }
         void SetUpsideDown(bool val) { upside_down = val; }
 
@@ -66,6 +68,7 @@ protected:
     int orient_zero { 0 };
     int orient_home{ 0 };
     float slew_limit{ 0.0F };
+    int speed_channel{ 0 };
     bool reverse{false};
     bool upside_down{false};
     int rev{ 1 };
