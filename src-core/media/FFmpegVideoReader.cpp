@@ -182,6 +182,17 @@ static bool IsAviFile(const std::string& filename)
 // wrong - solid blue in place of the real decoded picture. Probing the
 // profile is a full header parse (no decode), so it costs one open/close per
 // file, same as the existing GetVideoLengthStatic probe just above.
+//
+// Also covers codecs Media Foundation has no decoder for at all, regardless
+// of profile - ProRes chief among them (no vendor ships a ProRes MFT on
+// Windows). Unlike the 4:4:4 case this fails loudly (MF_E_TOPO_CODEC_NOT_FOUND
+// while negotiating the media type) rather than silently, so it was never a
+// correctness bug - it was 632 of those failed negotiations logged across one
+// render (one per model on the affected files). This skips them. Measured:
+// that render's total time was unaffected (346s vs 357s) - whatever else
+// makes a ProRes/MJPEG-heavy sequence slow dominates over this cost - so
+// treat this as removing pointless failure noise and redundant per-model
+// construction work, not as a render-time fix.
 static bool IsUnsupportedProfile(const std::string& filename)
 {
     AVFormatContext* formatContext = nullptr;
@@ -200,6 +211,8 @@ static bool IsUnsupportedProfile(const std::string& filename)
             unsupported = pars->profile == AV_PROFILE_H264_HIGH_444 ||
                           pars->profile == AV_PROFILE_H264_HIGH_444_PREDICTIVE ||
                           pars->profile == AV_PROFILE_H264_HIGH_444_INTRA;
+        } else if (pars->codec_id == AV_CODEC_ID_PRORES) {
+            unsupported = true;
         }
     }
     avformat_close_input(&formatContext);
