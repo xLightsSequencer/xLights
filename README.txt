@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -bug (dkulp)                 Fix crash setting a model's serial Speed in the Layout property grid. The Speed
+                                 choices are built for the protocol in effect when the grid was created, so a
+                                 speed picked before the grid caught up with a protocol change read past the end
+                                 of the new protocol's shorter speed list
+    -bug (dkulp)                 Fix memory corruption loading a terrain object; resetting the elevation grid
+                                 used each stored elevation as an array index, writing outside the grid for any
+                                 negative or large value
+    -bug (dkulp)                 Fix crash clicking Reverse Nodes in the submodel editor with no submodel selected
+    -bug (dkulp)                 Fix crash starting or stopping playback with auto-show house preview enabled while
+                                 the sequencer tab had never been opened
     -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
                                  also has a matching alias for the model part.
                                  "Update Aliases" now promotes a submodel alias to the model itself when
