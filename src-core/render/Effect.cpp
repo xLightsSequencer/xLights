@@ -490,6 +490,17 @@ void Effect::SetLocked(bool lock)
 // to its symbol and back out to other linked effects.
 static thread_local bool s_propagatingSymbolChanges = false;
 
+Effect::ScopedSymbolPropagationSuppressor::ScopedSymbolPropagationSuppressor()
+    : _prev(s_propagatingSymbolChanges)
+{
+    s_propagatingSymbolChanges = true;
+}
+
+Effect::ScopedSymbolPropagationSuppressor::~ScopedSymbolPropagationSuppressor()
+{
+    s_propagatingSymbolChanges = _prev;
+}
+
 void Effect::IncrementChangeCount()
 {
     mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
@@ -509,6 +520,10 @@ void Effect::IncrementChangeCount()
                 EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
                 EffectSymbol* symbol = symbolManager.GetSymbol(_linkedSymbolId);
                 if (symbol != nullptr) {
+                    // Restore the prior value rather than clearing: the guard now
+                    // has a second writer (ScopedSymbolPropagationSuppressor), so
+                    // clearing it here would silently drop an outer suppression.
+                    bool prevPropagating = s_propagatingSymbolChanges;
                     s_propagatingSymbolChanges = true;
 
                     symbol->CopyFromEffect(this);
@@ -520,7 +535,7 @@ void Effect::IncrementChangeCount()
                         }
                     }
 
-                    s_propagatingSymbolChanges = false;
+                    s_propagatingSymbolChanges = prevPropagating;
 
                     RenderContext* ctx = seqElements->GetRenderContext();
                     if (ctx != nullptr) {

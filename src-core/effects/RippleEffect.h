@@ -21,7 +21,10 @@ public:
     virtual ~RippleEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual FrameParallelism GetFrameParallelism(const SettingsMap& settings) const override { return FrameParallelism::Pure; }
-    //virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+    virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
+    virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
+                                     xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
+    double getEffectPosition(RenderBuffer& buffer, const SettingsMap& SettingsMap, const std::string& timingTrack, float cycles);
     virtual bool AppropriateOnNodes() const override
     {
         return false;
@@ -94,6 +97,8 @@ public:
     static int sDirectionMin;
     static int sDirectionMax;
     static bool s3DDefault;
+    static int sDurationDefault;
+    static bool sFilterRegexDefault;
 
 protected:
     virtual void OnMetadataLoaded() override;

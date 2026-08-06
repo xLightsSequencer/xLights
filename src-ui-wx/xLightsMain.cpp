@@ -81,6 +81,7 @@
 #include "klightmapper/CustomModelMethodPickerDialog.h"
 #include "klightmapper/KLightMapperBridge.h"
 #include "sequencer/GenerateLyricsDialog.h"
+#include "layout/HousePreviewExportOptionsDialog.h"
 #include "layout/HousePreviewPanel.h"
 #include "setup/IPEntryDialog.h"
 #include "media/JukeboxPanel.h"
@@ -3693,6 +3694,16 @@ void xLightsFrame::OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
 {
+    ModelPreview* housePreview = _housePreviewPanel->GetModelPreview();
+    if (housePreview == nullptr) {
+        return;
+    }
+
+    HousePreviewExportOptionsDialog optionsDlg(this, housePreview->getWidth(), housePreview->getHeight());
+    if (optionsDlg.ShowModal() != wxID_OK) {
+        return;
+    }
+
     const char wildcard[] = "MP4 files (*.mp4)|*.mp4";
     std::string path = CurrentSeqXmlFile->GetName() + ".mp4";
     wxFileDialog pExportDlg(this, _("Export House Preview Video"), wxEmptyString, path, wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -3702,10 +3713,10 @@ void xLightsFrame::OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event)
         return;
     }
 
-    ExportVideoPreview(pExportDlg.GetPath());
+    ExportVideoPreview(pExportDlg.GetPath(), optionsDlg.GetExportWidth(), optionsDlg.GetExportHeight());
 }
 
-bool xLightsFrame::ExportVideoPreview(wxString const& path)
+bool xLightsFrame::ExportVideoPreview(wxString const& path, int desiredWidth, int desiredHeight)
 {
     int frameCount = _seqData.NumFrames();
 
@@ -3733,15 +3744,42 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
 
     wxStopWatch sw;
 
-    
+
     spdlog::debug("Writing house-preview video to {}.", (const char*)path.c_str());
 
-    int width = housePreview->getWidth();
-    int height = housePreview->getHeight();
     double contentScaleFactor = housePreview->GetContentScaleFactor();
 #ifdef _WIN32
     contentScaleFactor = 1.;
 #endif // WIN32
+
+    // Render at a resolution independent of the House Preview pane's current
+    // on-screen size (issue #3763) by temporarily resizing the underlying
+    // preview canvas itself -- this is the same effect a user gets today by
+    // manually dragging the pane bigger, just done programmatically so it
+    // isn't limited by how much physical screen real-estate is available.
+    wxSize originalPreviewSize = housePreview->GetSize();
+    wxSize originalMinSize = housePreview->GetMinSize();
+    wxSize originalMaxSize = housePreview->GetMaxSize();
+    bool resizedForExport = false;
+    spdlog::info("ExportVideoPreview: desired {}x{}, House Preview pane currently {}x{} (scale {})",
+                 desiredWidth, desiredHeight, housePreview->getWidth(), housePreview->getHeight(), contentScaleFactor);
+    if (desiredWidth > 0 && desiredHeight > 0 &&
+        (desiredWidth != (int)(housePreview->getWidth() * contentScaleFactor) || desiredHeight != (int)(housePreview->getHeight() * contentScaleFactor))) {
+        // Pin min/max size too -- a plain SetSize() is fragile here because
+        // the canvas is managed by HousePreviewPanel's sizer inside an AUI
+        // pane: any Layout() pass that happens to run during the export
+        // (e.g. triggered by wxProgressDialog::Update() yielding to the
+        // event loop) would otherwise snap it straight back to whatever
+        // size the sizer/AUI think the pane should be, mid-export.
+        wxSize exportSize((int)(desiredWidth / contentScaleFactor), (int)(desiredHeight / contentScaleFactor));
+        housePreview->SetMinSize(exportSize);
+        housePreview->SetMaxSize(exportSize);
+        housePreview->SetSize(exportSize);
+        resizedForExport = true;
+    }
+
+    int width = housePreview->getWidth();
+    int height = housePreview->getHeight();
 
     int audioChannelCount = 0;
     int audioSampleRate = 0;
@@ -3793,6 +3831,13 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
     }
 
     SetPlayStatus(playStatus);
+
+    if (resizedForExport) {
+        housePreview->SetMinSize(originalMinSize);
+        housePreview->SetMaxSize(originalMaxSize);
+        housePreview->SetSize(originalPreviewSize);
+        _housePreviewPanel->Layout();
+    }
 
     if (!visible) {
         m_mgr->GetPane("HousePreview").Hide();
@@ -4050,7 +4095,7 @@ void xLightsFrame::CheckUnsavedChanges()
         Notebook1->SetSelection(LAYOUTTAB);
 
         if (wxYES == wxMessageBox("Save Models, Views, and Perspectives changes?",
-                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+                                  "Models, Views, and Perspectives Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SaveEffectsFile();
         }
     }
@@ -4061,7 +4106,7 @@ void xLightsFrame::CheckUnsavedChanges()
         Notebook1->SetSelection(LAYOUTTAB);
 
         if (wxYES == wxMessageBox("Save Network Setup changes?",
-                                  "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+                                  "Networks Changes Confirmation", wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SaveNetworksFile();
         }
     }
@@ -4069,7 +4114,7 @@ void xLightsFrame::CheckUnsavedChanges()
     if (UnsavedPresetChanges) {
         if (wxYES == wxMessageBox("Save Effect Preset changes?",
                                   "Effect Presets Changes Confirmation",
-                                  wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT)) {
+                                  wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT, this)) {
             SavePresetsFile();
         }
     }

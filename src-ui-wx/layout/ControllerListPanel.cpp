@@ -498,6 +498,12 @@ void ControllerListPanel::SelectController(const std::string& name) {
             _tree->UnselectAll();
             _tree->Select(item);
             _tree->EnsureVisible(item);
+            // Select() does not fire wxEVT_TREELIST_SELECTION_CHANGED, so callers
+            // driving selection programmatically (e.g. clicking the controller's
+            // box in the layout preview) would otherwise see the tree highlight
+            // update but the property grid stay stale.
+            UpdateControllerProperties();
+            UpdatePreviewHighlights();
             break;
         }
     }
@@ -1362,7 +1368,14 @@ void ControllerListPanel::UpdateControllerProperties() {
             _btnUploadOutput->Enable(allowed && usingip == 1 && _frame->ControllerSupportsOutputUpload(controller));
             _btnOpen->Enable(allowed && eth != nullptr && eth->GetIP() != "MULTICAST" && eth->GetIP() != "" && (caps == nullptr || !caps->NoWebUI()));
 
-            bool showOpenProxy = (eth != nullptr && eth->GetFPPProxy() != "");
+            // Whether to show "Open Proxy" only depends on whether a proxy is configured, not
+            // whether it currently resolves/responds - checking reachability here would mean
+            // resolving the hostname on every selection change, which blocks the UI thread for
+            // the full DNS/mDNS timeout (multiple seconds) whenever the proxy is unreachable
+            // (see https://github.com/xLightsSequencer/xLights/issues/6852). The button's own
+            // click handler resolves the proxy address at click time instead.
+            bool showOpenProxy = (eth != nullptr && !eth->GetControllerFPPProxy().empty()) ||
+                                  (om->GetGlobalFPPProxy() != "" && (eth == nullptr || eth->GetIP() != om->GetGlobalFPPProxy()));
             _btnOpenProxy->Show(showOpenProxy);
             _btnOpenProxy->Enable(allowed && showOpenProxy);
 
@@ -1374,14 +1387,13 @@ void ControllerListPanel::UpdateControllerProperties() {
             if (_adapter) {
                 _adapter->UpdateProperties(_propGrid, &_frame->AllModels, expandProperties, _frame->GetOutputModelManager());
             }
-
             {
                 auto* config = GetXLightsConfig();
                 auto ctrlName = controller->GetName();
 
                 wxPGProperty* p = _propGrid->GetProperty("LastInputUpload");
                 if (!p) {
-                    p = _propGrid->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
+                    p = _propGrid->AppendIn(_propGrid->GetRoot(), new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -1391,7 +1403,7 @@ void ControllerListPanel::UpdateControllerProperties() {
 
                 p = _propGrid->GetProperty("LastOutputUpload");
                 if (!p) {
-                    p = _propGrid->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
+                    p = _propGrid->AppendIn(_propGrid->GetRoot(), new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -1410,7 +1422,7 @@ void ControllerListPanel::UpdateControllerProperties() {
                     vis.Add("Controller Tab Only");
                     vis.Add("Layout Panel");
                     vis.Add("Always");
-                    p = _propGrid->Append(new wxEnumProperty("Show on Layout", "LayoutVisibility", vis, 0));
+                    p = _propGrid->AppendIn(_propGrid->GetRoot(), new wxEnumProperty("Show on Layout", "LayoutVisibility", vis, 0));
                     p->SetHelpString("Shows this controller as a movable box in the layout preview so you can place it where it physically sits. "
                                      "Controller Tab Only shows it while this tab is selected; Layout Panel shows it anywhere in the layout editor "
                                      "but not during playback; Always shows it everywhere.");

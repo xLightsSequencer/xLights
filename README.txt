@@ -13,10 +13,40 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.16  August ??, 2026
     -change (cybercop23)         Add warning prompt when opening a sequence outside the show directory. Save requires
                                  saving inside the show directory - Save As was already ensuring that path.
+    -bug (kylegrymonprez)        Layout: on the Controllers tab, "Show on Layout" for a controller
+                                 could fall into edgecases where it wouldn't show in the property grid.
+    -enh (derwin12)              Ripple can now trigger a new cycle from a timing track, matching Shockwave
+                                 (Timing Track/Filter/Regex/Duration settings).
+    -enh (derwin12)              Export House Preview Video now lets you choose the output resolution.
+    -bug (dkulp)                 Fix crash setting a model's serial Speed in the Layout property grid. The Speed
+                                 choices are built for the protocol in effect when the grid was created, so a
+                                 speed picked before the grid caught up with a protocol change read past the end
+                                 of the new protocol's shorter speed list
+    -bug (dkulp)                 Fix memory corruption loading a terrain object; resetting the elevation grid
+                                 used each stored elevation as an array index, writing outside the grid for any
+                                 negative or large value
+    -bug (dkulp)                 Fix crash clicking Reverse Nodes in the submodel editor with no submodel selected
+    -bug (dkulp)                 Fix crash starting or stopping playback with auto-show house preview enabled while
+                                 the sequencer tab had never been opened
+    -enh (dkulp)                 iPad - Crash reports now carry a backtrace taken at the moment of the crash,
+                                 plus every thread's stack and the recent-activity trace the desktop already
+                                 sent. Previously the only crash detail came from Apple a day later, with a
+                                 truncated stack
+    -bug (dkulp)                 iPad - Fix sustained CPU use, and the battery drain with it, when scrolling
+                                 the sequencer in a show with many rows
+    -bug (dkulp)                 An exception raised by the graphics or video frameworks on a render thread was
+                                 logged only as "non-std exception type"; it is now named and described
     -enh (cybercop23)            Allow a submodel alias in "Model/Submodel" format to matche, if the model itself
                                  also has a matching alias for the model part.
                                  "Update Aliases" now promotes a submodel alias to the model itself when
                                  the submodel name already matches, instead of adding a redundant slashed alias
+    -bug (dkulp)                 Headless render sized the frame buffer from the controller channel count
+                                 alone, so a model mapped past the last controller channel was truncated:
+                                 those channels were missing from the .fseq entirely, and the one node
+                                 straddling the end wrote its tail into the next frame, corrupting that
+                                 frame's first channel differently from run to run. It now covers the models
+                                 too, matching the normal render. Reading or writing a node's channels also
+                                 stops at the end of the frame.
     -bug (dkulp)                 On Windows, rendering a sequence with many video effects could hang forever
                                  with the DirectX11/MF decoder selected: every render thread ended up parked
                                  inside Media Foundation waiting for a frame that never arrived. Frame reads
@@ -57,6 +87,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  as an accelerator of the normal one, which the selection code did not
                                  account for. Measured about 3x faster than software decode where the
                                  hardware supports it.
+    -bug (cybercop23)            Fix Face and State effect definition choices when switching between different
+                                 model groups.
 2026.15  August 4, 2026
     -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
                                  the render engine can render Faces frames in parallel. Blink timing may

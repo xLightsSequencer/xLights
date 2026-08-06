@@ -168,27 +168,28 @@ void E131OutputPropertyAdapter::UpdateProperties(wxPropertyGrid* propertyGrid, C
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -238,8 +239,6 @@ void E131OutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, wxPG
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Universe", "Channels", _e131.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _e131.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 bool E131OutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
@@ -318,27 +317,28 @@ void ArtNetOutputPropertyAdapter::UpdateProperties(wxPropertyGrid* propertyGrid,
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -392,8 +392,6 @@ void ArtNetOutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, wx
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Universe", "Channels", _artnet.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _artnet.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 bool ArtNetOutputPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, OutputModelManager* outputModelManager, Controller* c) {
@@ -545,27 +543,28 @@ void KinetOutputPropertyAdapter::UpdateProperties(wxPropertyGrid* propertyGrid, 
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -618,8 +617,6 @@ void KinetOutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGrid, wxP
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Port", "Channels", _kinet.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _kinet.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 void KinetOutputPropertyAdapter::RemoveProperties(wxPropertyGrid* propertyGrid) {
@@ -877,27 +874,28 @@ void xxxEthernetOutputPropertyAdapter::UpdateProperties(wxPropertyGrid* property
             p->Hide(true);
         }
         auto p2 = propertyGrid->GetProperty("Sizes");
-        if (p2) {
-            p2->Hide(false);
-            if (ce->IsExpanded()) {
-                expandProperties.push_back(p2);
-            }
-            while (propertyGrid->GetFirstChild(p2)) {
-                propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
-            }
-            for (const auto& it : ce->GetOutputs()) {
-                p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
-                p->SetAttribute("Min", 1);
-                p->SetAttribute("Max", it->GetMaxChannels());
-                p->SetEditor("SpinCtrl");
-                auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
-                p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
-                if (modelsOnUniverse != "") {
-                    if (IsDarkMode()) {
-                        p->SetBackgroundColour(wxColour(104, 128, 79));
-                    } else {
-                        p->SetBackgroundColour(wxColour(208, 255, 158));
-                    }
+        if (!p2) {
+            p2 = propertyGrid->Insert(propertyGrid->GetProperty("Managed"), new wxPropertyCategory("Sizes", "Sizes"));
+        }
+        p2->Hide(false);
+        if (ce->IsExpanded()) {
+            expandProperties.push_back(p2);
+        }
+        while (propertyGrid->GetFirstChild(p2)) {
+            propertyGrid->RemoveProperty(propertyGrid->GetFirstChild(p2));
+        }
+        for (const auto& it : ce->GetOutputs()) {
+            p = propertyGrid->AppendIn(p2, new wxUIntProperty(it->GetUniverseString(), "Channels/" + it->GetUniverseString(), it->GetChannels()));
+            p->SetAttribute("Min", 1);
+            p->SetAttribute("Max", it->GetMaxChannels());
+            p->SetEditor("SpinCtrl");
+            auto modelsOnUniverse = modelManager->GetModelsOnChannels(it->GetStartChannel(), it->GetEndChannel(), 4);
+            p->SetHelpString(wxString::Format("[%d-%d]\n", it->GetStartChannel(), it->GetEndChannel()) + modelsOnUniverse);
+            if (modelsOnUniverse != "") {
+                if (IsDarkMode()) {
+                    p->SetBackgroundColour(wxColour(104, 128, 79));
+                } else {
+                    p->SetBackgroundColour(wxColour(208, 255, 158));
                 }
             }
         }
@@ -944,8 +942,6 @@ void xxxEthernetOutputPropertyAdapter::AddProperties(wxPropertyGrid* propertyGri
     p = propertyGrid->Insert(before, new wxUIntProperty("Channels per Port", "Channels", _xxx.GetChannels()));
     p->SetAttribute("Min", 1);
     p->SetAttribute("Max", _xxx.GetMaxChannels());
-
-    propertyGrid->Insert(before, new wxPropertyCategory("Sizes", "Sizes"));
 }
 
 void xxxEthernetOutputPropertyAdapter::RemoveProperties(wxPropertyGrid* propertyGrid) {

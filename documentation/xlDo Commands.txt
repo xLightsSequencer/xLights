@@ -281,7 +281,8 @@ Response
     {"res":200, "output": "xLightsProblem.zip"}
 
 Export Video Preview
-    {"cmd":"exportVideoPreview", "filename":"Export File Name"}
+    {"cmd":"exportVideoPreview", "filename":"Export File Name", "width":"Optional Export Width", "height":"Optional Export Height"}
+    "width"/"height" are optional; when omitted, the export uses the House Preview pane's current on-screen size.
 Response
     {"res":200, "output": "Filename.mp4"}
 

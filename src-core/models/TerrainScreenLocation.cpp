@@ -296,11 +296,11 @@ void TerrainScreenLocation::UpdateSize(int wide, int deep, int points)
 }
 
 void TerrainScreenLocation::Init() {
-    mPos.resize(num_points);
     mSelectableHandles = num_points + 1;
-    for( int i : mPos ) {
-        mPos[i] = 0.0f;
-    }
+    // Not a range-for: it bound to each stored elevation and used that value as
+    // an index, and Setup() calls Init() again after the real terrain data has
+    // loaded, so any negative or large elevation wrote outside mPos.
+    mPos.assign(num_points, 0.0f);
 }
 
 const std::string TerrainScreenLocation::GetDataAsString() const {

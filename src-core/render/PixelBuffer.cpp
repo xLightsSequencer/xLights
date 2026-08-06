@@ -2705,6 +2705,30 @@ static inline bool IsInRange(const std::vector<bool>& restrictRange, size_t star
     return restrictRange[start];
 }
 
+// A node whose channels run past the end of the caller's buffer: stage the whole
+// node into a scratch buffer and copy back only the bytes that fit.  The node's
+// own accessors always move GetChanCount() bytes, so this is the only way to
+// honour the numChannels bound without dropping the in-range part.
+static void WriteClampedNode(NodeBaseClass& n, unsigned char* fdata, size_t start, unsigned int numChannels) {
+    const uint32_t cnt = n.GetChanCount();
+    uint8_t tmp[128] = { 0 };
+    if (cnt > sizeof(tmp)) {
+        return;
+    }
+    n.GetForChannels(tmp);
+    memcpy(&fdata[start], tmp, (size_t)numChannels - start);
+}
+
+static void ReadClampedNode(NodeBaseClass& n, const unsigned char* fdata, size_t start, unsigned int numChannels) {
+    const uint32_t cnt = n.GetChanCount();
+    uint8_t tmp[128] = { 0 };
+    if (cnt > sizeof(tmp)) {
+        return;
+    }
+    memcpy(tmp, &fdata[start], (size_t)numChannels - start);
+    n.SetFromChannels(tmp);
+}
+
 // Deliberately serial, like the post-blend node write-back in
 // MetalComputeUtilities.  Fanning the per-node copy out to the parallel pool
 // looks like it should pay on a big model, but it does not: the copy is a
@@ -2737,7 +2761,13 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                 if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
                     auto& node = *n;
-                    if (typeid(node) == baseTI) {
+                    if (start + n->GetChanCount() > numChannels) {
+                        // A model configured past the last defined channel would
+                        // otherwise have its tail bytes land in the NEXT frame -
+                        // seqData frames are exactly adjacent, so a 1-byte overrun
+                        // is frame+1 channel 0, racing that frame's real writer.
+                        WriteClampedNode(*n, fdata, start, numChannels);
+                    } else if (typeid(node) == baseTI) {
                         n->GetForChannelsBase(&fdata[start]);
                     } else {
                         n->GetForChannels(&fdata[start]);
@@ -2768,7 +2798,11 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                             }
                         }
                     }
-                    n->GetForChannels(&fdata[start]);
+                    if (start + n->GetChanCount() > numChannels) {
+                        WriteClampedNode(*n, fdata, start, numChannels);
+                    } else {
+                        n->GetForChannels(&fdata[start]);
+                    }
                 }
             }
         }
@@ -2800,7 +2834,12 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
             if (start >= numChannels) continue;
 
             auto& node = *n;
-            if (typeid(node) == baseTI) {
+            if (start + n->GetChanCount() > numChannels) {
+                // Reading past the frame would pull the NEXT frame's leading
+                // channels into this node (see WriteClampedNode).
+                ReadClampedNode(*n, fdata, start, numChannels);
+                n->GetColor(color);
+            } else if (typeid(node) == baseTI) {
                 n->SetFromChannelsBase(&fdata[start]);
                 n->GetColorBase(color);
             } else {
@@ -2827,7 +2866,12 @@ void PixelBufferClass::SetColors(int layer, const unsigned char* fdata, unsigned
             if (start >= numChannels) continue;
 
             auto& node = *n;
-            if (typeid(node) == baseTI) {
+            if (start + n->GetChanCount() > numChannels) {
+                // Reading past the frame would pull the NEXT frame's leading
+                // channels into this node (see WriteClampedNode).
+                ReadClampedNode(*n, fdata, start, numChannels);
+                n->GetColor(color);
+            } else if (typeid(node) == baseTI) {
                 n->SetFromChannelsBase(&fdata[start]);
                 n->GetColorBase(color);
             } else {

@@ -181,6 +181,7 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjects\"
 
 </Command>
     </PostBuildEvent>
@@ -227,6 +228,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjects\"
 
 </Command>
     </PostBuildEvent>
@@ -261,6 +263,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjects\"
 
 </Command>
     </PostBuildEvent>
@@ -306,6 +309,7 @@ copy "$(SolutionDir)..\bin64\*.dll" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjects\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -350,6 +354,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjects\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -394,6 +399,7 @@ copy "$(SolutionDir)..\bin\*.cfg" "$(TargetDir)"
 copy "$(SolutionDir)..\bin\xlights.windows.properties" "$(TargetDir)"
 xcopy /Y /I "$(SolutionDir)..\resources\dictionaries\*" "$(TargetDir)dictionaries\"
 xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effectmetadata\"
+xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjects\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -610,6 +616,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-core\graphics\GLBackend.cpp" />
     <ClCompile Include="..\src-core\graphics\GLContextManager.cpp" />
     <ClCompile Include="..\src-core\graphics\xlMesh.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\HousePreviewExportOptionsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\HousePreviewPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\model\ImportPreviewsModelsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\IPEntryDialog.cpp" />
@@ -1055,6 +1062,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClCompile Include="..\src-ui-wx\shared\utils\tmGridCell.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\TopEffectsPanel.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
+    <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
+    <ClCompile Include="..\src-core\utils\xlExceptionDescribe.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\UpdaterDialog.cpp" />
     <ClCompile Include="..\src-core\utils\UtilClasses.cpp" />
     <ClCompile Include="..\src-core\utils\UtilFunctions.cpp" />
@@ -1321,6 +1330,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-core\graphics\xlGraphicsAccumulators.h" />
     <ClInclude Include="..\src-core\graphics\xlGraphicsContext.h" />
     <ClInclude Include="..\src-core\graphics\xlMesh.h" />
+    <ClInclude Include="..\src-ui-wx\layout\HousePreviewExportOptionsDialog.h" />
     <ClInclude Include="..\src-ui-wx\layout\HousePreviewPanel.h" />
     <ClInclude Include="..\src-ui-wx\model\ImportPreviewsModelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\MetronomeLabelDialog.h" />
@@ -1714,6 +1724,8 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\effectmetadata\*" "$(TargetDir)effect
     <ClInclude Include="..\src-ui-wx\shared\utils\tmGridCell.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TopEffectsPanel.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
+    <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
+    <ClInclude Include="..\src-core\utils\xlExceptionDescribe.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\UpdaterDialog.h" />
     <ClInclude Include="..\src-core\utils\UtilClasses.h" />
     <ClInclude Include="..\src-core\utils\UtilFunctions.h" />

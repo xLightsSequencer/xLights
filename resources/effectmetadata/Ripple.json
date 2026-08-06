@@ -231,6 +231,45 @@
             "default": false,
             "lockable": true,
             "description": "When enabled, applies a brightness gradient to the ripple rings to simulate a three-dimensional depth effect."
+        },
+        {
+            "id": "Ripple_TimingTrack",
+            "label": "Timing Track",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
+            "dynamicOptions": "timingTracks",
+            "lockable": true,
+            "description": "When set, each timing mark triggers a new ripple cycle. Duration controls how long each cycle lasts.",
+            "expandToFill": true
+        },
+        {
+            "id": "Ripple_FilterLabel",
+            "label": "Filter",
+            "type": "string",
+            "controlType": "text",
+            "default": "",
+            "description": "Text filter applied to timing track labels. Only timing marks whose labels match this filter text will trigger a ripple."
+        },
+        {
+            "id": "Ripple_FilterRegex",
+            "label": "Regex",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": false,
+            "description": "When enabled, the filter text is treated as a regular expression pattern instead of a plain text match."
+        },
+        {
+            "id": "Ripple_Duration",
+            "label": "Duration (ms)",
+            "type": "int",
+            "controlType": "slider",
+            "default": 1000,
+            "min": 50,
+            "max": 5000,
+            "lockable": true,
+            "description": "How long each ripple cycle lasts in milliseconds after a timing mark fires. Only active when a Timing Track is selected."
         }
     ],
     "visibilityRules": [
@@ -249,6 +288,14 @@
         {
             "when": { "property": "Ripple_Draw_Style", "notEquals": "Old" },
             "enable": ["Ripple_Scale", "Ripple_Spacing", "Ripple_Twist", "Ripple_Direction", "Ripple_Velocity", "Ripple_Outline"]
+        },
+        {
+            "when": { "property": "Ripple_TimingTrack", "notOneOf": [""] },
+            "enable": ["Ripple_FilterLabel", "Ripple_FilterRegex", "Ripple_Duration"]
+        },
+        {
+            "when": { "property": "Ripple_TimingTrack", "oneOf": [""] },
+            "disable": ["Ripple_FilterLabel", "Ripple_FilterRegex", "Ripple_Duration"]
         }
     ]
 }

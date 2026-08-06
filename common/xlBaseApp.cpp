@@ -49,6 +49,8 @@
 #include "xLightsVersion.h"
 #include "xlBaseApp.h"
 #include "xlStackWalker.h"
+#include "utils/xlCrashCapture.h"
+#include "utils/xlExceptionDescribe.h"
 
 namespace {
 
@@ -212,189 +214,6 @@ xlCrashHandler::xlCrashHandler(std::string const& appName) :
 #endif
 }
 
-#ifdef __APPLE__
-namespace {
-
-// Per-thread frame addresses captured from a suspended thread. Resolved to
-// symbols *after* the thread is resumed, so symbolication (which may take
-// dyld/malloc-style locks) never runs while another thread is paused.
-struct CapturedThread {
-    thread_t machPort = MACH_PORT_NULL;
-    pthread_t pthread = nullptr;
-    char name[64] = {0};
-    uint64_t frames[128];
-    int frameCount = 0;
-};
-
-// Read 16 bytes (two pointer-sized words) from another thread's stack
-// without crashing if the address is bad. vm_read_overwrite returns an
-// error code instead of raising SIGBUS/SIGSEGV like a raw dereference
-// would.
-static bool safeReadPair(uint64_t addr, uint64_t outPair[2])
-{
-    mach_vm_size_t got = 0;
-    kern_return_t kr = mach_vm_read_overwrite(
-        mach_task_self(),
-        (mach_vm_address_t)addr,
-        sizeof(uint64_t) * 2,
-        (mach_vm_address_t)outPair,
-        &got);
-    return kr == KERN_SUCCESS && got == sizeof(uint64_t) * 2;
-}
-
-// Walk the frame-pointer chain of a suspended thread starting from its
-// current PC + FP. Apple uses frame pointers by default on both arm64
-// and x86_64 release builds (xLights doesn't pass -fomit-frame-pointer),
-// so this works without DWARF unwind tables. Stops on a zero LR, a
-// non-monotonic FP (corrupt stack), or after kMaxFrames frames.
-static int walkFrames(uint64_t pc, uint64_t fp, uint64_t* out, int maxFrames)
-{
-    int n = 0;
-    if (pc) out[n++] = pc;
-    uint64_t prev = 0;
-    while (fp != 0 && n < maxFrames) {
-        uint64_t pair[2];
-        if (!safeReadPair(fp, pair)) break;
-        uint64_t savedFP = pair[0];
-        uint64_t savedLR = pair[1];
-        if (savedLR == 0) break;
-        out[n++] = savedLR;
-        if (savedFP == 0 || savedFP <= fp || savedFP == prev) break;
-        prev = fp;
-        fp = savedFP;
-    }
-    return n;
-}
-
-// Collect every thread's frame addresses. Threads are visited one at a
-// time, each one suspended only long enough to grab its registers and
-// walk frame pointers — never while we're symbolicating or formatting,
-// since either could take locks the suspended thread already holds.
-// Returns true if any non-self threads were captured.
-static int captureAllThreads(CapturedThread* out, int maxThreads, thread_t selfThread)
-{
-    thread_act_array_t threads = nullptr;
-    mach_msg_type_number_t count = 0;
-    if (task_threads(mach_task_self(), &threads, &count) != KERN_SUCCESS) return 0;
-
-    int captured = 0;
-    for (mach_msg_type_number_t i = 0; i < count && captured < maxThreads; ++i) {
-        if (threads[i] == selfThread) {
-            mach_port_deallocate(mach_task_self(), threads[i]);
-            continue;
-        }
-
-        if (thread_suspend(threads[i]) != KERN_SUCCESS) {
-            mach_port_deallocate(mach_task_self(), threads[i]);
-            continue;
-        }
-
-        uint64_t pc = 0, fp = 0;
-#if defined(__arm64__) || defined(__aarch64__)
-        arm_thread_state64_t state;
-        mach_msg_type_number_t stateCount = ARM_THREAD_STATE64_COUNT;
-        if (thread_get_state(threads[i], ARM_THREAD_STATE64,
-                             (thread_state_t)&state, &stateCount) == KERN_SUCCESS) {
-            pc = (uint64_t)__darwin_arm_thread_state64_get_pc(state);
-            fp = (uint64_t)__darwin_arm_thread_state64_get_fp(state);
-        }
-#elif defined(__x86_64__)
-        x86_thread_state64_t state;
-        mach_msg_type_number_t stateCount = x86_THREAD_STATE64_COUNT;
-        if (thread_get_state(threads[i], x86_THREAD_STATE64,
-                             (thread_state_t)&state, &stateCount) == KERN_SUCCESS) {
-            pc = state.__rip;
-            fp = state.__rbp;
-        }
-#endif
-
-        CapturedThread& slot = out[captured];
-        slot.machPort = threads[i];
-        slot.frameCount = walkFrames(pc, fp, slot.frames,
-                                     (int)(sizeof(slot.frames) / sizeof(slot.frames[0])));
-
-        // pthread_from_mach_thread_np must be called *before* releasing the
-        // mach port, but the thread can already be running again.
-        thread_resume(threads[i]);
-
-        slot.pthread = pthread_from_mach_thread_np(threads[i]);
-        if (slot.pthread) {
-            pthread_getname_np(slot.pthread, slot.name, sizeof(slot.name));
-        }
-        if (slot.name[0] == '\0') {
-            std::snprintf(slot.name, sizeof(slot.name), "(unnamed)");
-        }
-        ++captured;
-    }
-
-    for (mach_msg_type_number_t i = 0; i < count; ++i) {
-        // Ports for the threads we didn't keep, plus for the ones we kept
-        // (we duplicate the port in CapturedThread.machPort but the array
-        // hand-off was a single reference per port).
-        // It's safe to deallocate all of them here since we no longer need
-        // to call thread_* on the kept ones.
-        if (threads[i] != selfThread) {
-            mach_port_deallocate(mach_task_self(), threads[i]);
-        }
-    }
-    vm_deallocate(mach_task_self(), (vm_address_t)threads,
-                  count * sizeof(thread_t));
-    return captured;
-}
-
-// Build the all-threads.txt body. Runs after the crash zip's normal
-// backtrace.txt has already been added, so the format is free to differ
-// from backtrace.txt — the server-side analyze.py reads backtrace.txt by
-// default and may opt to also parse this file separately.
-static wxString buildAllThreadsReport()
-{
-    thread_t self = mach_thread_self();
-    constexpr int kMaxThreads = 96;
-    CapturedThread threads[kMaxThreads];
-    int n = captureAllThreads(threads, kMaxThreads, self);
-    mach_port_deallocate(mach_task_self(), self);
-
-    wxString out;
-    out += wxString::Format("Threads captured: %d\n", n);
-    out += "Note: backtrace.txt holds the crashing thread; this file is\n";
-    out += "every other thread's stack at the moment of the crash.\n\n";
-
-    for (int i = 0; i < n; ++i) {
-        const CapturedThread& t = threads[i];
-        out += wxString::Format("Thread %d \"%s\" (mach_port=0x%x, frames=%d):\n",
-                                i, t.name, (unsigned)t.machPort, t.frameCount);
-        for (int f = 0; f < t.frameCount; ++f) {
-            Dl_info info{};
-            const char* sym = "??";
-            const char* image = "?";
-            uint64_t offset = 0;
-            if (dladdr((void*)t.frames[f], &info)) {
-                if (info.dli_fname) {
-                    // Use just the basename of the loaded image, matching
-                    // backtrace_symbols() output style.
-                    const char* slash = std::strrchr(info.dli_fname, '/');
-                    image = slash ? slash + 1 : info.dli_fname;
-                }
-                if (info.dli_sname) {
-                    sym = info.dli_sname;
-                    offset = (uint64_t)t.frames[f] - (uint64_t)info.dli_saddr;
-                } else if (info.dli_fbase) {
-                    offset = (uint64_t)t.frames[f] - (uint64_t)info.dli_fbase;
-                }
-            }
-            // Match the column layout of backtrace_symbols() so the
-            // server-side parser can use the same FRAME_RE regex:
-            //   <idx> <module> <addr> <sym> + <offset>
-            out += wxString::Format("%-3d %-35s 0x%016" PRIx64 " %s + %" PRIu64 "\n",
-                                    f, image, (uint64_t)t.frames[f], sym, offset);
-        }
-        out += "\n";
-    }
-    return out;
-}
-
-} // anonymous namespace
-#endif // __APPLE__
 
 
 void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const& msg)
@@ -526,7 +345,7 @@ void xlCrashHandler::HandleCrash(bool const isFatalException, std::string const&
             // report. Goes in a separate file (all-threads.txt) so the
             // existing analyzer keeps reading backtrace.txt unchanged.
             try {
-                wxString allThreads = buildAllThreadsReport();
+                wxString allThreads = xlCrashCapture::BuildAllThreadsReport();
                 if (!allThreads.empty()) {
                     report.AddText("all-threads.txt", allThreads, "All threads backtrace");
                 }
@@ -610,67 +429,9 @@ void xlCrashHandler::HandleAssertFailure(wxChar const* file, int line, wxChar co
 
 std::string xlCrashHandler::DescribeCurrentException()
 {
-    // Caller must be inside a catch handler; rethrow to recover the type.
-    try
-    {
-        throw;
-    }
-    catch (char const* eMsg)
-    {
-        return fmt::format("C-string exception: \"{}\".", eMsg ? eMsg : "(null)");
-    }
-    catch (std::string const& eMsg)
-    {
-        return fmt::format("std::string exception: \"{}\".", eMsg);
-    }
-    catch (std::filesystem::filesystem_error const& e)
-    {
-        // Common xLights crash source (throwing fs::exists/copy/etc. on sandbox/iCloud
-        // edge cases). Capture the error code and both paths so the offending file shows.
-        return fmt::format("Filesystem exception of type \"{}\": \"{}\" (error {}: {}) path1=\"{}\" path2=\"{}\".",
-                           typeid(e), e.what(), e.code().value(), e.code().message(),
-                           e.path1().string(), e.path2().string());
-    }
-    catch (std::system_error const& e)
-    {
-        return fmt::format("System exception of type \"{}\": \"{}\" (error {}: {}).",
-                           typeid(e), e.what(), e.code().value(), e.code().message());
-    }
-    catch (std::exception const& e)
-    {
-        // typeid is demangled by fmt's std::type_info formatter, so macOS/Linux reports
-        // read "std::length_error" rather than the raw "St12length_error".
-        return fmt::format("Standard STD exception of type \"{}\" with message \"{}\".",
-                           typeid(e), e.what());
-    }
-    catch (...)
-    {
-#ifdef __APPLE__
-        // Cocoa/AVFoundation/Metal raise NSExceptions, which no C++ handler above
-        // can match - they were reaching the reports as a bare "unknown exception".
-        std::string objc = DescribeCurrentAppleException();
-        if (!objc.empty())
-        {
-            return objc;
-        }
-#endif
-#if defined(__GNUC__) || defined(__clang__)
-        if (std::type_info const* t = abi::__cxa_current_exception_type())
-        {
-            return fmt::format("An exception of non-standard type \"{}\" occurred.", *t);
-        }
-#endif
-        // Every exception the C++ or Objective-C runtime raises is named above, so
-        // reaching here means the stack was unwound by neither - a forced unwind or
-        // a foreign runtime.  current_exception() is null only in that case, and
-        // saying so is the difference between a searchable report and a dead end:
-        // there is no C++ throw site to go looking for.
-        if (std::current_exception() == nullptr)
-        {
-            return "A foreign (non-C++) exception occurred - the stack was unwound by neither the C++ nor the Objective-C runtime, so no type information exists.";
-        }
-        return "An unknown exception occurred.";
-    }
+    // The describing itself lives in core so worker threads, the headless
+    // render and the iPad all report an exception identically.
+    return ::DescribeCurrentException();
 }
 
 void xlCrashHandler::HandleUnhandledException()
