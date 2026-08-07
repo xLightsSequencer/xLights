@@ -319,6 +319,18 @@ void xLightsFrame::LoadEffectsFile()
     if (GetXmlSetting("ShowGUID", "").empty() && !IsReadOnlyMode() && !_renderMode && !_checkSequenceMode) {
         SetXmlSetting("ShowGUID", GenerateGuid());
     }
+    // Also logged, not just stored: reports do carry xlights_rgbeffects.xml, but
+    // reading the id then means parsing show XML, and there is no id at all in a
+    // report whose show folder could not be read. One line makes it greppable
+    // and says plainly when there isn't one.
+    {
+        const std::string showGuid = GetXmlSetting("ShowGUID", "");
+        if (showGuid.empty()) {
+            spdlog::info("Show id: none (read-only, render or check-sequence mode, or the show folder is not writable)");
+        } else {
+            spdlog::info("Show id: {}", showGuid);
+        }
+    }
 
     // Load presets: try separate JSON file first, fall back to XML for migration
     {

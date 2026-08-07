@@ -264,18 +264,31 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
             // an id that only lives in memory would differ every launch, which
             // is worse than having none at all for the counting it exists to
             // support. Left empty if the folder is not writable.
-            if (_showGuid.empty() && ObtainAccessToURL(rgbPath, true)) {
-                std::string guid = GenerateGuid();
-                if (!settingsNode) {
-                    settingsNode = xlightsNode.append_child("settings");
-                }
-                settingsNode.append_child("ShowGUID").append_attribute("value") = guid.c_str();
-                if (doc.save_file(rgbPath.c_str())) {
-                    _showGuid = guid;
+            if (_showGuid.empty()) {
+                // Split out from the mint condition: folding it in meant a show
+                // folder we could not take write access to produced no id and no
+                // trace of why, which is indistinguishable in a report from a
+                // show that simply has none yet.
+                if (!ObtainAccessToURL(rgbPath, true)) {
+                    spdlog::warn("iPadRenderContext: no show id - cannot take write access to {} to mint one", rgbPath);
                 } else {
-                    spdlog::warn("iPadRenderContext: unable to write ShowGUID to {}", rgbPath);
+                    std::string guid = GenerateGuid();
+                    if (!settingsNode) {
+                        settingsNode = xlightsNode.append_child("settings");
+                    }
+                    settingsNode.append_child("ShowGUID").append_attribute("value") = guid.c_str();
+                    if (doc.save_file(rgbPath.c_str())) {
+                        _showGuid = guid;
+                    } else {
+                        spdlog::warn("iPadRenderContext: unable to write ShowGUID to {}", rgbPath);
+                    }
                 }
             }
+            // Same wording the desktop logs, so one grep covers both. The id is
+            // in the show XML the manual package attaches, but the automatic
+            // upload carries no show content by design - this is the only place
+            // it reaches an automatic report outside the counts sidecar.
+            spdlog::info("Show id: {}", _showGuid.empty() ? std::string("none") : _showGuid);
 
             // Resolve the background image against the show folder / media
             // directories. FixFile handles both absolute paths (from a
