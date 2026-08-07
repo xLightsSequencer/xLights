@@ -30,16 +30,16 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 10 Presets, views, jukebox | 49 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
-| 13 Tools, diagnostics, help | 54 | 12 | 15 | 5 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **973** | **293** | **367** | **158** | **88** | |
+| 13 Tools, diagnostics, help | 55 | 12 | 15 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
+| **Total (01–13)** | **974** | **293** | **367** | **157** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,633 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
+**Parity index:** of the 1,634 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
 at full parity and **78%** at full-or-partial. Counting partials at half weight the iPad sits
 at **≈69% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
-writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (158) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
+writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (157) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
 
 **The structural headline:** the iPad is not a viewer. It creates 25/28 model types, runs all
 six discovery scanners, renders 52/56 effects with shared-core fidelity, imports 11 of 13
@@ -99,7 +99,7 @@ All survived adversarial re-verification.
 | 10 | 49 | 14 | 21 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
-| 13 | 54 | 12 | 15 |
+| 13 | 55 | 12 | 15 |
 | 14 | ~~Different default palette colors *and* default-enabled slots~~ | 05 r5–6 | **FIXED 2026-08-06** — the new-effect seed now carries desktop's eight colours in desktop's slot order plus `C_CHECKBOX_Palette1/2=1`; without the checkboxes `ParseColorMap` gave the effect an empty colour list |
 | 15 | ~~Missing `SetDefaultParameters` seeding on effect drop~~ | 04 | **FIXED 2026-08-06** — the bridge supplies the list-derived defaults at creation (State's first state, Faces' phoneme source) |
 | 16 | ~~AI-generated images land as loose files, never embedded~~ | 12 r34 | **FIXED 2026-08-06** — embedded under the same `AIImages/…` key desktop uses, so the image travels inside the `.xsq`; loose file remains the fallback |
