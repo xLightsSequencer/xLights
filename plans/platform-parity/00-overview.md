@@ -24,19 +24,19 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 04 Effects catalog & panels | 84 | 10 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
 | 05 Color, palettes & curves | 72 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
 | 06 Layout, models, 3D | 165 | 51 | 67 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
-| 07 Controllers, outputs, upload | 61 | 39 | 33 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
+| 07 Controllers, outputs, upload | 63 | 33 | 32 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
 | 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
 | 09 Render & playback | 62 | 12 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
 | 10 Presets, views, jukebox | 50 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 55 | 12 | 15 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **975** | **293** | **367** | **157** | **88** | |
+| **Total (01–13)** | **977** | **287** | **366** | **157** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,635 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
+**Parity index:** of the 1,630 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
 at full parity and **78%** at full-or-partial. Counting partials at half weight the iPad sits
 at **≈69% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
 writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (157) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
@@ -137,8 +137,11 @@ Highest-leverage first within rough effort bands.
   grid change.
 - **Grid drop target** (02 r35–36): one `dropDestination` closes effect-drag *and* external
   media drop.
-- **Per-protocol output properties** (07): DDP/ZCPP/Twinkly/OPC/xxx/LOR-opt configurable, not
-  just selectable — descriptor format already expressive; DDP first (3 rows).
+- ~~**Per-protocol output properties** (07)~~ — **DONE 2026-08-07** for every Ethernet
+  protocol: DDP, ZCPP, KiNET (incl. Version + port labelling), OPC, Twinkly, xxx Ethernet,
+  plus Player Only in the caps-less fallback. **LOR Optimised's per-device tree is still
+  missing** (07 r17) — it is serial-only, and serial output is impossible on iPadOS, so
+  configuring it there is low value.
 - **Settings redo** (11) — approved 2026-08-01: promote the genuinely global settings into a
   global settings surface, keep per-context sheets where they fit, clean up placement and
   reconcile the drifted key naming (`renderOnSave`, `pasteByCell`). 33 already-working

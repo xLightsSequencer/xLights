@@ -100,6 +100,9 @@
 #include "outputs/ArtNetOutput.h"
 #include "outputs/TwinklyOutput.h"
 #include "outputs/DDPOutput.h"
+#include "outputs/ZCPPOutput.h"
+#include "outputs/KinetOutput.h"
+#include "outputs/ZCPP.h"
 #include "controllers/Pixlite16.h"
 #include "controllers/WLED.h"
 #include "controllers/BaseController.h"
@@ -16075,9 +16078,17 @@ static NSArray<NSString*>* EthernetProtocolOptions(const ControllerEthernet* eth
         // so it is only offered to a controller already using it.
         [out addObjectsFromArray:@[@(OUTPUT_E131), @(OUTPUT_ARTNET),
                                     @(OUTPUT_DDP),  @(OUTPUT_OPC),
-                                    @(OUTPUT_KINET), @(OUTPUT_TWINKLY)]];
+                                    @(OUTPUT_KINET), @(OUTPUT_TWINKLY),
+                                    @(OUTPUT_PLAYER_ONLY)]];
+        // ZCPP is deprecated and `xxx Ethernet` is a special-purpose
+        // protocol desktop hides behind its `xxx` option, so neither is
+        // offered outright — but a controller already on one must stay
+        // editable rather than being silently switched away.
         if (eth && eth->GetProtocol() == OUTPUT_ZCPP) {
             [out addObject:@(OUTPUT_ZCPP)];
+        }
+        if (eth && eth->GetProtocol() == OUTPUT_xxxETHERNET) {
+            [out addObject:@(OUTPUT_xxxETHERNET)];
         }
     }
     return out;
@@ -16256,23 +16267,43 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         // first output's number, Universes = output count, IndivSizes =
         // !AllSameSize, and (when uniform) a single Channels field.
         const std::string proto = eth->GetProtocol();
-        if (proto == OUTPUT_E131 || proto == OUTPUT_ARTNET || proto == OUTPUT_KINET) {
+        if (proto == OUTPUT_E131 || proto == OUTPUT_ARTNET ||
+            proto == OUTPUT_KINET || proto == OUTPUT_xxxETHERNET) {
             [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
             auto const& outs = eth->GetOutputs();
+            // KiNET addresses physical ports, not universes, and desktop
+            // labels its rows accordingly (OutputPropertyAdapters.cpp:601-618).
+            // KiNET and xxx Ethernet address physical ports rather than
+            // universes; only KiNET carries a protocol version.
+            const bool isPortStyle = (proto == OUTPUT_KINET || proto == OUTPUT_xxxETHERNET);
+            const bool isKinet = (proto == OUTPUT_KINET);
+            if (isKinet && !outs.empty()) {
+                if (auto* kinet = dynamic_cast<KinetOutput*>(outs.front())) {
+                    [out addObject:CtrlIntProp(@"KinetVersion", @"Version",
+                                                 kinet->GetVersion(), 1, 2)];
+                }
+            }
             int startUniv = outs.empty() ? 1 : outs.front()->GetUniverse();
             const int maxUniv = (proto == OUTPUT_ARTNET) ? 32767 : 64000;
-            [out addObject:CtrlIntProp(@"Universe", @"Start Universe",
-                                         startUniv, 1, maxUniv)];
-            [out addObject:CtrlIntProp(@"Universes", @"Universe Count",
-                                         (int)outs.size(), 1, 100000)];
-            [out addObject:CtrlBoolProp(@"UniversePerString", @"Universe Per String",
-                                          eth->IsUniversePerString() ? YES : NO)];
+            [out addObject:CtrlIntProp(@"Universe",
+                                         isPortStyle ? @"Start Port" : @"Start Universe",
+                                         startUniv, isPortStyle ? 0 : 1,
+                                         isPortStyle ? 255 : maxUniv)];
+            [out addObject:CtrlIntProp(@"Universes",
+                                         isPortStyle ? @"Port Count" : @"Universe Count",
+                                         (int)outs.size(), 1, isPortStyle ? 1000 : 100000)];
+            if (!isPortStyle) {
+                [out addObject:CtrlBoolProp(@"UniversePerString", @"Universe Per String",
+                                              eth->IsUniversePerString() ? YES : NO)];
+            }
             const bool indiv = !eth->AllSameSize();
             [out addObject:CtrlBoolProp(@"IndivSizes", @"Individual Sizes",
                                           indiv ? YES : NO)];
             if (!indiv) {
                 int chans = outs.empty() ? 510 : outs.front()->GetChannels();
-                [out addObject:CtrlIntProp(@"Channels", @"Channels per Universe",
+                [out addObject:CtrlIntProp(@"Channels",
+                                             isPortStyle ? @"Channels per Port"
+                                                     : @"Channels per Universe",
                                              chans, 1, 512)];
             } else {
                 // Individual per-universe channel sizes. Key encodes the
@@ -16285,6 +16316,70 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                     [out addObject:CtrlIntProp(key, label,
                                                  o->GetChannels(), 1, 512)];
                 }
+            }
+        }
+
+        // === Output editing — the protocols that don't use the
+        // universe tree. Each mirrors its desktop
+        // `*OutputPropertyAdapter::AddProperties`. Every one of these
+        // was selectable but unconfigurable here: the controller could
+        // be put on DDP, then none of DDP's settings could be reached.
+        // The controller holds a single Output for these protocols, so
+        // the rows read and write `outs.front()`.
+        auto const& outs = eth->GetOutputs();
+        Output* first = outs.empty() ? nullptr : outs.front();
+        if (proto == OUTPUT_DDP && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            auto* ddp = dynamic_cast<DDPOutput*>(first);
+            if (ddp) {
+                [out addObject:CtrlIntProp(@"ChannelsPerPacket", @"Channels Per Packet",
+                                             ddp->GetChannelsPerPacket(), 1, 1440)];
+                // Desktop hides this for FPP, whose DDP input always
+                // wants channel 1 (OutputPropertyAdapters.cpp:448).
+                if (c->GetVendor() != "FPP") {
+                    [out addObject:CtrlBoolProp(@"KeepChannelNumbers", @"Keep Channel Numbers",
+                                                  ddp->IsKeepChannelNumbers() ? YES : NO)];
+                }
+                [out addObject:CtrlIntProp(@"Channels", @"Channels",
+                                             ddp->GetChannels(), 1,
+                                             (int)ddp->GetMaxChannels())];
+            }
+        } else if (proto == OUTPUT_ZCPP && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            auto* zcpp = dynamic_cast<ZCPPOutput*>(first);
+            if (zcpp) {
+                NSString* mcast = [NSString stringWithUTF8String:
+                    ZCPP_GetDataMulticastAddress(zcpp->GetIP()).c_str()];
+                [out addObject:CtrlStringProp(@"MulticastAddressDisplay", @"Multicast Address",
+                                                mcast, /*editable*/ NO)];
+                [out addObject:CtrlBoolProp(@"SupportsVirtualStrings", @"Supports Virtual Strings",
+                                              zcpp->IsSupportsVirtualStrings() ? YES : NO)];
+                [out addObject:CtrlBoolProp(@"SupportsSmartRemotes", @"Supports Smart Remotes",
+                                              zcpp->IsSupportsSmartRemotes() ? YES : NO)];
+                [out addObject:CtrlBoolProp(@"SendDataMulticast", @"Send Data Multicast",
+                                              zcpp->IsMulticast() ? YES : NO)];
+                [out addObject:CtrlBoolProp(@"DontSendConfig", @"Suppress Sending Configuration",
+                                              zcpp->IsDontConfigure() ? YES : NO)];
+                [out addObject:CtrlIntProp(@"Channels", @"Channels",
+                                             zcpp->GetChannels(), 1,
+                                             (int)zcpp->GetMaxChannels())];
+            }
+        } else if (proto == OUTPUT_OPC && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            [out addObject:CtrlIntProp(@"Universe", @"OPC Channel",
+                                         first->GetUniverse(), 0, 255)];
+            [out addObject:CtrlIntProp(@"Channels", @"Message Data Size",
+                                         first->GetChannels(), 1,
+                                         (int)first->GetMaxChannels())];
+        } else if (proto == OUTPUT_TWINKLY && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            auto* twinkly = dynamic_cast<TwinklyOutput*>(first);
+            if (twinkly) {
+                [out addObject:CtrlIntProp(@"HTTPPort", @"HTTP Port",
+                                             (int)twinkly->GetHttpPort(), 1, 65535)];
+                [out addObject:CtrlIntProp(@"Channels", @"Channels",
+                                             twinkly->GetChannels(), 1,
+                                             (int)twinkly->GetMaxChannels())];
             }
         }
     } else if (auto* nul = dynamic_cast<ControllerNull*>(c)) {
@@ -16725,6 +16820,48 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         BOOL forceSizes = [(NSNumber*)value boolValue];
         eth->SetAllSameSize(!forceSizes, nullptr);
         changed = YES;
+    }
+    // Per-protocol output properties. Each mirrors its desktop
+    // `*OutputPropertyAdapter::HandlePropertyEvent`. These protocols
+    // keep a single Output on the controller, so the write targets
+    // `GetOutputs().front()`.
+    else if (k == "ChannelsPerPacket" || k == "KeepChannelNumbers" ||
+             k == "SupportsVirtualStrings" || k == "SupportsSmartRemotes" ||
+             k == "SendDataMulticast" || k == "DontSendConfig" ||
+             k == "HTTPPort" || k == "KinetVersion") {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth || eth->GetOutputs().empty()) return NO;
+        Output* first = eth->GetOutputs().front();
+        if (k == "ChannelsPerPacket") {
+            auto* ddp = dynamic_cast<DDPOutput*>(first);
+            if (!ddp) return NO;
+            int v = [(NSNumber*)value intValue];
+            if (ddp->GetChannelsPerPacket() != v) { ddp->SetChannelsPerPacket(v); changed = YES; }
+        } else if (k == "KeepChannelNumbers") {
+            auto* ddp = dynamic_cast<DDPOutput*>(first);
+            if (!ddp) return NO;
+            BOOL v = [(NSNumber*)value boolValue];
+            if (ddp->IsKeepChannelNumbers() != (bool)v) { ddp->SetKeepChannelNumber(v); changed = YES; }
+        } else if (k == "HTTPPort") {
+            auto* tw = dynamic_cast<TwinklyOutput*>(first);
+            if (!tw) return NO;
+            int v = [(NSNumber*)value intValue];
+            if ((int)tw->GetHttpPort() != v) { tw->SetHttpPort((uint16_t)v); changed = YES; }
+        } else if (k == "KinetVersion") {
+            auto* kinet = dynamic_cast<KinetOutput*>(first);
+            if (!kinet) return NO;
+            int v = [(NSNumber*)value intValue];
+            if (kinet->GetVersion() != v) { kinet->SetVersion(v); changed = YES; }
+        } else {
+            auto* zcpp = dynamic_cast<ZCPPOutput*>(first);
+            if (!zcpp) return NO;
+            BOOL v = [(NSNumber*)value boolValue];
+            if (k == "SupportsVirtualStrings") { zcpp->SetSupportsVirtualStrings(v); }
+            else if (k == "SupportsSmartRemotes") { zcpp->SetSupportsSmartRemotes(v); }
+            else if (k == "SendDataMulticast") { zcpp->SetMulticast(v); }
+            else { zcpp->SetDontConfigure(v); }
+            changed = YES;
+        }
     } else if (k.rfind("Channels/", 0) == 0) {
         auto* eth = dynamic_cast<ControllerEthernet*>(c);
         if (!eth) return NO;

@@ -14,6 +14,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
+    -enh (dkulp)                 iPad - Controller output settings can now be edited for every ethernet protocol,
+                                 not just E1.31, ArtNet and KiNET. DDP, ZCPP, OPC and Twinkly could be selected
+                                 but none of their settings could be reached. KiNET gains its Version setting and
+                                 labels its outputs as ports rather than universes, and a controller with no
+                                 known model can now be set to Player Only
     -change (dkulp)              iPad - View names are held to the same rules as the desktop - letters, numbers,
                                  spaces, underscores and hyphens - and say so when a name is rejected. A comma in
                                  a view name breaks which timing tracks belong to that view
