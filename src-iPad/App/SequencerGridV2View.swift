@@ -1164,6 +1164,27 @@ struct SequencerGridV2View: View {
                                                         markIndex: markIdx)
                     }
                 }
+                // Words layer counterpart, and the selection-scoped
+                // variants of both (desktop EffectsGrid.cpp:657-662).
+                if viewModel.canBreakdownWord(rowIndex: target.rowIndex,
+                                               markIndex: markIdx) {
+                    Button("Breakdown This Word") {
+                        _ = viewModel.breakdownWord(rowIndex: target.rowIndex,
+                                                     markIndex: markIdx)
+                    }
+                }
+                if viewModel.canBreakdownSelection(rowIndex: target.rowIndex,
+                                                    layerIndex: 0) {
+                    Button("Breakdown Selected Phrases") {
+                        _ = viewModel.breakdownSelectedPhrases(rowIndex: target.rowIndex)
+                    }
+                }
+                if viewModel.canBreakdownSelection(rowIndex: target.rowIndex,
+                                                    layerIndex: 1) {
+                    Button("Breakdown Selected Words") {
+                        _ = viewModel.breakdownSelectedWords(rowIndex: target.rowIndex)
+                    }
+                }
                 Button("Delete Mark", role: .destructive) {
                     _ = viewModel.deleteTimingMark(rowIndex: target.rowIndex,
                                                     markIndex: markIdx)

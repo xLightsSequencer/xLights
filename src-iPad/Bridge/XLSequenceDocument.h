@@ -890,6 +890,23 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)breakdownWordsAtRow:(int)rowIndex
     NS_SWIFT_NAME(breakdownWords(atRow:));
 
+// Break one word mark on the Words layer into phonemes — desktop's
+// per-mark "Breakdown Word". Replaces only the phonemes inside that
+// word's window, so the rest of the track's breakdown survives.
+// Rejects when a locked phoneme is in the way.
+- (BOOL)breakdownWordAtRow:(int)rowIndex atIndex:(int)wordIndex
+    NS_SWIFT_NAME(breakdownWord(atRow:atIndex:));
+
+// Selection-scoped breakdowns — desktop's "Breakdown Selected
+// Phrases" / "Breakdown Selected Words". `indexes` are marks on the
+// row's own layer. Each mark is processed independently, so one
+// rejected by a locked phoneme doesn't stop the others. Returns the
+// number broken down.
+- (int)breakdownPhrasesAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes
+    NS_SWIFT_NAME(breakdownPhrases(atRow:atIndexes:));
+- (int)breakdownWordsAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes
+    NS_SWIFT_NAME(breakdownWords(atRow:atIndexes:));
+
 // B34 / B35 — 10 numbered tags (0..9) anchored to absolute sequence
 // times. -1 = unset. Desktop's `SequenceElements::_tagPositions`
 // already persists via the `<TimingTags>` node in the .xsq so

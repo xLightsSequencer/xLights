@@ -5166,6 +5166,66 @@ class SequencerViewModel {
         return true
     }
 
+    /// Row index of the first active timing track, or nil. Desktop
+    /// enforces single-active through its keyboard path, so "the active
+    /// track" is well-defined for these commands.
+    private var activeTimingRowIndex: Int? {
+        rows.firstIndex { $0.timing?.isActive == true }
+    }
+
+    /// Desktop's "t" — drop a timing mark at the play marker on the
+    /// active timing track, filling the gap to its neighbours
+    /// (MainSequencer.cpp:1821, point mode :1875-1911). Works during
+    /// playback, which is the whole point: tap out the beats live.
+    @discardableResult
+    func addTimingMarkAtPlayMarker() -> Bool {
+        guard let rowIndex = activeTimingRowIndex else { return false }
+        let row = rows[rowIndex]
+        let atMS = playPositionMS
+        // Inside an existing mark → nothing to add.
+        if row.effects.contains(where: { atMS >= $0.startTimeMS && atMS < $0.endTimeMS }) {
+            return false
+        }
+        var prevEnd = 0
+        var nextStart = sequenceDurationMS
+        for e in row.effects {
+            if e.endTimeMS <= atMS { prevEnd = max(prevEnd, e.endTimeMS) }
+            if e.startTimeMS >= atMS { nextStart = min(nextStart, e.startTimeMS) }
+        }
+        let startMS = max(prevEnd, atMS)
+        let endMS = nextStart
+        guard endMS > startMS + 10 else { return false }
+        return addTimingMark(rowIndex: rowIndex, startMS: startMS, endMS: endMS)
+    }
+
+    /// Desktop's "s" — split the mark under the play marker on the
+    /// active timing track (MainSequencer.cpp:1924).
+    @discardableResult
+    func splitTimingMarkAtPlayMarker() -> Bool {
+        guard let rowIndex = activeTimingRowIndex else { return false }
+        let row = rows[rowIndex]
+        let atMS = playPositionMS
+        guard let markIndex = row.effects.firstIndex(where: {
+            atMS > $0.startTimeMS && atMS < $0.endTimeMS
+        }) else { return false }
+        return splitTimingMark(rowIndex: rowIndex, markIndex: markIndex, atMS: atMS)
+    }
+
+    /// True when a timing track is active and the play marker sits
+    /// somewhere a mark could be added / split — gates the menu items
+    /// so the shortcuts don't look broken when they can't apply.
+    var canAddTimingMarkAtPlayMarker: Bool {
+        guard let rowIndex = activeTimingRowIndex else { return false }
+        let atMS = playPositionMS
+        return !rows[rowIndex].effects.contains { atMS >= $0.startTimeMS && atMS < $0.endTimeMS }
+    }
+
+    var canSplitTimingMarkAtPlayMarker: Bool {
+        guard let rowIndex = activeTimingRowIndex else { return false }
+        let atMS = playPositionMS
+        return rows[rowIndex].effects.contains { atMS > $0.startTimeMS && atMS < $0.endTimeMS }
+    }
+
     /// B71: split a timing mark at `atMS`. The left half keeps the
     /// original label and runs `[origStart, atMS]`; the right half
     /// is a fresh mark with an empty label running `[atMS, origEnd]`.
@@ -5642,6 +5702,79 @@ class SequencerViewModel {
                                        atIndex: Int32(markIndex)) { return false }
         reloadRows()
         return true
+    }
+
+    /// Break a single word mark into phonemes (desktop's per-mark
+    /// "Breakdown Word"). Only the phonemes under that word are
+    /// replaced, so the rest of the track keeps its breakdown.
+    @discardableResult
+    func breakdownWord(rowIndex: Int, markIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        guard rows[rowIndex].timing != nil else { return false }
+        if !document.breakdownWord(atRow: Int32(rowIndex),
+                                    atIndex: Int32(markIndex)) { return false }
+        reloadRows()
+        registerCoreUndo("Breakdown Word")
+        return true
+    }
+
+    /// True iff the mark is on the Words layer (layer 1) and carries a
+    /// label — gates the per-mark "Breakdown This Word" entry.
+    func canBreakdownWord(rowIndex: Int, markIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let row = rows[rowIndex]
+        guard row.timing != nil, row.layerIndex == 1 else { return false }
+        guard markIndex >= 0, markIndex < row.effects.count else { return false }
+        return !row.effects[markIndex].name.isEmpty
+    }
+
+    /// Indexes of the currently-selected marks on `rowIndex`, in the
+    /// row's own ordering. Timing marks are ordinary effects, so the
+    /// grid's effect selection is what "selected marks" means here.
+    private func selectedMarkIndexes(rowIndex: Int) -> [Int] {
+        selectedEffects
+            .filter { $0.rowIndex == rowIndex }
+            .map { $0.effectIndex }
+            .sorted()
+    }
+
+    /// Desktop's "Breakdown Selected Phrases" / "Breakdown Selected
+    /// Words". Returns the number broken down; 0 means nothing was
+    /// eligible (or every candidate had a locked phoneme under it).
+    @discardableResult
+    func breakdownSelectedPhrases(rowIndex: Int) -> Int {
+        let idxs = selectedMarkIndexes(rowIndex: rowIndex)
+        guard !idxs.isEmpty else { return 0 }
+        let n = Int(document.breakdownPhrases(atRow: Int32(rowIndex),
+                                               atIndexes: idxs.map { NSNumber(value: $0) }))
+        if n > 0 {
+            reloadRows()
+            registerCoreUndo("Breakdown Selected Phrases")
+        }
+        return n
+    }
+
+    @discardableResult
+    func breakdownSelectedWords(rowIndex: Int) -> Int {
+        let idxs = selectedMarkIndexes(rowIndex: rowIndex)
+        guard !idxs.isEmpty else { return 0 }
+        let n = Int(document.breakdownWords(atRow: Int32(rowIndex),
+                                             atIndexes: idxs.map { NSNumber(value: $0) }))
+        if n > 0 {
+            reloadRows()
+            registerCoreUndo("Breakdown Selected Words")
+        }
+        return n
+    }
+
+    /// More than one mark selected on this row — gates the
+    /// selection-scoped breakdown entries, which are otherwise just a
+    /// slower way to do the single-mark ones.
+    func canBreakdownSelection(rowIndex: Int, layerIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let row = rows[rowIndex]
+        guard row.timing != nil, row.layerIndex == layerIndex else { return false }
+        return selectedMarkIndexes(rowIndex: rowIndex).count > 1
     }
 
     /// True iff the mark is on the phrase layer and has a non-empty

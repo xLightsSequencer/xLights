@@ -17,6 +17,8 @@ struct LightTestSheet: View {
 
     private enum Tab: String, CaseIterable {
         case models = "Models"
+        case groups = "Groups"
+        case outputs = "Outputs"
         case controllers = "Controllers"
     }
 
@@ -95,7 +97,15 @@ struct LightTestSheet: View {
     @State private var errorMessage: String?
 
     @State private var models: [[String: Any]] = []
+    @State private var groups: [[String: Any]] = []
+    @State private var outputs: [[String: Any]] = []
     @State private var controllers: [[String: Any]] = []
+    /// Desktop puts a filter box above every target tree
+    /// (PixelTestDialog.cpp:1403-1406). One field here, applied to
+    /// whichever tab is showing — a name match keeps the row, and a
+    /// parent stays when any child matches so the path to a hit is
+    /// still reachable.
+    @State private var filterText: String = ""
     @State private var expandedModels: Set<String> = []
     @State private var nodeCache: [String: [[String: Any]]] = [:]
 
@@ -110,7 +120,11 @@ struct LightTestSheet: View {
     private var patterns: [Pattern] {
         switch tab {
         case .controllers: return Self.controllerPatterns
-        case .models: return family == .rgbCycle ? Self.cyclePatterns : Self.chasePatterns
+        // Models, Groups and Outputs all select a channel range, so
+        // they share the chase / cycle patterns; only the Controllers
+        // tab drives the port-oriented tests.
+        case .models, .groups, .outputs:
+            return family == .rgbCycle ? Self.cyclePatterns : Self.chasePatterns
         }
     }
 
@@ -176,13 +190,33 @@ struct LightTestSheet: View {
     private var selectionList: some View {
         List {
             Section {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("Filter", text: $filterText)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    if !filterText.isEmpty {
+                        Button {
+                            filterText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            Section {
                 switch tab {
                 case .models: modelRows
+                case .groups: groupRows
+                case .outputs: outputRows
                 case .controllers: controllerRows
                 }
             } header: {
                 HStack {
-                    Text(tab == .models ? "Models" : "Controller Ports")
+                    Text(sectionTitle)
                     Spacer()
                     Text("\(selectedCount) channels selected")
                         .font(.caption)
@@ -195,8 +229,9 @@ struct LightTestSheet: View {
 
     @ViewBuilder
     private var modelRows: some View {
-        ForEach(models.indices, id: \.self) { i in
-            let m = models[i]
+        let visibleModels = models.filter { matches($0["name"] as? String ?? "") }
+        ForEach(visibleModels.indices, id: \.self) { i in
+            let m = visibleModels[i]
             let name = m["name"] as? String ?? ""
             let start = m["startChannel"] as? UInt32 ?? 0
             let end = m["endChannel"] as? UInt32 ?? 0
@@ -259,8 +294,12 @@ struct LightTestSheet: View {
 
     @ViewBuilder
     private var controllerRows: some View {
-        ForEach(controllers.indices, id: \.self) { i in
-            let c = controllers[i]
+        let visible = controllers.filter { c in
+            matches(c["name"] as? String ?? "")
+                || ports(of: c).contains { matches($0["name"] as? String ?? "") }
+        }
+        ForEach(visible.indices, id: \.self) { i in
+            let c = visible[i]
             let testable = c["testable"] as? Bool ?? false
 
             VStack(alignment: .leading, spacing: 2) {
@@ -291,6 +330,89 @@ struct LightTestSheet: View {
                 }
             }
         }
+    }
+
+    private var sectionTitle: String {
+        switch tab {
+        case .models: return "Models"
+        case .groups: return "Model Groups"
+        case .outputs: return "Outputs"
+        case .controllers: return "Controller Ports"
+        }
+    }
+
+    /// Case-insensitive contains, with an empty filter matching
+    /// everything.
+    private func matches(_ s: String) -> Bool {
+        let q = filterText.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return true }
+        return s.range(of: q, options: .caseInsensitive) != nil
+    }
+
+    @ViewBuilder
+    private var groupRows: some View {
+        let visible = groups.filter { g in
+            matches(g["name"] as? String ?? "")
+                || groupModels(of: g).contains { matches($0["name"] as? String ?? "") }
+        }
+        ForEach(visible.indices, id: \.self) { i in
+            let g = visible[i]
+            Text(g["name"] as? String ?? "").font(.headline)
+            // Members are listed individually because a group's channels
+            // need not be contiguous — there is no single range to select.
+            ForEach(groupModels(of: g).indices, id: \.self) { j in
+                let m = groupModels(of: g)[j]
+                selectableRow(
+                    title: m["name"] as? String ?? "",
+                    subtitle: "\(m["nodeCount"] as? Int ?? 0) nodes",
+                    start: m["startChannel"] as? UInt32 ?? 0,
+                    end: m["endChannel"] as? UInt32 ?? 0,
+                    testable: m["testable"] as? Bool ?? false,
+                    reason: m["untestableReason"] as? String ?? "",
+                    indent: 1
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var outputRows: some View {
+        let visible = outputs.filter { c in
+            matches(c["name"] as? String ?? "")
+                || controllerOutputs(of: c).contains { matches($0["description"] as? String ?? "") }
+        }
+        ForEach(visible.indices, id: \.self) { i in
+            let c = visible[i]
+            let testable = c["testable"] as? Bool ?? false
+            VStack(alignment: .leading, spacing: 2) {
+                Text(c["name"] as? String ?? "").font(.headline)
+                if !testable {
+                    Text(c["untestableReason"] as? String ?? "")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
+            ForEach(controllerOutputs(of: c).indices, id: \.self) { j in
+                let o = controllerOutputs(of: c)[j]
+                selectableRow(
+                    title: o["description"] as? String ?? "",
+                    subtitle: "Universe \(o["universe"] as? Int ?? 0) · \(o["channels"] as? Int ?? 0) ch",
+                    start: o["startChannel"] as? UInt32 ?? 0,
+                    end: o["endChannel"] as? UInt32 ?? 0,
+                    testable: testable,
+                    reason: c["untestableReason"] as? String ?? "",
+                    indent: 1
+                )
+            }
+        }
+    }
+
+    private func groupModels(of g: [String: Any]) -> [[String: Any]] {
+        g["models"] as? [[String: Any]] ?? []
+    }
+
+    private func controllerOutputs(of c: [String: Any]) -> [[String: Any]] {
+        c["outputs"] as? [[String: Any]] ?? []
     }
 
     private func selectableRow(title: String, subtitle: String, start: UInt32, end: UInt32,
@@ -476,6 +598,8 @@ struct LightTestSheet: View {
     private func reload() {
         guard let test else { return }
         models = test.modelItems()
+        groups = test.groupItems()
+        outputs = test.outputItems()
         controllers = test.controllerItems()
         presetNames = test.presetNames()
         selectedCount = test.selectedChannelCount

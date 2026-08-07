@@ -20,7 +20,7 @@ fine-grained — a menu entry, a dialog field, a gesture):
 |---|---|---|---|---|---|---|
 | 01 File & show lifecycle | 72 | 47 | 34 | 8 | 18 | iPad "backup" is a per-sequence snapshot ring; no show-folder backup/restore (feasibility under the sandbox verified — it's backlog, not a platform limit) |
 | 02 Sequencer grid & editing | 117 | 36 | 31 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
-| 03 Timing, lyrics & audio | 113 | 20 | 21 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
+| 03 Timing, lyrics & audio | 118 | 19 | 17 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
 | 04 Effects catalog & panels | 84 | 10 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
 | 05 Color, palettes & curves | 72 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
 | 06 Layout, models, 3D | 165 | 51 | 67 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
@@ -30,8 +30,8 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 10 Presets, views, jukebox | 50 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
-| 13 Tools, diagnostics, help | 55 | 12 | 15 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **977** | **287** | **366** | **157** | **88** | |
+| 13 Tools, diagnostics, help | 59 | 12 | 11 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
+| **Total (01–13)** | **986** | **286** | **358** | **157** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
@@ -99,7 +99,7 @@ All survived adversarial re-verification.
 | 10 | 50 | 14 | 21 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
-| 13 | 55 | 12 | 15 |
+| 13 | 59 | 12 | 11 |
 | 14 | ~~Different default palette colors *and* default-enabled slots~~ | 05 r5–6 | **FIXED 2026-08-06** — the new-effect seed now carries desktop's eight colours in desktop's slot order plus `C_CHECKBOX_Palette1/2=1`; without the checkboxes `ParseColorMap` gave the effect an empty colour list |
 | 15 | ~~Missing `SetDefaultParameters` seeding on effect drop~~ | 04 | **FIXED 2026-08-06** — the bridge supplies the list-derived defaults at creation (State's first state, Faces' phoneme source) |
 | 16 | ~~AI-generated images land as loose files, never embedded~~ | 12 r34 | **FIXED 2026-08-06** — embedded under the same `AIImages/…` key desktop uses, so the image travels inside the `.xsq`; loose file remains the fallback |
@@ -121,8 +121,8 @@ Highest-leverage first within rough effort bands.
 - ~~**Render progress sink** (09 r14–15)~~ — **DONE 2026-08-06**: per-model progress + status
   text ship as a long-press sheet over the toolbar render button. No sink was needed; the same
   job list desktop's poll loop reads is available directly off `RenderProgressInfo`.
-- **Keyboard timing entry** (03 r58–61): "t"/"s" add/split during playback — VM methods exist
-  and are undo-wired; needs `.keyboardShortcut` plumbing only.
+- ~~**Keyboard timing entry** (03 r58–61)~~ — **DONE 2026-08-07**: "t" / "s" act on the active
+  timing track at the play marker, as menu commands with bare-key shortcuts.
 - ~~**Viewpoint menu in Layout Editor** (06 r232–234)~~ — **DONE 2026-08-06**: the Layout
   Editor overlay now posts the pane-scoped command `PreviewPaneView` already answered. Only
   "set as default viewpoint" is still missing (no bridge method).
@@ -147,12 +147,14 @@ Highest-leverage first within rough effort bands.
   reconcile the drifted key naming (`renderOnSave`, `pasteByCell`). 33 already-working
   settings just need re-hosting; the ❌ backlog becomes visible in the process.
 - **Show-folder backup + config-file restore** (01, pairs with S1 #2/#3).
-- **Light-test Outputs/Groups trees + search** (13 r8–9/11); **Check Sequence export** (13 r21).
+- ~~**Light-test Outputs/Groups trees + search** (13 r8–9/11); **Check Sequence export**
+  (13 r21)~~ — **DONE 2026-08-07**: Outputs and Groups tabs plus one filter field over the
+  visible tab; Check Sequence exports HTML to the share sheet.
 - **Import mapping depth** (08): time-offset, auto-map wiring (bridge op exists, no Swift
   caller), CCR/strand rows, import-media toggle, "Used"-source marking (r89),
   `.xmap`/`.xjmap` (needs a small wx-free `MappingIO`).
-- **Selection-scoped lyric breakdown** (03 r98–101); **words-only removal is at parity** (fixed
-  in cross-check).
+- ~~**Selection-scoped lyric breakdown** (03 r98–101)~~ — **DONE 2026-08-07**: per-word
+  breakdown plus selection-scoped phrase and word variants.
 - **ColorCurve blend-mode accessor** (05 r77); **drag-and-drop for colors/curves + dropper
   panes** (05 r35–37/121).
 - **Layout-group delete/rename bridge methods; background/grid setters; multi-model .xmodel

@@ -14,6 +14,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
+    -enh (dkulp)                 iPad - Press T to drop a timing mark at the play marker on the active timing
+                                 track, and S to split the mark under it, so beats can be tapped out while the
+                                 sequence plays
+    -enh (dkulp)                 iPad - Lyric breakdown can be run on a single word, or on just the marks you
+                                 have selected, rather than only a whole track or a single phrase
+    -enh (dkulp)                 iPad - Light Test gains Groups and Outputs targeting, so a model group or a raw
+                                 universe can be tested directly, plus a filter box for finding what to test in
+                                 a large show
+    -enh (dkulp)                 iPad - Check Sequence results can be exported and shared as an HTML report
     -enh (dkulp)                 iPad - Controller output settings can now be edited for every ethernet protocol,
                                  not just E1.31, ArtNet and KiNET. DDP, ZCPP, OPC and Twinkly could be selected
                                  but none of their settings could be reached. KiNET gains its Version setting and

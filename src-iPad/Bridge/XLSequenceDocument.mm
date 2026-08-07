@@ -3346,6 +3346,79 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     _context->GetSequenceElements().ClearTags();
 }
 
+// Break a single word mark on the words layer into phonemes
+// (desktop "Breakdown Word", EffectsGrid.cpp:1419-1452). Surgical:
+// only phonemes inside this word's window are replaced, so the rest
+// of the track's breakdown survives.
+- (BOOL)breakdownWordAtRow:(int)rowIndex atIndex:(int)wordIndex {
+    auto& se = _context->GetSequenceElements();
+    auto* row = se.GetRowInformation(rowIndex);
+    if (!row || !row->element) return NO;
+    if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return NO;
+    TimingElement* te = dynamic_cast<TimingElement*>(row->element);
+    if (!te || te->GetEffectLayerCount() < 2) return NO;
+
+    EffectLayer* wordLayer = te->GetEffectLayer(1);
+    if (!wordLayer) return NO;
+    if (wordIndex < 0 || wordIndex >= wordLayer->GetEffectCount()) return NO;
+    Effect* we = wordLayer->GetEffect(wordIndex);
+    if (!we) return NO;
+    const std::string word = we->GetEffectName();
+    if (word.empty()) return NO;
+    const int startMS = we->GetStartTimeMS();
+    const int endMS = we->GetEndTimeMS();
+
+    EffectLayer* phonemeLayer = (te->GetEffectLayerCount() < 3)
+        ? te->AddEffectLayer() : te->GetEffectLayer(2);
+    if (!phonemeLayer) return NO;
+
+    // Refuse when a locked phoneme sits in the target window —
+    // desktop reports this rather than silently overwriting.
+    for (auto&& eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
+        if (eff && eff->IsLocked()) return NO;
+    }
+    for (auto* eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
+        phonemeLayer->DeleteEffect(eff->GetID());
+    }
+
+    BreakdownWord(phonemeLayer, startMS, endMS, word,
+                   se.GetFrequency(), _context->GetPhonemeDictionary(),
+                   se.get_undo_mgr());
+    te->SetCollapsed(false);
+    se.PopulateRowInformation();
+    return YES;
+}
+
+// Selection-scoped variants of the two breakdowns (desktop "Breakdown
+// Selected Phrases" / "Breakdown Selected Words", EffectsGrid.cpp:657,
+// :662). `indexes` are marks on the row's own layer; each is broken
+// down independently, so a partial failure (a locked phoneme under one
+// of them) still processes the rest. Returns how many succeeded.
+- (int)breakdownPhrasesAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes {
+    if (indexes.count == 0) return 0;
+    // Descending so earlier indexes stay valid as marks are rewritten.
+    NSArray<NSNumber*>* ordered = [indexes sortedArrayUsingComparator:^(NSNumber* a, NSNumber* b) {
+        return [b compare:a];
+    }];
+    int done = 0;
+    for (NSNumber* n in ordered) {
+        if ([self breakdownPhraseAtRow:rowIndex atIndex:n.intValue]) ++done;
+    }
+    return done;
+}
+
+- (int)breakdownWordsAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes {
+    if (indexes.count == 0) return 0;
+    NSArray<NSNumber*>* ordered = [indexes sortedArrayUsingComparator:^(NSNumber* a, NSNumber* b) {
+        return [b compare:a];
+    }];
+    int done = 0;
+    for (NSNumber* n in ordered) {
+        if ([self breakdownWordAtRow:rowIndex atIndex:n.intValue]) ++done;
+    }
+    return done;
+}
+
 - (BOOL)breakdownWordsAtRow:(int)rowIndex {
     auto& se = _context->GetSequenceElements();
     auto* row = se.GetRowInformation(rowIndex);

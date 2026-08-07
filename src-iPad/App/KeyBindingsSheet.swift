@@ -52,6 +52,10 @@ struct KeyBindingsSheet: View {
             .init(keys: "⇧I / ⇧A", action: "Insert Layer Above / Below"),
             .init(keys: "⇧X", action: "Toggle Element Expand"),
         ]),
+        Group1(title: "Timing", bindings: [
+            .init(keys: "T", action: "Add Timing Mark at Play Marker"),
+            .init(keys: "S", action: "Split Timing Mark at Play Marker"),
+        ]),
         Group1(title: "Navigation", bindings: [
             .init(keys: "← / →", action: "Previous / Next Effect"),
             .init(keys: "↑ / ↓", action: "Effect Above / Below"),
