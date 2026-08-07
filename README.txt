@@ -31,6 +31,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash showing or hiding a panel from the View menu. Toggling a panel that
                                  isn't registered, or one whose menu item fires during shutdown, left the window
                                  layout describing a panel that no longer had a window
+    -bug (dkulp)                 A sequence referencing a picture that can't be found no longer re-checks the
+                                 filesystem for it on every frame. On a cloud-backed show folder each check was a
+                                 round trip, so this slowed rendering badly and filled the log with one warning
+                                 per frame
     -enh (dkulp)                 iPad - Crash reports now carry a backtrace taken at the moment of the crash,
                                  plus every thread's stack and the recent-activity trace the desktop already
                                  sent. Previously the only crash detail came from Apple a day later, with a

@@ -423,6 +423,13 @@ public:
     ResolvedMediaPath ResolveImagePath(const std::string& filepath) const;
     static ResolvedMediaPath ResolveFilePath(const std::string& filepath);
     bool HasImage(const std::string& filepath) const;
+    // True when `filepath` is not cached and does not resolve to a file on
+    // disk. The miss is remembered and the first one for a path is logged.
+    // A miss is otherwise never cached, so callers on the per-frame render path
+    // re-ran the FixFile probe - a filesystem walk that reaches iCloud's
+    // FileProvider over XPC on Apple platforms - for every frame, multiplied by
+    // each frame-parallel clone's fresh effect cache.
+    bool IsImageMissing(const std::string& filepath);
     // Create the cache entry without decoding (GetImage loads eagerly)
     void RegisterImage(const std::string& filepath);
     void QueueImageLoad(const std::string& filepath, const std::string& loadPath, JobPool& pool);
@@ -536,6 +543,9 @@ private:
     std::map<std::string, std::shared_ptr<BinaryMediaCacheEntry>> _binaryCache;
     std::map<std::string, std::shared_ptr<VideoMediaCacheEntry>> _videoCache;
     std::map<std::string, std::shared_ptr<AudioMediaCacheEntry>> _audioCache;
+
+    // Paths IsImageMissing() has already resolved and found nothing for.
+    std::set<std::string> _missingImages;
 
     mutable std::recursive_mutex _cacheMutex;
     std::mutex _imageLoadMutex;

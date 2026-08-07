@@ -450,21 +450,14 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             // short-circuits to red and `GetImage` never gets a chance to run
             // its own FixFile.
             //
-            // Resolve only when the media cache doesn't already know the image:
-            // FixFile probes the filesystem, which on macOS reaches
-            // isUbiquitousItemAtURL — an iCloud FileProvider IPC round-trip
-            // costing milliseconds. This is the per-frame render path, and
-            // frame-parallel windows hand each clone a fresh cache, so an
-            // unconditional resolve turned a picture-heavy sequence into 25.6s
-            // of filesystem probing inside a 7.5s render.
-            bool missing = false;
-            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName)) {
-                const std::string resolvedName = FileUtils::FixFile("", NewPictureName);
-                if (!FileExists(resolvedName, false)) {
-                    missing = true;
-                    spdlog::warn("No image for: {}", resolvedName);
-                }
-            }
+            // IsImageMissing resolves only when the media cache knows neither a
+            // hit nor a miss for the path: FixFile probes the filesystem, which
+            // on macOS reaches isUbiquitousItemAtURL — an iCloud FileProvider
+            // IPC round-trip costing milliseconds. This is the per-frame render
+            // path, and frame-parallel windows hand each clone a fresh cache, so
+            // an unconditional resolve turned a picture-heavy sequence into
+            // 25.6s of filesystem probing inside a 7.5s render.
+            const bool missing = buffer.GetSequenceMedia()->IsImageMissing(NewPictureName);
             cache->PictureName = NewPictureName;
             cache->missingImage = missing;
             if (missing) {

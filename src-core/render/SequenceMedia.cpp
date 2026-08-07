@@ -669,6 +669,33 @@ bool SequenceMedia::HasImage(const std::string& filepath) const
     return _imageCache.find(filepath) != _imageCache.end();
 }
 
+bool SequenceMedia::IsImageMissing(const std::string& filepath)
+{
+    {
+        std::scoped_lock lock(_cacheMutex);
+        if (_imageCache.find(filepath) != _imageCache.end()) {
+            return false;
+        }
+        if (_missingImages.find(filepath) != _missingImages.end()) {
+            return true;
+        }
+    }
+
+    // Deliberately outside the lock: FixFile hits the filesystem and can block
+    // for a long time on a cloud-backed path, and this is called from render
+    // workers.
+    const std::string resolvedName = FileUtils::FixFile("", filepath);
+    if (FileExists(resolvedName, false)) {
+        return false;
+    }
+
+    std::scoped_lock lock(_cacheMutex);
+    if (_missingImages.insert(filepath).second) {
+        spdlog::warn("No image for: {}", resolvedName);
+    }
+    return true;
+}
+
 ResolvedMediaPath SequenceMedia::ResolveImagePath(const std::string& filepath) const
 {
     if (filepath.empty()) return {};
@@ -810,6 +837,7 @@ void SequenceMedia::RemoveImage(const std::string& filepath)
 {
     std::scoped_lock lock(_cacheMutex);
     _imageCache.erase(filepath);
+    _missingImages.erase(filepath);
 }
 
 void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
@@ -858,6 +886,7 @@ void SequenceMedia::Clear()
     _binaryCache.clear();
     _videoCache.clear();
     _audioCache.clear();
+    _missingImages.clear();
 }
 
 void SequenceMedia::PurgePreviewCaches()
@@ -1088,6 +1117,7 @@ bool SequenceMedia::LoadFromXml(const pugi::xml_node& node)
     _binaryCache.clear();
     _videoCache.clear();
     _audioCache.clear();
+    _missingImages.clear();
 
     for (auto child : node.children()) {
         std::string name = child.name();
