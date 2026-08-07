@@ -89,6 +89,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  hardware supports it.
     -bug (cybercop23)            Fix Face and State effect definition choices when switching between different
                                  model groups.
+    -bug (derwin12)              Fixed locked effects duplicating when dragged across rows/layers (#6697)
+
 2026.15  August 4, 2026
     -change (dkulp)              Faces: the automatic eye blink is now computed independently per frame, so
                                  the render engine can render Faces frames in parallel. Blink timing may

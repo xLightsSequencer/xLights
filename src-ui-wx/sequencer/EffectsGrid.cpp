@@ -2320,7 +2320,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
                 if (el == nullptr) continue;
                 for (int i = 0; i < el->GetEffectCount(); i++) {
                     Effect* e = el->GetEffect(i);
-                    if (e->GetSelected() != EFFECT_NOT_SELECTED) {
+                    if (e->GetSelected() != EFFECT_NOT_SELECTED && !e->IsLocked()) {
                         mEffectMoveSnapshots.push_back({e, el, e->GetStartTimeMS(), e->GetEndTimeMS(), vrow});
                     }
                 }
@@ -8583,6 +8583,7 @@ void EffectsGrid::ApplyEffectMoveDrag() {
     Effect* newAnchorEff = nullptr;
     std::vector<Effect*> newEffects;
     for (auto& snap : mEffectMoveSnapshots) {
+        if (snap.effect->IsLocked()) continue;
         int targetVisibleRow = snap.origVisibleRow + rowDelta;
         if (targetVisibleRow < 0 || targetVisibleRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) continue;
         Row_Information_Struct* targetRI = mSequenceElements->GetVisibleRowInformation(targetVisibleRow);
