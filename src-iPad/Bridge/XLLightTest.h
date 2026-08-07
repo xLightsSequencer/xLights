@@ -116,6 +116,25 @@ NS_SWIFT_NAME(LightTest)
 ///       "models"       — NSArray<NSString> model names on the port
 - (NSArray<NSDictionary<NSString*, id>*>*)controllerItems;
 
+/// Model Groups as a test target (desktop's Model Groups tree). A
+/// group's members need not be contiguous in channel space, so the
+/// group has no range of its own — selection happens per member. Keys:
+///   "name"   — NSString (group name)
+///   "models" — NSArray<NSDictionary> of the flattened member models:
+///              "name", "startChannel", "endChannel", "nodeCount",
+///              "channelsPerNode", "testable", "untestableReason"
+- (NSArray<NSDictionary<NSString*, id>*>*)groupItems;
+
+/// Raw universe / channel targeting (desktop's Outputs tree). Keys:
+///   "name" — NSString (controller name)
+///   "testable" / "untestableReason"
+///   "outputs" — NSArray<NSDictionary>:
+///       "description" — NSString (the output's long description)
+///       "universe"    — NSNumber (int)
+///       "startChannel" / "endChannel" — NSNumber (uint32, 1-based)
+///       "channels"    — NSNumber (int)
+- (NSArray<NSDictionary<NSString*, id>*>*)outputItems;
+
 #pragma mark - Channel selection
 
 - (void)selectFrom:(uint32_t)start to:(uint32_t)end;

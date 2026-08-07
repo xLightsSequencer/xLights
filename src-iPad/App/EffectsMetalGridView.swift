@@ -67,6 +67,11 @@ struct EffectsMetalGridView: UIViewRepresentable {
     /// selections that fall inside the rectangle. Wired to
     /// `SequencerViewModel.setMultiSelection`.
     var onMarqueeSelect: ((Set<SequencerViewModel.EffectSelection>) -> Void)?
+    /// The dragged region itself (first row, last row, start ms, end ms).
+    /// Fires alongside `onMarqueeSelect` so the view model can establish
+    /// a cell range over blank time — the effects hit and the region
+    /// covered are different answers, and desktop keeps both.
+    var onMarqueeRegion: ((Int, Int, Int, Int) -> Void)?
     /// Pencil 2 double-tap / Pencil Pro squeeze → action. Outer
     /// view wires to `viewModel.undo()`.
     var onPencilTapAction: (() -> Void)?
@@ -117,6 +122,7 @@ struct EffectsMetalGridView: UIViewRepresentable {
         ctx.onUpdateScrollY = { newY in scrollOffsetY = newY }
         ctx.onUserInteraction = onUserInteraction
         ctx.onMarqueeSelect = onMarqueeSelect
+        ctx.onMarqueeRegion = onMarqueeRegion
         ctx.onPencilTapAction = onPencilTapAction
         view.setNeedsDisplay()
     }
@@ -166,6 +172,7 @@ struct EffectsMetalGridView: UIViewRepresentable {
         var onUpdateScrollY: (CGFloat) -> Void = { _ in }
         var onUserInteraction: (() -> Void)?
         var onMarqueeSelect: ((Set<SequencerViewModel.EffectSelection>) -> Void)?
+        var onMarqueeRegion: ((Int, Int, Int, Int) -> Void)?
 
         // Marquee-select state. Stored in *world* (content) coords so
         // the rectangle stays anchored correctly if the user scrolls
@@ -1133,6 +1140,14 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         lp.name = "contextMenuLP"
         lp.delegate = del
         addGestureRecognizer(lp)
+
+        // Media dropped from Files / Photos becomes an effect, the way
+        // the desktop grid accepts a file drop. Handled here rather
+        // than as a SwiftUI dropDestination because the drop point has
+        // to be resolved to a row and a time, and that mapping —
+        // scroll offsets, per-row heights, pixels-per-ms — lives on
+        // this view.
+        addInteraction(UIDropInteraction(delegate: self))
     }
 
     // Hit test zones reused from CG path.
@@ -1360,7 +1375,27 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                                                fade.isIn, p)
             return
         }
-        guard let hit = hitTestEffect(at: p) else { return }
+        guard let hit = hitTestEffect(at: p) else {
+            // Blank time on a model row still gets a menu — that is
+            // where paste-into-range and fill live, and desktop offers
+            // them regardless of what was under the cursor.
+            var y: CGFloat = -c.scrollOffsetY
+            var rowId: Int? = nil
+            for row in c.rows {
+                let h = (row.id == c.selection?.rowIndex)
+                    ? c.metrics.selectedRowHeight : c.metrics.rowHeight
+                if p.y >= y && p.y < y + h {
+                    if row.timing == nil { rowId = row.id }
+                    break
+                }
+                y += h
+            }
+            if let rid = rowId, c.pixelsPerMS > 0 {
+                let ms = max(0, Int((p.x + c.scrollOffsetX) / c.pixelsPerMS))
+                c.actions.onRequestEmptyCellMenu(rid, ms)
+            }
+            return
+        }
         // When the long-press lands on a member of the current
         // multi-select, preserve the set and request a bulk context
         // menu. Otherwise fall through to the single-effect path
@@ -1551,6 +1586,11 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             setNeedsDisplay()
             if rect.width < 6 && rect.height < 6 { return }
             c.onMarqueeSelect?(hits)
+            if let span = marqueeRowSpan(worldRect: rect, c: c), c.pixelsPerMS > 0 {
+                c.onMarqueeRegion?(span.first, span.last,
+                                    Int(rect.minX / c.pixelsPerMS),
+                                    Int(rect.maxX / c.pixelsPerMS))
+            }
         case .cancelled, .failed:
             ownPinch?.isEnabled = true
             c.marqueeStartWorld = nil
@@ -1595,6 +1635,29 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             rowTop += h
         }
         return result
+    }
+
+    /// Row indexes the marquee rectangle vertically overlaps. Uses the
+    /// same per-row height walk as `marqueeHits` so the two can't
+    /// disagree about which rows a drag covered.
+    private func marqueeRowSpan(worldRect: CGRect,
+                                 c: EffectsMetalGridView.Coordinator)
+        -> (first: Int, last: Int)? {
+        var rowTop: CGFloat = 0
+        var first: Int? = nil
+        var last: Int? = nil
+        for row in c.rows {
+            let h = (row.id == c.selection?.rowIndex)
+                ? c.metrics.selectedRowHeight : c.metrics.rowHeight
+            let rowBot = rowTop + h
+            if rowBot >= worldRect.minY && rowTop <= worldRect.maxY {
+                if first == nil { first = row.id }
+                last = row.id
+            }
+            rowTop += h
+        }
+        guard let f = first, let l = last else { return nil }
+        return (f, l)
     }
 
     // MARK: - Drag lifecycle
@@ -2079,11 +2142,64 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                 // single finger lands on an effect, matching
                 // desktop's right-click-on-effect behaviour.
                 if lp.name == "marqueeLP" { return true }
-                let p = g.location(in: v)
-                return v.hitTestEffect(at: p) != nil
+                // The context-menu press begins anywhere on the grid;
+                // the handler decides between the effect menu and the
+                // empty-cell menu. Desktop's right-click is likewise
+                // not conditional on hitting an effect.
+                return true
             }
             // Pan always begins — either a drag or a scroll.
             return true
         }
+    }
+}
+
+
+// MARK: - File drop (desktop EffectsGrid::OnDropFiles)
+
+extension EffectsMetalGridMTKView: UIDropInteractionDelegate {
+    func dropInteraction(_ interaction: UIDropInteraction,
+                          canHandle session: UIDropSession) -> Bool {
+        session.canLoadObjects(ofClass: URL.self)
+    }
+
+    func dropInteraction(_ interaction: UIDropInteraction,
+                          sessionDidUpdate session: UIDropSession) -> UIDropProposal {
+        // Only model rows can hold an effect; over a timing row or the
+        // gap past the last row the drop is refused rather than
+        // silently landing somewhere else.
+        let p = session.location(in: self)
+        return UIDropProposal(operation: rowIndex(atViewY: p.y) == nil ? .cancel : .copy)
+    }
+
+    func dropInteraction(_ interaction: UIDropInteraction,
+                          performDrop session: UIDropSession) {
+        guard let c = coordinator, c.pixelsPerMS > 0 else { return }
+        let p = session.location(in: self)
+        guard let rowId = rowIndex(atViewY: p.y) else { return }
+        let ms = max(0, Int((p.x + c.scrollOffsetX) / c.pixelsPerMS))
+        // First usable file wins; desktop takes files.front() too.
+        _ = session.loadObjects(ofClass: URL.self) { [weak self] urls in
+            guard let self, let url = urls.first else { return }
+            MainActor.assumeIsolated {
+                self.coordinator?.actions.onDropFile(rowId, ms, url.path)
+            }
+        }
+    }
+
+    /// Model-row index at a view-space y, or nil for timing rows and
+    /// empty space below the last row.
+    private func rowIndex(atViewY y: CGFloat) -> Int? {
+        guard let c = coordinator else { return nil }
+        var top: CGFloat = -c.scrollOffsetY
+        for row in c.rows {
+            let h = (row.id == c.selection?.rowIndex)
+                ? c.metrics.selectedRowHeight : c.metrics.rowHeight
+            if y >= top && y < top + h {
+                return row.timing == nil ? row.id : nil
+            }
+            top += h
+        }
+        return nil
     }
 }

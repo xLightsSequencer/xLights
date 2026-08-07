@@ -342,6 +342,21 @@ void D2DTextDrawingContext::SetFont(const TextFontInfo& fi, const xlColor& color
     if (impl->rt == nullptr) {
         return;
     }
+
+    // Antialiasing is a render-target-wide setting, not a format/layout one, so
+    // it must be re-applied on every SetFont — a pooled context may have last
+    // drawn a different effect's request. Most effects render into LED-grid
+    // buffers where AA produces blurry half-lit pixels, so ALIASED remains the
+    // default; fi.antiAliased lets a caller (e.g. Shape's cached color-emoji
+    // bitmap) opt into smooth edges instead.
+    if (fi.antiAliased) {
+        impl->rt->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        impl->rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
+    } else {
+        impl->rt->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+        impl->rt->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_ALIASED);
+    }
+
     if (impl->haveFont && fi == impl->cachedFont && color == impl->cachedColor) {
         return;
     }
@@ -456,8 +471,11 @@ void D2DTextDrawingContext::DrawText(const std::string& msg, int x, int y, doubl
     if (rotated) {
         impl->rt->SetTransform(D2D1::Matrix3x2F::Rotation((FLOAT)-rotation, D2D1::Point2F((FLOAT)x, (FLOAT)y)));
     }
+    // Without ENABLE_COLOR_FONT, a color glyph run (e.g. Segoe UI Emoji) draws
+    // as a flat brush-tinted fallback instead of its actual multi-color,
+    // shaded artwork. Harmless to request for ordinary non-color fonts.
     impl->rt->DrawTextLayout(D2D1::Point2F((FLOAT)x, (FLOAT)y), layout, impl->brush,
-                             D2D1_DRAW_TEXT_OPTIONS_NONE);
+                             D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT);
     if (rotated) {
         impl->rt->SetTransform(D2D1::Matrix3x2F::Identity());
     }

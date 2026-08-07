@@ -12,8 +12,42 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
     -bug (derwin12)              Bulk Controller Upload no longer stalls when a controller's FPP proxy hostname can't be resolved
+    -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
+    -enh (dkulp)                 iPad - The visualizer can work on a whole port at once: remove every model
+                                 from a port or from the controller, move a port's models to another port, and
+                                 set or clear the port's smart remote and its type
+    -bug (dkulp)                 iPad - Controller discovery now probes the controllers already in the show
+                                 rather than relying on broadcast alone, so an FPP on another subnet or behind
+                                 a proxy is found, and a password-protected FPP asks for the password instead
+                                 of being skipped
+    -enh (dkulp)                 iPad - Previews can be renamed and deleted, not just created. Deleting one
+                                 leaves its models in the show as Unassigned; renaming one takes its models
+                                 with it
+    -enh (dkulp)                 iPad - Several selected models can be exported to a single .xmodel file
+    -enh (dkulp)                 iPad - Models, groups and viewpoints can be imported from another show. Pick
+                                 that show's xlights_rgbeffects.xml, tick what you want, and it merges into the
+                                 preview you are editing; a name already in use is imported under a new one
+    -enh (dkulp)                 iPad - Dragging out a region of the grid with a timing track active now selects
+                                 that block of cells, and long-pressing empty grid space opens a menu to paste
+                                 into it, fill it with random effects, or drop in the armed effect
+    -enh (dkulp)                 iPad - An image, video, Glediator or shader file dropped onto the grid becomes
+                                 the matching effect at that spot
+    -enh (dkulp)                 iPad - Press T to drop a timing mark at the play marker on the active timing
+                                 track, and S to split the mark under it, so beats can be tapped out while the
+                                 sequence plays
+    -enh (dkulp)                 iPad - Lyric breakdown can be run on a single word, or on just the marks you
+                                 have selected, rather than only a whole track or a single phrase
+    -enh (dkulp)                 iPad - Light Test gains Groups and Outputs targeting, so a model group or a raw
+                                 universe can be tested directly, plus a filter box for finding what to test in
+                                 a large show
+    -enh (dkulp)                 iPad - Check Sequence results can be exported and shared as an HTML report
+    -enh (dkulp)                 iPad - Controller output settings can now be edited for every ethernet protocol,
+                                 not just E1.31, ArtNet and KiNET. DDP, ZCPP, OPC and Twinkly could be selected
+                                 but none of their settings could be reached. KiNET gains its Version setting and
+                                 labels its outputs as ports rather than universes, and a controller with no
+                                 known model can now be set to Player Only
     -change (dkulp)              iPad - View names are held to the same rules as the desktop - letters, numbers,
                                  spaces, underscores and hyphens - and say so when a name is rejected. A comma in
                                  a view name breaks which timing tracks belong to that view

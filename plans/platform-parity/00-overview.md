@@ -19,26 +19,26 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | Theme | ✅ | 🟡 | ❌ | 🚫 | 🔵 | Biggest gap in one line |
 |---|---|---|---|---|---|---|
 | 01 File & show lifecycle | 72 | 47 | 34 | 8 | 18 | iPad "backup" is a per-sequence snapshot ring; no show-folder backup/restore (feasibility under the sandbox verified — it's backlog, not a platform limit) |
-| 02 Sequencer grid & editing | 117 | 36 | 31 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
-| 03 Timing, lyrics & audio | 113 | 20 | 21 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
+| 02 Sequencer grid & editing | 122 | 35 | 27 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
+| 03 Timing, lyrics & audio | 118 | 19 | 17 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
 | 04 Effects catalog & panels | 84 | 10 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
 | 05 Color, palettes & curves | 72 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
-| 06 Layout, models, 3D | 165 | 51 | 67 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
-| 07 Controllers, outputs, upload | 61 | 39 | 33 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
+| 06 Layout, models, 3D | 169 | 50 | 64 | 4 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
+| 07 Controllers, outputs, upload | 70 | 30 | 28 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
 | 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
 | 09 Render & playback | 62 | 12 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
 | 10 Presets, views, jukebox | 50 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
-| 13 Tools, diagnostics, help | 55 | 12 | 15 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **975** | **293** | **367** | **157** | **88** | |
+| 13 Tools, diagnostics, help | 59 | 12 | 11 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
+| **Total (01–13)** | **1002** | **281** | **347** | **157** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,635 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
-at full parity and **78%** at full-or-partial. Counting partials at half weight the iPad sits
-at **≈69% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
+**Parity index:** of the 1,630 rows where an iPad status is meaningful (✅+🟡+❌), **61%** are
+at full parity and **79%** at full-or-partial. Counting partials at half weight the iPad sits
+at **≈70% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
 writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (157) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
 
 **The structural headline:** the iPad is not a viewer. It creates 25/28 model types, runs all
@@ -99,7 +99,7 @@ All survived adversarial re-verification.
 | 10 | 50 | 14 | 21 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
-| 13 | 55 | 12 | 15 |
+| 13 | 59 | 12 | 11 |
 | 14 | ~~Different default palette colors *and* default-enabled slots~~ | 05 r5–6 | **FIXED 2026-08-06** — the new-effect seed now carries desktop's eight colours in desktop's slot order plus `C_CHECKBOX_Palette1/2=1`; without the checkboxes `ParseColorMap` gave the effect an empty colour list |
 | 15 | ~~Missing `SetDefaultParameters` seeding on effect drop~~ | 04 | **FIXED 2026-08-06** — the bridge supplies the list-derived defaults at creation (State's first state, Faces' phoneme source) |
 | 16 | ~~AI-generated images land as loose files, never embedded~~ | 12 r34 | **FIXED 2026-08-06** — embedded under the same `AIImages/…` key desktop uses, so the image travels inside the `.xsq`; loose file remains the fallback |
@@ -121,8 +121,8 @@ Highest-leverage first within rough effort bands.
 - ~~**Render progress sink** (09 r14–15)~~ — **DONE 2026-08-06**: per-model progress + status
   text ship as a long-press sheet over the toolbar render button. No sink was needed; the same
   job list desktop's poll loop reads is available directly off `RenderProgressInfo`.
-- **Keyboard timing entry** (03 r58–61): "t"/"s" add/split during playback — VM methods exist
-  and are undo-wired; needs `.keyboardShortcut` plumbing only.
+- ~~**Keyboard timing entry** (03 r58–61)~~ — **DONE 2026-08-07**: "t" / "s" act on the active
+  timing track at the play marker, as menu commands with bare-key shortcuts.
 - ~~**Viewpoint menu in Layout Editor** (06 r232–234)~~ — **DONE 2026-08-06**: the Layout
   Editor overlay now posts the pane-scoped command `PreviewPaneView` already answered. Only
   "set as default viewpoint" is still missing (no bridge method).
@@ -132,34 +132,44 @@ Highest-leverage first within rough effort bands.
   property kinds render; the session gained the bool/int setters to match.
 
 **Medium (bridge surface + a sheet):**
-- **Cell-range selection** (02): substrate for paste-into-region, Create Random Effects,
-  keyboard column nav, and the enable state of half the grid menu — highest-leverage single
-  grid change.
-- **Grid drop target** (02 r35–36): one `dropDestination` closes effect-drag *and* external
-  media drop.
-- **Per-protocol output properties** (07): DDP/ZCPP/Twinkly/OPC/xxx/LOR-opt configurable, not
-  just selectable — descriptor format already expressive; DDP first (3 rows).
+- ~~**Cell-range selection** (02)~~ — **DONE 2026-08-07**: `CellRange` (rows × timing-mark
+  columns) established from the marquee, with paste-into-range, Create Random Effects and the
+  empty-cell menu on top of it. Keyboard column nav is still not wired to it.
+- **Grid drop target** (02 r35–36) — **external media DONE 2026-08-07** via a
+  `UIDropInteraction` on the canvas; palette drag-onto-grid is still arm-then-tap, which is the
+  touch idiom and works, so r35 stays partial rather than blocking.
+- ~~**Per-protocol output properties** (07)~~ — **DONE 2026-08-07** for every Ethernet
+  protocol: DDP, ZCPP, KiNET (incl. Version + port labelling), OPC, Twinkly, xxx Ethernet,
+  plus Player Only in the caps-less fallback. **LOR Optimised's per-device tree is still
+  missing** (07 r17) — it is serial-only, and serial output is impossible on iPadOS, so
+  configuring it there is low value.
 - **Settings redo** (11) — approved 2026-08-01: promote the genuinely global settings into a
   global settings surface, keep per-context sheets where they fit, clean up placement and
   reconcile the drifted key naming (`renderOnSave`, `pasteByCell`). 33 already-working
   settings just need re-hosting; the ❌ backlog becomes visible in the process.
 - **Show-folder backup + config-file restore** (01, pairs with S1 #2/#3).
-- **Light-test Outputs/Groups trees + search** (13 r8–9/11); **Check Sequence export** (13 r21).
+- ~~**Light-test Outputs/Groups trees + search** (13 r8–9/11); **Check Sequence export**
+  (13 r21)~~ — **DONE 2026-08-07**: Outputs and Groups tabs plus one filter field over the
+  visible tab; Check Sequence exports HTML to the share sheet.
 - **Import mapping depth** (08): time-offset, auto-map wiring (bridge op exists, no Swift
   caller), CCR/strand rows, import-media toggle, "Used"-source marking (r89),
   `.xmap`/`.xjmap` (needs a small wx-free `MappingIO`).
-- **Selection-scoped lyric breakdown** (03 r98–101); **words-only removal is at parity** (fixed
-  in cross-check).
+- ~~**Selection-scoped lyric breakdown** (03 r98–101)~~ — **DONE 2026-08-07**: per-word
+  breakdown plus selection-scoped phrase and word variants.
 - **ColorCurve blend-mode accessor** (05 r77); **drag-and-drop for colors/curves + dropper
   panes** (05 r35–37/121).
-- **Layout-group delete/rename bridge methods; background/grid setters; multi-model .xmodel
-  export; persistent 3D-mode setter** (06).
+- **Layout-group lifecycle** (06) — **delete/rename + multi-model .xmodel export DONE
+  2026-08-07** (r83/84, r211). Still open in this cluster: the persisted 2D bounding-box and
+  grid-spacing settings (r77/78 — the live view toggles work, the stored show setting is
+  read-only) and the persistent 3D-mode setter.
 - **Moving Head authoring depth** (04 r29/40): multi-handle wheel/picker, user `.xmh` preset
   scan, panel reset.
 - **Preview transport overlay + auto-show** (09 r95–98); **Force High Definition in batch
   render** (09 r47); **FSEQ version selector** (09 r30).
-- **Discovery seeding + FPP auth on the discovery path** (07 r51–52); **visualizer bulk port
-  ops** (07 r34–39); **smart-remote TYPE block propagation** (07 r89).
+- ~~**Discovery seeding + FPP auth on the discovery path** (07 r51–52); **visualizer bulk port
+  ops** (07 r34–36, r39); **smart-remote TYPE block propagation** (07 r89)~~ — **DONE
+  2026-08-07**. Still open in that cluster: **bulk smart-remote assignment per SR group**
+  (07 r38) — the ops added are port-scoped, where r38 groups by remote instead.
 - ~~**Cleanup File Locations: rgbeffects half** (13 r28)~~ — **DONE 2026-08-06**: the sweep now
   covers the preview background, models and view objects via the shared-core
   `CleanupFileLocations(RenderContext*)`.
@@ -175,7 +185,10 @@ Highest-leverage first within rough effort bands.
 - **Structured Faces/States editors** (06 r188–197).
 - **CAD / print / layout-image export cluster** (06): `src-core/cad/` is wx-free and entirely
   unreferenced from iPad; coherent porting unit.
-- **Cross-show import** (06 r218–219).
+- **Cross-show import** (06 r218–219) — **r218 DONE 2026-08-07** (models / groups / viewpoints
+  from another show's rgbeffects, with desktop's two-pass merge). r219, the LOR S5 layout
+  importer, is untouched: `LORPreview.cpp` is wx-side with no core lift, and S5 *sequence*
+  import already works, which is the commoner need.
 - **`.msq` (LSP) and `.vsa` import** (08) + **legacy exporter lift** (`.lcb`, `.vir`, LSP,
   HLS, Minleon out of `TabConvert.cpp` into `src-core/` — both platforms then share one
   implementation).

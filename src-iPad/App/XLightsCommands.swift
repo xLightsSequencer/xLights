@@ -213,6 +213,20 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
+            // Desktop KeyBindings TIMING_ADD=t / TIMING_SPLIT=s. Both
+            // act on the active timing track at the play marker and are
+            // meant to be used *during* playback — tapping out beats as
+            // the audio runs is the workflow they exist for.
+            Button("Add Timing Mark") { viewModel.addTimingMarkAtPlayMarker() }
+                .keyboardShortcut("t", modifiers: [])
+                .disabled(!viewModel.canAddTimingMarkAtPlayMarker)
+
+            Button("Split Timing Mark") { viewModel.splitTimingMarkAtPlayMarker() }
+                .keyboardShortcut("s", modifiers: [])
+                .disabled(!viewModel.canSplitTimingMarkAtPlayMarker)
+
+            Divider()
+
             // Desktop INSERT_LAYER_ABOVE=⇧i / INSERT_LAYER_BELOW=⇧a /
             // TOGGLE_ELEMENT_EXPAND=⇧x. All three act on the selected
             // effect's row — the keyboard route to the row-header

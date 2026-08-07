@@ -2343,6 +2343,12 @@ public:
 
     handles::Id GetHandleId() const override { return _handleId; }
 
+    std::optional<handles::DragSession::RotationInfo> GetRotationInfo() const override {
+        return handles::DragSession::RotationInfo{
+            _savedCentroid, _rotationAxis, static_cast<float>(_accumulatedAngle)
+        };
+    }
+
 private:
     void ComputeConstraintPlane(handles::Axis axis) {
         // Constraint plane is perpendicular to the rotation axis,

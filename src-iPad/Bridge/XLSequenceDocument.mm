@@ -40,6 +40,9 @@
 #include "effects/SketchSVGImport.h"
 #include "effects/EffectManager.h"
 #include "effects/ShaderEffect.h"
+#include "effects/VideoEffect.h"
+#include "effects/PicturesEffect.h"
+#include "effects/GlediatorEffect.h"
 #include "effects/MovingHeadEffect.h"
 #include "graphics/xlGraphicsAccumulators.h"
 #include "media/AudioManager.h"
@@ -100,6 +103,9 @@
 #include "outputs/ArtNetOutput.h"
 #include "outputs/TwinklyOutput.h"
 #include "outputs/DDPOutput.h"
+#include "outputs/ZCPPOutput.h"
+#include "outputs/KinetOutput.h"
+#include "outputs/ZCPP.h"
 #include "controllers/Pixlite16.h"
 #include "controllers/WLED.h"
 #include "controllers/BaseController.h"
@@ -3343,6 +3349,79 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     _context->GetSequenceElements().ClearTags();
 }
 
+// Break a single word mark on the words layer into phonemes
+// (desktop "Breakdown Word", EffectsGrid.cpp:1419-1452). Surgical:
+// only phonemes inside this word's window are replaced, so the rest
+// of the track's breakdown survives.
+- (BOOL)breakdownWordAtRow:(int)rowIndex atIndex:(int)wordIndex {
+    auto& se = _context->GetSequenceElements();
+    auto* row = se.GetRowInformation(rowIndex);
+    if (!row || !row->element) return NO;
+    if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return NO;
+    TimingElement* te = dynamic_cast<TimingElement*>(row->element);
+    if (!te || te->GetEffectLayerCount() < 2) return NO;
+
+    EffectLayer* wordLayer = te->GetEffectLayer(1);
+    if (!wordLayer) return NO;
+    if (wordIndex < 0 || wordIndex >= wordLayer->GetEffectCount()) return NO;
+    Effect* we = wordLayer->GetEffect(wordIndex);
+    if (!we) return NO;
+    const std::string word = we->GetEffectName();
+    if (word.empty()) return NO;
+    const int startMS = we->GetStartTimeMS();
+    const int endMS = we->GetEndTimeMS();
+
+    EffectLayer* phonemeLayer = (te->GetEffectLayerCount() < 3)
+        ? te->AddEffectLayer() : te->GetEffectLayer(2);
+    if (!phonemeLayer) return NO;
+
+    // Refuse when a locked phoneme sits in the target window —
+    // desktop reports this rather than silently overwriting.
+    for (auto&& eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
+        if (eff && eff->IsLocked()) return NO;
+    }
+    for (auto* eff : phonemeLayer->GetAllEffectsByTime(startMS, endMS)) {
+        phonemeLayer->DeleteEffect(eff->GetID());
+    }
+
+    BreakdownWord(phonemeLayer, startMS, endMS, word,
+                   se.GetFrequency(), _context->GetPhonemeDictionary(),
+                   se.get_undo_mgr());
+    te->SetCollapsed(false);
+    se.PopulateRowInformation();
+    return YES;
+}
+
+// Selection-scoped variants of the two breakdowns (desktop "Breakdown
+// Selected Phrases" / "Breakdown Selected Words", EffectsGrid.cpp:657,
+// :662). `indexes` are marks on the row's own layer; each is broken
+// down independently, so a partial failure (a locked phoneme under one
+// of them) still processes the rest. Returns how many succeeded.
+- (int)breakdownPhrasesAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes {
+    if (indexes.count == 0) return 0;
+    // Descending so earlier indexes stay valid as marks are rewritten.
+    NSArray<NSNumber*>* ordered = [indexes sortedArrayUsingComparator:^(NSNumber* a, NSNumber* b) {
+        return [b compare:a];
+    }];
+    int done = 0;
+    for (NSNumber* n in ordered) {
+        if ([self breakdownPhraseAtRow:rowIndex atIndex:n.intValue]) ++done;
+    }
+    return done;
+}
+
+- (int)breakdownWordsAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes {
+    if (indexes.count == 0) return 0;
+    NSArray<NSNumber*>* ordered = [indexes sortedArrayUsingComparator:^(NSNumber* a, NSNumber* b) {
+        return [b compare:a];
+    }];
+    int done = 0;
+    for (NSNumber* n in ordered) {
+        if ([self breakdownWordAtRow:rowIndex atIndex:n.intValue]) ++done;
+    }
+    return done;
+}
+
 - (BOOL)breakdownWordsAtRow:(int)rowIndex {
     auto& se = _context->GetSequenceElements();
     auto* row = se.GetRowInformation(rowIndex);
@@ -6328,6 +6407,248 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     return out;
 }
 
+// Cross-show import, read side — the contents of another show's
+// rgbeffects file, grouped the way desktop's ImportPreviewsModelsDialog
+// groups its tree (ImportPreviewsModelsDialog.cpp:333-397): a row per
+// preview ("Default" and "Unassigned" always, then each named
+// layoutGroup), each listing that preview's model groups ahead of its
+// models, plus the file's named viewpoints.
+- (NSDictionary*)importableContentsOfRGBEffectsFile:(NSString*)path {
+    NSMutableArray<NSDictionary*>* previews = [NSMutableArray array];
+    NSMutableArray<NSDictionary*>* viewpoints = [NSMutableArray array];
+    NSDictionary* empty = @{ @"previews": previews, @"viewpoints": viewpoints };
+    if (path.length == 0) return empty;
+    std::string p([path UTF8String]);
+    ObtainAccessToURL(p, false);
+    if (!FileExists(p)) return empty;
+
+    pugi::xml_document doc;
+    if (!doc.load_file(p.c_str())) return empty;
+    pugi::xml_node root = doc.document_element();
+    if (!root) return empty;
+
+    pugi::xml_node models = root.child("models");
+    pugi::xml_node modelGroups = root.child("modelGroups");
+
+    // Items in one preview: groups first (desktop's ordering), each
+    // name-sorted, so the two platforms present the same list.
+    auto itemsForPreview = [&](const std::string& preview) -> NSArray<NSDictionary*>* {
+        std::vector<std::string> groupNames;
+        std::vector<std::string> modelNames;
+        auto collect = [&](pugi::xml_node parent, std::vector<std::string>& into) {
+            if (!parent) return;
+            for (pugi::xml_node m = parent.first_child(); m; m = m.next_sibling()) {
+                if (std::string(m.attribute("LayoutGroup").as_string()) != preview) continue;
+                std::string n = m.attribute("name").as_string();
+                if (!n.empty()) into.push_back(n);
+            }
+        };
+        collect(modelGroups, groupNames);
+        collect(models, modelNames);
+        std::sort(groupNames.begin(), groupNames.end());
+        std::sort(modelNames.begin(), modelNames.end());
+
+        NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+        for (const auto& n : groupNames) {
+            [out addObject:@{ @"name": [NSString stringWithUTF8String:n.c_str()],
+                               @"kind": @"group" }];
+        }
+        for (const auto& n : modelNames) {
+            [out addObject:@{ @"name": [NSString stringWithUTF8String:n.c_str()],
+                               @"kind": @"model" }];
+        }
+        return out;
+    };
+
+    auto addPreview = [&](const std::string& name) {
+        NSArray<NSDictionary*>* items = itemsForPreview(name);
+        if (items.count == 0) return;   // desktop prunes empty preview rows
+        [previews addObject:@{ @"name": [NSString stringWithUTF8String:name.c_str()],
+                                @"items": items }];
+    };
+
+    if (models || modelGroups) {
+        addPreview("Default");
+        addPreview("Unassigned");
+        if (pugi::xml_node lgs = root.child("layoutGroups")) {
+            for (pugi::xml_node n = lgs.first_child(); n; n = n.next_sibling()) {
+                if (std::string_view(n.name()) != "layoutGroup") continue;
+                std::string lg = n.attribute("name").as_string();
+                if (!lg.empty()) addPreview(lg);
+            }
+        }
+    }
+
+    // Only real cameras — DefaultCamera2D/3D are the show's own defaults,
+    // not something to carry across.
+    if (pugi::xml_node vps = root.child("Viewpoints")) {
+        std::vector<std::pair<std::string, bool>> cams;
+        for (pugi::xml_node c = vps.first_child(); c; c = c.next_sibling()) {
+            if (std::string_view(c.name()) != "Camera") continue;
+            std::string n = UnXmlSafe(c.attribute("name").as_string(""));
+            if (n.empty()) continue;
+            cams.emplace_back(n, c.attribute("is_3d").as_int(0) != 0);
+        }
+        std::sort(cams.begin(), cams.end(),
+                  [](const auto& a, const auto& b) { return a.first < b.first; });
+        for (const auto& [n, is3d] : cams) {
+            [viewpoints addObject:@{ @"name": [NSString stringWithUTF8String:n.c_str()],
+                                      @"is3D": @(is3d) }];
+        }
+    }
+
+    return @{ @"previews": previews, @"viewpoints": viewpoints };
+}
+
+// Cross-show import, merge side — desktop's
+// `LayoutPanel::ImportModelsFromPreview` (LayoutPanel.cpp:11517-11608).
+// Two passes, and the order is load-bearing: models land first so the
+// group pass can tell which of a group's members actually exist here.
+//
+// `selection` is { previewName: [itemName, …] } and `viewpointNames`
+// the cameras to bring across. Everything is imported into
+// `layoutGroup` — the preview the user is looking at — rather than the
+// source's own preview names, matching desktop.
+- (NSDictionary*)importFromRGBEffectsFile:(NSString*)path
+                                 selection:(NSDictionary<NSString*, NSArray<NSString*>*>*)selection
+                            viewpointNames:(NSArray<NSString*>*)viewpointNames
+                             intoLayoutGroup:(NSString*)layoutGroup
+                        includeEmptyGroups:(BOOL)includeEmptyGroups {
+    NSMutableArray<NSString*>* renamed = [NSMutableArray array];
+    NSMutableArray<NSString*>* skipped = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager() || path.length == 0) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+    std::string p([path UTF8String]);
+    ObtainAccessToURL(p, false);
+    pugi::xml_document doc;
+    if (!FileExists(p) || !doc.load_file(p.c_str())) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+    pugi::xml_node root = doc.document_element();
+    if (!root) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+
+    // Flatten the per-preview selection into one name set — the target
+    // preview is the same for everything, so the grouping only matters
+    // for presentation.
+    std::set<std::string> wanted;
+    for (NSString* preview in selection) {
+        for (NSString* item in selection[preview] ?: @[]) {
+            if (item.length > 0) wanted.insert(std::string([item UTF8String]));
+        }
+    }
+    if (wanted.empty() && viewpointNames.count == 0) {
+        return @{ @"models": @0, @"groups": @0, @"viewpoints": @0,
+                  @"renamed": renamed, @"skippedEmptyGroups": skipped };
+    }
+
+    auto& mm = _context->GetModelManager();
+    const std::string lg = layoutGroup.length ? std::string([layoutGroup UTF8String]) : std::string("Default");
+    const int pw = _context->GetPreviewWidth();
+    const int ph = _context->GetPreviewHeight();
+    int modelCount = 0, groupCount = 0, viewpointCount = 0;
+
+    // Pass 1 — models. A name already in use is imported under a
+    // generated name rather than overwriting what is here.
+    if (pugi::xml_node models = root.child("models")) {
+        for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
+            std::string name = m.attribute("name").as_string();
+            if (name.empty() || wanted.find(name) == wanted.end()) continue;
+            std::string newName = name;
+            if (mm.GetModel(newName) != nullptr) {
+                newName = mm.GenerateModelName(name);
+                [renamed addObject:[NSString stringWithFormat:@"%s → %s",
+                                     name.c_str(), newName.c_str()]];
+            }
+            m.remove_attribute("name");
+            m.remove_attribute("LayoutGroup");
+            m.append_attribute("name") = newName.c_str();
+            m.append_attribute("LayoutGroup") = lg.c_str();
+            if (mm.createAndAddModel(m, pw, ph) != nullptr) {
+                ++modelCount;
+                // There is no created-model set: SaveLayoutChanges
+                // appends a <model> whose node it can't find, so the
+                // dirty mark is what carries a new one to disk.
+                _context->MarkLayoutModelDirty(newName);
+            }
+        }
+    }
+
+    // Pass 2 — groups. Members that don't exist here are dropped from
+    // the membership list; a group left with none is skipped unless the
+    // caller asked to keep empty ones. An existing group of the same
+    // name is merged into rather than duplicated.
+    if (pugi::xml_node groups = root.child("modelGroups")) {
+        for (pugi::xml_node g = groups.first_child(); g; g = g.next_sibling()) {
+            std::string name = g.attribute("name").as_string();
+            if (name.empty() || wanted.find(name) == wanted.end()) continue;
+
+            std::vector<std::string> members;
+            for (const auto& s : Split(g.attribute("models").as_string(), ',')) {
+                std::string mem = Trim(s);
+                if (!mem.empty() && mm.GetModel(mem) != nullptr) members.push_back(mem);
+            }
+            if (members.empty() && !includeEmptyGroups) {
+                [skipped addObject:[NSString stringWithUTF8String:name.c_str()]];
+                continue;
+            }
+
+            Model* existing = mm.GetModel(name);
+            if (existing == nullptr) {
+                g.remove_attribute("LayoutGroup");
+                g.append_attribute("LayoutGroup") = lg.c_str();
+                existing = mm.createAndAddModel(g, pw, ph);
+                if (existing != nullptr) {
+                    ++groupCount;
+                    _context->MarkGroupCreated(name);
+                }
+            }
+            if (existing != nullptr && existing->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                auto* mg = static_cast<ModelGroup*>(existing);
+                for (const auto& mem : members) {
+                    if (mg->GetModel(mem) == nullptr) mg->AddModel(mem);
+                }
+                _context->MarkLayoutModelDirty(name);
+            }
+        }
+    }
+
+    if (viewpointNames.count > 0) {
+        if (pugi::xml_node vps = root.child("Viewpoints")) {
+            for (pugi::xml_node c = vps.first_child(); c; c = c.next_sibling()) {
+                if (std::string_view(c.name()) != "Camera") continue;
+                std::string n = UnXmlSafe(c.attribute("name").as_string(""));
+                if (n.empty()) continue;
+                NSString* ns = [NSString stringWithUTF8String:n.c_str()];
+                if (![viewpointNames containsObject:ns]) continue;
+                _context->GetViewpointMgr().ImportCameraFromNode(c);
+                ++viewpointCount;
+            }
+        }
+    }
+
+    if (modelCount > 0 || groupCount > 0) {
+        [self recalcModelStartChannels];
+    }
+    if (viewpointCount > 0) {
+        _context->SaveViewpoints();
+    }
+    if (modelCount > 0 || groupCount > 0) {
+        if (!_context->SaveLayoutChanges()) {
+            spdlog::warn("XLSequenceDocument: cross-show import applied but the save failed");
+        }
+    }
+
+    return @{ @"models": @(modelCount), @"groups": @(groupCount),
+              @"viewpoints": @(viewpointCount),
+              @"renamed": renamed, @"skippedEmptyGroups": skipped };
+}
+
 - (NSArray<NSString*>*)modelNamesInRGBEffectsFile:(NSString*)path {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     if (!path || path.length == 0) return out;
@@ -6442,6 +6763,40 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (data.strands.empty()) return out;
     [out addObject:SubModelImportDataToDict(data)];
     return out;
+}
+
+- (BOOL)exportModelsToXmodelFile:(NSArray<NSString*>*)modelNames path:(NSString*)path {
+    if (!_context || !_context->HasModelManager() || !path || path.length == 0) return NO;
+    if (modelNames.count == 0) return NO;
+    auto& mgr = _context->GetModelManager();
+    std::vector<const Model*> models;
+    for (NSString* n in modelNames) {
+        if (n.length == 0) continue;
+        Model* m = mgr[std::string(n.UTF8String)];
+        // Groups aren't exportable as a model definition — the single
+        // export refuses them too.
+        if (!m || m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        models.push_back(m);
+    }
+    if (models.empty()) return NO;
+    ObtainAccessToURL([path UTF8String], true);
+    XmlSerializer serializer;
+    pugi::xml_document doc = serializer.SerializeModels(models, /*includeGroups*/ true,
+                                                         /*forExport*/ true);
+    return doc.save_file(path.UTF8String) ? YES : NO;
+}
+
+- (BOOL)deleteLayoutGroup:(NSString*)name {
+    if (!_context || name.length == 0) return NO;
+    if (!_context->DeleteNamedLayoutGroup(std::string(name.UTF8String))) return NO;
+    [self recalcModelStartChannels];
+    return YES;
+}
+
+- (BOOL)renameLayoutGroup:(NSString*)oldName to:(NSString*)newName {
+    if (!_context || oldName.length == 0 || newName.length == 0) return NO;
+    return _context->RenameNamedLayoutGroup(std::string(oldName.UTF8String),
+                                             std::string(newName.UTF8String)) ? YES : NO;
 }
 
 - (BOOL)exportModelToXmodelFile:(NSString*)modelName path:(NSString*)path {
@@ -13525,6 +13880,21 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     return YES;
 }
 
+// Which effect a dropped media file should become — desktop's
+// EffectsGrid::OnDropFiles classification (EffectsGrid.cpp:1788-1812),
+// using the same core predicates so the two agree on what a file is.
+// Empty string when the file isn't something the grid can turn into an
+// effect, which is also the accept/reject answer for the drop itself.
++ (NSString*)effectNameForDroppedFile:(NSString*)path {
+    if (path.length == 0) return @"";
+    const std::string p([path UTF8String]);
+    if (VideoEffect::IsVideoFile(p)) return @"Video";
+    if (PicturesEffect::IsPictureFile(p)) return @"Pictures";
+    if (GlediatorEffect::IsGlediatorFile(p)) return @"Glediator";
+    if (ShaderEffect::IsShaderFile(p)) return @"Shader";
+    return @"";
+}
+
 - (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     if (sourcePath.length == 0 || name.length == 0) return NO;
@@ -16075,9 +16445,17 @@ static NSArray<NSString*>* EthernetProtocolOptions(const ControllerEthernet* eth
         // so it is only offered to a controller already using it.
         [out addObjectsFromArray:@[@(OUTPUT_E131), @(OUTPUT_ARTNET),
                                     @(OUTPUT_DDP),  @(OUTPUT_OPC),
-                                    @(OUTPUT_KINET), @(OUTPUT_TWINKLY)]];
+                                    @(OUTPUT_KINET), @(OUTPUT_TWINKLY),
+                                    @(OUTPUT_PLAYER_ONLY)]];
+        // ZCPP is deprecated and `xxx Ethernet` is a special-purpose
+        // protocol desktop hides behind its `xxx` option, so neither is
+        // offered outright — but a controller already on one must stay
+        // editable rather than being silently switched away.
         if (eth && eth->GetProtocol() == OUTPUT_ZCPP) {
             [out addObject:@(OUTPUT_ZCPP)];
+        }
+        if (eth && eth->GetProtocol() == OUTPUT_xxxETHERNET) {
+            [out addObject:@(OUTPUT_xxxETHERNET)];
         }
     }
     return out;
@@ -16256,23 +16634,43 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         // first output's number, Universes = output count, IndivSizes =
         // !AllSameSize, and (when uniform) a single Channels field.
         const std::string proto = eth->GetProtocol();
-        if (proto == OUTPUT_E131 || proto == OUTPUT_ARTNET || proto == OUTPUT_KINET) {
+        if (proto == OUTPUT_E131 || proto == OUTPUT_ARTNET ||
+            proto == OUTPUT_KINET || proto == OUTPUT_xxxETHERNET) {
             [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
             auto const& outs = eth->GetOutputs();
+            // KiNET addresses physical ports, not universes, and desktop
+            // labels its rows accordingly (OutputPropertyAdapters.cpp:601-618).
+            // KiNET and xxx Ethernet address physical ports rather than
+            // universes; only KiNET carries a protocol version.
+            const bool isPortStyle = (proto == OUTPUT_KINET || proto == OUTPUT_xxxETHERNET);
+            const bool isKinet = (proto == OUTPUT_KINET);
+            if (isKinet && !outs.empty()) {
+                if (auto* kinet = dynamic_cast<KinetOutput*>(outs.front())) {
+                    [out addObject:CtrlIntProp(@"KinetVersion", @"Version",
+                                                 kinet->GetVersion(), 1, 2)];
+                }
+            }
             int startUniv = outs.empty() ? 1 : outs.front()->GetUniverse();
             const int maxUniv = (proto == OUTPUT_ARTNET) ? 32767 : 64000;
-            [out addObject:CtrlIntProp(@"Universe", @"Start Universe",
-                                         startUniv, 1, maxUniv)];
-            [out addObject:CtrlIntProp(@"Universes", @"Universe Count",
-                                         (int)outs.size(), 1, 100000)];
-            [out addObject:CtrlBoolProp(@"UniversePerString", @"Universe Per String",
-                                          eth->IsUniversePerString() ? YES : NO)];
+            [out addObject:CtrlIntProp(@"Universe",
+                                         isPortStyle ? @"Start Port" : @"Start Universe",
+                                         startUniv, isPortStyle ? 0 : 1,
+                                         isPortStyle ? 255 : maxUniv)];
+            [out addObject:CtrlIntProp(@"Universes",
+                                         isPortStyle ? @"Port Count" : @"Universe Count",
+                                         (int)outs.size(), 1, isPortStyle ? 1000 : 100000)];
+            if (!isPortStyle) {
+                [out addObject:CtrlBoolProp(@"UniversePerString", @"Universe Per String",
+                                              eth->IsUniversePerString() ? YES : NO)];
+            }
             const bool indiv = !eth->AllSameSize();
             [out addObject:CtrlBoolProp(@"IndivSizes", @"Individual Sizes",
                                           indiv ? YES : NO)];
             if (!indiv) {
                 int chans = outs.empty() ? 510 : outs.front()->GetChannels();
-                [out addObject:CtrlIntProp(@"Channels", @"Channels per Universe",
+                [out addObject:CtrlIntProp(@"Channels",
+                                             isPortStyle ? @"Channels per Port"
+                                                     : @"Channels per Universe",
                                              chans, 1, 512)];
             } else {
                 // Individual per-universe channel sizes. Key encodes the
@@ -16285,6 +16683,70 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                     [out addObject:CtrlIntProp(key, label,
                                                  o->GetChannels(), 1, 512)];
                 }
+            }
+        }
+
+        // === Output editing — the protocols that don't use the
+        // universe tree. Each mirrors its desktop
+        // `*OutputPropertyAdapter::AddProperties`. Every one of these
+        // was selectable but unconfigurable here: the controller could
+        // be put on DDP, then none of DDP's settings could be reached.
+        // The controller holds a single Output for these protocols, so
+        // the rows read and write `outs.front()`.
+        auto const& outs = eth->GetOutputs();
+        Output* first = outs.empty() ? nullptr : outs.front();
+        if (proto == OUTPUT_DDP && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            auto* ddp = dynamic_cast<DDPOutput*>(first);
+            if (ddp) {
+                [out addObject:CtrlIntProp(@"ChannelsPerPacket", @"Channels Per Packet",
+                                             ddp->GetChannelsPerPacket(), 1, 1440)];
+                // Desktop hides this for FPP, whose DDP input always
+                // wants channel 1 (OutputPropertyAdapters.cpp:448).
+                if (c->GetVendor() != "FPP") {
+                    [out addObject:CtrlBoolProp(@"KeepChannelNumbers", @"Keep Channel Numbers",
+                                                  ddp->IsKeepChannelNumbers() ? YES : NO)];
+                }
+                [out addObject:CtrlIntProp(@"Channels", @"Channels",
+                                             ddp->GetChannels(), 1,
+                                             (int)ddp->GetMaxChannels())];
+            }
+        } else if (proto == OUTPUT_ZCPP && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            auto* zcpp = dynamic_cast<ZCPPOutput*>(first);
+            if (zcpp) {
+                NSString* mcast = [NSString stringWithUTF8String:
+                    ZCPP_GetDataMulticastAddress(zcpp->GetIP()).c_str()];
+                [out addObject:CtrlStringProp(@"MulticastAddressDisplay", @"Multicast Address",
+                                                mcast, /*editable*/ NO)];
+                [out addObject:CtrlBoolProp(@"SupportsVirtualStrings", @"Supports Virtual Strings",
+                                              zcpp->IsSupportsVirtualStrings() ? YES : NO)];
+                [out addObject:CtrlBoolProp(@"SupportsSmartRemotes", @"Supports Smart Remotes",
+                                              zcpp->IsSupportsSmartRemotes() ? YES : NO)];
+                [out addObject:CtrlBoolProp(@"SendDataMulticast", @"Send Data Multicast",
+                                              zcpp->IsMulticast() ? YES : NO)];
+                [out addObject:CtrlBoolProp(@"DontSendConfig", @"Suppress Sending Configuration",
+                                              zcpp->IsDontConfigure() ? YES : NO)];
+                [out addObject:CtrlIntProp(@"Channels", @"Channels",
+                                             zcpp->GetChannels(), 1,
+                                             (int)zcpp->GetMaxChannels())];
+            }
+        } else if (proto == OUTPUT_OPC && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            [out addObject:CtrlIntProp(@"Universe", @"OPC Channel",
+                                         first->GetUniverse(), 0, 255)];
+            [out addObject:CtrlIntProp(@"Channels", @"Message Data Size",
+                                         first->GetChannels(), 1,
+                                         (int)first->GetMaxChannels())];
+        } else if (proto == OUTPUT_TWINKLY && first) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            auto* twinkly = dynamic_cast<TwinklyOutput*>(first);
+            if (twinkly) {
+                [out addObject:CtrlIntProp(@"HTTPPort", @"HTTP Port",
+                                             (int)twinkly->GetHttpPort(), 1, 65535)];
+                [out addObject:CtrlIntProp(@"Channels", @"Channels",
+                                             twinkly->GetChannels(), 1,
+                                             (int)twinkly->GetMaxChannels())];
             }
         }
     } else if (auto* nul = dynamic_cast<ControllerNull*>(c)) {
@@ -16725,6 +17187,48 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         BOOL forceSizes = [(NSNumber*)value boolValue];
         eth->SetAllSameSize(!forceSizes, nullptr);
         changed = YES;
+    }
+    // Per-protocol output properties. Each mirrors its desktop
+    // `*OutputPropertyAdapter::HandlePropertyEvent`. These protocols
+    // keep a single Output on the controller, so the write targets
+    // `GetOutputs().front()`.
+    else if (k == "ChannelsPerPacket" || k == "KeepChannelNumbers" ||
+             k == "SupportsVirtualStrings" || k == "SupportsSmartRemotes" ||
+             k == "SendDataMulticast" || k == "DontSendConfig" ||
+             k == "HTTPPort" || k == "KinetVersion") {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth || eth->GetOutputs().empty()) return NO;
+        Output* first = eth->GetOutputs().front();
+        if (k == "ChannelsPerPacket") {
+            auto* ddp = dynamic_cast<DDPOutput*>(first);
+            if (!ddp) return NO;
+            int v = [(NSNumber*)value intValue];
+            if (ddp->GetChannelsPerPacket() != v) { ddp->SetChannelsPerPacket(v); changed = YES; }
+        } else if (k == "KeepChannelNumbers") {
+            auto* ddp = dynamic_cast<DDPOutput*>(first);
+            if (!ddp) return NO;
+            BOOL v = [(NSNumber*)value boolValue];
+            if (ddp->IsKeepChannelNumbers() != (bool)v) { ddp->SetKeepChannelNumber(v); changed = YES; }
+        } else if (k == "HTTPPort") {
+            auto* tw = dynamic_cast<TwinklyOutput*>(first);
+            if (!tw) return NO;
+            int v = [(NSNumber*)value intValue];
+            if ((int)tw->GetHttpPort() != v) { tw->SetHttpPort((uint16_t)v); changed = YES; }
+        } else if (k == "KinetVersion") {
+            auto* kinet = dynamic_cast<KinetOutput*>(first);
+            if (!kinet) return NO;
+            int v = [(NSNumber*)value intValue];
+            if (kinet->GetVersion() != v) { kinet->SetVersion(v); changed = YES; }
+        } else {
+            auto* zcpp = dynamic_cast<ZCPPOutput*>(first);
+            if (!zcpp) return NO;
+            BOOL v = [(NSNumber*)value boolValue];
+            if (k == "SupportsVirtualStrings") { zcpp->SetSupportsVirtualStrings(v); }
+            else if (k == "SupportsSmartRemotes") { zcpp->SetSupportsSmartRemotes(v); }
+            else if (k == "SendDataMulticast") { zcpp->SetMulticast(v); }
+            else { zcpp->SetDontConfigure(v); }
+            changed = YES;
+        }
     } else if (k.rfind("Channels/", 0) == 0) {
         auto* eth = dynamic_cast<ControllerEthernet*>(c);
         if (!eth) return NO;
@@ -17451,14 +17955,41 @@ public:
 
     // Construct a single Discovery instance and register every
     // protocol scanner desktop's PrepareAllControllerDiscovery
-    // wires up. FPP needs an optional list of forced IPs — we
-    // pass an empty list (the iPad has no "FPPConnectForcedIPs"
-    // preference today; broadcast discovery is enough for the
-    // common case).
-    DiscoveryDelegate defaultDelegate;
-    Discovery discovery(&om, &defaultDelegate);
-    std::list<std::string> emptyForcedAddresses;
-    FPP::PrepareDiscovery(discovery, emptyForcedAddresses);
+    // wires up.
+    //
+    // Use the auth delegate so a password-protected FPP prompts rather
+    // than being silently skipped — the prompt already existed but was
+    // only wired into FPP Connect's discovery, not this one.
+    if (!_fppAuthDelegate) {
+        _fppAuthDelegate = std::make_unique<XLiPadDiscoveryAuthDelegate>();
+    }
+    Discovery discovery(&om, _fppAuthDelegate.get());
+
+    // Seed unicast probes the way desktop's GetDiscoveryAddresses does
+    // (DiscoveryHelpers.cpp:29-66): every active ethernet controller's
+    // resolved IP, plus any FPP proxy. Broadcast alone misses anything
+    // on another subnet or behind a proxy, which is the case seeding
+    // exists for. (The iPad has no FPPConnectForcedIPs preference, so
+    // that source contributes nothing here — FPP Connect keeps its own
+    // forced-IP list separately.)
+    std::list<std::string> seedAddresses;
+    for (auto* ctrl : om.GetControllers()) {
+        auto* eth = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (!eth || eth->GetIP().empty() || eth->GetIP() == "MULTICAST") continue;
+        const std::string resolved = eth->GetResolvedIP(true);
+        if (resolved.empty()) {
+            seedAddresses.push_back(::Lower(eth->GetIP()));
+        } else if (eth->IsActive() &&
+                   (ip_utils::IsIPValid(resolved) || resolved != eth->GetIP())) {
+            seedAddresses.push_back(::Lower(resolved));
+        }
+        if (!eth->GetFPPProxy().empty()) {
+            seedAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
+        }
+    }
+    seedAddresses.sort();
+    seedAddresses.unique();
+    FPP::PrepareDiscovery(discovery, seedAddresses);
     ArtNetOutput::PrepareDiscovery(discovery);
     TwinklyOutput::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
@@ -18253,6 +18784,207 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
     return YES;
 }
 
+// Port-level smart-remote operations (desktop's port menu,
+// ControllerModelDialog.cpp:653-665). All three act on every model on
+// the port rather than one at a time, which is the whole point — a
+// port's models share a remote.
+
+// Assign a starting smart-remote id to the port's models and increment
+// across them, skipping the repeat entries a multi-string model makes
+// (ControllerModelDialog.cpp:858-874). `startId` is 0-based, matching
+// the choice list desktop builds.
+- (int)setSmartRemoteAndIncrementOnController:(NSString*)controllerName
+                                          port:(int)port
+                                       startId:(int)startId {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return 0;
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
+    if (!caps || !caps->SupportsSmartRemotes()) return 0;
+    const int srCount = caps->GetSmartRemoteCount();
+    if (srCount <= 0) return 0;
+
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    UDControllerPort* p = ud.GetControllerPixelPort(port);
+    if (!p) return 0;
+
+    _context->AbortRender(5000);
+    int id = startId;
+    std::string lastName;
+    int touched = 0;
+    for (auto* um : p->GetModels()) {
+        Model* m = um ? um->GetModel() : nullptr;
+        if (!m) continue;
+        // A multi-string model appears once per port it spans; only the
+        // first occurrence should consume a remote id.
+        if (lastName == m->Name()) continue;
+        m->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
+        m->SetSmartRemote(id + 1);
+        int maxCascade = std::min(m->GetSRMaxCascade(),
+                                   (int)std::ceil(m->GetNumPhysicalStrings() / 4.0));
+        maxCascade = std::max(maxCascade, 1);
+        id += maxCascade;
+        if (id >= srCount) id = srCount - 1;
+        lastName = m->Name();
+        _context->MarkLayoutModelDirty(m->GetName());
+        ++touched;
+    }
+    if (touched > 0) [self reworkAndRecalcStartChannels];
+    return touched;
+}
+
+// Set the smart-remote type on the port's models. When the controller
+// requires one type across a 4-port block, every port in the block is
+// written — that is the caps flag's whole purpose, and writing only the
+// clicked port would leave the block inconsistent.
+- (int)setSmartRemoteTypeOnController:(NSString*)controllerName
+                                  port:(int)port
+                                  type:(NSString*)type {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    if (type.length == 0) return 0;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return 0;
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
+    if (!caps || !caps->SupportsSmartRemotes()) return 0;
+
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    const std::string t(type.UTF8String);
+    const bool wholeBlock = caps->AllSmartRemoteTypesPerPortMustBeSame();
+    const int basePort = wholeBlock ? (((port - 1) / 4) * 4 + 1) : port;
+    const int portCount = wholeBlock ? 4 : 1;
+
+    _context->AbortRender(5000);
+    int touched = 0;
+    for (int i = 0; i < portCount; ++i) {
+        UDControllerPort* p = ud.GetControllerPixelPort(basePort + i);
+        if (!p) continue;
+        for (auto* um : p->GetModels()) {
+            Model* m = um ? um->GetModel() : nullptr;
+            if (!m) continue;
+            if (m->GetSmartRemote() == 0) m->SetSmartRemote(1);
+            m->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
+            m->SetSmartRemoteType(t);
+            _context->MarkLayoutModelDirty(m->GetName());
+            ++touched;
+        }
+    }
+    if (touched > 0) [self reworkAndRecalcStartChannels];
+    return touched;
+}
+
+// Clear smart remotes across the port's whole 4-port block, which is
+// what desktop does — a remote spans the block, so clearing one port
+// alone would leave the rest pointing at a remote that is gone.
+- (int)removeSmartRemoteOnController:(NSString*)controllerName port:(int)port {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return 0;
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    const int basePort = ((port - 1) / 4) * 4 + 1;
+
+    _context->AbortRender(5000);
+    int touched = 0;
+    for (int i = 0; i < 4; ++i) {
+        UDControllerPort* p = ud.GetControllerPixelPort(basePort + i);
+        if (!p) continue;
+        for (auto* um : p->GetModels()) {
+            Model* m = um ? um->GetModel() : nullptr;
+            if (!m) continue;
+            m->ClearControllerProperty(CtrlProps::USE_SMART_REMOTE);
+            _context->MarkLayoutModelDirty(m->GetName());
+            ++touched;
+        }
+        p->ClearSmartRemoteOnAllModels();
+    }
+    if (touched > 0) [self reworkAndRecalcStartChannels];
+    return touched;
+}
+
+// Visualizer bulk operations. Each is desktop's port / controller
+// context-menu entry (ControllerModelDialog.cpp:666-668, :4651), and
+// each is expressed in terms of the single-model ops so the chain and
+// start-channel fixups can't drift between the two paths.
+
+// Every model on one port of one controller, in port order.
+- (NSArray<NSString*>*)modelNamesOnController:(NSString*)controllerName
+                                          kind:(NSString*)kind
+                                          port:(int)port {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return out;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return out;
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    const bool serial = [kind isEqualToString:@"serial"];
+    UDControllerPort* p = serial ? ud.GetControllerSerialPort(port)
+                                  : ud.GetControllerPixelPort(port);
+    if (!p) return out;
+    for (auto* m : p->GetModels()) {
+        if (m && m->GetModel()) {
+            [out addObject:[NSString stringWithUTF8String:m->GetModel()->GetName().c_str()]];
+        }
+    }
+    return out;
+}
+
+- (int)removeAllModelsFromController:(NSString*)controllerName
+                                kind:(NSString*)kind
+                                port:(int)port {
+    NSArray<NSString*>* names = [self modelNamesOnController:controllerName kind:kind port:port];
+    int n = 0;
+    for (NSString* name in names) {
+        if ([self removeModelFromController:name]) ++n;
+    }
+    return n;
+}
+
+- (int)removeAllModelsFromController:(NSString*)controllerName {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    const std::string target(controllerName.UTF8String);
+    // Snapshot first: removing rewrites controller assignments, so
+    // iterating the manager while mutating it would skip models.
+    NSMutableArray<NSString*>* names = [NSMutableArray array];
+    for (const auto& [name, m] : _context->GetModelManager().GetModels()) {
+        if (m && m->GetControllerName() == target) {
+            [names addObject:[NSString stringWithUTF8String:name.c_str()]];
+        }
+    }
+    int n = 0;
+    for (NSString* name in names) {
+        if ([self removeModelFromController:name]) ++n;
+    }
+    return n;
+}
+
+- (int)moveAllModelsOnController:(NSString*)controllerName
+                             kind:(NSString*)kind
+                         fromPort:(int)fromPort
+                           toPort:(int)toPort {
+    if (fromPort == toPort) return 0;
+    NSArray<NSString*>* names = [self modelNamesOnController:controllerName
+                                                         kind:kind port:fromPort];
+    if (names.count == 0) return 0;
+
+    // Desktop chains the moved block onto whatever already sits last on
+    // the destination port, and clears the chain on the first mover so
+    // it anchors there rather than to a model it left behind.
+    NSArray<NSString*>* existing = [self modelNamesOnController:controllerName
+                                                           kind:kind port:toPort];
+    NSString* afterModel = existing.lastObject;
+    int n = 0;
+    for (NSString* name in names) {
+        if ([self assignModelToController:name
+                           controllerName:controllerName
+                                     kind:kind
+                                     port:toPort
+                               afterModel:afterModel
+                              smartRemote:-1]) {
+            ++n;
+            afterModel = name;   // chain each behind the previous
+        }
+    }
+    return n;
+}
+
 - (BOOL)removeModelFromController:(NSString*)modelName {
     if (!_context || !modelName || !_context->HasModelManager()) return NO;
     auto& mm = _context->GetModelManager();
@@ -18385,6 +19117,13 @@ static std::string CSVQuote(const std::string& s) {
         @"supportsSmartRemotes": @YES,
         @"maxRemotes":           @(caps->GetSmartRemoteCount()),
         @"types":                types,
+        // When set, a remote type applies to a whole 4-port block, not
+        // the one port — the UI has to say so before writing.
+        @"allTypesPerPortMustBeSame": @(caps->AllSmartRemoteTypesPerPortMustBeSame()),
+        // HinksPix numbers its remotes from 0; everyone else letters
+        // them from A (ControllerModelDialog.cpp:841-848). The UI can't
+        // infer this, so say it here rather than have it guess.
+        @"useNumbersForRemotes": @(caps->GetVendor() == "HinksPix"),
     };
 }
 

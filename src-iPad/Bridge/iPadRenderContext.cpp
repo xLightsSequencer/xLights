@@ -792,6 +792,7 @@ bool iPadRenderContext::AutosaveLayoutChanges() {
 
 bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty) {
     const bool hasLayoutDirt =
+        !_deletedLayoutGroups.empty() ||
         !_dirtyLayoutModels.empty() ||
         !_dirtyLayoutViewObjects.empty() ||
         !_createdGroups.empty() ||
@@ -1262,6 +1263,24 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
     // name="...">`. Path attrs are written using whatever the
     // user picked; the load path FixFile-resolves them on next
     // launch, so absolute / show-relative both round-trip.
+    // Deleted layout groups first: their entries must go before the
+    // dirty pass, so a rename (delete old + add new) can't have the
+    // removal wipe the freshly-written entry.
+    if (!_deletedLayoutGroups.empty()) {
+        if (auto lgs = root.child("layoutGroups")) {
+            for (const auto& gone : _deletedLayoutGroups) {
+                for (auto n = lgs.first_child(); n;) {
+                    auto next = n.next_sibling();
+                    if (std::string_view(n.name()) == "layoutGroup" &&
+                        gone == n.attribute("name").as_string()) {
+                        lgs.remove_child(n);
+                    }
+                    n = next;
+                }
+            }
+        }
+    }
+
     for (const auto& grpName : _dirtyBackgroundGroups) {
         std::string bgPath;
         int bri, alpha;
@@ -1356,6 +1375,7 @@ bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool 
     _renamedGroups.clear();
     _renamedViewObjects.clear();
     _renamedModels.clear();
+    _deletedLayoutGroups.clear();
     return true;
 }
 
@@ -1502,6 +1522,61 @@ bool iPadRenderContext::UndoLastLayoutChange() {
     }
     }
     return false;
+}
+
+bool iPadRenderContext::DeleteNamedLayoutGroup(const std::string& name) {
+    if (name.empty() || name == "Default") return false;
+    auto it = std::find_if(_namedLayoutGroups.begin(), _namedLayoutGroups.end(),
+                            [&](const NamedLayoutGroup& g) { return g.name == name; });
+    if (it == _namedLayoutGroups.end()) return false;
+    _namedLayoutGroups.erase(it);
+
+    // Models pointing at the deleted group would otherwise reference a
+    // preview that no longer exists and vanish from every list.
+    for (auto& [modelName, model] : AllModels.GetModels()) {
+        if (model && model->GetLayoutGroup() == name) {
+            model->SetLayoutGroup("Unassigned");
+            MarkLayoutModelDirty(modelName);
+        }
+    }
+
+    _dirtyBackgroundGroups.erase(name);
+    _deletedLayoutGroups.insert(name);
+    if (_activeLayoutGroup == name) _activeLayoutGroup = "Default";
+    return true;
+}
+
+bool iPadRenderContext::RenameNamedLayoutGroup(const std::string& oldName,
+                                                const std::string& newName) {
+    if (oldName.empty() || newName.empty() || oldName == newName) return false;
+    if (oldName == "Default") return false;
+    if (newName == "Default" || newName == "All Models" ||
+        newName == "Unassigned" || newName == "All Previews") {
+        return false;
+    }
+    auto it = std::find_if(_namedLayoutGroups.begin(), _namedLayoutGroups.end(),
+                            [&](const NamedLayoutGroup& g) { return g.name == oldName; });
+    if (it == _namedLayoutGroups.end()) return false;
+    for (const auto& g : _namedLayoutGroups) {
+        if (g.name == newName) return false;
+    }
+
+    it->name = newName;
+    for (auto& [modelName, model] : AllModels.GetModels()) {
+        if (model && model->GetLayoutGroup() == oldName) {
+            model->SetLayoutGroup(newName);
+            MarkLayoutModelDirty(modelName);
+        }
+    }
+
+    // The old entry has to go and the new one be written: the save
+    // patcher matches `<layoutGroup>` by name attribute, so a rename is
+    // a delete plus an add as far as the file is concerned.
+    _dirtyBackgroundGroups.erase(oldName);
+    _deletedLayoutGroups.insert(oldName);
+    _dirtyBackgroundGroups.insert(newName);
+    if (_activeLayoutGroup == oldName) _activeLayoutGroup = newName;
+    return true;
 }
 
 bool iPadRenderContext::AddNamedLayoutGroup(const std::string& name) {
