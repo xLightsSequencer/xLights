@@ -597,6 +597,25 @@ struct SequencerGridV2View: View {
         var id: String { "\(rowIndex)-\(effectIndex)" }
     }
 
+    /// Long-press over blank time on a model row (desktop's
+    /// right-click-anywhere grid menu).
+    @State private var emptyCellTarget: EmptyCellTarget?
+
+    /// Title states the range so the menu's actions are unambiguous
+    /// about what they will affect.
+    private var cellRangeMenuTitle: String {
+        guard let r = viewModel.cellRange else { return "Grid" }
+        let rowCount = viewModel.cellRangeModelRows().count
+        let colCount = r.endCol - r.startCol + 1
+        return "\(rowCount) row\(rowCount == 1 ? "" : "s") × \(colCount) cell\(colCount == 1 ? "" : "s")"
+    }
+
+    struct EmptyCellTarget: Identifiable {
+        let rowIndex: Int
+        let ms: Int
+        var id: String { "\(rowIndex)-\(ms)" }
+    }
+
     @State private var transitionMenuTarget: TransitionMenuTarget?
 
     /// B67 / B69 timing-mark long-press target. `markIndex == nil`
@@ -925,6 +944,24 @@ struct SequencerGridV2View: View {
                     timingBandH: timingBandH)
             }
         }
+        // Desktop's grid menu opens whether or not an effect was hit;
+        // paste and fill target the cell range, so they need somewhere
+        // to be invoked from over blank time (EffectsGrid.cpp:437-465).
+        // Its own modifier for the same reason the exporters are:
+        // the body's chain is at the type-checker's limit.
+        .modifier(EmptyCellMenuModifier(
+            title: cellRangeMenuTitle,
+            target: $emptyCellTarget,
+            hasCellRange: viewModel.cellRange != nil,
+            hasClipboard: viewModel.hasClipboard,
+            armedEffect: viewModel.selectedPaletteEffect,
+            onPasteRange: { _ = viewModel.pasteIntoCellRange() },
+            onRandomFill: { _ = viewModel.createRandomEffectsInCellRange() },
+            onClearRange: { viewModel.clearCellRange() },
+            onPasteAt: { row, ms in viewModel.pasteEffect(rowIndex: row, startMS: ms) },
+            onAddArmed: { row, ms in
+                viewModel.addEffectFromPaletteTap(rowIndex: row, atMS: ms)
+            }))
         .confirmationDialog(
             "Effect",
             isPresented: Binding(
@@ -1162,6 +1199,27 @@ struct SequencerGridV2View: View {
                     Button("Breakdown This Phrase") {
                         _ = viewModel.breakdownPhrase(rowIndex: target.rowIndex,
                                                         markIndex: markIdx)
+                    }
+                }
+                // Words layer counterpart, and the selection-scoped
+                // variants of both (desktop EffectsGrid.cpp:657-662).
+                if viewModel.canBreakdownWord(rowIndex: target.rowIndex,
+                                               markIndex: markIdx) {
+                    Button("Breakdown This Word") {
+                        _ = viewModel.breakdownWord(rowIndex: target.rowIndex,
+                                                     markIndex: markIdx)
+                    }
+                }
+                if viewModel.canBreakdownSelection(rowIndex: target.rowIndex,
+                                                    layerIndex: 0) {
+                    Button("Breakdown Selected Phrases") {
+                        _ = viewModel.breakdownSelectedPhrases(rowIndex: target.rowIndex)
+                    }
+                }
+                if viewModel.canBreakdownSelection(rowIndex: target.rowIndex,
+                                                    layerIndex: 1) {
+                    Button("Breakdown Selected Words") {
+                        _ = viewModel.breakdownSelectedWords(rowIndex: target.rowIndex)
                     }
                 }
                 Button("Delete Mark", role: .destructive) {
@@ -2678,6 +2736,13 @@ struct SequencerGridV2View: View {
             transitionMenuTarget = TransitionMenuTarget(
                 rowIndex: rowIdx, effectIndex: effIdx, isIn: isIn)
         }
+        actions.onDropFile = { rowIdx, ms, path in
+            _ = viewModel.createEffectFromDroppedFile(path: path,
+                                                       rowIndex: rowIdx, atMS: ms)
+        }
+        actions.onRequestEmptyCellMenu = { rowIdx, ms in
+            emptyCellTarget = EmptyCellTarget(rowIndex: rowIdx, ms: ms)
+        }
         actions.onDoubleTapEmpty = { rowIdx, ms in
             viewModel.doubleTapCreateInCell(rowIndex: rowIdx, atMS: ms)
         }
@@ -2740,6 +2805,10 @@ struct SequencerGridV2View: View {
             document: viewModel.document,
             onUserInteraction: { timeline.noteUserInteraction() },
             onMarqueeSelect: { hits in viewModel.setMultiSelection(hits) },
+            onMarqueeRegion: { r1, r2, ms1, ms2 in
+                viewModel.establishCellRange(rowStart: r1, rowEnd: r2,
+                                              startMS: ms1, endMS: ms2)
+            },
             onPencilTapAction: { viewModel.undo() }
         )
     }
@@ -3442,3 +3511,46 @@ struct SoundClassifyPickerSheet: View {
     }
 }
 
+
+
+/// Empty-cell / cell-range grid menu. Extracted from
+/// `SequencerGridV2View`'s body so the main modifier chain stays inside
+/// the Swift type-checker's complexity budget — the same reason the
+/// file's exporters live in their own modifier.
+private struct EmptyCellMenuModifier: ViewModifier {
+    let title: String
+    @Binding var target: SequencerGridV2View.EmptyCellTarget?
+    let hasCellRange: Bool
+    let hasClipboard: Bool
+    let armedEffect: String?
+    let onPasteRange: () -> Void
+    let onRandomFill: () -> Void
+    let onClearRange: () -> Void
+    let onPasteAt: (Int, Int) -> Void
+    let onAddArmed: (Int, Int) -> Void
+
+    func body(content: Content) -> some View {
+        content.confirmationDialog(
+            title,
+            isPresented: Binding(
+                get: { target != nil },
+                set: { if !$0 { target = nil } }
+            ),
+            presenting: target
+        ) { t in
+            if hasCellRange {
+                if hasClipboard {
+                    Button("Paste Here", action: onPasteRange)
+                }
+                Button("Create Random Effects", action: onRandomFill)
+                Button("Clear Selected Range", action: onClearRange)
+            } else if hasClipboard {
+                Button("Paste Here") { onPasteAt(t.rowIndex, t.ms) }
+            }
+            if let armed = armedEffect {
+                Button("Add \(armed) Here") { onAddArmed(t.rowIndex, t.ms) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+}

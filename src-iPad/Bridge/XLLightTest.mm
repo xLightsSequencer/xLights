@@ -12,6 +12,7 @@
 
 #include "controllers/ControllerUploadData.h"
 #include "models/Model.h"
+#include "models/ModelGroup.h"
 #include "models/ModelManager.h"
 #include "models/SubModel.h"
 #include "outputs/ChannelTracker.h"
@@ -229,6 +230,92 @@ std::string ChannelColoursFor(Model* model)
             @"startChannel": @(m->NodeStartChannel(i) + 1),
             @"channels": @(perNode),
             @"colours": Str(colours.substr(0, perNode > 0 ? perNode : 0)),
+        }];
+    }
+    return out;
+}
+
+// Model Groups as a test target (desktop's Model Groups tree,
+// PixelTestDialog.cpp:1386). A group's members need not be contiguous
+// in channel space, so the group carries no range of its own — each
+// member model does, and selection happens per member. Groups whose
+// members resolve to nothing testable are still listed, with the
+// reason, rather than silently dropped.
+- (NSArray<NSDictionary<NSString*, id>*>*)groupItems
+{
+    NSMutableArray<NSDictionary<NSString*, id>*>* out = [NSMutableArray array];
+    if (_mm == nullptr || _om == nullptr) return out;
+
+    for (auto it = _mm->begin(); it != _mm->end(); ++it) {
+        Model* g = it->second;
+        if (g == nullptr) continue;
+        if (g->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
+        auto* mg = dynamic_cast<ModelGroup*>(g);
+        if (mg == nullptr) continue;
+
+        NSMutableArray<NSDictionary*>* members = [NSMutableArray array];
+        for (Model* m : mg->GetFlatModels()) {
+            if (m == nullptr) continue;
+            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+            const uint32_t first = m->GetFirstChannel() + 1;
+            const uint32_t last = m->GetLastChannel() + 1;
+            std::string reason;
+            int32_t offset = 0;
+            Controller* c = _om->GetController(first, offset);
+            const BOOL testable = [self controllerTestable:c reason:reason];
+            [members addObject:@{
+                @"name": Str(m->GetName()),
+                @"startChannel": @(first),
+                @"endChannel": @(last),
+                @"nodeCount": @(m->GetNodeCount()),
+                @"channelsPerNode": @(m->GetChanCountPerNode()),
+                @"testable": @(testable),
+                @"untestableReason": Str(reason),
+            }];
+        }
+        if (members.count == 0) continue;
+
+        [out addObject:@{
+            @"name": Str(mg->GetName()),
+            @"models": members,
+        }];
+    }
+    return out;
+}
+
+// Raw universe / channel targeting (desktop's Outputs tree,
+// PixelTestDialog.cpp:1377 / PopulateOutputTree). Controller → its
+// outputs, each with the absolute channel span the selection model
+// works in.
+- (NSArray<NSDictionary<NSString*, id>*>*)outputItems
+{
+    NSMutableArray<NSDictionary<NSString*, id>*>* out = [NSMutableArray array];
+    if (_om == nullptr) return out;
+
+    for (Controller* c : _om->GetControllers()) {
+        if (c == nullptr) continue;
+        std::string reason;
+        const BOOL testable = [self controllerTestable:c reason:reason];
+
+        NSMutableArray<NSDictionary*>* outputs = [NSMutableArray array];
+        for (const auto& o : c->GetOutputs()) {
+            if (o == nullptr) continue;
+            const uint32_t start = o->GetStartChannel();
+            [outputs addObject:@{
+                @"description": Str(o->GetLongDescription()),
+                @"universe": @(o->GetUniverse()),
+                @"startChannel": @(start),
+                @"endChannel": @(start + o->GetChannels() - 1),
+                @"channels": @(o->GetChannels()),
+            }];
+        }
+        if (outputs.count == 0) continue;
+
+        [out addObject:@{
+            @"name": Str(c->GetName()),
+            @"testable": @(testable),
+            @"untestableReason": Str(reason),
+            @"outputs": outputs,
         }];
     }
     return out;

@@ -56,6 +56,15 @@ struct CheckSequenceSheet: View {
                         checksMenu
                     }
                     ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            exportReport()
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .disabled((issues ?? []).isEmpty)
+                        .accessibilityLabel("Export Report")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") { dismiss() }
                     }
                 }
@@ -453,5 +462,89 @@ struct CheckSequenceSheet: View {
         @unknown default:
             Image(systemName: "questionmark.circle")
         }
+    }
+}
+
+
+extension CheckSequenceSheet {
+    /// Desktop writes the report as HTML and hands it to the system
+    /// (`xLightsFrame`'s Check Sequence handler, GenerateHTML +
+    /// wxLaunchDefaultApplication). The iPad equivalent is the share
+    /// sheet: same HTML, so the file opens in a browser, mails, or
+    /// lands in Files exactly as the desktop's does — and unlike the
+    /// on-screen tree, it can leave the device.
+    fileprivate func exportReport() {
+        let all = issues ?? []
+        guard !all.isEmpty else { return }
+
+        let name = viewModel.sequenceName ?? "sequence"
+        var html = """
+        <html><head><meta charset="utf-8"><title>Check Sequence — \(name)</title>
+        <style>
+        body { font-family: -apple-system, Helvetica, sans-serif; margin: 24px; }
+        h1 { font-size: 1.4em; } h2 { font-size: 1.1em; margin-top: 1.4em; }
+        .err { color: #b00; } .warn { color: #b60; } .info { color: #444; }
+        li { margin-bottom: 4px; }
+        .where { color: #666; font-size: 0.9em; }
+        </style></head><body>
+        <h1>Check Sequence — \(escaped(name))</h1>
+        """
+
+        // Group by the same section the on-screen tree groups by, so the
+        // exported file and the sheet read the same way.
+        var order: [String] = []
+        var bySection: [String: [XLCheckSequenceIssue]] = [:]
+        for issue in all {
+            let key = issue.sectionTitle
+            if bySection[key] == nil { order.append(key) }
+            bySection[key, default: []].append(issue)
+        }
+
+        for section in order {
+            html += "<h2>\(escaped(section))</h2><ul>"
+            for issue in bySection[section] ?? [] {
+                let cls: String
+                switch issue.severity {
+                case .critical: cls = "err"
+                case .warning: cls = "warn"
+                default: cls = "info"
+                }
+                var where_ = ""
+                if let m = issue.modelName, !m.isEmpty { where_ += escaped(m) }
+                if let e = issue.effectName, !e.isEmpty {
+                    where_ += where_.isEmpty ? escaped(e) : " · " + escaped(e)
+                }
+                if issue.startTimeMS >= 0 {
+                    let secs = Double(issue.startTimeMS) / 1000.0
+                    where_ += where_.isEmpty ? "" : " · "
+                    where_ += String(format: "%.3fs", secs)
+                }
+                html += "<li class=\"\(cls)\">\(escaped(issue.message))"
+                if !where_.isEmpty { html += "<br><span class=\"where\">\(where_)</span>" }
+                html += "</li>"
+            }
+            html += "</ul>"
+        }
+        html += "</body></html>"
+
+        let file = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CheckSequence_\(sanitized(name)).html")
+        do {
+            try html.write(to: file, atomically: true, encoding: .utf8)
+        } catch {
+            return
+        }
+        XLPresentShareSheet(items: [file])
+    }
+
+    private func escaped(_ s: String) -> String {
+        s.replacingOccurrences(of: "&", with: "&amp;")
+         .replacingOccurrences(of: "<", with: "&lt;")
+         .replacingOccurrences(of: ">", with: "&gt;")
+    }
+
+    private func sanitized(_ s: String) -> String {
+        let bad = CharacterSet(charactersIn: "/\\:*?\"<>|")
+        return String(s.unicodeScalars.map { bad.contains($0) ? "_" : Character($0) })
     }
 }

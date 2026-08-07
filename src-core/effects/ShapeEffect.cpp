@@ -1368,6 +1368,11 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
     if (base.pixels.empty()) {
         TextFontInfo fi = font;
         fi.pixelSize = EMOJI_REFERENCE_PIXEL_SIZE;
+        // Color emoji glyphs are pre-rasterized artwork, not an LED-grid
+        // vector outline, so (unlike regular effect text) they should render
+        // with smooth edges/shading rather than the pixel-grid-friendly
+        // aliased default.
+        fi.antiAliased = true;
 
         TextDrawingContext* tmpCtx = TextDrawingContext::GetContext();
         if (tmpCtx == nullptr)
@@ -1395,11 +1400,10 @@ void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius,
         int imgW = 0, imgH = 0;
         const uint8_t* raw = tmpCtx->FlushAndGetImage(&imgW, &imgH);
         if (raw && imgW > 0 && imgH > 0) {
-            // On macOS/Linux the renderer writes alpha correctly.
-            // On Windows, D2D does not write alpha back to the GDI DIB, so
-            // every alpha byte is 0.  Reconstruct alpha from RGB: the context
-            // was cleared to transparent black, so any non-black pixel was
-            // drawn by D2D.
+            // The current backends (FreeType, D2D) write real alpha. Kept as a
+            // defensive fallback for any backend that doesn't: the context was
+            // cleared to transparent black, so any non-black pixel must have
+            // been drawn.
             bool hasAlpha = false;
             for (int i = 0; i < imgW * imgH; i++) {
                 if (raw[i * 4 + 3] != 0) { hasAlpha = true; break; }

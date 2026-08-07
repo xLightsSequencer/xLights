@@ -392,6 +392,22 @@ public:
     // entry.
     bool AddNamedLayoutGroup(const std::string& name);
 
+    // Delete a named layout group. Models assigned to it are moved to
+    // "Unassigned" rather than left pointing at a group that no longer
+    // exists — desktop does the same (LayoutPanel.cpp:11854-11860).
+    // Refuses "Default", which is implicit and has no entry to remove.
+    // Returns false if the name isn't a known group.
+    bool DeleteNamedLayoutGroup(const std::string& name);
+
+    // Rename a named layout group, carrying its models with it. Same
+    // reserved-name and collision rules as AddNamedLayoutGroup.
+    bool RenameNamedLayoutGroup(const std::string& oldName, const std::string& newName);
+
+    // Layout groups removed since the last save. SaveLayoutChanges
+    // drops their `<layoutGroup>` entries; without this a deleted group
+    // would come back on the next load.
+    const std::set<std::string>& GetDeletedLayoutGroups() const { return _deletedLayoutGroups; }
+
     // Active House-Preview layout group. "Default" means the implicit
     // default preview (models with layout_group == "Default" or
     // "All Previews"); other values must match a named group from
@@ -630,6 +646,7 @@ public:
                !_renamedGroups.empty() ||
                !_renamedViewObjects.empty() ||
                !_renamedModels.empty() ||
+               !_deletedLayoutGroups.empty() ||
                _controllersDirty;
     }
     // J-31 — Controllers tab edits live in xlights_networks.xml,
@@ -681,6 +698,7 @@ public:
         _renamedGroups.clear();
         _renamedViewObjects.clear();
         _renamedModels.clear();
+        _deletedLayoutGroups.clear();
         _controllersDirty = false;
     }
 
@@ -836,6 +854,7 @@ private:
     // "Default" means the top-level `<settings>` element;
     // anything else maps into `<layoutGroups>`.
     std::set<std::string> _dirtyBackgroundGroups;
+    std::set<std::string> _deletedLayoutGroups;
 
     // J-31 — Controllers tab edit tracking. Single coarse flag —
     // `OutputManager::Save()` rewrites the entire networks file

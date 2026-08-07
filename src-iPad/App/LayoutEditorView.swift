@@ -172,6 +172,7 @@ struct LayoutEditorView: View {
     /// instead of an inline Menu avoids whatever launch-time issue
     /// the SwiftUI Menu in the canvas overlay triggers.
     @State private var addModelSheetVisible: Bool = false
+    @State private var importFromShowVisible: Bool = false
     /// Map-from-lights wizard. Presented from the Add-Model
     /// sheet; runs an FPP-driven structured-light scan and
     /// produces a `MapFromLightsResult` containing a snapped
@@ -254,6 +255,10 @@ struct LayoutEditorView: View {
     /// Sheet state for "Create New Preview" launched from the
     /// Models section-header menu.
     @State private var newPreviewSheetVisible: Bool = false
+    @State private var renamePreviewSheetVisible: Bool = false
+    @State private var renamePreviewName: String = ""
+    @State private var renamePreviewError: String? = nil
+    @State private var confirmDeletePreview: Bool = false
     @State private var newPreviewName: String = ""
     @State private var newPreviewError: String? = nil
     /// IE-15 — Models report (.xlsx) export. The bridge writes the
@@ -774,9 +779,20 @@ struct LayoutEditorView: View {
                            onSelect: handleAddModelTypeSelected,
                            onMapFromLights: handleMapFromLightsSelected)
         }
-        .sheet(isPresented: $newPreviewSheetVisible) {
-            newPreviewSheet
-        }
+        // New / rename / delete preview all hang off this one link.
+        // The editor's modifier chain is at the Swift type-checker's
+        // limit: adding a link fails to compile whatever it contains,
+        // so the new sheet replaces rather than joins.
+        .modifier(PreviewLifecycleModifier(
+            newVisible: $newPreviewSheetVisible,
+            newSheet: { newPreviewSheet },
+            renameVisible: $renamePreviewSheetVisible,
+            renameName: $renamePreviewName,
+            renameError: $renamePreviewError,
+            confirmDelete: $confirmDeletePreview,
+            currentName: activeLayoutGroup,
+            onRename: handlePreviewRename,
+            onDelete: handlePreviewDelete))
         .background(
             MapFromLightsHost(isPresented: $mapFromLightsWizardVisible,
                               result: $mapFromLightsResult,
@@ -807,6 +823,9 @@ struct LayoutEditorView: View {
             pendingPath: $pendingMultiModelImportPath,
             groups: layoutGroups,
             activeGroup: activeLayoutGroup,
+            importFromShowVisible: $importFromShowVisible,
+            viewModel: viewModel,
+            onImportFromShowFinished: handleImportFromShowFinished,
             onConfirm: { path, group in
                 viewModel.layoutPendingImportPath = path
                 viewModel.layoutPendingImportTargetGroup = group
@@ -1457,6 +1476,52 @@ struct LayoutEditorView: View {
         }
     }
 
+    /// Refresh after a cross-show import: models and groups landed
+    /// straight in the manager, so the side list and canvas both need
+    /// rebuilding, and the show is now dirty.
+    private func handleImportFromShowFinished() {
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved, object: nil)
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    /// Rename the active preview. Validated the same way creation is,
+    /// and against the same reserved names.
+    private func handlePreviewRename() {
+        let name = renamePreviewName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else {
+            renamePreviewError = "Name can't be empty."
+            return
+        }
+        let reserved: Set<String> = ["Default", "All Models", "Unassigned", "All Previews"]
+        if reserved.contains(name) {
+            renamePreviewError = "\"\(name)\" is reserved by xLights."
+            return
+        }
+        if name != activeLayoutGroup && layoutGroups.contains(name) {
+            renamePreviewError = "A preview named \"\(name)\" already exists."
+            return
+        }
+        guard viewModel.document.renameLayoutGroup(activeLayoutGroup, to: name) else {
+            renamePreviewError = "Couldn't rename the preview."
+            return
+        }
+        activeLayoutGroup = name
+        renamePreviewSheetVisible = false
+        refreshModelList()
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    /// Delete the active preview. Its models move to Unassigned rather
+    /// than disappearing with it, so the view drops back to Default.
+    private func handlePreviewDelete() {
+        guard viewModel.document.deleteLayoutGroup(activeLayoutGroup) else { return }
+        activeLayoutGroup = "Default"
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved, object: nil)
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
     /// J-31.3 — Add Controller. The bridge auto-assigns a unique
     /// name; we refresh the cache, select the new controller, and
     /// mark the show dirty so Save lights up.
@@ -1900,6 +1965,23 @@ struct LayoutEditorView: View {
                     } label: {
                         Label("New Preview…", systemImage: "plus.rectangle.on.rectangle")
                     }
+                    // Create existed on its own; rename and delete are
+                    // the rest of the lifecycle. "Default" is implicit
+                    // and has no entry to rename or remove.
+                    if activeLayoutGroup != "Default" {
+                        Button {
+                            renamePreviewName = activeLayoutGroup
+                            renamePreviewError = nil
+                            renamePreviewSheetVisible = true
+                        } label: {
+                            Label("Rename Preview…", systemImage: "pencil")
+                        }
+                        Button(role: .destructive) {
+                            confirmDeletePreview = true
+                        } label: {
+                            Label("Delete Preview…", systemImage: "trash")
+                        }
+                    }
                 }
                 Section("Sort") {
                     ForEach(ModelSortMode.allCases) { mode in
@@ -1995,6 +2077,18 @@ struct LayoutEditorView: View {
         } label: {
             Label("Export as .xmodel…", systemImage: "square.and.arrow.up")
         }
+        // Desktop exports a whole multi-selection into one file
+        // (LayoutPanel.cpp:7977-8004). Offered only when there is
+        // actually a multi-selection, so the single-model entry above
+        // stays the obvious one.
+        if exportableSelection.count > 1 {
+            Button {
+                startXmodelExport(modelNames: exportableSelection)
+            } label: {
+                Label("Export \(exportableSelection.count) Selected as .xmodel…",
+                       systemImage: "square.and.arrow.up.on.square")
+            }
+        }
         Divider()
         if isFromBase {
             Button {
@@ -2026,6 +2120,32 @@ struct LayoutEditorView: View {
     /// Serialize the model (with submodels/faces/states) to a temp
     /// .xmodel and hand it to `.fileExporter`. Mirrors desktop
     /// ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL.
+    /// Models in the current layout selection that can actually be
+    /// written to a `.xmodel` — groups can't, and the bridge skips
+    /// them, so counting them would promise an export that under-
+    /// delivers.
+    private var exportableSelection: [String] {
+        let groups = Set(groupNames)
+        return viewModel.layoutEditorSelection
+            .filter { !groups.contains($0) }
+            .sorted()
+    }
+
+    /// Multi-model variant. One file holding every selected model,
+    /// which is how the desktop's multi-selection export writes it.
+    private func startXmodelExport(modelNames: [String]) {
+        guard !modelNames.isEmpty else { return }
+        let tempPath = FileManager.default.temporaryDirectory
+            .appendingPathComponent("models-\(UUID().uuidString).xmodel").path
+        guard viewModel.document.exportModels(toXmodelFile: modelNames, path: tempPath) else {
+            layoutHousekeepingMessage = "Couldn't export the selected models."
+            return
+        }
+        xmodelExportDoc = XmodelExportDoc(sourcePath: tempPath)
+        xmodelExportDefaultName = "models.xmodel"
+        showingXmodelExporter = true
+    }
+
     private func startXmodelExport(modelName: String) {
         let safe = modelName.replacingOccurrences(of: "/", with: "_")
         let tempPath = FileManager.default.temporaryDirectory
@@ -3153,6 +3273,19 @@ struct LayoutEditorView: View {
                     importerVisible = true
                 } label: {
                     Image(systemName: "square.and.arrow.down.on.square")
+                        .font(.title3)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(!viewModel.isShowFolderLoaded)
+
+                // Cross-show import — pull models, groups and
+                // viewpoints out of another show's rgbeffects file
+                // (desktop Layout ▸ Import Models From RGB Effects).
+                Button {
+                    importFromShowVisible = true
+                } label: {
+                    Image(systemName: "square.and.arrow.down.on.square.fill")
                         .font(.title3)
                 }
                 .buttonStyle(.bordered)
@@ -11269,6 +11402,13 @@ private struct MultiModelImportPickerModifier: ViewModifier {
     @Binding var pendingPath: String?
     let groups: [String]
     let activeGroup: String
+    // Cross-show import rides along here rather than as its own link in
+    // the editor's modifier chain, which is already at the Swift
+    // type-checker's complexity limit. Same concern either way:
+    // bringing models in from outside this show.
+    @Binding var importFromShowVisible: Bool
+    let viewModel: SequencerViewModel
+    let onImportFromShowFinished: () -> Void
     let onConfirm: (String, String) -> Void
 
     private var payloadBinding: Binding<MultiModelImportPayload?> {
@@ -11279,15 +11419,22 @@ private struct MultiModelImportPickerModifier: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        content.sheet(item: payloadBinding) { payload in
-            LayoutGroupPickerSheet(
-                groups: groups,
-                initialSelection: activeGroup,
-                fileName: (payload.path as NSString).lastPathComponent,
-                onConfirm: { group in onConfirm(payload.path, group) },
-                onCancel: { pendingPath = nil }
-            )
-        }
+        content
+            .sheet(item: payloadBinding) { payload in
+                LayoutGroupPickerSheet(
+                    groups: groups,
+                    initialSelection: activeGroup,
+                    fileName: (payload.path as NSString).lastPathComponent,
+                    onConfirm: { group in onConfirm(payload.path, group) },
+                    onCancel: { pendingPath = nil }
+                )
+            }
+            .sheet(isPresented: $importFromShowVisible) {
+                ImportFromShowSheet(viewModel: viewModel,
+                                     targetLayoutGroup: activeGroup) { _ in
+                    onImportFromShowFinished()
+                }
+            }
     }
 }
 
@@ -14739,5 +14886,39 @@ struct LayoutEditorWindowRoot: View {
         .onDisappear {
             if !suppressed { viewModel.layoutEditorOpen = false }
         }
+    }
+}
+
+
+
+/// Rename / delete preview, bundled so the layout editor's modifier
+/// chain doesn't grow — it is already at the type-checker's limit.
+private struct PreviewLifecycleModifier<NewSheet: View>: ViewModifier {
+    @Binding var newVisible: Bool
+    let newSheet: () -> NewSheet
+    @Binding var renameVisible: Bool
+    @Binding var renameName: String
+    @Binding var renameError: String?
+    @Binding var confirmDelete: Bool
+    let currentName: String
+    let onRename: () -> Void
+    let onDelete: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $newVisible) { newSheet() }
+            .alert("Rename Preview", isPresented: $renameVisible) {
+                TextField("Preview name", text: $renameName)
+                Button("Rename", action: onRename)
+                Button("Cancel", role: .cancel) { renameError = nil }
+            } message: {
+                Text(renameError ?? "Models assigned to this preview move with it.")
+            }
+            .alert("Delete “\(currentName)”?", isPresented: $confirmDelete) {
+                Button("Delete", role: .destructive, action: onDelete)
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Models assigned to this preview become Unassigned. They are not deleted.")
+            }
     }
 }

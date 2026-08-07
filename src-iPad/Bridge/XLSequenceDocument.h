@@ -890,6 +890,23 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)breakdownWordsAtRow:(int)rowIndex
     NS_SWIFT_NAME(breakdownWords(atRow:));
 
+// Break one word mark on the Words layer into phonemes — desktop's
+// per-mark "Breakdown Word". Replaces only the phonemes inside that
+// word's window, so the rest of the track's breakdown survives.
+// Rejects when a locked phoneme is in the way.
+- (BOOL)breakdownWordAtRow:(int)rowIndex atIndex:(int)wordIndex
+    NS_SWIFT_NAME(breakdownWord(atRow:atIndex:));
+
+// Selection-scoped breakdowns — desktop's "Breakdown Selected
+// Phrases" / "Breakdown Selected Words". `indexes` are marks on the
+// row's own layer. Each mark is processed independently, so one
+// rejected by a locked phoneme doesn't stop the others. Returns the
+// number broken down.
+- (int)breakdownPhrasesAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes
+    NS_SWIFT_NAME(breakdownPhrases(atRow:atIndexes:));
+- (int)breakdownWordsAtRow:(int)rowIndex atIndexes:(NSArray<NSNumber*>*)indexes
+    NS_SWIFT_NAME(breakdownWords(atRow:atIndexes:));
+
 // B34 / B35 — 10 numbered tags (0..9) anchored to absolute sequence
 // times. -1 = unset. Desktop's `SequenceElements::_tagPositions`
 // already persists via the `<TimingTags>` node in the .xsq so
@@ -1719,6 +1736,38 @@ NS_ASSUME_NONNULL_BEGIN
 // show's `xlights_rgbeffects.xml` (the `<models>/<model>` names).
 // Mirrors desktop SubModelsDialog::ReadRGBEffectsFile model list.
 // Sorted ascending; empty on parse failure / no models.
+// Cross-show import (desktop Layout ▸ "Import Models From RGB Effects",
+// `ImportPreviewsModelsDialog` + `LayoutPanel::ImportModelsFromPreview`).
+//
+// Read side: what another show's rgbeffects file offers, grouped as the
+// desktop tree groups it. Returns
+//   @"previews"   — [{ "name": NSString,
+//                      "items": [{ "name": NSString,
+//                                  "kind": "model" | "group" }] }]
+//                   ("Default" and "Unassigned" first, then each named
+//                   layoutGroup; groups sort ahead of models; previews
+//                   with nothing in them are omitted)
+//   @"viewpoints" — [{ "name": NSString, "is3D": NSNumber(BOOL) }]
+- (NSDictionary*)importableContentsOfRGBEffectsFile:(NSString*)path
+    NS_SWIFT_NAME(importableContents(ofRGBEffectsFile:));
+
+// Merge side. `selection` maps preview name → chosen item names;
+// everything lands in `layoutGroup` (the preview being viewed), which
+// is what desktop does rather than recreating the source's previews.
+// Models import first so the group pass can tell which members exist;
+// a name collision imports under a generated name instead of
+// overwriting, and a group whose members are all absent is skipped
+// unless `includeEmptyGroups`. Returns
+//   @"models" / @"groups" / @"viewpoints" — NSNumber counts
+//   @"renamed"            — [NSString] "old → new"
+//   @"skippedEmptyGroups" — [NSString]
+- (NSDictionary*)importFromRGBEffectsFile:(NSString*)path
+                                 selection:(NSDictionary<NSString*, NSArray<NSString*>*>*)selection
+                            viewpointNames:(NSArray<NSString*>*)viewpointNames
+                           intoLayoutGroup:(NSString*)layoutGroup
+                        includeEmptyGroups:(BOOL)includeEmptyGroups
+    NS_SWIFT_NAME(importFromRGBEffectsFile(_:selection:viewpointNames:intoLayoutGroup:includeEmptyGroups:));
+
 - (NSArray<NSString*>*)modelNamesInRGBEffectsFile:(NSString*)path
     NS_SWIFT_NAME(modelNames(inRGBEffectsFile:));
 
@@ -1744,6 +1793,25 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)exportModelToXmodelFile:(NSString*)modelName
                            path:(NSString*)path
     NS_SWIFT_NAME(exportModel(toXmodelFile:path:));
+
+// Multi-model export — desktop writes a multi-selection into one
+// `.xmodel` through `XmlSerializer::SerializeModels`
+// (LayoutPanel.cpp:7977-8004). Groups in the list are skipped, as the
+// single-model export refuses them. NO when nothing exportable is left.
+- (BOOL)exportModelsToXmodelFile:(NSArray<NSString*>*)modelNames
+                            path:(NSString*)path
+    NS_SWIFT_NAME(exportModels(toXmodelFile:path:));
+
+// Preview (layout group) lifecycle. Create already exists
+// (`createLayoutGroup:`); these are the other two. Deleting reassigns
+// the group's models to "Unassigned" rather than leaving them pointing
+// at a group that no longer exists, and renaming carries them across —
+// both matching `LayoutPanel::DeleteCurrentPreview` / `RenameCurrentPreview`.
+// "Default" is implicit and can be neither renamed nor deleted.
+- (BOOL)deleteLayoutGroup:(NSString*)name
+    NS_SWIFT_NAME(deleteLayoutGroup(_:));
+- (BOOL)renameLayoutGroup:(NSString*)oldName to:(NSString*)newName
+    NS_SWIFT_NAME(renameLayoutGroup(_:to:));
 
 // Make-start-channel commands (desktop LayoutPanel
 // ID_MNU_MAKESCVALID / ID_MNU_MAKEALLSCVALID /
@@ -2653,6 +2721,13 @@ NS_ASSUME_NONNULL_BEGIN
 // only read, never referenced afterwards, so the caller can stage to a
 // temp file and delete it. Returns NO if the key was already cached or
 // the bytes couldn't be read.
+// Effect a dropped media file should become — "Video", "Pictures",
+// "Glediator", "Shader", or "" when the file isn't usable as an effect.
+// Uses the same core predicates the desktop grid's file drop uses, so
+// both platforms accept exactly the same set.
++ (NSString*)effectNameForDroppedFile:(NSString*)path
+    NS_SWIFT_NAME(effectNameForDroppedFile(_:));
+
 - (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name
     NS_SWIFT_NAME(embedImage(fromFile:asName:));
 
@@ -3452,6 +3527,10 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   @"supportsSmartRemotes" — NSNumber BOOL
 //   @"maxRemotes"           — NSNumber Int (1-based count, e.g. 16 for "A".."P")
 //   @"types"                — NSArray<NSString>
+// Smart-remote capabilities: @"supportsSmartRemotes" (BOOL),
+// @"maxRemotes" (int), @"types" ([NSString]), and
+// @"allTypesPerPortMustBeSame" (BOOL — a type applies to the whole
+// 4-port block, so the UI must say so before writing).
 - (NSDictionary*)smartRemoteCapabilitiesForController:(NSString*)name;
 
 // Phase J-32.5 — assign a model to a port on a controller.
@@ -3494,6 +3573,53 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // (if any) preceded the removed one on its port.
 - (BOOL)removeModelFromController:(NSString*)modelName
     NS_SWIFT_NAME(removeModelFromController(_:));
+
+// Port-level smart-remote operations — desktop's port menu
+// (ControllerModelDialog.cpp:653-665). All act on every model on the
+// port; a port's models share a remote, so per-model would be wrong.
+//
+// Assign `startId` (0-based) to the port's models and increment across
+// them, honouring each model's cascade span and counting a multi-string
+// model once. Returns models touched.
+- (int)setSmartRemoteAndIncrementOnController:(NSString*)controllerName
+                                          port:(int)port
+                                       startId:(int)startId
+    NS_SWIFT_NAME(setSmartRemoteAndIncrement(onController:port:startId:));
+// Set the remote type. When the controller's caps say every port in a
+// 4-port block must share a type, the whole block is written.
+- (int)setSmartRemoteTypeOnController:(NSString*)controllerName
+                                  port:(int)port
+                                  type:(NSString*)type
+    NS_SWIFT_NAME(setSmartRemoteType(onController:port:type:));
+// Clear smart remotes across the port's 4-port block.
+- (int)removeSmartRemoteOnController:(NSString*)controllerName port:(int)port
+    NS_SWIFT_NAME(removeSmartRemote(onController:port:));
+
+// Visualizer bulk operations — desktop's port and controller context
+// menus (ControllerModelDialog.cpp:666-668, :4651). Each is built from
+// the single-model ops above, so chain repair and start-channel rework
+// behave identically whether one model moves or twenty.
+//
+// Models currently on one port, in port order.
+- (NSArray<NSString*>*)modelNamesOnController:(NSString*)controllerName
+                                          kind:(NSString*)kind
+                                          port:(int)port
+    NS_SWIFT_NAME(modelNames(onController:kind:port:));
+// "Remove All Models From Port" / "…From Controller". Returns the count
+// removed.
+- (int)removeAllModelsFromController:(NSString*)controllerName
+                                kind:(NSString*)kind
+                                port:(int)port
+    NS_SWIFT_NAME(removeAllModels(fromController:kind:port:));
+- (int)removeAllModelsFromController:(NSString*)controllerName
+    NS_SWIFT_NAME(removeAllModels(fromController:));
+// "Move All Models To Port" — the moved block chains onto whatever
+// already sits last on the destination port, as desktop does.
+- (int)moveAllModelsOnController:(NSString*)controllerName
+                             kind:(NSString*)kind
+                         fromPort:(int)fromPort
+                           toPort:(int)toPort
+    NS_SWIFT_NAME(moveAllModels(onController:kind:fromPort:toPort:));
 
 // Phase J-32.6 — caps-reported max port counts for the named
 // controller. Used by the "Move to Port" picker to know how
