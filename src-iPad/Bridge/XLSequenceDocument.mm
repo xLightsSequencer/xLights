@@ -3448,6 +3448,11 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     }
 }
 
++ (BOOL)isValidViewName:(NSString*)name {
+    if (name.length == 0) return NO;
+    return SequenceViewManager::IsValidViewName(std::string([name UTF8String])) ? YES : NO;
+}
+
 - (BOOL)addViewNamed:(NSString*)name {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     if (!name) return NO;
@@ -3456,6 +3461,9 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     while (!n.empty() && std::isspace((unsigned char)n.front())) n.erase(n.begin());
     while (!n.empty() && std::isspace((unsigned char)n.back())) n.pop_back();
     if (n.empty()) return NO;
+    // Same character rule the desktop enforces at entry — a comma in a
+    // view name breaks the per-view timing membership CSV outright.
+    if (!SequenceViewManager::IsValidViewName(n)) return NO;
     auto& vm = _context->GetSequenceViewManager();
     if (vm.GetView(n) != nullptr) return NO;  // duplicate
     vm.AddView(n);
@@ -3504,6 +3512,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     while (!n.empty() && std::isspace((unsigned char)n.front())) n.erase(n.begin());
     while (!n.empty() && std::isspace((unsigned char)n.back())) n.pop_back();
     if (n.empty()) return NO;
+    if (!SequenceViewManager::IsValidViewName(n)) return NO;
     auto& vm = _context->GetSequenceViewManager();
     if (idx >= vm.GetViewCount()) return NO;
     if (vm.GetView(n) != nullptr) return NO;  // collision
@@ -3526,6 +3535,7 @@ static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, in
     while (!n.empty() && std::isspace((unsigned char)n.front())) n.erase(n.begin());
     while (!n.empty() && std::isspace((unsigned char)n.back())) n.pop_back();
     if (n.empty()) return NO;
+    if (!SequenceViewManager::IsValidViewName(n)) return NO;
     auto& se = _context->GetSequenceElements();
     auto& vm = _context->GetSequenceViewManager();
     if (idx < 0 || idx >= vm.GetViewCount()) return NO;

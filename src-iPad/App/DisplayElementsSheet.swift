@@ -1033,6 +1033,20 @@ struct DisplayElementsSheet: View {
         let name = alert.text.trimmingCharacters(in: .whitespacesAndNewlines)
         defer { textAlert = nil }
         if name.isEmpty { return }
+        // View names are comma-joined into each timing track's per-view
+        // membership list, so the character set is restricted — same
+        // rule and same point of enforcement as desktop. Checked here
+        // (not just in the bridge) so the message names the cause
+        // rather than lumping it in with "already in use".
+        switch alert.kind {
+        case .addView, .renameView, .cloneView:
+            if !XLSequenceDocument.isValidViewName(name) {
+                errorText = "\"\(name)\" can't be used — view names may only contain letters, numbers, spaces, underscores and hyphens."
+                return
+            }
+        case .newTimingTrack:
+            break
+        }
         switch alert.kind {
         case .addView:
             if viewModel.document.addView(named: name) {

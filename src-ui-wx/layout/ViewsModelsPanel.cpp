@@ -1335,13 +1335,6 @@ void ViewsModelsPanel::AddViewToList(const wxString& viewName, bool isChecked)
     }
 }
 
-static bool IsValidViewName(const std::string& name)
-{
-    return std::all_of(name.begin(), name.end(), [](unsigned char c) {
-        return std::isalnum(c) || c == ' ' || c == '_' || c == '-';
-    });
-}
-
 static std::string PromptForViewName(wxWindow* parent, const wxString& initial = wxEmptyString)
 {
     std::string name;
@@ -1351,7 +1344,7 @@ static std::string PromptForViewName(wxWindow* parent, const wxString& initial =
         result = dialog.ShowModal();
         if (result != wxID_OK) return "";
         name = dialog.GetValue().Trim().ToStdString();
-        if (!name.empty() && !IsValidViewName(name)) {
+        if (!name.empty() && !SequenceViewManager::IsValidViewName(name)) {
             wxMessageBox(_("View name may only contain letters, numbers, spaces, underscores, and hyphens."),
                          _("Invalid Name"), wxOK | wxICON_WARNING, parent);
             name = "";

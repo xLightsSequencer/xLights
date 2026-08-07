@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -change (dkulp)              iPad - View names are held to the same rules as the desktop - letters, numbers,
+                                 spaces, underscores and hyphens - and say so when a name is rejected. A comma in
+                                 a view name breaks which timing tracks belong to that view
     -enh (dkulp)                 iPad - Layout changes are now autosaved. If the app is closed or crashes with
                                  unsaved layout work, the next open offers the autosaved copy back
     -bug (dkulp)                 iPad - Changing a sequence's frame interval now saves, closes and reopens the

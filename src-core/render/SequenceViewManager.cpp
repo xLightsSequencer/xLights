@@ -229,6 +229,13 @@ void SequenceViewManager::Load(pugi::xml_node node, int selectedView)
 	}
 }
 
+bool SequenceViewManager::IsValidViewName(const std::string& name)
+{
+	return std::all_of(name.begin(), name.end(), [](unsigned char c) {
+		return std::isalnum(c) || c == ' ' || c == '_' || c == '-';
+	});
+}
+
 void SequenceViewManager::SanitizeViewNames()
 {
 	// A view name ends up comma-joined with other view names elsewhere (e.g. a

@@ -27,16 +27,16 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 07 Controllers, outputs, upload | 61 | 39 | 33 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
 | 08 Import & export | 50 | 11 | 44 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
 | 09 Render & playback | 62 | 12 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
-| 10 Presets, views, jukebox | 49 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
+| 10 Presets, views, jukebox | 50 | 14 | 21 | 4 | 3 | Preset formats don't interchange; jukebox absent (approved, low priority); no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 55 | 12 | 15 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **974** | **293** | **367** | **157** | **88** | |
+| **Total (01–13)** | **975** | **293** | **367** | **157** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,634 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
+**Parity index:** of the 1,635 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
 at full parity and **78%** at full-or-partial. Counting partials at half weight the iPad sits
 at **≈69% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
 writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (157) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
@@ -96,7 +96,7 @@ All survived adversarial re-verification.
 | 7 | ~~Stop doesn't blank outputs — lights hold the last frame~~ | 09 r88 | **FIXED 2026-08-06** — `blankOutputs` calls `AllOff()` from Stop and both natural end-of-playback paths; `stopOutput` blanks before closing |
 | 8 | FPP Connect FSEQ type — **the three-mis-served-families claim was wrong**: iPad discovery admits only FPP and ESPixelStick, so Falcon V4/V5 and Genius/PowerDMX never receive an upload at all. The one real case, a master-mode FPP getting sparse, is **FIXED 2026-08-06** | 07 r69 | Downgraded from S1 to a missing picker (07 r69, still partial). A reminder that a ❌ needs the reachability check, not just the code read |
 | 9 | ~~`DidConvert` never consulted; no `NetworkChangesAllowed()` guard~~ | 07 r81 / r26 | **BOTH FIXED 2026-08-06** — the load path now flags a converted legacy networks file dirty so the migration persists, and controller edits are blocked while outputting |
-| 10 | 49 | 14 | 21 |
+| 10 | 50 | 14 | 21 |
 | 11 | 33 | 19 | 51 |
 | 12 | 41 | 6 | 3 |
 | 13 | 55 | 12 | 15 |

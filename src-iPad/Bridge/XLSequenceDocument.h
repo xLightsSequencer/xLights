@@ -921,6 +921,13 @@ NS_ASSUME_NONNULL_BEGIN
 // for that row. `moveView…` operates on the user-view portion of the
 // list — attempting to move the Master View is rejected; moving into
 // index 0 is rejected.
+// Whether `name` is usable as a view name — the shared core rule
+// (`SequenceViewManager::IsValidViewName`): letters, digits, spaces,
+// underscores and hyphens. Exposed so the UI can say why a name was
+// rejected without keeping its own copy of the rule.
++ (BOOL)isValidViewName:(NSString*)name
+    NS_SWIFT_NAME(isValidViewName(_:));
+
 - (BOOL)addViewNamed:(NSString*)name
     NS_SWIFT_NAME(addView(named:));
 - (BOOL)deleteViewAtIndex:(int)idx
