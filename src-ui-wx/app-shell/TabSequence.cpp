@@ -1606,7 +1606,7 @@ void xLightsFrame::SaveSequence()
         return;
     }
 
-    if (CurrentSeqXmlFile != nullptr && !CurrentSeqXmlFile->GetFullPath().empty()) {
+    if (!xlightsFilename.IsEmpty() && CurrentSeqXmlFile != nullptr && !CurrentSeqXmlFile->GetFullPath().empty()) {
         if (!IsSequenceInShowDir(CurrentSeqXmlFile->GetFullPath())) {
             wxFileName fnDir(CurrentDir, "");
             fnDir.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE | wxPATH_NORM_ABSOLUTE | wxPATH_NORM_LONG | wxPATH_NORM_SHORTCUT);
