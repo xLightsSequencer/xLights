@@ -1565,14 +1565,18 @@ void OutputManager::SortControllersbyFPPProxy() {
         auto ea = dynamic_cast<ControllerEthernet*>(a);
         auto eb = dynamic_cast<ControllerEthernet*>(b);
         if (ea != nullptr && eb != nullptr) {
-            if (!ea->GetFPPProxy().empty() &&
-                !eb->GetFPPProxy().empty()) {
-                return ea->GetFPPProxy() < eb->GetFPPProxy();
+            // Raw, unresolved proxy string - a sort order doesn't need a live DNS
+            // resolve, and GetFPPProxy() here would trigger one (uncached on
+            // failure, ~5s timeout) per comparison during the sort.
+            auto pa = ea->GetControllerFPPProxy();
+            auto pb = eb->GetControllerFPPProxy();
+            if (!pa.empty() && !pb.empty()) {
+                return pa < pb;
             }
-            if (!ea->GetFPPProxy().empty()) {
+            if (!pa.empty()) {
                 return true;
             }
-            if (!eb->GetFPPProxy().empty()) {
+            if (!pb.empty()) {
                 return false;
             }
             return ea->GetIP() < eb->GetIP();

@@ -281,7 +281,9 @@ void MultiControllerUploadDialog::OnListRClick(wxContextMenuEvent& event)
 
     std::vector<std::string> proxies;
     for (auto* c : _controllers) {
-        auto controllerproxy = c->GetFPPProxy();
+        // Raw, unresolved proxy string - avoids a synchronous DNS lookup per
+        // controller (uncached on failure, ~5s timeout) just to build this menu.
+        auto controllerproxy = c->GetControllerFPPProxy();
         if (!controllerproxy.empty()) {
             if (std::find(proxies.begin(), proxies.end(), controllerproxy) == proxies.end()) {
                 proxies.push_back(controllerproxy);
@@ -344,10 +346,10 @@ void MultiControllerUploadDialog::OnProxyPopup(wxCommandEvent& event)
     auto id = event.GetId();
     wxString label = ((wxMenu*)event.GetEventObject())->GetLabelText(id);
     for (long i = 0; i < ListCtrl_Controllers->GetItemCount(); i++) {
-        if (!_controllers[i] || _controllers[i]->GetFPPProxy().empty()) {
+        if (!_controllers[i] || _controllers[i]->GetControllerFPPProxy().empty()) {
             continue;
         }
-        if (label.compare(_controllers[i]->GetFPPProxy()) == 0) {
+        if (label.compare(_controllers[i]->GetControllerFPPProxy()) == 0) {
             ListCtrl_Controllers->CheckItem(i, true);
         }
     }
