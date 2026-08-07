@@ -52,6 +52,49 @@ struct ControllerVisualizeView: View {
     @State private var startChannelTarget: StartChannelTarget? = nil
     @State private var availableFilter: String = ""
     @State private var showOnlyUnassigned: Bool = true
+    // Port-level bulk actions (desktop's port context menu).
+    @State private var srTypeTarget: PortActionTarget? = nil
+    @State private var srIdTarget: PortActionTarget? = nil
+    @State private var removeAllTarget: PortActionTarget? = nil
+    @State private var moveAllTarget: PortActionTarget? = nil
+    @State private var moveAllDestination: String = ""
+
+    struct PortActionTarget: Identifiable {
+        let kind: String
+        let port: Int
+        let displayName: String
+        var id: String { "\(kind)-\(port)" }
+    }
+
+    /// Smart-remote capabilities of this controller, read once per
+    /// render — the menu is gated on them the way desktop gates on
+    /// `_caps->SupportsSmartRemotes()`.
+    private var smartRemoteCaps: [String: Any] {
+        (viewModel.document.smartRemoteCapabilities(forController: controllerName)
+            as? [String: Any]) ?? [:]
+    }
+    private var smartRemoteSupported: Bool {
+        (smartRemoteCaps["supportsSmartRemotes"] as? NSNumber)?.boolValue ?? false
+    }
+    private var smartRemoteTypes: [String] {
+        smartRemoteCaps["types"] as? [String] ?? []
+    }
+    private var smartRemoteMax: Int {
+        (smartRemoteCaps["maxRemotes"] as? NSNumber)?.intValue ?? 0
+    }
+    private var smartRemoteUsesNumbers: Bool {
+        (smartRemoteCaps["useNumbersForRemotes"] as? NSNumber)?.boolValue ?? false
+    }
+    /// Desktop appends "(All Ports In Block)" when the controller
+    /// requires one type per 4-port block, so the user knows the write
+    /// is wider than the port they clicked.
+    private var smartRemoteTypeLabel: String {
+        let allSame = (smartRemoteCaps["allTypesPerPortMustBeSame"] as? NSNumber)?.boolValue ?? false
+        return allSame ? "Set Smart Remote Type (All Ports In Block)…"
+                       : "Set Smart Remote Type…"
+    }
+
+    private func reload() { loadToken &+= 1 }
 
     var body: some View {
         NavigationStack {
@@ -74,6 +117,40 @@ struct ControllerVisualizeView: View {
             wiring = (viewModel.document.wiring(forController: controllerName)
                       as? [String: Any]) ?? [:]
         }
+        .modifier(PortBulkActionsModifier(
+            srTypeTarget: $srTypeTarget,
+            srIdTarget: $srIdTarget,
+            removeAllTarget: $removeAllTarget,
+            moveAllTarget: $moveAllTarget,
+            moveAllDestination: $moveAllDestination,
+            smartRemoteTypes: smartRemoteTypes,
+            smartRemoteMax: smartRemoteMax,
+            smartRemoteUsesNumbers: smartRemoteUsesNumbers,
+            onSetType: { target, type in
+                _ = viewModel.document.setSmartRemoteType(onController: controllerName,
+                                                            port: Int32(target.port),
+                                                            type: type)
+                reload()
+            },
+            onSetId: { target, startId in
+                _ = viewModel.document.setSmartRemoteAndIncrement(onController: controllerName,
+                                                                    port: Int32(target.port),
+                                                                    startId: Int32(startId))
+                reload()
+            },
+            onRemoveAll: { target in
+                _ = viewModel.document.removeAllModels(fromController: controllerName,
+                                                        kind: target.kind,
+                                                        port: Int32(target.port))
+                reload()
+            },
+            onMoveAll: { target, destPort in
+                _ = viewModel.document.moveAllModels(onController: controllerName,
+                                                      kind: target.kind,
+                                                      fromPort: Int32(target.port),
+                                                      toPort: Int32(destPort))
+                reload()
+            }))
         .confirmationDialog(
             "Set Protocol",
             isPresented: Binding(get: { protocolPickerTarget != nil },
@@ -557,6 +634,51 @@ struct ControllerVisualizeView: View {
                     Label("Set Protocol…",
                           systemImage: "antenna.radiowaves.left.and.right")
                 }
+                // Desktop's port menu (ControllerModelDialog.cpp:653-668).
+                // The smart-remote entries only apply to pixel ports on
+                // a controller whose caps advertise remotes.
+                if section.kind == "pixel", smartRemoteSupported {
+                    Divider()
+                    if smartRemoteTypes.count > 1 {
+                        Button {
+                            srTypeTarget = PortActionTarget(kind: section.kind,
+                                                             port: section.port,
+                                                             displayName: section.displayName)
+                        } label: {
+                            Label(smartRemoteTypeLabel, systemImage: "dot.radiowaves.right")
+                        }
+                    }
+                    Button {
+                        srIdTarget = PortActionTarget(kind: section.kind,
+                                                       port: section.port,
+                                                       displayName: section.displayName)
+                    } label: {
+                        Label("Set Smart Remote ID and Increment…",
+                              systemImage: "number")
+                    }
+                    Button(role: .destructive) {
+                        _ = viewModel.document.removeSmartRemote(onController: controllerName,
+                                                                  port: Int32(section.port))
+                        reload()
+                    } label: {
+                        Label("Remove Smart Remote", systemImage: "minus.circle")
+                    }
+                }
+                Divider()
+                Button(role: .destructive) {
+                    removeAllTarget = PortActionTarget(kind: section.kind,
+                                                        port: section.port,
+                                                        displayName: section.displayName)
+                } label: {
+                    Label("Remove All Models From Port", systemImage: "trash")
+                }
+                Button {
+                    moveAllTarget = PortActionTarget(kind: section.kind,
+                                                      port: section.port,
+                                                      displayName: section.displayName)
+                } label: {
+                    Label("Move All Models To Port…", systemImage: "arrow.right.square")
+                }
             } label: {
                 portHeaderRow(section, asMenu: true)
             }
@@ -806,5 +928,90 @@ struct ControllerVisualizeView: View {
 
     private func stringValue(_ key: String) -> String {
         wiring[key] as? String ?? ""
+    }
+}
+
+
+/// Port-level bulk actions from the visualizer's port menu. Bundled in
+/// one modifier so the view's chain doesn't grow four links.
+private struct PortBulkActionsModifier: ViewModifier {
+    @Binding var srTypeTarget: ControllerVisualizeView.PortActionTarget?
+    @Binding var srIdTarget: ControllerVisualizeView.PortActionTarget?
+    @Binding var removeAllTarget: ControllerVisualizeView.PortActionTarget?
+    @Binding var moveAllTarget: ControllerVisualizeView.PortActionTarget?
+    @Binding var moveAllDestination: String
+    let smartRemoteTypes: [String]
+    let smartRemoteMax: Int
+    let smartRemoteUsesNumbers: Bool
+    let onSetType: (ControllerVisualizeView.PortActionTarget, String) -> Void
+    let onSetId: (ControllerVisualizeView.PortActionTarget, Int) -> Void
+    let onRemoveAll: (ControllerVisualizeView.PortActionTarget) -> Void
+    let onMoveAll: (ControllerVisualizeView.PortActionTarget, Int) -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .confirmationDialog(
+                "Smart Remote Type",
+                isPresented: Binding(get: { srTypeTarget != nil },
+                                      set: { if !$0 { srTypeTarget = nil } }),
+                titleVisibility: .visible,
+                presenting: srTypeTarget
+            ) { target in
+                ForEach(smartRemoteTypes, id: \.self) { type in
+                    Button(type) { onSetType(target, type) }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { target in
+                Text(target.displayName)
+            }
+            // Desktop offers the id as a list rather than free entry, so
+            // an out-of-range remote can't be typed in.
+            .confirmationDialog(
+                "Start Smart Remote At",
+                isPresented: Binding(get: { srIdTarget != nil },
+                                      set: { if !$0 { srIdTarget = nil } }),
+                titleVisibility: .visible,
+                presenting: srIdTarget
+            ) { target in
+                ForEach(0..<max(smartRemoteMax, 0), id: \.self) { i in
+                    Button(remoteLabel(i)) { onSetId(target, i) }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { target in
+                Text("\(target.displayName) — each model takes the next remote in turn.")
+            }
+            .alert("Remove All Models From Port?",
+                   isPresented: Binding(get: { removeAllTarget != nil },
+                                         set: { if !$0 { removeAllTarget = nil } }),
+                   presenting: removeAllTarget) { target in
+                Button("Remove", role: .destructive) { onRemoveAll(target) }
+                Button("Cancel", role: .cancel) {}
+            } message: { target in
+                Text("Models on \(target.displayName) are unassigned from this controller. They are not deleted.")
+            }
+            .alert("Move All Models",
+                   isPresented: Binding(get: { moveAllTarget != nil },
+                                         set: { if !$0 { moveAllTarget = nil } }),
+                   presenting: moveAllTarget) { target in
+                TextField("Destination port", text: $moveAllDestination)
+                    .keyboardType(.numberPad)
+                Button("Move") {
+                    if let dest = Int(moveAllDestination.trimmingCharacters(in: .whitespaces)),
+                       dest > 0, dest != target.port {
+                        onMoveAll(target, dest)
+                    }
+                    moveAllDestination = ""
+                }
+                Button("Cancel", role: .cancel) { moveAllDestination = "" }
+            } message: { target in
+                Text("Move every model on \(target.displayName) to another port on this controller.")
+            }
+    }
+
+    /// HinksPix numbers its remotes from 0; everyone else letters them
+    /// from A. Which one is a caps fact, so it comes from the bridge
+    /// rather than being inferred here.
+    private func remoteLabel(_ index: Int) -> String {
+        smartRemoteUsesNumbers ? String(index) : String(UnicodeScalar(UInt8(65 + index)))
     }
 }

@@ -14,6 +14,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
+    -enh (dkulp)                 iPad - The visualizer can work on a whole port at once: remove every model
+                                 from a port or from the controller, move a port's models to another port, and
+                                 set or clear the port's smart remote and its type
+    -bug (dkulp)                 iPad - Controller discovery now probes the controllers already in the show
+                                 rather than relying on broadcast alone, so an FPP on another subnet or behind
+                                 a proxy is found, and a password-protected FPP asks for the password instead
+                                 of being skipped
     -enh (dkulp)                 iPad - Previews can be renamed and deleted, not just created. Deleting one
                                  leaves its models in the show as Unassigned; renaming one takes its models
                                  with it

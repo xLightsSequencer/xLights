@@ -3527,6 +3527,10 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   @"supportsSmartRemotes" — NSNumber BOOL
 //   @"maxRemotes"           — NSNumber Int (1-based count, e.g. 16 for "A".."P")
 //   @"types"                — NSArray<NSString>
+// Smart-remote capabilities: @"supportsSmartRemotes" (BOOL),
+// @"maxRemotes" (int), @"types" ([NSString]), and
+// @"allTypesPerPortMustBeSame" (BOOL — a type applies to the whole
+// 4-port block, so the UI must say so before writing).
 - (NSDictionary*)smartRemoteCapabilitiesForController:(NSString*)name;
 
 // Phase J-32.5 — assign a model to a port on a controller.
@@ -3569,6 +3573,53 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // (if any) preceded the removed one on its port.
 - (BOOL)removeModelFromController:(NSString*)modelName
     NS_SWIFT_NAME(removeModelFromController(_:));
+
+// Port-level smart-remote operations — desktop's port menu
+// (ControllerModelDialog.cpp:653-665). All act on every model on the
+// port; a port's models share a remote, so per-model would be wrong.
+//
+// Assign `startId` (0-based) to the port's models and increment across
+// them, honouring each model's cascade span and counting a multi-string
+// model once. Returns models touched.
+- (int)setSmartRemoteAndIncrementOnController:(NSString*)controllerName
+                                          port:(int)port
+                                       startId:(int)startId
+    NS_SWIFT_NAME(setSmartRemoteAndIncrement(onController:port:startId:));
+// Set the remote type. When the controller's caps say every port in a
+// 4-port block must share a type, the whole block is written.
+- (int)setSmartRemoteTypeOnController:(NSString*)controllerName
+                                  port:(int)port
+                                  type:(NSString*)type
+    NS_SWIFT_NAME(setSmartRemoteType(onController:port:type:));
+// Clear smart remotes across the port's 4-port block.
+- (int)removeSmartRemoteOnController:(NSString*)controllerName port:(int)port
+    NS_SWIFT_NAME(removeSmartRemote(onController:port:));
+
+// Visualizer bulk operations — desktop's port and controller context
+// menus (ControllerModelDialog.cpp:666-668, :4651). Each is built from
+// the single-model ops above, so chain repair and start-channel rework
+// behave identically whether one model moves or twenty.
+//
+// Models currently on one port, in port order.
+- (NSArray<NSString*>*)modelNamesOnController:(NSString*)controllerName
+                                          kind:(NSString*)kind
+                                          port:(int)port
+    NS_SWIFT_NAME(modelNames(onController:kind:port:));
+// "Remove All Models From Port" / "…From Controller". Returns the count
+// removed.
+- (int)removeAllModelsFromController:(NSString*)controllerName
+                                kind:(NSString*)kind
+                                port:(int)port
+    NS_SWIFT_NAME(removeAllModels(fromController:kind:port:));
+- (int)removeAllModelsFromController:(NSString*)controllerName
+    NS_SWIFT_NAME(removeAllModels(fromController:));
+// "Move All Models To Port" — the moved block chains onto whatever
+// already sits last on the destination port, as desktop does.
+- (int)moveAllModelsOnController:(NSString*)controllerName
+                             kind:(NSString*)kind
+                         fromPort:(int)fromPort
+                           toPort:(int)toPort
+    NS_SWIFT_NAME(moveAllModels(onController:kind:fromPort:toPort:));
 
 // Phase J-32.6 — caps-reported max port counts for the named
 // controller. Used by the "Move to Port" picker to know how

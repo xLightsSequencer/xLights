@@ -17955,14 +17955,41 @@ public:
 
     // Construct a single Discovery instance and register every
     // protocol scanner desktop's PrepareAllControllerDiscovery
-    // wires up. FPP needs an optional list of forced IPs — we
-    // pass an empty list (the iPad has no "FPPConnectForcedIPs"
-    // preference today; broadcast discovery is enough for the
-    // common case).
-    DiscoveryDelegate defaultDelegate;
-    Discovery discovery(&om, &defaultDelegate);
-    std::list<std::string> emptyForcedAddresses;
-    FPP::PrepareDiscovery(discovery, emptyForcedAddresses);
+    // wires up.
+    //
+    // Use the auth delegate so a password-protected FPP prompts rather
+    // than being silently skipped — the prompt already existed but was
+    // only wired into FPP Connect's discovery, not this one.
+    if (!_fppAuthDelegate) {
+        _fppAuthDelegate = std::make_unique<XLiPadDiscoveryAuthDelegate>();
+    }
+    Discovery discovery(&om, _fppAuthDelegate.get());
+
+    // Seed unicast probes the way desktop's GetDiscoveryAddresses does
+    // (DiscoveryHelpers.cpp:29-66): every active ethernet controller's
+    // resolved IP, plus any FPP proxy. Broadcast alone misses anything
+    // on another subnet or behind a proxy, which is the case seeding
+    // exists for. (The iPad has no FPPConnectForcedIPs preference, so
+    // that source contributes nothing here — FPP Connect keeps its own
+    // forced-IP list separately.)
+    std::list<std::string> seedAddresses;
+    for (auto* ctrl : om.GetControllers()) {
+        auto* eth = dynamic_cast<ControllerEthernet*>(ctrl);
+        if (!eth || eth->GetIP().empty() || eth->GetIP() == "MULTICAST") continue;
+        const std::string resolved = eth->GetResolvedIP(true);
+        if (resolved.empty()) {
+            seedAddresses.push_back(::Lower(eth->GetIP()));
+        } else if (eth->IsActive() &&
+                   (ip_utils::IsIPValid(resolved) || resolved != eth->GetIP())) {
+            seedAddresses.push_back(::Lower(resolved));
+        }
+        if (!eth->GetFPPProxy().empty()) {
+            seedAddresses.push_back(::Lower(ip_utils::ResolveIP(eth->GetFPPProxy())));
+        }
+    }
+    seedAddresses.sort();
+    seedAddresses.unique();
+    FPP::PrepareDiscovery(discovery, seedAddresses);
     ArtNetOutput::PrepareDiscovery(discovery);
     TwinklyOutput::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
@@ -18757,6 +18784,207 @@ static UDControllerPort* GetUDPortForKind(UDController& cud,
     return YES;
 }
 
+// Port-level smart-remote operations (desktop's port menu,
+// ControllerModelDialog.cpp:653-665). All three act on every model on
+// the port rather than one at a time, which is the whole point — a
+// port's models share a remote.
+
+// Assign a starting smart-remote id to the port's models and increment
+// across them, skipping the repeat entries a multi-string model makes
+// (ControllerModelDialog.cpp:858-874). `startId` is 0-based, matching
+// the choice list desktop builds.
+- (int)setSmartRemoteAndIncrementOnController:(NSString*)controllerName
+                                          port:(int)port
+                                       startId:(int)startId {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return 0;
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
+    if (!caps || !caps->SupportsSmartRemotes()) return 0;
+    const int srCount = caps->GetSmartRemoteCount();
+    if (srCount <= 0) return 0;
+
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    UDControllerPort* p = ud.GetControllerPixelPort(port);
+    if (!p) return 0;
+
+    _context->AbortRender(5000);
+    int id = startId;
+    std::string lastName;
+    int touched = 0;
+    for (auto* um : p->GetModels()) {
+        Model* m = um ? um->GetModel() : nullptr;
+        if (!m) continue;
+        // A multi-string model appears once per port it spans; only the
+        // first occurrence should consume a remote id.
+        if (lastName == m->Name()) continue;
+        m->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
+        m->SetSmartRemote(id + 1);
+        int maxCascade = std::min(m->GetSRMaxCascade(),
+                                   (int)std::ceil(m->GetNumPhysicalStrings() / 4.0));
+        maxCascade = std::max(maxCascade, 1);
+        id += maxCascade;
+        if (id >= srCount) id = srCount - 1;
+        lastName = m->Name();
+        _context->MarkLayoutModelDirty(m->GetName());
+        ++touched;
+    }
+    if (touched > 0) [self reworkAndRecalcStartChannels];
+    return touched;
+}
+
+// Set the smart-remote type on the port's models. When the controller
+// requires one type across a 4-port block, every port in the block is
+// written — that is the caps flag's whole purpose, and writing only the
+// clicked port would leave the block inconsistent.
+- (int)setSmartRemoteTypeOnController:(NSString*)controllerName
+                                  port:(int)port
+                                  type:(NSString*)type {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    if (type.length == 0) return 0;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return 0;
+    ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
+    if (!caps || !caps->SupportsSmartRemotes()) return 0;
+
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    const std::string t(type.UTF8String);
+    const bool wholeBlock = caps->AllSmartRemoteTypesPerPortMustBeSame();
+    const int basePort = wholeBlock ? (((port - 1) / 4) * 4 + 1) : port;
+    const int portCount = wholeBlock ? 4 : 1;
+
+    _context->AbortRender(5000);
+    int touched = 0;
+    for (int i = 0; i < portCount; ++i) {
+        UDControllerPort* p = ud.GetControllerPixelPort(basePort + i);
+        if (!p) continue;
+        for (auto* um : p->GetModels()) {
+            Model* m = um ? um->GetModel() : nullptr;
+            if (!m) continue;
+            if (m->GetSmartRemote() == 0) m->SetSmartRemote(1);
+            m->SetControllerProperty(CtrlProps::USE_SMART_REMOTE);
+            m->SetSmartRemoteType(t);
+            _context->MarkLayoutModelDirty(m->GetName());
+            ++touched;
+        }
+    }
+    if (touched > 0) [self reworkAndRecalcStartChannels];
+    return touched;
+}
+
+// Clear smart remotes across the port's whole 4-port block, which is
+// what desktop does — a remote spans the block, so clearing one port
+// alone would leave the rest pointing at a remote that is gone.
+- (int)removeSmartRemoteOnController:(NSString*)controllerName port:(int)port {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return 0;
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    const int basePort = ((port - 1) / 4) * 4 + 1;
+
+    _context->AbortRender(5000);
+    int touched = 0;
+    for (int i = 0; i < 4; ++i) {
+        UDControllerPort* p = ud.GetControllerPixelPort(basePort + i);
+        if (!p) continue;
+        for (auto* um : p->GetModels()) {
+            Model* m = um ? um->GetModel() : nullptr;
+            if (!m) continue;
+            m->ClearControllerProperty(CtrlProps::USE_SMART_REMOTE);
+            _context->MarkLayoutModelDirty(m->GetName());
+            ++touched;
+        }
+        p->ClearSmartRemoteOnAllModels();
+    }
+    if (touched > 0) [self reworkAndRecalcStartChannels];
+    return touched;
+}
+
+// Visualizer bulk operations. Each is desktop's port / controller
+// context-menu entry (ControllerModelDialog.cpp:666-668, :4651), and
+// each is expressed in terms of the single-model ops so the chain and
+// start-channel fixups can't drift between the two paths.
+
+// Every model on one port of one controller, in port order.
+- (NSArray<NSString*>*)modelNamesOnController:(NSString*)controllerName
+                                          kind:(NSString*)kind
+                                          port:(int)port {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return out;
+    Controller* c = _context->GetOutputManager().GetController(controllerName.UTF8String);
+    if (!c) return out;
+    UDController ud(c, &_context->GetOutputManager(), &_context->GetModelManager(), false);
+    const bool serial = [kind isEqualToString:@"serial"];
+    UDControllerPort* p = serial ? ud.GetControllerSerialPort(port)
+                                  : ud.GetControllerPixelPort(port);
+    if (!p) return out;
+    for (auto* m : p->GetModels()) {
+        if (m && m->GetModel()) {
+            [out addObject:[NSString stringWithUTF8String:m->GetModel()->GetName().c_str()]];
+        }
+    }
+    return out;
+}
+
+- (int)removeAllModelsFromController:(NSString*)controllerName
+                                kind:(NSString*)kind
+                                port:(int)port {
+    NSArray<NSString*>* names = [self modelNamesOnController:controllerName kind:kind port:port];
+    int n = 0;
+    for (NSString* name in names) {
+        if ([self removeModelFromController:name]) ++n;
+    }
+    return n;
+}
+
+- (int)removeAllModelsFromController:(NSString*)controllerName {
+    if (!_context || !_context->HasModelManager() || controllerName.length == 0) return 0;
+    const std::string target(controllerName.UTF8String);
+    // Snapshot first: removing rewrites controller assignments, so
+    // iterating the manager while mutating it would skip models.
+    NSMutableArray<NSString*>* names = [NSMutableArray array];
+    for (const auto& [name, m] : _context->GetModelManager().GetModels()) {
+        if (m && m->GetControllerName() == target) {
+            [names addObject:[NSString stringWithUTF8String:name.c_str()]];
+        }
+    }
+    int n = 0;
+    for (NSString* name in names) {
+        if ([self removeModelFromController:name]) ++n;
+    }
+    return n;
+}
+
+- (int)moveAllModelsOnController:(NSString*)controllerName
+                             kind:(NSString*)kind
+                         fromPort:(int)fromPort
+                           toPort:(int)toPort {
+    if (fromPort == toPort) return 0;
+    NSArray<NSString*>* names = [self modelNamesOnController:controllerName
+                                                         kind:kind port:fromPort];
+    if (names.count == 0) return 0;
+
+    // Desktop chains the moved block onto whatever already sits last on
+    // the destination port, and clears the chain on the first mover so
+    // it anchors there rather than to a model it left behind.
+    NSArray<NSString*>* existing = [self modelNamesOnController:controllerName
+                                                           kind:kind port:toPort];
+    NSString* afterModel = existing.lastObject;
+    int n = 0;
+    for (NSString* name in names) {
+        if ([self assignModelToController:name
+                           controllerName:controllerName
+                                     kind:kind
+                                     port:toPort
+                               afterModel:afterModel
+                              smartRemote:-1]) {
+            ++n;
+            afterModel = name;   // chain each behind the previous
+        }
+    }
+    return n;
+}
+
 - (BOOL)removeModelFromController:(NSString*)modelName {
     if (!_context || !modelName || !_context->HasModelManager()) return NO;
     auto& mm = _context->GetModelManager();
@@ -18889,6 +19117,13 @@ static std::string CSVQuote(const std::string& s) {
         @"supportsSmartRemotes": @YES,
         @"maxRemotes":           @(caps->GetSmartRemoteCount()),
         @"types":                types,
+        // When set, a remote type applies to a whole 4-port block, not
+        // the one port — the UI has to say so before writing.
+        @"allTypesPerPortMustBeSame": @(caps->AllSmartRemoteTypesPerPortMustBeSame()),
+        // HinksPix numbers its remotes from 0; everyone else letters
+        // them from A (ControllerModelDialog.cpp:841-848). The UI can't
+        // infer this, so say it here rather than have it guess.
+        @"useNumbersForRemotes": @(caps->GetVendor() == "HinksPix"),
     };
 }
 
