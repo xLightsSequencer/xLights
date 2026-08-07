@@ -31,6 +31,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash showing or hiding a panel from the View menu. Toggling a panel that
                                  isn't registered, or one whose menu item fires during shutdown, left the window
                                  layout describing a panel that no longer had a window
+    -enh (dkulp)                 iPad - Automatic diagnostic uploads now include a redacted copy of the show
+                                 configuration, so a report can be opened as a show folder to reproduce a
+                                 problem. File paths and controller addresses are replaced; model, group and
+                                 submodel names are kept so the show still loads. Sharing logs yourself is
+                                 unchanged and still sends the real files
     -enh (dkulp)                 The show's id is now written to the log, so a submitted report identifies which
                                  show it came from without digging through the show XML, and says so plainly
                                  when the show folder wasn't writable enough to give it one

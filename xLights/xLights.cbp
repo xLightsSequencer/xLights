@@ -630,6 +630,8 @@
 		<Unit filename="../src-ui-wx/app-shell/TipOfTheDayDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/TopEffectsPanel.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/TopEffectsPanel.h" />
+		<Unit filename="../src-core/utils/ShowRedactor.cpp" />
+		<Unit filename="../src-core/utils/ShowRedactor.h" />
 		<Unit filename="../src-core/utils/TraceLog.cpp" />
 		<Unit filename="../src-core/utils/TraceLog.h" />
 		<Unit filename="../src-ui-wx/app-shell/UpdaterDialog.cpp" />

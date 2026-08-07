@@ -10,8 +10,11 @@
 #include <list>
 #include <string>
 
+#include <spdlog/spdlog.h>
+
 #include "utils/Parallel.h"
 #include "utils/RangeWorkPool.h"
+#include "utils/ShowRedactor.h"
 #include "utils/TraceLog.h"
 #include "utils/UtilFunctions.h"
 #include "utils/xlCrashCapture.h"
@@ -188,23 +191,43 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
     }
     CopyTreeIntoStaging(fm, diagnosticsSrc, diagnosticsDst, nil);
 
-    // 3. Show folder XML + currently-open sequence — full-payload only.
-    if (includeUserContent) {
-        if (document.showFolderPath.length > 0) {
-            NSString* showStaging = [stagingDir.path stringByAppendingPathComponent:@"show"];
-            [fm createDirectoryAtPath:showStaging
-          withIntermediateDirectories:YES
-                           attributes:nil
-                                error:nil];
-            for (NSString* name in @[@"xlights_networks.xml", @"xlights_rgbeffects.xml"]) {
-                NSString* src = [document.showFolderPath stringByAppendingPathComponent:name];
-                if ([fm fileExistsAtPath:src]) {
-                    [fm copyItemAtPath:src
-                                toPath:[showStaging stringByAppendingPathComponent:name]
-                                 error:nil];
-                }
+    // 3. Show folder XML. Verbatim for the share-sheet package, which the user
+    //    asked for and can inspect; redacted for the automatic upload, which
+    //    leaves without anyone seeing that particular report. Being able to open
+    //    a submitted report as a show folder is the most useful thing the
+    //    desktop reports carry, and a redacted copy still opens - it keeps the
+    //    structure, the names and every cross-reference, and rewrites only the
+    //    absolute paths and addresses.
+    if (document.showFolderPath.length > 0) {
+        NSString* showStaging = [stagingDir.path stringByAppendingPathComponent:@"show"];
+        [fm createDirectoryAtPath:showStaging
+      withIntermediateDirectories:YES
+                       attributes:nil
+                            error:nil];
+        for (NSString* name in @[@"xlights_networks.xml", @"xlights_rgbeffects.xml"]) {
+            NSString* src = [document.showFolderPath stringByAppendingPathComponent:name];
+            if (![fm fileExistsAtPath:src]) {
+                continue;
+            }
+            NSString* dst = [showStaging stringByAppendingPathComponent:name];
+            if (includeUserContent) {
+                [fm copyItemAtPath:src toPath:dst error:nil];
+                continue;
+            }
+            bool const isNetworks = [name isEqualToString:@"xlights_networks.xml"];
+            ShowRedactor::Stats stats;
+            if (ShowRedactor::RedactFileToFile(src.UTF8String, dst.UTF8String, isNetworks, &stats)) {
+                spdlog::info("Redacted {} for upload: {} path(s), {} address(es)",
+                             name.UTF8String, stats.paths, stats.addresses);
+            } else {
+                // Never fall back to copying the original: a redaction that
+                // failed is exactly when the unredacted file must not ship.
+                spdlog::warn("Could not redact {}; omitting it from the upload", name.UTF8String);
+                [fm removeItemAtPath:dst error:nil];
             }
         }
+    }
+    if (includeUserContent) {
         if (document.isSequenceLoaded && document.currentSequencePath.length > 0) {
             NSString* seqPath = document.currentSequencePath;
             if ([fm fileExistsAtPath:seqPath]) {

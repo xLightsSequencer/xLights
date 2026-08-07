@@ -1061,6 +1061,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-ui-wx\app-shell\TipOfTheDayDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\tmGridCell.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\TopEffectsPanel.cpp" />
+    <ClCompile Include="..\src-core\utils\ShowRedactor.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\utils\xlCrashCapture.cpp" />
     <ClCompile Include="..\src-core\utils\xlExceptionDescribe.cpp" />
@@ -1723,6 +1724,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-ui-wx\app-shell\TipOfTheDayDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\tmGridCell.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TopEffectsPanel.h" />
+    <ClInclude Include="..\src-core\utils\ShowRedactor.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\utils\xlCrashCapture.h" />
     <ClInclude Include="..\src-core\utils\xlExceptionDescribe.h" />
