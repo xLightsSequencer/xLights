@@ -7833,25 +7833,45 @@ void xLightsFrame::ShowHideEffectPresetsWindow(wxCommandEvent& event)
     TogglePresetsPanel();
 }
 
-void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
+bool xLightsFrame::TogglePaneVisibility(const wxString& name, bool initSequencer, bool* nowShown)
 {
-    bool visible = m_mgr->GetPane("SelectEffect").IsShown();
-    if (visible) {
-        m_mgr->GetPane("SelectEffect").Hide();
-    } else {
-        m_mgr->GetPane("SelectEffect").Show();
+    // wxAuiManager::GetPane() hands back a shared "null" pane object when the
+    // name isn't registered. Hide()/Show() on that happily records a state
+    // change for a pane that owns no frame, and the following Update() walks
+    // m_uiParts/m_docks and faults - the recurring wxAuiManager::Update() /
+    // DoFrameLayout() bucket. The menu item can also fire when there is no
+    // manager left to ask: macOS menu search dispatches the action from a
+    // delayed perform, so it arrives during teardown or re-entrantly while a
+    // modal pump is up, not only on a real click.
+    if (m_mgr == nullptr || IsExiting()) {
+        return false;
     }
+    if (initSequencer) {
+        InitSequencer();
+    }
+    wxAuiPaneInfo& info = m_mgr->GetPane(name);
+    if (!info.IsOk()) {
+        return false;
+    }
+
+    const bool shown = !info.IsShown();
+    shown ? info.Show() : info.Hide();
     m_mgr->Update();
     UpdateViewMenu();
+    if (nowShown != nullptr) {
+        *nowShown = shown;
+    }
+    return true;
+}
+
+void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
+{
+    TogglePaneVisibility("SelectEffect");
 }
 
 void xLightsFrame::OnMenuItemShowHideVideoPreview(wxCommandEvent& event)
 {
-    wxAuiPaneInfo& pane = m_mgr->GetPane("SequenceVideo");
-
-    pane.IsShown() ? pane.Hide() : pane.Show();
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("SequenceVideo");
 }
 
 void xLightsFrame::DoBackupPurge()
@@ -7978,11 +7998,7 @@ void xLightsFrame::OnMenuItem_DownloadSequencesSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_JukeboxSelected(wxCommandEvent& event)
 {
-    wxAuiPaneInfo& pane = m_mgr->GetPane("Jukebox");
-
-    pane.IsShown() ? pane.Hide() : pane.Show();
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("Jukebox");
 }
 
 void xLightsFrame::SetXFadePort(int i)
@@ -8840,28 +8856,12 @@ void xLightsFrame::SetVideoExportBitrate(int bitrate)
 
 void xLightsFrame::OnMenuItem_ValueCurvesSelected(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("ValueCurveDropper").IsShown();
-    if (visible) {
-        m_mgr->GetPane("ValueCurveDropper").Hide();
-    } else {
-        m_mgr->GetPane("ValueCurveDropper").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("ValueCurveDropper", true);
 }
 
 void xLightsFrame::OnMenuItem_ColourDropperSelected(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("ColourDropper").IsShown();
-    if (visible) {
-        m_mgr->GetPane("ColourDropper").Hide();
-    } else {
-        m_mgr->GetPane("ColourDropper").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("ColourDropper", true);
 }
 
 void xLightsFrame::OnSysColourChanged(wxSysColourChangedEvent& event)
@@ -9124,11 +9124,7 @@ void xLightsFrame::OnMenuItem_ColorReplaceSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItemFindDataSelected(wxCommandEvent& event)
 {
-    wxAuiPaneInfo& pane = m_mgr->GetPane("FindData");
-
-    pane.IsShown() ? pane.Hide() : pane.Show();
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("FindData");
 }
 
 void xLightsFrame::ShowDataFindPanel()
@@ -9144,14 +9140,7 @@ void xLightsFrame::ShowDataFindPanel()
 
 void xLightsFrame::OnMenuItemSearchEffectsSelected(wxCommandEvent& event)
 {
-    bool visible = m_mgr->GetPane("SearchPanel").IsShown();
-    if (visible) {
-        m_mgr->GetPane("SearchPanel").Hide();
-    } else {
-        m_mgr->GetPane("SearchPanel").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("SearchPanel");
 }
 
 void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)

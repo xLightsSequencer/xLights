@@ -3543,15 +3543,7 @@ void xLightsFrame::ShowDisplayElements(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideSelectEffectsWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("SelectEffect").IsShown();
-    if (visible) {
-        m_mgr->GetPane("SelectEffect").Hide();
-    } else {
-        m_mgr->GetPane("SelectEffect").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("SelectEffect", true);
 }
 
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
@@ -3565,150 +3557,58 @@ void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 
 void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-
-    bool visible = m_mgr->GetPane("LayerSettings").IsShown();
-    if (visible) {
-        m_mgr->GetPane("LayerSettings").Hide();
-    } else {
-        m_mgr->GetPane("LayerSettings").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("LayerSettings", true);
 }
 
 void xLightsFrame::ShowHideDisplayElementsWindow(wxCommandEvent& event)
 {
-    if (m_mgr == nullptr || IsExiting()) return;
-
-    InitSequencer();
-
-    wxAuiPaneInfo& info = m_mgr->GetPane("DisplayElements");
-
-    if (!info.IsOk()) return;
-
-    bool visible = info.IsShown();
-    if (visible) {
-        info.Hide();
-    } else {
-        info.Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("DisplayElements", true);
 }
 
 void xLightsFrame::ShowHideEffectSettingsWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("Effect").IsShown();
-    if (visible) {
-        m_mgr->GetPane("Effect").Hide();
-    } else {
-        m_mgr->GetPane("Effect").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("Effect", true);
 }
 
 void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("Color").IsShown();
-    if (visible) {
-        m_mgr->GetPane("Color").Hide();
-    } else {
-        m_mgr->GetPane("Color").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("Color", true);
 }
 
 void xLightsFrame::ShowHideLayerBlendingWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("LayerTiming").IsShown();
-    if (visible) {
-        m_mgr->GetPane("LayerTiming").Hide();
-    } else {
-        m_mgr->GetPane("LayerTiming").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("LayerTiming", true);
 }
 
 void xLightsFrame::ShowHideModelPreview(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("ModelPreview").IsShown();
-    if (visible) {
-        m_mgr->GetPane("ModelPreview").Hide();
-    } else {
-        m_mgr->GetPane("ModelPreview").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("ModelPreview", true);
 }
 
 void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
 {
-    if (m_mgr == nullptr || IsExiting()) return;
-
-    InitSequencer();
-    wxAuiPaneInfo& info = m_mgr->GetPane("HousePreview");
-    if (!info.IsOk()) return;
-
-    if (info.IsShown()) {
-        info.Hide();
-    } else {
-        info.Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("HousePreview", true);
 }
 
 void xLightsFrame::ShowHideEffectDropper(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("EffectDropper").IsShown();
-    if (visible) {
-        m_mgr->GetPane("EffectDropper").Hide();
-    } else {
-        m_mgr->GetPane("EffectDropper").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("EffectDropper", true);
 }
 
 void xLightsFrame::ShowHidePerspectivesWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("Perspectives").IsShown();
-    if (visible) {
-        m_mgr->GetPane("Perspectives").Hide();
-    } else {
-        m_mgr->GetPane("Perspectives").Show();
-    }
-    m_mgr->Update();
-    UpdateViewMenu();
+    TogglePaneVisibility("Perspectives", true);
 }
 
 void xLightsFrame::ShowHideEffectAssistWindow(wxCommandEvent& event)
 {
-    InitSequencer();
-    bool visible = m_mgr->GetPane("EffectAssist").IsShown();
-    if (visible) {
-        m_mgr->GetPane("EffectAssist").Hide();
-        // Dont set it permanently
-        //mEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
-        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_OFF;
-    } else {
-        m_mgr->GetPane("EffectAssist").Show();
-        // Dont set it permanently
-        // mEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
-        tempEffectAssistMode = EFFECT_ASSIST_ALWAYS_ON;
+    bool nowShown = false;
+    if (!TogglePaneVisibility("EffectAssist", true, &nowShown)) {
+        return;
     }
-    m_mgr->Update();
-    UpdateViewMenu();
+    // tempEffectAssistMode, not mEffectAssistMode: this toggle is a session
+    // override and must not rewrite the saved preference.
+    tempEffectAssistMode = nowShown ? EFFECT_ASSIST_ALWAYS_ON : EFFECT_ASSIST_ALWAYS_OFF;
 }
 
 TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std::string &subType)

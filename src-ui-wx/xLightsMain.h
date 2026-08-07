@@ -1153,6 +1153,14 @@ public:
     void GetRenderCacheFolder(bool& useShow, std::string& folder);
     void SetRenderCacheFolder(bool useShow, const std::string& folder);
     void UpdateViewMenu();
+    // Show/hide one AUI pane by name, then Update() + UpdateViewMenu(). Every
+    // View-menu toggle goes through here so the guards live in one place - see
+    // the implementation for what goes wrong without them. Pass initSequencer
+    // only where the caller already did: InitSequencer() can reallocate
+    // sequence data and abort a render, so it is not free to add.
+    // Returns false when there was no usable pane to toggle; `nowShown` takes
+    // the pane's new state when it did toggle.
+    bool TogglePaneVisibility(const wxString& name, bool initSequencer = false, bool* nowShown = nullptr);
 
     void GetBackupFolder(bool& useShow, std::string& folder);
     void SetBackupFolder(bool useShow, const std::string& folder);

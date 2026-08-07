@@ -28,6 +28,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix crash clicking Reverse Nodes in the submodel editor with no submodel selected
     -bug (dkulp)                 Fix crash starting or stopping playback with auto-show house preview enabled while
                                  the sequencer tab had never been opened
+    -bug (dkulp)                 Fix crash showing or hiding a panel from the View menu. Toggling a panel that
+                                 isn't registered, or one whose menu item fires during shutdown, left the window
+                                 layout describing a panel that no longer had a window
     -enh (dkulp)                 iPad - Crash reports now carry a backtrace taken at the moment of the crash,
                                  plus every thread's stack and the recent-activity trace the desktop already
                                  sent. Previously the only crash detail came from Apple a day later, with a
