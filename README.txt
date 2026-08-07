@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
     -bug (derwin12)              Bulk Controller Upload no longer stalls when a controller's FPP proxy hostname can't be resolved
+    -bug (derwin12)              Sorting the controller list by FPP Proxy, and the Multi-Controller Upload
+                                 "Select with Proxy" menu, no longer stall when a proxy hostname can't be resolved
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
     -change (dkulp)              iPad - View names are held to the same rules as the desktop - letters, numbers,
