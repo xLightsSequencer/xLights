@@ -150,6 +150,12 @@ void CustomPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
     p->SetAttribute("Max", 100);
     p->SetEditor("SpinCtrl");
     p->SetHelpString("Brightness of the background image (0 = black, 100 = full brightness).");
+
+    p = grid->Append(new wxUIntProperty("Background Image Transparency %", "CustomBkgTransparency", _custom.GetCustomBkgTransparency()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("Transparency of the background image (0 = fully opaque, 100 = fully invisible). Increase this so props/pixels positioned behind the image show through it.");
 }
 
 int CustomPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
@@ -181,6 +187,12 @@ int CustomPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
         _custom.IncrementChangeCount();
         _custom.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgBrightness");
+        return 0;
+    } else if ("CustomBkgTransparency" == event.GetPropertyName()) {
+        _custom.SetCustomBkgTransparency(event.GetValue().GetInteger());
+        _custom.IncrementChangeCount();
+        _custom.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgTransparency");
         return 0;
     } else if ("CustomModelStrings" == event.GetPropertyName()) {
         int old_string_count = _custom.GetNumStrings();

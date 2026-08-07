@@ -1789,6 +1789,9 @@ void ModelStatesPanel::RenderModel()
 {
     if (_modelPreview == nullptr || !_modelPreview->StartDrawing(mPointSize)) return;
 
+    // Draw the model (including any background image) before the selection
+    // drag box/path so the box isn't painted over by the background image.
+    model->DisplayEffectOnWindow(_modelPreview, mPointSize);
     if (m_creating_bound_rect) {
         if (m_freeform_mode) {
             _modelPreview->AddPathToAccumulator(m_paint_path);
@@ -1796,7 +1799,6 @@ void ModelStatesPanel::RenderModel()
             _modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
         }
     }
-    model->DisplayEffectOnWindow(_modelPreview, mPointSize);
     _modelPreview->EndDrawing();
 }
 
