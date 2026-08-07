@@ -18,6 +18,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)              Ripple can now trigger a new cycle from a timing track, matching Shockwave
                                  (Timing Track/Filter/Regex/Duration settings).
     -enh (derwin12)              Export House Preview Video now lets you choose the output resolution.
+    -bug (derwin12)              Fixes #6795 - the render progress dialog no longer stays on top of
+                                 other applications (was topmost system-wide, not just above xLights).
     -bug (dkulp)                 Fix crash setting a model's serial Speed in the Layout property grid. The Speed
                                  choices are built for the protocol in effect when the grid was created, so a
                                  speed picked before the grid caught up with a protocol change read past the end

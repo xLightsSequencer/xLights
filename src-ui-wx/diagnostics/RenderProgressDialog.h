@@ -42,4 +42,13 @@ class RenderProgressDialog: public wxDialog
 		//*)
 
 		DECLARE_EVENT_TABLE()
+
+	private:
+
+		// Re-raises this dialog above _owner when _owner is activated, so
+		// clicking the main frame can't bury this modeless dialog behind it
+		// (#6404) without resorting to wxSTAY_ON_TOP, which pins it above
+		// every application on the desktop, not just xLights (#6795).
+		wxWindow* _owner = nullptr;
+		void OnOwnerActivate(wxActivateEvent& event);
 };
