@@ -746,6 +746,7 @@ void BaseSerializingVisitor::Visit(const CustomModel& model) {
         attrs.Add(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
         attrs.Add(XmlNodeKeys::BkgScaleAttribute,      std::to_string(model.GetCustomBkgScale()));
         attrs.Add(XmlNodeKeys::BkgBrightnessAttribute, std::to_string(model.GetCustomBkgBrightness()));
+        attrs.Add(XmlNodeKeys::BkgTransparencyAttribute, std::to_string(model.GetCustomBkgTransparency()));
     }
     if (model.HasIndivStartNodes()) {
         int cnt = model.GetIndivStartNodesCount();

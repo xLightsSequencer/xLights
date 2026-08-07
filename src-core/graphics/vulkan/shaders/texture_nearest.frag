@@ -11,4 +11,5 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     outColor = texture(sampler2D(tex, samplerNearest), vTex) * vColor;
+    if (outColor.a == 0.0) discard;
 }

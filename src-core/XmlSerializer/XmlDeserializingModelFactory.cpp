@@ -612,6 +612,7 @@ Model* XmlDeserializingModelFactory::DeserializeCustom(pugi::xml_node node, Mode
     model->SetCustomLightness(node.attribute(XmlNodeKeys::BkgLightnessAttribute).as_int(0));
     model->SetCustomBkgScale(node.attribute(XmlNodeKeys::BkgScaleAttribute).as_int(100));
     model->SetCustomBkgBrightness(node.attribute(XmlNodeKeys::BkgBrightnessAttribute).as_int(20));
+    model->SetCustomBkgTransparency(node.attribute(XmlNodeKeys::BkgTransparencyAttribute).as_int(0));
     std::vector<std::vector<std::vector<int>>>& locations = model->GetData();
     locations = XmlSerialize::ParseCustomModelDataFromXml(node);
 
