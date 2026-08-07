@@ -14,6 +14,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Fix rotation not applying to all selected polyline models in a group
     -enh (derwin12)              Custom models have a Background Image Transparency % setting, so props
                                  positioned behind the background image show through it
+    -enh (dkulp)                 iPad - Dragging out a region of the grid with a timing track active now selects
+                                 that block of cells, and long-pressing empty grid space opens a menu to paste
+                                 into it, fill it with random effects, or drop in the armed effect
+    -enh (dkulp)                 iPad - An image, video, Glediator or shader file dropped onto the grid becomes
+                                 the matching effect at that spot
     -enh (dkulp)                 iPad - Press T to drop a timing mark at the play marker on the active timing
                                  track, and S to split the mark under it, so beats can be tapped out while the
                                  sequence plays

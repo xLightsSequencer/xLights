@@ -40,6 +40,9 @@
 #include "effects/SketchSVGImport.h"
 #include "effects/EffectManager.h"
 #include "effects/ShaderEffect.h"
+#include "effects/VideoEffect.h"
+#include "effects/PicturesEffect.h"
+#include "effects/GlediatorEffect.h"
 #include "effects/MovingHeadEffect.h"
 #include "graphics/xlGraphicsAccumulators.h"
 #include "media/AudioManager.h"
@@ -13599,6 +13602,21 @@ inline void bumpSequenceDirty(iPadRenderContext* ctx) {
     media.EmbedMedia(spath);
     bumpSequenceDirty(_context.get());
     return YES;
+}
+
+// Which effect a dropped media file should become — desktop's
+// EffectsGrid::OnDropFiles classification (EffectsGrid.cpp:1788-1812),
+// using the same core predicates so the two agree on what a file is.
+// Empty string when the file isn't something the grid can turn into an
+// effect, which is also the accept/reject answer for the drop itself.
++ (NSString*)effectNameForDroppedFile:(NSString*)path {
+    if (path.length == 0) return @"";
+    const std::string p([path UTF8String]);
+    if (VideoEffect::IsVideoFile(p)) return @"Video";
+    if (PicturesEffect::IsPictureFile(p)) return @"Pictures";
+    if (GlediatorEffect::IsGlediatorFile(p)) return @"Glediator";
+    if (ShaderEffect::IsShaderFile(p)) return @"Shader";
+    return @"";
 }
 
 - (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name {

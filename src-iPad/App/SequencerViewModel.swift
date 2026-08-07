@@ -5166,6 +5166,224 @@ class SequencerViewModel {
         return true
     }
 
+    // MARK: - Cell range (desktop EffectsGrid mCellRangeSelected)
+
+    /// A rectangle of rows × timing-mark columns. Desktop's grid keeps
+    /// the same thing in `mRangeStartRow/EndRow` + `mRangeStartCol/EndCol`
+    /// (EffectsGrid.h:419-425) and uses it as the target for paste,
+    /// Create Random Effects, and the empty-cell menu — none of which
+    /// have anywhere to land without it.
+    ///
+    /// Columns index marks on the *active* timing track, which is why a
+    /// range can only exist while one is active: a "cell" is the
+    /// intersection of a row and a timing interval. `startMS`/`endMS`
+    /// are the resolved span of those columns, cached so consumers
+    /// don't re-derive it.
+    struct CellRange: Equatable {
+        var startRow: Int
+        var endRow: Int
+        var startCol: Int
+        var endCol: Int
+        var startMS: Int
+        var endMS: Int
+    }
+
+    var cellRange: CellRange? = nil
+
+    /// Establish a cell range from a dragged region. Returns false (and
+    /// clears any existing range) when no timing track is active or the
+    /// drag misses every mark — desktop falls back to plain time-range
+    /// effect selection in exactly that case, which the marquee already
+    /// does on its own.
+    @discardableResult
+    func establishCellRange(rowStart: Int, rowEnd: Int,
+                             startMS: Int, endMS: Int) -> Bool {
+        guard let timingRow = activeTimingRowIndex else {
+            cellRange = nil
+            return false
+        }
+        let marks = rows[timingRow].effects
+        guard !marks.isEmpty else { cellRange = nil; return false }
+
+        // Columns are the marks the drag's two edges land in. A drag
+        // that starts or ends outside any mark clamps to the nearest,
+        // so dragging past the end of the track still selects to it.
+        func column(containing ms: Int) -> Int? {
+            if let i = marks.firstIndex(where: { ms >= $0.startTimeMS && ms < $0.endTimeMS }) {
+                return i
+            }
+            if ms < marks[0].startTimeMS { return 0 }
+            if ms >= marks[marks.count - 1].endTimeMS { return marks.count - 1 }
+            // Between two marks — take the next one starting after ms.
+            return marks.firstIndex(where: { $0.startTimeMS >= ms })
+        }
+        guard let c1 = column(containing: startMS),
+              let c2 = column(containing: endMS) else {
+            cellRange = nil
+            return false
+        }
+        let lo = min(c1, c2), hi = max(c1, c2)
+        let r1 = max(0, min(rowStart, rowEnd))
+        let r2 = min(rows.count - 1, max(rowStart, rowEnd))
+        guard r1 <= r2 else { cellRange = nil; return false }
+
+        cellRange = CellRange(startRow: r1, endRow: r2,
+                               startCol: lo, endCol: hi,
+                               startMS: marks[lo].startTimeMS,
+                               endMS: marks[hi].endTimeMS)
+        return true
+    }
+
+    /// Desktop's "Create Random Effects" over a cell range
+    /// (EffectsGrid.cpp:1524 `FillRandomEffects`): for every model row ×
+    /// timing column in the range, drop a random effect into the cell —
+    /// but only where the cell is empty, so an existing effect is never
+    /// overwritten. Returns how many were created.
+    ///
+    /// Desktop composes the random effect from its wx panels
+    /// (`CreateEffectStringRandom`), which don't exist here; the
+    /// equivalent is this app's own metadata-driven randomiser, already
+    /// proven by the Randomise Settings command.
+    @discardableResult
+    func createRandomEffectsInCellRange() -> Int {
+        guard let range = cellRange else { return 0 }
+        guard let timingRow = activeTimingRowIndex else { return 0 }
+        let marks = rows[timingRow].effects
+        guard range.startCol >= 0, range.endCol < marks.count else { return 0 }
+        let names = availableEffects.filter { !$0.isEmpty && $0 != "Off" }
+        guard !names.isEmpty else { return 0 }
+
+        let targetRows = cellRangeModelRows()
+        guard !targetRows.isEmpty else { return 0 }
+
+        undoManager.beginUndoGrouping()
+        var created = 0
+        for rowIndex in targetRows {
+            for col in range.startCol...range.endCol {
+                let mark = marks[col]
+                let startMS = mark.startTimeMS
+                let endMS = mark.endTimeMS
+                guard endMS > startMS else { continue }
+                // Skip occupied cells — desktop gates on
+                // GetRangeIsClearMS for the same reason.
+                let occupied = rows[rowIndex].effects.contains {
+                    $0.endTimeMS > startMS && $0.startTimeMS < endMS
+                }
+                if occupied { continue }
+
+                guard let name = names.randomElement() else { continue }
+                let settings = Self.encodeSettingsString(
+                    randomizedSettings(current: [], metadata: loadEffectMetadata(name)))
+                let idx = addEffectWithSettings(rowIndex: rowIndex, name: name,
+                                                 settings: settings,
+                                                 palette: Self.defaultPaletteString,
+                                                 startMS: startMS, endMS: endMS)
+                if idx >= 0 { created += 1 }
+            }
+        }
+        undoManager.endUndoGrouping()
+        if created > 0 {
+            undoManager.setActionName("Create Random Effects")
+            reloadRows()
+        }
+        return created
+    }
+
+    /// Paste the clipboard into the cell range's first cell, which is
+    /// what desktop's paste targets when a range exists
+    /// (EffectsGrid.cpp:467, enabled only with a cell range at :475-477)
+    /// rather than the play marker.
+    @discardableResult
+    func pasteIntoCellRange() -> Bool {
+        guard let range = cellRange, hasClipboard else { return false }
+        let targetRows = cellRangeModelRows()
+        guard let firstRow = targetRows.first else { return false }
+        pasteEffect(rowIndex: firstRow, startMS: range.startMS)
+        return true
+    }
+
+    /// Create an effect from a media file dropped on the grid
+    /// (desktop `EffectsGrid::OnDropFiles`). The file decides the effect
+    /// type; the drop point decides the row and start time, and the
+    /// effect runs to the next effect on that row or a default length,
+    /// whichever comes first. Returns false when the file isn't one the
+    /// grid can use.
+    @discardableResult
+    func createEffectFromDroppedFile(path: String, rowIndex: Int, atMS: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        guard rows[rowIndex].timing == nil else { return false }
+        let effectName = XLSequenceDocument.effectNameForDroppedFile(path)
+        guard !effectName.isEmpty else { return false }
+        _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+
+        let row = rows[rowIndex]
+        // Landing inside an existing effect is a no-op rather than an
+        // overwrite — same as a palette tap there.
+        if row.effects.contains(where: { atMS >= $0.startTimeMS && atMS < $0.endTimeMS }) {
+            return false
+        }
+        var startMS = atMS
+        var endMS = min(atMS + 5000, sequenceDurationMS)
+        var prevEnd = 0
+        var nextStart = sequenceDurationMS
+        for e in row.effects {
+            if e.endTimeMS <= atMS { prevEnd = max(prevEnd, e.endTimeMS) }
+            if e.startTimeMS >= atMS { nextStart = min(nextStart, e.startTimeMS) }
+        }
+        // An active timing track wins, matching the palette-drop rule.
+        if let cell = activeTimingCell(forMS: atMS) {
+            startMS = max(prevEnd, cell.startMS)
+            endMS = min(nextStart, cell.endMS)
+        } else {
+            startMS = max(prevEnd, startMS)
+            endMS = min(nextStart, endMS)
+        }
+        guard endMS > startMS + 10 else { return false }
+
+        // The file goes in as the effect's own filename setting; which
+        // key that is depends on the effect, so ask the metadata rather
+        // than hardcoding four spellings.
+        let stored = document.makeRelativePath(path)
+        let settings = fileSettingKey(forEffect: effectName).map { "\($0)=\(stored)" } ?? ""
+        let idx = addEffectWithSettings(rowIndex: rowIndex, name: effectName,
+                                         settings: settings,
+                                         palette: Self.defaultPaletteString,
+                                         startMS: startMS, endMS: endMS)
+        if idx >= 0 {
+            selectEffect(rowIndex: rowIndex, effectIndex: idx)
+            undoManager.setActionName("Add \(effectName) Effect")
+            return true
+        }
+        return false
+    }
+
+    /// The `E_*` setting a file-backed effect stores its path in, taken
+    /// from the effect's metadata so the four file effects don't need
+    /// their key names spelled out here.
+    private func fileSettingKey(forEffect name: String) -> String? {
+        guard let md = loadEffectMetadata(name) else { return nil }
+        let prefix = md.settingKeyPrefix
+        for prop in md.properties ?? [] {
+            if prop.controlType.lowercased() == "filepicker" {
+                return prop.settingKey(prefix: prefix)
+            }
+        }
+        return nil
+    }
+
+    func clearCellRange() {
+        cellRange = nil
+    }
+
+    /// Model rows covered by the range (timing rows are skipped — they
+    /// hold marks, not effects, so nothing fills into them).
+    func cellRangeModelRows() -> [Int] {
+        guard let r = cellRange else { return [] }
+        return (r.startRow...r.endRow).filter { idx in
+            idx >= 0 && idx < rows.count && rows[idx].timing == nil
+        }
+    }
+
     /// Row index of the first active timing track, or nil. Desktop
     /// enforces single-active through its keyboard path, so "the active
     /// track" is well-defined for these commands.

@@ -2670,6 +2670,13 @@ NS_ASSUME_NONNULL_BEGIN
 // only read, never referenced afterwards, so the caller can stage to a
 // temp file and delete it. Returns NO if the key was already cached or
 // the bytes couldn't be read.
+// Effect a dropped media file should become — "Video", "Pictures",
+// "Glediator", "Shader", or "" when the file isn't usable as an effect.
+// Uses the same core predicates the desktop grid's file drop uses, so
+// both platforms accept exactly the same set.
++ (NSString*)effectNameForDroppedFile:(NSString*)path
+    NS_SWIFT_NAME(effectNameForDroppedFile(_:));
+
 - (BOOL)embedImageFromFile:(NSString*)sourcePath asName:(NSString*)name
     NS_SWIFT_NAME(embedImage(fromFile:asName:));
 

@@ -19,7 +19,7 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | Theme | ✅ | 🟡 | ❌ | 🚫 | 🔵 | Biggest gap in one line |
 |---|---|---|---|---|---|---|
 | 01 File & show lifecycle | 72 | 47 | 34 | 8 | 18 | iPad "backup" is a per-sequence snapshot ring; no show-folder backup/restore (feasibility under the sandbox verified — it's backlog, not a platform limit) |
-| 02 Sequencer grid & editing | 117 | 36 | 31 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
+| 02 Sequencer grid & editing | 122 | 35 | 27 | 2 | 12 | No cell-range selection (blocks paste-to-region, random effects, half the context menu); AC mode absent (formally deferred) |
 | 03 Timing, lyrics & audio | 118 | 19 | 17 | 6 | 6 | No keyboard timing-mark entry during playback; dictionary editor saves unvalidated phonemes |
 | 04 Effects catalog & panels | 84 | 10 | 2 | 1 | 3 | 49/56 effects fully ✅ (52/56 render, 50/56 settings UI); gaps are assist surfaces + Moving Head preset/authoring depth |
 | 05 Color, palettes & curves | 72 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
@@ -31,14 +31,14 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 103 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 59 | 12 | 11 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **986** | **286** | **358** | **157** | **88** | |
+| **Total (01–13)** | **991** | **285** | **354** | **157** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **48** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.
 
-**Parity index:** of the 1,630 rows where an iPad status is meaningful (✅+🟡+❌), **60%** are
+**Parity index:** of the 1,630 rows where an iPad status is meaningful (✅+🟡+❌), **61%** are
 at full parity and **78%** at full-or-partial. Counting partials at half weight the iPad sits
-at **≈69% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
+at **≈70% of desktop**, with the shortfall concentrated in Layout depth (06), Import/Export
 writers (08), Preferences (11), and a long tail of small grid/file affordances. The 🚫 bucket (157) is dominated by one block: 102 automation verbs/endpoints iOS cannot host (theme 12).
 
 **The structural headline:** the iPad is not a viewer. It creates 25/28 model types, runs all
@@ -132,11 +132,12 @@ Highest-leverage first within rough effort bands.
   property kinds render; the session gained the bool/int setters to match.
 
 **Medium (bridge surface + a sheet):**
-- **Cell-range selection** (02): substrate for paste-into-region, Create Random Effects,
-  keyboard column nav, and the enable state of half the grid menu — highest-leverage single
-  grid change.
-- **Grid drop target** (02 r35–36): one `dropDestination` closes effect-drag *and* external
-  media drop.
+- ~~**Cell-range selection** (02)~~ — **DONE 2026-08-07**: `CellRange` (rows × timing-mark
+  columns) established from the marquee, with paste-into-range, Create Random Effects and the
+  empty-cell menu on top of it. Keyboard column nav is still not wired to it.
+- **Grid drop target** (02 r35–36) — **external media DONE 2026-08-07** via a
+  `UIDropInteraction` on the canvas; palette drag-onto-grid is still arm-then-tap, which is the
+  touch idiom and works, so r35 stays partial rather than blocking.
 - ~~**Per-protocol output properties** (07)~~ — **DONE 2026-08-07** for every Ethernet
   protocol: DDP, ZCPP, KiNET (incl. Version + port labelling), OPC, Twinkly, xxx Ethernet,
   plus Player Only in the caps-less fallback. **LOR Optimised's per-device tree is still

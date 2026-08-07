@@ -53,6 +53,13 @@ struct EffectCanvasActions {
     /// plus the `ms` it landed on; the outer view decides whether
     /// to create an effect (palette armed) filling the cell.
     var onDoubleTapEmpty: (_ rowIndex: Int, _ ms: Int) -> Void = { _,_ in }
+    /// Long-press over blank time on a model row. Desktop opens its
+    /// grid menu whether or not an effect was hit (EffectsGrid.cpp:437),
+    /// because paste and fill target the cell range, not an effect.
+    var onRequestEmptyCellMenu: (_ rowIndex: Int, _ ms: Int) -> Void = { _,_ in }
+    /// A media file dropped on the grid — becomes a Pictures / Video /
+    /// Glediator / Shader effect, chosen by the file itself.
+    var onDropFile: (_ rowIndex: Int, _ ms: Int, _ path: String) -> Void = { _,_,_ in }
     /// Drag-create (desktop parity): a horizontal drag across empty
     /// space on a model row, with a palette effect armed, creates a
     /// new effect spanning `[startMS, endMS]`. Fired once on drag end.
