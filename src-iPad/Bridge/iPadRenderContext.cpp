@@ -723,6 +723,74 @@ bool iPadRenderContext::SaveModelStates() {
 }
 
 bool iPadRenderContext::SaveLayoutChanges() {
+    return SaveLayoutChangesTo("", /*clearDirty*/ true);
+}
+
+namespace {
+std::string LayoutAutosavePathFor(const std::string& showDir) {
+    return showDir + "/xlights_rgbeffects.xbkp";
+}
+}  // namespace
+
+bool iPadRenderContext::HasNewerLayoutAutosave() const {
+    if (showDirectory.empty()) return false;
+    const std::string autosave = LayoutAutosavePathFor(showDirectory);
+    const std::string live = showDirectory + "/xlights_rgbeffects.xml";
+    if (!FileExists(autosave)) return false;
+    auto autoTicks = FileUtils::GetFileModTimeTicks(autosave);
+    if (!autoTicks) return false;
+    auto liveTicks = FileUtils::GetFileModTimeTicks(live);
+    // No live file at all: anything we autosaved is worth offering.
+    if (!liveTicks) return true;
+    return *autoTicks > *liveTicks;
+}
+
+bool iPadRenderContext::RestoreLayoutAutosave() {
+    if (showDirectory.empty()) return false;
+    const std::string autosave = LayoutAutosavePathFor(showDirectory);
+    const std::string live = showDirectory + "/xlights_rgbeffects.xml";
+    if (!FileExists(autosave)) return false;
+    ObtainAccessToURL(live, true);
+
+    // Keep the file we're about to replace — the same one-step
+    // recovery the ordinary save path leaves behind.
+    std::error_code ec;
+    if (FileExists(live)) {
+        std::filesystem::copy_file(live, live + ".iPad-bkp",
+                                    std::filesystem::copy_options::overwrite_existing, ec);
+        if (ec) {
+            spdlog::warn("iPadRenderContext::RestoreLayoutAutosave: backup of {} failed: {}",
+                         live, ec.message());
+            ec.clear();
+        }
+    }
+    std::filesystem::copy_file(autosave, live,
+                                std::filesystem::copy_options::overwrite_existing, ec);
+    if (ec) {
+        spdlog::error("iPadRenderContext::RestoreLayoutAutosave: copy failed: {}", ec.message());
+        return false;
+    }
+    DiscardLayoutAutosave();
+    return true;
+}
+
+void iPadRenderContext::DiscardLayoutAutosave() {
+    if (showDirectory.empty()) return;
+    std::error_code ec;
+    std::filesystem::remove(LayoutAutosavePathFor(showDirectory), ec);
+}
+
+// Autosave target: the patched document goes to
+// `xlights_rgbeffects.xbkp` (desktop's name, so either platform
+// recognises the file) and the dirty sets are left alone, so the
+// pending edits still land in the real file on the next explicit save.
+bool iPadRenderContext::AutosaveLayoutChanges() {
+    if (showDirectory.empty()) return false;
+    return SaveLayoutChangesTo(LayoutAutosavePathFor(showDirectory),
+                               /*clearDirty*/ false);
+}
+
+bool iPadRenderContext::SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty) {
     const bool hasLayoutDirt =
         !_dirtyLayoutModels.empty() ||
         !_dirtyLayoutViewObjects.empty() ||
@@ -742,7 +810,7 @@ bool iPadRenderContext::SaveLayoutChanges() {
     // J-31 — Controllers tab edits live in xlights_networks.xml.
     // Save them first; if the layout side has no other changes,
     // we're done.
-    if (_controllersDirty) {
+    if (_controllersDirty && clearDirty) {
         if (!_outputManager.Save()) {
             spdlog::warn("iPadRenderContext::SaveLayoutChanges: OutputManager::Save() failed");
             // Continue to layout save — partial saves are still
@@ -752,8 +820,12 @@ bool iPadRenderContext::SaveLayoutChanges() {
         }
         if (!hasLayoutDirt) return true;
     }
+    if (!hasLayoutDirt) return true;
 
+    // Read the live file, patch it, then write wherever the caller
+    // asked — the real file for a save, the .xbkp copy for an autosave.
     std::string rgbPath = showDirectory + "/xlights_rgbeffects.xml";
+    const std::string writePath = targetPath.empty() ? rgbPath : targetPath;
     if (!ObtainAccessToURL(rgbPath, true)) {
         spdlog::warn("iPadRenderContext::SaveLayoutChanges: ObtainAccessToURL failed for '{}' — write will likely fail", rgbPath);
     }
@@ -762,8 +834,9 @@ bool iPadRenderContext::SaveLayoutChanges() {
     // backup before overwriting. The user can `cp` it back if a
     // session of testing turns out badly. The backup intentionally
     // overwrites itself each save so it doesn't accumulate; one
-    // step of recovery is the explicit goal.
-    if (FileExists(rgbPath)) {
+    // step of recovery is the explicit goal. Skipped for an autosave,
+    // which doesn't touch the real file and so has nothing to protect.
+    if (clearDirty && FileExists(rgbPath)) {
         std::string backupPath = rgbPath + ".iPad-bkp";
         std::error_code ec;
         std::filesystem::copy_file(rgbPath, backupPath,
@@ -1266,11 +1339,13 @@ bool iPadRenderContext::SaveLayoutChanges() {
         }
     }
 
-    if (!doc.save_file(rgbPath.c_str(), "  ")) {
+    if (writePath != rgbPath) ObtainAccessToURL(writePath, true);
+    if (!doc.save_file(writePath.c_str(), "  ")) {
         spdlog::error("iPadRenderContext::SaveLayoutChanges: write failed for {}",
-                      rgbPath);
+                      writePath);
         return false;
     }
+    if (!clearDirty) return true;
     _dirtyLayoutModels.clear();
     _dirtyLayoutViewObjects.clear();
     _createdGroups.clear();

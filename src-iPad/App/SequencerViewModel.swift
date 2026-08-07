@@ -1211,6 +1211,15 @@ class SequencerViewModel {
                 temporaryShowFolderActive = false
             }
             await maybeAutoUpdateFromBaseShowFolder()
+            // A layout autosave newer than the show file means a
+            // previous session ended with unsaved layout edits. Offer
+            // it back, as desktop does at load (TabSequence.cpp:204-251).
+            // Checked after the load because the check needs the show
+            // directory; accepting reloads with the recovered file.
+            pendingLayoutAutosaveRecovery = document.hasNewerLayoutAutosave()
+            // Layout edits can happen with no sequence open, so the
+            // autosave timer starts with the show folder, not the .xsq.
+            startAutosaveTimer()
         }
         suppressRecentRecording = false
         finishLoad()
@@ -1745,6 +1754,25 @@ class SequencerViewModel {
     /// Returns true on success. Failed writes leave `isDirty`
     /// alone — the user keeps their unsaved changes and can retry.
     @discardableResult
+    /// Change the sequence's frame interval, then run desktop's
+    /// save / close / reopen cycle (`SeqSettingsDialog.cpp:2064-2072`).
+    /// The reopen is not cosmetic: `SequenceElements` rounds every
+    /// effect's start and end to the frame period as it loads
+    /// (`SequenceElements.cpp:689-692`) and drops any that collapse, so
+    /// this is what actually moves effects onto the new grid. Without
+    /// it the sequence keeps off-grid effect times that disagree with
+    /// its own declared interval.
+    func changeFrameInterval(to frameMS: Int) async -> Bool {
+        guard isSequenceLoaded, !isReadOnly else { return false }
+        let path = document.currentSequencePath()
+        guard !path.isEmpty else { return false }
+        guard document.setFrameIntervalMS(Int32(frameMS)) else { return false }
+        guard saveSequence() else { return false }
+        await closeSequence()
+        openSequence(path: path)
+        return true
+    }
+
     func saveSequence() -> Bool {
         guard isSequenceLoaded else { return false }
         // Read-only sequences can't be written back; the user must
@@ -2052,6 +2080,7 @@ class SequencerViewModel {
                                               repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
                 self?.tickAutosave()
+                self?.tickLayoutAutosave()
             }
         }
     }
@@ -2076,6 +2105,36 @@ class SequencerViewModel {
         _ = coordinatedWrite(at: autosaveBackupPath) {
             document.writeAutosaveBackup()
         }
+    }
+
+    /// Set at show-folder load when a layout autosave outlived the
+    /// session that wrote it. The UI shell presents the recovery
+    /// choice; both answers clear it.
+    var pendingLayoutAutosaveRecovery = false
+
+    /// Adopt the recovered layout: the bridge backs up the current show
+    /// file, copies the autosave over it, then we reload so the
+    /// in-memory managers come from the recovered file rather than the
+    /// one we just replaced.
+    func acceptLayoutAutosave() {
+        pendingLayoutAutosaveRecovery = false
+        guard document.restoreLayoutAutosave() else { return }
+        guard let path = showFolderPath, !path.isEmpty else { return }
+        loadShowFolder(path: path, mediaFolders: mediaFolderPaths)
+    }
+
+    func declineLayoutAutosave() {
+        pendingLayoutAutosaveRecovery = false
+        document.discardLayoutAutosave()
+    }
+
+    /// Layout autosave. Separate from the sequence autosave above
+    /// because layout edits live in the show file, not the `.xsq`, and
+    /// are protected only by an explicit Save — a crash between saves
+    /// lost them. Desktop autosaves both on the same timer.
+    private func tickLayoutAutosave() {
+        guard isShowFolderLoaded else { return }
+        _ = document.autosaveLayoutChanges()
     }
 
     /// Path of the `.xbkp` that sits alongside the current
@@ -2815,6 +2874,7 @@ class SequencerViewModel {
             } else {
                 reloadRows()
             }
+            registerCoreUndo("Fill Region From Timing Marks")
         }
     }
 
@@ -4251,6 +4311,7 @@ class SequencerViewModel {
             // Re-render is kicked off by the bridge; refresh rows
             // so the effect bars repaint with their new buffer style.
             reloadRows()
+            registerCoreUndo("Convert to Per-Model")
         }
         return n
     }
@@ -4262,7 +4323,10 @@ class SequencerViewModel {
     @discardableResult
     func promoteNodeEffects(rowIndex: Int) -> Int {
         let n = Int(document.promoteNodeEffects(onRow: Int32(rowIndex)))
-        if n > 0 { reloadRows() }
+        if n > 0 {
+            reloadRows()
+            registerCoreUndo("Promote Node Effects")
+        }
         return n
     }
 
@@ -5532,6 +5596,7 @@ class SequencerViewModel {
         guard rows[rowIndex].timing != nil else { return false }
         if !document.breakdownWords(atRow: Int32(rowIndex)) { return false }
         reloadRows()
+        registerCoreUndo("Breakdown Words")
         return true
     }
 
@@ -6881,12 +6946,32 @@ class SequencerViewModel {
     @discardableResult
     func convertDataToEffects(rowIndex: Int) -> Int {
         let n = Int(document.convertDataToEffects(onRow: Int32(rowIndex)))
+        if n > 0 { registerCoreUndo("Convert Data to Effects") }
         if n > 0 {
             clearSelection()
             reloadRows()
             undoManager.setActionName("Convert To Effects")
         }
         return n
+    }
+
+    /// Register a Foundation undo step that unwinds one step of the
+    /// shared core UndoManager.
+    ///
+    /// A few bulk ops are implemented wholly in the bridge and capture
+    /// their before-state on the core manager. Nothing on this side
+    /// ever called `UndoLastStep`, so those ops were not undoable —
+    /// their core steps only accumulated. Rather than run two stacks
+    /// that can't be ordered against each other, Foundation's stays the
+    /// single authority and the core step becomes an implementation
+    /// detail of the op it belongs to.
+    private func registerCoreUndo(_ actionName: String) {
+        undoManager.registerUndo(withTarget: self) { vm in
+            guard vm.document.undoLastCoreStep() else { return }
+            vm.clearSelection()
+            vm.reloadRows()
+        }
+        undoManager.setActionName(actionName)
     }
 
     /// Scoped effect deletes (desktop RowHeading.cpp:603-606). scope:
@@ -6897,7 +6982,7 @@ class SequencerViewModel {
         if n > 0 {
             clearSelection()
             reloadRows()
-            undoManager.setActionName(actionName)
+            registerCoreUndo(actionName)
         }
         return n
     }

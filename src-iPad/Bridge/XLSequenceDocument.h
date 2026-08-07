@@ -1428,6 +1428,27 @@ NS_ASSUME_NONNULL_BEGIN
 // commit / lose-focus / scene-close, not per-keystroke.
 - (BOOL)saveLayoutChanges;
 
+// Layout autosave — write pending layout edits to
+// `xlights_rgbeffects.xbkp` without touching the real file or clearing
+// the pending set, so unsaved layout work survives a crash. Mirrors
+// desktop's `SaveWorkingLayout()`. NO when nothing is pending.
+// Unwind one step of the shared core UndoManager — the stack a
+// handful of bulk bridge ops (scoped delete, promote node effects,
+// data-to-effects, per-model convert, word breakdown, the song-region
+// ops) record onto. Those ops capture core steps but nothing here ever
+// unwound them, so they were not undoable at all; the Swift layer now
+// registers a Foundation undo that calls this, keeping Foundation's
+// stack the single ordering authority. NO when the core stack is empty.
+- (BOOL)undoLastCoreStep;
+
+- (BOOL)autosaveLayoutChanges;
+// Recovery: is there a `.xbkp` newer than the show's rgbeffects file?
+- (BOOL)hasNewerLayoutAutosave;
+// Adopt it (backing up the file it replaces) / drop it. Call before
+// the show folder loads — both act on files, not in-memory state.
+- (BOOL)restoreLayoutAutosave;
+- (void)discardLayoutAutosave;
+
 // Phase J-2 (touch UX) — read / write the `axis_tool` member on
 // the named model's screen location. Drives which descriptor
 // handles `GetHandles` emits (translate arrows / rotate rings /

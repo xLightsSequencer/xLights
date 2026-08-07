@@ -340,6 +340,7 @@ struct ContentView: View {
         )) {
             RenderProgressSheet(viewModel: viewModel)
         }
+        .modifier(LayoutAutosaveRecoveryModifier(viewModel: viewModel))
         .sheet(isPresented: Binding(
             get: { viewModel.showingAIServices },
             set: { viewModel.showingAIServices = $0 }
@@ -1368,6 +1369,27 @@ struct SequencePickerView: View {
             waitForDownload(url: url,
                              attemptsRemaining: attemptsRemaining - 1,
                              then: complete)
+        }
+    }
+}
+
+
+/// Layout autosave recovery prompt — a `xlights_rgbeffects.xbkp` newer
+/// than the show file means a previous session ended with unsaved
+/// layout edits. Its own modifier so the app shell's modifier chain
+/// stays inside the Swift type-checker's complexity budget.
+private struct LayoutAutosaveRecoveryModifier: ViewModifier {
+    let viewModel: SequencerViewModel
+
+    func body(content: Content) -> some View {
+        content.alert("Newer Layout Autosave Found", isPresented: Binding(
+            get: { viewModel.pendingLayoutAutosaveRecovery },
+            set: { if !$0 { viewModel.pendingLayoutAutosaveRecovery = false } }
+        )) {
+            Button("Use Autosave") { viewModel.acceptLayoutAutosave() }
+            Button("Discard", role: .destructive) { viewModel.declineLayoutAutosave() }
+        } message: {
+            Text("Layout changes from a previous session were autosaved but never saved to the show file. Use the autosave, or discard it and keep the show file as it is?")
         }
     }
 }

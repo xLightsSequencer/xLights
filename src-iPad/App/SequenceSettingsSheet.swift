@@ -1038,6 +1038,24 @@ private struct RenderTab: View {
     @AppStorage("autosaveIntervalMinutes") private var autosaveInterval: Int = 5
     @State private var renderMode: String = "Erase"
 
+    /// Frame-interval change is destructive (effects snap to the new
+    /// interval, and any that collapse to zero length are dropped on
+    /// reload), so it is confirmed before it happens — twice when the
+    /// interval grows, matching desktop's two prompts.
+    @State private var pendingFrameMS: Int? = nil
+    @State private var confirmFrameChange = false
+    @State private var confirmLargerInterval = false
+
+    /// Runs the save/close/reopen cycle and leaves the picker showing
+    /// whatever the sequence actually ended up with.
+    private func applyFrameInterval(_ target: Int) {
+        pendingFrameMS = nil
+        Task { @MainActor in
+            _ = await viewModel.changeFrameInterval(to: target)
+            frameMS = Int(viewModel.document.frameIntervalMS())
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
@@ -1087,12 +1105,38 @@ private struct RenderTab: View {
                     Text("100 ms (10 FPS)").tag(100)
                 }
                 .pickerStyle(.segmented)
-                .onChange(of: frameMS) { _, new in
-                    _ = viewModel.document.setFrameIntervalMS(Int32(new))
+                .onChange(of: frameMS) { old, new in
+                    guard new != Int(viewModel.document.frameIntervalMS()) else { return }
+                    // Bounce the picker back until the change is
+                    // confirmed — the work happens in the alert.
+                    pendingFrameMS = new
+                    frameMS = old
+                    confirmFrameChange = true
                 }
-                Text("Changing the frame rate requires a full re-render on next save.")
+                Text("Changing the frame interval saves, closes and reopens the sequence. Effects move to the nearest interval.")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+            }
+            .alert("Change Frame Interval?", isPresented: $confirmFrameChange) {
+                Button("Cancel", role: .cancel) { pendingFrameMS = nil }
+                Button("Continue") {
+                    guard let target = pendingFrameMS else { return }
+                    if target > Int(viewModel.document.frameIntervalMS()) {
+                        confirmLargerInterval = true
+                    } else {
+                        applyFrameInterval(target)
+                    }
+                }
+            } message: {
+                Text("The sequence will be saved, closed and reopened, and effects will move to the nearest interval.")
+            }
+            .alert("Longer Interval", isPresented: $confirmLargerInterval) {
+                Button("Cancel", role: .cancel) { pendingFrameMS = nil }
+                Button("Continue", role: .destructive) {
+                    if let target = pendingFrameMS { applyFrameInterval(target) }
+                }
+            } message: {
+                Text("Moving to a longer interval can shorten small effects, and any that end up shorter than one frame are dropped.")
             }
 
             Divider()

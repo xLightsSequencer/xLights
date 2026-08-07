@@ -5407,6 +5407,32 @@ static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool vi
     return changed;
 }
 
+- (BOOL)undoLastCoreStep {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto& mgr = _context->GetSequenceElements().get_undo_mgr();
+    if (!mgr.CanUndo()) return NO;
+    mgr.UndoLastStep();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
+- (BOOL)autosaveLayoutChanges {
+    if (!_context) return NO;
+    return _context->AutosaveLayoutChanges() ? YES : NO;
+}
+
+- (BOOL)hasNewerLayoutAutosave {
+    return (_context && _context->HasNewerLayoutAutosave()) ? YES : NO;
+}
+
+- (BOOL)restoreLayoutAutosave {
+    return (_context && _context->RestoreLayoutAutosave()) ? YES : NO;
+}
+
+- (void)discardLayoutAutosave {
+    if (_context) _context->DiscardLayoutAutosave();
+}
+
 - (BOOL)saveLayoutChanges {
     if (!_context) return NO;
     return _context->SaveLayoutChanges() ? YES : NO;

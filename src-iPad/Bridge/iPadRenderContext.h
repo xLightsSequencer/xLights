@@ -639,6 +639,32 @@ public:
     void MarkControllersDirty() { _controllersDirty = true; }
     bool AreControllersDirty() const { return _controllersDirty; }
     bool SaveLayoutChanges();
+    // Layout autosave: write the pending edits to
+    // `xlights_rgbeffects.xbkp` without touching the real file or
+    // clearing the dirty sets, so unsaved layout work survives a crash
+    // or a force-quit. Desktop's equivalent is
+    // `SaveWorkingLayout()` → `SaveEffectsFile(true)`; it can rebuild
+    // the whole file from memory, whereas this patches a copy of the
+    // live file, which is why the two share only the file name.
+    // Returns false when there is nothing pending or the write fails.
+    bool AutosaveLayoutChanges();
+    // True when a `.xbkp` sits alongside the show's rgbeffects file and
+    // is newer than it — an autosave that outlived the session that
+    // wrote it. Desktop offers the same file back at load
+    // (TabSequence.cpp:204-251).
+    bool HasNewerLayoutAutosave() const;
+    // Adopt the autosave: back up the current rgbeffects file, then
+    // copy the `.xbkp` over it. Call before the show loads.
+    bool RestoreLayoutAutosave();
+    // Drop a stale/declined autosave so it stops being offered.
+    void DiscardLayoutAutosave();
+
+private:
+    // Shared body of SaveLayoutChanges / AutosaveLayoutChanges. Empty
+    // targetPath means the real rgbeffects file.
+    bool SaveLayoutChangesTo(const std::string& targetPath, bool clearDirty);
+
+public:
     // Clear the dirty set without writing to disk — used after a
     // Discard Changes that has rolled back every in-memory edit
     // through the undo stack. The undo restores re-marked every

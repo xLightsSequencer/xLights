@@ -11,6 +11,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.16  August ??, 2026
+    -enh (dkulp)                 iPad - Layout changes are now autosaved. If the app is closed or crashes with
+                                 unsaved layout work, the next open offers the autosaved copy back
+    -bug (dkulp)                 iPad - Changing a sequence's frame interval now saves, closes and reopens the
+                                 sequence so effects move onto the new interval, as the desktop does. It asks
+                                 first, and warns again when moving to a longer interval
+    -bug (dkulp)                 iPad - Delete Submodel/Strand/Node Effects, Promote Node Effects, Convert Data
+                                 to Effects, Convert to Per-Model, Breakdown Words and Fill Region From Timing
+                                 Marks can be undone. They previously could not be
     -bug (dkulp)                 iPad - Playback now follows the audio track picked in the waveform, so selecting
                                  a stem plays that stem. Switching tracks while playing pauses first
     -bug (dkulp)                 iPad - A newly dropped State effect starts on the model's first state, and a
